@@ -521,7 +521,6 @@ class RequestResponseLog(object):
                     except ObjectDoesNotExist:
                         pass
         self._sync_app_name()
-
         return self.log_msg
 
 ##############################################################################

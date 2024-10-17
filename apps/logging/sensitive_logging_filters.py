@@ -19,10 +19,6 @@ MBI_PATTERN = f'({MBI_WITH_HYPHEN_PATTERN}|{MBI_WITHOUT_HYPHEN_PATTERN})'
 SENSITIVE_DATA_FILTER = "sensitive_data_filter"
 
 
-def has_mbi_match(text):
-    return bool(re.search(MBI_PATTERN, text, flags=re.VERBOSE))
-
-
 def mask_if_has_mbi(text):
     return re.sub(MBI_PATTERN, '***MBI***', str(text), flags=re.VERBOSE)
 
@@ -45,7 +41,7 @@ def mask_mbi(value_to_mask):
     if isinstance(value_to_mask, dict):
         for key, value in value_to_mask.items():
             if is_not_primitive(value):
-                mask_mbi(value)
+                value_to_mask[key] = mask_mbi(value)
             else:
                 value_to_mask[key] = mask_if_has_mbi(value)
 
@@ -61,9 +57,3 @@ class SensitiveDataFilter(logging.Filter):
             return True
         except Exception:
             pass
-
-    def mask_sensitive_args(self, args):
-        if isinstance(args, dict):
-            return mask_mbi(dict)
-
-        return tuple([mask_if_has_mbi(arg) for arg in args])

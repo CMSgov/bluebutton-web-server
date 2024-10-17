@@ -52,10 +52,35 @@ class Check_IntFromText_Test(TestCase):
 
 
 class MBI_tests(TestCase):
-    """ Check that text gets converted to Int """
+
+    def test_mbi_match_dict(self):
+        valid_mbi = "1EG4-TE5-MK74"
+
+        my_dict = {
+            'key1': valid_mbi,
+            'key2': {
+                'key4': valid_mbi
+            },
+            'key3': (valid_mbi, valid_mbi),
+            'key5': [valid_mbi, valid_mbi]
+        }
+
+        masked_mbi_dict = mask_mbi(my_dict)
+        masked_mbi_string = str(masked_mbi_dict)
+        self.assertIn('***MBI***', masked_mbi_string)
+        self.assertNotIn(valid_mbi, masked_mbi_string)
+
+        mbi_list = [valid_mbi, valid_mbi]
+        masked_mbi_list = mask_mbi(mbi_list)
+        self.assertIn('***MBI***', masked_mbi_list)
+        self.assertNotIn(valid_mbi, masked_mbi_list)
+
+        mbi_tuple = (valid_mbi, valid_mbi)
+        masked_mbi_tuple = mask_mbi(mbi_tuple)
+        self.assertIn('***MBI***', masked_mbi_tuple)
+        self.assertNotIn(valid_mbi, masked_mbi_tuple)
 
     def test_mbi_match(self):
-        """ Check we get integers """
 
         mbi_test_list = [
             # Valid MBI
@@ -282,6 +307,10 @@ class MBI_tests(TestCase):
             if expected:
                 self.assertIn('***MBI***', masked_uppercase_text)
                 self.assertIn('***MBI***', masked_mbi_lowercase_text)
+                self.assertNotIn(mbi_value, masked_uppercase_text)
+                self.assertNotIn(mbi_value.lower(), masked_mbi_lowercase_text)
             else:
                 self.assertNotIn('***MBI***', masked_uppercase_text)
                 self.assertNotIn('***MBI***', masked_mbi_lowercase_text)
+                self.assertIn(mbi_value, masked_uppercase_text)
+                self.assertIn(mbi_value.lower(), masked_mbi_lowercase_text)
