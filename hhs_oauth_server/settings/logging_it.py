@@ -21,7 +21,8 @@ if logging_handlers is None:
     raise ValueError("Bad settings, expecting handlers defined in settings.LOGGING")
 
 logging_handlers['file'] = {'class': 'logging.FileHandler',
-                            'filename': logfile_path, }
+                            'filename': logfile_path,
+                            "filters": [SENSITIVE_DATA_FILTER]}
 
 loggers = LOGGING.get('loggers')
 
