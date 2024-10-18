@@ -11,6 +11,7 @@ from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
 
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
+from apps.logging.utils import lookup_language
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -57,7 +58,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         mbi_hash=slsx_client.mbi_hash,
         hicn_hash=slsx_client.hicn_hash, request=request
     )
-
+    # splunk auth flow baseSearch5 baseSearch6a
+    lang = lookup_language(request)
     log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
         "subject": slsx_client.user_id,
@@ -67,6 +69,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         "hash_lookup_type": hash_lookup_type,
         "crosswalk": {},
         "crosswalk_before": {},
+        "auth_language": lang,
     }
 
     # Init for types of crosswalk updates.
@@ -177,7 +180,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
 def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_id_type="H", request=None):
 
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
-
+    # splunk dashboard auth flow baseSearch6b
+    lang = lookup_language(request)
     log_dict = {
         "type": "mymedicare_cb:create_beneficiary_record",
         "username": slsx_client.user_id,
@@ -185,6 +189,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         "user_mbi_hash": slsx_client.mbi_hash,
         "user_hicn_hash": slsx_client.hicn_hash,
         "crosswalk": {},
+        "auth_language": lang,
     }
 
     _validate_asserts(logger, log_dict, [
