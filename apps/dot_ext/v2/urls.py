@@ -15,6 +15,7 @@ base_urlpatterns = [
     ),
     path("token/", views.TokenView.as_view(), name="token-v2"),
     path("revoke_token/", views.RevokeTokenView.as_view(), name="revoke-token-v2"),
+    path("revoke/", views.RevokeView.as_view(), name="revoke-v2"),
     path("introspect/", views.IntrospectTokenView.as_view(), name="introspect-v2"),
 ]
 
