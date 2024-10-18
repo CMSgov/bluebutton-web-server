@@ -431,7 +431,6 @@ LOGGING = env(
             'django': {
                 'handlers': ['console'],
                 'level': 'INFO',
-                'propagate': True,
             },
         },
     },

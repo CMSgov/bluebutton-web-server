@@ -23,11 +23,6 @@ def mask_if_has_mbi(text):
     return re.sub(MBI_PATTERN, '***MBI***', str(text), flags=re.VERBOSE)
 
 
-def is_not_primitive(value):
-    primitive_types = (int, float, bool, str, bytes)
-    return not isinstance(value, primitive_types)
-
-
 def mask_mbi(value_to_mask):
     if isinstance(value_to_mask, str):
         return mask_if_has_mbi(value_to_mask)
@@ -40,10 +35,7 @@ def mask_mbi(value_to_mask):
 
     if isinstance(value_to_mask, dict):
         for key, value in value_to_mask.items():
-            if is_not_primitive(value):
-                value_to_mask[key] = mask_mbi(value)
-            else:
-                value_to_mask[key] = mask_if_has_mbi(value)
+            value_to_mask[key] = mask_mbi(value)
 
     return value_to_mask
 
