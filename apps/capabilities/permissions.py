@@ -32,18 +32,25 @@ class TokenHasProtectedCapability(permissions.BasePermission):
             return True
 
         if hasattr(token, "scope"):  # OAuth 2
+            token_scopes = token.scope.split()
             scopes = list(ProtectedCapability.objects.filter(
-                slug__in=token.scope.split()
+                slug__in=token_scopes
             ).values_list('protected_resources', flat=True).all())
-            for scope in scopes:
-                for method, path in json.loads(scope):
-                    if method != request.method:
-                        continue
-                    if path == request.path:
-                        return True
-                    if re.fullmatch(path, request.path) is not None:
-                        return True
-            return False
+
+            # this is a shorterm fix to reject all tokens that do not have either
+            # patient/coverage.read or patient/ExplanationOfBenefit.read
+            if ("patient/Coverage.read" in token_scopes) or ("patient/ExplanationOfBenefit.read" in token_scopes):
+                for scope in scopes:
+                    for method, path in json.loads(scope):
+                        if method != request.method:
+                            continue
+                        if path == request.path:
+                            return True
+                        if re.fullmatch(path, request.path) is not None:
+                            return True
+                return False
+            else:
+                return False
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
             mesg = ("TokenHasScope requires the `oauth2_provider.rest_framework.OAuth2Authentication`"

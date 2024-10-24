@@ -1,4 +1,5 @@
 import os
+from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
 import dj_database_url
 import socket
 import datetime
@@ -377,6 +378,12 @@ LOGGING = env(
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "verbose",
+                "filters": [SENSITIVE_DATA_FILTER],
+            }
+        },
+        "filters": {
+            "sensitive_data_filter": {
+                "()": SensitiveDataFilter,
             }
         },
         "loggers": {
@@ -420,6 +427,10 @@ LOGGING = env(
             "performance": {
                 "handlers": ["console"],
                 "level": "INFO",
+            },
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
             },
         },
     },
