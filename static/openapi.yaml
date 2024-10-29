@@ -717,6 +717,8 @@ components:
           type: string
         authorization_endpoint: 
           type: string
+        revocation_endpoint:
+          type: string
         token_endpoint: 
           type: string
         userinfo_endpoint: 
@@ -745,6 +747,8 @@ components:
         issuer: 
           type: string
         authorization_endpoint: 
+          type: string
+        revocation_endpoint:
           type: string
         token_endpoint: 
           type: string
@@ -812,6 +816,7 @@ components:
       value:
         issuer: 'https://sandbox.bluebutton.cms.gov'
         authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
         token_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
         userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/connect/userinfo'
         ui_locales_supported:
@@ -830,6 +835,7 @@ components:
       value:
         issuer: 'https://sandbox.bluebutton.cms.gov'
         authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
         token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
         userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/connect/userinfo'
         ui_locales_supported:
@@ -1230,6 +1236,8 @@ components:
                       valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
                     - url: authorize
                       valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
+                    - url: revoke
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
 
     V2FhirMetadataExample:
       value:
@@ -1665,6 +1673,8 @@ components:
                       valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
                     - url: authorize
                       valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+                    - url: revoke
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
     
     V1UserInfoExample:
       value:
