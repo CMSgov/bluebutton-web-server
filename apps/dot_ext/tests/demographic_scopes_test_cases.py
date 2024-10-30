@@ -68,7 +68,7 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_form_is_valid": True,
-        "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
+        "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
     "test 2: share_demographic_scopes = False": {
         # Request:
