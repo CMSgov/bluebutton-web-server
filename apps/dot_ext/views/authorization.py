@@ -20,7 +20,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauth2_provider.models import get_application_model
-from oauthlib import oauth2
+from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 import html
@@ -184,7 +184,7 @@ class AuthorizationView(DotAuthorizationView):
                 # Since the create_authorization_response will re-inject scopes even when none are
                 # valid, we want to pre-emptively treat this as an error case
                 raise OAuthToolkitError(
-                    error=oauth2.AccessDeniedError(state=credentials.get("state", None)), redirect_uri=credentials["redirect_uri"]
+                    error=AccessDeniedError(state=credentials.get("state", None)), redirect_uri=credentials["redirect_uri"]
                 )
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
