@@ -6,7 +6,7 @@ from time import strftime
 import waffle
 from waffle import get_waffle_flag_model
 
-from django.http.response import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -21,7 +21,6 @@ from oauth2_provider.views.introspect import (
 )
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
-from rest_framework import status as http_status
 from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -189,7 +188,7 @@ class AuthorizationView(DotAuthorizationView):
                 sender=self,
                 request=self.request,
                 auth_status="FAIL",
-                auth_status_code=http_status.HTTP_400_BAD_REQUEST,
+                auth_status_code=302,
                 user=self.request.user,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
@@ -198,7 +197,7 @@ class AuthorizationView(DotAuthorizationView):
                 access_token_delete_cnt=access_token_delete_cnt,
                 refresh_token_delete_cnt=refresh_token_delete_cnt,
                 data_access_grant_delete_cnt=data_access_grant_delete_cnt)
-            return JsonResponse({"error": 'Requested scopes denied'}, status=http_status.HTTP_400_BAD_REQUEST)
+            return self.error_response('Requested scopes denied', application)
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
