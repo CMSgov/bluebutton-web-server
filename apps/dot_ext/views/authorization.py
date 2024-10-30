@@ -180,15 +180,15 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
+            if not scopes:
+                raise oauth2.AccessDeniedError(state=credentials.get("state", None))
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
-            if not scopes:
-                raise oauth2.AccessDeniedError(state=credentials.get("state", None))
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
 
-            if allow is False:
+            if allow is False or not scopes:
                 (data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
