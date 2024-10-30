@@ -198,7 +198,7 @@ class AuthorizationView(DotAuthorizationView):
                 access_token_delete_cnt=access_token_delete_cnt,
                 refresh_token_delete_cnt=refresh_token_delete_cnt,
                 data_access_grant_delete_cnt=data_access_grant_delete_cnt)
-            return JsonResponse({"error": 'The state parameter is required'}, status=http_status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"error": 'Requested scopes denied'}, status=http_status.HTTP_400_BAD_REQUEST)
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
