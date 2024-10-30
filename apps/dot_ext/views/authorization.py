@@ -6,7 +6,7 @@ from time import strftime
 import waffle
 from waffle import get_waffle_flag_model
 
-from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.http.response import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -21,6 +21,7 @@ from oauth2_provider.views.introspect import (
 )
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from rest_framework import status as http_status
 from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -184,7 +185,20 @@ class AuthorizationView(DotAuthorizationView):
                 refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         if not scopes:
-            return self.error_response("No scopes", application)
+            beneficiary_authorized_application.send(
+                sender=self,
+                request=self.request,
+                auth_status="FAIL",
+                auth_status_code=http_status.HTTP_400_BAD_REQUEST,
+                user=self.request.user,
+                application=application,
+                share_demographic_scopes=share_demographic_scopes,
+                scopes=scopes,
+                allow=allow,
+                access_token_delete_cnt=access_token_delete_cnt,
+                refresh_token_delete_cnt=refresh_token_delete_cnt,
+                data_access_grant_delete_cnt=data_access_grant_delete_cnt)
+            return JsonResponse({"error": 'The state parameter is required'}, status=http_status.HTTP_400_BAD_REQUEST)
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
