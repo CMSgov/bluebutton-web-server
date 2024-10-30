@@ -181,11 +181,15 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             if not scopes:
-                raise oauth2.AccessDeniedError(state=credentials.get("state", None))
+                # Since the create_authorization_response will re-inject scopes even when none are
+                # valid, we want to pre-emptively treat this as an error case
+                raise OAuthToolkitError(
+                    error=oauth2.AccessDeniedError(state=credentials.get("state", None)), redirect_uri=credentials["redirect_uri"]
+                )
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
-        except (oauth2.AccessDeniedError, OAuthToolkitError) as error:
+        except OAuthToolkitError as error:
             response = self.error_response(error, application)
 
             if allow is False or not scopes:
