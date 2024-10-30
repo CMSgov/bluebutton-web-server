@@ -20,6 +20,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauth2_provider.models import get_application_model
+from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 import html
@@ -197,7 +198,7 @@ class AuthorizationView(DotAuthorizationView):
                 access_token_delete_cnt=access_token_delete_cnt,
                 refresh_token_delete_cnt=refresh_token_delete_cnt,
                 data_access_grant_delete_cnt=data_access_grant_delete_cnt)
-            return self.error_response('Requested scopes denied', application)
+            raise AccessDeniedError(state=credentials.get("state", None))
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
