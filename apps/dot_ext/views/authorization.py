@@ -20,7 +20,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauth2_provider.models import get_application_model
-from oauthlib.oauth2 import AccessDeniedError
+from oauthlib import oauth2
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 import html
@@ -179,32 +179,19 @@ class AuthorizationView(DotAuthorizationView):
         access_token_delete_cnt = 0
         refresh_token_delete_cnt = 0
 
-        if allow is False:
-            (data_access_grant_delete_cnt,
-                access_token_delete_cnt,
-                refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
-
-        if not scopes:
-            beneficiary_authorized_application.send(
-                sender=self,
-                request=self.request,
-                auth_status="FAIL",
-                auth_status_code=302,
-                user=self.request.user,
-                application=application,
-                share_demographic_scopes=share_demographic_scopes,
-                scopes=scopes,
-                allow=allow,
-                access_token_delete_cnt=access_token_delete_cnt,
-                refresh_token_delete_cnt=refresh_token_delete_cnt,
-                data_access_grant_delete_cnt=data_access_grant_delete_cnt)
-            raise AccessDeniedError(state=credentials.get("state", None))
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
+            if not scopes:
+                raise oauth2.AccessDeniedError(state=credentials.get("state", None))
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
+
+            if allow is False:
+                (data_access_grant_delete_cnt,
+                    access_token_delete_cnt,
+                    refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
