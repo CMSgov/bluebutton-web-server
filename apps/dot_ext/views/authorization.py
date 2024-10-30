@@ -178,11 +178,10 @@ class AuthorizationView(DotAuthorizationView):
         access_token_delete_cnt = 0
         refresh_token_delete_cnt = 0
 
-        # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
-        if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
+        if allow is False:
             (data_access_grant_delete_cnt,
-             access_token_delete_cnt,
-             refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                access_token_delete_cnt,
+                refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         if not scopes:
             return self.error_response("No scopes", application)
@@ -192,11 +191,6 @@ class AuthorizationView(DotAuthorizationView):
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
-
-            if allow is False:
-                (data_access_grant_delete_cnt,
-                 access_token_delete_cnt,
-                 refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -212,6 +206,12 @@ class AuthorizationView(DotAuthorizationView):
                 refresh_token_delete_cnt=refresh_token_delete_cnt,
                 data_access_grant_delete_cnt=data_access_grant_delete_cnt)
             return response
+
+        # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
+        if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
+            (data_access_grant_delete_cnt,
+             access_token_delete_cnt,
+             refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         beneficiary_authorized_application.send(
             sender=self,
