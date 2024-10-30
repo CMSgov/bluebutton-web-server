@@ -636,12 +636,16 @@ def build_oauth_resource(request, v2=False, format_type="json"):
         <extension url="authorize">
             <valueUri>%s</valueUri>
         </extension>
+        <extension url="revoke">
+            <valueUri>%s</valueUri>
+        </extension>
     </extension>
 
 </security>
         """ % (
             endpoints["token_endpoint"],
             endpoints["authorization_endpoint"],
+            endpoints["revocation_endpoint"],
         )
 
     else:  # json
@@ -680,6 +684,7 @@ def build_oauth_resource(request, v2=False, format_type="json"):
                         "url": "authorize",
                         "valueUri": endpoints["authorization_endpoint"],
                     },
+                    {"url": "revoke", "valueUri": endpoints["revocation_endpoint"]},
                 ],
             }
         ]
