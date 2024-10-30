@@ -6,6 +6,7 @@ from time import strftime
 import waffle
 from waffle import get_waffle_flag_model
 
+from django.conf import settings
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
@@ -170,8 +171,15 @@ class AuthorizationView(DotAuthorizationView):
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
 
         # Set scopes to those available to application and beneficiary demographic info choices
-        scopes = ' '.join([s for s in scopes.split(" ")
-                          if s in application_available_scopes])
+        if share_demographic_scopes:
+            scopes = ' '.join(
+                [s for s in scopes.split(" ") if s in application_available_scopes]
+            )
+        else:
+            scopes = ' '.join(
+                [s for s in scopes.split(" ")
+                 if s in application_available_scopes and s not in settings.BENE_PERSONAL_INFO_SCOPES]
+            )
 
         # Init deleted counts
         data_access_grant_delete_cnt = 0

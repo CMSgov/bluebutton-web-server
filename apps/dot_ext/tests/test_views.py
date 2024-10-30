@@ -1,6 +1,5 @@
 import json
 import base64
-import unittest
 from datetime import date, timedelta
 
 from django.conf import settings
@@ -163,18 +162,15 @@ class TestAuthorizationView(BaseApiTest):
         # and here we test that only the capability-a scope has been issued
         self.assertEqual(content["scope"], "capability-a")
 
-    @unittest.skip("Broke with quick fix")
     def test_post_with_share_demographic_scopes(self):
         # Test with-out new_auth switch
         self.testing_post_with_share_demographic_scopes()
 
-    @unittest.skip("Broke with quick fix")
     @override_switch("new_auth", active=True)
     def test_post_with_share_demographic_scopes_new_auth_switch(self):
         # Test with new_auth switch.
         self.testing_post_with_share_demographic_scopes()
 
-    @unittest.skip("Broke with quick fix")
     @override_switch("require-scopes", active=True)
     def testing_post_with_share_demographic_scopes(self):
         """
@@ -206,6 +202,7 @@ class TestAuthorizationView(BaseApiTest):
         # Loop through test cases in dictionary
         cases = VIEW_OAUTH2_SCOPES_TEST_CASES
         for case in cases:
+            print(case)
             # Setup request parameters for test case
             request_bene_share_demographic_scopes = cases[case][
                 "request_bene_share_demographic_scopes"
