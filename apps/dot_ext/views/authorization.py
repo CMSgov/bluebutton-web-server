@@ -185,13 +185,13 @@ class AuthorizationView(DotAuthorizationView):
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
-        except OAuthToolkitError as error:
+        except (oauth2.AccessDeniedError, OAuthToolkitError) as error:
             response = self.error_response(error, application)
 
             if allow is False or not scopes:
                 (data_access_grant_delete_cnt,
-                    access_token_delete_cnt,
-                    refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                 access_token_delete_cnt,
+                 refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
