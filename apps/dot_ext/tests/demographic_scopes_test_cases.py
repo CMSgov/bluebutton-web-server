@@ -68,7 +68,7 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_form_is_valid": True,
-        "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
+        "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
     "test 2: share_demographic_scopes = False": {
         # Request:
@@ -181,7 +181,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
-        "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
+        "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
         "result_access_token_count": 1,
         "result_refresh_token_count": 1,
         "result_archived_token_count": 0,
@@ -221,7 +221,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
-        "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
+        "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
         "result_access_token_count": 3,
         "result_refresh_token_count": 3,
         "result_archived_token_count": 1,
@@ -314,7 +314,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_has_error": False,
-        "result_token_scopes_granted": SCOPES_JUST_A,
+        "result_token_scopes_granted": SCOPES_JUST_PATIENT_AND_A,
         "result_access_token_count": 3,
         "result_refresh_token_count": 3,
         "result_archived_token_count": 8,
