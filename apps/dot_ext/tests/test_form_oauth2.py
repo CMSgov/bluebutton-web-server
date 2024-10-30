@@ -31,7 +31,6 @@ class TestSimpleAllowFormForm(BaseApiTest):
         # Loop through test cases in dictionary.
         cases = FORM_OAUTH2_SCOPES_TEST_CASES
         for case in cases:
-            print(case)
             # Setup request parameters for test case.
             request_bene_share_demographic_scopes = cases[case]["request_bene_share_demographic_scopes"]
             request_scopes = cases[case]["request_scopes"]
