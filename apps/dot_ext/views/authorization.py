@@ -171,7 +171,7 @@ class AuthorizationView(DotAuthorizationView):
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
 
         # Set scopes to those available to application and beneficiary demographic info choices
-        if share_demographic_scopes:
+        if share_demographic_scopes == "True":
             scopes = ' '.join(
                 [s for s in scopes.split(" ") if s in application_available_scopes]
             )
