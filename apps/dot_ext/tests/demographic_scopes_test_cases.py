@@ -47,7 +47,7 @@ SCOPES_TO_URL_BASE_PATH = {
     --------------------------------------------------
     USED in the following test:
       apps.dot_ext.tests.test_form_oauth2
-                        .TestSimpleAllowFormForm.test_form()
+                        .TestSimpleAllowForm.test_form()
     Test case dictionary key and value meanings:
     REQUEST PARAMETERS:
       These are used to setup the authorization request.
@@ -68,7 +68,7 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_form_is_valid": True,
-        "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
+        "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
     "test 2: share_demographic_scopes = False": {
         # Request:
