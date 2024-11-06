@@ -335,7 +335,7 @@ class SimpleAllowForm(DotAllowForm):
             scope = ""
 
         # Remove demographic information scopes, if beneficiary is not sharing
-        if cleaned_data.get("share_demographic_scopes") == "False":
+        if cleaned_data.get("share_demographic_scopes") != "True":
             cleaned_data["scope"] = " ".join(
                 [
                     s

@@ -1,5 +1,4 @@
 import json
-import unittest
 
 from django.contrib.auth.models import Group
 from django.test import TestCase
@@ -41,7 +40,6 @@ class TestTokenHasProtectedCapabilityScopesSwitchTrue(TestCase):
             protected_resources=json.dumps([["POST", "/path"]]),
         )
 
-    @unittest.skip("Broke with quick fix")
     def test_request_is_protected(self):
         request = SimpleRequest("scope")
         request.method = "GET"
