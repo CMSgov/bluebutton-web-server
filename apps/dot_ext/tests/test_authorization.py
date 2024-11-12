@@ -575,7 +575,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
         tkn = response.json()
-        expiration_date_string = strftime('%Y-%m-%d %H:%M:%SZ', expiration_date.timetuple())
+        expiration_date_string = strftime('%Y-%m-%dT%H:%M:%SZ', expiration_date.timetuple())
         self.assertEqual(tkn["access_grant_expiration"][:-4], expiration_date_string[:-4])
 
     def test_revoke_endpoint(self):

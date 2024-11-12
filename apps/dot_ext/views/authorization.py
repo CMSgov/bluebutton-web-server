@@ -329,13 +329,13 @@ class TokenView(DotTokenView):
                             application=app
                         )
                         if dag.expiration_date is not None:
-                            dag_expiry = strftime('%Y-%m-%d %H:%M:%SZ', dag.expiration_date.timetuple())
+                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ""
 
                 elif app.data_access_type == "ONE_TIME":
                     expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
-                    dag_expiry = expires_at.strftime('%Y-%m-%d %H:%M:%SZ')
+                    dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
 
