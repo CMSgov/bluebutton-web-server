@@ -322,22 +322,24 @@ class TokenView(DotTokenView):
                     sender=self, request=request,
                     token=token)
 
-                if app.data_access_type == "THIRTEEN_MONTH":
-                    try:
-                        dag = DataAccessGrant.objects.get(
-                            beneficiary=token.user,
-                            application=app
-                        )
-                        if dag.expiration_date is not None:
-                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
-                    except DataAccessGrant.DoesNotExist:
-                        dag_expiry = ""
+                flag = get_waffle_flag_model().get("limit_data_access")
+                if flag.rollout or (flag.id is not None and flag.is_active_for_user(app.user)):
+                    if app.data_access_type == "THIRTEEN_MONTH":
+                        try:
+                            dag = DataAccessGrant.objects.get(
+                                beneficiary=token.user,
+                                application=app
+                            )
+                            if dag.expiration_date is not None:
+                                dag_expiry = strftime('%Y-%m-%d %H:%M:%SZ', dag.expiration_date.timetuple())
+                        except DataAccessGrant.DoesNotExist:
+                            dag_expiry = ""
 
-                elif app.data_access_type == "ONE_TIME":
-                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
-                    dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
-                elif app.data_access_type == "RESEARCH_STUDY":
-                    dag_expiry = ""
+                    elif app.data_access_type == "ONE_TIME":
+                        expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
+                        dag_expiry = expires_at.strftime('%Y-%m-%d %H:%M:%SZ')
+                    elif app.data_access_type == "RESEARCH_STUDY":
+                        dag_expiry = ""
 
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
