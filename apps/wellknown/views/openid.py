@@ -61,6 +61,7 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
     data["issuer"] = issuer
     data["authorization_endpoint"] = issuer + \
         reverse('oauth2_provider:authorize' if not v2 else 'oauth2_provider_v2:authorize-v2')
+    data["revocation_endpoint"] = issuer + reverse('oauth2_provider:revoke')
     data["token_endpoint"] = issuer + \
         reverse('oauth2_provider:token' if not v2 else 'oauth2_provider_v2:token-v2')
     data["userinfo_endpoint"] = issuer + \

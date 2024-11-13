@@ -2,7 +2,6 @@ import os
 from enum import Enum
 from selenium.webdriver.common.by import By
 
-
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
 PROD_URL = 'https://api.bluebutton.cms.gov'
@@ -25,6 +24,7 @@ class Action(Enum):
     VALIDATE_EMAIL_NOTIFICATION = 13
     CHECK_DATE_FORMAT = 14
     COPY_LINK_AND_LOAD_WITH_PARAM = 15
+    FIND_MSG_BY_CLASS = 16
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -119,7 +119,7 @@ AUTH_SCREEN_ES_EXPIRE_INFO_TXT = "TestApp tendrá acceso a sus datos durante 13 
 # regex for date formats
 AUTH_SCREEN_ES_DATE_FORMAT = "^(?P<day>\\d{1,2}) de (?P<month>\\w+) de (?P<year>\\d{4})"
 # Django en locale date format is 3 letter abbrev plus period or full month name (e.g. March, May)
-AUTH_SCREEN_EN_DATE_FORMAT = "^(?P<month>\\w{3}\\.|\\w+) (?P<day>\\d{1,2}), (?P<year>\\d{4})"
+AUTH_SCREEN_EN_DATE_FORMAT = "^(?P<month>\\w{3,4}\\.|\\w+) (?P<day>\\d{1,2}), (?P<year>\\d{4})"
 SLSX_LOGIN_BUTTON_SPANISH = "Entrar"
 
 # app form
@@ -140,8 +140,8 @@ APP_CSS_SELECTOR_DELETE_APP = ".cta-button:nth-child(2)"
 # SLSX login form
 SLSX_TXT_FLD_USERNAME = "username-textbox"
 SLSX_TXT_FLD_PASSWORD = "password-textbox"
-SLSX_TXT_FLD_USERNAME_VAL = "BBUser00000"
-SLSX_TXT_FLD_PASSWORD_VAL = "PW00000!"
+SLSX_TXT_FLD_USERNAME_VAL = "BBUser00001"
+SLSX_TXT_FLD_PASSWORD_VAL = "PW00001!"
 SLSX_CSS_BUTTON = "login-button"
 
 # Demographic info access grant form
@@ -937,15 +937,20 @@ SEE_ACCOUNT_HAS_ISSUE_MSG = {
 SEE_LOGIN_BEFORE_ACTIVATION_MSG = {
     "display": "Check login without activation error message present...",
     "action": Action.CONTAIN_TEXT,
-    "params": [20, By.XPATH, "//div[@class='alert alert-danger']", USER_NOT_ACTIVE_ALERT_MSG]
+    # TODO: use other xpath than class which is sensitive to changes
+    "params": [20, By.XPATH, "//div[@class='alert alert-danger alert-dismissible']", USER_NOT_ACTIVE_ALERT_MSG]
 }
 
 # Test user creation, activation, login, logout, app registration / modification / deletion
 ACCT_TESTS = {
     "create_user_account": [
         {"sequence": SEQ_CREATE_USER_ACCOUNT},
+        WAIT_SECONDS,
+        WAIT_SECONDS,
         SEE_ACCT_CREATED_MSG,
         {"sequence": SEQ_USER_LOGIN},
+        WAIT_SECONDS,
+        WAIT_SECONDS,
         SEE_LOGIN_BEFORE_ACTIVATION_MSG,
         WAIT_SECONDS,
     ],

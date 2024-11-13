@@ -20,9 +20,10 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauth2_provider.models import get_application_model
+from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
-
+import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
 
@@ -120,12 +121,12 @@ class AuthorizationView(DotAuthorizationView):
     def get_template_names(self):
         flag = get_waffle_flag_model().get("limit_data_access")
         if waffle.switch_is_active('require-scopes'):
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.application.user)):
+            if flag.rollout or (flag.id is not None and self.application and flag.is_active_for_user(self.application.user)):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize_v2.html"]
         else:
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.user)):
+            if flag.rollout or (flag.id is not None and self.user and flag.is_active_for_user(self.user)):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize.html"]
@@ -179,13 +180,19 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
+            if not scopes:
+                # Since the create_authorization_response will re-inject scopes even when none are
+                # valid, we want to pre-emptively treat this as an error case
+                raise OAuthToolkitError(
+                    error=AccessDeniedError(state=credentials.get("state", None)), redirect_uri=credentials["redirect_uri"]
+                )
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
 
-            if allow is False:
+            if allow is False or not scopes:
                 (data_access_grant_delete_cnt,
                  access_token_delete_cnt,
                  refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
@@ -350,6 +357,40 @@ class RevokeTokenView(DotRevokeTokenView):
             validate_app_is_active(request)
         except InvalidClientError as error:
             return json_response_from_oauth2_error(error)
+
+        return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RevokeView(DotRevokeTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+        at_model = get_access_token_model()
+        try:
+            app = validate_app_is_active(request)
+        except (InvalidClientError, InvalidGrantError) as error:
+            return json_response_from_oauth2_error(error)
+
+        tkn = request.POST.get('token')
+        if tkn is not None:
+            escaped_tkn = html.escape(tkn)
+        else:
+            escaped_tkn = ""
+
+        try:
+            token = at_model.objects.get(token=tkn)
+        except at_model.DoesNotExist:
+            log.debug(f"Token {escaped_tkn} was not found.")
+
+        try:
+            dag = DataAccessGrant.objects.get(
+                beneficiary=token.user,
+                application=app
+            )
+            dag.delete()
+        except Exception:
+            log.debug(f"DAG lookup failed for token {escaped_tkn}.")
 
         return super().post(request, args, kwargs)
 

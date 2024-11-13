@@ -35,6 +35,7 @@ class BaseApiTest(TestCase):
 
     test_hicn_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
     test_mbi_hash = "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
+    test_mbi = "1SA0A00AA00"
 
     def _create_user(
         self,
