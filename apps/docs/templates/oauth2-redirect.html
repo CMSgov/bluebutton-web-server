@@ -32,6 +32,7 @@
             let clientId = oauth2.auth.clientId
             let clientSecret = oauth2.auth.clientSecret;
             let redirectUri = oauth2.redirectUrl
+            let codeVerifier = oauth2.auth.codeVerifier
 
               // Convert client credentials to Base64
             const credentials = btoa(`${clientId}:${clientSecret}`);
@@ -44,6 +45,7 @@
                 },
                 body: new URLSearchParams({
                     code: code,
+                    code_verifier: codeVerifier,
                     grant_type: 'authorization_code',
                     redirect_uri: redirectUri
                 })
