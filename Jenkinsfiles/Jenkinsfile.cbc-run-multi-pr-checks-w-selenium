@@ -56,7 +56,6 @@ pipeline {
           python -m venv venv
           . venv/bin/activate
           python -m pip install --upgrade pip setuptools wheel cryptography
-          make reqs-download
           make reqs-install-dev
         """
       }
