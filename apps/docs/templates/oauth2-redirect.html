@@ -8,6 +8,7 @@
 <body>
     <script>
         'use strict';
+        const defaultPage = '/docs/openapi';
         function run () {
             function deserializeObject(serialized) {
                 const parsedObj = JSON.parse(serialized);
@@ -23,6 +24,7 @@
             const code = urlParams.get('code');
             if (!code) {
                 console.error('Authorization code not found in URL');
+                window.location.href = defaultPage;
                 return;
             }
 
@@ -52,7 +54,8 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Token request failed with status ' + response.status);
+                    console.log('Token request failed with status ' + response.status);
+                    window.location.href = defaultPage;
                 }
                 return response.json();
             })
@@ -60,7 +63,7 @@
                 const accessToken = data.access_token;
                 if (accessToken) {
                   localStorage.setItem('access_token', accessToken);
-                  window.location.href = '/docs/openapi';
+                  window.location.href = defaultPage;
                 }
             })
             .catch(error => {
