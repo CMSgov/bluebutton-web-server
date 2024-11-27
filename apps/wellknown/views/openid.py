@@ -9,7 +9,16 @@ from django.urls import reverse
 import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-
+SCOPES_SUPPORTED = ["profile", "patient/Patient.read", "patient/ExplanationOfBenefit.read", "patient/Coverage.read"]
+CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
+CAPABILITIES = [
+    "client-confidential-symmetric",
+    "sso-openid-connect",
+    "launch-standalone",
+    "permission-offline",
+    "permission-patient",
+    "permission-v1"
+  ]
 
 @require_GET
 def openid_configuration(request):
@@ -20,6 +29,17 @@ def openid_configuration(request):
     issuer = base_issuer(request)
     v2 = request.path.endswith('openid-configuration-v2') or request.path.endswith('openidConfigV2')
     data = build_endpoint_info(data, issuer=issuer, v2=v2)
+    return JsonResponse(data)
+
+@require_GET
+def smart_on_fhir_configuration(request):
+    """
+    Views that returns smart_configuration.
+    """
+    data = OrderedDict()
+    issuer = base_issuer(request)
+    v2 = request.path.endswith('smart-configuration-v2') or request.path.endswith('smartConfigV2')
+    data = build_smart_config_endpoint(data, issuer=issuer, v2=v2)
     return JsonResponse(data)
 
 
@@ -83,4 +103,21 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
     data["response_types_supported"] = ["code", "token"]
     data["fhir_metadata_uri"] = issuer + \
         reverse('fhir_conformance_metadata' if not v2 else 'fhir_conformance_metadata_v2')
+    return data
+
+def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
+    """
+    construct the smart config endpoint response. Takes in 
+    issuer should be http: or https:// prefixed url.
+
+    :param data:
+    :return:
+    """
+
+    data = build_endpoint_info(data, issuer=issuer, v2=v2)
+
+    data["scopes_supported"] = SCOPES_SUPPORTED
+    data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED
+    data["capabilities"] = CAPABILITIES
+    
     return data

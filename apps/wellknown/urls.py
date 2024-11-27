@@ -2,6 +2,7 @@ from django.urls import path
 from waffle.decorators import waffle_switch
 from .views import (
     openid_configuration,
+    smart_on_fhir_configuration,
     ApplicationListView,
     ApplicationLabelView,
     PublicApplicationListView,
@@ -10,6 +11,7 @@ from .views import (
 
 urlpatterns = [
     path("openid-configuration", openid_configuration, name="openid-configuration"),
+    path("smart-on-fhir-configuration", smart_on_fhir_configuration, name="smart-on-fhir-configuration"),
     path(
         "applications",
         waffle_switch("wellknown_applications")(ApplicationListView.as_view()),
@@ -27,6 +29,9 @@ urlpatterns = [
     ),
     path(
         "openid-configuration-v2", openid_configuration, name="openid-configuration-v2"
+    ),
+    path(
+        "smart-on-fhir-configuration", smart_on_fhir_configuration, name="smart-on-fhir-configuration"
     ),
     path(
         "applications-v2",
