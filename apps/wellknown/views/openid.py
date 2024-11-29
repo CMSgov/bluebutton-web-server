@@ -18,7 +18,7 @@ CAPABILITIES = [
     "permission-offline",
     "permission-patient",
     "permission-v1"
-    ]
+]
 
 
 @require_GET
@@ -110,7 +110,7 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
 
 def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
     """
-    construct the smart config endpoint response. Takes in 
+    construct the smart config endpoint response. Takes in output of build_endpoint_info since they share many fields
     issuer should be http: or https:// prefixed url.
 
     :param data:
@@ -122,5 +122,5 @@ def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
     data["scopes_supported"] = SCOPES_SUPPORTED
     data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED
     data["capabilities"] = CAPABILITIES
-    
+
     return data
