@@ -34,7 +34,7 @@ def openid_configuration(request):
 
 
 @require_GET
-def smart_on_fhir_configuration(request):
+def smart_configuration(request):
     """
     Views that returns smart_configuration.
     """
@@ -118,6 +118,11 @@ def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
     """
 
     data = build_endpoint_info(data, issuer=issuer, v2=v2)
+    del(data["userinfo_endpoint"])
+    del(data["ui_locales_supported"])
+    del(data["service_documentation"])
+    del(data["op_tos_uri"])
+    del(data["fhir_metadata_uri"])
 
     data["scopes_supported"] = SCOPES_SUPPORTED
     data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED
