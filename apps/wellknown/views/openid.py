@@ -17,7 +17,8 @@ CAPABILITIES = [
     "launch-standalone",
     "permission-offline",
     "permission-patient",
-    "permission-v1"
+    "permission-v1",
+    "authorize-post"
 ]
 
 
