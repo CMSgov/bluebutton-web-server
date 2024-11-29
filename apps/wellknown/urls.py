@@ -31,7 +31,7 @@ urlpatterns = [
         "openid-configuration-v2", openid_configuration, name="openid-configuration-v2"
     ),
     path(
-        "smart-on-fhir-configuration", smart_configuration, name="smart-on-fhir-configuration"
+        "smart-configuration-v2", smart_configuration, name="smart-on-fhir-configuration-v2"
     ),
     path(
         "applications-v2",
