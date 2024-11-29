@@ -18,7 +18,8 @@ CAPABILITIES = [
     "permission-offline",
     "permission-patient",
     "permission-v1"
-  ]
+    ]
+
 
 @require_GET
 def openid_configuration(request):
@@ -30,6 +31,7 @@ def openid_configuration(request):
     v2 = request.path.endswith('openid-configuration-v2') or request.path.endswith('openidConfigV2')
     data = build_endpoint_info(data, issuer=issuer, v2=v2)
     return JsonResponse(data)
+
 
 @require_GET
 def smart_on_fhir_configuration(request):
@@ -104,6 +106,7 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
     data["fhir_metadata_uri"] = issuer + \
         reverse('fhir_conformance_metadata' if not v2 else 'fhir_conformance_metadata_v2')
     return data
+
 
 def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
     """
