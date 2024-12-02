@@ -29,8 +29,7 @@ def openid_configuration(request):
     """
     data = OrderedDict()
     issuer = base_issuer(request)
-    v2 = request.path.endswith('openid-configuration-v2') or request.path.endswith('openidConfigV2')
-    data = build_endpoint_info(data, issuer=issuer, v2=v2)
+    data = build_endpoint_info(data, issuer=issuer)
     return JsonResponse(data)
 
 
@@ -73,7 +72,7 @@ def base_issuer(request):
     return issuer
 
 
-def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
+def build_endpoint_info(data=OrderedDict(), issuer=""):
     """
     construct the data package
     issuer should be http: or https:// prefixed url.
@@ -83,12 +82,12 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
     """
     data["issuer"] = issuer
     data["authorization_endpoint"] = issuer + \
-        reverse('oauth2_provider:authorize' if not v2 else 'oauth2_provider_v2:authorize-v2')
+        reverse('oauth2_provider_v2:authorize-v2')
     data["revocation_endpoint"] = issuer + reverse('oauth2_provider:revoke')
     data["token_endpoint"] = issuer + \
-        reverse('oauth2_provider:token' if not v2 else 'oauth2_provider_v2:token-v2')
+        reverse('oauth2_provider_v2:token-v2')
     data["userinfo_endpoint"] = issuer + \
-        reverse('openid_connect_userinfo' if not v2 else 'openid_connect_userinfo_v2')
+        reverse('openid_connect_userinfo_v2')
     data["ui_locales_supported"] = ["en-US", ]
     data["service_documentation"] = getattr(settings,
                                             'DEVELOPER_DOCS_URI',
@@ -105,7 +104,7 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
 
     data["response_types_supported"] = ["code", "token"]
     data["fhir_metadata_uri"] = issuer + \
-        reverse('fhir_conformance_metadata' if not v2 else 'fhir_conformance_metadata_v2')
+        reverse('fhir_conformance_metadata_v2')
     return data
 
 
