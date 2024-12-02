@@ -40,8 +40,7 @@ def smart_configuration(request):
     """
     data = OrderedDict()
     issuer = base_issuer(request)
-    v2 = request.path.endswith('smart-configuration-v2') or request.path.endswith('smartConfigV2')
-    data = build_smart_config_endpoint(data, issuer=issuer, v2=v2)
+    data = build_smart_config_endpoint(data, issuer=issuer)
     return JsonResponse(data)
 
 
@@ -108,7 +107,7 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     return data
 
 
-def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
+def build_smart_config_endpoint(data=OrderedDict(), issuer=""):
     """
     construct the smart config endpoint response. Takes in output of build_endpoint_info since they share many fields
     issuer should be http: or https:// prefixed url.
@@ -117,7 +116,7 @@ def build_smart_config_endpoint(data=OrderedDict(), v2=False, issuer=""):
     :return:
     """
 
-    data = build_endpoint_info(data, issuer=issuer, v2=v2)
+    data = build_endpoint_info(data, issuer=issuer)
     del(data["userinfo_endpoint"])
     del(data["ui_locales_supported"])
     del(data["service_documentation"])
