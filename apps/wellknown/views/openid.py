@@ -117,11 +117,11 @@ def build_smart_config_endpoint(data=OrderedDict(), issuer=""):
     """
 
     data = build_endpoint_info(data, issuer=issuer)
-    del(data["userinfo_endpoint"])
-    del(data["ui_locales_supported"])
-    del(data["service_documentation"])
-    del(data["op_tos_uri"])
-    del(data["fhir_metadata_uri"])
+    del (data["userinfo_endpoint"])
+    del (data["ui_locales_supported"])
+    del (data["service_documentation"])
+    del (data["op_tos_uri"])
+    del (data["fhir_metadata_uri"])
 
     data["scopes_supported"] = SCOPES_SUPPORTED
     data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED
