@@ -82,7 +82,7 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["issuer"] = issuer
     data["authorization_endpoint"] = issuer + \
         reverse('oauth2_provider_v2:authorize-v2')
-    data["revocation_endpoint"] = issuer + reverse('oauth2_provider:revoke')
+    data["revocation_endpoint"] = issuer + reverse('oauth2_provider_v2:revoke-token-v2')
     data["token_endpoint"] = issuer + \
         reverse('oauth2_provider_v2:token-v2')
     data["userinfo_endpoint"] = issuer + \
@@ -122,6 +122,7 @@ def build_smart_config_endpoint(data=OrderedDict(), issuer=""):
     del (data["service_documentation"])
     del (data["op_tos_uri"])
     del (data["fhir_metadata_uri"])
+    data["grant_types_supported"].remove("refresh_token")
 
     data["scopes_supported"] = SCOPES_SUPPORTED
     data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED

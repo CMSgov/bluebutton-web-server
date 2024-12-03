@@ -365,7 +365,7 @@ paths:
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v1
-  /.well-known/openid-configuration-v2:
+  /.well-known/openid-configuration:
     get:
       operationId: openIdConfig_v2
       description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
