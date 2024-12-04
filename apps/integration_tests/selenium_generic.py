@@ -71,10 +71,10 @@ class SeleniumGenericTests:
         opt.add_argument("--headless")
 
         # Define the chrome driver path
-        ser=Service('/usr/bin/chromedriver')
+        ser = Service('/usr/bin/chromedriver')
 
         # Initiate the Chromedriver by passing options as argument
-        self.driver = webdriver.Chrome(service=ser,options=opt)
+        self.driver = webdriver.Chrome(service=ser, options=opt)
 
         # self.driver = webdriver.Remote(
         #     command_executor='http://chrome:4444/wd/hub', options=opt)
