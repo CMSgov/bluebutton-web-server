@@ -309,7 +309,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, False, "xml")
+        result = build_oauth_resource(request, "xml")
 
         expected = "<cors>true</cors>"
 
