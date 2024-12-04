@@ -70,10 +70,7 @@ class SeleniumGenericTests:
         opt.add_argument("--window-size=1920,1080")
         opt.add_argument("--headless")
 
-        # Define the chrome driver path
-        ser = Service('/usr/bin/chromedriver')
-
-        # Initiate the Chromedriver by passing options as argument
+        ser = Service('/usr/local/bin/chromedriver')
         self.driver = webdriver.Chrome(service=ser, options=opt)
 
         # self.driver = webdriver.Remote(
