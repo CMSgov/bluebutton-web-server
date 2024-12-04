@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
 from .common_utils import extract_href_from_html, extract_last_part_of_url
 
 from .selenium_cases import (
@@ -69,8 +70,14 @@ class SeleniumGenericTests:
         opt.add_argument("--window-size=1920,1080")
         opt.add_argument("--headless")
 
-        self.driver = webdriver.Remote(
-            command_executor='http://chrome:4444/wd/hub', options=opt)
+        # Define the chrome driver path
+        ser=Service('/usr/bin/chromedriver')
+
+        # Initiate the Chromedriver by passing options as argument
+        self.driver = webdriver.Chrome(service=ser,options=opt)
+
+        # self.driver = webdriver.Remote(
+        #     command_executor='http://chrome:4444/wd/hub', options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
