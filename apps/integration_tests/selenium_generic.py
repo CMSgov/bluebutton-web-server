@@ -66,6 +66,8 @@ class SeleniumGenericTests:
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
         opt.add_argument("--whitelisted-ips=''")
+        opt.add_argument("--window-size=1920,1080")
+        opt.add_argument("--headless")
 
         self.driver = webdriver.Remote(
             command_executor='http://chrome:4444/wd/hub', options=opt)
