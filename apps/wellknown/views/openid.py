@@ -126,4 +126,5 @@ def build_smart_config_endpoint(data=OrderedDict(), issuer=""):
     data["scopes_supported"] = SCOPES_SUPPORTED
     data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED
     data["capabilities"] = CAPABILITIES
+
     return data
