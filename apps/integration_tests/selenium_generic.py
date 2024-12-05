@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.chrome.service import Service
 from .common_utils import extract_href_from_html, extract_last_part_of_url
 
 from .selenium_cases import (
@@ -67,14 +67,17 @@ class SeleniumGenericTests:
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
         opt.add_argument("--whitelisted-ips=''")
-        opt.add_argument("--window-size=1920,1080")
-        opt.add_argument("--headless")
+        # keep the headless setup here in case we need it on CI context
+        # note: in headless mode we need to set window size
+        # opt.add_argument("--window-size=1920,1080")
+        # opt.add_argument("--headless")
+        # driver init goes with headless
+        # ser = Service('/usr/bin/chromedriver')
+        # self.driver = webdriver.Chrome(service=ser, options=opt)
 
-        ser = Service('/usr/local/bin/chromedriver')
-        self.driver = webdriver.Chrome(service=ser, options=opt)
-
-        # self.driver = webdriver.Remote(
-        #     command_executor='http://chrome:4444/wd/hub', options=opt)
+        # selenium grid
+        self.driver = webdriver.Remote(
+            command_executor='http://chrome:4444/wd/hub', options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,

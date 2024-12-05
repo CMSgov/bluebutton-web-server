@@ -1,0 +1,19 @@
+FROM seleniarm/standalone-chromium
+
+ENV PYTHONUNBUFFERED 1
+USER root
+
+RUN apt-get update ; apt-get install -yq python3 python3-venv
+RUN ln -s /usr/bin/python3 /usr/local/bin/python
+RUN ln -s /usr/bin/chromedriver /usr/local/bin/chromedriver
+RUN useradd -m -s /bin/bash DEV
+
+USER DEV
+
+ADD . /code
+WORKDIR /code
+RUN python -m venv /tmp/venv
+RUN . /tmp/venv/bin/activate
+ENV PATH="/tmp/venv/bin:${PATH}"
+RUN pip3 install --upgrade pip
+RUN pip3 install selenium pytest debugpy jsonschema python-dateutil
