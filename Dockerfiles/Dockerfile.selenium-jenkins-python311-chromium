@@ -1,4 +1,4 @@
-FROM seleniarm/standalone-chromium
+FROM --platform=linux/amd64 seleniarm/standalone-chromium
 
 ENV PYTHONUNBUFFERED 1
 USER root
