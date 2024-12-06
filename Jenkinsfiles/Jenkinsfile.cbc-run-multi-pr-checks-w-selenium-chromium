@@ -55,7 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          pip install --upgrade pip setuptools wheel newrelic==8.8.0 pillow==10.3.0
+          pip install --upgrade pip setuptools wheel newrelic==8.8.0 pillow==10.3.0 psycopg2-binary==2.9.6
           pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
         """
       }
