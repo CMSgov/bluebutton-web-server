@@ -3,12 +3,12 @@ FROM --platform=linux/amd64 seleniarm/standalone-chromium
 ENV PYTHONUNBUFFERED 1
 USER root
 # on CI node, django db defaults to sqlite3
-RUN sudo apt-get update ; apt-get install -yq build-essential zlib1g-dev make libssl-dev sqlite3
+RUN sudo apt-get update ; apt-get install -yq build-essential zlib1g-dev make libssl-dev libsqlite3-dev sqlite3
 RUN wget -O /Python-3.11.9.tgz https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz
 WORKDIR /
 RUN tar -xvzf Python-3.11.9.tgz
 WORKDIR /Python-3.11.9
-RUN sudo ./configure && sudo make && sudo make altinstall
+RUN sudo ./configure --enable-loadable-sqlite-extension && sudo make && sudo make altinstall
 RUN sudo rm /usr/bin/python3
 RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python3
 RUN sudo ln -s /usr/local/bin/pip3.11 /usr/bin/pip3
