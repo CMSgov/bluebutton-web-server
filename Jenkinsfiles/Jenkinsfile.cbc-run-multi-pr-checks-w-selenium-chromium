@@ -50,14 +50,6 @@ pipeline {
       }
     }
 
-    stage("INSTALL Python Packages - test python") {
-      steps {
-        sh """
-          echo 'Hello World'
-        """
-      }
-    }
-
     stage("INSTALL Python Packages") {
       steps {
         sh """
