@@ -63,8 +63,8 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          python -m pip install --upgrade pip setuptools wheel
-          make reqs-install-dev
+          pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
         """
       }
     }
