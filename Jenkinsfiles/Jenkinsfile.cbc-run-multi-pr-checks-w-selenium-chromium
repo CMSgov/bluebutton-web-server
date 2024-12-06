@@ -63,7 +63,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          pip install --upgrade pip setuptools wheel
+          pip install --upgrade pip setuptools wheel newrelic==8.8.0
           pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
         """
       }
