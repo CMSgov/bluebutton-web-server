@@ -55,7 +55,9 @@ class SeleniumGenericTests:
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={},  hostname_url={}, selenium_headless={}".format(self.use_mslsx, self.hostname_url, self.headless_mode))
+        msg_fmt = "use_mslsx={}, hostname_url={}, selenium_headless={}"
+        msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.headless_mode)
+        print(msg)
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
