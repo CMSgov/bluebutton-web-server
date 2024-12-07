@@ -50,14 +50,6 @@ pipeline {
       }
     }
 
-    stage("Check out bluebutton-css") {
-      steps {
-        sh """
-          git clone https://github.com/CMSgov/bluebutton-css.git
-        """
-      }
-    }
-
     stage("REPORT Python Version") {
       steps {
         sh """
@@ -109,8 +101,6 @@ pipeline {
        }
        steps{
         sh """
-          rm -rf ./docker-compose/tmp/
-          mkdir ./docker-compose/tmp
           USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
@@ -147,6 +137,5 @@ pipeline {
         """
        }
     }
-
   }
 }
