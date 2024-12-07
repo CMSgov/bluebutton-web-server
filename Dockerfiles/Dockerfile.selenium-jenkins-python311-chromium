@@ -11,4 +11,5 @@ WORKDIR /Python-3.11.9
 RUN sudo ./configure --enable-loadable-sqlite-extension && sudo make && sudo make altinstall
 RUN sudo rm /usr/bin/python3
 RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python3
+RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python
 RUN sudo ln -s /usr/local/bin/pip3.11 /usr/bin/pip3
