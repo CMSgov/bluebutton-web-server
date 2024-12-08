@@ -247,14 +247,14 @@ SEQ_LOGIN_MSLSX = [
         "params": [20, By.NAME, TXT_FLD_SUB_MSLSX, TXT_FLD_VAL_SUB_MSLSX]
     },
     {
-        "display": "Input hicn",
-        "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, TXT_FLD_HICN_MSLSX, MSLSX_TXT_FLD_HICN_VAL]
-    },
-    {
         "display": "Input mbi",
         "action": Action.FIND_SEND_KEY,
         "params": [20, By.NAME, TXT_FLD_MBI_MSLSX, MSLSX_TXT_FLD_MBI_VAL]
+    },
+    {
+        "display": "Input hicn",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, TXT_FLD_HICN_MSLSX, MSLSX_TXT_FLD_HICN_VAL]
     },
     {
         "display": "Click 'submit' on MSLSX login form",
