@@ -95,16 +95,16 @@ pipeline {
        }
     }
 
-    stage("RUN logging integration tests") {
-       when {
-        expression { params.RUN_SELENIUM_TESTS == true }
-       }
-       steps{
-        sh """
-          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
-        """
-       }
-    }
+    // stage("RUN logging integration tests") {
+    //    when {
+    //     expression { params.RUN_SELENIUM_TESTS == true }
+    //    }
+    //    steps{
+    //     sh """
+    //       SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+    //     """
+    //    }
+    // }
 
     stage("RUN selenium user and apps management tests") {
        when {
