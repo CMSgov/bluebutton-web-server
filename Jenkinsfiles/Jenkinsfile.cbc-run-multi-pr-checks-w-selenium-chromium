@@ -113,7 +113,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - user account and app management tests"'
         sh """
-          SELENIUM_HEADLESS=true pytest ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
+          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
         """
        }
     }
