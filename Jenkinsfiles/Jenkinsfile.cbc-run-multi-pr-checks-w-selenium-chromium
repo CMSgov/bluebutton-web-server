@@ -95,16 +95,16 @@ pipeline {
        }
     }
 
-    // stage("RUN logging integration tests") {
-    //    when {
-    //     expression { params.RUN_SELENIUM_TESTS == true }
-    //    }
-    //    steps{
-    //     sh """
-    //       SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
-    //     """
-    //    }
-    // }
+    stage("RUN logging integration tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+        """
+       }
+    }
 
     stage("RUN selenium user and apps management tests") {
        when {
@@ -113,7 +113,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - user account and app management tests"'
         sh """
-          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
+          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
         """
        }
     }
@@ -133,7 +133,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
-          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/selenium_tests.py
+          SELENIUM_HEADLESS=true USE_NEW_PERM_SCREEN=true pytest -s ./apps/integration_tests/selenium_tests.py
         """
        }
     }
