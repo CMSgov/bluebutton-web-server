@@ -50,6 +50,8 @@ services:
   bb2slsx:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     env_file:
       # local devel specific variables go here!
       - .env

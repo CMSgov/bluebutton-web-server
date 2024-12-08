@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
 from .common_utils import extract_href_from_html, extract_last_part_of_url
 
 from .selenium_cases import (
@@ -50,10 +51,13 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.headless_mode = os.getenv('SELENIUM_HEADLESS', "False")
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={},  hostname_url={}".format(self.use_mslsx, self.hostname_url))
+        msg_fmt = "use_mslsx={}, hostname_url={}, selenium_headless={}"
+        msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.headless_mode)
+        print(msg)
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
@@ -66,9 +70,18 @@ class SeleniumGenericTests:
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
         opt.add_argument("--whitelisted-ips=''")
-
-        self.driver = webdriver.Remote(
-            command_executor='http://chrome:4444/wd/hub', options=opt)
+        # keep the headless setup here in case we need it on CI context
+        # note: in headless mode we need to set window size
+        if self.headless_mode.lower() == 'true':
+            opt.add_argument("--window-size=1920,1920")
+            opt.add_argument("--headless")
+            ser = Service('/usr/bin/chromedriver')
+            self.driver = webdriver.Chrome(service=ser, options=opt)
+        else:
+            # selenium hub
+            # currently not working on CI context, so always use headless on CI
+            self.driver = webdriver.Remote(
+                command_executor='http://chrome:4444/wd/hub', options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
