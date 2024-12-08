@@ -27,6 +27,7 @@ display_usage() {
     echo "-h     Print this Help."
     echo "-p     Test for newer permissions screen. Defaults to older screen."
     echo "-l     Selenium run in headless mode."
+    echo "-t     Show test case actions on std out."
     echo
     echo "Examples:"
     echo
