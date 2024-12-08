@@ -73,7 +73,7 @@ class SeleniumGenericTests:
         # keep the headless setup here in case we need it on CI context
         # note: in headless mode we need to set window size
         if self.headless_mode.lower() == 'true':
-            opt.add_argument("--window-size=1920,1080")
+            opt.add_argument("--window-size=1920,1920")
             opt.add_argument("--headless")
             ser = Service('/usr/bin/chromedriver')
             self.driver = webdriver.Chrome(service=ser, options=opt)
