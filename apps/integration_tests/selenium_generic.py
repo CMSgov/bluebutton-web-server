@@ -51,12 +51,12 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
-        self.headless_mode = os.getenv('SELENIUM_HEADLESS', "False")
+        self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        msg_fmt = "use_mslsx={}, hostname_url={}, selenium_headless={}"
-        msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.headless_mode)
+        msg_fmt = "use_mslsx={}, hostname_url={}, selenium_grid={}"
+        msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.selenium_grid)
         print(msg)
 
         opt = webdriver.ChromeOptions()
@@ -70,18 +70,18 @@ class SeleniumGenericTests:
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
         opt.add_argument("--whitelisted-ips=''")
-        # keep the headless setup here in case we need it on CI context
-        # note: in headless mode we need to set window size
-        if self.headless_mode.lower() == 'true':
-            opt.add_argument("--window-size=1920,1920")
+
+        if self.selenium_grid.lower() == 'true':
+            # selenium hub
+            print("===== use grid =====")
+            self.driver = webdriver.Remote(
+                command_executor='http://chrome:4444/wd/hub', options=opt)
+        else:
+            print("===== use local driver =====")
+            opt.add_argument("--window-size=1920,1080")
             opt.add_argument("--headless")
             ser = Service('/usr/bin/chromedriver')
             self.driver = webdriver.Chrome(service=ser, options=opt)
-        else:
-            # selenium hub
-            # currently not working on CI context, so always use headless on CI
-            self.driver = webdriver.Remote(
-                command_executor='http://chrome:4444/wd/hub', options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
