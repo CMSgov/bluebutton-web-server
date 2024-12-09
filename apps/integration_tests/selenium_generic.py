@@ -51,6 +51,7 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', "chrome")
         self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
@@ -73,14 +74,16 @@ class SeleniumGenericTests:
 
         if self.selenium_grid.lower() == 'true':
             # selenium hub
-            print("===== use grid =====")
+            hub_url = "http://{}:4444/wd/hub".format(self.selenium_grid_host)
+            print("RemoteDriver: grid hub url={}".format(hub_url))
             self.driver = webdriver.Remote(
-                command_executor='http://localhost:4444/wd/hub', options=opt)
+                command_executor=hub_url, options=opt)
         else:
-            print("===== use local driver =====")
+            driver_exec = '/usr/bin/chromedriver'
+            print("Chrome Driver, location={}".format(driver_exec))
             opt.add_argument("--window-size=1920,1080")
             opt.add_argument("--headless")
-            ser = Service('/usr/bin/chromedriver')
+            ser = Service(driver_exec)
             self.driver = webdriver.Chrome(service=ser, options=opt)
 
         self.actions = {
