@@ -75,6 +75,14 @@ pipeline {
       }
     }
 
+    stage("CHECK selenium hub and java") {
+      steps{
+        sh """
+          java -jar selenium-server-standalone.jar -role hub
+        """
+      }
+    }
+
     stage("RUN Django Unit Tests") {
       steps{
         sh """
