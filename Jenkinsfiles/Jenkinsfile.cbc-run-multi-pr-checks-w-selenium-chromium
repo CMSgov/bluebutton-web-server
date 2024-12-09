@@ -78,7 +78,10 @@ pipeline {
     stage("Start selenium server jar in background") {
       steps{
         sh """
-          java -jar selenium-server-standalone.jar -role hub -host chrome &
+          ls
+          pwd
+          ls /
+          java -jar /selenium-server-standalone.jar -role hub -host chrome &
         """
       }
     }
