@@ -61,7 +61,7 @@ export SELENIUM_GRID=false
 # Show test actions on std out : pytest -s
 PYTEST_SHOW_TRACE_OPT=''
 
-while getopts "hplt" option; do
+while getopts "hpgt" option; do
    case $option in
       h)
         display_usage;

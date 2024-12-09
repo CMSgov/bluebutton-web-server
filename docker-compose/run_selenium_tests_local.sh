@@ -87,7 +87,7 @@ PYTEST_SHOW_TRACE_OPT=''
 set_slsx
 
 # Parse command line option
-while getopts "hplt" option; do
+while getopts "hpgt" option; do
    case $option in
       h)
          display_usage

@@ -75,10 +75,10 @@ pipeline {
       }
     }
 
-    stage("CHECK selenium hub and java") {
+    stage("Start selenium server jar in background") {
       steps{
         sh """
-          java -jar selenium-server-standalone.jar -role hub
+          java -jar selenium-server-standalone.jar -role hub -host chrome &
         """
       }
     }
@@ -109,7 +109,7 @@ pipeline {
        }
        steps{
         sh """
-          USE_NEW_PERM_SCREEN=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+          USE_NEW_PERM_SCREEN=true SELENIUM_GRID=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
     }
@@ -121,7 +121,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - user account and app management tests"'
         sh """
-          USE_NEW_PERM_SCREEN=true pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
+          USE_NEW_PERM_SCREEN=true SELENIUM_GRID=true pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
         """
        }
     }
@@ -141,7 +141,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
-          USE_NEW_PERM_SCREEN=true pytest -s ./apps/integration_tests/selenium_tests.py
+          USE_NEW_PERM_SCREEN=true SELENIUM_GRID=true pytest -s ./apps/integration_tests/selenium_tests.py
         """
        }
     }
