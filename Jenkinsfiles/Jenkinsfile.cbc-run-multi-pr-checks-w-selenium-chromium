@@ -78,10 +78,15 @@ pipeline {
     stage("Start selenium server jar in background") {
       steps{
         sh """
-          ls
-          pwd
-          ls /
           java -jar /selenium-server-standalone.jar -role hub -host chrome &
+        """
+      }
+    }
+
+    stage("Check localhost:4444/wd/hub is active") {
+      steps{
+        sh """
+          curl http://localhost:4444/wd/hub
         """
       }
     }
