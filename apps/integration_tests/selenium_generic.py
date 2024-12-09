@@ -75,7 +75,7 @@ class SeleniumGenericTests:
             # selenium hub
             print("===== use grid =====")
             self.driver = webdriver.Remote(
-                command_executor='http://chrome:4444/wd/hub', options=opt)
+                command_executor='http://localhost:4444/wd/hub', options=opt)
         else:
             print("===== use local driver =====")
             opt.add_argument("--window-size=1920,1080")
