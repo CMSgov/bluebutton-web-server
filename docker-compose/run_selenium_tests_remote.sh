@@ -26,7 +26,7 @@ display_usage() {
     echo
     echo "-h     Print this Help."
     echo "-p     Test for newer permissions screen. Defaults to older screen."
-    echo "-l     Selenium run in headless mode."
+    echo "-g     Selenium grid used."
     echo "-t     Show test case actions on std out."
     echo
     echo "Examples:"
@@ -56,8 +56,8 @@ export SERVICE_NAME="selenium-tests-remote"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
-# selenium headless
-export SELENIUM_HEADLESS=false
+# selenium grid
+export SELENIUM_GRID=false
 # Show test actions on std out : pytest -s
 PYTEST_SHOW_TRACE_OPT=''
 
@@ -68,8 +68,8 @@ while getopts "hplt" option; do
         exit;;
       p)
         export USE_NEW_PERM_SCREEN=true;;
-      l)
-        export SELENIUM_HEADLESS=true;;
+      g)
+        export SELENIUM_GRID=true;;
       t)
         export PYTEST_SHOW_TRACE_OPT='-s';;
      \?)
@@ -112,14 +112,14 @@ SYSTEM=$(uname -s)
 
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 echo "BB2 Server URL=" ${HOSTNAME_URL}
-echo "Selenium headless mode=" ${SELENIUM_HEADLESS}
+echo "Selenium grid=" ${SELENIUM_GRID}
 
 export USE_NEW_PERM_SCREEN
 export USE_MSLSX=false
 
 # stop all before run selenium remote tests
 docker-compose -f docker-compose.selenium.remote.yml down --remove-orphans
-docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "SELENIUM_HEADLESS=${SELENIUM_HEADLESS} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg

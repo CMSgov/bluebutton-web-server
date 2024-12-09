@@ -40,7 +40,7 @@ display_usage() {
     echo
     echo "-h     Print this Help."
     echo "-p     Use new permissions screen (defaults to old style screen)."
-    echo "-l     Selenium run in headless mode."
+    echo "-g     Selenium grid used - hub on port 4444."
     echo "-t     Show test case actions on std out."
     echo
 }
@@ -79,8 +79,8 @@ export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export BB2_SERVER_STD2FILE=""
-# selenium headless
-export SELENIUM_HEADLESS=false
+# selenium grid
+export SELENIUM_GRID=false
 # Show test actions on std out : pytest -s
 PYTEST_SHOW_TRACE_OPT=''
 
@@ -94,8 +94,8 @@ while getopts "hplt" option; do
          exit;;
       p)
          export USE_NEW_PERM_SCREEN=true;;
-      l)
-        export SELENIUM_HEADLESS=true;;
+      g)
+        export SELENIUM_GRID=true;;
       t)
         export PYTEST_SHOW_TRACE_OPT='-s';;
      \?)
@@ -149,7 +149,7 @@ fi
 
 echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
 echo "HOSTNAME_URL: " ${HOSTNAME_URL}
-echo "Selenium headless mode=" ${SELENIUM_HEADLESS}
+echo "Selenium grid=" ${SELENIUM_GRID}
 
 # Set SYSTEM
 SYSTEM=$(uname -s)
@@ -225,7 +225,7 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
-docker-compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_HEADLESS=${SELENIUM_HEADLESS} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker-compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg

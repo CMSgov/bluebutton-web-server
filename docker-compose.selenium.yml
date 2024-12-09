@@ -13,15 +13,15 @@ services:
     depends_on:
       bb2slsx:
         condition: service_healthy
-      chrome:
-        condition: service_started
+      # chrome:
+      #   condition: service_started
 
-  chrome:
-    image: seleniarm/standalone-chromium
-    hostname: chrome
-    ports:
-      - "4444:4444"
-      - "5900:5900"
+  # chrome:
+  #   image: seleniarm/standalone-chromium
+  #   hostname: chrome
+  #   ports:
+  #     - "4444:4444"
+  #     - "5900:5900"
 
   msls:
     build: ./dev-local
