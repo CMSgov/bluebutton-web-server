@@ -76,6 +76,7 @@ class SeleniumGenericTests:
             # selenium hub
             hub_url = "http://{}:4444/wd/hub".format(self.selenium_grid_host)
             print("RemoteDriver: grid hub url={}".format(hub_url))
+            opt.binary_location = "/usr/bin/chromium"
             self.driver = webdriver.Remote(
                 command_executor=hub_url, options=opt)
         else:

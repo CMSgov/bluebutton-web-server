@@ -78,6 +78,7 @@ pipeline {
     stage("Start selenium grid in background") {
       steps{
         sh """
+          ls /usr/bin/chromium
           java -jar /selenium-server-standalone.jar &
         """
       }
