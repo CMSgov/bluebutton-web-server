@@ -60,6 +60,7 @@ LNK_TXT_OIDC_DISCOVERY = "OIDC Discovery"
 # Spanish-English toggle link
 LNK_TXT_SPANISH = "Cambiar a español"
 LNK_TXT_ENGLISH = "Change to English"
+LNK_TXT_SIMPLIFIED_CHINESE = "切换到中文"
 # FHIR result page label H2
 LAB_FHIR_RESULTPAGE_H2 = "h2"
 CONTENT_FHIR_RESULTPAGE_PRE = "pre"
@@ -309,6 +310,15 @@ SEQ_AUTHORIZE_START_SPANISH = [
         "display": "Click link 'Authorize as a Beneficiary (Spanish)' - start authorization using medicare login in Spanish",
         "action": Action.FIND_CLICK,
         "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE_SPANISH]
+    },
+]
+
+SEQ_AUTHORIZE_START_SIMPLIFIED_CHINESE = [
+    {"sequence": SEQ_REACH_AUTHORIZE_BTN},
+    {
+        "display": "Click link 'Authorize as a Beneficiary (中文)' - start authorization using medicare login in Simplified Chinese",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE_SIMPLIFIED_CHINESE]
     },
 ]
 
