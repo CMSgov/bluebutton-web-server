@@ -17,4 +17,6 @@ RUN sudo rm /usr/bin/python3
 RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python3
 RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python
 RUN sudo ln -s /usr/local/bin/pip3.11 /usr/bin/pip3
+RUN sudo ln -s /usr/bin/chromedriver /usr/local/bin/chromedriver
+RUN sudo ln -s /usr/bin/chromium /usr/local/bin/chromium
 # ------- end section -------------------------------------

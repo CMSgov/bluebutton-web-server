@@ -78,8 +78,12 @@ pipeline {
     stage("Start selenium grid in background") {
       steps{
         sh """
-          ls /usr/bin/chromium
-          java -jar /selenium-server-standalone.jar &
+          whoami
+          ls /home
+          chromium --version
+          chromedriver --version
+          chromium
+          java -jar /selenium-server-standalone.jar&
         """
       }
     }
@@ -88,14 +92,6 @@ pipeline {
       steps{
         sh """
           curl http://localhost:4444/wd/hub
-        """
-      }
-    }
-
-    stage("RUN Django Unit Tests") {
-      steps{
-        sh """
-          python3 runtests.py
         """
       }
     }
@@ -139,6 +135,14 @@ pipeline {
       steps{
         sh """
           python3 runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+        """
+      }
+    }
+
+    stage("RUN Django Unit Tests") {
+      steps{
+        sh """
+          python3 runtests.py
         """
       }
     }
