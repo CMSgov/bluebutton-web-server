@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block banner %}{% endblock %}
+
+{% block bannerDescription %}
+{% endblock %}
+
+{% block Content %}
+<div class="container">
+    <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+      <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+        <div class="sandbox-gradient-bg">
+            <div class="gradient-content-container">
+                <div class="gradient-content-card">
+                    <div class="content">
+                        <form action="/myapp/" method="post">{% csrf_token %}
+                            <label for="client_id">Client ID:</label><br>
+                            <input type="text" id="client_id" name="client_id"><br>
+                            <label for="client_secret">Client Secret:</label><br>
+                            <input type="password" id="client_secret" name="client_secret">
+                            <div class="action-container">
+                                <button type="submit" class="ds-c-button ds-c-button--solid">Authorize as a Beneficiary</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="gradient-content-container">
+                <div class="gradient-content-card">
+                    <div>
+                        <h2 style="color:white;">MyApp Web Client</h2>
+                        <h2 style="color:white;">The MyApp Client allows you to see what it is like for a Medicare beneficiary to grant access to your app. It allows you to see sample data returned from our various API endpoints.</h2>
+                        <h2 style="color:white;">You need to sign up and register the app on Blue Button 2.0 API Sandbox, and add 'https://sandbox.bluebutton.cms.gov/myapp/callback' to the 'redirect_urls' of the app</h2>
+                        <h2 style="color:white;">To start authorization, provide your app's credential on the left and click "Authorize as a Beneficiary"</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

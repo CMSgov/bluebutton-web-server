@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load waffle_tags %}
+
+{% block bannerBackButton %}{% endblock %}
+
+{% block bannerTitle %}
+MyApp Web Client for Blue Button 2.0 API
+{% endblock %}
+
+{% block bannerCallToActionButtons %}
+{% endblock %}
+
+{% block Content %}
+<div class="container">
+  <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+    <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+
+			{% if user.is_authenticated %}
+			<div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
+				<div class="ds-c-alert__body">
+					<h3 class="ds-c-alert__heading">Log out to continue</h3>
+					<p class="ds-c-alert__text" role="alert">
+						It looks like you may be logged in to your Sandbox developer account. Because the MyApp Web Client mimics the behavior of an anonymous user authenticating with Blue Button 2.0, you must be logged out of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
+					</p>
+					<a href="{% url 'logout' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Log Out to Continue</a>
+				</div>
+			</div>
+			{% endif %}
+
+			{% if app_name is not None %}
+			    <h2>App Name: {{ app_name }}</h2>
+			{% endif %}
+
+            {% if app_dag_type is not None %}
+			    <h2>Data Access Grant Type: {{ app_dag_type }}</h2>
+			{% endif %}
+
+            {% if app_req_demo is not None %}
+			    <h2>App Require Demographic Data: {{ app_req_demo }}</h2>
+			{% endif %}
+
+            {% if app_pkce_method is not None %}
+			    <h2>PKCE method: {{ app_pkce_method }}</h2>
+			{% endif %}
+
+            <!-- If a user does not have a token, give clear instructions about auth flow -->
+			{% if session_token is None %}
+    			<h2>Authorized: No</h2>
+            {% else %}
+                <h2>Authorized: Yes</h2>
+            {% endif %}
+	
+            <!-- If a user DOES have a token, reflect the success of that action -->
+			{% if session_token is not None %}
+                <p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat this step if you need a new token.</a> or <a href="{{ restart_url }}">restart testclient</a></p>
+    			<br />
+    			<pre>{{ session_token }}</pre>
+    			<br />
+				<h2>You can call API endpoints below:</h2>
+				<p class="ds-u-margin-y--2">Once you are authorized by the beneficiary (obtained an data access grant), you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
+
+				<ul>
+					<li> <a href="{{ '/myapp/ExplanationOfBenefit'|add:api_ver_ending }}">ExplanationOfBenefit</a> </li>
+					<li> <a href="{{ '/myapp/Patient'|add:api_ver_ending }}">Patient</a> </li>
+					<li> <a href="{{ '/myapp/Coverage'|add:api_ver_ending }}">Coverage</a> </li>
+					<li> <a href="{{ '/myapp/userinfo'|add:api_ver_ending }}">Profile </a> (OIDC Userinfo)</li>
+					<li> <a href="{{ '/myapp/metadata'|add:api_ver_ending }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
+					<li> <a href="{{ '/myapp/openidConfig'|add:api_ver_ending }}">OIDC Discovery</a> (No Token Needed)</li>
+				</ul>
+
+                <h2 class="ds-u-margin-y--2">Additional Resources</h2>
+
+                <p>If you need more information about the API or the sample data, feel free to read our <a href="https://bluebutton.cms.gov/developers/">developer documentation</a>.</p>
+
+                <h3 class="ds-u-margin-y--2">Testing your own application:</h3>
+
+                <p>If you want to test the Blue Button 2.0 API with your own application, create a Sandbox account and register your application. Once registered, you can use your test credentials to re-create this experience and include synthetic Medicare data in your own application.</p>
+
+                <a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Create a Sandbox Account</a>
+
+			{% endif %}
+
+			<div class="spacer" style="min-height: 50vh;"></div>
+		</div>
+	</div>
+</div>
+    
+{% endblock %}

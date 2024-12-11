@@ -53,6 +53,7 @@ if settings.IS_MEDIA_URL_LOCAL is True:
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
         path("testclient/", include("apps.testclient.urls")),
+        path("myapp/", include("apps.testclient.urls")),
     ]
 
 if IsAppInstalled("apps.mymedicare_cb"):
