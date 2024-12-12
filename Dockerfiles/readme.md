@@ -1,4 +1,4 @@
-# Build, Tag, and Publish integration and selenium tests ECR iamge
+# Build, Tag, and Publish integration and selenium tests ECR image
 
 Go to BB2 local repo base directory and do the followings (assume aws cli installed and configured properly):
 
