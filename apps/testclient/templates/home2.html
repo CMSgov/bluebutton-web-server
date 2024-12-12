@@ -54,7 +54,7 @@ MyApp Web Client for Blue Button 2.0 API
 	
             <!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_token is not None %}
-                <p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ '/myapp/authorize-link-v2' }}">repeat this step if you need a new token.</a> or <a href="{{ '/myapp/restart' }}">restart testclient</a></p>
+                <p>Success! You have a token. Now you can make API calls below. Or you can </a> or <a href="{{ '/myapp/restart' }}">restart my app authorization.</a></p>
     			<br />
     			<pre>{{ session_token }}</pre>
     			<br />
