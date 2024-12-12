@@ -263,7 +263,7 @@ def test_links(request, **kwargs):
                     # token is for TestApp, show AUTH_PAGE
                     return render(request, AUTH_PAGE, context={})
             else:
-                if app_name is None or app_name == 'TestApp':
+                if app_name == 'TestApp':
                     # show data end points page
                     ver = request.session.get('api_ver', 'v1')
                     return render(request, HOME_PAGE,
