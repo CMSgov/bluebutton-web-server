@@ -234,6 +234,7 @@ def test_links(request, **kwargs):
                                     status=status.HTTP_400_BAD_REQUEST)
         else:
             # a bad request, just return json for POC
+            # testclient path does not accept POST
             return JsonResponse({"error": "Unexpected request method: {}, path: {}".format(request.method, request.path)},
                                 status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'GET':
@@ -242,23 +243,46 @@ def test_links(request, **kwargs):
             # check path:
             # GET /myapp: load the MyApp authorization page
             # otherwise, load the testclient landing page (the page with 4 authorize buttons)
+            # need to check the app name associated with the token
+            app_name = request.session.get('auth_app_name')
             if request.path == '/myapp/':
-                return render(request, AUTH_PAGE,
-                              context={"session_token": request.session['token'], "api_ver": 'v2'})
+                if app_name is not None and app_name != 'TestApp':
+                    # token must not be TestApp
+                    app_name = request.session.get('auth_app_name')
+                    app_dag_type = request.session.get('auth_app_data_access_type')
+                    app_pkce_method = request.session.get('auth_pkce_method')
+                    app_req_demo = request.session.get('auth_require_demographic_scopes')
+                    return render(request, HOME2_PAGE,
+                                  context={"session_token": request.session['token'],
+                                           "api_ver": 'v2',
+                                           "app_name": app_name,
+                                           "app_dag_type": app_dag_type,
+                                           "app_req_demo": app_req_demo,
+                                           "app_pkce_method": app_pkce_method})
+                else:
+                    # token is for TestApp, show AUTH_PAGE
+                    return render(request, AUTH_PAGE, context={})
             else:
-                ver = request.session.get('api_ver', 'v1')
-                return render(request, HOME_PAGE,
-                              context={"session_token": request.session['token'],
-                                       "api_ver": ver,
-                                       "api_ver_ending": "V2" if ver == 'v2' else "",
-                                       "api_ver_suffix": "-v2" if ver == 'v2' else ""})
+                if app_name is None or app_name == 'TestApp':
+                    # show data end points page
+                    ver = request.session.get('api_ver', 'v1')
+                    return render(request, HOME_PAGE,
+                                  context={"session_token": request.session['token'],
+                                           "api_ver": ver,
+                                           "api_ver_ending": "V2" if ver == 'v2' else "",
+                                           "api_ver_suffix": "-v2" if ver == 'v2' else ""}
+                                  )
+                else:
+                    # show the 4 buttons page
+                    return render(request, HOME_PAGE, context={"session_token": None})
         else:
-            if request.method == 'GET' and request.path == '/myapp/':
-                return render(request, AUTH_PAGE, context={"session_token": None})
+            # fresh home or auth page, there is no token
+            if request.path == '/myapp/':
+                return render(request, AUTH_PAGE, context={})
             else:
                 return render(request, HOME_PAGE, context={"session_token": None})
     else:
-        # a bad request, just return json for POC
+        # a bad request, only GET and POST, just return json for POC
         return JsonResponse({"error": "Unexpected method: {}".format(request.method)},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -380,7 +404,7 @@ def test_patient(request, version=1):
     params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
 
     patient = _get_data_json(request, 'patient', params)
-
+    # result page only use api_ver, other context provided anyways
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(patient, indent=3),
                    "response_type": "Patient",
@@ -437,8 +461,11 @@ def authorize_link(request, v2=False):
     pkce_enabled = request.GET.get('pkce')
     request.session.update(test_setup(v2=v2, pkce=pkce_enabled))
     authorization_url = _generate_auth_url(request, pkce_enabled)
-    return render(request, 'authorize.html',
-                  {"authorization_url": authorization_url, "api_ver": "v2" if v2 else "v1"})
+    if request.path.startswith('/myapp/authorize-link-v2'):
+        return render(request, 'authorize2.html', {})
+    else:
+        return render(request, 'authorize.html',
+                      {"authorization_url": authorization_url, "api_ver": "v2" if v2 else "v1"})
 
 
 def _generate_auth_url(request, pkce_enabled):
