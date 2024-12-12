@@ -1,0 +1,41 @@
+from django.urls import path
+from .views import (
+    authorize_link,
+    authorize_link_v2,
+    restart,
+    callback,
+    test_eob,
+    test_eob_v2,
+    test_userinfo,
+    test_userinfo_v2,
+    test_metadata,
+    test_metadata_v2,
+    test_openid_config,
+    test_openid_config_v2,
+    test_coverage,
+    test_coverage_v2,
+    test_patient,
+    test_patient_v2,
+    test_links,
+)
+
+# not using url reverse in POC but provide it here anyways - passing url reverse tests
+urlpatterns = [
+    path("restart", restart, name="testclient-restart-4-myapp"),
+    path("callback", callback, name="testclient-callback-4-myapp"),
+    path("authorize-link", authorize_link, name="authorize_link-4-myapp"),
+    path("authorize-link-v2", authorize_link_v2, name="authorize_link_v2-4-myapp"),
+    path("", test_links, name="test_links-4-myapp"),
+    path("ExplanationOfBenefit", test_eob, name="test_eob-4-myapp"),
+    path("Patient", test_patient, name="test_patient-4-myapp"),
+    path("Coverage", test_coverage, name="test_coverage-4-myapp"),
+    path("userinfo", test_userinfo, name="test_userinfo-4-myapp"),
+    path("metadata", test_metadata, name="test_metadata-4-myapp"),
+    path("openidConfig", test_openid_config, name="test_openid_config-4-myapp"),
+    path("ExplanationOfBenefitV2", test_eob_v2, name="test_eob_v2-4-myapp"),
+    path("PatientV2", test_patient_v2, name="test_patient_v2-4-myapp"),
+    path("CoverageV2", test_coverage_v2, name="test_coverage_v2-4-myapp"),
+    path("userinfoV2", test_userinfo_v2, name="test_userinfo_v2-4-myapp"),
+    path("metadataV2", test_metadata_v2, name="test_metadata_v2-4-myapp"),
+    path("openidConfigV2", test_openid_config_v2, name="test_openid_config_v2-4-myapp"),
+]
