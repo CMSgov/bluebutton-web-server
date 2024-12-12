@@ -127,8 +127,4 @@ class URLSReverseTest(TestCase):
     def test_reverse_urls(self):
         for k, v in URLS_NAMES.items():
             uri = reverse(k, args=[v]) if v is not None else reverse(k)
-            if uri.startswith('/myapp/'):
-                # temp skip testclient url reverse tests - it's ambiguous by now in prototype - deambiguite in real impl.
-                pass
-            else:
-                self.assertEqual(uri, EXPECTED[k])
+            self.assertEqual(uri, EXPECTED[k])

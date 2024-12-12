@@ -111,7 +111,7 @@ def restart(request):
     if 'token' in request.session:
         del request.session['token']
 
-    return render(request, AUTH_PAGE if request.path == '/myapp/' else HOME_PAGE, context={"session_token": None})
+    return render(request, AUTH_PAGE if request.path.startswith('/myapp/') else HOME_PAGE, context={"session_token": None})
 
 
 @waffle_switch('enable_testclient')
