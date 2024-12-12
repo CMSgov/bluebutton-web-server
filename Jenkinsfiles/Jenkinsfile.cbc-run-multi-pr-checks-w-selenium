@@ -99,7 +99,7 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
-          pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+          USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
     }
@@ -134,7 +134,7 @@ pipeline {
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
           . venv/bin/activate
-          pytest ./apps/integration_tests/selenium_tests.py
+          USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/selenium_tests.py
         """
        }
     }
