@@ -57,6 +57,7 @@ pipeline {
           . venv/bin/activate
           python -m pip install --upgrade pip setuptools wheel cryptography
           make reqs-install-dev
+          pip install --upgrade coverage
         """
       }
     }
@@ -74,7 +75,7 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          python runtests.py
+          coverage run runtests.py && coverage report -m
         """
       }
     }
