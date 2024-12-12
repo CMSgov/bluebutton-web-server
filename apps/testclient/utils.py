@@ -50,8 +50,8 @@ def test_setup(include_client_secret=True, v2=False, pkce=False, client_id=None)
     return (response)
 
 
-def get_client_secret():
-    oa2client = Application.objects.get(name="TestApp")
+def get_client_secret(app_name):
+    oa2client = Application.objects.get(name=app_name)
     return oa2client.client_secret_plain
 
 

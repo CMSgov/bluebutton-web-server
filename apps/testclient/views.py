@@ -146,7 +146,7 @@ def callback(request):
     try:
         cv = request.session.get('code_verifier')
         token = oas.fetch_token(token_uri,
-                                client_secret=get_client_secret(),
+                                client_secret=get_client_secret(app_name),
                                 authorization_response=auth_uri,
                                 code_verifier=cv if cv else '')
     except MissingTokenError:
@@ -214,6 +214,10 @@ def test_links(request, **kwargs):
                     pass
                 if app:
                     # validate
+                    if app.name == 'TestApp':
+                        # Also consider exclude other internal apps: e.g. newrelic
+                        return JsonResponse({"error": "Not Authorized."},
+                                            status=status.HTTP_401_UNAUTHORIZED)
                     if (client_secret == app.client_secret_plain):
                         # generate auth url and redirect
                         request.session.update(test_setup(v2=True, pkce='true', client_id=client_id))
