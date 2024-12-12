@@ -54,36 +54,41 @@
     }
 
     function setCookie(name, value) {
-        var expires = "";
-
-        var date = new Date();
-        // 1 hour expiration
+        const date = new Date();
         date.setTime(date.getTime() + (60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
+        const expires = "; expires=" + date.toUTCString();
+        document.cookie = `${name}=${value || ""}${expires}; path=/`;
+    }
 
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
-      }
-
-      function getCookie(name) {
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-          var c = ca[i];
-          while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    function getCookie(name) {
+        const nameEQ = `${name}=`;
+        const cookiesArray = document.cookie.split(';');
+        
+        for (let i = 0; i < cookiesArray.length; i++) {
+            let cookie = cookiesArray[i].trim();
+            if (cookie.indexOf(nameEQ) === 0) {
+                return cookie.substring(nameEQ.length);
+            }
         }
+        
         return null;
-      }
+    }
 
     function toggleLanguage() {
-        var lang = getCookie("{{settings.LANGUAGE_COOKIE_NAME}}");
-        if(lang == 'en' || lang == null) {
-            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'es')
+        const langCookieName = "{{ settings.LANGUAGE_COOKIE_NAME }}";
+        let lang = getCookie(langCookieName);
+        
+        if (lang === 'zh-Hans') {
+            setCookie(langCookieName, 'zh-Hans');
+        } else if (lang === 'es') {
+            setCookie(langCookieName, 'es');
         } else {
-            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'en')
+            setCookie(langCookieName, 'en');
         }
+        
         window.location.reload();
     }
+
 </script>
 <section class="ds-c-usa-banner" aria-label={% trans "Official government website" %}>
 <header class="ds-c-usa-banner__header" style="background-color:#f2f2f2; padding: 8px 16px 8px 16px;">
@@ -133,6 +138,7 @@
         </button>
     </p>
     <div class="ds-u-margin-left--auto ds-u-margin-right--0"><a href="#" onclick="toggleLanguage();" id="lang_toggle">{% trans "Cambiar a español" %}</a></div>
+    <div class="ds-u-margin-left--auto ds-u-margin-right--0"><a href="#" onclick="toggleLanguage();" id="lang_toggle">{% trans "切换到中文" %}</a></div>
 </header>
 <div class="ds-c-usa-banner__content" id="gov-banner_25" hidden="">
     <div class="ds-c-usa-banner__guidance-container">

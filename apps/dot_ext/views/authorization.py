@@ -103,9 +103,9 @@ class AuthorizationView(DotAuthorizationView):
             return result
 
         request.session['version'] = self.version
-        # Store the lang parameter value on the server side with session keyS
+        # Store the lang parameter value on the server side with session keys
         lang = request.GET.get('lang', None)
-        if lang is not None and (lang == 'en' or lang == 'es'):
+        if lang is not None and (lang == 'en' or lang == 'es' or lang == 'zh-Hans'):
             request.session['auth_language'] = lang
         return super().dispatch(request, *args, **kwargs)
 

@@ -5,7 +5,7 @@
 #
 #, fuzzy
 msgid ""
-msgstr ""
+msgstr "咯热米皮宿命"
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-12-06 22:33+0000\n"
@@ -37,11 +37,11 @@ msgstr "CMS是我的老家"
 
 #: apps/accounts/forms.py:25
 msgid "Password"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/forms.py:33
 msgid "Password (again)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/forms.py:60
 msgid "This email address is already registered."
@@ -49,91 +49,92 @@ msgstr "问王晗宇"
 
 #: apps/accounts/forms.py:115
 msgid "Please enter a correct email and password."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/forms.py:117
 msgid "Please click the verification link in your email before logging in."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:144
 msgid ""
 "Check this box to issue a new access key. Doing so invalidates the existing "
 "key."
-msgstr ""
+msgstr "咯热米皮宿命"
+
 
 #: apps/accounts/models.py:152
 msgid "Check this to allow the account to register applications."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:158
 msgid "Check this to allow the account to authorize applications."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:164
 msgid "US numbers only."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:312
 #, python-format
 msgid ""
 "User \"%(user)s\" added %(content_type)s object. \"%(object)s\" added at "
 "%(action_time)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:322
 #, python-format
 msgid ""
 "User \"%(user)s\" changed %(content_type)s object. \"%(object)s\" - "
 "%(changes)s at %(action_time)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:333
 #, python-format
 msgid ""
 "User  \"%(user)s\" deleted %(content_type)s object. \"%(object)s\" deleted "
 "at %(action_time)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:360
 msgid "Descriptor Created On"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:363
 msgid "Salt"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:368
 msgid "Iterations"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:372
 msgid "Password Descriptor"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:373
 msgid "Password Descriptors"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:407
 msgid "Password Hash"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/models.py:409
 msgid "Date Created"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/templates/account-settings.html:38
 #: templates/generic/split60_50.html:36
 msgid "Important"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/templates/account-settings.html:48
 msgid "Update Information"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/templates/registration/signup.html:28
 msgid "Create Account"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/templates/registration/signup.html:30
 #: apps/dot_ext/templates/oauth2_provider/application_form.html:7
@@ -141,59 +142,59 @@ msgstr ""
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:36
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_form.html:35
 msgid "Go Back"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/views/core.py:25
 msgid ""
 "Your account was created. Please check your email to verify your account "
 "before logging in."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/views/core.py:45
 msgid "Account Settings"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/accounts/views/core.py:52
 #, python-format
 msgid "You are in the group: %s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/authorization/apps.py:7
 msgid "profiles"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/forms.py:128
 msgid "You must agree to the API Terms of Service Agreement"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/forms.py:138 apps/dot_ext/forms.py:270
 msgid "Redirect URIs must not use http."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/forms.py:152 apps/dot_ext/forms.py:279
 msgid ""
 "Does your application need to collect beneficiary demographic information "
 "must be (Yes/No)."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/models.py:35
 msgid "for 10 hours"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/models.py:36
 msgid "for 13 months, until "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/models.py:74
 msgid ""
 "Multiple redirect URIs can be separated by a space or on a separate line. "
 "Read more about implementing redirect URIs in our documentation."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_confirm_delete.html:19
 #: apps/dot_ext/templates/oauth2_provider/application_confirm_delete.html:34
 msgid "Are you sure you want to delete"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_confirm_delete.html:25
 #: apps/dot_ext/templates/oauth2_provider/authorized-token-delete.html:12
@@ -202,595 +203,595 @@ msgstr ""
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:38
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorized-token-delete.html:7
 msgid "Delete"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_confirm_delete.html:26
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_confirm_delete.html:12
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorize.html:29
 #: templates/design_system/new_authorize_v2.html:169
 msgid "Cancel"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_detail.html:64
 msgid "Client Type"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_detail.html:70
 msgid "Grant Type"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_detail.html:76
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:30
 msgid "Redirect Uris"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_form.html:12
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:37
 msgid "Edit"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_list.html:12
 msgid "Registered Applications"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_list.html:20
 msgid "What is this?"
-msgstr ""
+msgstr "啊？"
 
 #: apps/dot_ext/templates/oauth2_provider/application_list.html:38
 msgid "No applications defined."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/application_registration_form.html:5
 msgid "Register a New Application"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/authorize.html:63
 msgid "Do you approve"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/authorize.html:72
 msgid "This application requires following permissions"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/authorized-token-delete.html:11
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorized-token-delete.html:6
 msgid "Are you sure you want to delete this token?"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/authorized-tokens.html:16
 msgid "Applications Tokens"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/authorized-tokens.html:20
 msgid "Application Tokens"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/templates/oauth2_provider/authorized-tokens.html:47
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorized-tokens.html:19
 msgid "There are no authorized tokens yet."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/dot_ext/validators.py:43
 msgid "The text contains HTML tags. Please use plain-text only!"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/home/templates/authenticated-home.html:89
 msgid "You haven’t registered or created any apps yet."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/home/templates/authenticated-home.html:90
 msgid ""
 "You’ll need to register your app to get a sample token and make API calls to "
 "our sample data. Let’s get started!"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: apps/home/views.py:25
 msgid "Authenticated Home"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:302
 msgid "English"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:303
 msgid "Spanish"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:461
 msgid "5 Years"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:462
 msgid "1 Day"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:463
 msgid "1 Week"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:464
 msgid "1 Year"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:465
 msgid "3 Years"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:466
 msgid "10 Years"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:467
 msgid "Forever"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:473
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:76
 msgid "Authorization code"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: hhs_oauth_server/settings/base.py:474
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:77
 msgid "Implicit"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/admin/authorization/dataaccessgrant/change_list_object_tools.html:8
 #: templates/admin/bluebutton/crosswalk/change_list_object_tools.html:8
 #, python-format
 msgid "Add %(name)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:88
 msgid "Official government website"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:116
 msgid "An official website of the United States government"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:118
 msgid "Here's how you know"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:135
 msgid "Cambiar a español"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:166
 msgid "Official websites use .gov"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:168
 msgid ""
 "A <strong>.gov</strong> website belongs to an official government "
 "organization in the United States."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:194
 msgid "Secure .gov websites use HTTPS"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:196
 msgid "A <strong>lock</strong> "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/auth_base.html:211
 msgid ""
 "or <strong>https://</strong> means you've safely connected to the .gov "
 "website. Share sensitive information only on official, secure websites."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/email/email-password-forgot-link.txt:5
 #, python-format
 msgid ""
 "You're receiving this email because you requested a password reset for your "
 "user account at %(site_name)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/email/email-password-forgot-link.txt:7
 msgid "Please go to the following page and choose a new password:"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/email/email-password-forgot-link.txt:11
 msgid "Your username, in case you've forgotten:"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/email/email-password-forgot-link.txt:13
 msgid "Thanks for using our site!"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/email/email-password-forgot-link.txt:15
 #, python-format
 msgid "The %(site_name)s team"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/generic/split60_50.html:49
 msgid "Continue"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/_termui_impl.py:518
 #, python-brace-format
 msgid "{editor}: Editing failed"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/_termui_impl.py:522
 #, python-brace-format
 msgid "{editor}: Editing failed: {e}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1120
 msgid "Aborted!"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1309
 #: venv/lib/python3.9/site-packages/click/decorators.py:559
 msgid "Show this message and exit."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1340
 #: venv/lib/python3.9/site-packages/click/core.py:1370
 #, python-brace-format
 msgid "(Deprecated) {text}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1387
 msgid "Options"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1413
 #, python-brace-format
 msgid "Got unexpected extra argument ({args})"
 msgid_plural "Got unexpected extra arguments ({args})"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "咯热米皮宿命"
+msgstr[1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1429
 msgid "DeprecationWarning: The command {name!r} is deprecated."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1636
 msgid "Commands"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1668
 msgid "Missing command."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:1746
 msgid "No such command {name!r}."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:2310
 msgid "Value must be an iterable."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:2331
 #, python-brace-format
 msgid "Takes {nargs} values but 1 was given."
 msgid_plural "Takes {nargs} values but {len} were given."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "咯热米皮宿命"
+msgstr[1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:2778
 #, python-brace-format
 msgid "env var: {var}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:2808
 msgid "(dynamic)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:2821
 #, python-brace-format
 msgid "default: {default}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/core.py:2834
 msgid "required"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/decorators.py:465
 #, python-format
 msgid "%(prog)s, version %(version)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/decorators.py:528
 msgid "Show the version and exit."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:44
 #: venv/lib/python3.9/site-packages/click/exceptions.py:80
 #, python-brace-format
 msgid "Error: {message}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:72
 #, python-brace-format
 msgid "Try '{command} {option}' for help."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:121
 #, python-brace-format
 msgid "Invalid value: {message}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:123
 #, python-brace-format
 msgid "Invalid value for {param_hint}: {message}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:179
 msgid "Missing argument"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:181
 msgid "Missing option"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:183
 msgid "Missing parameter"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:185
 #, python-brace-format
 msgid "Missing {param_type}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:192
 #, python-brace-format
 msgid "Missing parameter: {param_name}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:212
 #, python-brace-format
 msgid "No such option: {name}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:224
 #, python-brace-format
 msgid "Did you mean {possibility}?"
 msgid_plural "(Possible options: {possibilities})"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "咯热米皮宿命"
+msgstr[1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:262
 msgid "unknown error"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/exceptions.py:269
 msgid "Could not open file {filename!r}: {message}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/parser.py:231
 msgid "Argument {name!r} takes {nargs} values."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/parser.py:413
 msgid "Option {name!r} does not take a value."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/parser.py:474
 msgid "Option {name!r} requires an argument."
 msgid_plural "Option {name!r} requires {nargs} arguments."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "咯热米皮宿命"
+msgstr[1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/shell_completion.py:319
 msgid "Shell completion is not supported for Bash versions older than 4.4."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/shell_completion.py:326
 msgid "Couldn't detect Bash version, shell completion is not supported."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/termui.py:158
 msgid "Repeat for confirmation"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/termui.py:174
 msgid "Error: The value you entered was invalid."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/termui.py:176
 #, python-brace-format
 msgid "Error: {e.message}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/termui.py:187
 msgid "Error: The two entered values do not match."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/termui.py:243
 msgid "Error: invalid input"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/termui.py:773
 msgid "Press any key to continue..."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:266
 #, python-brace-format
 msgid ""
 "Choose from:\n"
 "\t{choices}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:298
 msgid "{value!r} is not {choice}."
 msgid_plural "{value!r} is not one of {choices}."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "咯热米皮宿命"
+msgstr[1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:392
 msgid "{value!r} does not match the format {format}."
 msgid_plural "{value!r} does not match the formats {formats}."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "咯热米皮宿命"
+msgstr[1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:414
 msgid "{value!r} is not a valid {number_type}."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:470
 #, python-brace-format
 msgid "{value} is not in the range {range}."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:611
 msgid "{value!r} is not a valid boolean."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:635
 msgid "{value!r} is not a valid UUID."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:822
 msgid "file"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:824
 msgid "directory"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:826
 msgid "path"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:877
 msgid "{name} {filename!r} does not exist."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:886
 msgid "{name} {filename!r} is a file."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:894
 #, python-brace-format
 msgid "{name} '{filename}' is a directory."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:903
 msgid "{name} {filename!r} is not readable."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:912
 msgid "{name} {filename!r} is not writable."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:921
 msgid "{name} {filename!r} is not executable."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/click/types.py:988
 #, python-brace-format
 msgid "{len_type} values are required, but {len_value} was given."
 msgid_plural "{len_type} values are required, but {len_value} were given."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/contrib/messages/apps.py:15
 msgid "Messages"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/contrib/sitemaps/apps.py:8
 msgid "Site Maps"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/contrib/staticfiles/apps.py:9
 msgid "Static Files"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/contrib/syndication/apps.py:7
 msgid "Syndication"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: String used to replace omitted page numbers in elided page
 #. range generated by paginators, e.g. [1, 2, '…', 5, 6, 7, '…', 9, 10].
 #: venv/lib/python3.9/site-packages/django/core/paginator.py:30
 msgid "…"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/paginator.py:50
 msgid "That page number is not an integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/paginator.py:52
 msgid "That page number is less than 1"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/paginator.py:54
 msgid "That page contains no results"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:22
 msgid "Enter a valid value."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:104
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:752
 msgid "Enter a valid URL."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:165
 msgid "Enter a valid integer."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:176
 msgid "Enter a valid email address."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: "letters" means latin letters: a-z and A-Z.
 #: venv/lib/python3.9/site-packages/django/core/validators.py:259
 msgid ""
 "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:267
 msgid ""
 "Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
 "hyphens."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:279
 #: venv/lib/python3.9/site-packages/django/core/validators.py:287
 #: venv/lib/python3.9/site-packages/django/core/validators.py:316
 msgid "Enter a valid IPv4 address."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:296
 #: venv/lib/python3.9/site-packages/django/core/validators.py:317
 msgid "Enter a valid IPv6 address."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:308
 #: venv/lib/python3.9/site-packages/django/core/validators.py:315
 msgid "Enter a valid IPv4 or IPv6 address."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:351
 msgid "Enter only digits separated by commas."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:357
 #, python-format
 msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:392
 #, python-format
 msgid "Ensure this value is less than or equal to %(limit_value)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:401
 #, python-format
 msgid "Ensure this value is greater than or equal to %(limit_value)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:410
 #, python-format
 msgid "Ensure this value is a multiple of step size %(limit_value)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:420
 #, python-format
@@ -800,8 +801,8 @@ msgid ""
 msgid_plural ""
 "Ensure this value has at least %(limit_value)d characters (it has "
 "%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:438
 #, python-format
@@ -811,28 +812,28 @@ msgid ""
 msgid_plural ""
 "Ensure this value has at most %(limit_value)d characters (it has "
 "%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:461
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:347
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:386
 msgid "Enter a number."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:463
 #, python-format
 msgid "Ensure that there are no more than %(max)s digit in total."
 msgid_plural "Ensure that there are no more than %(max)s digits in total."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:468
 #, python-format
 msgid "Ensure that there are no more than %(max)s decimal place."
 msgid_plural "Ensure that there are no more than %(max)s decimal places."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:473
 #, python-format
@@ -840,52 +841,52 @@ msgid ""
 "Ensure that there are no more than %(max)s digit before the decimal point."
 msgid_plural ""
 "Ensure that there are no more than %(max)s digits before the decimal point."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:544
 #, python-format
 msgid ""
 "File extension “%(extension)s” is not allowed. Allowed extensions are: "
 "%(allowed_extensions)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/core/validators.py:605
 msgid "Null characters are not allowed."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/base.py:1423
 #: venv/lib/python3.9/site-packages/django/forms/models.py:893
 msgid "and"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/base.py:1425
 #, python-format
 msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/constraints.py:17
 #, python-format
 msgid "Constraint “%(name)s” is violated."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:128
 #, python-format
 msgid "Value %(value)r is not a valid choice."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:129
 msgid "This field cannot be null."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:130
 msgid "This field cannot be blank."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:131
 #, python-format
 msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: The 'lookup_type' is one of 'date', 'year' or
 #. 'month'. Eg: "Title must be unique for pub_date year"
@@ -893,46 +894,46 @@ msgstr ""
 #, python-format
 msgid ""
 "%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:173
 #, python-format
 msgid "Field of type: %(field_type)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1094
 #, python-format
 msgid "“%(value)s” value must be either True or False."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1095
 #, python-format
 msgid "“%(value)s” value must be either True, False, or None."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1097
 msgid "Boolean (Either True or False)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1147
 #, python-format
 msgid "String (up to %(max_length)s)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1149
 msgid "String (unlimited)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1253
 msgid "Comma-separated integers"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1354
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD "
 "format."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1358
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1493
@@ -940,798 +941,798 @@ msgstr ""
 msgid ""
 "“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid "
 "date."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1362
 msgid "Date (without time)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1489
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
 "uuuuuu]][TZ] format."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1497
 #, python-format
 msgid ""
 "“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
 "[TZ]) but it is an invalid date/time."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1502
 msgid "Date (with time)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1626
 #, python-format
 msgid "“%(value)s” value must be a decimal number."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1628
 msgid "Decimal number"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1789
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid format. It must be in [DD] [[HH:]MM:]ss[."
 "uuuuuu] format."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1793
 msgid "Duration"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1845
 msgid "Email address"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1870
 msgid "File path"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1948
 #, python-format
 msgid "“%(value)s” value must be a float."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1950
 msgid "Floating point number"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1990
 #, python-format
 msgid "“%(value)s” value must be an integer."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:1992
 msgid "Integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2088
 msgid "Big (8 byte) integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2105
 msgid "Small integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2113
 msgid "IPv4 address"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2144
 msgid "IP address"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2237
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2238
 #, python-format
 msgid "“%(value)s” value must be either None, True or False."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2240
 msgid "Boolean (Either True, False or None)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2291
 msgid "Positive big integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2306
 msgid "Positive integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2321
 msgid "Positive small integer"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2337
 #, python-format
 msgid "Slug (up to %(max_length)s)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2373
 msgid "Text"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2448
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
 "format."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2452
 #, python-format
 msgid ""
 "“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
 "invalid time."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2456
 msgid "Time"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2564
 msgid "URL"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2588
 msgid "Raw binary data"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2653
 #, python-format
 msgid "“%(value)s” is not a valid UUID."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/__init__.py:2655
 msgid "Universally unique identifier"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:232
 msgid "File"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/files.py:393
 msgid "Image"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/json.py:26
 msgid "A JSON object"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/json.py:28
 msgid "Value must be valid JSON."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:919
 #, python-format
 msgid "%(model)s instance with %(field)s %(value)r does not exist."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:921
 msgid "Foreign Key (type determined by related field)"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1212
 msgid "One-to-one relationship"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1269
 #, python-format
 msgid "%(from)s-%(to)s relationship"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1271
 #, python-format
 msgid "%(from)s-%(to)s relationships"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/db/models/fields/related.py:1319
 msgid "Many-to-many relationship"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: If found as last label character, these punctuation
 #. characters will prevent the default label_suffix to be appended to the label
 #: venv/lib/python3.9/site-packages/django/forms/boundfield.py:184
 msgid ":?.!"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:91
 msgid "This field is required."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:298
 msgid "Enter a whole number."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:467
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:1241
 msgid "Enter a valid date."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:490
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:1242
 msgid "Enter a valid time."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:517
 msgid "Enter a valid date/time."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:551
 msgid "Enter a valid duration."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:552
 #, python-brace-format
 msgid "The number of days must be between {min_days} and {max_days}."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:621
 msgid "No file was submitted. Check the encoding type on the form."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:622
 msgid "No file was submitted."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:623
 msgid "The submitted file is empty."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:625
 #, python-format
 msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
 msgid_plural ""
 "Ensure this filename has at most %(max)d characters (it has %(length)d)."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:630
 msgid "Please either submit a file or check the clear checkbox, not both."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:694
 msgid ""
 "Upload a valid image. The file you uploaded was either not an image or a "
 "corrupted image."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:857
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:949
 #: venv/lib/python3.9/site-packages/django/forms/models.py:1566
 #, python-format
 msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:951
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:1070
 #: venv/lib/python3.9/site-packages/django/forms/models.py:1564
 msgid "Enter a list of values."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:1071
 msgid "Enter a complete value."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:1310
 msgid "Enter a valid UUID."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/fields.py:1340
 msgid "Enter a valid JSON."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: This is the default suffix added to form field labels
 #: venv/lib/python3.9/site-packages/django/forms/forms.py:98
 msgid ":"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/forms.py:244
 #: venv/lib/python3.9/site-packages/django/forms/forms.py:328
 #, python-format
 msgid "(Hidden field %(name)s) %(error)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/formsets.py:63
 #, python-format
 msgid ""
 "ManagementForm data is missing or has been tampered with. Missing fields: "
 "%(field_names)s. You may need to file a bug report if the issue persists."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/formsets.py:67
 #, python-format
 msgid "Please submit at most %(num)d form."
 msgid_plural "Please submit at most %(num)d forms."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/formsets.py:72
 #, python-format
 msgid "Please submit at least %(num)d form."
 msgid_plural "Please submit at least %(num)d forms."
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/formsets.py:484
 #: venv/lib/python3.9/site-packages/django/forms/formsets.py:491
 msgid "Order"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:886
 #, python-format
 msgid "Please correct the duplicate data for %(field)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:891
 #, python-format
 msgid "Please correct the duplicate data for %(field)s, which must be unique."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:898
 #, python-format
 msgid ""
 "Please correct the duplicate data for %(field_name)s which must be unique "
 "for the %(lookup)s in %(date_field)s."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:907
 msgid "Please correct the duplicate values below."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:1338
 msgid "The inline value did not match the parent instance."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:1429
 msgid "Select a valid choice. That choice is not one of the available choices."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/models.py:1568
 #, python-format
 msgid "“%(pk)s” is not a valid value."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/utils.py:226
 #, python-format
 msgid ""
 "%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it "
 "may be ambiguous or it may not exist."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/widgets.py:463
 msgid "Clear"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/widgets.py:464
 msgid "Currently"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/widgets.py:465
 msgid "Change"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/widgets.py:794
 msgid "Unknown"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/widgets.py:795
 msgid "Yes"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/forms/widgets.py:796
 msgid "No"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: Please do not add spaces around commas.
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:861
 msgid "yes,no,maybe"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:891
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:908
 #, python-format
 msgid "%(size)d byte"
 msgid_plural "%(size)d bytes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:910
 #, python-format
 msgid "%s KB"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:912
 #, python-format
 msgid "%s MB"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:914
 #, python-format
 msgid "%s GB"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:916
 #, python-format
 msgid "%s TB"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/template/defaultfilters.py:918
 #, python-format
 msgid "%s PB"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dateformat.py:73
 msgid "p.m."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dateformat.py:74
 msgid "a.m."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dateformat.py:79
 msgid "PM"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dateformat.py:80
 msgid "AM"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dateformat.py:152
 msgid "midnight"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dateformat.py:154
 msgid "noon"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:7
 msgid "Monday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:8
 msgid "Tuesday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:9
 msgid "Wednesday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:10
 msgid "Thursday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:11
 msgid "Friday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:12
 msgid "Saturday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:13
 msgid "Sunday"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:16
 msgid "Mon"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:17
 msgid "Tue"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:18
 msgid "Wed"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:19
 msgid "Thu"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:20
 msgid "Fri"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:21
 msgid "Sat"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:22
 msgid "Sun"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:25
 msgid "January"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:26
 msgid "February"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:27
 msgid "March"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:28
 msgid "April"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:29
 msgid "May"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:30
 msgid "June"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:31
 msgid "July"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:32
 msgid "August"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:33
 msgid "September"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:34
 msgid "October"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:35
 msgid "November"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:36
 msgid "December"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:39
 msgid "jan"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:40
 msgid "feb"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:41
 msgid "mar"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:42
 msgid "apr"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:43
 msgid "may"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:44
 msgid "jun"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:45
 msgid "jul"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:46
 msgid "aug"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:47
 msgid "sep"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:48
 msgid "oct"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:49
 msgid "nov"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:50
 msgid "dec"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:53
 msgctxt "abbrev. month"
 msgid "Jan."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:54
 msgctxt "abbrev. month"
 msgid "Feb."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:55
 msgctxt "abbrev. month"
 msgid "March"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:56
 msgctxt "abbrev. month"
 msgid "April"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:57
 msgctxt "abbrev. month"
 msgid "May"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:58
 msgctxt "abbrev. month"
 msgid "June"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:59
 msgctxt "abbrev. month"
 msgid "July"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:60
 msgctxt "abbrev. month"
 msgid "Aug."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:61
 msgctxt "abbrev. month"
 msgid "Sept."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:62
 msgctxt "abbrev. month"
 msgid "Oct."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:63
 msgctxt "abbrev. month"
 msgid "Nov."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:64
 msgctxt "abbrev. month"
 msgid "Dec."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:67
 msgctxt "alt. month"
 msgid "January"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:68
 msgctxt "alt. month"
 msgid "February"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:69
 msgctxt "alt. month"
 msgid "March"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:70
 msgctxt "alt. month"
 msgid "April"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:71
 msgctxt "alt. month"
 msgid "May"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:72
 msgctxt "alt. month"
 msgid "June"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:73
 msgctxt "alt. month"
 msgid "July"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:74
 msgctxt "alt. month"
 msgid "August"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:75
 msgctxt "alt. month"
 msgid "September"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:76
 msgctxt "alt. month"
 msgid "October"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:77
 msgctxt "alt. month"
 msgid "November"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/dates.py:78
 msgctxt "alt. month"
 msgid "December"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/ipv6.py:8
 msgid "This is not a valid IPv6 address."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/text.py:137
 #, python-format
 msgctxt "String to return when truncating text"
 msgid "%(truncated_text)s…"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/text.py:322
 msgid "or"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #. Translators: This string is used as a separator between list elements
 #: venv/lib/python3.9/site-packages/django/utils/text.py:341
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:135
 msgid ", "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:8
 #, python-format
 msgid "%(num)d year"
 msgid_plural "%(num)d years"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:9
 #, python-format
 msgid "%(num)d month"
 msgid_plural "%(num)d months"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:10
 #, python-format
 msgid "%(num)d week"
 msgid_plural "%(num)d weeks"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:11
 #, python-format
 msgid "%(num)d day"
 msgid_plural "%(num)d days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:12
 #, python-format
 msgid "%(num)d hour"
 msgid_plural "%(num)d hours"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/utils/timesince.py:13
 #, python-format
 msgid "%(num)d minute"
 msgid_plural "%(num)d minutes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr [0] "咯热米皮宿命"
+msgstr [1] "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:111
 msgid "Forbidden"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:112
 msgid "CSRF verification failed. Request aborted."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:116
 msgid ""
@@ -1739,14 +1740,14 @@ msgid ""
 "header” to be sent by your web browser, but none was sent. This header is "
 "required for security reasons, to ensure that your browser is not being "
 "hijacked by third parties."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:122
 msgid ""
 "If you have configured your browser to disable “Referer” headers, please re-"
 "enable them, at least for this site, or for HTTPS connections, or for “same-"
 "origin” requests."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:127
 msgid ""
@@ -1755,109 +1756,109 @@ msgid ""
 "CSRF protection requires the “Referer” header to do strict referer checking. "
 "If you’re concerned about privacy, use alternatives like <a "
 "rel=\"noreferrer\" …> for links to third-party sites."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:136
 msgid ""
 "You are seeing this message because this site requires a CSRF cookie when "
 "submitting forms. This cookie is required for security reasons, to ensure "
 "that your browser is not being hijacked by third parties."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:142
-msgid ""
+msgid "咯热米皮宿命"
 "If you have configured your browser to disable cookies, please re-enable "
 "them, at least for this site, or for “same-origin” requests."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/csrf.py:148
 msgid "More information is available with DEBUG=True."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:44
 msgid "No year specified"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:64
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:115
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:214
 msgid "Date out of range"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:94
 msgid "No month specified"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:147
 msgid "No day specified"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:194
 msgid "No week specified"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:349
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:380
 #, python-format
 msgid "No %(verbose_name_plural)s available"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:652
 #, python-format
 msgid ""
 "Future %(verbose_name_plural)s not available because %(class_name)s."
 "allow_future is False."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/dates.py:692
 #, python-format
 msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/detail.py:56
 #, python-format
 msgid "No %(verbose_name)s found matching the query"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/list.py:70
 msgid "Page is not “last”, nor can it be converted to an int."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/list.py:77
 #, python-format
 msgid "Invalid page (%(page_number)s): %(message)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/generic/list.py:169
 #, python-format
 msgid "Empty list and “%(class_name)s.allow_empty” is False."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/static.py:38
 msgid "Directory indexes are not allowed here."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/static.py:40
 #, python-format
 msgid "“%(path)s” does not exist"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/static.py:79
 #, python-format
 msgid "Index of %(directory)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:7
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:220
 msgid "The install worked successfully! Congratulations!"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:206
 #, python-format
 msgid ""
 "View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" "
 "target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:221
 #, python-format
@@ -1866,259 +1867,259 @@ msgid ""
 "%(version)s/ref/settings/#debug\" target=\"_blank\" "
 "rel=\"noopener\">DEBUG=True</a> is in your settings file and you have not "
 "configured any URLs."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:229
 msgid "Django Documentation"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:230
 msgid "Topics, references, &amp; how-to’s"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:238
 msgid "Tutorial: A Polling App"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:239
 msgid "Get started with Django"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:247
 msgid "Django Community"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:248
 msgid "Connect, get help, or contribute"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/ipware/apps.py:10
 msgid "ipware app"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:66
 msgid "Confidential"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:67
 msgid "Public"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:78
 msgid "Resource owner password-based"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:79
 msgid "Client credentials"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:80
 msgid "OpenID connect hybrid"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:87
 msgid "No OIDC support"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:88
 msgid "RSA with SHA-2 256"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:89
 msgid "HMAC with SHA-2 256"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:104
 msgid "Allowed URIs list, space separated"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:113
 msgid "Hashed on Save. Copy it now if this is a new secret."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:175
 #, python-brace-format
 msgid "Unauthorized redirect scheme: {scheme}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:179
 #, python-brace-format
 msgid "redirect_uris cannot be empty with grant_type {grant_type}"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:185
 msgid "You must set OIDC_RSA_PRIVATE_KEY to use RSA algorithm"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/models.py:194
 msgid "You cannot use HS256 with public grants or clients"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/oauth2_validators.py:211
 msgid "The access token is invalid."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/oauth2_validators.py:218
 msgid "The access token has expired."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/oauth2_validators.py:225
 msgid "The access token is valid but does not have enough scope."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_confirm_delete.html:6
 msgid "Are you sure to delete the application"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:10
 msgid "Client id"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:15
 msgid "Client secret"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:20
 msgid "Client type"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_detail.html:25
 msgid "Authorization Grant Type"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_form.html:9
 msgid "Edit application"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_form.html:37
 msgid "Save"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_list.html:6
 msgid "Your applications"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_list.html:14
 msgid "New Application"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_list.html:17
 msgid "No applications defined"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_list.html:17
 msgid "Click here"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_list.html:17
 msgid "if you want to register a new one"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/application_registration_form.html:5
 msgid "Register a new application"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorize.html:8
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorize.html:30
 msgid "Authorize"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorize.html:17
 msgid "Application requires the following permissions"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorized-tokens.html:6
 msgid "Tokens"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: venv/lib/python3.9/site-packages/oauth2_provider/templates/oauth2_provider/authorized-tokens.html:11
 msgid "revoke"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:56
 msgid "Connect your Medicare claims data to "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:58
 msgid "If you connect, "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:58
 msgid "will have access to information about your:"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:60
 msgid "Doctor visits"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:61
 msgid "Hospital visits"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:62
 msgid "Prescription medications"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:70
 msgid "You can also grant access to your:"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:89
 msgid "Personal Information"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:89
 msgid "Your name, address, date of birth, race, and gender"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:92
 msgid "Uncheck to block access to personal information."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:93
 msgid "Check to allow access to personal information."
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid "Learn more about how "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid " uses your data in their "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid "Privacy Policy"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid " and "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:146
 msgid " will have access to your data "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:163
 msgid "To stop sharing your information with "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:163
 msgid " visit your "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:164
 msgid "https://www.medicare.gov/"
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:164
 msgid " account or call "
-msgstr ""
+msgstr "咯热米皮宿命"
 
 #: templates/design_system/new_authorize_v2.html:171
 msgid "Connect"
-msgstr ""
+msgstr "咯热米皮宿命"

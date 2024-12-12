@@ -165,6 +165,8 @@ def mymedicare_login(request, version=1):
         # Modify the Medicare login url according to the stored language
         if language == 'es':
             mymedicare_login_url += "&lang=es-mx"
+        if language == 'zh-Hans':
+            mymedicare_login_url += "&lang=zh-Hans"
         elif language == 'en':
             mymedicare_login_url += "&lang=en-us"
     next_uri = request.GET.get('next', "")
