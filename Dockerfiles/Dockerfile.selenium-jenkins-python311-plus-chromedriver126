@@ -18,6 +18,6 @@ RUN curl https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
 #     && chmod +x /usr/local/bin/chromedriver
 
 # hard code the zip URL here since `curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` still points to 114 which is out of date
-RUN wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.55/linux64/chromedriver-linux64.zip \
+RUN wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.108/linux64/chromedriver-linux64.zip \
     && unzip -p /tmp/chromedriver.zip chromedriver-linux64/chromedriver > /usr/local/bin/chromedriver \
     && chmod +x /usr/local/bin/chromedriver
