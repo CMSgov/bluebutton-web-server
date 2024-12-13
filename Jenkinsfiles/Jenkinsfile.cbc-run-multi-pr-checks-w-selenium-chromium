@@ -50,14 +50,6 @@ pipeline {
       }
     }
 
-    stage("REPORT Python Version") {
-      steps {
-        sh """
-          python3 --version
-        """
-      }
-    }
-
     stage("INSTALL Python Packages") {
       steps {
         sh """
@@ -75,23 +67,11 @@ pipeline {
       }
     }
 
-    stage("Start selenium grid in background") {
+    stage("Start selenium grid by DinD ...") {
       steps{
         sh """
           whoami
-          ls /home
-          chromium --version
-          chromedriver --version
-          chromium
-          java -jar /selenium-server-standalone.jar&
-        """
-      }
-    }
-
-    stage("Check localhost:4444/wd/hub is active") {
-      steps{
-        sh """
-          curl http://localhost:4444/wd/hub
+          docker run --rm -it -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 2g selenium/standalone-chromium:latest
         """
       }
     }
