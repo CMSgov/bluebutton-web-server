@@ -1,45 +1,18 @@
-FROM seleniarm/standalone-chromium
-
-ENV PYTHONUNBUFFERED 1
+FROM selenium/standalone-chromium
 
 USER root
 
-#
-# Uncomment below section to use custom install python3.11.9 (the same as currently provisioned on EC2)
-# Keep it here to trouble shoot CI docker (registered at AWS ECR) locally since trouble shooting on CI is
-# time consuming.
-#
-# ------- begin custom install python 3.11.9 ----------------------------------------------
-# RUN sudo apt-get update ; apt-get install -yq build-essential zlib1g-dev make libssl-dev
-# RUN wget -O /Python-3.11.9.tgz https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz
-# WORKDIR /
-# RUN tar -xvzf Python-3.11.9.tgz
-# WORKDIR /Python-3.11.9
-# RUN sudo ./configure && sudo make && sudo make altinstall
-# RUN sudo rm /usr/bin/python3
-# RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python3
-# RUN sudo ln -s /usr/local/bin/pip3.11 /usr/bin/pip3
-# ------- end section -------------------------------------
-
-#
-# For local run, install from python3 python3-venv which is faster and the python version
-# is the current (e.g. for now it is 3.12.X - the lowest version still receiving bug fix),
-# since this container is for selenium tests not bb2 server,
-# so it is OK to be relaxed on python version, when doing local trouble shooting of remote
-# CI selenium tests, e.g. reproducing issues, comment out below section and uncomment above
-# python 3.11.9 custom install section.
-#
-# ------- begin quick python3 apt install -------------------------------------------------
 RUN apt-get update ; apt-get install -yq python3 python3-venv
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
-RUN useradd -m -s /bin/bash DEV
-USER DEV
+
+# switch to existing seluser from selenium docker
+USER seluser
+
 ADD . /code
 WORKDIR /code
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-# ------- end section -------------------------------------
 
 RUN pip3 install --upgrade pip
 RUN pip3 install selenium pytest debugpy jsonschema python-dateutil

@@ -1,22 +1,8 @@
-FROM --platform=linux/amd64 seleniarm/standalone-chromium
+FROM --platform=linux/amd64 selenium/standalone-chromium
 
 ENV PYTHONUNBUFFERED 1
 USER root
-# custom install python3.11.9 takes time to run, but this is built once and pushed to ECR
-# and then used by consumer many times.
-# ------- begin custom install python 3.11.9 ----------------------------------------------
-# on CI node, django db defaults to sqlite3
-RUN sudo apt-get update ; apt-get install -yq git build-essential zlib1g-dev make libssl-dev libffi-dev libsqlite3-dev sqlite3
-RUN wget -O /Python-3.11.9.tgz https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tgz
-RUN wget -O /selenium-server-standalone.jar https://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
-WORKDIR /
-RUN tar -xvzf Python-3.11.9.tgz
-WORKDIR /Python-3.11.9
-RUN sudo ./configure --enable-loadable-sqlite-extension && sudo make && sudo make altinstall
-RUN sudo rm /usr/bin/python3
-RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python3
-RUN sudo ln -s /usr/local/bin/python3.11 /usr/bin/python
-RUN sudo ln -s /usr/local/bin/pip3.11 /usr/bin/pip3
-RUN sudo ln -s /usr/bin/chromedriver /usr/local/bin/chromedriver
-RUN sudo ln -s /usr/bin/chromium /usr/local/bin/chromium
-# ------- end section -------------------------------------
+RUN apt-get update ; apt-get install -yq python3 python3-venv
+RUN ln -s /usr/bin/python3 /usr/local/bin/python
+
+USER seluser

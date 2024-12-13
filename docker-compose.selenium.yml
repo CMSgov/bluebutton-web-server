@@ -17,7 +17,7 @@ services:
         condition: service_started
 
   chrome:
-    image: seleniarm/standalone-chromium
+    image: selenium/standalone-chromium
     hostname: chrome
     ports:
       - "4444:4444"
