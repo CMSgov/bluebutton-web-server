@@ -51,6 +51,7 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.on_remote_ci = os.getenv('ON_REMOTE_CI', 'false')
         self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', "chrome")
         self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
         self.hostname_url = os.environ['HOSTNAME_URL']
@@ -80,7 +81,7 @@ class SeleniumGenericTests:
             self.driver = webdriver.Remote(
                 command_executor=hub_url, options=opt)
         else:
-            driver_exec = '/usr/bin/chromedriver'
+            driver_exec = '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
             print("Chrome Driver, location={}".format(driver_exec))
             opt.add_argument("--window-size=1920,1080")
             opt.add_argument("--headless")

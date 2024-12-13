@@ -67,15 +67,6 @@ pipeline {
       }
     }
 
-    stage("Start selenium grid by DinD ... in detached mode...") {
-      steps{
-        sh """
-          whoami
-          docker run -d --rm -it -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 2g selenium/standalone-chromium:latest
-        """
-      }
-    }
-
     stage("START BB2 server in background") {
        when {
         expression { params.RUN_SELENIUM_TESTS == true }
@@ -94,7 +85,7 @@ pipeline {
        }
        steps{
         sh """
-          USE_NEW_PERM_SCREEN=true SELENIUM_GRID=true SELENIUM_GRID_HOST=localhost pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
     }
@@ -106,7 +97,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - user account and app management tests"'
         sh """
-          USE_NEW_PERM_SCREEN=true SELENIUM_GRID=true SELENIUM_GRID_HOST=localhost pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
+          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
         """
        }
     }
@@ -134,7 +125,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
-          USE_NEW_PERM_SCREEN=true SELENIUM_GRID=true SELENIUM_GRID_HOST=localhost pytest -s ./apps/integration_tests/selenium_tests.py
+          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_tests.py
         """
        }
     }
