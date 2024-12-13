@@ -50,14 +50,14 @@ pipeline {
       }
     }
 
-    stage("INSTALL Python Packages") {
-      steps {
-        sh """
-          pip3 install --upgrade pip setuptools wheel
-          pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
-        """
-      }
-    }
+    // stage("INSTALL Python Packages") {
+    //   steps {
+    //     sh """
+    //       pip3 install --upgrade pip setuptools wheel
+    //       pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+    //     """
+    //   }
+    // }
 
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
