@@ -84,7 +84,8 @@ class SeleniumGenericTests:
             driver_exec = '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
             print("Chrome Driver, location={}".format(driver_exec))
             # opt.add_argument("--window-size=1920,1080")
-            opt.add_argument("--headless")
+            opt.addArguments("--start-maximized")
+            # opt.add_argument("--headless")
             ser = Service(driver_exec)
             self.driver = webdriver.Chrome(service=ser, options=opt)
 
