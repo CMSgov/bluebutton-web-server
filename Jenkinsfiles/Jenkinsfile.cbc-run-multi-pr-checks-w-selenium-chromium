@@ -1,8 +1,8 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium-python311"
-      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p311.yaml"
+      defaultContainer "bb2-cbc-build-selenium-python311-chromedriver126"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p311-chromium.yaml"
     }
   }
 
@@ -55,6 +55,14 @@ pipeline {
         sh """
           pip3 install --upgrade pip setuptools wheel
           pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+        """
+      }
+    }
+
+    stage("CHECK chromedriver 126") {
+      steps{
+        sh """
+          /usr/local/bin/chromedriver
         """
       }
     }
