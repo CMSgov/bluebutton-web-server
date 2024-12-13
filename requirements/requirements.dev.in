@@ -10,4 +10,5 @@ selenium
 pytest 
 Flask 
 Flask-WTF
-
+setuptools_scm<7,>=3.2
+setuptools>=40.8.0
