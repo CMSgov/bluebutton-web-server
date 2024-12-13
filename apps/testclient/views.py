@@ -193,6 +193,7 @@ def callback(request):
                           "api_ver_suffix": '-v2'
                       })
     else:
+        request.session['auth_app_name'] = app_name
         return redirect('/testclient/', permanent=True)
 
 
