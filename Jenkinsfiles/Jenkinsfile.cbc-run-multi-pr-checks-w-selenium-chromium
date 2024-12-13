@@ -62,7 +62,7 @@ pipeline {
     stage("CHECK chromedriver 126") {
       steps{
         sh """
-          /usr/local/bin/chromedriver
+          /usr/local/bin/chromedriver --version
         """
       }
     }
