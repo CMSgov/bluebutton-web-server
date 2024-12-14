@@ -95,7 +95,7 @@ pipeline {
        steps{
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           sh """
-            USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest --suppress-tests-failed-exit-code -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+            USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
           """
         }
         sh """
