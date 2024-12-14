@@ -84,7 +84,8 @@ export SELENIUM_GRID=false
 # Show test actions on std out : pytest -s
 PYTEST_SHOW_TRACE_OPT=''
 
-set_slsx
+# this seems been overridden by set_msls below - comment out for removal
+# set_slsx
 
 # Parse command line option
 while getopts "hpgt" option; do
@@ -106,6 +107,7 @@ done
 
 eval last_arg=\$$#
 
+# the default is to use mock login - e.g. for account mgmt tests and logging integration tests
 set_msls
 
 # Parse command line option
