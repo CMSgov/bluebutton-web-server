@@ -83,7 +83,7 @@ pipeline {
        steps{
         sh """
           mkdir ./docker-compose/tmp/
-          python3 ./dev-local/app.py & &&
+          (python3 ./dev-local/app.py&) && 
           python3 manage.py migrate &&
           python3 manage.py create_admin_groups &&
           python3 manage.py loaddata scopes.json &&
