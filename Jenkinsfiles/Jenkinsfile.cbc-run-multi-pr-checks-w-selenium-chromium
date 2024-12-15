@@ -59,14 +59,6 @@ pipeline {
       }
     }
 
-    stage("CHECK chromedriver version - should be compatible with the chrome browser version.") {
-      steps{
-        sh """
-          /usr/local/bin/chromedriver --version
-        """
-      }
-    }
-
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
         sh """
@@ -104,16 +96,13 @@ pipeline {
        steps{
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           sh """
-            ls ./docker-compose/tmp
             USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
           """
         }
         sh """
-          pwd
-          ls ./docker-compose/tmp
+          echo '======================'
           cat ./docker-compose/tmp/bb2_email_to_stdout.log
           echo '======================'
-          cat ./docker-compose/tmp/bb2_logging_sink.log
         """
        }
     }
