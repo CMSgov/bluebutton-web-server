@@ -8,7 +8,5 @@ WORKDIR /code
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install --upgrade pip
-RUN pip install --upgrade pip-tools
-RUN pip install --upgrade setuptools
+RUN pip install --upgrade pip pip-tools setuptools
 RUN pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/

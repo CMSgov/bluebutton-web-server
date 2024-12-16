@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
 from .common_utils import extract_href_from_html, extract_last_part_of_url
 
 from .selenium_cases import (
@@ -50,10 +51,15 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.on_remote_ci = os.getenv('ON_REMOTE_CI', 'false')
+        self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', "chrome")
+        self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={},  hostname_url={}".format(self.use_mslsx, self.hostname_url))
+        msg_fmt = "use_mslsx={}, hostname_url={}, selenium_grid={}"
+        msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.selenium_grid)
+        print(msg)
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
@@ -67,8 +73,20 @@ class SeleniumGenericTests:
         opt.add_argument('--allow-insecure-localhost')
         opt.add_argument("--whitelisted-ips=''")
 
-        self.driver = webdriver.Remote(
-            command_executor='http://chrome:4444/wd/hub', options=opt)
+        if self.selenium_grid.lower() == 'true':
+            # selenium hub
+            hub_url = "http://{}:4444/wd/hub".format(self.selenium_grid_host)
+            print("RemoteDriver: grid hub url={}".format(hub_url))
+            opt.binary_location = "/usr/bin/chromium"
+            self.driver = webdriver.Remote(
+                command_executor=hub_url, options=opt)
+        else:
+            driver_exec = '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
+            print("Chrome Driver, location={}".format(driver_exec))
+            opt.add_argument("--window-size=1920,980")
+            opt.add_argument("--headless")
+            ser = Service(driver_exec)
+            self.driver = webdriver.Chrome(service=ser, options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
