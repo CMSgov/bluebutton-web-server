@@ -301,7 +301,7 @@ MESSAGE_TAGS = {
 LANGUAGES = [
     ('en', _('English')),
     ('es', _('Spanish')),
-    ('zh-Hans', _('Simplified Chinese')),
+    ('zh', _('Simplified Chinese')),
     # Add more languages as needed
 ]
 

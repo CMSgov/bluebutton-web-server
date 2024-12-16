@@ -1,0 +1,168 @@
+# Simplified Chinese language translation file
+# Adrian Jones <adrian.jones@adhocteam.us>, 2023.
+#
+# TRANSLATORS: text and punctuation after 'msgid' is the English text requiring translation.
+# The translation text should go within the quotation marks following the 'msgstr' identifier.
+# Please add/maintain all punctuation and whitespce found in the original text.
+# When updating this file, run `django-admin compilemessages` for the changes to be compiled.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-26 16:11+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/auth_base.html:56
+msgid "Official government website"
+msgstr "政府官方网站"
+
+#: templates/auth_base.html:84
+msgid "An official website of the United States government"
+msgstr "美国政府官方网站"
+
+#: templates/auth_base.html:86
+msgid "Here's how you know"
+msgstr "以下是你如何知道的"
+
+#: templates/auth_base.html:103
+msgid "Cambiar a español"
+msgstr "Cambiar a español"
+
+#: templates/auth_base.html:134
+msgid "Official websites use .gov"
+msgstr "官方网站使用 .gov"
+
+#: templates/auth_base.html:136
+msgid "A <strong>.gov</strong> website belongs to an official "
+"government organization in the United States."
+msgstr "<strong>.gov</strong> 网站属于美国官方“政府”组织。"
+
+#: templates/auth_base.html:164
+msgid "Secure .gov websites use HTTPS"
+msgstr "安全的 .gov 网站使用 HTTPS"
+
+#: templates/auth_base.html:167
+msgid "A <strong>lock</strong> "
+msgstr "一把<strong>锁</strong>"
+
+#: templates/auth_base.html:181
+msgid "or <strong>https://</strong> means you've safely connected to "
+"the .gov website. Share sensitive information only on official, secure websites."
+msgstr "或 <strong>https://</strong> 表示您已安全连接到"
+".gov 网站。仅在官方、安全的网站上共享敏感信息"
+
+#: templates/auth_base.html:183
+msgid ""
+" means you've safely connected to the .gov website. Share sensitive "
+"information only on official, secure websites."
+msgstr ""
+" 表示您已安全连接到 .gov 网站。共享敏感信息"
+"仅在官方、安全的网站上提供信息。"
+
+#: templates/design_system/new_authorize_v2.html:56
+msgid "Connect your Medicare claims data to "
+msgstr "咯热米将您的 Medicare 索赔数据连接到皮宿命"
+
+#: templates/design_system/new_authorize_v2.html:58
+msgid "If you connect, "
+msgstr "如果你连接，"
+
+#: templates/design_system/new_authorize_v2.html:58
+msgid "will have access to information about your:"
+msgstr "将有权访问有关您的信息："
+
+#: templates/design_system/new_authorize_v2.html:60
+msgid "Doctor visits"
+msgstr "医生就诊"
+
+#: templates/design_system/new_authorize_v2.html:61
+msgid "Hospital visits"
+msgstr "医院就诊"
+
+#: templates/design_system/new_authorize_v2.html:62
+msgid "Prescription medications"
+msgstr "处方药"
+
+#: templates/design_system/new_authorize_v2.html:70
+msgid "You can also grant access to your:"
+msgstr "您还可以授予您的访问权限："
+
+#: templates/design_system/new_authorize_v2.html:89
+msgid "Personal Information"
+msgstr "个人信息"
+
+#: templates/design_system/new_authorize_v2.html:89
+msgid "Your name, address, date of birth, race, and gender"
+msgstr "您的姓名、地址、出生日期、种族和性别"
+
+#: templates/design_system/new_authorize_v2.html:92
+msgid "Uncheck to block access to personal information."
+msgstr "取消选中则阻止访问个人信息。"
+
+#: templates/design_system/new_authorize_v2.html:93
+msgid "Check to allow access to personal information."
+msgstr "勾选即可允许访问个人信息。"
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid "Learn more about how "
+msgstr "详细了解"
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid " uses your data in their "
+msgstr "使用您的数据"
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid "Privacy Policy"
+msgstr "隐私政策"
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid " and "
+msgstr " 和 "
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid "Terms and Conditions"
+msgstr "条款和条件"
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid " will have access to your data "
+msgstr " 将有权访问您的数据"
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid "for 13 months, until "
+msgstr "13个月，直到"
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid "for 10 hours"
+msgstr "10 小时"
+
+#: templates/design_system/new_authorize_v2.html:160
+msgid "To stop sharing your information with "
+msgstr "停止与以下机构共享您的信息"
+
+#: templates/design_system/new_authorize_v2.html:161
+msgid "https://www.medicare.gov/"
+msgstr "https://www.medicare.gov/"
+
+#: templates/design_system/new_authorize_v2.html:161
+msgid " visit your "
+msgstr " 访问您的 "
+
+#: templates/design_system/new_authorize_v2.html:161
+msgid " account or call "
+msgstr " 账户或致电 "
+
+#: templates/design_system/new_authorize_v2.html:166
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/design_system/new_authorize_v2.html:168
+msgid "Connect"
+msgstr "连接"
