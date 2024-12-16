@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium-python311-chromedriver"
+      defaultContainer "bb2-cbc-build-selenium-python311-chromium"
       yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p311-chromium.yaml"
     }
   }
