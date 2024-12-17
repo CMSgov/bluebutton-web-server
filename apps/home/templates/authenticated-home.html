@@ -81,7 +81,14 @@ The Developer Sandbox lets you register applications to get credentials to acces
           <div class="app-actions">
             <a class="view-edit-app-link" href="{{ application.get_absolute_url }}">View/Edit App <i data-feather="arrow-right"></i></a>
           </div>
-        </div>
+          <form class="app-credentials" action="/3rdapp/launch" method="post" target="_blank">{% csrf_token %}
+            <input type="hidden" value="{{ application.client_id }}" id="id-3rdapp-{{ application.client_id }}" name="id-3rdapp-{{ application.client_id }}" />
+            <input type="hidden" value="{{ application.client_secret_plain }}" id="secret-3rdapp-{{ application.client_id }}" name="secret-3rdapp-{{ application.client_id }}" />
+            <div class="app-actions">
+              <button type="submit" class="view-edit-app-link" href="{{ application.get_absolute_url }}">Launch App <i data-feather="arrow-up"></i></a>
+            </div>
+          </form>
+      </div>
         {% endfor %}
         {% if not applications %}
         <div class="ds-c-alert bb-c-message-card ds-u-margin-y--2">

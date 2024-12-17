@@ -14,7 +14,7 @@
             <div class="gradient-content-container">
                 <div class="gradient-content-card">
                     <div class="content">
-                        <form action="/myapp/" method="post">{% csrf_token %}
+                        <form action="/myapp/authorize" method="post">{% csrf_token %}
                             <label for="client_id">Client ID:</label><br>
                             <input type="text" id="client_id" name="client_id"><br>
                             <label for="client_secret">Client Secret:</label><br>

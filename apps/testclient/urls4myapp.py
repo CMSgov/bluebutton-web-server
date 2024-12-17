@@ -17,10 +17,12 @@ from .views import (
     test_patient,
     test_patient_v2,
     test_links,
+    authorize,
 )
 
 # not using url reverse in POC but provide it here anyways - passing url reverse tests
 urlpatterns = [
+    path("authorize", authorize, name="testclient-authorize-4-myapp"),
     path("restart", restart, name="testclient-restart-4-myapp"),
     path("callback", callback, name="testclient-callback-4-myapp"),
     path("authorize-link", authorize_link, name="authorize_link-4-myapp"),

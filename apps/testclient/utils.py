@@ -9,7 +9,7 @@ from django.conf import settings
 from ..dot_ext.models import Application
 
 
-def test_setup(include_client_secret=True, v2=False, pkce=False, client_id=None):
+def test_setup(include_client_secret=True, v2=False, pkce=False, client_id=None, path=None):
     response = OrderedDict()
     ver = 'v2' if v2 else 'v1'
     response['api_ver'] = ver
@@ -19,9 +19,12 @@ def test_setup(include_client_secret=True, v2=False, pkce=False, client_id=None)
     if not (host.startswith("http://") or host.startswith("https://")):
         host = "https://" + host
 
-    if client_id:
+    if client_id and path.startswith('/myapp/'):
         oa2client = Application.objects.get(client_id=client_id)
         response['redirect_uri'] = '{}{}'.format(host, settings.MYAPP_REDIRECT_URI)
+    elif client_id and path.startswith('/3rdapp/'):
+        oa2client = Application.objects.get(client_id=client_id)
+        response['redirect_uri'] = '{}{}'.format(host, settings.APP3RD_REDIRECT_URI)
     else:
         oa2client = Application.objects.get(name="TestApp")
         response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
@@ -48,6 +51,11 @@ def test_setup(include_client_secret=True, v2=False, pkce=False, client_id=None)
     response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, ver)
     response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
     return (response)
+
+
+def get_app_info_by_id(client_id):
+    oa2client = Application.objects.get(client_id=client_id)
+    return oa2client.name, oa2client.data_access_type, oa2client.require_demographic_scopes, oa2client.client_secret_plain
 
 
 def get_client_secret(app_name):
