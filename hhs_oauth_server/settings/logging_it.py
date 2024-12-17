@@ -15,7 +15,7 @@ except FileNotFoundError as err:
 try:
     os.mkdir(logdir_path)
 except FileExistsError as err:
-    print("Error os.mkdir: {}".format(err))
+    print("Warning os.mkdir: {}".format(err))
 
 if logging_handlers is None:
     raise ValueError("Bad settings, expecting handlers defined in settings.LOGGING")
