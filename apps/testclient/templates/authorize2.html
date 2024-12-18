@@ -10,6 +10,17 @@
 <div class="container">
     <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
       <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+        {% if user.is_authenticated %}
+        <div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
+            <div class="ds-c-alert__body">
+                <h3 class="ds-c-alert__heading">Log out to continue</h3>
+                <p class="ds-c-alert__text" role="alert">
+                    It looks like you may be logged in to your Sandbox developer account. Because the Test Client mimics the behavior of an anonymous user authenticating with Blue Button 2.0, you must be logged out of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
+                </p>
+                <a href="{% url 'logout' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Log Out to Continue</a>
+            </div>
+        </div>
+        {% endif %}
         <div class="sandbox-gradient-bg">
             <div class="gradient-content-container">
                 <div class="gradient-content-card">
