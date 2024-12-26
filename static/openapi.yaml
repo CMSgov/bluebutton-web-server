@@ -154,7 +154,15 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources last updated in the given range"
+          description: |-
+            Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+            A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+            This parameter can be included in a request one or more times.
+
+            Examples:
+              - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
+              - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
+              - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
         - in: query
           name: startIndex
           schema:
@@ -248,7 +256,15 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources last updated in the given range"
+          description: |-
+            Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+            A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+            This parameter can be included in a request one or more times.
+
+            Examples:
+              - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
+              - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
+              - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
         - in: query
           name: startIndex
           schema:
@@ -322,7 +338,15 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources last updated in the given range"
+          description: |-
+            Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+            A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+            This parameter can be included in a request one or more times.
+
+            Examples:
+              - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
+              - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
+              - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
         - in: query
           name: excludeSAMHSA
           schema:
@@ -334,7 +358,24 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources that completed in the given range"
+          description: |-
+            Only satisfy the Search request if a claim's _billable period_
+            falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing `lt` (less than), `le`
+            (less than or equal to), `gt` (greater than), and/or `ge` (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+
+            Examples:
+              - `service-date=gt2023-01-02T00:00+00:00&service-date=lt2023-05-01T00:00+00:00` defines a range between two provided dates
+              - `service-date=gt2023-01-02T00:00+00:00` defines a range between the provided date and today
+              - `service-date=lt2023-05-01T00:00+00:00` defines a range from the earliest available records until the provided date
         - in: query
           name: startIndex
           schema:
@@ -483,7 +524,15 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources last updated in the given range"
+          description: |-
+            Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+            A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+            This parameter can be included in a request one or more times.
+
+            Examples:
+              - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
+              - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
+              - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
         - in: query
           name: startIndex
           schema:
@@ -577,7 +626,15 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources last updated in the given range"
+          description: |-
+            Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+            A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+            This parameter can be included in a request one or more times.
+
+            Examples:
+              - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
+              - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
+              - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
         - in: query
           name: startIndex
           schema:
@@ -649,7 +706,15 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources last updated in the given range"
+          description: |-
+            Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+            A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+            This parameter can be included in a request one or more times.
+
+            Examples:
+              - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
+              - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
+              - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
         - in: query
           name: excludeSAMHSA
           schema:
@@ -661,7 +726,24 @@ paths:
           schema:
             type: string
           required: false
-          description: "Include resources that completed in the given range"
+          description: |-
+            Only satisfy the Search request if a claim's _billable period_
+            falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing `lt` (less than), `le`
+            (less than or equal to), `gt` (greater than), and/or `ge` (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+
+            Examples:
+              - `service-date=gt2023-01-02T00:00+00:00&service-date=lt2023-05-01T00:00+00:00` defines a range between two provided dates
+              - `service-date=gt2023-01-02T00:00+00:00` defines a range between the provided date and today
+              - `service-date=lt2023-05-01T00:00+00:00` defines a range from the earliest available records until the provided date
         - in: query
           name: startIndex
           schema:
