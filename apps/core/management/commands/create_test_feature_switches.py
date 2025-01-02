@@ -17,7 +17,6 @@ WAFFLE_FEATURE_SWITCHES = (
 )
 
 WAFFLE_FEATURE_FLAGS = (
-    ("limit_data_access", ['fred']),
 )
 
 

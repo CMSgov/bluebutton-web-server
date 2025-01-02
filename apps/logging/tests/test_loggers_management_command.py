@@ -316,10 +316,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 )
             )
 
-    @override_flag('limit_data_access', active=True)
     def test_management_command_logging(self):
-        assert flag_is_active('limit_data_access')
-
         """
         Setup variety of real/synth users, apps and grants for testing global state metrics logging.
         """
