@@ -8,6 +8,7 @@
 <body>
     <script>
         'use strict';
+        const defaultPage = '/docs/openapi';
         function run () {
             function deserializeObject(serialized) {
                 const parsedObj = JSON.parse(serialized);
@@ -23,6 +24,7 @@
             const code = urlParams.get('code');
             if (!code) {
                 console.error('Authorization code not found in URL');
+                window.location.href = defaultPage;
                 return;
             }
 
@@ -32,6 +34,7 @@
             let clientId = oauth2.auth.clientId
             let clientSecret = oauth2.auth.clientSecret;
             let redirectUri = oauth2.redirectUrl
+            let codeVerifier = oauth2.auth.codeVerifier
 
               // Convert client credentials to Base64
             const credentials = btoa(`${clientId}:${clientSecret}`);
@@ -44,13 +47,15 @@
                 },
                 body: new URLSearchParams({
                     code: code,
+                    code_verifier: codeVerifier,
                     grant_type: 'authorization_code',
                     redirect_uri: redirectUri
                 })
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Token request failed with status ' + response.status);
+                    console.log('Token request failed with status ' + response.status);
+                    window.location.href = defaultPage;
                 }
                 return response.json();
             })
@@ -58,7 +63,7 @@
                 const accessToken = data.access_token;
                 if (accessToken) {
                   localStorage.setItem('access_token', accessToken);
-                  window.location.href = '/docs/openapi';
+                  window.location.href = defaultPage;
                 }
             })
             .catch(error => {

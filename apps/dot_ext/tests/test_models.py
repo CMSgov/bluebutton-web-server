@@ -4,7 +4,6 @@ import apps.logging.request_logger as logging
 
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
-from waffle.testutils import override_flag
 
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import (
@@ -12,7 +11,7 @@ from apps.dot_ext.models import (
     get_application_require_demographic_scopes_count,
 )
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
-from apps.test import BaseApiTest, flag_is_active
+from apps.test import BaseApiTest
 
 
 class TestDotExtModels(BaseApiTest):
@@ -22,14 +21,11 @@ class TestDotExtModels(BaseApiTest):
     def tearDown(self):
         cleanup_logger(self.logger_registry)
 
-    @override_flag('limit_data_access', active=True)
     def test_application_data_access_fields(self):
         """
         Test the CRUD operations & validation
         on new data access fields from apps.dot_ext.models
         """
-        assert flag_is_active('limit_data_access')
-
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 
@@ -69,13 +65,10 @@ class TestDotExtModels(BaseApiTest):
             test_app.data_access_type = "BAD_DATA_ACCESS_TYPE"
             test_app.save()
 
-    @override_flag('limit_data_access', active=True)
     def test_application_data_access_type_change(self):
         """
         Test the application.data_access_type change, make sure the change is logged
         """
-        assert flag_is_active('limit_data_access')
-
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 
@@ -113,13 +106,10 @@ class TestDotExtModels(BaseApiTest):
         self.assertEqual(log_entry_json['data_access_type_old'], "THIRTEEN_MONTH")
         self.assertEqual(log_entry_json['data_access_type_new'], "RESEARCH_STUDY")
 
-    @override_flag('limit_data_access', active=False)
     def test_application_data_access_type_change_switch_off(self):
         """
         Test the application.data_access_type change, access grants will not be affected
         """
-        assert (not flag_is_active('limit_data_access'))
-
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 

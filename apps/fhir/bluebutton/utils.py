@@ -599,14 +599,14 @@ def get_response_text(fhir_response=None):
         return text_in
 
 
-def build_oauth_resource(request, v2=False, format_type="json"):
+def build_oauth_resource(request, format_type="json"):
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
 
     :return: security
     """
-    endpoints = build_endpoint_info(OrderedDict(), v2, issuer=base_issuer(request))
+    endpoints = build_endpoint_info(OrderedDict(), issuer=base_issuer(request))
 
     if format_type.lower() == "xml":
 
@@ -636,12 +636,16 @@ def build_oauth_resource(request, v2=False, format_type="json"):
         <extension url="authorize">
             <valueUri>%s</valueUri>
         </extension>
+        <extension url="revoke">
+            <valueUri>%s</valueUri>
+        </extension>
     </extension>
 
 </security>
         """ % (
             endpoints["token_endpoint"],
             endpoints["authorization_endpoint"],
+            endpoints["revocation_endpoint"],
         )
 
     else:  # json
@@ -680,6 +684,7 @@ def build_oauth_resource(request, v2=False, format_type="json"):
                         "url": "authorize",
                         "valueUri": endpoints["authorization_endpoint"],
                     },
+                    {"url": "revoke", "valueUri": endpoints["revocation_endpoint"]},
                 ],
             }
         ]

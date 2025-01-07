@@ -28,7 +28,6 @@ from oauth2_provider.models import (
 )
 from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
-from waffle import get_waffle_flag_model
 
 from apps.capabilities.models import ProtectedCapability
 
@@ -228,11 +227,7 @@ class Application(AbstractApplication):
 
     # Has one time only type data access?
     def has_one_time_only_data_access(self):
-        if self.data_access_type == "ONE_TIME":
-            flag = get_waffle_flag_model().get("limit_data_access")
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.user)):
-                return True
-        return False
+        return self.data_access_type == "ONE_TIME"
 
     # Save override to restrict invalid field combos.
     def save(self, *args, **kwargs):

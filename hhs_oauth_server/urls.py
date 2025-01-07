@@ -6,6 +6,7 @@ from django.urls import include, path, re_path
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
+from apps.wellknown.views.openid import smart_configuration
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
 admin.autodiscover()
@@ -17,6 +18,7 @@ ADMIN_REDIRECTOR = getattr(settings, "ADMIN_PREPEND_URL", "")
 urlpatterns = [
     path("health", include("apps.health.urls")),
     re_path(r"^.well-known/", include("apps.wellknown.urls")),
+    path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("forms/", include("apps.forms.urls")),
     path("v1/accounts/", include("apps.accounts.urls")),
     re_path(
@@ -32,6 +34,7 @@ urlpatterns = [
         openidconnect_userinfo,
         name="openid_connect_userinfo_v2",
     ),
+    path("v2/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
     path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
     path("v2/o/", include("apps.dot_ext.v2.urls")),
