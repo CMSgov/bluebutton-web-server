@@ -15,5 +15,4 @@ if __name__ == "__main__":
                           "hhs_oauth_server.settings.base")
 
     from django.core.management import execute_from_command_line
-
     execute_from_command_line(sys.argv)

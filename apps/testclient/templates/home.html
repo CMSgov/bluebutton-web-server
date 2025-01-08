@@ -44,72 +44,45 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<br />
 
-			<a id="auth_link_v1" href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token</a>
+			<a id="auth_link_v1" href="/testclient/authorize-link" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token</a>
 			{% switch "testclient_v2" %}
-				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token for v2</a>
+				<a id="auth_link_v2" href="/testclient/authorize-link-v2" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token for v2</a>
 			{% endswitch %}
 
 			<br />
 
-			<a id="auth_link_v1" href="{% url 'authorize_link' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token (PKCE Enabled)</a>
+			<a id="auth_link_v1" href="/testclient/authorize-link?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token (PKCE Enabled)</a>
 			{% switch "testclient_v2" %}
-				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token for v2 (PKCE Enabled)</a>
+				<a id="auth_link_v2" href="/testclient/authorize-link-v2?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token for v2 (PKCE Enabled)</a>
 			{% endswitch %}
 
             {% endif %}
 	
             <!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_token is not None %}
-			{% url 'testclient-restart' as restart_url %}
-			{% if api_ver == 'v2' %}
-				{% url 'authorize_link_v2' as auth_url %}
-				{% url 'test_metadata_v2' as meta_url %}
-				{% url 'test_openid_config_v2' as openid_cfg_url %}
-				{% url 'test_userinfo_v2' as test_userinfo_url %}
-				{% url 'test_eob_v2' as test_eob_url %}
-				{% url 'test_patient_v2' as test_patient_url %}
-				{% url 'test_coverage_v2' as test_coverage_url %}
-			{% else %}
-				{% url 'authorize_link' as auth_url %}
-				{% url 'test_metadata' as meta_url %}
-				{% url 'test_openid_config' as openid_cfg_url %}
-				{% url 'test_userinfo' as test_userinfo_url %}
-				{% url 'test_eob' as test_eob_url %}
-				{% url 'test_patient' as test_patient_url %}
-				{% url 'test_coverage' as test_coverage_url %}
-			{% endif %}
+				<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ '/testclient/authorize-link'|add:api_ver_suffix }}">repeat this step if you need a new token.</a> or <a href="{{ '/testclient/restart' }}">restart testclient</a></p>
+				<br />
+				<pre>{{ session_token }}</pre>
+				<br />
 
-            <p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat this step if you need a new token.</a> or <a href="{{ restart_url }}">restart testclient</a></p>
-
-			<br />
-
-			<pre>{{ session_token }}</pre>
-
-			<br />
-
-			<h2>Step 2: API Calls</h2>
+				<h2>Step 2: API Calls</h2>
 			
-			<p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
+				<p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
+	
+				<ul>
+					<li> <a href="{{ '/testclient/ExplanationOfBenefit'|add:api_ver_ending }}">ExplanationOfBenefit</a> </li>
+					<li> <a href="{{ '/testclient/Patient'|add:api_ver_ending }}">Patient</a> </li>
+					<li> <a href="{{ '/testclient/Coverage'|add:api_ver_ending }}">Coverage</a> </li>
+					<li> <a href="{{ '/testclient/userinfo'|add:api_ver_ending }}">Profile </a> (OIDC Userinfo)</li>
+					<li> <a href="{{ '/testclient/metadata'|add:api_ver_ending }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
+					<li> <a href="{{ '/testclient/openidConfig'|add:api_ver_ending }}">OIDC Discovery</a> (No Token Needed)</li>
+				</ul>
 
-			<ul>
-				<li> <a href="{{ test_eob_url }}">ExplanationOfBenefit</a> </li>
-				<li> <a href="{{ test_patient_url }}">Patient</a> </li>
-				<li> <a href="{{ test_coverage_url }}">Coverage</a> </li>
-				<li> <a href="{{ test_userinfo_url }}">Profile </a> (OIDC Userinfo)</li>
-				<li> <a href="{{ meta_url }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
-				<li> <a href="{{ openid_cfg_url }}">OIDC Discovery</a> (No Token Needed)</li>
-			</ul>
-
-			<h2 class="ds-u-margin-y--2">Additional Resources</h2>
-
-			<p>If you need more information about the API or the sample data, feel free to read our <a href="https://bluebutton.cms.gov/developers/">developer documentation</a>.</p>
-
-			<h3 class="ds-u-margin-y--2">Testing your own application:</h3>
-
-			<p>If you want to test the Blue Button 2.0 API with your own application, create a Sandbox account and register your application. Once registered, you can use your test credentials to re-create this experience and include synthetic Medicare data in your own application.</p>
-
-			<a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Create a Sandbox Account</a>
-
+				<h2 class="ds-u-margin-y--2">Additional Resources</h2>
+				<p>If you need more information about the API or the sample data, feel free to read our <a href="https://bluebutton.cms.gov/developers/">developer documentation</a>.</p>
+				<h3 class="ds-u-margin-y--2">Testing your own application:</h3>
+				<p>If you want to test the Blue Button 2.0 API with your own application, create a Sandbox account and register your application. Once registered, you can use your test credentials to re-create this experience and include synthetic Medicare data in your own application.</p>
+				<a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Create a Sandbox Account</a>
 			{% endif %}
 
 			<div class="spacer" style="min-height: 50vh;"></div>
