@@ -39,6 +39,30 @@ paths:
           description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
       tags:
         - v2
+  /v2/fhir/.well-known/smart-configuration:
+    get:
+      operationId: smartConfig
+      description: "Returns details of the FHIR OAuth authorization endpoints and optional SMART capabilities using URIs (public access, no token needed)"
+      summary: "SMART configuration information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2SmartConfiguration'
+              examples:
+                V2SmartConfigurationExample:
+                  $ref: '#/components/examples/V2SmartConfigurationExample'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/V2SmartConfiguration'
+              examples:
+                V2SmartConfigurationExample:
+                  $ref: '#/components/examples/V2SmartConfigurationExample'
+          description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
+      tags:
+        - v2
   /v2/fhir/metadata:
     get:
       operationId: fhirMetaData_v2
@@ -404,6 +428,31 @@ paths:
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v2
+
+  /v1/fhir/.well-known/smart-configuration:
+    get:
+      operationId: smartConfig
+      description: "Returns details of the FHIR OAuth authorization endpoints and optional SMART capabilities using URIs (public access, no token needed)"
+      summary: "SMART configuration information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2SmartConfiguration'
+              examples:
+                V2SmartConfigurationExample:
+                  $ref: '#/components/examples/V2SmartConfigurationExample'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/V2SmartConfiguration'
+              examples:
+                V2SmartConfigurationExample:
+                  $ref: '#/components/examples/V2SmartConfigurationExample'
+          description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
+      tags:
+        - v1
 
   /v1/fhir/metadata:
     get: 
@@ -878,6 +927,40 @@ components:
         fhir_metadata_uri: 
           type: string
 
+    V2SmartConfiguration:
+      properties: 
+        authorization_endpoint: 
+          type: string
+        revocation_endpoint:
+          type: string
+        token_endpoint: 
+          type: string
+      
+        grant_types_supported: 
+          type: array
+          items: 
+            type: string
+      
+        response_types_supported: 
+          type: array
+          items: 
+            type: string
+      
+        scopes_supported: 
+          type: array
+          items: 
+            type: string
+
+        code_challenge_methods_supported: 
+          type: array
+          items: 
+            type: string
+
+        capabilities: 
+          type: array
+          items: 
+            type: string
+
     V1UserInfo:
       properties:
         sub: 
@@ -952,6 +1035,31 @@ components:
         fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
 
   
+    V2SmartConfigurationExample:
+      value:
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
+        grant_types_supported:
+          - authorization-code
+        response_types_supported:
+          - code
+          - token
+        scopes_supported:
+          - profile
+          - patient/Patient.read
+          - patient/ExplanationOfBenefit.read
+          - patient/Coverage.read
+        code_challenge_methods_supported:
+          - S256
+        capabilities:
+          - client-confidential-symmetric
+          - launch-standalone
+          - permission-offline
+          - permission-patient
+          - permission-v1
+          - authorize-post
+
     V1FhirMetadataExample:
       value:
         resourceType: CapabilityStatement
