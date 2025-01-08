@@ -12,9 +12,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.test import Client
 
-from waffle.testutils import override_flag
-
-from apps.test import BaseApiTest, flag_is_active
+from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 
@@ -338,7 +336,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 400)
 
-    @override_flag('limit_data_access', active=True)
     def test_refresh_13_month_with_expired_grant(self):
         redirect_uri = 'http://localhost'
         # create a user
@@ -403,9 +400,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 400)
 
-    @override_flag('limit_data_access', active=True)
     def test_refresh_with_one_time_access_retrieve_app_using_refresh_token(self):
-        assert flag_is_active('limit_data_access')
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
@@ -460,9 +455,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 401)
 
-    @override_flag('limit_data_access', active=True)
     def test_refresh_with_one_time_access_retrieve_app_from_auth_header(self):
-        assert flag_is_active('limit_data_access')
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
@@ -522,9 +515,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         )
         self.assertEqual(response.status_code, 400)
 
-    @override_flag('limit_data_access', active=True)
     def test_dag_expiration_exists(self):
-        assert flag_is_active('limit_data_access')
         redirect_uri = 'http://localhost'
 
         # create a user
