@@ -42,8 +42,8 @@ class ReadCrosswalkPermission(HasCrosswalk):
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
         if (obj is not None
-            and obj.get('resourceType') is not None
-            and obj.get('resourceType') == 'OperationOutcome'):
+           and obj.get('resourceType') is not None
+           and obj.get('resourceType') == 'OperationOutcome'):
             return True
 
         try:

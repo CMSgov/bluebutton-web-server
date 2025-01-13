@@ -10,6 +10,7 @@ from .models import Fhir_Response
 # 4xx client error – the request contains bad syntax or cannot be fulfilled
 # 5xx server error – the server failed to fulfil an apparently valid request
 
+
 def process_error_response(response: Fhir_Response) -> APIException:
     """ Need to be revised to new handling logic
     Process errors coming from FHIR endpoints.
@@ -34,12 +35,12 @@ def process_error_response(response: Fhir_Response) -> APIException:
         if response.status_code == 404:
             # not found is not bad gateway
             err = NotFound('The requested resource does not exist')
-        elif (response.status_code in range(400, 600) and
-              not _is_operation_outcome(r)):
+        elif (response.status_code in range(400, 600)
+              and not _is_operation_outcome(r)):
             # only back end response with 4xx, 5xx and the payload is not FHIR OperationOutcome
             # are treated as bad gateway
             # TODO: add more back end response content to the BAD GATEWAY message?
-            # it helps trouble shooting, concern: would there be PII/PHI/sensitive info in the back end response? 
+            # it helps trouble shooting, concern: would there be PII/PHI/sensitive info in the back end response?
             err = UpstreamServerException('An error occurred contacting the upstream server')
         else:
             # 1xx - rare case, proceed to caller
@@ -54,6 +55,7 @@ class UpstreamServerException(APIException):
 # class BadRequestToBackendError(APIException):
 #     status_code = status.HTTP_400_BAD_REQUEST
 #
+
 
 # helper to check if the response is a FHIR OperationOutcome
 def _is_operation_outcome(r: Fhir_Response):

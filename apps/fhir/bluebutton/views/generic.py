@@ -116,7 +116,7 @@ class FhirDataView(APIView):
 
         out_data, status_code = self.fetch_data(request, resource_type, *args, **kwargs)
 
-        return Response(out_data,status_code)
+        return Response(out_data, status_code)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)

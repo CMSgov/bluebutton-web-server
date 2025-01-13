@@ -38,8 +38,8 @@ class DataAccessGrantPermission(permissions.BasePermission):
 def is_resource_for_patient(obj, patient_id):
 
     if (obj is not None
-        and obj.get('resourceType') is not None
-        and obj.get('resourceType') == 'OperationOutcome'):
+       and obj.get('resourceType') is not None
+       and obj.get('resourceType') == 'OperationOutcome'):
         return True
 
     try:
