@@ -41,6 +41,11 @@ class ReadCrosswalkPermission(HasCrosswalk):
         # Patient resources were taken care of above
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
+        if (obj is not None
+            and obj.get('resourceType') is not None
+            and obj.get('resourceType') == 'OperationOutcome'):
+            return True
+
         try:
             if request.resource_type == "Coverage":
                 reference = obj["beneficiary"]["reference"]

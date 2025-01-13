@@ -114,9 +114,9 @@ class FhirDataView(APIView):
 
     def get(self, request, resource_type, *args, **kwargs):
 
-        out_data = self.fetch_data(request, resource_type, *args, **kwargs)
+        out_data, status_code = self.fetch_data(request, resource_type, *args, **kwargs)
 
-        return Response(out_data)
+        return Response(out_data,status_code)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
@@ -175,4 +175,4 @@ class FhirDataView(APIView):
 
         self.check_object_permissions(request, out_data)
 
-        return out_data
+        return out_data, response.status_code
