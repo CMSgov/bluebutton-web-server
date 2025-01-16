@@ -240,7 +240,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         # Base set of passing data fields
         passing_app_fields = {'name': 'john_app_new',
                               'client_type': 'confidential',
-                              'authorization_grant_type': 'authorization-code',
+                              'authorization_grant_type': 'authorization_code',
                               'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
                               'logo_uri': '',
                               'logo_image': '',
@@ -304,7 +304,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         )
         app_fields = {'name': app_name,
                       'client_type': 'confidential',
-                      'authorization_grant_type': 'authorization-code',
+                      'authorization_grant_type': 'authorization_code',
                       'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
                       'logo_uri': '',
                       'logo_image': image,

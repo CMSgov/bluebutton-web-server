@@ -156,7 +156,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         self.instance.client_type = "confidential"
-        self.instance.authorization_grant_type = "authorization-code"
+        self.instance.authorization_grant_type = "authorization_code"
         app = self.instance
         # Only log agreement from a Register form
         if app.agree and isinstance(self, CustomRegisterApplicationForm):

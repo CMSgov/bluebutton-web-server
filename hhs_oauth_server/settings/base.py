@@ -467,7 +467,7 @@ DOT_EXPIRES_IN = (
     (86400 * 365 * 100, _("Forever")),
 )
 
-GRANT_AUTHORIZATION_CODE = "authorization-code"
+GRANT_AUTHORIZATION_CODE = "authorization_code"
 GRANT_IMPLICIT = "implicit"
 GRANT_TYPES = (
     (GRANT_AUTHORIZATION_CODE, _("Authorization code")),

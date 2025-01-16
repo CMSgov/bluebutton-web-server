@@ -145,7 +145,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         )
         application = Application.objects.create(
             redirect_uris="http://test.com",
-            authorization_grant_type="authorization-code",
+            authorization_grant_type="authorization_code",
             name="test01",
             user=user,
         )

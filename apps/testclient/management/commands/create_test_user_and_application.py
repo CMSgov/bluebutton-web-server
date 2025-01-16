@@ -94,7 +94,7 @@ def create_application(user, group, app, redirect):
                                 user=user,
                                 data_access_type="THIRTEEN_MONTH",
                                 client_type="confidential",
-                                authorization_grant_type="authorization-code")
+                                authorization_grant_type="authorization_code")
 
     titles = ["My Medicare and supplemental coverage information.",
               "My Medicare claim information.",

@@ -177,7 +177,7 @@ def create_dev_users_apps_and_bene_crosswalks(
             # 10% public/implicit 90% confidential/authorization-code
 
             cl_type = "confidential"
-            auth_grant_type = "authorization-code"
+            auth_grant_type = "authorization_code"
 
             if app_index % 10 == 0:
                 cl_type = "public"
