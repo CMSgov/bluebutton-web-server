@@ -159,10 +159,10 @@ class Command(BaseCommand):
                 if grant.expiration_date is not None:
                     processed = processed + 1
                     # repair:
-                    if grant.created_at.date() > turn_on_date:
+                    if grant.created_at > turn_on_date:
                         print("+", end="")
                         after_turn_on = after_turn_on + 1
-                        grant.expiration_date = grant.created_at.date() + relativedelta(months=+13)
+                        grant.expiration_date = grant.created_at.replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
                     else:
                         print("-", end="")
                         before_turn_on = before_turn_on + 1

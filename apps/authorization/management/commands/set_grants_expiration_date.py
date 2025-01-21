@@ -129,7 +129,7 @@ class Command(BaseCommand):
             for grant in grants:
                 print("+", end="")
                 processed = processed + 1
-                grant.expiration_date = grant.created_at.date() + relativedelta(months=+13)
+                grant.expiration_date = grant.created_at.replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
                 if not dryrun:
                     print("$", end="")
                     grant.save()
