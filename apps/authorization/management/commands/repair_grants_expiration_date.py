@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application
 from dateutil.relativedelta import relativedelta
+from .utils import validate_parameters
 
 
 DATETIME_FMT = "%m/%d/%Y %H:%M:%S"
@@ -22,109 +23,20 @@ class Command(BaseCommand):
         parser.add_argument('--appnameagain', help="Type app name again to confirm.")
         parser.add_argument('--turnondate', help="Datetime (UTC) when limit data access feature turned on for the app, "
                                                  "format: '%%m/%%d/%%Y %%H:%%M:%%S', e.g. '12/04/2024 15:58:26'.")
-        parser.add_argument('--createdbefore', help="Datetime (UTC) when the grants created before this point of time are checked for repair, "
-                                                   "format: '%%m/%%d/%%Y %%H:%%M:%%S', e.g. '01/16/2025 19:18:20'.")
-        parser.add_argument('--createdafter', help="Datetime (UTC) when the grants created after this point of time are checked for repair, "
-                                                   "format: '%%m/%%d/%%Y %%H:%%M:%%S', e.g. '11/25/2023 10:30:21'.")
+        parser.add_argument('--range', help="Datetime range (UTC) the grants checked for processing should be created in, "
+                                                    "format: <begindate>-<enddate>, inclusive on both begin and end, "
+                                                    "date format: %%m/%%d/%%y %%H:%%M:%%S, e.g. '01/16/25 19:58:26-01/18/25 23:59:59'.")
         parser.add_argument('--dryrun', action='store_true', help="Dry run the command without making changes to the database.")
         parser.set_defaults(dryrun=False)
 
     def handle(self, *args, **options):
         app_name = None
-        app_name_again = None
         turn_on_date = None
 
-        # arguments validation
-        if options['appname']:
-            app_name = options['appname']
+        # validate parameters
+        result = validate_parameters(options, DATETIME_FMT, True)
 
-        if app_name is None:
-            print("Error: appname required.")
-            return False
-
-        if options['appnameagain']:
-            app_name_again = options['appnameagain']
-
-        if app_name_again is None:
-            print("Error: appnameagain required.")
-            return False
-
-        if (app_name != app_name_again):
-            print("Error: appname does not match appnameagain.")
-            return False
-
-        # validate created before date
-        turn_on_date_str = None
-
-        if options['turnondate']:
-            turn_on_date_str = options['turnondate']
-
-        if turn_on_date_str is None:
-            print("Error: turnondate required to repair grants.")
-            return False
-
-        turn_on_date = None
-        
-        try:
-            turn_on_date = datetime.strptime(turn_on_date_str, DATETIME_FMT).replace(tzinfo=timezone.utc)
-        except ValueError as e:
-            print("Error: bad date time value: {}".format(turn_on_date_str))
-            print(e)
-            return False
-
-        # validate created before date
-        created_before_date_str = None
-        
-        if options['createdbefore']:
-            created_before_date_str = options['createdbefore']
-
-        if created_before_date_str is None:
-            print("Error: createdbefore required to repair grants.")
-            return False
-
-        created_before_date = None
-        
-        try:
-            created_before_date = datetime.strptime(created_before_date_str, DATETIME_FMT).replace(tzinfo=timezone.utc)
-        except ValueError as e:
-            print("Error: bad date time value: {}".format(created_before_date_str))
-            print(e)
-            return False
-
-        current_dt = datetime.now().replace(tzinfo=pytz.UTC)
-
-        # time range must be a past time
-        if created_before_date > current_dt:
-            print("Error: createdbefore date must be a past time, createdbefore = {}, current date time ={}".format(created_before_date, current_dt))
-            return False
-
-        # validate created after date
-        created_after_date_str = None
-
-        if options['createdafter']:
-            created_after_date_str = options['createdafter']
-
-        if created_after_date_str is None:
-            print("Error: createdafter required to repair grants.")
-            return False
-
-        created_after_date = None
-        
-        try:
-            created_after_date = datetime.strptime(created_after_date_str, DATETIME_FMT).replace(tzinfo=timezone.utc)
-        except ValueError as e:
-            print("Error: bad date time value: {}".format(created_after_date_str))
-            print(e)
-            return False
-
-        # validate date range
-        if created_after_date > created_before_date:
-            print("Error: createdbefore must >= createdafter : createdbefore = {}, createdafter = {}".format(created_before_date_str, created_after_date_str))
-            return False
-
-        # validate turn on date in date range
-        if not (created_after_date <= turn_on_date and turn_on_date <= created_before_date):
-            print("Error: turnondate {} must be in [createdafter {}: createdbefore{}]".format(turn_on_date_str, created_after_date_str, created_before_date_str))
+        if not result['params_are_valid']:
             return False
 
         dryrun = options['dryrun']
@@ -132,6 +44,8 @@ class Command(BaseCommand):
         if dryrun:
             print("Info: dryrun = {}, this is a dry run, no change to database.".format(dryrun))
             
+        app_name = result['app_name']
+
         apps = Application.objects.filter(name=app_name)
 
         if not apps.exists():
@@ -147,8 +61,12 @@ class Command(BaseCommand):
             print("Error: This command only applies to app with THIRTEEN_MONTH data access type, '{}' data access type: {}.".format(app.name, app.data_access_type))
             return False
             
-        grants = DataAccessGrant.objects.filter(application=app.id).filter(created_at__range=(created_after_date, created_before_date))
-        print("process restriction: turned on date: {} and created_at in range: [{}, {}].".format(turn_on_date, created_after_date, created_before_date))
+        range_begin_date = result['range_begin_date']
+        range_end_date = result['range_end_date']
+        turn_on_date = result['turn_on_date']
+
+        grants = DataAccessGrant.objects.filter(application=app.id).filter(created_at__range=(range_begin_date, range_end_date))
+        print("process restriction: feature turned on date: {} and created_at in range: [{}, {}].".format(turn_on_date, range_begin_date, range_end_date))
 
         if grants.exists():
             print("Number of grants to be checked for repair = {}".format(len(grants)))
@@ -156,20 +74,16 @@ class Command(BaseCommand):
             before_turn_on = 0
             after_turn_on = 0
             for grant in grants:
-                if grant.expiration_date is not None:
-                    processed = processed + 1
-                    # repair:
-                    if grant.created_at > turn_on_date:
-                        print("+", end="")
-                        after_turn_on = after_turn_on + 1
-                        grant.expiration_date = grant.created_at.replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
-                    else:
-                        print("-", end="")
-                        before_turn_on = before_turn_on + 1
-                        grant.expiration_date = turn_on_date + relativedelta(months=+13)
+                processed = processed + 1
+                # repair:
+                if grant.created_at > turn_on_date:
+                    print("+", end="")
+                    after_turn_on = after_turn_on + 1
+                    grant.expiration_date = grant.created_at.replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
                 else:
-                    print("Warning: NULL expiration date encountered, command terminates.")
-                    return False
+                    print("-", end="")
+                    before_turn_on = before_turn_on + 1
+                    grant.expiration_date = turn_on_date + relativedelta(months=+13)
 
                 if not dryrun:
                     print("$", end="")
@@ -177,6 +91,6 @@ class Command(BaseCommand):
                 else:
                     print("#", end="")
             print("")
-            print("Processed grants: {}, created after turned on date: {}, created before turned on date: {}".format(processed, after_turn_on, before_turn_on))
+            print("Processed grants: {}, created after feature turned on date: {}, created before turned on date: {}".format(processed, after_turn_on, before_turn_on))
         else:
             print("App {}, has no matching data access grants, command exits.".format(app.name))
