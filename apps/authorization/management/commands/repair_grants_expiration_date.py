@@ -5,10 +5,9 @@ from django.core.management.base import BaseCommand
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application
 from dateutil.relativedelta import relativedelta
-# from .utils import validate_parameters
 
 
-DATETIME_FMT = "%m/%d/%Y %H:%M:%S"
+DATETIME_FMT = "%m/%d/%y %H:%M:%S"
 utc=pytz.UTC
 
 
@@ -22,7 +21,7 @@ class Command(BaseCommand):
         parser.add_argument('--appname', help="App name e.g. MyApp.")
         parser.add_argument('--appnameagain', help="Type app name again to confirm.")
         parser.add_argument('--turnondate', help="Datetime (UTC) when limit data access feature turned on for the app, "
-                                                 "format: '%%m/%%d/%%Y %%H:%%M:%%S', e.g. '12/04/2024 15:58:26'.")
+                                                 "format: '%%m/%%d/%%y %%H:%%M:%%S', e.g. '12/04/24 15:58:26'.")
         parser.add_argument('--range', help="Datetime range (UTC) the grants checked for processing should be created in, "
                                                     "format: <begindate>-<enddate>, inclusive on both begin and end, "
                                                     "date format: %%m/%%d/%%y %%H:%%M:%%S, e.g. '01/16/25 19:58:26-01/18/25 23:59:59'.")
@@ -190,13 +189,14 @@ def validate_parameters(options, dt_fmt):
 
     if turn_on_date_str is not None:
         _parse_date("turn_on_date", turn_on_date_str, dt_fmt, result)
+
         if not result['params_are_valid']:
             return result
 
-    turn_on_d = result['turn_on_date']
-    if ( turn_on_d >= current_dt ):
-        print("Error: --range end date must be a past time, turn_on_date = {}, current date time ={}".format(turn_on_d, current_dt))
-        result['params_are_valid'] = False
-        return result
+        turn_on_d = result['turn_on_date']
+        if ( turn_on_d >= current_dt ):
+            print("Error: --range end date must be a past time, turn_on_date = {}, current date time ={}".format(turn_on_d, current_dt))
+            result['params_are_valid'] = False
+            return result
 
     return result
