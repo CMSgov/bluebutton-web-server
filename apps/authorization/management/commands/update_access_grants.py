@@ -33,6 +33,8 @@ class Command(BaseCommand):
                 grants.delete()
             elif "THIRTEEN_MONTH" in application.data_access_type:
                 for grant in grants:
-                    grant.update_expiration_date()
+                    if grant.expiration_date is None:
+                        # only update if the expiration_date does not have a value yet (avoid potential over writing)
+                        grant.update_expiration_date()
             else:
                 continue
