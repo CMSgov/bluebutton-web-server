@@ -92,7 +92,10 @@ class Command(BaseCommand):
                 else:
                     print("#", end="")
             print("")
-            print("Processed grants: {}, created after feature turned on date: {}, created before turned on date: {}".format(processed, after_turn_on, before_turn_on))
+            if turn_on_date is not None:
+                print("Processed grants: {}, created after feature turned on date: {}, created before turned on date: {}".format(processed, after_turn_on, before_turn_on))
+            else:
+                print("Processed grants: {}".format(processed))
             if ( skipped > 0 ):
                 print("Skipped grants (already set): {}".format(skipped))
         else:
