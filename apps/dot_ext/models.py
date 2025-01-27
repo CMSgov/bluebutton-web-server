@@ -5,6 +5,7 @@ import uuid
 
 import apps.logging.request_logger as logging
 
+from apps.capabilities.models import ProtectedCapability
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -29,10 +30,32 @@ from oauth2_provider.models import (
 from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
 
-from apps.capabilities.models import ProtectedCapability
 
 TEN_HOURS = _("for 10 hours")
 THIRTEEN_MONTHS = _("for 13 months, until ")
+
+
+class InternalApplicationLabels(models.Model):
+    label = models.CharField(max_length=255,
+                             default='',
+                             unique=True)
+    slug = models.CharField(verbose_name='Label',
+                            max_length=1024,
+                            default='',
+                            unique=True)
+    description = models.TextField(max_length=10240,
+                                   blank=True,
+                                   default='')
+
+    def __str__(self):
+        return self.label
+
+    def save(self, *args, **kwargs):
+        super(InternalApplicationLabels, self).save(**kwargs)
+
+    class Meta:
+        verbose_name_plural = 'Internal Application Labels'
+        verbose_name = 'Internal Application Label'
 
 
 class Application(AbstractApplication):
@@ -158,6 +181,8 @@ class Application(AbstractApplication):
         verbose_name="Data Access Type:",
     )
 
+    internal_application_labels = models.ManyToManyField(InternalApplicationLabels, blank=True)
+
     # Text and date must be separated so that built-in Django localization
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
@@ -179,6 +204,9 @@ class Application(AbstractApplication):
         for s in self.scope.all():
             scope_list.append(s.slug)
         return " ".join(scope_list).strip()
+
+    def get_internal_application_labels(self):
+        return "\n".join([lb.label for lb in self.internal_application_labels.all()])
 
     def is_valid(self, scopes=None):
         return self.active and self.allow_scopes(scopes)

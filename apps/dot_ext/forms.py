@@ -9,9 +9,10 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 from django.contrib.auth.models import Group, User
+from waffle import switch_is_active
 
 import apps.logging.request_logger as bb2logging
 
@@ -64,7 +65,17 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields["authorization_grant_type"].required = False
         self.fields["redirect_uris"].label = "Redirect URIs*"
         self.fields["logo_uri"].disabled = True
-
+        if switch_is_active('enable_internal_application_labels'):
+            self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
+                                                                queryset=InternalApplicationLabels.objects.all(),
+                                                                widget=forms.SelectMultiple
+                                                            )
+        else:
+            if self.fields.pop("internal_application_labels", None) is not None:
+                try:
+                    del self.fields['internal_application_labels']
+                except KeyError:
+                    pass
     class Meta:
         model = get_application_model()
         fields = (

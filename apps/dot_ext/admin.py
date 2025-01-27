@@ -6,6 +6,7 @@ from oauth2_provider.models import get_application_model
 from .csv import ExportCsvMixin
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
 from .models import ApplicationLabel, AuthFlowUuid
+from waffle import switch_is_active
 
 Application = get_application_model()
 
@@ -77,6 +78,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             "support_email",
             "support_phone_number",
             "description",
+            "internal_application_labels",
             "active",
             "first_active",
             "last_active",
@@ -89,37 +91,82 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
 @admin.register(MyApplication)
 class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     form = CustomAdminApplicationForm
-    list_display = (
-        "name",
-        "get_data_access_type",
-        "user",
-        "client_id",
-        "require_demographic_scopes",
-        "scopes",
-        "created",
-        "updated",
-        "active",
-        "skip_authorization",
-    )
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if switch_is_active('enable_internal_application_labels'):
+            return fieldsets
+        else:
+            # Remove the fieldsets that contain the deleted fields
+            new_fieldsets = []
+            for fieldset in fieldsets:
+                fields = [fld for fld in fieldset[1]['fields'] if fld not in ['internal_application_labels']]
+                if fields:
+                    new_fieldsets.append((fieldset[0], {'fields': fields}))
+
+            return new_fieldsets
+
+    def get_list_display(self, request):
+        if switch_is_active('enable_internal_application_labels'):
+            return (
+                "name",
+                "get_data_access_type",
+                "user",
+                "client_id",
+                "require_demographic_scopes",
+                "scopes",
+                "created",
+                "updated",
+                "active",
+                "skip_authorization",
+                "get_internal_application_labels",
+            )
+        else:
+            return (
+                "name",
+                "get_data_access_type",
+                "user",
+                "client_id",
+                "require_demographic_scopes",
+                "scopes",
+                "created",
+                "updated",
+                "active",
+                "skip_authorization",
+            )
+
     list_filter = (
         "data_access_type",
         "require_demographic_scopes",
         "active",
         "skip_authorization",
     )
+
     radio_fields = {
         "client_type": admin.HORIZONTAL,
         "authorization_grant_type": admin.VERTICAL,
     }
 
-    search_fields = (
-        "name",
-        "data_access_type",
-        "user__username",
-        "=client_id",
-        "=require_demographic_scopes",
-        "=authorization_grant_type",
-    )
+    def get_search_fields(self, request):
+        if switch_is_active('enable_internal_application_labels'):
+            return (
+                "name",
+                "data_access_type",
+                "user__username",
+                "internal_application_labels__label",
+                "=client_id",
+                "=require_demographic_scopes",
+                "=authorization_grant_type",
+            )
+        else:
+            return (
+                "name",
+                "data_access_type",
+                "user__username",
+                "=client_id",
+                "=require_demographic_scopes",
+                "=authorization_grant_type",
+            )
 
     raw_id_fields = ("user",)
 
@@ -128,6 +175,10 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     @admin.display(description="Data Access Type")
     def get_data_access_type(self, obj):
         return obj.data_access_type
+
+    @admin.display(description="Internal Application Labels")
+    def get_internal_application_labels(self, obj):
+        return obj.get_internal_application_labels()
 
 
 @admin.register(CreateNewApplication)

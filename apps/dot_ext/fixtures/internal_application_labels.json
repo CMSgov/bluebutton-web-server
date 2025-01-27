@@ -1,0 +1,101 @@
+[
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 2,
+        "fields": {
+            "label": "Whitelabeled plan finder / enrollment tool",
+            "slug": "whitelabeled-plan-finder-enrollment-tool",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 3,
+        "fields": {
+            "label": "Plan finder / enrollment tool - not whitelabeled",
+            "slug": "plan-finder-enrollment-tool-not-whitelabeled",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 4,
+        "fields": {
+            "label": "Specific research study",
+            "slug": "specific-research-study",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 5,
+        "fields": {
+            "label": "Research app - multiple studies",
+            "slug": "research-app-multiple-studies",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 6,
+        "fields": {
+            "label": "Personal health record",
+            "slug": "personal-health-record",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 7,
+        "fields": {
+            "label": "Medication managementz",
+            "slug": "medication-managementz",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 8,
+        "fields": {
+            "label": "Chronic condition management",
+            "slug": "chronic-condition-management",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 9,
+        "fields": {
+            "label": "Data sharing",
+            "slug": "data-sharing",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 10,
+        "fields": {
+            "label": "Data facilitator",
+            "slug": "data-facilitator",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 11,
+        "fields": {
+            "label": "Coverage / Eligibility",
+            "slug": "coverage-eligibility",
+            "description": "Desc: place holder"
+        }
+    },
+    {
+        "model": "dot_ext.internalapplicationlabels",
+        "pk": 12,
+        "fields": {
+            "label": "Other",
+            "slug": "other",
+            "description": "Desc: place holder"
+        }
+    }
+]
