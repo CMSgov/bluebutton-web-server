@@ -65,6 +65,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields["authorization_grant_type"].required = False
         self.fields["redirect_uris"].label = "Redirect URIs*"
         self.fields["logo_uri"].disabled = True
+        # form field 'internal_application_labels' made dynamic per switch
         if switch_is_active('enable_internal_application_labels'):
             self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
                 queryset=InternalApplicationLabels.objects.all(),
