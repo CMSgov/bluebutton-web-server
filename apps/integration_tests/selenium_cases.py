@@ -576,16 +576,17 @@ TESTS = {
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
         },
         # now check the expiration info section
-        {
-            "display": "Check for authorization screen expire info in English",
-            "action": Action.CONTAIN_TEXT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
-        },
-        {
-            "display": "Check en_US date format and validate",
-            "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
-        },
+        # comment out due to PROD TestApp now is RESEARCH_STUDY which does not have expire info
+        # {
+        #     "display": "Check for authorization screen expire info in English",
+        #     "action": Action.CONTAIN_TEXT,
+        #     "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
+        # },
+        # {
+        #     "display": "Check en_US date format and validate",
+        #     "action": Action.CHECK_DATE_FORMAT,
+        #     "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
+        # },
         # the 'approve' and 'deny' button click not using locale based text
         # so it is lang agnostic
         CLICK_AGREE_ACCESS
@@ -644,16 +645,17 @@ SPANISH_TESTS = {
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
         },
         # now check the expiration info section
-        {
-            "display": "Check for authorization screen expire info in Spanish",
-            "action": Action.CONTAIN_TEXT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
-        },
-        {
-            "display": "Check Spanish date format and validate",
-            "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
-        },
+        # comment out due to on PROD TestApp is RESEARCH_STUDY which does not have expire info
+        # {
+        #     "display": "Check for authorization screen expire info in Spanish",
+        #     "action": Action.CONTAIN_TEXT,
+        #     "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
+        # },
+        # {
+        #     "display": "Check Spanish date format and validate",
+        #     "action": Action.CHECK_DATE_FORMAT,
+        #     "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
+        # },
         # the 'approve' and 'deny' button click not using locale based text
         # so it is lang agnostic
         CLICK_AGREE_ACCESS
@@ -672,16 +674,16 @@ SPANISH_TESTS = {
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
         },
         # now check the expiration info section
-        {
-            "display": "Check for authorization screen expire info in Spanish",
-            "action": Action.CONTAIN_TEXT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
-        },
-        {
-            "display": "Check Spanish date format and validate",
-            "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
-        },
+        # {
+        #     "display": "Check for authorization screen expire info in Spanish",
+        #     "action": Action.CONTAIN_TEXT,
+        #     "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
+        # },
+        # {
+        #     "display": "Check Spanish date format and validate",
+        #     "action": Action.CHECK_DATE_FORMAT,
+        #     "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
+        # },
         # the 'approve' and 'deny' button click not using locale based text
         # so it is lang agnostic
         CLICK_AGREE_ACCESS

@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
-from waffle import get_waffle_flag_model
 
 
 class DataAccessGrant(models.Model):
@@ -41,22 +40,17 @@ class DataAccessGrant(models.Model):
 
     def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
-        if self.application:
-            flag = get_waffle_flag_model().get("limit_data_access")
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.application.user)):
-                if self.application.data_access_type == "THIRTEEN_MONTH":
-                    self.expiration_date = datetime.now().replace(
-                        tzinfo=pytz.UTC
-                    ) + relativedelta(months=+13)
-                    self.save()
+        if self.application and self.application.data_access_type == "THIRTEEN_MONTH":
+            self.expiration_date = datetime.now().replace(
+                tzinfo=pytz.UTC
+            ) + relativedelta(months=+13)
+            self.save()
 
     def has_expired(self):
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.application.user)):
-            if self.application.data_access_type == "THIRTEEN_MONTH":
-                if self.expiration_date:
-                    if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):
-                        return True
+        if self.application.data_access_type == "THIRTEEN_MONTH":
+            if self.expiration_date:
+                if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):
+                    return True
 
         return False
 

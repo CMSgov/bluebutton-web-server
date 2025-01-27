@@ -16,9 +16,7 @@ from apps.dot_ext.utils import (
 from apps.fhir.bluebutton.models import Crosswalk, ArchivedCrosswalk
 import apps.logging.request_logger as logging
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
-from apps.test import BaseApiTest, flag_is_active
-# waffle override_flag decorator make flag true or false for everyone
-from waffle.testutils import override_flag
+from apps.test import BaseApiTest
 
 from .audit_logger_schemas import (
     GLOBAL_STATE_METRICS_LOG_SCHEMA,
@@ -316,10 +314,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 )
             )
 
-    @override_flag('limit_data_access', active=True)
     def test_management_command_logging(self):
-        assert flag_is_active('limit_data_access')
-
         """
         Setup variety of real/synth users, apps and grants for testing global state metrics logging.
         """

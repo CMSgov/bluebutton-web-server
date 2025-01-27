@@ -3,9 +3,6 @@ import logging
 from datetime import datetime, timedelta
 from time import strftime
 
-import waffle
-from waffle import get_waffle_flag_model
-
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
@@ -117,19 +114,8 @@ class AuthorizationView(DotAuthorizationView):
                 break
         return result
 
-    # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if waffle.switch_is_active('require-scopes'):
-            if flag.rollout or (flag.id is not None and self.application and flag.is_active_for_user(self.application.user)):
-                return ["design_system/new_authorize_v2.html"]
-            else:
-                return ["design_system/authorize_v2.html"]
-        else:
-            if flag.rollout or (flag.id is not None and self.user and flag.is_active_for_user(self.user)):
-                return ["design_system/new_authorize_v2.html"]
-            else:
-                return ["design_system/authorize.html"]
+        return ["design_system/new_authorize_v2.html"]
 
     def get_initial(self):
         initial_data = super().get_initial()
@@ -329,13 +315,12 @@ class TokenView(DotTokenView):
                             application=app
                         )
                         if dag.expiration_date is not None:
-                            dag_expiry = strftime('%Y-%m-%d %H:%M:%SZ', dag.expiration_date.timetuple())
+                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ""
-
                 elif app.data_access_type == "ONE_TIME":
                     expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
-                    dag_expiry = expires_at.strftime('%Y-%m-%d %H:%M:%SZ')
+                    dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
 
