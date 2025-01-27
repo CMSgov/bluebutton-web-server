@@ -67,15 +67,15 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields["logo_uri"].disabled = True
         if switch_is_active('enable_internal_application_labels'):
             self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
-                                                                queryset=InternalApplicationLabels.objects.all(),
-                                                                widget=forms.SelectMultiple
-                                                            )
+                queryset=InternalApplicationLabels.objects.all(),
+                widget=forms.SelectMultiple)
         else:
             if self.fields.pop("internal_application_labels", None) is not None:
                 try:
                     del self.fields['internal_application_labels']
                 except KeyError:
                     pass
+
     class Meta:
         model = get_application_model()
         fields = (
