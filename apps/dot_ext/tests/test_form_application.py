@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.forms import ModelMultipleChoiceField
 
 from PIL import Image
 from io import BytesIO
@@ -348,6 +349,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         self.assertNotEqual(form.errors.get('name'), None)
         f = form.fields.pop('internal_application_labels')
         self.assertIsNotNone(f)
+        self.assertTrue(isinstance(f, ModelMultipleChoiceField))
 
     @override_switch("enable_internal_application_labels", active=False)
     def test_create_application_form_has_no_fld_internal_app_labels(self):
