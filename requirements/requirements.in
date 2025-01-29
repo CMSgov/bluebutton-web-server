@@ -41,7 +41,7 @@ pyrsistent
 typing_extensions
 importlib-metadata
 certifi
-
+django-ipware >= 7.0.1
 # notifications
 django-ses
 
