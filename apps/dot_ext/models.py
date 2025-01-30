@@ -58,6 +58,13 @@ class InternalApplicationLabels(models.Model):
         verbose_name = 'Internal Application Label'
 
 
+class InternalApplicationLabelsProxy(InternalApplicationLabels):
+    class Meta:
+        proxy = True
+        verbose_name = "Internal Category"
+        verbose_name_plural = "Internal Categories"
+
+
 class Application(AbstractApplication):
     scope = models.ManyToManyField(ProtectedCapability)
     agree = models.BooleanField(default=False)

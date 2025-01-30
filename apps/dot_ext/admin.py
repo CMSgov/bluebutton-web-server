@@ -5,7 +5,7 @@ from oauth2_provider.models import get_application_model
 
 from .csv import ExportCsvMixin
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
-from .models import ApplicationLabel, AuthFlowUuid
+from .models import ApplicationLabel, AuthFlowUuid, InternalApplicationLabelsProxy
 
 Application = get_application_model()
 
@@ -226,3 +226,8 @@ class ApplicationLabelAdmin(admin.ModelAdmin):
     filter_horizontal = ("applications",)
     list_display = ("name", "slug", "short_description")
     list_filter = ("name", "slug")
+
+
+@admin.register(InternalApplicationLabelsProxy)
+class InternalApplicationLabelAdmin(admin.ModelAdmin):
+    list_display = ("label", "slug", "description")
