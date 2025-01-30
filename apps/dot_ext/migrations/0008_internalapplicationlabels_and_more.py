@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('label', models.CharField(default='', max_length=255, unique=True)),
-                ('slug', models.CharField(default='', max_length=1024, unique=True, verbose_name='Label')),
+                ('slug', models.CharField(default='', max_length=1024, unique=True)),
                 ('description', models.TextField(blank=True, default='', max_length=10240)),
             ],
             options={

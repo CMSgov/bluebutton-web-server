@@ -39,8 +39,7 @@ class InternalApplicationLabels(models.Model):
     label = models.CharField(max_length=255,
                              default='',
                              unique=True)
-    slug = models.CharField(verbose_name='Slug',
-                            max_length=1024,
+    slug = models.CharField(max_length=1024,
                             default='',
                             unique=True)
     description = models.TextField(max_length=10240,
