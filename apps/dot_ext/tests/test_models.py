@@ -16,7 +16,6 @@ from apps.dot_ext.models import (
 from apps.dot_ext.admin import MyApplicationAdmin
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
 from apps.test import BaseApiTest
-from waffle.testutils import override_switch
 
 
 class TestDotExtModels(BaseApiTest):
@@ -214,21 +213,7 @@ class TestDotExtModels(BaseApiTest):
         # Assert app count requiring demo scopes
         self.assertEqual(5, get_application_require_demographic_scopes_count())
 
-    @override_switch("enable_internal_application_labels", active=True)
     def test_internal_application_labels_switch_on(self):
-        """
-        Test the Application model creation
-        check the 'internal_application_labels' field present
-        """
-        # Create dev user for tests.
-        dev_user = self._create_user("john", "123456")
-
-        # Create defaults
-        test_app = self._create_application("test_app", user=dev_user)
-        self.assertTrue(hasattr(test_app, 'internal_application_labels'))
-
-    @override_switch("enable_internal_application_labels", active=False)
-    def test_internal_application_labels_switch_off(self):
         """
         Test the Application model creation
         check the 'internal_application_labels' field present
@@ -272,7 +257,6 @@ class TestDotExtModels(BaseApiTest):
         self.assertTrue(l5.label in labels)
         self.assertTrue(not (l11.label in labels))
 
-    @override_switch("enable_internal_application_labels", active=True)
     def test_internal_application_labels_admin(self):
         """
         Test 'internal_application_labels' wrapped in admin model

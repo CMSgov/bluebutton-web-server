@@ -6,7 +6,6 @@ from oauth2_provider.models import get_application_model
 from .csv import ExportCsvMixin
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
 from .models import ApplicationLabel, AuthFlowUuid
-from waffle import switch_is_active
 
 Application = get_application_model()
 
@@ -94,46 +93,22 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
-        if switch_is_active('enable_internal_application_labels'):
-            return fieldsets
-        else:
-            # Remove the fieldsets that contain the deleted fields
-            new_fieldsets = []
-            for fieldset in fieldsets:
-                fields = [fld for fld in fieldset[1]['fields'] if fld not in ['internal_application_labels']]
-                if fields:
-                    new_fieldsets.append((fieldset[0], {'fields': fields}))
-
-            return new_fieldsets
+        return fieldsets
 
     def get_list_display(self, request):
-        if switch_is_active('enable_internal_application_labels'):
-            return (
-                "name",
-                "get_data_access_type",
-                "user",
-                "client_id",
-                "require_demographic_scopes",
-                "scopes",
-                "created",
-                "updated",
-                "active",
-                "skip_authorization",
-                "get_internal_application_labels",
-            )
-        else:
-            return (
-                "name",
-                "get_data_access_type",
-                "user",
-                "client_id",
-                "require_demographic_scopes",
-                "scopes",
-                "created",
-                "updated",
-                "active",
-                "skip_authorization",
-            )
+        return (
+            "name",
+            "get_data_access_type",
+            "user",
+            "client_id",
+            "require_demographic_scopes",
+            "scopes",
+            "created",
+            "updated",
+            "active",
+            "skip_authorization",
+            "get_internal_application_labels",
+        )
 
     list_filter = (
         "data_access_type",
@@ -148,25 +123,15 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     }
 
     def get_search_fields(self, request):
-        if switch_is_active('enable_internal_application_labels'):
-            return (
-                "name",
-                "data_access_type",
-                "user__username",
-                "internal_application_labels__label",
-                "=client_id",
-                "=require_demographic_scopes",
-                "=authorization_grant_type",
-            )
-        else:
-            return (
-                "name",
-                "data_access_type",
-                "user__username",
-                "=client_id",
-                "=require_demographic_scopes",
-                "=authorization_grant_type",
-            )
+        return (
+            "name",
+            "data_access_type",
+            "user__username",
+            "internal_application_labels__label",
+            "=client_id",
+            "=require_demographic_scopes",
+            "=authorization_grant_type",
+        )
 
     raw_id_fields = ("user",)
 
@@ -192,6 +157,7 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
         "updated",
         "active",
         "skip_authorization",
+        "get_internal_application_labels",
     )
     list_filter = (
         "client_type",
@@ -203,9 +169,14 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
         "name",
         "user__username",
         "=client_id",
+        "internal_application_labels__label",
     )
 
     raw_id_fields = ("user",)
+
+    @admin.display(description="Internal Application Labels")
+    def get_internal_application_labels(self, obj):
+        return obj.get_internal_application_labels()
 
 
 @admin.register(MyAccessToken)

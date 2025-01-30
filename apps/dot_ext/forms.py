@@ -12,7 +12,6 @@ from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 from django.contrib.auth.models import Group, User
-from waffle import switch_is_active
 
 import apps.logging.request_logger as bb2logging
 
@@ -65,17 +64,10 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields["authorization_grant_type"].required = False
         self.fields["redirect_uris"].label = "Redirect URIs*"
         self.fields["logo_uri"].disabled = True
-        # form field 'internal_application_labels' made dynamic per switch
-        if switch_is_active('enable_internal_application_labels'):
-            self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
-                queryset=InternalApplicationLabels.objects.all(),
-                widget=forms.SelectMultiple)
-        else:
-            if self.fields.pop("internal_application_labels", None) is not None:
-                try:
-                    del self.fields['internal_application_labels']
-                except KeyError:
-                    pass
+        self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
+            queryset=InternalApplicationLabels.objects.all(),
+            widget=forms.SelectMultiple)
+        self.fields["internal_application_labels"].required = False
 
     class Meta:
         model = get_application_model()
@@ -95,6 +87,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             "contacts",
             "agree",
             "require_demographic_scopes",
+            "internal_application_labels",
         )
 
     required_css_class = "required"
@@ -228,6 +221,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             "support_phone_number",
             "logo_image",
             "description",
+            "internal_application_labels",
         )
 
     # Duplication of clean_name() from above form, see TODO comment at start of file

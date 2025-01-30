@@ -8,7 +8,6 @@ from io import BytesIO
 from apps.test import BaseApiTest
 from apps.dot_ext.forms import CustomRegisterApplicationForm, CreateNewApplicationForm
 from apps.dot_ext.admin import CustomAdminApplicationForm
-from waffle.testutils import override_switch
 
 
 class TestRegisterApplicationForm(BaseApiTest):
@@ -329,7 +328,6 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.save(commit=False)
         return form
 
-    @override_switch("enable_internal_application_labels", active=True)
     def test_create_application_form_has_fld_internal_app_labels(self):
         """
         Test application form has 'internal_application_labels' field by default
@@ -350,25 +348,3 @@ class TestRegisterApplicationForm(BaseApiTest):
         f = form.fields.pop('internal_application_labels')
         self.assertIsNotNone(f)
         self.assertTrue(isinstance(f, ModelMultipleChoiceField))
-
-    @override_switch("enable_internal_application_labels", active=False)
-    def test_create_application_form_has_no_fld_internal_app_labels(self):
-        """
-        Test application form has MOT 'internal_application_labels' field by default
-        if the switch is off
-        """
-        read_group = self._create_group('read')
-        self._create_capability('Read-Scope', [], read_group)
-        # create user and add it to the read group
-        user = self._create_user('john', '123456')
-        user.groups.add(read_group)
-        # create an application
-        self._create_application('john_app', user=user)
-
-        # Test form with exact app name has error
-        data = {'name': 'john_app'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-        with self.assertRaises(KeyError):
-            form.fields.pop('internal_application_labels')

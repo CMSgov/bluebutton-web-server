@@ -14,7 +14,6 @@ WAFFLE_FEATURE_SWITCHES = (
     ("show_testclient_link", True),
     ("interim-prod-access", True),
     ("enable_swaggerui", True),
-    ("enable_internal_application_labels", True),
 )
 
 WAFFLE_FEATURE_FLAGS = (
