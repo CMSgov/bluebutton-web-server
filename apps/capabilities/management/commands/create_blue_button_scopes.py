@@ -4,6 +4,7 @@ import logging
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.core.management.base import BaseCommand
+from django.core.management import call_command
 from ...models import ProtectedCapability
 
 import apps.logging.request_logger as bb2logging
@@ -106,3 +107,5 @@ class Command(BaseCommand):
         create_patient_capability(g, fhir_prefix)
         create_eob_capability(g, fhir_prefix)
         create_coverage_capability(g, fhir_prefix)
+        call_command('loaddata', 'internal_application_labels.json')
+
