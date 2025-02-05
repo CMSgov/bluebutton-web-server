@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 from time import strftime
 
+from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
@@ -271,6 +272,11 @@ class ApprovalView(AuthorizationView):
         request.session['version'] = self.version
 
         result = super().dispatch(request, *args, **kwargs)
+
+        if hasattr(result, "headers") \
+                and "Location" in result.headers \
+                and "invalid_scope" in result.headers['Location']:
+            return JsonResponse({"status_code": 400, "message": "Invalid scopes."})
 
         if hasattr(self, 'oauth2_data'):
             application = self.oauth2_data.get('application', None)
