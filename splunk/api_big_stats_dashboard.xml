@@ -1,4 +1,4 @@
-<form>
+<form version="1.1">
     <label>API Big Stats Dashboard - Structured</label>
     <description>Top level API stats related to requests, result codes and client info.</description>
     <fieldset submitButton="false"></fieldset>
@@ -311,10 +311,61 @@
                 <option name="charting.axisLabelsX.majorLabelStyle.rotation">-90</option>
                 <option name="charting.chart">column</option>
                 <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.showPercent">true</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisEnd</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Distribution of response codes</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>4XX, 5XX Responses</title>
+      <chart>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 399) AND (message.response_code  &lt; 600) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-90</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.showPercent">true</option>
                 <option name="charting.drilldown">none</option>
                 <option name="charting.layout.splitSeries">1</option>
                 <option name="charting.legend.labelStyle.overflowMode">ellipsisEnd</option>
                 <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    <panel>
+      <chart>
+        <title>4XX, 5XX Responses Breakdown</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 399) AND (message.response_code  &lt; 600) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0</option>
             </chart>
         </panel>
     </row>
@@ -355,61 +406,6 @@
             <html>
                 <u1>
                     <h1>
-                        <b>API Response by Status Code and API Call</b>
-                    </h1>
-                </u1>
-            </html>
-        </panel>
-    </row>
-    <row>
-        <panel>
-            <chart>
-                <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | table html_code2 call_path | chart count(html_code2) over html_code2 by call_path</query>
-                    <earliest>$t_local.earliest$</earliest>
-                    <latest>$t_local.latest$</latest>
-                    <sampleRatio>1</sampleRatio>
-                </search>
-                <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
-                <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
-                <option name="charting.axisTitleX.visibility">visible</option>
-                <option name="charting.axisTitleY.visibility">visible</option>
-                <option name="charting.axisTitleY2.visibility">visible</option>
-                <option name="charting.axisX.abbreviation">none</option>
-                <option name="charting.axisX.scale">linear</option>
-                <option name="charting.axisY.abbreviation">none</option>
-                <option name="charting.axisY.scale">linear</option>
-                <option name="charting.axisY2.abbreviation">none</option>
-                <option name="charting.axisY2.enabled">0</option>
-                <option name="charting.axisY2.scale">inherit</option>
-                <option name="charting.chart">bar</option>
-                <option name="charting.chart.bubbleMaximumSize">50</option>
-                <option name="charting.chart.bubbleMinimumSize">10</option>
-                <option name="charting.chart.bubbleSizeBy">area</option>
-                <option name="charting.chart.nullValueMode">gaps</option>
-                <option name="charting.chart.showDataLabels">none</option>
-                <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-                <option name="charting.chart.stackMode">stacked</option>
-                <option name="charting.chart.style">shiny</option>
-                <option name="charting.drilldown">none</option>
-                <option name="charting.layout.splitSeries">0</option>
-                <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
-                <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-                <option name="charting.legend.mode">standard</option>
-                <option name="charting.legend.placement">right</option>
-                <option name="charting.lineWidth">2</option>
-                <option name="refresh.display">progressbar</option>
-                <option name="trellis.enabled">0</option>
-                <option name="trellis.scales.shared">1</option>
-                <option name="trellis.size">medium</option>
-            </chart>
-        </panel>
-    </row>
-    <row>
-        <panel>
-            <html>
-                <u1>
-                    <h1>
                         <b>End Point Response Timings (RT_fastest, RT_mean, RT_p95, RT_p99, and RT_slowest time in seconds)</b>
                     </h1>
                 </u1>
@@ -421,7 +417,7 @@
             <title>ExplanationOfBenefit</title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit/.*" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path </query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit/.*" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=round((end_time-start_time)*1000,2) | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | eval RT_mean=round(RT_mean, 2)</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -439,7 +435,7 @@
             <title>OTHERS TOP 10</title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | rex call_path_base=message.path "(?<ep_url_base>/v[12]/fhir/[Patient|Coverage|ExplanationOfBenefit]/.*)" | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
