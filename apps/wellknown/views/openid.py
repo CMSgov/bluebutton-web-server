@@ -98,12 +98,22 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
 
     data["grant_types_supported"].append("refresh_token")
 
+    add_authorization_code_grant(data)
+
     data["grant_types_supported"].remove("implicit")
 
     data["response_types_supported"] = ["code", "token"]
     data["fhir_metadata_uri"] = issuer + \
         reverse('fhir_conformance_metadata_v2')
     return data
+
+
+def add_authorization_code_grant(data):
+    if "authorization_code" not in data["grant_types_supported"]:
+        data["grant_types_supported"].append("authorization_code")
+
+    if "authorization-code" in data["grant_types_supported"]:
+        data["grant_types_supported"].remove("authorization-code")
 
 
 def build_smart_config_endpoint(data=OrderedDict(), issuer=""):
@@ -122,6 +132,9 @@ def build_smart_config_endpoint(data=OrderedDict(), issuer=""):
     del (data["service_documentation"])
     del (data["op_tos_uri"])
     del (data["fhir_metadata_uri"])
+
+    add_authorization_code_grant(data)
+
     data["grant_types_supported"].remove("refresh_token")
     data["scopes_supported"] = SCOPES_SUPPORTED
     data["code_challenge_methods_supported"] = CODE_CHALLENGE_METHODS_SUPPORTED
