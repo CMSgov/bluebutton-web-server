@@ -50,7 +50,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     """
 
     def setUp(self):
-        self.callback_url = reverse("mymedicare-sls-callback")
+        self.callback_url = reverse("mymedicare-sls-callback", kwargs={'version': 2})
         self.login_url = reverse("mymedicare-login")
         Group.objects.create(name="BlueButton")
         # Setup the RequestFactory

@@ -164,7 +164,7 @@ LOG_MIDDLEWARE_MEDICARE_CALLBACK_EVENT_SCHEMA = {
         "req_user_id": {"type": "number"},
         "req_user_username": {"type": "string"},
         "req_fhir_id": {"type": "string"},
-        "path": {"pattern": "/mymedicare/sls-callback"},
+        "path": {"pattern": "/mymedicare/sls-callback/2"},
         "user": {"type": "string"},
         "fhir_id": {"type": "string"},
         "request_method": {"pattern": "GET"},

@@ -47,7 +47,7 @@ display_usage() {
 
 # set up using SLSX
 set_slsx () {
-    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback/2"
     export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
     export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
     export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
@@ -57,7 +57,7 @@ set_slsx () {
 
 # set up using mock sls
 set_msls () {
-    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback/2"
     export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
     export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
     export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"

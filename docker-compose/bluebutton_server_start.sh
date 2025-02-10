@@ -18,7 +18,7 @@ then
     echo "MSLS used for identity service..."
 else
     echo "SLSX used for identity service..."
-    DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI:-"http://localhost:8000/mymedicare/sls-callback"}
+    DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI:-"http://localhost:8000/mymedicare/sls-callback/2"}
     DJANGO_MEDICARE_SLSX_LOGIN_URI=${DJANGO_MEDICARE_SLSX_LOGIN_URI:-"https://test.medicare.gov/sso/authorize?client_id=bb2api"}
     DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=${DJANGO_SLSX_HEALTH_CHECK_ENDPOINT:-"https://test.accounts.cms.gov/health"}
     DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT:-"https://test.medicare.gov/sso/session"}

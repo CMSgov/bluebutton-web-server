@@ -64,7 +64,7 @@ class HTTMockWithResponseHook(HTTMock):
 class TestAuditEventLoggers(BaseApiTest):
     def setUp(self):
         Group.objects.create(name="BlueButton")
-        self.callback_url = reverse("mymedicare-sls-callback")
+        self.callback_url = reverse("mymedicare-sls-callback", kwargs={'version': 2})
         self.read_capability = self._create_capability("Read", [])
         self.write_capability = self._create_capability("Write", [])
         self._create_capability(
