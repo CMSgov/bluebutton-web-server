@@ -50,7 +50,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_MEDICARE_CALLBACK_EVENT_SCHEMA,
-        "path": "/mymedicare/sls-callback/2",
+        "path": "/mymedicare/sls-callback/",
     },
     {
         "schema": LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA,

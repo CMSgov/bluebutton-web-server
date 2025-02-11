@@ -28,7 +28,7 @@ class TestAuthentication(BaseApiTest):
         # Setup the RequestFactory
         self.factory = RequestFactory()
         self.client = Client()
-        self.request = self.factory.get('http://localhost:8000/mymedicare/sls-callback/2')
+        self.request = self.factory.get('http://localhost:8000/mymedicare/sls-callback')
         self.request.session = self.client.session
 
     @classmethod

@@ -654,7 +654,11 @@ SLSX_CLIENT_SECRET = env("DJANGO_SLSX_CLIENT_SECRET")
 MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", "")
 
 MEDICARE_SLSX_REDIRECT_URI = env(
-    "DJANGO_MEDICARE_SLSX_REDIRECT_URI", "http://localhost:8000/mymedicare/sls-callback/2"
+    "DJANGO_MEDICARE_SLSX_REDIRECT_URI", "http://localhost:8000/mymedicare/sls-callback"
+)
+
+MEDICARE_SLSX_REDIRECT_URI_V1 = env(
+    "DJANGO_MEDICARE_SLSX_REDIRECT_URI_V1", "http://localhost:8000/mymedicare/sls-callback/v1"
 )
 
 MEDICARE_SLSX_LOGIN_URI = env(

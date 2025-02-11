@@ -84,7 +84,7 @@ def authenticate(request):
 
 
 @never_cache
-def callback(request, version=1):
+def callback(request, version="v2"):
     try:
         authenticate(request)
     except ValidationError as e:
@@ -113,6 +113,7 @@ def callback(request, version=1):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     state = request.GET.get('relay')
+    version = request.GET.get('version')
 
     if not state:
         return JsonResponse({
@@ -131,7 +132,7 @@ def callback(request, version=1):
         user=request.user)
 
     # Only go back to app authorization
-    url_map_name = 'oauth2_provider_v2:authorize-instance-v2' if version == 2 else 'oauth2_provider:authorize-instance'
+    url_map_name = 'oauth2_provider_v2:authorize-instance-v2' if version == "v2" else 'oauth2_provider:authorize-instance'
     auth_uri = reverse(url_map_name, args=[approval.uuid])
 
     _, _, auth_path, _, _ = urlsplit(auth_uri)
@@ -144,9 +145,15 @@ def generate_nonce(length=26):
 
 
 @never_cache
-def mymedicare_login(request, version=1):
+def mymedicare_login(request, version="v2"):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
+
+    # Depending on the version, use different redirect uris
+    if version == "v1":
+        redirect = settings.MEDICARE_SLSX_REDIRECT_URI
+    else:
+        redirect = settings.MEDICARE_SLSX_REDIRECT_URI_V2
 
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
