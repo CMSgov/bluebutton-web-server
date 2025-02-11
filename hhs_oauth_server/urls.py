@@ -8,6 +8,7 @@ from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
 from apps.wellknown.views.openid import smart_configuration
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
+from .views import testobject
 
 admin.autodiscover()
 admin.site.enable_nav_sidebar = False
@@ -43,6 +44,7 @@ urlpatterns = [
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
     path("creds", include("apps.creds.urls")),
+    path("akamai/testobject", testobject, name="akamai_testobject"),
 ]
 
 # If running in local development, add the media and static urls:
