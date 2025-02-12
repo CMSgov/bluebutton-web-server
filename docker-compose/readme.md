@@ -385,6 +385,47 @@ This name is same as one provided in launch.json above.
 
 We should be able to see breakpoints are hit.
 
+## Remote debugging Blue Button single unit test
+In order to debug single unit test (e.g test_app_form_template_with_default_initvalues) perform below steps
+
+1. Create launch.json at `.vscode/launch.json`
+```
+	{
+	    // Use IntelliSense to learn about possible attributes.
+	    // Hover to view descriptions of existing attributes.
+	    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	    "version": "0.2.0",
+	    "configurations": [
+	        {
+	            "name": "Python Debugger: Remote Attach",
+	            "type": "debugpy",
+	            "request": "attach",
+	            "connect": {
+	                "host": "0.0.0.0",
+	                "port": 6789
+	            },
+	            "pathMappings": [
+	                {
+	                    "localRoot": "${workspaceFolder}",
+	                    "remoteRoot": "."
+	                }
+	            ]
+	        }
+	    ]
+	}
+```
+2. Build and run unittest
+```
+$ docker-compose build unittests
+$ docker-compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py <relative-test-path>
+
+e.g
+docker-compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py apps.dot_ext.tests.test_app_form_templates.AppFormTemplateTestCase.test_app_form_template_with_default_initvalues
+```
+3. Start Debugger in VSCode with name `Python Debugger: Remote Attach`
+
+**Note:** We just have to execute `docker-compose build unittests` once, also in order to re-run test execute test docker command again
+
 ## View Unit test logs
 ```
 docker-compose logs --tail 500 -f unittests
