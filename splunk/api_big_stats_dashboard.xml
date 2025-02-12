@@ -440,7 +440,7 @@
             <html>
                 <u1>
                     <h1>
-                        <b>End Point Response Timings (RT_fastest, RT_mean, RT_p95, RT_p99, and RT_slowest time in seconds)</b>
+                        <b>End Point Response Timings (RT_fastest, RT_mean, RT_p95, RT_p99, and RT_slowest time in milliseconds)</b>
                     </h1>
                 </u1>
             </html>
