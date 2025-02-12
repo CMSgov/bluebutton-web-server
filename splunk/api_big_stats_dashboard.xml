@@ -318,20 +318,6 @@
                 <option name="refresh.display">progressbar</option>
             </chart>
         </panel>
-        <panel>
-        <chart>
-            <title>Distribution of response codes</title>
-            <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
-            <earliest>$t_local.earliest$</earliest>
-            <latest>$t_local.latest$</latest>
-            <sampleRatio>1</sampleRatio>
-            </search>
-            <option name="charting.chart">pie</option>
-            <option name="charting.chart.showPercent">true</option>
-            <option name="charting.chart.sliceCollapsingThreshold">0</option>
-        </chart>
-        </panel>
     </row>
   <row>
     <panel>
@@ -353,6 +339,19 @@
         <option name="charting.legend.labelStyle.overflowMode">ellipsisEnd</option>
         <option name="refresh.display">progressbar</option>
       </chart>
+    </panel>
+    <panel>
+      <title>5XX Responses Total</title>
+        <single>
+            <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 499) AND (message.response_code  &lt; 600) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+            <sampleRatio>1</sampleRatio>
+            </search>
+            <option name="height">137</option>
+            <option name="refresh.display">progressbar</option>
+        </single>
     </panel>
     <panel>
       <chart>
@@ -387,6 +386,19 @@
         <option name="charting.legend.labelStyle.overflowMode">ellipsisEnd</option>
         <option name="refresh.display">progressbar</option>
       </chart>
+    </panel>
+    <panel>
+      <title>4XX Responses Total</title>
+        <single>
+            <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 399) AND (message.response_code  &lt; 500) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+            <sampleRatio>1</sampleRatio>
+            </search>
+            <option name="height">137</option>
+            <option name="refresh.display">progressbar</option>
+        </single>
     </panel>
     <panel>
       <chart>
