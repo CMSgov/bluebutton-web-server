@@ -367,18 +367,16 @@
     </row>
     <row>
         <panel>
-            <chart>
-                <title>Initial Authorization Request / Authorization Completed %</title>
+        <title>Authorization Completed / Initial Authorization Request %</title>
+        <single>
                 <search>
-                    <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval pctAuthDone = round((Total2/Total1)*100,1)." %" | table pctAuthDone</query>
                     <sampleRatio>1</sampleRatio>
                 </search>
-                <option name="charting.chart">radialGauge</option>
-                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="drilldown">all</option>
                 <option name="height">226</option>
                 <option name="refresh.display">progressbar</option>
-            </chart>
+        </single>
         </panel>
         <panel>
         <title>Spanish Language Authorization Count</title>
@@ -398,18 +396,16 @@
         </single>
         </panel>
         <panel>
-        <chart>
             <title>Spanish Authorization Request / Total Authorization Request %</title>
+        <single>
             <search>
-            <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokEpCountLang$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-            <sampleRatio>1</sampleRatio>
+                <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokEpCountLang$ | eval percent= round((Total2/Total1)*100,1)." %" | table percent</query>
+                <sampleRatio>1</sampleRatio>
             </search>
-            <option name="charting.chart">radialGauge</option>
-            <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-            <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+            <option name="drilldown">all</option>
             <option name="height">226</option>
             <option name="refresh.display">progressbar</option>
-        </chart>
+        </single>
         </panel>
     </row>
     <row>
@@ -1862,7 +1858,7 @@
         </panel>
         <panel>
             <chart>
-                <title>Initial Authorization Request / Authorization Completed %</title>
+                <title>Authorization Completed / Initial Authorization Request %</title>
                 <search>
                     <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
                     <sampleRatio>1</sampleRatio>
