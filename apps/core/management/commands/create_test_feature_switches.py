@@ -4,16 +4,19 @@ from waffle.models import Switch
 from apps.core.models import Flag
 
 WAFFLE_FEATURE_SWITCHES = (
-    ("outreach_email", True),
-    ("wellknown_applications", True),
-    ("login", True),
-    ("signup", True),
-    ("require-scopes", True),
-    ("testclient_v2", True),
-    ("enable_testclient", True),
-    ("show_testclient_link", True),
-    ("interim-prod-access", True),
-    ("enable_swaggerui", True),
+    ("enable_swaggerui", True, ""),
+    ("enable_testclient", True, ""),
+    ("expire_grant_endpoint", True, "This enables the /v<1/2>/o/expire_authenticated_user/<patient_id>/ endpoint"),
+    ("interim-prod-access", True, ""),
+    ("login", True, ""),
+    ("outreach_email", True, ""),
+    ("require-scopes", True, ""),
+    ("show_django_message_sdk", True, "This enables the Django message in the developer sandbox home."),
+    ("show_testclient_link", True, ""),
+    ("signup", True, ""),
+    ("splunk_monitor", False, "This is used in other environments to ensure splunk forwarder is running."),
+    ("testclient_v2", True, ""),
+    ("wellknown_applications", True, ""),
 )
 
 WAFFLE_FEATURE_FLAGS = (
@@ -30,7 +33,7 @@ class Command(BaseCommand):
                 Switch.objects.get(name=switch[0])
                 self._log("Feature switch already exists: %s" % (str(switch)))
             except Switch.DoesNotExist:
-                Switch.objects.create(name=switch[0], active=switch[1])
+                Switch.objects.create(name=switch[0], active=switch[1], note=switch[2])
                 self._log("Feature switch created: %s" % (str(switch)))
 
         # Create feature flags for testing in local development
