@@ -69,6 +69,8 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 				{% url 'test_eob_v2' as test_eob_url %}
 				{% url 'test_patient_v2' as test_patient_url %}
 				{% url 'test_coverage_v2' as test_coverage_url %}
+				{% url 'test_claim' as test_claim_url %}
+				{% url 'test_claimresponse' as test_claimresponse_url %}
 			{% else %}
 				{% url 'authorize_link' as auth_url %}
 				{% url 'test_metadata' as meta_url %}
@@ -91,14 +93,27 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			
 			<p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
 
-			<ul>
-				<li> <a href="{{ test_eob_url }}">ExplanationOfBenefit</a> </li>
-				<li> <a href="{{ test_patient_url }}">Patient</a> </li>
-				<li> <a href="{{ test_coverage_url }}">Coverage</a> </li>
-				<li> <a href="{{ test_userinfo_url }}">Profile </a> (OIDC Userinfo)</li>
-				<li> <a href="{{ meta_url }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
-				<li> <a href="{{ openid_cfg_url }}">OIDC Discovery</a> (No Token Needed)</li>
-			</ul>
+			{% if api_ver == 'v2' %}
+				<ul>
+					<li> <a href="{{ test_eob_url }}">ExplanationOfBenefit</a> </li>
+					<li> <a href="{{ test_patient_url }}">Patient</a> </li>
+					<li> <a href="{{ test_coverage_url }}">Coverage</a> </li>
+					<li> <a href="{{ test_claim_url }}">Claim</a> </li>
+					<li> <a href="{{ test_claimresponse_url }}">ClaimResponse</a> </li>
+					<li> <a href="{{ test_userinfo_url }}">Profile </a> (OIDC Userinfo)</li>
+					<li> <a href="{{ meta_url }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
+					<li> <a href="{{ openid_cfg_url }}">OIDC Discovery</a> (No Token Needed)</li>
+				</ul>
+			{% else %}
+				<ul>
+					<li> <a href="{{ test_eob_url }}">ExplanationOfBenefit</a> </li>
+					<li> <a href="{{ test_patient_url }}">Patient</a> </li>
+					<li> <a href="{{ test_coverage_url }}">Coverage</a> </li>
+					<li> <a href="{{ test_userinfo_url }}">Profile </a> (OIDC Userinfo)</li>
+					<li> <a href="{{ meta_url }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
+					<li> <a href="{{ openid_cfg_url }}">OIDC Discovery</a> (No Token Needed)</li>
+				</ul>
+			{% endif %}
 
 			<h2 class="ds-u-margin-y--2">Additional Resources</h2>
 

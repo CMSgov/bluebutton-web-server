@@ -114,11 +114,17 @@ class FhirDataView(APIView):
 
     def get(self, request, resource_type, *args, **kwargs):
 
-        out_data = self.fetch_data(request, resource_type, *args, **kwargs)
+        out_data = self.fetch_data(request, False, resource_type, *args, **kwargs)
 
         return Response(out_data)
 
-    def fetch_data(self, request, resource_type, *args, **kwargs):
+    def post(self, request, resource_type, *args, **kwargs):
+
+        out_data = self.fetch_data(request, True, resource_type, *args, **kwargs)
+
+        return Response(out_data)
+
+    def fetch_data(self, request, post_call, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
 
         target_url = self.build_url(resource_router,
@@ -132,15 +138,51 @@ class FhirDataView(APIView):
         except voluptuous.error.Invalid as e:
             raise exceptions.ParseError(detail=e.msg)
 
-        logger.debug('Here is the URL to send, %s now add '
-                     'GET parameters %s' % (target_url, get_parameters))
+        logger.debug('Here is the URL to send, %s and here are the '
+                     'parameters %s' % (target_url, get_parameters))
 
-        # Now make the call to the backend API
-        req = Request('GET',
-                      target_url,
-                      data=get_parameters,
-                      params=get_parameters,
-                      headers=backend_connection.headers(request, url=target_url))
+        if post_call:
+            # hacky code prep parameters for the POST based search
+            # for POC: hard code some parameters:
+
+            #   isHashed:
+            #   type: string
+            #   description: |-
+            #     Set this flag to false during POST request. Not setting the flag is defaulted to true
+            #     Example:
+            #       - `isHashed=true`
+            #   example: false
+            #
+            # mbi required parameter - always obtain from crosswalk (current authorized user)
+
+            #   excludeSAMHSA
+            #     description: |-
+            #       The _Substance Abuse and Mental Health Services Administration_ (SAMHSA)
+            #       is the agency within the U.S. Department of HHS that leads public health efforts to
+            #       advance the behavioral health of the nation.
+            #       Setting this flag to _true_, modifies the request to filter out all SAMSHA-related claims from the response.
+
+            #       Examples:
+            #          - `excludeSAMHSA=true`
+
+            payload = request.data if request.data else {}
+            payload['mbi'] = request.crosswalk.user_mbi
+            payload['excludeSAMHSA'] = 'true'
+            payload['isHashed'] = 'false'
+            payload['startIndex'] = 0
+            payload['_count'] = 10
+            req = Request('POST',
+                          target_url,
+                          headers=backend_connection.headers(request, url=target_url),
+                          data=payload)
+        else:
+            # Now make the call to the backend API
+            req = Request('GET',
+                          target_url,
+                          data=get_parameters,
+                          params=get_parameters,
+                          headers=backend_connection.headers(request, url=target_url))
+
         s = Session()
 
         # BB2-1544 request header url encode if header value (app name) contains char (>256)
@@ -151,6 +193,7 @@ class FhirDataView(APIView):
                 req.headers["BlueButton-Application"] = quote(req.headers.get("BlueButton-Application"))
 
         prepped = s.prepare_request(req)
+
         # Send signal
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version == 2 else 'v1')
         r = s.send(

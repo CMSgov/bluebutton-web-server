@@ -17,6 +17,8 @@ from .views import (
     test_patient,
     test_patient_v2,
     test_links,
+    test_claim,
+    test_claimresponse,
 )
 
 urlpatterns = [
@@ -35,6 +37,8 @@ urlpatterns = [
     path("PatientV2", test_patient_v2, name="test_patient_v2"),
     path("CoverageV2", test_coverage_v2, name="test_coverage_v2"),
     path("userinfoV2", test_userinfo_v2, name="test_userinfo_v2"),
+    path("ClaimV2", test_claim, name="test_claim"),
+    path("ClaimResponseV2", test_claimresponse, name="test_claimresponse"),
     path("metadataV2", test_metadata_v2, name="test_metadata_v2"),
     path("openidConfigV2", test_openid_config_v2, name="test_openid_config_v2"),
 ]

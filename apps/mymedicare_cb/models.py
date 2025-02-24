@@ -26,17 +26,6 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
 def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
     """
     Find or create the user associated
-    with the identity information from the ID provider.
-
-    Args:
-        Identity parameters passed in from ID provider.
-        slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below:
-        subject = ID provider's sub or username
-        mbi_hash = Previously hashed mbi
-        hicn_hash = Previously hashed hicn
-        first_name
-        last_name
-        email
         request = request from caller to pass along for logging info.
     Returns:
         user = The user that was existing or newly created
@@ -125,6 +114,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                 user.crosswalk.user_id_type = hash_lookup_type
                 user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
                 user.crosswalk.user_mbi_hash = slsx_client.mbi_hash
+                user.crosswalk.user_mbi = slsx_client.mbi
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
@@ -231,6 +221,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
             user=user,
             user_hicn_hash=slsx_client.hicn_hash,
             user_mbi_hash=slsx_client.mbi_hash,
+            user_mbi=slsx_client.mbi,
             fhir_id=fhir_id,
             user_id_type=user_id_type,
         )

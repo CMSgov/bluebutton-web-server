@@ -52,6 +52,12 @@ class ReadCrosswalkPermission(HasCrosswalk):
                 reference_id = reference.split("/")[1]
                 if reference_id != request.crosswalk.fhir_id:
                     raise exceptions.NotFound()
+            elif request.resource_type == "Claim":
+                if _check_mbi(obj, request.crosswalk.user_mbi):
+                    raise exceptions.NotFound()
+            elif request.resource_type == "ClaimResponse":
+                if _check_mbi(obj, request.crosswalk.user_mbi):
+                    raise exceptions.NotFound()
             else:
                 reference_id = obj["id"]
                 if reference_id != request.crosswalk.fhir_id:
@@ -68,7 +74,6 @@ class ReadCrosswalkPermission(HasCrosswalk):
 class SearchCrosswalkPermission(HasCrosswalk):
     def has_object_permission(self, request, view, obj):
         patient_id = request.crosswalk.fhir_id
-
         if "patient" in request.GET and request.GET["patient"] != patient_id:
             return False
 
@@ -98,3 +103,22 @@ class ApplicationActivePermission(permissions.BasePermission):
             )
 
         return True
+
+
+# helper verify mbi of a claim or claim response resource
+def _check_mbi(obj, mbi):
+    matched = False
+    try:
+        if obj['contained']:
+            for c in obj['contained']:
+                if c['resourceType'] == 'Patient':
+                    identifiers = c['identifier']
+                    if len(identifiers) > 0:
+                        if identifiers[0]['value'] == mbi:
+                            matched = True
+                            break
+    except KeyError as ke:
+        # log error and return false
+        print(ke)
+        pass
+    return matched

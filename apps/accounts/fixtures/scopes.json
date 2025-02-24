@@ -80,5 +80,29 @@
             "protected_resources": "[[\"POST\", \"/v[12]/o/introspect\"]]",
             "default": "False"
         }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 7,
+        "fields": {
+            "title": "My Medicare partially adjudicated claims.",
+            "slug": "patient/Claim.read",
+            "group": 5,
+            "description": "Claim FHIR Resource",
+            "protected_resources": "[\n  [\n    \"POST\",\n   \"/v2/fhir/Claim/_search$\"\n  ],\n  [\n    \"GET\",\n   \"/v2/fhir/Claim/(?P<resource_id>[^/]+)$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 8,
+        "fields": {
+            "title": "My Medicare partially adjudicated claim responses.",
+            "slug": "patient/ClaimResponse.read",
+            "group": 5,
+            "description": "ClaimResponse FHIR Resource",
+            "protected_resources": "[\n  [\n    \"POST\",\n   \"/v2/fhir/ClaimResponse/_search$\"\n  ],\n  [\n    \"GET\",\n   \"/v2/fhir/ClaimResponse/(?P<resource_id>[^/]+)$\"\n  ]\n]",
+            "default": "True"
+        }
     }
 ]

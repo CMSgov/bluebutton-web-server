@@ -5,11 +5,11 @@ info:
   description: |
     To try out the API using Swagger UI, follow these steps:
 
-    1. **Create an Application**: Ensure you have an application set up on [CMS Sandbox](https://sandbox.bluebutton.cms.gov).
-    2. **Update Application Settings**: Go to your application settings and add [https://sandbox.bluebutton.cms.gov/docs/oauth2-redirect](https://sandbox.bluebutton.cms.gov/docs/oauth2-redirect) to the "Callback URLs / Redirect URIs" field under "App Details - Required Information". Save the updated application settings.
+    1. **Create an Application**: Ensure you have an application set up on [CMS Sandbox](http://localhost:8000/).
+    2. **Update Application Settings**: Go to your application settings and add [http://localhost:8000//docs/oauth2-redirect](http://localhost:8000//docs/oauth2-redirect) to the "Callback URLs / Redirect URIs" field under "App Details - Required Information". Save the updated application settings.
     3. **Store Client Credentials**: Note down and securely store your client_id and client_secret from your CMS Sandbox application. These credentials will be used later.
     4. **Authorize in Swagger UI**: Open this Swagger UI and click on the "Authorize" button.
-    5. **Authorize Access**: Within the prompt, input your client_id and client_secret, choose the scopes you want to use in your testing, and click "Authorize" to open a new tab where you will grant consent to your application from a sample beneficiary. In order to log in, you can use a sample beneficiary using the login instructions from [this link](https://sandbox.bluebutton.cms.gov/testclient/authorize-link-v2).
+    5. **Authorize Access**: Within the prompt, input your client_id and client_secret, choose the scopes you want to use in your testing, and click "Authorize" to open a new tab where you will grant consent to your application from a sample beneficiary. In order to log in, you can use a sample beneficiary using the login instructions from [this link](http://localhost:8000//testclient/authorize-link-v2).
     6. **Complete Consent**: Follow the prompts to complete the consent form.
     7. **Return to Swagger UI**: After consenting, you will be redirected back to this Swagger UI.
     8. **Explore APIs**: You can now start exploring and testing the APIs by providing the relevant parameters.
@@ -404,6 +404,275 @@ paths:
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v2
+  /v2/fhir/Claim/{id}:
+    get:
+      tags: [v2]
+      summary: 'read-instance: Read Claim instance'
+      parameters:
+      - name: id
+        in: path
+        description: The Claim resource ID e.g. m-123456, f-45678
+        required: true
+        style: simple
+        schema: {minimum: 1, type: string}
+        example: 'm-123'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/fhir+json:
+              schema: {$ref: '#/components/schemas/FHIR-JSON-RESOURCE'}
+  /v2/fhir/Claim/_search:
+    post:
+      tags: [v2]
+      summary: 'search-type: Search for Claim instances'
+      description: This is a search type
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                _lastUpdated:
+                  type: string
+                  description: |-
+                    Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+                    A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+                    This parameter can be included in a request one or more times.
+
+                    Inexact timestamps are accepted, but not recommended, since the input will implicitly be converted to use the server's timezone.
+
+                    Examples:
+                      - `_lastUpdated=gt2023-01-02T00:00+00:00&_lastUpdated=lt2023-05-01T00:00+00:00` defines a range between two provided dates
+                      - `_lastUpdated=gt2023-01-02T00:00+00:00` defines a range between the provided date and today
+                      - `_lastUpdated=lt2023-05-01T00:00+00:00` defines a range from the earliest available records until the provided date
+                  example: gt2023-01-02
+                service-date:
+                  type: string
+                  description: "Only satisfy the search request if a claim's date\
+                    \ falls within a specified _DateRange_.\nThe _DateRange_ is defined\
+                    \ by the claim's billing period, specifically the \n`Claim.billablePeriod.end`.\
+                    \ A _DateRange_ can be further refined by providing \nless than\
+                    \ `lt` and/or greater than `gt` values. This parameter can be\
+                    \ included \nin a request one or more times.\n\nExamples:\n  -\
+                    \ `service-date=gt2023-01-02&service-date=lt2023-05-01`\n  - `service-date=gt2023-01-02`\n\
+                    \  - `service-date=lt2023-05-01`"
+                  example: lt2023-05-01
+                startIndex:
+                  type: string
+                  description: |-
+                    When fetching a _Bundle Response_ using pagination, this URL parameter represents an offset
+                    (starting point) into the list of elements for the _Request_.
+                    It is optional and defaults to 1 if not supplied.
+                    A value 0 is not allowed and negative indices are not currently supported.
+
+                    Example:
+                    - `startIndex=100`
+                  example: 5
+                _count:
+                  description: |-
+                    Provides the number of records to be used for pagination.
+
+                    Examples:
+                      - `_count=10`: return 10 values.
+                  format: int32
+                  example: 10
+                type:
+                  type: string
+                  description: |-
+                    A list of one or more comma-separated claim types to be included in the request;
+                    within BFD, the claim types represent an _OR_ inclusion logic meaning any claims matching one of the specified
+                    claim types will be checked
+
+                    Supported Claim Type values:
+                      - `fiss`
+                      - `mcs`
+
+                    Examples:
+                      - `type=fiss,mcs`
+                      - `type=fiss`
+                  example: fiss,mcs
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/fhir+json:
+              schema: {$ref: '#/components/schemas/FHIR-JSON-RESOURCE'}
+  /v2/fhir/ClaimJSON/_search:
+    post:
+      tags: [v2]
+      summary: 'search-type: Search for Claim instances'
+      description: This is a search type
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                _lastUpdated:
+                  type: string
+                  description: |-
+                    Only satisfy the Search if the Beneficiary's `last_updated` Date falls within a specified _DateRange_.
+                    A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+                    This parameter can be included in a request one or more times.
+
+                    Inexact timestamps are accepted, but not recommended, since the input will implicitly be converted to use the server's timezone.
+
+                    Examples:
+                      - `_lastUpdated=gt2023-01-02T00:00+00:00&_lastUpdated=lt2023-05-01T00:00+00:00` defines a range between two provided dates
+                      - `_lastUpdated=gt2023-01-02T00:00+00:00` defines a range between the provided date and today
+                      - `_lastUpdated=lt2023-05-01T00:00+00:00` defines a range from the earliest available records until the provided date
+                  example: gt2023-01-02
+                service-date:
+                  type: string
+                  description: "Only satisfy the search request if a claim's date\
+                    \ falls within a specified _DateRange_.\nThe _DateRange_ is defined\
+                    \ by the claim's billing period, specifically the \n`Claim.billablePeriod.end`.\
+                    \ A _DateRange_ can be further refined by providing \nless than\
+                    \ `lt` and/or greater than `gt` values. This parameter can be\
+                    \ included \nin a request one or more times.\n\nExamples:\n  -\
+                    \ `service-date=gt2023-01-02&service-date=lt2023-05-01`\n  - `service-date=gt2023-01-02`\n\
+                    \  - `service-date=lt2023-05-01`"
+                  example: lt2023-05-01
+                startIndex:
+                  type: string
+                  description: |-
+                    When fetching a _Bundle Response_ using pagination, this URL parameter represents an offset
+                    (starting point) into the list of elements for the _Request_.
+                    It is optional and defaults to 1 if not supplied.
+                    A value 0 is not allowed and negative indices are not currently supported.
+
+                    Example:
+                    - `startIndex=100`
+                  example: 5
+                _count:
+                  description: |-
+                    Provides the number of records to be used for pagination.
+
+                    Examples:
+                      - `_count=10`: return 10 values.
+                  format: int32
+                  example: 10
+                type:
+                  type: string
+                  description: |-
+                    A list of one or more comma-separated claim types to be included in the request;
+                    within BFD, the claim types represent an _OR_ inclusion logic meaning any claims matching one of the specified
+                    claim types will be checked
+
+                    Supported Claim Type values:
+                      - `fiss`
+                      - `mcs`
+
+                    Examples:
+                      - `type=fiss,mcs`
+                      - `type=fiss`
+                  example: fiss,mcs
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/fhir+json:
+              schema: {$ref: '#/components/schemas/FHIR-JSON-RESOURCE'}
+  /v2/fhir/ClaimResponse/{id}:
+    get:
+      tags: [v2]
+      summary: 'read-instance: Read ClaimResponse instance'
+      parameters:
+      - name: id
+        in: path
+        description: The resource ID
+        required: true
+        style: simple
+        schema: {minimum: 1, type: string}
+        example: '123'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/fhir+json:
+              schema: {$ref: '#/components/schemas/FHIR-JSON-RESOURCE'}
+  /v2/fhir/ClaimResponse/_search:
+    post:
+      tags: [v2]
+      summary: 'search-type: Search for ClaimResponse instances'
+      description: This is a search type
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                _lastUpdated:
+                  type: string
+                  description: |-
+                    Only satisfy the Search if the Claim's `last_updated` Date falls within a specified _DateRange_.
+                    A _DateRange_ can be defined by providing less than `lt` and/or greater than `gt` values.
+                    This parameter can be included in a request one or more times.
+
+                    Inexact timestamps are accepted, but not recommended, since the input will implicitly be converted to use the server's timezone.
+
+                    Examples:
+                      - `_lastUpdated=gt2023-01-02T00:00+00:00&_lastUpdated=lt2023-05-01T00:00+00:00` defines a range between two provided dates
+                      - `_lastUpdated=gt2023-01-02T00:00+00:00` defines a range between the provided date and today
+                      - `_lastUpdated=lt2023-05-01T00:00+00:00` defines a range from the earliest available records until the provided date
+                  example: gt2023-01-02
+                service-date:
+                  type: string
+                  description: |-
+                    Only satisfy the Search request if a claim's Date
+                    falls within a specified _DateRange_. A _DateRange_ can be
+                    defined by providing less than `lt` and/or greater than `gt` values.
+                    This parameter can be included in a request one or more times.
+
+                    Examples:
+                      - `service-date=gt2023-01-02&service-date=lt2023-05-01`
+                      - `service-date=gt2023-01-02`
+                      - `service-date=lt2023-05-01`
+                  example: lt2023-05-01
+                startIndex:
+                  type: string
+                  description: |-
+                    When fetching a _Bundle Response_ using pagination, this URL parameter represents an offset
+                    (starting point) into the list of elements for the _Request_.
+                    It is optional and defaults to 1 if not supplied.
+                    A value 0 is not allowed and negative indices are not currently supported.
+
+                    Example:
+                    - `startIndex=100`
+                  example: 5
+                _count:
+                  description: |-
+                    Provides the number of records to be used for pagination.
+
+                    Examples:
+                      - `_count=10`: return 10 values.
+                  format: int32
+                  example: 10
+                type:
+                  type: string
+                  description: |-
+                    A list of one or more comma-separated claim types to be included in the request;
+                    within BFD, the claim types represent an _OR_ inclusion logic meaning any claims matching one of the specified
+                    claim types will be checked
+
+                    Supported Claim Type values:
+                      - `fiss`
+                      - `mcs`
+
+                    Examples:
+                      - `type=fiss,mcs`
+                      - `type=fiss`
+                  example: fiss,mcs
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/fhir+json:
+              schema: {$ref: '#/components/schemas/FHIR-JSON-RESOURCE'}
 
   /v1/fhir/metadata:
     get: 
@@ -415,6 +684,8 @@ paths:
           - patient/Patient.read
           - patient/Coverage.read
           - patient/ExplanationOfBenefit.read
+          - patient/Claim.read
+          - patient/ClaimResponse.read
       responses:
         '200':
           content:
@@ -795,20 +1066,6 @@ paths:
         - v1
 
 components:
-  securitySchemes:
-    oAuth2Security:
-      type: oauth2
-      description: This API uses OAuth 2 with the implicit grant flow.
-      flows:
-        authorizationCode:
-          authorizationUrl: https://sandbox.bluebutton.cms.gov/v2/o/authorize
-          tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
-          scopes:
-            profile: User Profile
-            patient/Patient.read: Read patient
-            patient/Coverage.read: Read Patient coverage
-            patient/ExplanationOfBenefit.read: Read patient explanation of benefit
-            
   schemas:
     FHIR-JSON-RESOURCE: {type: object, description: A FHIR resource}
 
@@ -911,15 +1168,31 @@ components:
           format: date-time
         patient: 
           type: string
-            
+
+  securitySchemes:
+    oAuth2Security:
+      type: oauth2
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: http://localhost:8000//v2/o/authorize
+          tokenUrl: http://localhost:8000//v2/o/token/
+          scopes:
+            profile: User Profile
+            patient/Patient.read: Read patient
+            patient/Coverage.read: Read Patient coverage
+            patient/ExplanationOfBenefit.read: Read patient explanation of benefit
+            patient/Claim.read: Read patient partially adjudicated claim
+            patient/ClaimResponse.read: Read patient partially adjudicated claim response
+
   examples:
     V1OpenIdConfigurationExample:
       value:
-        issuer: 'https://sandbox.bluebutton.cms.gov'
-        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
-        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
-        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
-        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/connect/userinfo'
+        issuer: 'http://localhost:8000/'
+        authorization_endpoint: 'http://localhost:8000//v1/o/authorize/'
+        revocation_endpoint: 'http://localhost:8000//v1/o/revoke/'
+        token_endpoint: 'http://localhost:8000//v1/o/token/'
+        userinfo_endpoint: 'http://localhost:8000//v1/connect/userinfo'
         ui_locales_supported:
           - en-US
         service_documentation: 'https://bluebutton.cms.gov/developers'
@@ -930,15 +1203,15 @@ components:
         response_types_supported:
           - code
           - token
-        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v1/fhir/metadata'
+        fhir_metadata_uri: 'http://localhost:8000//v1/fhir/metadata'
     
     V2OpenIdConfigurationExample:
       value:
-        issuer: 'https://sandbox.bluebutton.cms.gov'
-        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
-        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
-        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
-        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/connect/userinfo'
+        issuer: 'http://localhost:8000/'
+        authorization_endpoint: 'http://localhost:8000//v2/o/authorize/'
+        revocation_endpoint: 'http://localhost:8000//v2/o/revoke/'
+        token_endpoint: 'http://localhost:8000//v2/o/token/'
+        userinfo_endpoint: 'http://localhost:8000//v2/connect/userinfo'
         ui_locales_supported:
           - en-US
         service_documentation: 'https://bluebutton.cms.gov/developers'
@@ -949,7 +1222,7 @@ components:
         response_types_supported:
           - code
           - token
-        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
+        fhir_metadata_uri: 'http://localhost:8000//v2/fhir/metadata'
 
   
     V1FhirMetadataExample:
@@ -1334,11 +1607,11 @@ components:
                     http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
                   extension:
                     - url: token
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
+                      valueUri: 'http://localhost:8000//v1/o/token/'
                     - url: authorize
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
+                      valueUri: 'http://localhost:8000//v1/o/authorize/'
                     - url: revoke
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
+                      valueUri: 'http://localhost:8000//v1/o/revoke/'
 
     V2FhirMetadataExample:
       value:
@@ -1354,7 +1627,7 @@ components:
           version: 2.141.0
         implementation:
           description: 'gov.cms.bfd:bfd-server-war'
-          url: 'https://sandbox.bluebutton.cms.gov/v2/fhir'
+          url: 'http://localhost:8000//v2/fhir'
         fhirVersion: 4.0.1
         format:
           - application/json
@@ -1771,11 +2044,11 @@ components:
                     http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
                   extension:
                     - url: token
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
+                      valueUri: 'http://localhost:8000//v2/o/token/'
                     - url: authorize
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+                      valueUri: 'http://localhost:8000//v2/o/authorize/'
                     - url: revoke
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
+                      valueUri: 'http://localhost:8000//v2/o/revoke/'
     
     V1UserInfoExample:
       value:
@@ -1930,13 +2203,13 @@ components:
         link:
           - relation: first
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              http://localhost:8000//v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: last
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              http://localhost:8000//v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: self
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
+              http://localhost:8000//v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Patient
@@ -1994,13 +2267,13 @@ components:
         link:
           - relation: first
             url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              http://localhost:8000//v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: last
             url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              http://localhost:8000//v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: self
             url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
+              http://localhost:8000//v2/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Patient
@@ -2088,13 +2361,13 @@ components:
         link:
           - relation: first
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              http://localhost:8000//v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: last
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              http://localhost:8000//v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: self
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
+              http://localhost:8000//v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Coverage
@@ -2902,13 +3175,13 @@ components:
         link:
           - relation: first
             url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              http://localhost:8000//v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: last
             url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              http://localhost:8000//v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: self
             url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
+              http://localhost:8000//v2/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Coverage
@@ -3978,16 +4251,16 @@ components:
         link:
           - relation: first
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
+              http://localhost:8000//v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
           - relation: next
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
+              http://localhost:8000//v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
           - relation: last
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
+              http://localhost:8000//v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
           - relation: self
             url: >-
-              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
+              http://localhost:8000//v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: ExplanationOfBenefit
@@ -18142,13 +18415,13 @@ components:
         total: 51
         link:
           - relation: first
-            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
+            url: http://localhost:8000//v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
           - relation: next
-            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
+            url: http://localhost:8000//v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
           - relation: last
-            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
+            url: http://localhost:8000//v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
           - relation: self
-            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
+            url: http://localhost:8000//v2/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: ExplanationOfBenefit
@@ -33905,8 +34178,8 @@ components:
       
       
 servers:
-  - url: 'https://sandbox.bluebutton.cms.gov/'
-    description: Sandbox server
+  - url: 'http://localhost:8000//'
+    description: Local server
     variables: {}
 security:
     - oAuth2Security:
@@ -33914,4 +34187,6 @@ security:
       - patient/Patient.read
       - patient/Coverage.read
       - patient/ExplanationOfBenefit.read
+      - patient/Claim.read
+      - patient/ClaimResponse.read
       - profile

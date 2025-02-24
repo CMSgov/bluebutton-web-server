@@ -32,10 +32,10 @@ class DataAccessGrantPermission(permissions.BasePermission):
         # Patient resources were taken care of above
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
-        return is_resource_for_patient(obj, request.crosswalk.fhir_id)
+        return is_resource_for_patient(obj, request.crosswalk.fhir_id, request.crosswalk.user_mbi)
 
 
-def is_resource_for_patient(obj, patient_id):
+def is_resource_for_patient(obj, patient_id, user_mbi):
     try:
         if obj['resourceType'] == 'Coverage':
             reference = obj['beneficiary']['reference']
@@ -51,9 +51,15 @@ def is_resource_for_patient(obj, patient_id):
             reference_id = obj['id']
             if reference_id != patient_id:
                 raise exceptions.NotFound()
+        elif obj['resourceType'] == 'Claim':
+            if not _check_mbi(obj, user_mbi):
+                raise exceptions.NotFound()
+        elif obj['resourceType'] == 'ClaimResponse':
+            if not _check_mbi(obj, user_mbi):
+                raise exceptions.NotFound()
         elif obj['resourceType'] == 'Bundle':
             for entry in obj.get('entry', []):
-                is_resource_for_patient(entry['resource'], patient_id)
+                is_resource_for_patient(entry['resource'], patient_id, user_mbi)
         else:
             raise exceptions.NotFound()
 
@@ -62,3 +68,22 @@ def is_resource_for_patient(obj, patient_id):
     except Exception:
         return False
     return True
+
+
+# helper verify mbi of a claim or claim response resource
+def _check_mbi(obj, mbi):
+    matched = False
+    try:
+        if obj['contained']:
+            for c in obj['contained']:
+                if c['resourceType'] == 'Patient':
+                    identifiers = c['identifier']
+                    if len(identifiers) > 0:
+                        if identifiers[0]['value'] == mbi:
+                            matched = True
+                            break
+    except KeyError as ke:
+        # log error and return false
+        print(ke)
+        pass
+    return matched
