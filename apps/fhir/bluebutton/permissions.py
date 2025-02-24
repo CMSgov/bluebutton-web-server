@@ -53,10 +53,10 @@ class ReadCrosswalkPermission(HasCrosswalk):
                 if reference_id != request.crosswalk.fhir_id:
                     raise exceptions.NotFound()
             elif request.resource_type == "Claim":
-                if _check_mbi(obj, request.crosswalk.user_mbi):
+                if not _check_mbi(obj, request.crosswalk.user_mbi):
                     raise exceptions.NotFound()
             elif request.resource_type == "ClaimResponse":
-                if _check_mbi(obj, request.crosswalk.user_mbi):
+                if not _check_mbi(obj, request.crosswalk.user_mbi):
                     raise exceptions.NotFound()
             else:
                 reference_id = obj["id"]
