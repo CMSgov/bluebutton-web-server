@@ -83,13 +83,17 @@ def _get_data_json(request, name, params):
             q_params.append('beneficiary')
             q_params.append(beneficiary)
 
-        uri = NAV_URI_FMT.format(*q_params)
-
     resp = None
 
     if name == 'claim' or name == 'claimresponse':
-        resp = oas.post(uri)
+        # need to handle query parameters to body convert here for claim and claim response
+        json = {
+            '_count': request.GET.get('_count', 10),
+            'startIndex': request.GET.get('startIndex', 0),
+        }
+        resp = oas.post(uri, json=json)
     else:
+        uri = NAV_URI_FMT.format(*q_params)
         resp = oas.get(uri)
 
     return resp.json()
