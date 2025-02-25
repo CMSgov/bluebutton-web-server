@@ -5,11 +5,15 @@ from apps.fhir.bluebutton.views.read import (
     ReadViewCoverage,
     ReadViewExplanationOfBenefit,
     ReadViewPatient,
+    ReadViewClaim,
+    ReadViewClaimResponse,
 )
 from apps.fhir.bluebutton.views.search import (
     SearchViewCoverage,
     SearchViewExplanationOfBenefit,
     SearchViewPatient,
+    SearchViewClaim,
+    SearchViewClaimResponse,
 )
 
 admin.autodiscover()
@@ -50,5 +54,34 @@ urlpatterns = [
         r"ExplanationOfBenefit[/]?",
         SearchViewExplanationOfBenefit.as_view(version=2),
         name="bb_oauth_fhir_eob_search_v2",
+    ),
+    # Claim SearchView
+    re_path(
+        r"Claim/_search$",
+        SearchViewClaim.as_view(version=2),
+        name="bb_oauth_fhir_claim_search",
+    ),
+    re_path(
+        r"ClaimJSON/_search$",
+        SearchViewClaim.as_view(version=2),
+        name="bb_oauth_fhir_claimjson_search",
+    ),
+    # Claim ReadView
+    re_path(
+        r"Claim/(?P<resource_id>[^/]+)",
+        ReadViewClaim.as_view(version=2),
+        name="bb_oauth_fhir_claim_read",
+    ),
+    # ClaimResponse SearchView
+    re_path(
+        r"ClaimResponse/_search$",
+        SearchViewClaimResponse.as_view(version=2),
+        name="bb_oauth_fhir_claimresponse_search",
+    ),
+    # ClaimResponse ReadView
+    re_path(
+        r"ClaimResponse/(?P<resource_id>[^/]+)",
+        ReadViewClaimResponse.as_view(version=2),
+        name="bb_oauth_fhir_claimresponse_read",
     ),
 ]

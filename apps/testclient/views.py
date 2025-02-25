@@ -29,6 +29,8 @@ ENDPOINT_URL_FMT = {
     "patient": "{}/{}/fhir/Patient/{}?_format=json",
     "eob": "{}/{}/fhir/ExplanationOfBenefit/?_format=json",
     "coverage": "{}/{}/fhir/Coverage/?_format=json",
+    "claim": "{}/{}/fhir/Claim/_search",
+    "claimresponse": "{}/{}/fhir/ClaimResponse/_search",
 }
 
 
@@ -83,7 +85,14 @@ def _get_data_json(request, name, params):
 
         uri = NAV_URI_FMT.format(*q_params)
 
-    return oas.get(uri).json()
+    resp = None
+
+    if name == 'claim' or name == 'claimresponse':
+        resp = oas.post(uri)
+    else:
+        resp = oas.get(uri)
+
+    return resp.json()
 
 
 def _convert_to_json(json_response):
@@ -321,6 +330,48 @@ def test_eob(request, version=1):
                    "response_type": "Bundle of ExplanationOfBenefit",
                    "total_resource": eob.get('total', 0),
                    "api_ver": "v2" if version == 2 else "v1"})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_claim(request):
+
+    if 'token' not in request.session:
+        return redirect('test_links', permanent=True)
+
+    claims = _get_data_json(request, 'claim', [request.session['resource_uri'], 'v2'])
+    cnt = claims.get('total', 0)
+    nav_info = [] if cnt == 0 else _extract_page_nav(request, claims)
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(claims, indent=3),
+                   "url_name": 'test_claim',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, claims),
+                   "response_type": "Bundle of Claim",
+                   "total_resource": claims.get('total', 0),
+                   "api_ver": "v2"})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_claimresponse(request):
+
+    if 'token' not in request.session:
+        return redirect('test_links', permanent=True)
+
+    claimresponses = _get_data_json(request, 'claimresponse', [request.session['resource_uri'], 'v2'])
+
+    cnt = claimresponses.get('total', 0)
+
+    nav_info = [] if cnt == 0 else _extract_page_nav(request, claimresponses)
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(claimresponses, indent=3),
+                   "url_name": 'test_claimresponse',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, claimresponses),
+                   "response_type": "Bundle of ClaimResponse",
+                   "total_resource": cnt,
+                   "api_ver": "v2"})
 
 
 @never_cache

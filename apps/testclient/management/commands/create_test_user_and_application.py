@@ -99,6 +99,8 @@ def create_application(user, group, app, redirect):
     titles = ["My Medicare and supplemental coverage information.",
               "My Medicare claim information.",
               "My general patient and demographic information.",
+              "My Medicare partially adjudicated claims.",
+              "My Medicare partially adjudicated claim responses.",
               "Profile information including name and email."
               ]
 
