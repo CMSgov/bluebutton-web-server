@@ -178,7 +178,7 @@ def test_links(request, **kwargs):
     if 'token' in request.session:
         return render(request, HOME_PAGE,
                       context={"session_token": request.session['token'],
-                               "api_ver": request.session.get('api_ver', 'v1')})
+                               "api_ver": request.session.get('api_ver', 'v2')})
     else:
         return render(request, HOME_PAGE, context={"session_token": None})
 
