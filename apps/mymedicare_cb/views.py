@@ -84,7 +84,7 @@ def authenticate(request):
 
 
 @never_cache
-def callback(request, version=1):
+def callback(request, version=2):
     try:
         authenticate(request)
     except ValidationError as e:

@@ -7,7 +7,7 @@ app_name = "oauth2_provider"
 
 
 base_urlpatterns = [
-    path("authorize/", views.AuthorizationView.as_view(), name="authorize"),
+    path("authorize/", views.AuthorizationView.as_view(version=2), name="authorize"),
     re_path(
         r"^authorize/(?P<uuid>[\w-]+)/$",
         views.ApprovalView.as_view(),
