@@ -10,7 +10,7 @@ base_urlpatterns = [
     path("authorize/", views.AuthorizationView.as_view(version=2), name="authorize"),
     re_path(
         r"^authorize/(?P<uuid>[\w-]+)/$",
-        views.ApprovalView.as_view(),
+        views.ApprovalView.as_view(version=2),
         name="authorize-instance",
     ),
     path("token/", views.TokenView.as_view(), name="token"),
