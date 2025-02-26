@@ -98,6 +98,42 @@ def create_coverage_capability(group,
     return c
 
 
+def create_claim_capability(group,
+                               fhir_prefix,
+                               title="My Medicare partially adjudicated claims."):
+    c = None
+    description = "Claim FHIR Resource"
+    smart_scope_string = "patient/Claim.read"
+    pr = []
+    pr.append(["GET", "%sClaim/" % fhir_prefix])
+    pr.append(["GET", "%sClaim/[id]" % fhir_prefix])
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(pr, indent=4))
+    return c
+
+
+def create_claimresponse_capability(group,
+                               fhir_prefix,
+                               title="My Medicare partially adjudicated claim responses."):
+    c = None
+    description = "ClaimResponse FHIR Resource"
+    smart_scope_string = "patient/ClaimResponse.read"
+    pr = []
+    pr.append(["GET", "%sClaimResponse/" % fhir_prefix])
+    pr.append(["GET", "%sClaimResponse/[id]" % fhir_prefix])
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(pr, indent=4))
+    return c
+
+
 class Command(BaseCommand):
     help = 'Create BlueButton Group and Scopes'
 

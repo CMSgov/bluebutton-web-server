@@ -48,21 +48,30 @@ class ReadView(FhirDataView):
 
 
 class ReadViewPatient(ReadView):
-    # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "Patient"
 
 
 class ReadViewCoverage(ReadView):
-    # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "Coverage"
 
 
 class ReadViewExplanationOfBenefit(ReadView):
-    # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "ExplanationOfBenefit"
+
+
+class ReadViewClaim(ReadView):
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Claim"
+
+
+class ReadViewClaimResponse(ReadView):
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "ClaimResponse"

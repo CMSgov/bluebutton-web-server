@@ -199,6 +199,8 @@ def create_dev_users_apps_and_bene_crosswalks(
                 "My Medicare and supplemental coverage information.",
                 "My Medicare claim information.",
                 "My general patient and demographic information.",
+                "My Medicare partially adjudicated claims.",
+                "My Medicare partially adjudicated claim responses.",
                 "Profile information including name and email."
             ]
 
