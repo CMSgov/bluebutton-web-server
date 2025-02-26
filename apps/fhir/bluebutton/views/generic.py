@@ -166,11 +166,16 @@ class FhirDataView(APIView):
             #          - `excludeSAMHSA=true`
 
             payload = request.data if request.data else {}
+            # override mbi with user_mbi from corsswalk
+            # override samhsa to always exclude
+            # override includeTaxNumbers to always not to include
             payload['mbi'] = request.crosswalk.user_mbi
             payload['excludeSAMHSA'] = 'true'
+            payload['includeTaxNumbers'] = 'false'
             payload['isHashed'] = 'false'
-            payload['startIndex'] = 0
-            payload['_count'] = 10
+            # chunk load the search result bundle to avoid large payload unless caller explicitly specified page size etc.
+            payload['startIndex'] = payload.get('startIndex', 0)
+            payload['_count'] = payload.get('_count', 10)
             req = Request('POST',
                           target_url,
                           headers=backend_connection.headers(request, url=target_url),
