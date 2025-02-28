@@ -118,12 +118,12 @@ export USE_NEW_PERM_SCREEN
 export USE_MSLSX=false
 
 # stop all before run selenium remote tests
-docker-compose -f docker-compose.selenium.remote.yml down --remove-orphans
-docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker compose -f docker-compose.selenium.remote.yml down --remove-orphans
+docker compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg
 echo_msg "Stopping containers..."
 echo_msg
 
-docker-compose -f docker-compose.selenium.remote.yml stop
+docker compose -f docker-compose.selenium.remote.yml stop

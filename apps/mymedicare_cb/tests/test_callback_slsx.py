@@ -252,7 +252,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn("client_id=test", response.url)
             self.assertIn("redirect_uri=test.com", response.url)
             self.assertIn("response_type=token", response.url)
-            self.assertIn("http://www.google.com/v1/o/authorize/", response.url)
+            self.assertIn("http://www.google.com/v2/o/authorize/", response.url)
             # assert login
             self.assertNotIn("_auth_user_id", self.client.session)
 
