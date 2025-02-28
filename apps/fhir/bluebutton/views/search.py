@@ -52,6 +52,9 @@ class SearchView(FhirDataView):
     def get(self, request, *args, **kwargs):
         return super().get(request, self.resource_type, *args, **kwargs)
 
+    def post(self, request, *args, **kwargs):
+        return super().post(request, self.resource_type, *args, **kwargs)
+
     def build_url(self, resource_router, resource_type, *args, **kwargs):
         if resource_router.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
@@ -146,3 +149,49 @@ class SearchViewExplanationOfBenefit(SearchView):
             getattr(self, "QUERY_SCHEMA", {}),
             extra=REMOVE_EXTRA)
         return schema(params)
+
+
+class SearchViewClaim(SearchView):
+    http_method_names = ['post']
+
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Claim"
+
+    def build_parameters(self, request, *args, **kwargs):
+        return {
+            '_format': 'application/json+fhir',
+            'beneficiary': 'Patient/' + request.crosswalk.fhir_id,
+        }
+
+    # hacky code for POC only
+    def build_url(self, resource_router, resource_type, *args, **kwargs):
+        if resource_router.fhir_url.endswith('v1/fhir/'):
+            # only if called by tests
+            return "{}{}/_search".format(resource_router.fhir_url, resource_type)
+        else:
+            return "{}/{}/fhir/{}/_search".format(resource_router.fhir_url, 'v2' if self.version == 2 else 'v1',
+                                                  resource_type)
+
+
+class SearchViewClaimResponse(SearchView):
+    http_method_names = ['post']
+
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "ClaimResponse"
+
+    def build_parameters(self, request, *args, **kwargs):
+        return {
+            '_format': 'application/json+fhir',
+            'beneficiary': 'Patient/' + request.crosswalk.fhir_id,
+        }
+
+    # hacky code for POC only
+    def build_url(self, resource_router, resource_type, *args, **kwargs):
+        if resource_router.fhir_url.endswith('v1/fhir/'):
+            # only if called by tests
+            return "{}{}/_search".format(resource_router.fhir_url, resource_type)
+        else:
+            return "{}/{}/fhir/{}/_search".format(resource_router.fhir_url, 'v2' if self.version == 2 else 'v1',
+                                                  resource_type)

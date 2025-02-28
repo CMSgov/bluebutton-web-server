@@ -10,6 +10,7 @@ from django.views.decorators.cache import never_cache
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from requests_oauthlib import OAuth2Session
 from rest_framework import status
+from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 from waffle.decorators import waffle_switch
 
 from .utils import test_setup, get_client_secret
@@ -29,6 +30,8 @@ ENDPOINT_URL_FMT = {
     "patient": "{}/{}/fhir/Patient/{}?_format=json",
     "eob": "{}/{}/fhir/ExplanationOfBenefit/?_format=json",
     "coverage": "{}/{}/fhir/Coverage/?_format=json",
+    "claim": "{}/{}/fhir/Claim/_search",
+    "claimresponse": "{}/{}/fhir/ClaimResponse/_search",
 }
 
 
@@ -37,18 +40,42 @@ NAV_URI_FMT = "{}&_count={}&startIndex={}&{}={}"
 
 def _get_page_loc(request, fhir_json):
     total = fhir_json.get('total', 0)
-    index = int(request.GET.get('startIndex', 0))
+
+    index = 0
+
+    if 'startIndex' not in request.GET and request.GET.get('nav_link'):
+        # hack here for quick POC
+        # for PACA claim and claim response pagination:
+        # some how startIndex ends up as part of nav_link, so hack it to extract startIndex
+        nav_link_parsed = urlparse(request.GET.get('nav_link'))
+        nav_qps = parse_qs(nav_link_parsed.query)
+        start_index = nav_qps.get('startIndex', 0)
+        if isinstance(start_index, list):
+            start_index = start_index[0] if start_index else 0
+        index = int(start_index)
+    else:
+        index = int(request.GET.get('startIndex', 0))
+
     count = int(request.GET.get('_count', 10))
+
     return "{}/{}".format(index // count + 1, math.ceil(total / count))
 
 
 def _extract_page_nav(request, fhir_json):
+    # strip off PHI if any that appears in url as q-param
     link = fhir_json.get('link', None)
     nav_list = []
     if link is not None:
         for lnk in link:
             if lnk.get('url', None) is not None and lnk.get('relation', None) is not None:
-                nav_list.append({'relation': lnk['relation'], 'nav_link': lnk['url']})
+                parsed_url = urlparse(lnk.get('url', None))
+                query_params = parse_qs(parsed_url.query)
+                # for now check mbi (because BFD PACA Claim / ClaimResponse search result nav links contains mbi)
+                if 'mbi' in query_params:
+                    del query_params['mbi']
+                parsed_url = parsed_url._replace(query=urlencode(query_params, doseq=True))
+                nav_link_regen = urlunparse(parsed_url)
+                nav_list.append({'relation': lnk['relation'], 'nav_link': nav_link_regen})
             else:
                 nav_list = []
                 break
@@ -63,27 +90,49 @@ def _get_data_json(request, name, params):
 
     uri = ENDPOINT_URL_FMT[name].format(*params)
 
-    if nav_link is not None:
-        q_params = [uri]
-        q_params.append(request.GET.get('_count', 10))
-        q_params.append(request.GET.get('startIndex', 0))
+    resp = None
 
-        # for now it's either EOB or Coverage, make this more generic later
-        patient = request.GET.get('patient')
+    if name == 'claim' or name == 'claimresponse':
+        # need to handle query parameters to body convert here for claim and claim response
+        qps = request.GET
+        nav_link = qps.get('nav_link')
+        # some how startIndex ends up as part of nav_link, so hack it to extract startIndex
+        nav_link_parsed = urlparse(nav_link)
+        nav_qps = parse_qs(nav_link_parsed.query)
+        start_index = nav_qps.get('startIndex', 0)
 
-        if patient is not None:
-            q_params.append('patient')
-            q_params.append(patient)
+        if isinstance(start_index, list):
+            start_index = start_index[0]
 
-        beneficiary = request.GET.get('beneficiary')
+        json = {
+            '_count': qps.get('_count', 10),
+            'startIndex': start_index
+        }
+        resp = oas.post(uri, json=json)
+    else:
+        if nav_link is not None:
+            q_params = [uri]
+            q_params.append(request.GET.get('_count', 10))
+            q_params.append(request.GET.get('startIndex', 0))
 
-        if beneficiary is not None:
-            q_params.append('beneficiary')
-            q_params.append(beneficiary)
+            # for now it's either EOB or Coverage, make this more generic later
+            patient = request.GET.get('patient')
 
-        uri = NAV_URI_FMT.format(*q_params)
+            if patient is not None:
+                q_params.append('patient')
+                q_params.append(patient)
 
-    return oas.get(uri).json()
+            beneficiary = request.GET.get('beneficiary')
+
+            if beneficiary is not None:
+                q_params.append('beneficiary')
+                q_params.append(beneficiary)
+
+            uri = NAV_URI_FMT.format(*q_params)
+
+        resp = oas.get(uri)
+
+    return resp.json()
 
 
 def _convert_to_json(json_response):
@@ -321,6 +370,48 @@ def test_eob(request, version=1):
                    "response_type": "Bundle of ExplanationOfBenefit",
                    "total_resource": eob.get('total', 0),
                    "api_ver": "v2" if version == 2 else "v1"})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_claim(request):
+
+    if 'token' not in request.session:
+        return redirect('test_links', permanent=True)
+
+    claims = _get_data_json(request, 'claim', [request.session['resource_uri'], 'v2'])
+    cnt = claims.get('total', 0)
+    nav_info = [] if cnt == 0 else _extract_page_nav(request, claims)
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(claims, indent=3),
+                   "url_name": 'test_claim',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, claims),
+                   "response_type": "Bundle of Claim",
+                   "total_resource": claims.get('total', 0),
+                   "api_ver": "v2"})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_claimresponse(request):
+
+    if 'token' not in request.session:
+        return redirect('test_links', permanent=True)
+
+    claimresponses = _get_data_json(request, 'claimresponse', [request.session['resource_uri'], 'v2'])
+
+    cnt = claimresponses.get('total', 0)
+
+    nav_info = [] if cnt == 0 else _extract_page_nav(request, claimresponses)
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(claimresponses, indent=3),
+                   "url_name": 'test_claimresponse',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, claimresponses),
+                   "response_type": "Bundle of ClaimResponse",
+                   "total_resource": cnt,
+                   "api_ver": "v2"})
 
 
 @never_cache
