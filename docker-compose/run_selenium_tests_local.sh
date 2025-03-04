@@ -214,7 +214,7 @@ else
 fi
 
 # stop all before run selenium tests
-docker-compose -f docker-compose.selenium.yml down --remove-orphans
+docker compose -f docker-compose.selenium.yml down --remove-orphans
 
 export DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT}
 export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
@@ -227,14 +227,14 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
-docker-compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg
 echo_msg "Stopping containers..."
 echo_msg
 
-docker-compose -f docker-compose.selenium.yml stop
+docker compose -f docker-compose.selenium.yml stop
 
 #Remove certfiles from local directory
 echo_msg
