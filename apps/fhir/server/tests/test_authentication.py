@@ -176,7 +176,7 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.MALFORMED_KEY, self.NOT_FOUND_KEY)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
+            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected in Patient search:*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
@@ -189,7 +189,7 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.MALFORMED_KEY)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
+            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected in Patient search:*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,

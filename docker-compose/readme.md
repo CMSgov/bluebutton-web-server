@@ -35,7 +35,7 @@ This function accepts one argument which is your virtual MFA code, example:
 
 Once you have the AWS CLI setup and you are able to work with the CLI, you will be able to proceed with the following.
 
-To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
+To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker compose/certstore` location to support the connection to the BFD FHIR server.
 
 To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
 
@@ -48,10 +48,10 @@ To enable usage of the SLSx TEST environment locally, do the following or skip i
   bash
 
   # Then source the ENV vars via:
-  source docker-compose/source_env_secrets_from_aws.sh
+  source docker compose/source_env_secrets_from_aws.sh
   ```
 
-- NOTE: This will copy the cert files in to the docker-compose/certstore location.
+- NOTE: This will copy the cert files in to the docker compose/certstore location.
 
 To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose) or skip if not needing this.
 
@@ -60,36 +60,36 @@ To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis
   source ~/bin/source_aws.sh
   ```
 
-To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
+To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker compose/bluebutton_server_start.sh` web server startup script.
 
 To startup the Docker containerized BB2 server using slsx:
 
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 Or equivalently:
 
 ```
-docker-compose --profile web up -d
+docker compose --profile web up -d
 ```
 
 To startup the Docker containerized BB2 server using msls:
 
 ```
-docker-compose --profile web_msls up -d
+docker compose --profile web_msls up -d
 ```
 
 To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
 
 ```
-docker-compose down
+docker compose down
 ```
 
 To monitor BB2 server logging:
 
 ```
-docker-compose logs -f | grep web
+docker compose logs -f | grep web
 ```
 
 Press Ctrl C will stop monitor logging.
@@ -100,7 +100,7 @@ NOTE: This is often needed when switching betwen PR branches where migrations we
 WARNING: This cleans up all Docker related images! If this is an issue, you may want to individually remove (rmi) images.
 
 ```
-docker-compose down
+docker compose down
 docker images  # To see list of images on your system
 docker image ls | awk '{ print $3}' | grep -v "IMAGE" | xargs docker image rm -f
 docker volume rm $(docker volume ls -qf dangling=true)
@@ -138,7 +138,7 @@ SUPER_USER_EMAIL=bluebutton@example.com
 
 if chose not to do db image migrations automatically, follow below steps:
 
-set the flag to false before run docker-compose up:
+set the flag to false before run docker compose up:
 
 ```
 DB_MIGRATIONS=false
@@ -148,7 +148,7 @@ If you're working with a fresh db image
 the migrations have to be run.
 
 ```
-docker-compose exec web docker-compose/migrate.sh
+docker compose exec web docker compose/migrate.sh
 
 ```
 
@@ -156,7 +156,7 @@ If any permissions errors are thrown try the following command,
 then run the migrate script again:
 
 ```
-docker-compose exec web chmod +x docker-compose/migrate.sh
+docker compose exec web chmod +x docker compose/migrate.sh
 ```
 
 ## DB Migrations
@@ -255,7 +255,7 @@ under BB2 local repo base directory:
 To run the Django unit tests, run the following command:
 
 ```
-docker-compose exec web python runtests.py
+docker compose exec web python runtests.py
 ```
 
 You can run individual applications tests or tests with in a specific area as well.
@@ -263,21 +263,21 @@ You can run individual applications tests or tests with in a specific area as we
 The following are a few examples (drilling down to a single test):
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests
+docker compose exec web python runtests.py apps.dot_ext.tests
 ```
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates
+docker compose exec web python runtests.py apps.dot_ext.tests.test_templates
 ```
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
+docker compose exec web python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
 ```
 
 Multiple arguments can be provided too:
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
+docker compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
 ```
 
 # Work on Windows
@@ -350,16 +350,16 @@ Add below contents to `.vscode/launch.json`
     ]
 }
 ```
-Note: Above we are using port `6789` this is because `unittests` section in docker-compose.yaml runs server on 6789.
+Note: Above we are using port `6789` this is because `unittests` section in docker compose.yaml runs server on 6789.
 On mac in some cases this port is used by `elastic-a root service`, therefore this port cannot be used for debugging.
-For this update docker-compose.yaml `unittests` service to use new port. See exmaple below
+For this update docker compose.yaml `unittests` service to use new port. See exmaple below
 
 ```
  unittests:
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6889 --wait-for-client runtests.py
     env_file:
-      - docker-compose/unittests-env-vars.env
+      - docker compose/unittests-env-vars.env
     ports:
       - "6889:6889" # --------------- Update this port, should be same as port used in command above
     volumes:
@@ -373,11 +373,11 @@ Also, update launch.json to use this new port
 
 ## Remote debugging Blue Button unit tests
 
-Run the docker-compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
+Run the docker compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
 Attach to the unittests from an IDE (e.g. VSCode), then put break points in the test cases and debugging.
 
 ```
-docker-compose up -d unittests
+docker compose up -d unittests
 
 ```
 Now we can use Run and Debug in visual studio code and execute `Python Debugger: Remote Attach`
@@ -416,19 +416,19 @@ In order to debug single unit test (e.g test_app_form_template_with_default_init
 ```
 2. Build and run unittest
 ```
-$ docker-compose build unittests
-$ docker-compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py <relative-test-path>
+$ docker compose build unittests
+$ docker compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py <relative-test-path>
 
 e.g
-docker-compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py apps.dot_ext.tests.test_app_form_templates.AppFormTemplateTestCase.test_app_form_template_with_default_initvalues
+docker compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py apps.dot_ext.tests.test_app_form_templates.AppFormTemplateTestCase.test_app_form_template_with_default_initvalues
 ```
 3. Start Debugger in VSCode with name `Python Debugger: Remote Attach`
 
-**Note:** We just have to execute `docker-compose build unittests` once, also in order to re-run test execute test docker command again
+**Note:** We just have to execute `docker compose build unittests` once, also in order to re-run test execute test docker command again
 
 ## View Unit test logs
 ```
-docker-compose logs --tail 500 -f unittests
+docker compose logs --tail 500 -f unittests
 ```
 
 ## Test and Verify Using Sample Clients
@@ -478,28 +478,28 @@ The difference with these tests is the usage of the [LiveServerTestCase](https:/
 
 Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for Github PR checks. This instruction provides a few ways to test these out locally and to test using the same Docker container image as CBC.
 
-The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local.sh` script that performs pre-setup and sources environment variables from AWS needed to utilize a live BFD back end system.
+The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker compose/run_integration_tests_local.sh` script that performs pre-setup and sources environment variables from AWS needed to utilize a live BFD back end system.
 
-There are ways to test locally using the `docker-compose/run_integration_tests_local.sh` script:
+There are ways to test locally using the `docker compose/run_integration_tests_local.sh` script:
 
 To get usage help use the following command:
 
 ```
-docker-compose/run_integration_tests_local.sh
+docker compose/run_integration_tests_local.sh
 ```
 
-1. Using the docker-compose local development setup and containers. This is the quickest!
+1. Using the docker compose local development setup and containers. This is the quickest!
 
    The currently checked out (or working branch) will be used.
 
    ```
-   docker-compose/run_integration_tests_local.sh dc
+   docker compose/run_integration_tests_local.sh dc
    ```
 
    To debug integration tests:
 
    ```
-   docker-compose/run_integration_tests_local.sh dc-debug
+   docker compose/run_integration_tests_local.sh dc-debug
    ```
 
 2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
@@ -507,26 +507,26 @@ docker-compose/run_integration_tests_local.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker-compose/run_integration_tests_local.sh cbc
+   docker compose/run_integration_tests_local.sh cbc
    ```
 
-3. Using the docker-compose local development setup and containers with local bfd as backend.
+3. Using the docker compose local development setup and containers with local bfd as backend.
 
    The currently checked out (or working branch) will be used.
 
    ```
-   docker-compose/run_integration_tests_local.sh local
+   docker compose/run_integration_tests_local.sh local
    ```
 
    To debug integration tests:
 
    ```
-   docker-compose/run_integration_tests_local.sh local-debug
+   docker compose/run_integration_tests_local.sh local-debug
    ```
 
 NOTES:
 
-- The settings variables in the `docker-compose/run_integration_tests_local.sh cbc` may need to be updated to match your local development platform.
+- The settings variables in the `docker compose/run_integration_tests_local.sh cbc` may need to be updated to match your local development platform.
 - For the CBC related setup see these files for more details:
   - `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job.
   - `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification. These settings will also need to be updated when there are CBC image naming changes.
@@ -541,23 +541,23 @@ You can run selenium tests against a local bb2 server by following below steps:
    use MSLSX (default)
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh
+   ./docker compose/run_selenium_tests_local.sh
    ```
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh mslsx
+   ./docker compose/run_selenium_tests_local.sh mslsx
    ```
 
    use SLSX
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh slsx
+   ./docker compose/run_selenium_tests_local.sh slsx
    ```
 
    Use the following for running user account management and application management type tests:
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh account
+   ./docker compose/run_selenium_tests_local.sh account
    ```
 
 ## Running Selenium tests on remote BB2 server (SBX, TEST, PROD)
@@ -566,13 +566,13 @@ You can run selenium tests against a remote bb2 server by following below steps:
 
 From the base directory of the local repo run:
 ```
-./docker-compose/run_selenium_tests_remote.sh -p [SBX | TEST]
+./docker compose/run_selenium_tests_remote.sh -p [SBX | TEST]
 ```
 or
 ```
-./docker-compose/run_selenium_tests_remote.sh PROD
+./docker compose/run_selenium_tests_remote.sh PROD
 ```
 The argument can be the remote ENV's name, it can also be the URL alternatively:
 ```
-./docker-compose/run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/
+./docker compose/run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/
 ```
