@@ -42,7 +42,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # authorize as a bene
         "schema": LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA,
-        "path": "/v1/o/authorize/",
+        "path_regex": "/v[12]/o/authorize/.+/"
     },
     {
         "schema": LOG_MIDDLEWARE_MEDICARE_LOGIN_EVENT_SCHEMA,
@@ -54,11 +54,11 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA,
-        "path_regex": "/v1/o/authorize/.+/"
+        "path_regex": "/v[12]/o/authorize/.+/"
     },
     {
         "schema": LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA,
-        "path_regex": "/v1/o/authorize/.+/"
+        "path_regex": "/v[12]/o/authorize/.+/"
     },
     {
         "schema": LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA,

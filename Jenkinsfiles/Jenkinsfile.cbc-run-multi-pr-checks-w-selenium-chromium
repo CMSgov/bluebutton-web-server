@@ -143,7 +143,7 @@ pipeline {
        steps{
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
-          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_tests.py
+          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
         """
        }
     }
