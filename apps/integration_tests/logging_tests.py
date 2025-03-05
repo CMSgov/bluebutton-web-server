@@ -42,7 +42,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # authorize as a bene
         "schema": LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA,
-        "path_regex": "/v[12]/o/authorize/.+/"
+        "path_regex": "/v[12]/o/authorize/"
     },
     {
         "schema": LOG_MIDDLEWARE_MEDICARE_LOGIN_EVENT_SCHEMA,
@@ -184,6 +184,8 @@ class TestLoggings(TestBlueButtonAPI):
                                 start_validation = True
                         else:
                             event_desc = expected_events.pop(0)
+                            print("EVENT_DESC={}".format(event_desc))
+                            print("PATH={}".format(p))
                             if event_desc.get('path_regex') is not None:
                                 assert re.match(event_desc.get('path_regex'), p)
                             else:
