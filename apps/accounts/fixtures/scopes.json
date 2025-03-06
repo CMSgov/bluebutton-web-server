@@ -80,5 +80,17 @@
             "protected_resources": "[[\"POST\", \"/v[12]/o/introspect\"]]",
             "default": "False"
         }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 7,
+        "fields": {
+            "title": "openid",
+            "slug": "openid",
+            "group": 5,
+            "description": "Enables user authentication and provides a unique identifier with basic profile info.",
+            "protected_resources": "[]",
+            "default": "True"
+        }
     }
 ]
