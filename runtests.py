@@ -20,19 +20,19 @@ from django.test.utils import get_runner
 
     For example:
 
-        $ docker-compose exec web python runtests.py apps.dot_ext.tests
+        $ docker compose exec web python runtests.py apps.dot_ext.tests
 
         For more specific use:
 
-        $ docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates
+        $ docker compose exec web python runtests.py apps.dot_ext.tests.test_templates
 
         For a single test:
-        $ docker-compose exec web python runtests.py apps.dot_ext.tests.\
+        $ docker compose exec web python runtests.py apps.dot_ext.tests.\
           test_templates.TestDOTTemplates.test_application_list_template_override
 
         For multiple arguments:
 
-        $ docker-compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
+        $ docker compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
 '''
 
 # Parse command line arguments

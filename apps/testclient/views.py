@@ -1,6 +1,5 @@
 import json
 import logging
-import math
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -10,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from requests_oauthlib import OAuth2Session
 from rest_framework import status
+from urllib.parse import parse_qs, urlparse
 from waffle.decorators import waffle_switch
 
 from .utils import test_setup, get_client_secret
@@ -35,24 +35,20 @@ ENDPOINT_URL_FMT = {
 NAV_URI_FMT = "{}&_count={}&startIndex={}&{}={}"
 
 
-def _get_page_loc(request, fhir_json):
-    total = fhir_json.get('total', 0)
-    index = int(request.GET.get('startIndex', 0))
-    count = int(request.GET.get('_count', 10))
-    return "{}/{}".format(index // count + 1, math.ceil(total / count))
-
-
 def _extract_page_nav(request, fhir_json):
     link = fhir_json.get('link', None)
     nav_list = []
+    last_link = None
     if link is not None:
         for lnk in link:
             if lnk.get('url', None) is not None and lnk.get('relation', None) is not None:
+                if lnk.get('relation') == 'last':
+                    last_link = lnk['url']
                 nav_list.append({'relation': lnk['relation'], 'nav_link': lnk['url']})
             else:
                 nav_list = []
                 break
-    return nav_list
+    return nav_list, last_link
 
 
 def _get_data_json(request, name, params):
@@ -83,7 +79,8 @@ def _get_data_json(request, name, params):
 
         uri = NAV_URI_FMT.format(*q_params)
 
-    return oas.get(uri).json()
+    r = oas.get(uri)
+    return r.json()
 
 
 def _convert_to_json(json_response):
@@ -254,18 +251,15 @@ def test_coverage(request, version=1):
 
     coverage = _get_data_json(request, 'coverage', [request.session['resource_uri'], 'v1' if version == 1 else 'v2'])
 
-    nav_info = _extract_page_nav(request, coverage)
+    nav_info, last_link = _extract_page_nav(request, coverage)
 
-    if coverage.get('total', 0) == 0:
-        # defensive
-        nav_info = []
+    pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
 
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(coverage, indent=3),
                    "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
-                   "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
+                   "nav_list": nav_info, "page_loc": pg_info,
                    "response_type": "Bundle of Coverage",
-                   "total_resource": coverage.get('total', 0),
                    "api_ver": "v2" if version == 2 else "v1"})
 
 
@@ -308,18 +302,15 @@ def test_eob(request, version=1):
 
     eob = _get_data_json(request, 'eob', params)
 
-    nav_info = _extract_page_nav(request, eob)
+    nav_info, last_link = _extract_page_nav(request, eob)
 
-    if eob.get('total', 0) == 0:
-        # defensive
-        nav_info = []
+    pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
 
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(eob, indent=3),
                    "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
-                   "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
+                   "nav_list": nav_info, "page_loc": pg_info,
                    "response_type": "Bundle of ExplanationOfBenefit",
-                   "total_resource": eob.get('total', 0),
                    "api_ver": "v2" if version == 2 else "v1"})
 
 
@@ -348,3 +339,20 @@ def authorize_link(request, v2=False):
 
     return render(request, 'authorize.html',
                   {"authorization_url": authorization_url, "api_ver": "v2" if v2 else "v1"})
+
+
+def _pagination_info(request, last_url):
+    # with no total resource count of a bundle, use
+    # backend pagination links for total page vs current page
+    cur_start_index = int(request.GET.get('startIndex', 0))
+    pg_count = int(request.GET.get('_count', 10))
+    qparams = parse_qs(urlparse(last_url).query)
+    last_pg_index = qparams.get('startIndex', 0)
+
+    pg_info = "No pagination info from backend"
+
+    if last_pg_index:
+        last_pg_index = int(last_pg_index[0])
+        pg_info = "{}/{}".format(cur_start_index // pg_count + 1, last_pg_index // pg_count + 1)
+
+    return pg_info
