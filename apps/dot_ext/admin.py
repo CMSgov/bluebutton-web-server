@@ -91,10 +91,6 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
 class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     form = CustomAdminApplicationForm
 
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        return fieldsets
-
     def get_list_display(self, request):
         return (
             "name",
@@ -115,6 +111,7 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
         "require_demographic_scopes",
         "active",
         "skip_authorization",
+        "internal_application_labels",
     )
 
     radio_fields = {
@@ -131,6 +128,29 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
             "=client_id",
             "=require_demographic_scopes",
             "=authorization_grant_type",
+        )
+
+    def get_export_fields(self, request):
+        return (
+            "id",
+            "user",
+            "name",
+            "created",
+            "website_uri",
+            "redirect_uris",
+            "logo_uri",
+            "tos_uri",
+            "policy_uri",
+            "contacts",
+            "support_email",
+            "support_phone_number",
+            "description",
+            "active",
+            "first_active",
+            "last_active",
+            "require_demographic_scopes",
+            "data_access_type",
+            "internal_application_labels",
         )
 
     raw_id_fields = ("user",)
