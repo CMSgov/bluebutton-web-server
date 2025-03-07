@@ -9,7 +9,7 @@ from django.urls import reverse
 import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-SCOPES_SUPPORTED = ["profile", "patient/Patient.read", "patient/ExplanationOfBenefit.read", "patient/Coverage.read"]
+SCOPES_SUPPORTED = ["openid", "profile", "patient/Patient.read", "patient/ExplanationOfBenefit.read", "patient/Coverage.read"]
 CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
 CAPABILITIES = [
     "client-confidential-symmetric",

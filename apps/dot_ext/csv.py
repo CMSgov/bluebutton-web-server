@@ -11,16 +11,20 @@ class ExportCsvMixin:
     """
     def export_as_csv(self, request, queryset):
 
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields]
+        def get_value(obj, key):
+            if key == "internal_application_labels":
+                return getattr(obj, key).all()
+            return getattr(obj, key)
+
+        export_fields = self.get_export_fields(None)
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+        response['Content-Disposition'] = 'attachment; filename={}.csv'.format(self.model._meta)
         writer = csv.writer(response)
 
-        writer.writerow(field_names)
+        writer.writerow(export_fields)
         for obj in queryset:
-            writer.writerow([getattr(obj, field) for field in field_names])
+            writer.writerow([get_value(obj, field) for field in export_fields])
 
         return response
 

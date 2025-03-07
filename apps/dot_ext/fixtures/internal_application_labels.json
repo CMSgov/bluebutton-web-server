@@ -48,8 +48,8 @@
         "model": "dot_ext.internalapplicationlabels",
         "pk": 7,
         "fields": {
-            "label": "Medication managementz",
-            "slug": "medication-managementz",
+            "label": "Medication management",
+            "slug": "medication-management",
             "description": "Desc: place holder"
         }
     },
