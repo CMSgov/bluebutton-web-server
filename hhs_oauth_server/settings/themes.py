@@ -1,5 +1,7 @@
-from getenv import env
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 """ theme selection """
 
 DEFAULT_THEME = 0
@@ -91,7 +93,7 @@ THEMES = {
         'PATH': 'theme/yeti/',
         'INFO': 'Yeti bootswatch theme',
     },
-    'SELECTED': env('DJANGO_SELECTED_THEME', DEFAULT_THEME),
+    'SELECTED': os.getenv('DJANGO_SELECTED_THEME', DEFAULT_THEME),
     # 'SELECTED': os.environ.get('DJANGO_SELECTED_THEME', DEFAULT_THEME),
 }
 

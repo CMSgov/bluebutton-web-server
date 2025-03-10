@@ -1,11 +1,14 @@
 import os
 from .base import *
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # removing security enforcement in development mode
 DEBUG = True
-SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', '1234567890')
 
-HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
+HOSTNAME_URL = os.getenv('HOSTNAME_URL', 'http://localhost:8000')
 
 TEMPLATES = [
     {
