@@ -52,7 +52,6 @@ class RequestResponseLog(object):
         - fhir_id = Bene patient id.
         - fhir_resource_id = FHIR payload 'id'.
         - fhir_resource_type = FHIR payload 'resourceType'.
-        - fhir_total = FHIR payload entry count 'total'.
         - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
         - location = Location (redirect) for 300,301,302,307 response codes.
         - path = The request.path.
@@ -447,7 +446,6 @@ class RequestResponseLog(object):
                 self.log_msg["fhir_entry_count"] = len(self.response.data.get("entry"))
             else:
                 self.log_msg["fhir_entry_count"] = None
-            self.log_msg["fhir_total"] = self.response.data.get("total", None)
 
         """
         --- Logging items from response content (refresh_token)

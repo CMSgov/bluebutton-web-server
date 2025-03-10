@@ -22,7 +22,6 @@ mock_fhir_responses = {
               "lastUpdated": "2020-07-07T20:40:21.347+00:00"
             },
             "type": "searchset",
-            "total": 1,
             "link": [
               {
                 "relation": "first",
@@ -137,7 +136,6 @@ mock_fhir_responses = {
               "lastUpdated": "2020-07-07T20:40:21.347+00:00"
             },
             "type": "searchset",
-            "total": 0,
             "link": [
               {
                 "relation": "first",
@@ -178,7 +176,6 @@ mock_fhir_responses = {
               "lastUpdated": "2020-07-07T20:40:21.347+00:00"
             },
             "type": "searchset",
-            "total": 0,
             "link": [
               {
                 "relation": "first",

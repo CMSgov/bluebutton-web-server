@@ -358,7 +358,6 @@ class BackendConnectionTest(BaseApiTest):
                         "lastUpdated": "2018-05-15T14:01:58.603+00:00"
                     },
                     "type": "searchset",
-                    "total": 0,
                     "link": [
                         {
                             "relation": "self",
@@ -440,7 +439,6 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
-                    'total': 1,
                     'entry': [{
                         'resource': {
                             'id': -20140000008325,
@@ -574,7 +572,6 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
-                    'total': 1,
                     'entry': [{
                         'resource': {
                             'id': 20140000008324,

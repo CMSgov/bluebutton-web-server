@@ -1926,7 +1926,6 @@ components:
         meta:
           lastUpdated: '2024-07-24T08:08:33.779-04:00'
         type: searchset
-        total: 1
         link:
           - relation: first
             url: >-
@@ -1990,7 +1989,6 @@ components:
         meta:
           lastUpdated: '2024-07-24T08:08:33.779-04:00'
         type: searchset
-        total: 1
         link:
           - relation: first
             url: >-
@@ -2084,7 +2082,6 @@ components:
         meta:
           lastUpdated: '2024-07-24T08:08:33.779-04:00'
         type: searchset
-        total: 4
         link:
           - relation: first
             url: >-
@@ -2898,7 +2895,6 @@ components:
         meta:
           lastUpdated: '2024-07-24T08:08:33.779-04:00'
         type: searchset
-        total: 4
         link:
           - relation: first
             url: >-
@@ -3974,7 +3970,6 @@ components:
         meta:
           lastUpdated: '2024-07-24T08:08:33.779-04:00'
         type: searchset
-        total: 51
         link:
           - relation: first
             url: >-
@@ -18139,7 +18134,6 @@ components:
         meta:
           lastUpdated: '2024-07-24T08:08:33.779-04:00'
         type: searchset
-        total: 51
         link:
           - relation: first
             url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647

@@ -12,7 +12,7 @@ from rest_framework import status
 from urllib.parse import parse_qs, urlparse
 from waffle.decorators import waffle_switch
 
-from .utils import test_setup, get_client_secret
+from .utils import test_setup, get_client_secret, extract_page_nav
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
 from apps.wellknown.views.openid import openid_configuration
@@ -33,22 +33,6 @@ ENDPOINT_URL_FMT = {
 
 
 NAV_URI_FMT = "{}&_count={}&startIndex={}&{}={}"
-
-
-def _extract_page_nav(request, fhir_json):
-    link = fhir_json.get('link', None)
-    nav_list = []
-    last_link = None
-    if link is not None:
-        for lnk in link:
-            if lnk.get('url', None) is not None and lnk.get('relation', None) is not None:
-                if lnk.get('relation') == 'last':
-                    last_link = lnk['url']
-                nav_list.append({'relation': lnk['relation'], 'nav_link': lnk['url']})
-            else:
-                nav_list = []
-                break
-    return nav_list, last_link
 
 
 def _get_data_json(request, name, params):
@@ -251,7 +235,7 @@ def test_coverage(request, version=1):
 
     coverage = _get_data_json(request, 'coverage', [request.session['resource_uri'], 'v1' if version == 1 else 'v2'])
 
-    nav_info, last_link = _extract_page_nav(request, coverage)
+    nav_info, last_link = extract_page_nav(coverage)
 
     pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
 
@@ -302,7 +286,7 @@ def test_eob(request, version=1):
 
     eob = _get_data_json(request, 'eob', params)
 
-    nav_info, last_link = _extract_page_nav(request, eob)
+    nav_info, last_link = extract_page_nav(eob)
 
     pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
 
