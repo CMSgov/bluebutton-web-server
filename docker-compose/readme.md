@@ -156,7 +156,7 @@ If any permissions errors are thrown try the following command,
 then run the migrate script again:
 
 ```
-docker compose exec web chmod +x docker compose/migrate.sh
+docker compose exec web chmod +x docker-compose/migrate.sh
 ```
 
 ## DB Migrations
