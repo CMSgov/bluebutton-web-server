@@ -350,7 +350,7 @@ Add below contents to `.vscode/launch.json`
     ]
 }
 ```
-Note: Above we are using port `6789` this is because `unittests` section in docker compose.yaml runs server on 6789.
+Note: Above we are using port `6789` this is because `unittests` section in docker-compose.yaml runs server on 6789.
 On mac in some cases this port is used by `elastic-a root service`, therefore this port cannot be used for debugging.
 For this update docker-compose.yaml `unittests` service to use new port. See exmaple below
 
