@@ -148,7 +148,7 @@ If you're working with a fresh db image
 the migrations have to be run.
 
 ```
-docker compose exec web docker compose/migrate.sh
+docker compose exec web docker-compose/migrate.sh
 
 ```
 
