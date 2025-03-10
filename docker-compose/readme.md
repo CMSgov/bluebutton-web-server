@@ -478,7 +478,7 @@ The difference with these tests is the usage of the [LiveServerTestCase](https:/
 
 Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for Github PR checks. This instruction provides a few ways to test these out locally and to test using the same Docker container image as CBC.
 
-The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker compose/run_integration_tests_local.sh` script that performs pre-setup and sources environment variables from AWS needed to utilize a live BFD back end system.
+The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local.sh` script that performs pre-setup and sources environment variables from AWS needed to utilize a live BFD back end system.
 
 There are ways to test locally using the `docker compose/run_integration_tests_local.sh` script:
 
