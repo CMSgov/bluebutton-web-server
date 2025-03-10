@@ -90,39 +90,12 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     response.raise_for_status()
     backend_data = response.json()
 
-    # Parse and validate backend_data response.
-    if (
-        'total' in backend_data
-            and backend_data.get('total', 0) == 1
-            and 'entry' in backend_data
-            and isinstance(backend_data.get('entry', False), list)
-            and len(backend_data.get('entry', '')) == 1
-            and isinstance(backend_data['entry'][0].get('resource', False), dict)
-            and isinstance(backend_data['entry'][0]['resource'].get('resourceType', False), str)
-            and backend_data['entry'][0]['resource']['resourceType'] == "Patient"
-            and isinstance(backend_data['entry'][0]['resource'].get('id', False), str)
-            and len(backend_data['entry'][0]['resource']['id']) > 0
-    ):
-        # Found a single matching ID.
-        fhir_id = backend_data['entry'][0]['resource']['id']
-        return fhir_id
-    elif (
-        'total' in backend_data
-            and 'entry' in backend_data
-            and (backend_data.get('total', 0) > 1 or len(backend_data.get('entry', '')) > 1)
-    ):
-        # Has duplicate beneficiary IDs.
-        raise UpstreamServerException("Duplicate beneficiaries found in Patient resource bundle")
-    elif (
-        'total' in backend_data
-            and 'entry' not in backend_data
-            and backend_data.get('total', -1) == 0
-    ):
-        # Not found.
-        return None
-    else:
-        # Unexpected result! Something weird is happening?
-        raise UpstreamServerException("Unexpected result found in the Patient resource bundle")
+    # Parse and validate backend_data (bundle of patients) response.
+    fhir_id, err_detail = _validate_patient_search_result(backend_data)
+
+    if err_detail:
+        raise UpstreamServerException(err_detail)
+    return fhir_id
 
 
 def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
@@ -175,3 +148,63 @@ def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
         log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, False, None,
                           "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
         raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
+
+
+def _validate_patient_search_result(bundle_of_patients):
+    '''
+    helper to check the bundle of patient(s), expecting one and only one patient
+    input: patient search result - bundle of patients
+    return: fhir_id, err_detail
+    '''
+    fhir_id = None
+    err_detail = None
+    if bundle_of_patients:
+        if bundle_of_patients.get('resourceType') == "Bundle":
+            entries = bundle_of_patients.get('entry')
+            if entries:
+                if len(entries) > 1:
+                    err_detail = "Duplicate beneficiaries found in Patient resource bundle."
+                else:
+                    # further validate the only entry is Patient and its id is there,
+                    # see Patient resource excerpt below for reference:
+                    # {
+                    #     "resourceType": "Patient",
+                    #     "id": "-10000010254618",
+                    #     "meta": {
+                    #         "lastUpdated": "2023-06-14T18:17:07.293+00:00",
+                    #         "profile": [
+                    #             "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient"
+                    #         ]
+                    #     },
+                    #     "extension": [
+                    #         {
+                    #            ...............
+                    #
+                    pt = entries[0].get("resource")
+                    if pt:
+                        rs_type = pt.get('resourceType', "")
+                        fhir_id = pt.get('id')
+                        if rs_type == "Patient":
+                            if fhir_id:
+                                # Found a single matching ID (fhir_id).
+                                pass
+                            else:
+                                err_detail = ("Unexpected in Patient search: malformed Patient resource"
+                                              "- missing id attribute or id value empty.")
+                        else:
+                            err_detail = ("Unexpected in Patient search: expect Patient resource,"
+                                          " got 'resourceType': {}.").format(rs_type)
+                    else:
+                        err_detail = "Unexpected in Patient search: expect a resource, got None."
+            else:
+                # No patient match, not found - this leads to fhir_id = None and err_detail = None return to caller
+                # this else branch can be removed but keep it explicit for readability
+                pass
+        else:
+            err_detail = ("Unexpected in Patient search:"
+                          " expected result of 'resourceType': Bundle, got {}").format(bundle_of_patients.get('resourceType'))
+    else:
+        # Unexpected result, response json from back end is None
+        err_detail = "Unexpected in Patient search: response json is None."
+
+    return fhir_id, err_detail
