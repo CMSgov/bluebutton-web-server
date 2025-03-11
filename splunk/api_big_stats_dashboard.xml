@@ -302,7 +302,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -577,7 +577,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -598,7 +598,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/connect/userinfo end point. Including those blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -630,7 +630,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -651,7 +651,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Patient/ end point. Including those blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -684,7 +684,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -705,7 +705,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -739,7 +739,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -760,7 +760,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
