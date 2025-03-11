@@ -541,23 +541,23 @@ You can run selenium tests against a local bb2 server by following below steps:
    use MSLSX (default)
 
    ```
-   ./docker compose/run_selenium_tests_local.sh
+   ./docker-compose/run_selenium_tests_local.sh
    ```
 
    ```
-   ./docker compose/run_selenium_tests_local.sh mslsx
+   ./docker-compose/run_selenium_tests_local.sh mslsx
    ```
 
    use SLSX
 
    ```
-   ./docker compose/run_selenium_tests_local.sh slsx
+   ./docker-compose/run_selenium_tests_local.sh slsx
    ```
 
    Use the following for running user account management and application management type tests:
 
    ```
-   ./docker compose/run_selenium_tests_local.sh account
+   ./docker-compose/run_selenium_tests_local.sh account
    ```
 
 ## Running Selenium tests on remote BB2 server (SBX, TEST, PROD)
@@ -566,13 +566,13 @@ You can run selenium tests against a remote bb2 server by following below steps:
 
 From the base directory of the local repo run:
 ```
-./docker compose/run_selenium_tests_remote.sh -p [SBX | TEST]
+./docker-compose/run_selenium_tests_remote.sh -p [SBX | TEST]
 ```
 or
 ```
-./docker compose/run_selenium_tests_remote.sh PROD
+./docker-compose/run_selenium_tests_remote.sh PROD
 ```
 The argument can be the remote ENV's name, it can also be the URL alternatively:
 ```
-./docker compose/run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/
+./docker-compose/run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/
 ```

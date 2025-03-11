@@ -448,8 +448,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         total_page = self._get_total_page(content)
         assert total_page >= 0
-        # count = 10
-        # page_total = (total + count) // count
 
         expected_resource_stats = {'part-a': 1, 'part-b': 1, 'part-c': 1, 'part-d': 1}
         resource_stats = {'part-a': 0, 'part-b': 0, 'part-c': 0, 'part-d': 0}
@@ -519,9 +517,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
 
         total_page = self._get_total_page(content)
-        # total = content['total']
-        # count = 10
-        # page_total = (total + count) // count
         assert total_page >= 0
 
         expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
@@ -572,9 +567,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
 
         total_page = self._get_total_page(content)
-        # total = content['total']
-        # count = 10
-        # page_total = (total + count) // count
         assert total_page >= 0
 
         expected_resource_stats = {
