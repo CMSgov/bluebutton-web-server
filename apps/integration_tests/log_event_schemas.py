@@ -101,7 +101,7 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
         "req_qparam_response_type": {"pattern": "code"},
         "req_app_name": {"pattern": "TestApp"},
         "req_app_id": {"type": "number"},
-        "path": {"pattern": "/v1/o/authorize/"},
+        "path": {"pattern": "/v[12]/o/authorize/"},
         "request_method": {"pattern": "GET"},
         "request_scheme": {"pattern": "http"},
         "response_code": {"type": "integer", "enum": [http.client.FOUND]},
@@ -203,7 +203,7 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
         "req_qparam_response_type": {"pattern": "code"},
         "req_app_name": {"pattern": "TestApp"},
         "req_app_id": {"type": "number"},
-        "path": {"pattern": "/v1/o/authorize/.+"},
+        "path": {"pattern": "/v[12]/o/authorize/.+"},
         "user": {"type": "string"},
         "fhir_id": {"type": "string"},
         "request_method": {"pattern": "GET"},
@@ -250,7 +250,7 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
         "req_qparam_response_type": {"pattern": "code"},
         "req_app_name": {"pattern": "TestApp"},
         "req_app_id": {"type": "number"},
-        "path": {"pattern": "/v1/o/authorize/.+"},
+        "path": {"pattern": "/v[12]/o/authorize/.+"},
         "user": {"type": "string"},
         "fhir_id": {"type": "string"},
         "request_method": {"pattern": "POST"},
@@ -360,14 +360,13 @@ LOG_MIDDLEWARE_FHIR_SEARCH_EVENT_SCHEMA = {
         "fhir_resource_type": {"pattern": "Bundle|Patient|Coverage|ExplanationOfBenefit"},
         "fhir_attribute_count": {"type": "number"},
         "fhir_entry_count": {"type": ["number", "null"]},
-        "fhir_total": {"type": ["number", "null"]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "request_method", "request_scheme", "response_code",
                  "req_user_id", "req_user_username", "req_fhir_id", "req_qparam_format",
                  "path", "user", "fhir_id", "access_token_scopes", "access_token_id", "app_require_demographic_scopes",
                  "user_id", "user_username", "fhir_bundle_type", "fhir_resource_id", "fhir_resource_type",
-                 "fhir_attribute_count", "fhir_entry_count", "fhir_total"]
+                 "fhir_attribute_count", "fhir_entry_count"]
 }
 
 LOG_MIDDLEWARE_FHIR_NAVIGATION_EVENT_SCHEMA = {
@@ -404,7 +403,6 @@ LOG_MIDDLEWARE_FHIR_NAVIGATION_EVENT_SCHEMA = {
         "fhir_resource_type": {"pattern": "Bundle|Patient|Coverage|ExplanationOfBenefit"},
         "fhir_attribute_count": {"type": "number"},
         "fhir_entry_count": {"type": ["number", "null"]},
-        "fhir_total": {"type": ["number", "null"]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr",
                  "request_uuid", "request_method", "request_scheme", "response_code",
@@ -412,7 +410,7 @@ LOG_MIDDLEWARE_FHIR_NAVIGATION_EVENT_SCHEMA = {
                  "req_qparam__count", "req_qparam_format", "req_qparam_startindex",
                  "path", "user", "fhir_id", "access_token_scopes", "access_token_id", "app_require_demographic_scopes",
                  "user_id", "user_username", "fhir_bundle_type", "fhir_resource_id", "fhir_resource_type",
-                 "fhir_attribute_count", "fhir_entry_count", "fhir_total"]
+                 "fhir_attribute_count", "fhir_entry_count"]
 }
 
 LOG_MIDDLEWARE_FHIR_READ_EVENT_SCHEMA = {
@@ -444,14 +442,13 @@ LOG_MIDDLEWARE_FHIR_READ_EVENT_SCHEMA = {
         "fhir_resource_type": {"pattern": "Bundle|Patient|Coverage|ExplanationOfBenefit"},
         "fhir_attribute_count": {"type": "number"},
         "fhir_entry_count": {"type": ["number", "null"]},
-        "fhir_total": {"type": ["number", "null"]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr",
                  "request_uuid", "request_method", "request_scheme", "response_code",
                  "req_user_id", "req_user_username", "req_fhir_id",
                  "path", "user", "fhir_id", "access_token_scopes", "access_token_id", "app_require_demographic_scopes",
                  "user_id", "user_username", "fhir_bundle_type", "fhir_resource_id", "fhir_resource_type",
-                 "fhir_attribute_count", "fhir_entry_count", "fhir_total"]
+                 "fhir_attribute_count", "fhir_entry_count"]
 }
 
 LOG_MIDDLEWARE_FHIR_USERINFO_EVENT_SCHEMA = {

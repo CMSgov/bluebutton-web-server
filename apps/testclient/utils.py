@@ -5,6 +5,7 @@ import string
 
 from collections import OrderedDict
 from django.conf import settings
+from urllib.parse import parse_qs, urlparse
 
 from ..dot_ext.models import Application
 
@@ -47,6 +48,31 @@ def test_setup(include_client_secret=True, v2=False, pkce=False):
 def get_client_secret():
     oa2client = Application.objects.get(name="TestApp")
     return oa2client.client_secret_plain
+
+
+def extract_page_nav(fhir_json):
+    link = fhir_json.get('link', None)
+    nav_list = []
+    last_link = None
+    if link is not None:
+        for lnk in link:
+            if lnk.get('url', None) is not None and lnk.get('relation', None) is not None:
+                if lnk.get('relation') == 'last':
+                    last_link = lnk['url']
+                nav_list.append({'relation': lnk['relation'], 'nav_link': lnk['url']})
+            else:
+                nav_list = []
+                break
+    return nav_list, last_link
+
+
+def extract_last_page_index(last_url):
+    last_pg_ndx = -1
+    qparams = parse_qs(urlparse(last_url).query)
+    ndx = qparams.get('startIndex', None)
+    if ndx and len(ndx) > 0:
+        last_pg_ndx = int(ndx[0])
+    return last_pg_ndx
 
 
 def __base64_url_encode(buffer):

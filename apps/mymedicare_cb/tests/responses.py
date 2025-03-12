@@ -1,5 +1,4 @@
 patient_response = {
-    "total": 1,
     "resourceType": "Bundle",
     "type": "searchset",
     "link": [

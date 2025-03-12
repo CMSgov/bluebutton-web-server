@@ -95,10 +95,9 @@ COVERAGE_SEARCH_SCHEMA = {
     "properties": {
         "resourceType": {"type": "string"},
         "id": {"type": "string"},
-        "total": {"type": "number"},
         "entry": {"type": "array"}
     },
-    "required": ["id", "resourceType", "total", "entry"]
+    "required": ["id", "resourceType", "entry"]
 }
 
 
@@ -130,8 +129,7 @@ EOB_SEARCH_SCHEMA = {
     "properties": {
         "resourceType": {"type": "string"},
         "id": {"type": "string"},
-        "total": {"type": "number"},
         "entry": {"type": "array"},
     },
-    "required": ["id", "resourceType", "total", "entry"]
+    "required": ["id", "resourceType", "entry"]
 }

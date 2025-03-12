@@ -1,5 +1,4 @@
 import json
-# import os
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -8,7 +7,7 @@ from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
-
+from apps.testclient.utils import extract_last_page_index
 from .common_utils import validate_json_schema
 from .endpoint_schemas import (COVERAGE_READ_SCHEMA_V2,
                                EOB_READ_INPT_SCHEMA,
@@ -159,7 +158,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             for t in cur_stats_dict:
                 if rs_id.startswith(t):
                     is_matched = True
-                    cur_stats_dict[t] = int(cur_stats_dict[t]) - 1
+                    cur_stats_dict[t] = int(cur_stats_dict[t]) + 1
                     break
 
             self.assertTrue(is_matched, 'Unexpected resource id prefix encountered, id={}'.format(rs_id))
@@ -447,14 +446,14 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
         self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
 
-        total = content['total']
-        count = 10
-        page_total = (total + count) // count
+        total_page = self._get_total_page(content)
+        assert total_page >= 0
 
-        resource_stats = {'part-a': 1, 'part-b': 1, 'part-c': 1, 'part-d': 1}
+        expected_resource_stats = {'part-a': 1, 'part-b': 1, 'part-c': 1, 'part-d': 1}
+        resource_stats = {'part-a': 0, 'part-b': 0, 'part-c': 0, 'part-d': 0}
         self._stats_resource_by_type(content, resource_stats)
 
-        for i in range(page_total):
+        for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(lnk,
                                  ("Field 'link' expected, "
@@ -471,10 +470,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                 break
 
         # assert resource stats of sample A:
-        self.assertEqual(resource_stats['part-a'], 0)
-        self.assertEqual(resource_stats['part-b'], 0)
-        self.assertEqual(resource_stats['part-c'], 0)
-        self.assertEqual(resource_stats['part-d'], 0)
+        self.assertEqual(resource_stats['part-a'], expected_resource_stats['part-a'])
+        self.assertEqual(resource_stats['part-b'], expected_resource_stats['part-b'])
+        self.assertEqual(resource_stats['part-c'], expected_resource_stats['part-c'])
+        self.assertEqual(resource_stats['part-d'], expected_resource_stats['part-d'])
 
     @override_switch('require-scopes', active=True)
     def test_eob_search_endpoint(self):
@@ -517,14 +516,14 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
 
-        total = content['total']
-        count = 10
-        page_total = (total + count) // count
+        total_page = self._get_total_page(content)
+        assert total_page >= 0
 
-        resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
+        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
+        resource_stats = {'pde': 0, 'carrier': 0, 'inpatient': 0, 'outpatient': 0}
         self._stats_resource_by_type(content, resource_stats)
 
-        for i in range(page_total):
+        for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(lnk, ("Field 'link' expected, "
                                  "containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "))
@@ -540,10 +539,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                 break
 
         # assert eob claims resource stats of sample A:
-        self.assertEqual(resource_stats['pde'], 0)
-        self.assertEqual(resource_stats['carrier'], 0)
-        self.assertEqual(resource_stats['inpatient'], 0)
-        self.assertEqual(resource_stats['outpatient'], 0)
+        self.assertEqual(resource_stats['pde'], expected_resource_stats['pde'])
+        self.assertEqual(resource_stats['carrier'], expected_resource_stats['carrier'])
+        self.assertEqual(resource_stats['inpatient'], expected_resource_stats['inpatient'])
+        self.assertEqual(resource_stats['outpatient'], expected_resource_stats['outpatient'])
 
     @override_switch('require-scopes', active=True)
     def test_eob_profiles_endpoint(self):
@@ -567,14 +566,16 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # comment out since the C4BB EOB resources do not validate with FHIR R4 json schema
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
 
-        total = content['total']
-        count = 10
-        page_total = (total + count) // count
+        total_page = self._get_total_page(content)
+        assert total_page >= 0
 
-        resource_stats = {'pde': 1, 'carrier': 1, 'inpatient': 1, 'outpatient': 1, 'dme': 1, 'snf': 1, 'hha': 1, 'hospice': 1, }
+        expected_resource_stats = {
+            'pde': 1, 'carrier': 1, 'inpatient': 1, 'outpatient': 1, 'dme': 1, 'snf': 1, 'hha': 1, 'hospice': 1, }
+        resource_stats = {
+            'pde': 0, 'carrier': 0, 'inpatient': 0, 'outpatient': 0, 'dme': 0, 'snf': 0, 'hha': 0, 'hospice': 0, }
         self._stats_resource_by_type(content, resource_stats)
 
-        for i in range(page_total):
+        for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(lnk,
                                  ("Field 'link' expected, "
@@ -591,14 +592,14 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                 break
 
         # assert eob claims resource stats of sample A:
-        self.assertEqual(resource_stats['pde'], 0)
-        self.assertEqual(resource_stats['carrier'], 0)
-        self.assertEqual(resource_stats['inpatient'], 0)
-        self.assertEqual(resource_stats['outpatient'], 0)
-        self.assertEqual(resource_stats['dme'], 0)
-        self.assertEqual(resource_stats['snf'], 0)
-        self.assertEqual(resource_stats['hha'], 0)
-        self.assertEqual(resource_stats['hospice'], 0)
+        self.assertEqual(resource_stats['pde'], expected_resource_stats['pde'])
+        self.assertEqual(resource_stats['carrier'], expected_resource_stats['carrier'])
+        self.assertEqual(resource_stats['inpatient'], expected_resource_stats['inpatient'])
+        self.assertEqual(resource_stats['outpatient'], expected_resource_stats['outpatient'])
+        self.assertEqual(resource_stats['dme'], expected_resource_stats['dme'])
+        self.assertEqual(resource_stats['snf'], expected_resource_stats['snf'])
+        self.assertEqual(resource_stats['hha'], expected_resource_stats['hha'])
+        self.assertEqual(resource_stats['hospice'], expected_resource_stats['hospice'])
 
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint(self):
@@ -709,6 +710,14 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             # Validate JSON Schema v1
             self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
+
+    def _get_total_page(self, content):
+        total_page = -1
+        links = content.get('link', None)
+        if links:
+            nav_info = self._extract_urls(links)
+            total_page = extract_last_page_index(nav_info['last'])
+        return total_page
 
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint_outpatient(self):

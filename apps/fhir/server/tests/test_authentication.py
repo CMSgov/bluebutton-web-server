@@ -176,7 +176,7 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.MALFORMED_KEY, self.NOT_FOUND_KEY)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
+            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected in Patient search:*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
@@ -189,37 +189,7 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.MALFORMED_KEY)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    mbi_hash=self.test_mbi_hash,
-                    hicn_hash=self.test_hicn_hash, request=self.request)
-
-    def test_match_fhir_id_lying_hicn(self):
-        '''
-            Testing responses: HICN = lying
-                               MBI = not_found
-            Expecting: UpstreamServerException exception raised
-            Note: lying means response total=1, but there are multiple
-                  Patient resources in the response.
-        '''
-        with HTTMock(self.create_fhir_mock(self.LYING_KEY, self.NOT_FOUND_KEY)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    mbi_hash=self.test_mbi_hash,
-                    hicn_hash=self.test_hicn_hash, request=self.request)
-
-    def test_match_fhir_id_lying_mbi(self):
-        '''
-            Testing responses: HICN = success
-                               MBI = lying
-            Expecting: UpstreamServerException exception raised
-            Note: lying means response total=1, but there are multiple
-                  Patient resources in the response.
-        '''
-        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.LYING_KEY)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
+            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected in Patient search:*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,

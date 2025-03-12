@@ -10,7 +10,6 @@ responses = {
                 "lastUpdated":"2019-12-18T13:40:02.792-05:00"
             },
             "type":"searchset",
-            "total":1,
             "link":[
                 {
                     "relation":"first",
@@ -83,7 +82,6 @@ responses = {
                 "lastUpdated":"2019-12-18T13:40:02.792-05:00"
             },
             "type":"searchset",
-            "total":0,
             "link":[
                 {
                     "relation":"first",
@@ -112,7 +110,6 @@ responses = {
                 "lastUpdated":"2019-12-18T13:40:02.792-05:00"
             },
             "type":"searchset",
-            "total":2,
             "link":[
                 {
                     "relation":"first",
@@ -229,7 +226,6 @@ responses = {
                 "lastUpdated":"2019-12-18T13:40:02.792-05:00"
             },
             "type":"searchset",
-            "total":1,
             "link":[
                 {
                     "relation":"first",
@@ -302,7 +298,6 @@ responses = {
                 "lastUpdated":"2019-12-18T13:40:02.792-05:00"
             },
             "type":"searchset",
-            "total":1,
             "link":[
                 {
                     "relation":"first",

@@ -77,7 +77,7 @@ variables before running tests or the server itself.
 
 Note you can find the path to your Python3 binary by typing `which python3`.
 
-### docker-compose setup
+### docker compose setup
 
 Instructions for running the development environment via `docker-compose` can be found [here](./docker-compose/readme.md)
 
