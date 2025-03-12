@@ -35,7 +35,7 @@ This function accepts one argument which is your virtual MFA code, example:
 
 Once you have the AWS CLI setup and you are able to work with the CLI, you will be able to proceed with the following.
 
-To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker compose/certstore` location to support the connection to the BFD FHIR server.
+To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
 
 To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
 
@@ -48,10 +48,10 @@ To enable usage of the SLSx TEST environment locally, do the following or skip i
   bash
 
   # Then source the ENV vars via:
-  source docker compose/source_env_secrets_from_aws.sh
+  source docker-compose/source_env_secrets_from_aws.sh
   ```
 
-- NOTE: This will copy the cert files in to the docker compose/certstore location.
+- NOTE: This will copy the cert files in to the docker-compose/certstore location.
 
 To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose) or skip if not needing this.
 
@@ -60,7 +60,7 @@ To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis
   source ~/bin/source_aws.sh
   ```
 
-To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker compose/bluebutton_server_start.sh` web server startup script.
+To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
 
 To startup the Docker containerized BB2 server using slsx:
 
@@ -359,7 +359,7 @@ For this update docker-compose.yaml `unittests` service to use new port. See exm
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6889 --wait-for-client runtests.py
     env_file:
-      - docker compose/unittests-env-vars.env
+      - docker-compose/unittests-env-vars.env
     ports:
       - "6889:6889" # --------------- Update this port, should be same as port used in command above
     volumes:
@@ -480,12 +480,12 @@ Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for G
 
 The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local.sh` script that performs pre-setup and sources environment variables from AWS needed to utilize a live BFD back end system.
 
-There are ways to test locally using the `docker compose/run_integration_tests_local.sh` script:
+There are ways to test locally using the `docker-compose/run_integration_tests_local.sh` script:
 
 To get usage help use the following command:
 
 ```
-docker compose/run_integration_tests_local.sh
+docker-compose/run_integration_tests_local.sh
 ```
 
 1. Using the docker compose local development setup and containers. This is the quickest!
@@ -493,13 +493,13 @@ docker compose/run_integration_tests_local.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker compose/run_integration_tests_local.sh dc
+   docker-compose/run_integration_tests_local.sh dc
    ```
 
    To debug integration tests:
 
    ```
-   docker compose/run_integration_tests_local.sh dc-debug
+   docker-compose/run_integration_tests_local.sh dc-debug
    ```
 
 2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
@@ -507,7 +507,7 @@ docker compose/run_integration_tests_local.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker compose/run_integration_tests_local.sh cbc
+   docker-compose/run_integration_tests_local.sh cbc
    ```
 
 3. Using the docker compose local development setup and containers with local bfd as backend.
@@ -515,18 +515,18 @@ docker compose/run_integration_tests_local.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker compose/run_integration_tests_local.sh local
+   docker-compose/run_integration_tests_local.sh local
    ```
 
    To debug integration tests:
 
    ```
-   docker compose/run_integration_tests_local.sh local-debug
+   docker-compose/run_integration_tests_local.sh local-debug
    ```
 
 NOTES:
 
-- The settings variables in the `docker compose/run_integration_tests_local.sh cbc` may need to be updated to match your local development platform.
+- The settings variables in the `docker-compose/run_integration_tests_local.sh cbc` may need to be updated to match your local development platform.
 - For the CBC related setup see these files for more details:
   - `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job.
   - `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification. These settings will also need to be updated when there are CBC image naming changes.
