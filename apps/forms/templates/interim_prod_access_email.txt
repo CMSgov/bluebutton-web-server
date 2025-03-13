@@ -1,7 +1,0 @@
-Interim Prod Access
-
-{% for key, value in form_data.items %}
-{{ key }}:
-{{ value }}
-
-{% endfor %}

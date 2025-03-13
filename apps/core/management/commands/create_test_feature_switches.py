@@ -7,8 +7,6 @@ WAFFLE_FEATURE_SWITCHES = (
     ("enable_swaggerui", True, "This enables a page for the openapi docs and a link to the page from the main page."),
     ("enable_testclient", True, "This enables the test client."),
     ("expire_grant_endpoint", True, "This enables the /v<1/2>/o/expire_authenticated_user/<patient_id>/ endpoint."),
-    ("interim-prod-access", True, "This controls access to the interim prod access form. \
-        This is outdated and will be removed in a future ticket"),
     ("login", True, "This enables login related URLs and code. See apps/accounts/urls.py file for more info."),
     ("outreach_email", True, "This enables developer outreach emails. Not active in prod."),
     ("require-scopes", True, "Thie enables enforcement of permission checking of scopes."),
