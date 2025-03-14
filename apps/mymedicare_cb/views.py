@@ -1,12 +1,14 @@
+import requests
 import random
 import urllib.request as urllib_request
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
+from requests import Session, Request
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
@@ -50,7 +52,7 @@ def authenticate(request):
     slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
-    slsx_client.user_signout(request)
+    resp = slsx_client.user_signout(request)
 
     # Validate bene is signed out per BB2-544
     slsx_client.validate_user_signout(request)
@@ -146,11 +148,28 @@ def generate_nonce(length=26):
 @never_cache
 def mymedicare_login(request, version=1):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
+
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
 
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
+
     slsx_client.service_health_check(request)
+
+    # BEGIN: pre-emptive sign out
+    resp = slsx_client.user_signout(request)
+
+    if resp.status_code == 302:
+        # s = requests.Session()
+        # resp = s.send(resp, timeout=5)
+        # resp.raise_for_status()
+        # return HttpResponse(resp.content, content_type=resp.headers['Content-Type'], status=resp.status_code)
+        skip = False
+        if skip:
+            pass
+        redirect_resp = HttpResponseRedirect(resp.next.url)
+        return redirect_resp
+    # END: pre-emptive sign out
 
     relay_param_name = "relay"
     redirect = urllib_request.pathname2url(redirect)

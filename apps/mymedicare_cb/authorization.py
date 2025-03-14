@@ -324,6 +324,7 @@ class OAuth2ConfigSLSx(object):
             ],
             MedicareCallbackExceptionType.SIGNOUT,
         )
+        return response
 
     def validate_user_signout(self, request):
         """
