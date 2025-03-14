@@ -1,14 +1,12 @@
-import requests
 import random
 import urllib.request as urllib_request
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from requests import Session, Request
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
@@ -52,7 +50,7 @@ def authenticate(request):
     slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
-    resp = slsx_client.user_signout(request)
+    slsx_client.user_signout(request)
 
     # Validate bene is signed out per BB2-544
     slsx_client.validate_user_signout(request)
@@ -160,10 +158,7 @@ def mymedicare_login(request, version=1):
     resp = slsx_client.user_signout(request)
 
     if resp.status_code == 302:
-        # s = requests.Session()
-        # resp = s.send(resp, timeout=5)
-        # resp.raise_for_status()
-        # return HttpResponse(resp.content, content_type=resp.headers['Content-Type'], status=resp.status_code)
+        # skip - a flag used here to switch the flow (in a debugger)
         skip = False
         if skip:
             pass
