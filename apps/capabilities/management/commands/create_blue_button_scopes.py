@@ -11,7 +11,7 @@ import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
-fhir_prefix = "/v1/fhir/"
+fhir_prefix = "/v[12]/fhir/"
 
 
 def create_group(name="BlueButton"):
@@ -65,8 +65,8 @@ def create_patient_capability(group, fhir_prefix, title="My general patient and 
     description = "Patient FHIR Resource"
     smart_scope_string = "patient/Patient.read"
     pr = []
-    pr.append(["GET", "%sPatient/" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -83,8 +83,8 @@ def create_patient_read_capability(group, fhir_prefix, title="Read my general pa
     smart_scope_string = "patient/Patient.r"
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Patient/id urls
-    pr.append(["GET", "%sPatient/" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -102,7 +102,7 @@ def create_patient_search_capability(group,
     description = "Patient FHIR Resource"
     smart_scope_string = "patient/Patient.s"
     pr = []
-    pr.append(["GET", "%sPatient/" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -121,8 +121,8 @@ def create_patient_read_search_capability(group,
     smart_scope_string = "patient/Patient.rs"
     pr = []
     # Functionally the same as .r for backwards compatibility
-    pr.append(["GET", "%sPatient/" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sPatient[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -137,8 +137,8 @@ def create_eob_capability(group, fhir_prefix, title="My Medicare claim informati
     description = "ExplanationOfBenefit FHIR Resource"
     smart_scope_string = "patient/ExplanationOfBenefit.read"
     pr = []
-    pr.append(["GET", "%sExplanationOfBenefit/" % fhir_prefix])
-    pr.append(["GET", "%sExplanationOfBenefit/[id]" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -153,8 +153,8 @@ def create_eob_read_capability(group, fhir_prefix, title="Read my Medicare claim
     smart_scope_string = "patient/ExplanationOfBenefit.r"
     pr = []
     # Backward compatible with .read. In the future, we may limit this to ExplinationOfBenefit/id urls
-    pr.append(["GET", "%sExplanationOfBenefit/" % fhir_prefix])
-    pr.append(["GET", "%sExplanationOfBenefit/[id]" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -168,7 +168,7 @@ def create_eob_search_capability(group, fhir_prefix, title="Search my Medicare c
     description = "ExplanationOfBenefit FHIR Resource"
     smart_scope_string = "patient/ExplanationOfBenefit.s"
     pr = []
-    pr.append(["GET", "%sExplanationOfBenefit/" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -184,8 +184,8 @@ def create_eob_read_search_capability(group, fhir_prefix, title="Read and search
     smart_scope_string = "patient/Patient.rs"
     pr = []
     # Functionally the same as .r for backwards compatibility
-    pr.append(["GET", "%sPatient/" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sExplanationOfBenefit[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -200,8 +200,8 @@ def create_coverage_capability(group, fhir_prefix, title="My Medicare and supple
     description = "Coverage FHIR Resource"
     smart_scope_string = "patient/Coverage.read"
     pr = []
-    pr.append(["GET", "%sCoverage/" % fhir_prefix])
-    pr.append(["GET", "%sCoverage/[id]" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -218,8 +218,8 @@ def create_coverage_read_capability(group,
     smart_scope_string = "patient/Coverage.r"
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
-    pr.append(["GET", "%sCoverage/" % fhir_prefix])
-    pr.append(["GET", "%sCoverage/[id]" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -236,8 +236,7 @@ def create_coverage_search_capability(group,
     smart_scope_string = "patient/Coverage.s"
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
-    pr.append(["GET", "%sCoverage/" % fhir_prefix])
-    pr.append(["GET", "%sCoverage/[id]" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -254,8 +253,8 @@ def create_coverage_read_search_capability(group,
     smart_scope_string = "patient/Coverage.r"
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
-    pr.append(["GET", "%sCoverage/" % fhir_prefix])
-    pr.append(["GET", "%sCoverage/[id]" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/?].*$" % fhir_prefix])
+    pr.append(["GET", "%sCoverage[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
