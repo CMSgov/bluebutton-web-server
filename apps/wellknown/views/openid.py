@@ -29,6 +29,8 @@ SCOPES_SUPPORTED = [
 CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
 CAPABILITIES = [
     "client-confidential-symmetric",
+    "client-confidential-asymmetric",
+    "context-standalone-patient",
     "launch-standalone",
     "permission-offline",
     "permission-patient",
