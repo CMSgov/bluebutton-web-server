@@ -152,7 +152,7 @@ def create_eob_read_capability(group, fhir_prefix, title="Read my Medicare claim
     description = "ExplanationOfBenefit FHIR Resource"
     smart_scope_string = "patient/ExplanationOfBenefit.r"
     pr = []
-    # Backward compatible with .read. In the future, we may limit this to ExplinationOfBenefit/id urls
+    # Backward compatible with .read. In the future, we may limit this to ExplanationOfBenefit/id urls
     pr.append(["GET", "%sExplanationOfBenefit[/?].*$" % fhir_prefix])
     pr.append(["GET", "%sExplanationOfBenefit[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
