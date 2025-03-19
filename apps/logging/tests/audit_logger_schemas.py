@@ -803,6 +803,23 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "first_active": {"type": "null"},
         "last_active": {"type": "null"},
         "data_access_type": {"type": "string"},
+        "internal_application_labels": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "require_demographic_scopes": {"type": "boolean"},
         "real_bene_cnt": {"type": "integer"},
         "synth_bene_cnt": {"type": "integer"},

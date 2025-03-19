@@ -269,6 +269,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "token_archived_table_count",
                 "user_limit_data_access",
                 "data_access_type",
+                "internal_application_labels"
             ]
 
             # Update Json Schema
@@ -523,6 +524,13 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
                     "data_access_type": ["THIRTEEN_MONTH"],
+                    "internal_application_labels": [
+                        {
+                            "label": "Research app - multiple studies",
+                            "slug": "research-app-multiple-studies",
+                            "description": "Desc: place holder"
+                        }
+                    ]
                 }
             }
         )
@@ -547,6 +555,13 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
                     "data_access_type": ["THIRTEEN_MONTH"],
+                    "internal_application_labels": [
+                        {
+                            "label": "Research app - multiple studies",
+                            "slug": "research-app-multiple-studies",
+                            "description": "Desc: place holder"
+                        }
+                    ]
                 }
             }
         )
@@ -625,6 +640,13 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
                     "data_access_type": ["THIRTEEN_MONTH"],
+                    "internal_application_labels": [
+                        {
+                            "label": "Research app - multiple studies",
+                            "slug": "research-app-multiple-studies",
+                            "description": "Desc: place holder"
+                        }
+                    ]
                 }
             }
         )
@@ -868,6 +890,13 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
                     "data_access_type": ["THIRTEEN_MONTH"],
+                    "internal_application_labels": [
+                        {
+                            "label": "Research app - multiple studies",
+                            "slug": "research-app-multiple-studies",
+                            "description": "Desc: place holder"
+                        }
+                    ]
                 }
             }
         )
