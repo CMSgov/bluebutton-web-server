@@ -1,10 +1,25 @@
 import io
 
 import apps.logging.request_logger as logging
+from apps.dot_ext.loggers import (
+    get_session_auth_flow_trace,
+)
 
 """
   Utility functions for logging, and logging manipulations (used in tests)
 """
+
+
+def lookup_language(request):
+    # keep lang code from session if presents
+    # otherwise grab it from parameters
+    if request is not None:
+        auth_dict = get_session_auth_flow_trace(request)
+        qparam_lang = request.GET.get('lang', request.GET.get('Lang', ""))
+        qparam_lang = qparam_lang if qparam_lang else request.POST.get('lang', request.POST.get('Lang', ""))
+        return auth_dict.get('auth_language', qparam_lang)
+    else:
+        return ""
 
 
 def format_timestamp(dt):
