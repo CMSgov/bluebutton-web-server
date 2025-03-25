@@ -165,7 +165,6 @@ INSTALLED_APPS = [
     "apps.dot_ext.apps.dot_extConfig",
     "apps.pkce",
     "apps.home",
-    "apps.forms",
     "apps.fhir.server",
     "apps.fhir.bluebutton",
     "apps.mymedicare_cb",

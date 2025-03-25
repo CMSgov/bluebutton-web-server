@@ -20,7 +20,6 @@ urlpatterns = [
     path("health", include("apps.health.urls")),
     re_path(r"^.well-known/", include("apps.wellknown.urls")),
     path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
-    path("forms/", include("apps.forms.urls")),
     path("v1/accounts/", include("apps.accounts.urls")),
     re_path(
         r"^v1/connect/userinfo", openidconnect_userinfo, name="openid_connect_userinfo"
