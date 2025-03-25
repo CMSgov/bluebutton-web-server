@@ -187,9 +187,21 @@
             "default": "False"
         }
     },
-    {
+        {
         "model": "capabilities.protectedcapability",
         "pk": 16,
+        "fields": {
+            "title": "Read and search my Medicare and supplemental coverage information.",
+            "slug": "patient/Coverage.rs",
+            "group": 5,
+            "description": "Coverage FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/?].*$\"\n  ]\n]",
+            "default": "False"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 17,
         "fields": {
             "title": "Patient launch context.",
             "slug": "launch",

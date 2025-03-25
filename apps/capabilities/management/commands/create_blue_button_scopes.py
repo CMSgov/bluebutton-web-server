@@ -258,7 +258,7 @@ def create_coverage_read_search_capability(group,
                                            title="Read and search my Medicare and supplemental coverage information."):
     c = None
     description = "Coverage FHIR Resource"
-    smart_scope_string = "patient/Coverage.r"
+    smart_scope_string = "patient/Coverage.rs"
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
     pr.append(["GET", "%sCoverage[/?].*$" % fhir_prefix])
@@ -306,6 +306,7 @@ class Command(BaseCommand):
         create_eob_search_capability(g, fhir_prefix)
         create_eob_read_search_capability(g, fhir_prefix)
         create_coverage_read_capability(g, fhir_prefix)
+        create_coverage_search_capability(g, fhir_prefix)
         create_coverage_read_search_capability(g, fhir_prefix)
         create_launch_capability(g, fhir_prefix)
         create_openid_capability(g)
