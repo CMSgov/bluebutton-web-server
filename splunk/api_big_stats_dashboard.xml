@@ -778,7 +778,7 @@
       <chart>
         <title>API + Non-API Result Codes Over Time Range</title>
         <search>
-          <query>host=* env=impl message.app_name!="TestApp" AND message.app_name!="new-relic" message.path!="/health*" | search "message.ip_addr"="*" | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <query>host=* message.app_name!="TestApp" AND message.app_name!="new-relic" message.path!="/health*" | search "message.ip_addr"="*" | spath output=code path="message.response_code" | table code | stats count by code</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
         </search>
