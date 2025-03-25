@@ -84,7 +84,6 @@ def create_patient_read_capability(group, fhir_prefix, title="Read my general pa
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Patient/id urls
     pr.append(["GET", "%sPatient[/?].*$" % fhir_prefix])
-    pr.append(["GET", "%sPatient[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -157,7 +156,6 @@ def create_eob_read_capability(group, fhir_prefix, title="Read my Medicare claim
     pr = []
     # Backward compatible with .read. In the future, we may limit this to ExplanationOfBenefit/id urls
     pr.append(["GET", "%sExplanationOfBenefit[/?].*$" % fhir_prefix])
-    pr.append(["GET", "%sExplanationOfBenefit[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -225,7 +223,6 @@ def create_coverage_read_capability(group,
     pr = []
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
     pr.append(["GET", "%sCoverage[/?].*$" % fhir_prefix])
-    pr.append(["GET", "%sCoverage[/]?$" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
