@@ -154,6 +154,13 @@ class TestDataAccessPermissions(BaseApiTest):
         The asserts will check for the expected_response_code
         and expected_response_detail_mesg to match.
         """
+        try:
+            ac = AccessToken.objects.get(token=access_token)
+            ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
+            ac.save()
+        except Exception:
+            pass
+
         # Test profile/userinfo v1
         response = self.client.get(
             "/v1/connect/userinfo", headers={"authorization": "Bearer " + access_token}

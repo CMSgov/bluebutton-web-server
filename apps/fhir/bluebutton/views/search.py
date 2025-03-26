@@ -16,6 +16,18 @@ from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (SearchCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
 
 
+class HasSearchScope(permissions.BasePermission):
+    def has_permission(self, request, view):
+        required_scopes = getattr(view, 'required_scopes', None)
+        if required_scopes is None:
+            return True
+
+        if hasattr(request, 'auth') and request.auth is not None:
+            token_scopes = request.auth.scope
+            return any(scope in token_scopes for scope in required_scopes)
+        return False
+
+
 class SearchView(FhirDataView):
     # Base class for FHIR resource search views
 
@@ -27,6 +39,7 @@ class SearchView(FhirDataView):
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
         TokenHasProtectedCapability,
+        HasSearchScope
     ]
 
     # Regex to match a valid _lastUpdated value that can begin with lt, le, gt and ge operators
@@ -63,6 +76,7 @@ class SearchView(FhirDataView):
 
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
+    required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -77,6 +91,7 @@ class SearchViewPatient(SearchView):
 
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
+    required_scopes = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -91,6 +106,7 @@ class SearchViewCoverage(SearchView):
 
 class SearchViewExplanationOfBenefit(SearchView):
     # Class used for ExplanationOfBenefit resource search view
+    required_scopes = ['patient/ExplanationOfBenefit.read', 'patient/ExplanationOfBenefit.rs', 'patient/ExplanationOfBenefit.s']
 
     # Regex to match a valid type value
     REGEX_TYPE_VALUE = r"(carrier)|" + \

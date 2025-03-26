@@ -12,6 +12,7 @@ from django.http import HttpRequest
 
 from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
+from oauth2_provider.models import get_access_token_model
 from rest_framework import status
 
 from apps.dot_ext.models import Application
@@ -101,6 +102,10 @@ class TestAuditEventLoggers(BaseApiTest):
 
     def _fhir_events_logging(self, v2=False):
         first_access_token = self.create_token("John", "Smith")
+        AccessToken = get_access_token_model()
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
+        ac.save()
 
         @all_requests
         def catchall(url, req):
