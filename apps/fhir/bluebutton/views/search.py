@@ -1,4 +1,3 @@
-from oauth2_provider.contrib.rest_framework import TokenMatchesOASRequirements
 from voluptuous import (
     Required,
     All,
@@ -64,10 +63,6 @@ class SearchView(FhirDataView):
 
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
-    permission_classes = [TokenMatchesOASRequirements]
-    required_alternate_scopes = {
-        "GET": [['patient/Patient.s'], ['patient/Patient.rs']]
-    }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -82,10 +77,6 @@ class SearchViewPatient(SearchView):
 
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
-    permission_classes = [TokenMatchesOASRequirements]
-    required_alternate_scopes = {
-        "GET": [['patient/Coverage.s'], ['patient/Coverage.rs']]
-    }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -131,11 +122,6 @@ class SearchViewExplanationOfBenefit(SearchView):
                     'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
                     'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")]
                     }
-
-    permission_classes = [TokenMatchesOASRequirements]
-    required_alternate_scopes = {
-        "GET": [['patient/ExplanationOfBenefit.s'], ['patient/ExplanationOfBenefit.rs']]
-    }
 
     def __init__(self, version=1):
         super().__init__(version)

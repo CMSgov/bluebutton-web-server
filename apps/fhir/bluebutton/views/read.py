@@ -1,4 +1,3 @@
-from oauth2_provider.contrib.rest_framework import TokenMatchesOASRequirements
 from rest_framework import permissions
 
 from apps.authorization.permissions import DataAccessGrantPermission
@@ -50,11 +49,6 @@ class ReadView(FhirDataView):
 
 class ReadViewPatient(ReadView):
     # Class used for Patient resource
-    permission_classes = [TokenMatchesOASRequirements]
-    required_alternate_scopes = {
-        "GET": [['patient/Patient.read'], ['patient/Patient.r'], ['patient/Patient.rs']]
-    }
-
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "Patient"
@@ -62,11 +56,6 @@ class ReadViewPatient(ReadView):
 
 class ReadViewCoverage(ReadView):
     # Class used for Patient resource
-    permission_classes = [TokenMatchesOASRequirements]
-    required_alternate_scopes = {
-        "GET": [['patient/Coverage.read'], ['patient/Coverage.r'], ['patient/Coverage.rs']]
-    }
-
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "Coverage"
@@ -74,15 +63,6 @@ class ReadViewCoverage(ReadView):
 
 class ReadViewExplanationOfBenefit(ReadView):
     # Class used for Patient resource
-    permission_classes = [TokenMatchesOASRequirements]
-    required_alternate_scopes = {
-        "GET": [
-            ['patient/ExplanationOfBenefit.read'],
-            ['patient/ExplanationOfBenefit.r'],
-            ['patient/ExplanationOfBenefit.rs'],
-        ]
-    }
-
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "ExplanationOfBenefit"
