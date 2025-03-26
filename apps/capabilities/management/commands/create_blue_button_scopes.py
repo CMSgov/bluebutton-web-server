@@ -184,7 +184,7 @@ def create_eob_read_search_capability(group, fhir_prefix, title="Read and search
 
     c = None
     description = "Patient FHIR Resource"
-    smart_scope_string = "patient/Patient.rs"
+    smart_scope_string = "patient/ExplanationOfBenefit.rs"
     pr = []
     # Functionally the same as .r for backwards compatibility
     pr.append(["GET", "%sExplanationOfBenefit[/?].*$" % fhir_prefix])

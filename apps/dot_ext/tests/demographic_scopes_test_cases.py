@@ -19,6 +19,19 @@ SCOPES_JUST_PATIENT_AND_A = ['patient/Patient.read', 'capability-a']
 SCOPES_JUST_A = ['capability-a']
 SCOPES_JUST_EOB_AND_B = ['patient/ExplanationOfBenefit.read', 'capability-b']
 SCOPES_JUST_EMPTY = []
+V2_SCOPES_ALL = [
+    'patient/Patient.r',
+    'patient/Patient.s',
+    'patient/Patient.rs',
+    'patient/ExplanationOfBenefit.r',
+    'patient/ExplanationOfBenefit.s',
+    'patient/ExplanationOfBenefit.rs',
+    'patient/Coverage.r',
+    'patient/Coverage.s',
+    'patient/Coverage.rs',
+    'patient/launch',
+    'openid'
+]
 
 # Scope to base URL PATH mapping.
 SCOPES_TO_URL_BASE_PATH = {
@@ -142,6 +155,14 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         "result_form_is_valid": False,
         "result_token_scopes_granted": SCOPES_JUST_EMPTY,
     },
+    "test 11: share = True v2 Scopes": {
+        # Request:
+        "request_bene_share_demographic_scopes": True,
+        "request_scopes": V2_SCOPES_ALL,
+        # Result:
+        "result_form_is_valid": True,
+        "result_token_scopes_granted": V2_SCOPES_ALL,
+    }
 }
 
 """

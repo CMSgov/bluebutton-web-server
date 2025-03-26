@@ -204,7 +204,7 @@
         "pk": 17,
         "fields": {
             "title": "Patient launch context.",
-            "slug": "launch",
+            "slug": "launch/patient",
             "group": 5,
             "description": "Launch with FHIR Patient context.",
             "protected_resources": "[]",
