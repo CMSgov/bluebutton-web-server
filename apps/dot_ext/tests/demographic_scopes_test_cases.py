@@ -32,6 +32,16 @@ V2_SCOPES_ALL = [
     'patient/launch',
     'openid'
 ]
+V2_SCOPES_NON_DEMOGRAPHIC = [
+    'patient/ExplanationOfBenefit.r',
+    'patient/ExplanationOfBenefit.s',
+    'patient/ExplanationOfBenefit.rs',
+    'patient/Coverage.r',
+    'patient/Coverage.s',
+    'patient/Coverage.rs',
+    'patient/launch',
+    'openid'
+]
 
 # Scope to base URL PATH mapping.
 SCOPES_TO_URL_BASE_PATH = {
@@ -162,7 +172,15 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": V2_SCOPES_ALL,
-    }
+    },
+    "test 11: share = False v2 Scopes": {
+        # Request:
+        "request_bene_share_demographic_scopes": False,
+        "request_scopes": V2_SCOPES_ALL,
+        # Result:
+        "result_form_is_valid": True,
+        "result_token_scopes_granted": V2_SCOPES_NON_DEMOGRAPHIC,
+    },
 }
 
 """
