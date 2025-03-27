@@ -127,6 +127,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_patient_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
 
         @all_requests
@@ -160,6 +163,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_eob_by_parameters_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/ExplanationOfBenefit.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
 
         @all_requests
@@ -420,6 +426,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_coverage_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.read'
+        ac.save()
 
         @all_requests
         def catchall(url, req):

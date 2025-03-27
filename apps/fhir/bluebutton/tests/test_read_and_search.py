@@ -136,6 +136,9 @@ class ThrottleReadRequestTest(BaseApiTest):
         mock_rates.return_value = '1/day'
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
 
         @all_requests
         def catchall(url, req):
@@ -239,6 +242,9 @@ class BackendConnectionTest(BaseApiTest):
     def _search_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
         expected_request = get_expected_request(ver)
 
@@ -293,6 +299,9 @@ class BackendConnectionTest(BaseApiTest):
 
     def _search_request_access_token_query_param(self, v2=False):
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
         url = reverse('bb_oauth_fhir_patient_search' if not v2 else 'bb_oauth_fhir_patient_search_v2')
         url += "?access_token=%s" % (first_access_token)
         response = self.client.get(url, Authorization="Bearer %s" % (first_access_token))
@@ -313,6 +322,9 @@ class BackendConnectionTest(BaseApiTest):
     def _search_request_not_found(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
         expected_request = get_expected_request(ver)
 
@@ -345,6 +357,9 @@ class BackendConnectionTest(BaseApiTest):
     def _search_emptyset(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/ExplanationOfBenefit.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
 
         @all_requests
@@ -391,6 +406,9 @@ class BackendConnectionTest(BaseApiTest):
     def _search_request_failed(self, v2=False, bfd_status_code=500):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
         expected_request = get_expected_request(ver)
 
@@ -431,6 +449,9 @@ class BackendConnectionTest(BaseApiTest):
     def _search_request_failed_no_fhir_id_match(self, v2=False, bfd_status_code=500):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
         expected_request = get_expected_request(ver)
 
@@ -476,6 +497,9 @@ class BackendConnectionTest(BaseApiTest):
     def _search_parameters_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/ExplanationOfBenefit.read'
+        ac.save()
         ver = 'v1' if not v2 else 'v2'
 
         @all_requests
