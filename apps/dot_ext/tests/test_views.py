@@ -402,6 +402,8 @@ class TestTokenView(BaseApiTest):
             tkn = response.json()["access_token"]
 
         t = AccessToken.objects.get(token=tkn)
+        t.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
+        t.save()
         return t
 
     def _create_authorization_header(self, client_id, client_secret):

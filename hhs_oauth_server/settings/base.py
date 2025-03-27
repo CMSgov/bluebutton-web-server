@@ -474,7 +474,13 @@ GRANT_TYPES = (
 )
 
 # List of beneficiary personal information resource type scopes
-BENE_PERSONAL_INFO_SCOPES = ["patient/Patient.read", "profile"]
+BENE_PERSONAL_INFO_SCOPES = [
+    "patient/Patient.read",
+    "patient/Patient.s",
+    "patient/Patient.r",
+    "patient/Patient.rs",
+    "profile",
+]
 
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
