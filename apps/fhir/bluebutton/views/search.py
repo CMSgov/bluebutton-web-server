@@ -1,3 +1,5 @@
+from rest_framework import (permissions)
+from rest_framework.response import Response
 from voluptuous import (
     Required,
     All,
@@ -7,13 +9,17 @@ from voluptuous import (
     Schema,
     REMOVE_EXTRA,
 )
-from rest_framework import (permissions)
 
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.bluebutton.views.home import get_response_json
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (SearchCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
+
+C4BB_COVERAGE_PROFILE_URL = "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage"
+
+C4DIC_COVERAGE_PROFILE_URL = "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage"
 
 
 class HasSearchScope(permissions.BasePermission):
@@ -52,7 +58,8 @@ class SearchView(FhirDataView):
     QUERY_SCHEMA = {
         Required('startIndex', default=0): Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
-        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
+        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")],
+        '_profile': Match('.+', msg="_profile value takes a non empty url like string")
     }
 
     def __init__(self, version=1):
@@ -88,6 +95,13 @@ class SearchViewPatient(SearchView):
             '_id': request.crosswalk.fhir_id,
         }
 
+    def get(self, request, *args, **kwargs):
+        return_c4dic = False
+        if return_c4dic:
+            return Response(get_response_json("bfd-c4dic-patient-search"))
+        else:
+            return super().get(request, *args, **kwargs)
+
 
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
@@ -103,6 +117,14 @@ class SearchViewCoverage(SearchView):
             'beneficiary': 'Patient/' + request.crosswalk.fhir_id,
         }
 
+    def get(self, request, *args, **kwargs):
+        profile = request.query_params.get('_profile', '')
+        return_c4dic = False
+        if return_c4dic and profile == C4DIC_COVERAGE_PROFILE_URL:
+            return Response(get_response_json("bfd-c4dic-coverage-search"))
+        else:
+            return super().get(request, *args, **kwargs)
+
 
 class SearchViewExplanationOfBenefit(SearchView):
     # Class used for ExplanationOfBenefit resource search view
@@ -110,22 +132,22 @@ class SearchViewExplanationOfBenefit(SearchView):
 
     # Regex to match a valid type value
     REGEX_TYPE_VALUE = r"(carrier)|" + \
-        r"(pde)|" + \
-        r"(dme)|" + \
-        r"(hha)|" + \
-        r"(hospice)|" + \
-        r"(inpatient)|" + \
-        r"(outpatient)|" + \
-        r"(snf)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)"
+                       r"(pde)|" + \
+                       r"(dme)|" + \
+                       r"(hha)|" + \
+                       r"(hospice)|" + \
+                       r"(inpatient)|" + \
+                       r"(outpatient)|" + \
+                       r"(snf)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|" + \
+                       r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)"
 
     # Regex to match a list of comma separated type values with IGNORECASE
     REGEX_TYPE_VALUES_LIST = r'(?i)^((' + REGEX_TYPE_VALUE + r')\s*,*\s*)+$'
