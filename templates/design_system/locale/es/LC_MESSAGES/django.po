@@ -102,7 +102,7 @@ msgid "Personal Information"
 msgstr "Información personal"
 
 #: templates/design_system/new_authorize_v2.html:89
-msgid "Your name, address, date of birth, race, and gender"
+msgid "Your name, address, date of birth, race, and sex"
 msgstr "Su nombre, dirección, fecha de nacimiento y sexo"
 
 #: templates/design_system/new_authorize_v2.html:92
