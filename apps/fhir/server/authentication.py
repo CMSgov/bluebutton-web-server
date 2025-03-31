@@ -79,23 +79,29 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     # Build URL with patient ID search by identifier.
     ver = "v{}".format(request.session.get('version', 1))
     url = f"{get_resourcerouter().fhir_url}/{ver}/fhir/Patient/_search"
-    s = requests.Session()
 
-    payload = {"identifier": search_identifier}
-    req = requests.Request('POST', url, headers=headers, data=payload)
-    prepped = req.prepare()
-    pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
-    response = s.send(prepped, cert=certs, verify=False)
-    post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
-    response.raise_for_status()
-    backend_data = response.json()
-
-    # Parse and validate backend_data (bundle of patients) response.
-    fhir_id, err_detail = _validate_patient_search_result(backend_data)
-
-    if err_detail:
-        raise UpstreamServerException(err_detail)
-    return fhir_id
+    max_retries = 3
+    retries = 0
+    while retries <= max_retries:
+        try:
+            s = requests.Session()
+            payload = {"identifier": search_identifier}
+            req = requests.Request('POST', url, headers=headers, data=payload)
+            prepped = req.prepare()
+            pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
+            response = s.send(prepped, cert=certs, verify=False)
+            post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
+            response.raise_for_status()
+            backend_data = response.json()
+            # Parse and validate backend_data (bundle of patients) response.
+            fhir_id, err_detail = _validate_patient_search_result(backend_data)
+            return fhir_id
+        except requests.exceptions.RequestException:
+            if retries < max_retries:
+                print(f"Request failed. Retrying... ({retries+1}/{max_retries})")
+                retries += 1
+            elif err_detail:
+                raise UpstreamServerException(err_detail)
 
 
 def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
