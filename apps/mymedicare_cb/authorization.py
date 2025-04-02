@@ -280,7 +280,7 @@ class OAuth2ConfigSLSx(object):
         the BB2 /health/external check.
         """
         headers = self.slsx_common_headers(request)
-        max_retries = 3
+        max_retries = 0
         retries = 0
         while retries < max_retries:
             try:
@@ -289,18 +289,16 @@ class OAuth2ConfigSLSx(object):
                     headers=headers,
                     allow_redirects=False,
                     verify=self.verify_ssl_internal,
-                    timeout=10,
+                    timeout=1,
                 )
                 response.raise_for_status()
                 return True
-            except requests.exceptions.RequestException:
+            except requests.exceptions.RequestException as e:
                 if retries < max_retries:
-                    print(f"Request failed. Retrying... ({retries+1}/{max_retries})")
+                    print(f"SLSx service health check request failed. Retrying... ({retries+1}/{max_retries})")
                     retries += 1
                 else:
-                    return False
-        response.raise_for_status()
-        return True
+                    raise e
 
     def user_signout(self, request):
         """

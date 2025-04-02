@@ -80,7 +80,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     ver = "v{}".format(request.session.get('version', 1))
     url = f"{get_resourcerouter().fhir_url}/{ver}/fhir/Patient/_search"
 
-    max_retries = 3
+    max_retries = 0
     retries = 0
     while retries <= max_retries:
         try:
@@ -95,13 +95,15 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
             backend_data = response.json()
             # Parse and validate backend_data (bundle of patients) response.
             fhir_id, err_detail = _validate_patient_search_result(backend_data)
-            return fhir_id
-        except requests.exceptions.RequestException:
-            if retries < max_retries:
-                print(f"Request failed. Retrying... ({retries+1}/{max_retries})")
-                retries += 1
-            elif err_detail:
+            if err_detail is not None:
                 raise UpstreamServerException(err_detail)
+            return fhir_id
+        except requests.exceptions.RequestException as e:
+            if retries < max_retries:
+                print(f"FHIR ID search request failed. Retrying... ({retries+1}/{max_retries})")
+                retries += 1
+            else:
+                raise e
 
 
 def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
