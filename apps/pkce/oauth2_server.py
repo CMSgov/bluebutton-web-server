@@ -1,7 +1,7 @@
 import base64
 import hashlib
 from urllib.parse import urlparse
-from oauthlib.oauth2.rfc6749.errors import OAuth2Error
+from oauthlib.oauth2.rfc6749.errors import OAuth2Error, InvalidRequestError
 
 from oauth2_provider.models import get_grant_model
 from oauth2_provider.settings import oauth2_settings
@@ -32,12 +32,20 @@ def validate_redirect_uri_pkce(request):
 
 
 def validate_code_challenge_method(request):
+    # note: here the request is a sanitized oauthlib.Request object and always
+    # has code_challenge_method, and code_challenge in its internal _params dict,
+    # so it seems hasattr(request, 'code_challenge_method') always holds
     if hasattr(request, 'code_challenge_method') and request.code_challenge_method:
         if request.code_challenge_method != "S256":
-            raise OAuth2Error("S256 code challenge method required for pkce")
+            raise InvalidRequestError("PKCE code_challenge_method required to be S256")
+        # now code_challenge_method=S256 found, further check
+        # code_challenge=<value> is present
+        if not request.code_challenge:
+            raise InvalidRequestError("PKCE code_challenge required")
 
     elif hasattr(request, 'code_challenge') and request.code_challenge:
-        raise OAuth2Error("S256 code challenge method required for pkce")
+        raise InvalidRequestError("code_challenge_method required for pkce, missing parameter: code_challenge_method=S256")
+
     return {}
 
 
