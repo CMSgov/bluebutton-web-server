@@ -280,7 +280,7 @@ class OAuth2ConfigSLSx(object):
         the BB2 /health/external check.
         """
         headers = self.slsx_common_headers(request)
-        max_retries = 0
+        max_retries = 3
         retries = 0
         while retries < max_retries:
             try:
@@ -289,7 +289,7 @@ class OAuth2ConfigSLSx(object):
                     headers=headers,
                     allow_redirects=False,
                     verify=self.verify_ssl_internal,
-                    timeout=1,
+                    timeout=10,
                 )
                 response.raise_for_status()
                 return True
