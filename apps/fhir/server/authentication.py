@@ -80,7 +80,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     ver = "v{}".format(request.session.get('version', 1))
     url = f"{get_resourcerouter().fhir_url}/{ver}/fhir/Patient/_search"
 
-    max_retries = 0
+    max_retries = 3
     retries = 0
     while retries <= max_retries:
         try:
