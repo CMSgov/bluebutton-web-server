@@ -40,7 +40,6 @@ PATIENT_READ_SCHEMA = {
         "id": {"type": "string"},
         "identifier": {"type": "array"},
         "name": {"type": "array"},
-        "gender": {"type": "string"},
         "birthDate": {"type": "string"},
         "address": {"type": "array"}
     },
