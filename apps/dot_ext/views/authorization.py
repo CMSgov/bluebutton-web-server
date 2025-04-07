@@ -53,7 +53,6 @@ def get_grant_expiration(data_access_type):
     pass
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -299,7 +298,6 @@ class ApprovalView(AuthorizationView):
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
-    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         try:
             app = validate_app_is_active(request)
