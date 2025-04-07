@@ -53,6 +53,7 @@ def get_grant_expiration(data_access_type):
     pass
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -238,6 +239,7 @@ class AuthorizationView(DotAuthorizationView):
         return self.redirect(self.success_url, application)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
@@ -252,6 +254,9 @@ class ApprovalView(AuthorizationView):
         super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
+        if request.method == "POST" and request.POST.get("state") is None:
+            return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
+
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
         try:
@@ -276,7 +281,7 @@ class ApprovalView(AuthorizationView):
         if hasattr(result, "headers") \
                 and "Location" in result.headers \
                 and "invalid_scope" in result.headers['Location']:
-            return JsonResponse({"status_code": 400, "message": "Invalid scopes."})
+            return JsonResponse({"status_code": 400, "message": "Invalid scopes."}, status=400)
 
         if hasattr(self, 'oauth2_data'):
             application = self.oauth2_data.get('application', None)
@@ -294,6 +299,7 @@ class ApprovalView(AuthorizationView):
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
+    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         try:
             app = validate_app_is_active(request)

@@ -174,6 +174,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "client_id": "bad",
                 "redirect_uri": "http://test.com",
                 "response_type": "code",
+                "state": "1234567890",
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -184,6 +185,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "1234567890",
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -196,9 +198,20 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "client_id": application.client_id,
                 "redirect_uri": "http://test.com",
                 "response_type": "code",
+                "state": "1234567890",
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
+        # Test without state
+        response = self.client.post(
+            auth_uri,
+            data={
+                "client_id": application.client_id,
+                "redirect_uri": "http://test.com",
+                "response_type": "code",
+            },
+        )
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
 
     def test_callback_url_success(self):
         # create a state
