@@ -7,6 +7,10 @@ from oauth2_provider.models import get_grant_model
 from oauth2_provider.settings import oauth2_settings
 from django.core.exceptions import ObjectDoesNotExist
 
+ERR_CCM_S256_REQUIRED = "PKCE code_challenge_method required to be S256"
+ERR_CC_REQUIRED = "PKCE code_challenge required"
+ERR_CCM_REQUIRED = "code_challenge_method required for pkce, missing parameter: code_challenge_method=S256"
+
 Grant = get_grant_model()
 
 
@@ -26,7 +30,7 @@ def validate_redirect_uri_pkce(request):
 
             return {}
 
-        raise OAuth2Error("Non http uri scheme's must be used with pkce")
+        raise InvalidRequestError("Non http uri scheme's must be used with pkce")
 
     return {}
 
@@ -37,14 +41,14 @@ def validate_code_challenge_method(request):
     # so it seems hasattr(request, 'code_challenge_method') always holds
     if hasattr(request, 'code_challenge_method') and request.code_challenge_method:
         if request.code_challenge_method != "S256":
-            raise InvalidRequestError("PKCE code_challenge_method required to be S256")
+            raise InvalidRequestError(ERR_CCM_S256_REQUIRED)
         # now code_challenge_method=S256 found, further check
         # code_challenge=<value> is present
         if not request.code_challenge:
-            raise InvalidRequestError("PKCE code_challenge required")
+            raise InvalidRequestError(ERR_CC_REQUIRED)
 
     elif hasattr(request, 'code_challenge') and request.code_challenge:
-        raise InvalidRequestError("code_challenge_method required for pkce, missing parameter: code_challenge_method=S256")
+        raise InvalidRequestError(ERR_CCM_REQUIRED)
 
     return {}
 
