@@ -5,11 +5,11 @@ info:
   description: |
     To try out the API using Swagger UI, follow these steps:
 
-    1. **Create an Application**: Ensure you have an application set up on [CMS Sandbox](http://localhost:8000).
-    2. **Update Application Settings**: Go to your application settings and add [http://localhost:8000/docs/oauth2-redirect](http://localhost:8000/docs/oauth2-redirect) to the "Callback URLs / Redirect URIs" field under "App Details - Required Information". Save the updated application settings.
+    1. **Create an Application**: Ensure you have an application set up on [CMS Sandbox](https://sandbox.bluebutton.cms.gov).
+    2. **Update Application Settings**: Go to your application settings and add [https://sandbox.bluebutton.cms.gov/docs/oauth2-redirect](https://sandbox.bluebutton.cms.gov/docs/oauth2-redirect) to the "Callback URLs / Redirect URIs" field under "App Details - Required Information". Save the updated application settings.
     3. **Store Client Credentials**: Note down and securely store your client_id and client_secret from your CMS Sandbox application. These credentials will be used later.
     4. **Authorize in Swagger UI**: Open this Swagger UI and click on the "Authorize" button.
-    5. **Authorize Access**: Within the prompt, input your client_id and client_secret, choose the scopes you want to use in your testing, and click "Authorize" to open a new tab where you will grant consent to your application from a sample beneficiary. In order to log in, you can use a sample beneficiary using the login instructions from [this link](http://localhost:8000/testclient/authorize-link-v2).
+    5. **Authorize Access**: Within the prompt, input your client_id and client_secret, choose the scopes you want to use in your testing, and click "Authorize" to open a new tab where you will grant consent to your application from a sample beneficiary. In order to log in, you can use a sample beneficiary using the login instructions from [this link](https://sandbox.bluebutton.cms.gov/testclient/authorize-link-v2).
     6. **Complete Consent**: Follow the prompts to complete the consent form.
     7. **Return to Swagger UI**: After consenting, you will be redirected back to this Swagger UI.
     8. **Explore APIs**: You can now start exploring and testing the APIs by providing the relevant parameters.
@@ -801,8 +801,8 @@ components:
       description: This API uses OAuth 2 with the implicit grant flow.
       flows:
         authorizationCode:
-          authorizationUrl: http://localhost:8000/v2/o/authorize
-          tokenUrl: http://localhost:8000/v2/o/token/
+          authorizationUrl: https://sandbox.bluebutton.cms.gov/v2/o/authorize
+          tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
           scopes:
             profile: User Profile
             patient/Patient.read: Read patient
@@ -915,11 +915,11 @@ components:
   examples:
     V1OpenIdConfigurationExample:
       value:
-        issuer: 'http://localhost:8000'
-        authorization_endpoint: 'http://localhost:8000/v1/o/authorize/'
-        revocation_endpoint: 'http://localhost:8000/v1/o/revoke/'
-        token_endpoint: 'http://localhost:8000/v1/o/token/'
-        userinfo_endpoint: 'http://localhost:8000/v1/connect/userinfo'
+        issuer: 'https://sandbox.bluebutton.cms.gov'
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
+        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/connect/userinfo'
         ui_locales_supported:
           - en-US
         service_documentation: 'https://bluebutton.cms.gov/developers'
@@ -930,15 +930,15 @@ components:
         response_types_supported:
           - code
           - token
-        fhir_metadata_uri: 'http://localhost:8000/v1/fhir/metadata'
+        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v1/fhir/metadata'
     
     V2OpenIdConfigurationExample:
       value:
-        issuer: 'http://localhost:8000'
-        authorization_endpoint: 'http://localhost:8000/v2/o/authorize/'
-        revocation_endpoint: 'http://localhost:8000/v2/o/revoke/'
-        token_endpoint: 'http://localhost:8000/v2/o/token/'
-        userinfo_endpoint: 'http://localhost:8000/v2/connect/userinfo'
+        issuer: 'https://sandbox.bluebutton.cms.gov'
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
+        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/connect/userinfo'
         ui_locales_supported:
           - en-US
         service_documentation: 'https://bluebutton.cms.gov/developers'
@@ -949,7 +949,7 @@ components:
         response_types_supported:
           - code
           - token
-        fhir_metadata_uri: 'http://localhost:8000/v2/fhir/metadata'
+        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
 
   
     V1FhirMetadataExample:
@@ -1334,11 +1334,11 @@ components:
                     http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
                   extension:
                     - url: token
-                      valueUri: 'http://localhost:8000/v1/o/token/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
                     - url: authorize
-                      valueUri: 'http://localhost:8000/v1/o/authorize/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
                     - url: revoke
-                      valueUri: 'http://localhost:8000/v1/o/revoke/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
 
     V2FhirMetadataExample:
       value:
@@ -1354,7 +1354,7 @@ components:
           version: 2.141.0
         implementation:
           description: 'gov.cms.bfd:bfd-server-war'
-          url: 'http://localhost:8000/v2/fhir'
+          url: 'https://sandbox.bluebutton.cms.gov/v2/fhir'
         fhirVersion: 4.0.1
         format:
           - application/json
@@ -1771,11 +1771,11 @@ components:
                     http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
                   extension:
                     - url: token
-                      valueUri: 'http://localhost:8000/v2/o/token/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
                     - url: authorize
-                      valueUri: 'http://localhost:8000/v2/o/authorize/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
                     - url: revoke
-                      valueUri: 'http://localhost:8000/v2/o/revoke/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
     
     V1UserInfoExample:
       value:
@@ -1929,13 +1929,13 @@ components:
         link:
           - relation: first
             url: >-
-              http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: last
             url: >-
-              http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: self
             url: >-
-              http://localhost:8000/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
+              https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Patient
@@ -1992,13 +1992,13 @@ components:
         link:
           - relation: first
             url: >-
-              http://localhost:8000/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: last
             url: >-
-              http://localhost:8000/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
           - relation: self
             url: >-
-              http://localhost:8000/v2/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
+              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Patient
@@ -2085,13 +2085,13 @@ components:
         link:
           - relation: first
             url: >-
-              http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: last
             url: >-
-              http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: self
             url: >-
-              http://localhost:8000/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
+              https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Coverage
@@ -2898,13 +2898,13 @@ components:
         link:
           - relation: first
             url: >-
-              http://localhost:8000/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: last
             url: >-
-              http://localhost:8000/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
+              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
           - relation: self
             url: >-
-              http://localhost:8000/v2/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
+              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: Coverage
@@ -3973,16 +3973,16 @@ components:
         link:
           - relation: first
             url: >-
-              http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
           - relation: next
             url: >-
-              http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
           - relation: last
             url: >-
-              http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
+              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
           - relation: self
             url: >-
-              http://localhost:8000/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
+              https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: ExplanationOfBenefit
@@ -18136,13 +18136,13 @@ components:
         type: searchset
         link:
           - relation: first
-            url: http://localhost:8000/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
+            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=-10000010254647
           - relation: next
-            url: http://localhost:8000/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
+            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=-10000010254647
           - relation: last
-            url: http://localhost:8000/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
+            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=50&_count=10&patient=-10000010254647
           - relation: self
-            url: http://localhost:8000/v2/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
+            url: https://sandbox.bluebutton.cms.gov/v2/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=-10000010254647&startIndex=0
         entry:
           - resource:
               resourceType: ExplanationOfBenefit
@@ -33899,8 +33899,8 @@ components:
       
       
 servers:
-  - url: 'http://localhost:8000/'
-    description: Local server
+  - url: 'https://sandbox.bluebutton.cms.gov/'
+    description: Sandbox server
     variables: {}
 security:
     - oAuth2Security:
