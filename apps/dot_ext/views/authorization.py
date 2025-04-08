@@ -238,6 +238,7 @@ class AuthorizationView(DotAuthorizationView):
         return self.redirect(self.success_url, application)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
