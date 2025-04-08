@@ -40,10 +40,11 @@ PATIENT_READ_SCHEMA = {
         "id": {"type": "string"},
         "identifier": {"type": "array"},
         "name": {"type": "array"},
+        "gender": {"type": "string"},
         "birthDate": {"type": "string"},
         "address": {"type": "array"}
     },
-    "required": ["id", "resourceType", "identifier", "name", "birthDate", "address"]
+    "required": ["id", "resourceType", "identifier", "name", "gender", "birthDate", "address"]
 }
 
 PATIENT_SEARCH_SCHEMA = {

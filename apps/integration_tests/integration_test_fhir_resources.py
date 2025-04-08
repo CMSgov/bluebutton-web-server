@@ -92,14 +92,13 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         meta_profile = None
         try:
             meta_profile = resource['meta']['profile'][0]
-            print(meta_profile)
         except KeyError:
             pass
-        # if not v2:
-        #     self.assertIsNone(meta_profile)
-        # else:
-        #     self.assertIsNotNone(meta_profile)
-        #     self.assertEqual(meta_profile, c4bb_profile)
+        if not v2:
+            self.assertIsNone(meta_profile)
+        else:
+            self.assertIsNotNone(meta_profile)
+            self.assertEqual(meta_profile, c4bb_profile)
 
     def _assertAddressOK(self, resource):
         addr_list = resource.get('address')
