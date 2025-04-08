@@ -307,6 +307,3 @@ class Command(BaseCommand):
         create_coverage_read_search_capability(g, fhir_prefix)
         create_launch_capability(g, fhir_prefix)
         create_openid_capability(g)
-
-        call_command('loaddata', 'internal_application_labels.json')
-
