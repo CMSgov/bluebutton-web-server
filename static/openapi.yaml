@@ -983,7 +983,7 @@ components:
         response_types_supported:
           - code
           - token
-        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata
+        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
 
     SmartConfigurationExample:
       value:
