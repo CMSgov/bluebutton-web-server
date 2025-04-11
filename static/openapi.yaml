@@ -17,7 +17,7 @@ info:
 paths:
   /.well-known/openid-configuration:
     get:
-      operationId: openIdConfig_v2
+      operationId: openIdConfig
       description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
       summary: "OpenID Connect protocol (OIDC) Discovery information"
       security: []
@@ -26,17 +26,41 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/V2OpenIdConfiguration'
+                $ref: '#/components/schemas/OpenIdConfiguration'
               examples:
-                V2OpenIdConfigurationExample:
-                  $ref: '#/components/examples/V2OpenIdConfigurationExample'
+                OpenIdConfigurationExample:
+                  $ref: '#/components/examples/OpenIdConfigurationExample'
             application/fhir+json:
               schema:
-                $ref: '#/components/schemas/V2OpenIdConfiguration'
+                $ref: '#/components/schemas/OpenIdConfiguration'
               examples:
-                V2OpenIdConfigurationExample:
-                  $ref: '#/components/examples/V2OpenIdConfigurationExample'
+                OpenIdConfigurationExample:
+                  $ref: '#/components/examples/OpenIdConfigurationExample'
           description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
+      tags:
+        - v2
+  /v2/fhir/.well-known/smart-configuration:
+    get:
+      operationId: smartConfigV2
+      description: "Returns Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      summary: "Smart App Launch Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExample:
+                  $ref: '#/components/examples/SmartConfigurationExample'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExample:
+                  $ref: '#/components/examples/SmartConfigurationExample'
+          description: "Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
       tags:
         - v2
   /v2/fhir/metadata:
@@ -405,6 +429,30 @@ paths:
       tags:
         - v2
 
+  /v1/fhir/.well-known/smart-configuration:
+    get:
+      operationId: smartConfigV1
+      description: "Returns Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      summary: "Smart App Launch Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExample:
+                  $ref: '#/components/examples/SmartConfigurationExample'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExample:
+                  $ref: '#/components/examples/SmartConfigurationExample'
+          description: "Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      tags:
+        - v1
   /v1/fhir/metadata:
     get: 
       operationId: fhirMetaData
@@ -804,15 +852,26 @@ components:
           authorizationUrl: https://sandbox.bluebutton.cms.gov/v2/o/authorize
           tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
           scopes:
-            profile: User Profile
-            patient/Patient.read: Read patient
-            patient/Coverage.read: Read Patient coverage
-            patient/ExplanationOfBenefit.read: Read patient explanation of benefit
+            profile: User profile
+            patient/Patient.read: Read and search patient
+            patient/Coverage.read: Read and search patient coverage
+            patient/ExplanationOfBenefit.read: Read and search patient explanation of benefit
+            openid: Openid profile
+            launch/patient: Patient launch context
+            patient/Patient.r: Read patient
+            patient/Patient.s: Search patient
+            patient/Patient.rs: Read and search patient
+            patient/Coverage.r: Read patient coverage
+            patient/Coverage.s: Search patient coverage
+            patient/Coverage.rs: Read and search patient coverage
+            patient/ExplanationOfBenefit.r: Read patient explanation of benefit
+            patient/ExplanationOfBenefit.s: Search patient explanation of benefit
+            patient/ExplanationOfBenefit.rs: Read and search patient explanation of benefit
             
   schemas:
     FHIR-JSON-RESOURCE: {type: object, description: A FHIR resource}
 
-    V1OpenIdConfiguration:
+    OpenIdConfiguration:
       properties:
         issuer: 
           type: string
@@ -835,7 +894,7 @@ components:
         grant_types_supported: 
           type: array
           items: 
-            type: string    
+            type: string
         response_types_supported: 
           type: array
           items: 
@@ -843,40 +902,34 @@ components:
         fhir_metadata_uri: 
           type: string
 
-    V2OpenIdConfiguration:
+    SmartConfiguration:
       properties: 
-        issuer: 
-          type: string
         authorization_endpoint: 
           type: string
         revocation_endpoint:
           type: string
         token_endpoint: 
           type: string
-        userinfo_endpoint: 
-          type: string
-        ui_locales_supported: 
-          type: array
-          items: 
-            type: string
-      
-        service_documentation: 
-          type: string
-        op_tos_uri: 
-          type: string
         grant_types_supported: 
           type: array
           items: 
             type: string
-      
-      
         response_types_supported: 
           type: array
           items: 
             type: string
-      
-        fhir_metadata_uri: 
-          type: string
+        scopes_supported: 
+          type: array
+          items: 
+            type: string
+        code_challenge_methods_supported: 
+          type: array
+          items: 
+            type: string
+        capabilities: 
+          type: array
+          items: 
+            type: string
 
     V1UserInfo:
       properties:
@@ -913,26 +966,7 @@ components:
           type: string
             
   examples:
-    V1OpenIdConfigurationExample:
-      value:
-        issuer: 'https://sandbox.bluebutton.cms.gov'
-        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
-        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
-        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/o/token/'
-        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v1/connect/userinfo'
-        ui_locales_supported:
-          - en-US
-        service_documentation: 'https://bluebutton.cms.gov/developers'
-        op_tos_uri: 'https://bluebutton.cms.gov/terms'
-        grant_types_supported:
-          - authorization_code
-          - refresh_token
-        response_types_supported:
-          - code
-          - token
-        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v1/fhir/metadata'
-    
-    V2OpenIdConfigurationExample:
+    OpenIdConfigurationExample:
       value:
         issuer: 'https://sandbox.bluebutton.cms.gov'
         authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
@@ -951,7 +985,44 @@ components:
           - token
         fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
 
-  
+    SmartConfigurationExample:
+      value:
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke_token/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
+        grant_types_supported:
+          - authorization_code
+        response_types_supported:
+          - code
+          - token
+        scopes_supported:
+          - openid
+          - profile
+          - launch/patient
+          - patient/Patient.read
+          - patient/ExplanationOfBenefit.read
+          - patient/Coverage.read
+          - patient/Patient.r
+          - patient/ExplanationOfBenefit.r
+          - patient/Coverage.r
+          - patient/Patient.s
+          - patient/ExplanationOfBenefit.s
+          - patient/Coverage.s
+          - patient/Patient.rs
+          - patient/ExplanationOfBenefit.rs
+          - patient/Coverage.rs
+        code_challenge_methods_supported:
+          - S256
+        capabilities:
+          - client-confidential-symmetric
+          - client-confidential-asymmetric
+          - context-standalone-patient
+          - launch-standalone
+          - permission-offline
+          - permission-patient
+          - permission-v1
+          - authorize-post
+
     V1FhirMetadataExample:
       value:
         resourceType: CapabilityStatement
