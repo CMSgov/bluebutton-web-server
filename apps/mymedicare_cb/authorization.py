@@ -282,7 +282,7 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         max_retries = 3
         retries = 0
-        while retries < max_retries:
+        while retries <= max_retries:
             try:
                 response = requests.get(
                     self.healthcheck_endpoint,
