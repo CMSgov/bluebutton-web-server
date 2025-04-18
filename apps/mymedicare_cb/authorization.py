@@ -1,5 +1,6 @@
 import requests
 import datetime
+import os
 
 import apps.logging.request_logger as logging
 
@@ -294,7 +295,7 @@ class OAuth2ConfigSLSx(object):
                 response.raise_for_status()
                 return True
             except requests.exceptions.RequestException as e:
-                if retries < max_retries:
+                if retries < max_retries and os.environ.get('TARGET_ENV') is None:
                     print(f"SLSx service health check request failed. Retrying... ({retries+1}/{max_retries})")
                     retries += 1
                 else:
