@@ -1,5 +1,6 @@
 import requests
 import datetime
+import os
 
 import apps.logging.request_logger as logging
 
@@ -280,16 +281,26 @@ class OAuth2ConfigSLSx(object):
         the BB2 /health/external check.
         """
         headers = self.slsx_common_headers(request)
-
-        response = requests.get(
-            self.healthcheck_endpoint,
-            headers=headers,
-            allow_redirects=False,
-            verify=self.verify_ssl_internal,
-            timeout=5,
-        )
-        response.raise_for_status()
-        return True
+        max_retries = 3
+        retries = 0
+        while retries <= max_retries:
+            try:
+                response = requests.get(
+                    self.healthcheck_endpoint,
+                    headers=headers,
+                    allow_redirects=False,
+                    verify=self.verify_ssl_internal,
+                    timeout=10,
+                )
+                response.raise_for_status()
+                return True
+            except requests.exceptions.RequestException as e:
+                if retries < max_retries and os.environ.get('TARGET_ENV') is None:
+                    # Checking target_env ensures the retry logic only happens on local
+                    print(f"SLSx service health check request failed. Retrying... ({retries+1}/{max_retries})")
+                    retries += 1
+                else:
+                    raise e
 
     def user_signout(self, request):
         """
