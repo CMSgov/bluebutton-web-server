@@ -18,6 +18,9 @@ from ..bluebutton.utils import (FhirServerAuth,
 from .loggers import log_match_fhir_id
 
 
+load_dotenv()
+
+
 def search_fhir_id_by_identifier_mbi(mbi, request=None):
     """
         Search the backend FHIR server's patient resource
