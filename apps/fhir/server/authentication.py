@@ -82,6 +82,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     max_retries = 3
     retries = 0
+    env = os.environ.get('TARGET_ENV')
     while retries <= max_retries:
         try:
             s = requests.Session()
@@ -99,7 +100,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
                 raise UpstreamServerException(err_detail)
             return fhir_id
         except requests.exceptions.RequestException as e:
-            if retries < max_retries and os.environ.get('TARGET_ENV') is None or os.environ.get('TARGET_ENV') == 'DEV':
+            if retries < max_retries and env is None or env == 'DEV':
                 # Checking target_env ensures the retry logic only happens on local
                 print(f"FHIR ID search request failed. Retrying... ({retries+1}/{max_retries})")
                 retries += 1

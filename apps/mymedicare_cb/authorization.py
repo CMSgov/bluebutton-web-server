@@ -283,6 +283,7 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         max_retries = 3
         retries = 0
+        env = os.environ.get('TARGET_ENV')
         while retries <= max_retries:
             try:
                 response = requests.get(
@@ -295,7 +296,7 @@ class OAuth2ConfigSLSx(object):
                 response.raise_for_status()
                 return True
             except requests.exceptions.RequestException as e:
-                if retries < max_retries and os.environ.get('TARGET_ENV') is None or os.environ.get('TARGET_ENV') == 'DEV':
+                if retries < max_retries and env is None or env == 'DEV':
                     # Checking target_env ensures the retry logic only happens on local
                     print(f"SLSx service health check request failed. Retrying... ({retries+1}/{max_retries})")
                     retries += 1
