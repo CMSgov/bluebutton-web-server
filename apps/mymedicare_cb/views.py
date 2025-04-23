@@ -1,6 +1,8 @@
 import random
 import urllib.request as urllib_request
-
+import os
+import requests
+import time
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, HttpResponseRedirect
@@ -147,10 +149,22 @@ def generate_nonce(length=26):
 def mymedicare_login(request, version=1):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
+    env = os.environ.get('TARGET_ENV')
+    max_retries = 3
+    retries = 0
 
-    # Perform health check on SLSx service
-    slsx_client = OAuth2ConfigSLSx()
-    slsx_client.service_health_check(request)
+    while retries <= max_retries:
+        try:
+            # Perform health check on SLSx service
+            slsx_client = OAuth2ConfigSLSx()
+            if slsx_client.service_health_check(request):
+                break
+        except requests.exceptions.RequestException:
+            if retries < max_retries and env is None or env == 'DEV':
+                time.sleep(2)
+                # Checking target_env ensures the retry logic only happens on local
+                print(f"SLSx service health check during login failed. Retrying... ({retries+1}/{max_retries})")
+                retries += 1
 
     relay_param_name = "relay"
     redirect = urllib_request.pathname2url(redirect)
