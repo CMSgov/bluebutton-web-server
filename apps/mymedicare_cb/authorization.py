@@ -286,7 +286,7 @@ class OAuth2ConfigSLSx(object):
             headers=headers,
             allow_redirects=False,
             verify=self.verify_ssl_internal,
-            timeout=1,
+            timeout=5,
         )
         response.raise_for_status()
         return True
