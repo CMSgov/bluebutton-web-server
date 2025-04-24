@@ -1,6 +1,5 @@
 import requests
 import os
-from dotenv import load_dotenv
 from django.conf import settings
 from rest_framework import exceptions
 from urllib.parse import quote
@@ -17,9 +16,6 @@ from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
 from .loggers import log_match_fhir_id
-
-
-load_dotenv()
 
 
 def search_fhir_id_by_identifier_mbi(mbi, request=None):
@@ -86,6 +82,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     max_retries = 3
     retries = 0
+    env = os.environ.get('TARGET_ENV')
     while retries <= max_retries:
         try:
             s = requests.Session()
@@ -102,8 +99,8 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
             if err_detail is not None:
                 raise UpstreamServerException(err_detail)
             return fhir_id
-        except requests.exceptions.RequestException as e:
-            if retries < max_retries and os.environ.get('TARGET_ENV') is None:
+        except requests.exceptions.SSLError as e:
+            if retries < max_retries and (env is None or env == 'DEV'):
                 # Checking target_env ensures the retry logic only happens on local
                 print(f"FHIR ID search request failed. Retrying... ({retries+1}/{max_retries})")
                 retries += 1
