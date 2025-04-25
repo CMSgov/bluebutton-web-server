@@ -1,5 +1,5 @@
 # base packages
-django == 4.2.17
+django == 4.2.20
 django-bootstrap-v5
 django-cors-headers
 django-localflavor
