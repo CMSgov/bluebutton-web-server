@@ -482,6 +482,35 @@ BENE_PERSONAL_INFO_SCOPES = [
     "profile",
 ]
 
+# Legacy FHIR resource permission (v1) to v2 scope mapping
+LEGACY_SCOPE_TO_V2_MAP = {
+    "patient/Patient.read": set(["patient/Patient.rs", "patient/Patient.s", "patient/Patient.s"]),
+    "patient/Coverage.read": set(["patient/Coverage.rs", "patient/Coverage.r", "patient/Coverage.s"]),
+    "patient/ExplanationOfBenefit.read": set(["patient/ExplanationOfBenefit.rs",
+                                              "patient/ExplanationOfBenefit.r",
+                                              "patient/ExplanationOfBenefit.s"])
+}
+
+# v2 scope permissions
+V2_SCOPE_PERMISSIONS = [
+    "patient/Patient.s",
+    "patient/Patient.r",
+    "patient/Patient.rs",
+    "patient/Coverage.s",
+    "patient/Coverage.r",
+    "patient/Coverage.rs",
+    "patient/ExplanationOfBenefit.s",
+    "patient/ExplanationOfBenefit.r",
+    "patient/ExplanationOfBenefit.rs"
+]
+
+# v2 scope subsumption
+AUTH_SCOPE_V2_SUBSUMPTION = {
+    "patient/Patient.rs": set(["patient/Patient.r", "patient/Patient.s"]),
+    "patient/Coverage.rs": set(["patient/Coverage.r", "patient/Coverage.s"]),
+    "patient/ExplanationOfBenefit.rs": set(["patient/ExplanationOfBenefit.r", "patient/ExplanationOfBenefit.s"])
+}
+
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
