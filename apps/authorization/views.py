@@ -73,7 +73,7 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
             client = get_application_from_meta(request)
             DataAccessGrant.objects.get(beneficiary=user.id, application=client).delete()
         except Crosswalk.DoesNotExist:
-            return HttpResponse(f"Patient {patient_id} was Not Found.  Please check the id number and try again.",
+            return HttpResponse("Patient was Not Found. Please check the id number and try again.",
                                 status=status.HTTP_404_NOT_FOUND)
         except DataAccessGrant.DoesNotExist:
             return HttpResponse("Data Access Grant was Not Found.",
