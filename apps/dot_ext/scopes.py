@@ -84,6 +84,7 @@ class CapabilitiesScopes(BaseScopes):
         if not v2_selected:
             # no explicitly selected v2 permission, do legacy -> v2 expand
             for p in scopes:
-                out_scopes = out_scopes.union(settings.LEGACY_SCOPE_TO_V2_MAP.get(p))
+                if settings.LEGACY_SCOPE_TO_V2_MAP.get(p):
+                    out_scopes = out_scopes.union(settings.LEGACY_SCOPE_TO_V2_MAP.get(p))
 
         return list(out_scopes)
