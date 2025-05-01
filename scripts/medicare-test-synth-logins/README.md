@@ -134,14 +134,14 @@ Output example:
 # Starting.... Press CTRL-c twice to abort.
 #
 # ----
-# TESING(0):  n=9998 username=BBUser09998 passwd=PW09998!
+# TESTING(0):  n=9998 username=BBUser09998 passwd=PW09998!
 # LOGIN FAILED with:  FAIL-PW-EXPIRED
 # ----
-# TESING(0):  n=9999 username=BBUser09999 passwd=PW09999!
+# TESTING(0):  n=9999 username=BBUser09999 passwd=PW09999!
 # LOGIN SUCCESSFUL!
 #
 # ----
-# TESING(0):  n=10000 username=BBUser10000 passwd=PW10000!
+# TESTING(0):  n=10000 username=BBUser10000 passwd=PW10000!
 # LOGIN FAILED with:  FAIL-PW-EXPIRED
 #---
 #---
