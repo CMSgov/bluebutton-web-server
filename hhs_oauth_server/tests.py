@@ -7,7 +7,9 @@ File created by: 'Mark Scrimshire: @ekivemark'
 """
 
 from django.test import TestCase
-
+from django.test.client import Client
+from django.urls import reverse
+import json
 from apps.logging.sensitive_logging_filters import mask_mbi
 
 
@@ -314,3 +316,42 @@ class MBI_tests(TestCase):
                 self.assertNotIn('***MBI***', masked_mbi_lowercase_text)
                 self.assertIn(mbi_value, masked_uppercase_text)
                 self.assertIn(mbi_value.lower(), masked_mbi_lowercase_text)
+
+
+class SmartConfigurationTestCase(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.smart_url = reverse('smart_configuration')
+
+    def test_valid_smart_config_response(self):
+        CAPABILITIES = [
+            "client-confidential-symmetric",
+            "context-standalone-patient",
+            "launch-standalone",
+            "permission-offline",
+            "permission-patient",
+            "permission-v1",
+            "permission-v2",
+            "authorize-post"
+        ]
+
+        SCOPES_SUPPORTED = [
+            "openid",
+            "profile",
+            "launch/patient",
+            "patient/Patient.read",
+            "patient/ExplanationOfBenefit.read",
+            "patient/Coverage.read",
+            "patient/Patient.rs",
+            "patient/ExplanationOfBenefit.rs",
+            "patient/Coverage.rs",
+        ]
+        response = self.client.get(self.smart_url)
+        response_json = response.json()
+        response_content = response.content
+        response_content = str(response_content, encoding='utf8')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(type(json.loads(response_content)), type({}))
+        self.assertCountEqual(response_json['capabilities'], CAPABILITIES)
+        self.assertCountEqual(response_json['scopes_supported'], SCOPES_SUPPORTED)
