@@ -84,7 +84,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_READ_EVENT_SCHEMA,
-        "path": "/testclient/Patient"
+        "path": "/testclient/PatientV2"
     },
     {
         # first Coverage
@@ -93,7 +93,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_SEARCH_EVENT_SCHEMA,
-        "path": "/testclient/Coverage"
+        "path": "/testclient/CoverageV2"
     },
     {
         # last Coverage
@@ -102,7 +102,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_NAVIGATION_EVENT_SCHEMA,
-        "path": "/testclient/Coverage"
+        "path": "/testclient/CoverageV2"
     },
     {
         # test client fhir links page
@@ -116,7 +116,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_SEARCH_EVENT_SCHEMA,
-        "path": "/testclient/ExplanationOfBenefit"
+        "path": "/testclient/ExplanationOfBenefitV2"
     },
     {
         # last EOB
@@ -125,7 +125,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_NAVIGATION_EVENT_SCHEMA,
-        "path": "/testclient/ExplanationOfBenefit"
+        "path": "/testclient/ExplanationOfBenefitV2"
     },
     {
         # test client fhir links page
