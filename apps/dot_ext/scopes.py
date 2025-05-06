@@ -34,12 +34,7 @@ class CapabilitiesScopes(BaseScopes):
             # Return all scopes
             return app_scopes_avail
         else:
-            # Remove personal information scopes
-            app_scopes = []
-            for s in app_scopes_avail:
-                if s not in settings.BENE_PERSONAL_INFO_SCOPES:
-                    app_scopes.append(s)
-            return app_scopes
+            return self.remove_demographic_scopes(app_scopes_avail)
 
     def get_default_scopes(self, application=None, request=None, *args, **kwargs):
         """
@@ -59,9 +54,38 @@ class CapabilitiesScopes(BaseScopes):
             # Return all scopes
             return app_scopes_default
         else:
-            # Remove personal information scopes
-            app_scopes = []
-            for s in app_scopes_default:
-                if s not in settings.BENE_PERSONAL_INFO_SCOPES:
-                    app_scopes.append(s)
-            return app_scopes
+            return self.remove_demographic_scopes(app_scopes_default)
+
+    def condense_scopes(self, scopes):
+        """
+        Returns a list based on the provided list of scopes with redundant scopes consolidated
+        """
+        out_scopes = set(scopes)
+
+        # Consolidate v2 resource scopes
+        if "patient/Patient.rs" in scopes or ("patient/Patient.r" in scopes and "patient/Patient.s" in scopes):
+            out_scopes.add("patient/Patient.rs")
+            out_scopes.discard("patient/Patient.r")
+            out_scopes.discard("patient/Patient.s")
+        if "patient/Coverage.rs" in scopes or ("patient/Coverage.r" in scopes and "patient/Coverage.s" in scopes):
+            out_scopes.add("patient/Coverage.rs")
+            out_scopes.discard("patient/Coverage.r")
+            out_scopes.discard("patient/Coverage.s")
+        if "patient/ExplanationOfBenefit.rs" in scopes or \
+                ("patient/ExplanationOfBenefit.r" in scopes and "patient/ExplanationOfBenefit.s" in scopes):
+            out_scopes.add("patient/ExplanationOfBenefit.rs")
+            out_scopes.discard("patient/ExplanationOfBenefit.r")
+            out_scopes.discard("patient/ExplanationOfBenefit.s")
+
+        return list(out_scopes)
+
+    def remove_demographic_scopes(self, scopes):
+        """
+        Returns a list of all of the provided list except with personal info scopes removed
+        """
+        # Remove personal information scopes
+        out_scopes = []
+        for s in scopes:
+            if s not in settings.BENE_PERSONAL_INFO_SCOPES:
+                out_scopes.append(s)
+        return out_scopes
