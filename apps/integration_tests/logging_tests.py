@@ -199,6 +199,6 @@ class TestLoggings(TestBlueButtonAPI):
             assert len(expected_events) == 0
 
     def test_auth_fhir_flows_logging(self):
-        self.test_auth_grant_fhir_calls_v1()
+        self.test_auth_grant_pkce_fhir_calls_v2()
         print("validating logging events in log...")
         self._validate_events()
