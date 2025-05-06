@@ -35,9 +35,9 @@ EXPECTED_LOGGING_EVENTS = [
         "path": "/testclient/",
     },
     {
-        # v1 auth link
+        # auth link
         "schema": LOG_MIDDLEWARE_TESTCLIENT_AUTHLINK_EVENT_SCHEMA,
-        "path": "/testclient/authorize-link",
+        "path": "/testclient/authorize-link-v2",
     },
     {
         # authorize as a bene
