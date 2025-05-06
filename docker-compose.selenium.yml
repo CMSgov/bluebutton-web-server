@@ -21,7 +21,7 @@ services:
     hostname: chrome
     ports:
       - "4444:4444"
-      - "5901:5901"
+      - "5900:5900"
 
   msls:
     build: ./dev-local
