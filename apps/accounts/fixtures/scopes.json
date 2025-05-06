@@ -100,7 +100,7 @@
             "group": 5,
             "description": "Patient FHIR Resource",
             "protected_resources": "[\n \n [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/?].*$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -112,7 +112,7 @@
             "group": 5,
             "description": "Patient FHIR Resource",
             "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/]?$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -124,7 +124,7 @@
             "group": 5,
             "description": "Patient FHIR Resource",
             "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/?].*$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -136,7 +136,7 @@
             "group": 5,
             "description": "ExplanationOfBenefit FHIR Resource",
             "protected_resources": "[\n \n [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -148,7 +148,7 @@
             "group": 5,
             "description": "ExplanationOfBenefit FHIR Resource",
             "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/]?$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -160,7 +160,7 @@
             "group": 5,
             "description": "ExplanationOfBenefit FHIR Resource",
             "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -172,7 +172,7 @@
             "group": 5,
             "description": "Coverage FHIR Resource",
             "protected_resources": "[\n \n [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/?].*$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
@@ -184,7 +184,7 @@
             "group": 5,
             "description": "Coverage FHIR Resource",
             "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/]?$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
         {
@@ -196,7 +196,7 @@
             "group": 5,
             "description": "Coverage FHIR Resource",
             "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/?].*$\"\n  ]\n]",
-            "default": "False"
+            "default": "True"
         }
     },
     {
