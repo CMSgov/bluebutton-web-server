@@ -62,7 +62,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA,
-        "path": "/v1/o/token/",
+        "path": "/v2/o/token/",
     },
     {
         "schema": LOG_MIDDLEWARE_EVENT_SCHEMA,
