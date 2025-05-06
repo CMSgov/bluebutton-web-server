@@ -36,7 +36,7 @@ LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA = {
         "elapsed": {"type": "number"},
         "ip_addr": {"type": "string", "format": "ip-address"},
         "request_uuid": {"type": "string", "format": "uuid"},
-        "path": {"pattern": "/v1/o/token"},
+        "path": {"pattern": "/v2/o/token"},
         "request_method": {"pattern": "POST"},
         "request_scheme": {"pattern": "http"},
         "response_code": {"type": "integer", "enum": [http.client.OK]},
