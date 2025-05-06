@@ -467,7 +467,7 @@ LOG_MIDDLEWARE_FHIR_USERINFO_EVENT_SCHEMA = {
         "req_user_id": {"type": "integer"},
         "req_user_username": {"type": "string"},
         "req_fhir_id": {"type": "string"},
-        "path": {"pattern": "/v1/connect/userinfo"},
+        "path": {"pattern": "/v2/connect/userinfo"},
         "user": {"type": "string"},
         "fhir_id": {"type": "string"},
         "access_token_scopes": {"type": "string"},
