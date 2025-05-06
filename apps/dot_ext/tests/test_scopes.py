@@ -78,3 +78,35 @@ class TestScopesBackendClass(BaseApiTest):
         # retrieve the list of the scopes available for the application
         default_scopes = CapabilitiesScopes().get_default_scopes(application=application)
         assert default_scopes == []
+
+    def test_condense_scopes(self):
+        """
+        Test that v2 scopes get properly condensed
+        """
+        scopes = [
+            'patient/Patient.r',
+            'patient/Patient.s',
+            'patient/Patient.rs',
+            'patient/Coverage.s',
+            'patient/Coverage.rs',
+            'patient/ExplanationOfBenefit.r',
+            'patient/ExplanationOfBenefit.s'
+        ]
+        condensed_scopes = CapabilitiesScopes().condense_scopes(scopes)
+        assert len(condensed_scopes) == 3
+        assert 'patient/Patient.rs' in condensed_scopes
+        assert 'patient/Coverage.rs' in condensed_scopes
+        assert 'patient/ExplanationOfBenefit.rs' in condensed_scopes
+        scopes = [
+            'patient/Patient.r',
+            'patient/Coverage.s',
+            'patient/Coverage.rs',
+            'patient/ExplanationOfBenefit.s',
+            'profile'
+        ]
+        condensed_scopes = CapabilitiesScopes().condense_scopes(scopes)
+        assert len(condensed_scopes) == 4
+        assert 'patient/Patient.r' in condensed_scopes
+        assert 'patient/Coverage.rs' in condensed_scopes
+        assert 'patient/ExplanationOfBenefit.s' in condensed_scopes
+        assert 'profile' in condensed_scopes
