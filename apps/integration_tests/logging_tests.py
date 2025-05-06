@@ -80,7 +80,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_FHIR_READ_EVENT_SCHEMA,
-        "path_regex": "/v1/fhir/Patient/-20140000008325|/v1/fhir/Patient/-19990000000001"
+        "path_regex": "/v2/fhir/Patient/-20140000008325|/v2/fhir/Patient/-19990000000001"
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_READ_EVENT_SCHEMA,
@@ -89,7 +89,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # first Coverage
         "schema": LOG_MIDDLEWARE_FHIR_SEARCH_EVENT_SCHEMA,
-        "path": "/v1/fhir/Coverage/"
+        "path": "/v2/fhir/Coverage/"
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_SEARCH_EVENT_SCHEMA,
@@ -98,7 +98,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # last Coverage
         "schema": LOG_MIDDLEWARE_FHIR_NAVIGATION_EVENT_SCHEMA,
-        "path": "/v1/fhir/Coverage/"
+        "path": "/v2/fhir/Coverage/"
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_NAVIGATION_EVENT_SCHEMA,
@@ -112,7 +112,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # first EOB
         "schema": LOG_MIDDLEWARE_FHIR_SEARCH_EVENT_SCHEMA,
-        "path": "/v1/fhir/ExplanationOfBenefit/"
+        "path": "/v2/fhir/ExplanationOfBenefit/"
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_SEARCH_EVENT_SCHEMA,
@@ -121,7 +121,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # last EOB
         "schema": LOG_MIDDLEWARE_FHIR_NAVIGATION_EVENT_SCHEMA,
-        "path": "/v1/fhir/ExplanationOfBenefit/"
+        "path": "/v2/fhir/ExplanationOfBenefit/"
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_NAVIGATION_EVENT_SCHEMA,
