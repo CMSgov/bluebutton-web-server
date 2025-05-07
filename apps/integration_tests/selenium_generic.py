@@ -15,13 +15,8 @@ from .common_utils import extract_href_from_html, extract_last_part_of_url
 from .selenium_cases import (
     Action,
     TESTCASE_BANNER_FMT,
-    LNK_TXT_GET_TOKEN_V1,
-    LNK_TXT_GET_TOKEN_PKCE_V1,
-    LNK_TXT_GET_TOKEN_V2,
-    LNK_TXT_GET_TOKEN_PKCE_V2,
+    LNK_TXT_GET_TOKEN,
     LNK_TXT_RESTART_TESTCLIENT,
-    API_V2,
-    API_V1,
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
     PROD_URL,
@@ -96,7 +91,6 @@ class SeleniumGenericTests:
             Action.CHECK: self._check_page_title,
             Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
             Action.CONTAIN_TEXT: self._check_page_content,
-            Action.GET_SAMPLE_TOKEN_START: self._click_get_sample_token,
             Action.GET_SAMPLE_TOKEN_PKCE_START: self._click_get_sample_token_pkce,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
@@ -151,15 +145,8 @@ class SeleniumGenericTests:
         elem.send_keys(txt)
         return elem
 
-    def _click_get_sample_token(self, **kwargs):
-        return self._find_and_click(30, By.LINK_TEXT,
-                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver",
-                                                                       API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
-
     def _click_get_sample_token_pkce(self, **kwargs):
-        return self._find_and_click(30, By.LINK_TEXT,
-                                    LNK_TXT_GET_TOKEN_PKCE_V2 if kwargs.get("api_ver", API_V1) == API_V2
-                                    else LNK_TXT_GET_TOKEN_PKCE_V1)
+        return self._find_and_click(30, By.LINK_TEXT, LNK_TXT_GET_TOKEN)
 
     def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
