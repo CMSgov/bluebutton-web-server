@@ -150,7 +150,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # openid discovery
         "schema": LOG_MIDDLEWARE_TESTCLIENT_MISCINFO_EVENT_SCHEMA,
-        "path": "/testclient/openidConfig"
+        "path": "/testclient/openidConfigV2"
     },
     {
         # restart test client - go to test client home page with v1, v2 get sample token buttons
