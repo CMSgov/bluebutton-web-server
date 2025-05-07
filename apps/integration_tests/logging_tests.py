@@ -145,7 +145,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # meta data
         "schema": LOG_MIDDLEWARE_TESTCLIENT_MISCINFO_EVENT_SCHEMA,
-        "path": "/testclient/metadata"
+        "path": "/testclient/metadataV2"
     },
     {
         # openid discovery
