@@ -135,7 +135,7 @@ EXPECTED_LOGGING_EVENTS = [
     {
         # userinfo ep
         "schema": LOG_MIDDLEWARE_FHIR_USERINFO_EVENT_SCHEMA,
-        "path": "/v2/connect/userinfoV2"
+        "path": "/v2/connect/userinfo"
     },
     {
         # userinfo testclient url
