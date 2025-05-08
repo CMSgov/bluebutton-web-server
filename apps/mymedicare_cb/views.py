@@ -159,12 +159,14 @@ def mymedicare_login(request, version=1):
             slsx_client = OAuth2ConfigSLSx()
             if slsx_client.service_health_check(request):
                 break
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 time.sleep(0.5)
                 # Checking target_env ensures the retry logic only happens on local
                 print(f"SLSx service health check during login failed. Retrying... ({retries+1}/{max_retries})")
                 retries += 1
+            else:
+                raise e
 
     relay_param_name = "relay"
     redirect = urllib_request.pathname2url(redirect)
