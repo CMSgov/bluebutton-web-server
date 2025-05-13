@@ -154,6 +154,64 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             for r in response.json()['entry']:
                 self._assertHasC4BBIdentifier(r['resource'], C4BB_SYSTEM_TYPES['IDTYPE'], v2)
 
+    def test_search_eob_by_parameter_tag(self):
+        self._search_eob_by_parameter_tag(False)
+
+    def test_search_eob_by_parameter_tag_v2(self):
+        self._search_eob_by_parameter_tag(True)
+
+    def _search_eob_by_parameter_tag(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/ExplanationOfBenefit.read'
+        ac.save()
+        ver = 'v1' if not v2 else 'v2'
+
+        @all_requests
+        def catchall_w_tag_qparam(url, req):
+            # this is called in case EOB search with good tag
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/ExplanationOfBenefit/".format(ver), req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+            # parameters encoded in prepared request's body
+            self.assertTrue(("_tag=ADJUDICATED" in req.body) or ("_tag=PARTIALLY-ADJUDICATED" in req.body))
+
+            return {
+                'status_code': 200,
+                'content': get_response_json("eob_search_pt_{}".format(ver)),
+            }
+
+        @all_requests
+        def catchall(url, req):
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/ExplanationOfBenefit/".format(ver), req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+
+            return {
+                'status_code': 200,
+                'content': get_response_json("eob_search_pt_{}".format(ver)),
+            }
+        # Test _tag with valid parameter value e.g. ADJUDICATED, PARTIALLY-ADJUDICATED
+        with HTTMock(catchall_w_tag_qparam):
+            response = self.client.get(
+                reverse('bb_oauth_fhir_eob_search' if not v2 else 'bb_oauth_fhir_eob_search_v2'),
+                {'_tag': 'ADJUDICATED'},
+                Authorization="Bearer %s" % (first_access_token))
+            # just check for 200 is sufficient
+            self.assertEqual(response.status_code, 200)
+
+        # Test _tag with invalid parameter value e.g.: ADJUDIACTED-TYPO
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse('bb_oauth_fhir_eob_search' if not v2 else 'bb_oauth_fhir_eob_search_v2'),
+                {'_tag': 'ADJUDIACTED-TYPO'},
+                Authorization="Bearer %s" % (first_access_token))
+
+            content = json.loads(response.content.decode("utf-8"))
+            self.assertTrue(content['detail'].startswith("Invalid _tag value ("))
+            self.assertTrue(content['detail'].endswith("'PARTIALLY-ADJUDICATED' or 'ADJUDICATED' expected."))
+            self.assertTrue('ADJUDIACTED-TYPO' in content['detail'])
+            self.assertEqual(response.status_code, 400)
+
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(False)
 
@@ -167,6 +225,22 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
         ver = 'v1' if not v2 else 'v2'
+
+        @all_requests
+        def catchall_w_tag_qparam(url, req):
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/ExplanationOfBenefit/".format(ver), req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+
+            tag_val = req.query_params.getlist('_tag')
+            for v in tag_val:
+                self.assertIn(v,
+                              ['PARTIALLY-ADJUDICATED', 'ADJUDICATED'],
+                              msg="Bad _tag value {} found in call to backend".format(v))
+
+            return {
+                'status_code': 200,
+                'content': get_response_json("eob_search_pt_{}".format(ver)),
+            }
 
         @all_requests
         def catchall(url, req):
