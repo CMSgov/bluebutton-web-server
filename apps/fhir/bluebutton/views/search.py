@@ -5,6 +5,7 @@ from voluptuous import (
     Range,
     Coerce,
     Schema,
+    Invalid,
     REMOVE_EXTRA,
 )
 from rest_framework import (permissions)
@@ -105,6 +106,16 @@ class SearchViewCoverage(SearchView):
 
 
 class SearchViewExplanationOfBenefit(SearchView):
+    # customized validator for better error reporting
+    def validate_tag():
+        def validator(value):
+            for v in value:
+                if not (v in ["ADJUDICATED", "PARTIALLY-ADJUDICATED"]):
+                    msg = f"Invalid _tag value (='{v}'), 'PARTIALLY-ADJUDICATED' or 'ADJUDICATED' expected."
+                    raise Invalid(msg)
+            return value
+        return validator
+
     # Class used for ExplanationOfBenefit resource search view
     required_scopes = ['patient/ExplanationOfBenefit.read', 'patient/ExplanationOfBenefit.rs', 'patient/ExplanationOfBenefit.s']
 
@@ -136,7 +147,8 @@ class SearchViewExplanationOfBenefit(SearchView):
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
                     'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
-                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")]
+                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")],
+                    '_tag': validate_tag()
                     }
 
     def __init__(self, version=1):
@@ -161,4 +173,6 @@ class SearchViewExplanationOfBenefit(SearchView):
         schema = Schema(
             getattr(self, "QUERY_SCHEMA", {}),
             extra=REMOVE_EXTRA)
+        # _tag if presents, is a string value
+        params['_tag'] = request.query_params.getlist('_tag')
         return schema(params)
