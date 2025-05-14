@@ -1,4 +1,5 @@
-# import waffle
+import waffle
+
 from voluptuous import (
     Required,
     All,
@@ -108,7 +109,7 @@ class SearchViewCoverage(SearchView):
 
 class SearchViewExplanationOfBenefit(SearchView):
     # customized validator for better error reporting
-    def validate_tag():
+    def validate_tag(self):
         def validator(value):
             for v in value:
                 if not (v in ["Adjudicated", "PartiallyAdjudicated"]):
@@ -146,17 +147,10 @@ class SearchViewExplanationOfBenefit(SearchView):
     REGEX_SERVICE_DATE_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
 
     # Add type parameter to schema only for EOB
-    # if waffle.switch_is_active('bfd_v3_connectathon'):
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
                     'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
                     'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")],
-                    '_tag': validate_tag()
                     }
-    # else:
-    #     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
-    #                     'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
-    #                     'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")],
-    #                     }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -177,10 +171,15 @@ class SearchViewExplanationOfBenefit(SearchView):
         if service_dates:
             params['service-date'] = service_dates
 
+        query_schema = getattr(self, "QUERY_SCHEMA", {})
+
+        if waffle.switch_is_active('bfd_v3_connectathon'):
+            query_schema['_tag'] = self.validate_tag()
+            # _tag if presents, is a string value
+            params['_tag'] = request.query_params.getlist('_tag')
+
         schema = Schema(
-            getattr(self, "QUERY_SCHEMA", {}),
+            query_schema,
             extra=REMOVE_EXTRA)
-        # if waffle.switch_is_active('bfd_v3_connectathon'):
-        # _tag if presents, is a string value
-        params['_tag'] = request.query_params.getlist('_tag')
+
         return schema(params)
