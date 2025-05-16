@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
+from waffle import switch_is_active
+
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
 from apps.wellknown.views.openid import smart_configuration
@@ -45,6 +47,11 @@ urlpatterns = [
     path("creds", include("apps.creds.urls")),
     path("akamai/testobject", testobject, name="akamai_testobject"),
 ]
+
+if switch_is_active("v3_endpoints"):
+    urlpatterns += [
+        path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
+    ]
 
 # If running in local development, add the media and static urls:
 if settings.IS_MEDIA_URL_LOCAL is True:
