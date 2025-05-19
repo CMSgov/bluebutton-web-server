@@ -1,0 +1,77 @@
+services:
+  inferno-local-tests:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: pytest ./apps/integration_tests/selenium_inferno_tests.py
+    ports:
+      - "8910:8910"
+    env_file:
+      - docker-compose/selenium-env-vars.env
+      - docker-compose/inferno-devlocal-env-vars.env
+    volumes:
+      - .:/code
+    depends_on:
+      bb2slsx:
+        condition: service_healthy
+      chrome:
+        condition: service_started
+
+  chrome:
+    image: selenium/standalone-chromium
+    hostname: chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"
+
+  msls:
+    build: ./dev-local
+    command: bash -c "python -m debugpy --listen 0.0.0.0:7890 app.py"
+    ports:
+      - "8080:8080"
+      - "7890:7890"
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://msls:8080/sso/authorize"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+
+  db:
+    image: postgres
+    env_file:
+      - docker-compose/db-env-vars.env
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bb2slsx:
+    build: .
+    command: ./docker-compose/bluebutton_server_start.sh
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+    env_file:
+      # local devel specific variables go here!
+      - .env
+      - docker-compose/web-env-vars.env
+      - docker-compose/slsx-env-vars.env
+      - docker-compose/selenium-env-vars.env
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://bb2slsx:8000"]
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 20s
+    depends_on:
+      msls:
+        condition: service_started
+      db:
+        condition: service_healthy

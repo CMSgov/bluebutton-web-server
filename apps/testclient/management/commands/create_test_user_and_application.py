@@ -90,10 +90,13 @@ def create_application(user, group, app, redirect):
         redirect_uri = "https://" + redirect_uri
 
     a = Application.objects.create(name=app_name,
-                                redirect_uris=redirect_uri,
+                                redirect_uris=redirect_uri + " " + "http://localhost/custom/smart_stu2_2/redirect",
                                 user=user,
                                 data_access_type="THIRTEEN_MONTH",
                                 client_type="confidential",
+                                client_id="client_id_of_built_in_testapp",
+                                client_secret="client_secret_of_built_in_testapp",
+                                client_secret_plain="client_secret_of_built_in_testapp",
                                 authorization_grant_type="authorization-code")
 
     titles = ["My Medicare and supplemental coverage information.",

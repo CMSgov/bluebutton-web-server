@@ -666,6 +666,15 @@ SPANISH_TESTS = {
     ]
 }
 
+INFERNO_TESTS = {
+    "auth_grant_pkce_fhir_calls": [
+        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES}
+    ],
+}
+
 SEQ_CREATE_USER_ACCOUNT = [
     {
         "display": "Load BB2 Landing Page ...",

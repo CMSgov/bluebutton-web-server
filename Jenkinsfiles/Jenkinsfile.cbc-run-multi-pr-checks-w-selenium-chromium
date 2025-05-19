@@ -41,6 +41,11 @@ pipeline {
         defaultValue: false, 
         description: 'Set to true, selenium tests will be run as part of integration tests'
     )
+    booleanParam(
+        name: 'RUN_INFERNO_TESTS', 
+        defaultValue: false, 
+        description: 'Set to true, inferno tests will be run as part of integration tests'
+    )
   }
 
   stages {
@@ -66,6 +71,30 @@ pipeline {
           flake8
         """
       }
+    }
+
+    stage("START Inferno in background") {
+       when {
+        expression { params.RUN_INFERNO_TESTS == true }
+       }
+
+       agent {
+        dockerfile {
+          filename 'Dockerfile'
+          dir 'smart-app-launch-test-kit'
+        }
+       }
+
+       steps{
+        dir("./smart-app-launch-test-kit/") {
+          sh """
+            docker compose pull
+            docker compose build
+            docker compose run inferno bundle exec inferno migrate
+            docker compose up -d
+          """
+        }
+       }
     }
 
     stage("START BB2 server in background") {
@@ -117,6 +146,19 @@ pipeline {
         sh """
           USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
         """
+       }
+    }
+
+    stage("RUN inferno tests") {
+       when {
+        expression { params.RUN_INFERNO_TESTS == true }
+       }
+       steps{
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          sh """
+            USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_inferno_tests.py
+          """
+        }
        }
     }
 
