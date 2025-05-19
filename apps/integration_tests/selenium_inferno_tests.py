@@ -1,4 +1,5 @@
 import time
+import os
 
 from .selenium_generic import SeleniumGenericTests
 
@@ -9,6 +10,9 @@ USE_NEW_PERM_SCREEN = "true"
 
 class TestInfernoSuites(SeleniumGenericTests):
     def test_inferno_suites(self):
+        self.test_app_client_id = os.getenv('CLIENT_ID_4_INFERNO_TEST', 'client_id_of_built_in_testapp')
+        self.test_app_client_secret = os.getenv('CLIENT_SECRET_4_INFERNO_TEST', 'client_secret_of_built_in_testapp')
+
         driver = self.driver
         driver.get("http://192.168.0.146/")
         time.sleep(5)
@@ -32,10 +36,10 @@ class TestInfernoSuites(SeleniumGenericTests):
         # driver.find_element_by_id("input0_text").send_keys("https://test.bluebutton.cms.gov/v2/fhir/")
         # driver.find_element_by_id("input4_text").click()
         # driver.find_element_by_id("input4_text").clear()
-        # driver.find_element_by_id("input4_text").send_keys("BiBafP9DlKIR6Qg3f9DTqFC5VrAK524qC3dLHmri")
+        # driver.find_element_by_id("input4_text").send_keys(self.test_app_client_id)
         # driver.find_element_by_id("input5_text").click()
         # driver.find_element_by_id("input5_text").clear()
-        # driver.find_element_by_id("input5_text").send_keys("AiXy4Gt33pgvjLrY9FPy9N7fKD9t5FoPqTdGmK72hCp4mkAYww5F39PubC4XrqFUEVrMBQbpUioWJjwiCN7i3NOIZnb3ZMynaQDs73Ezfk5kaKg63LuXmQoTdR7GTW74")
+        # driver.find_element_by_id("input5_text").send_keys(self.test_app_client_secret)
         # driver.find_element(
         # By.XPATH, "(.//*[normalize-space(text()) and normalize-space(.)='Cancel'])[1]/following::button[1]").click()
         # driver.find_element_by_link_text("Follow this link to authorize with the SMART server").click()
