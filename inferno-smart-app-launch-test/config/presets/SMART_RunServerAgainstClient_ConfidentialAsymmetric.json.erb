@@ -1,0 +1,183 @@
+{
+  "title": "Demo: Run Against the SMART Client Suite (Confidential Asymmetric)",
+  "id": "smart_run_server_against_ca_client_v2_2",
+  "test_suite_id": "smart_stu2_2",
+  "inputs": [
+    {
+      "name": "url",
+      "description": "URL of the FHIR endpoint used by SMART applications",
+      "title": "FHIR Endpoint",
+      "type": "text",
+      "value": "<%= Inferno::Application['base_url'] %>/custom/smart_client_stu2_2/fhir"
+    },
+    {
+      "name": "standalone_smart_auth_info",
+      "options": {
+        "mode": "auth",
+        "components": [
+          {
+            "name": "requested_scopes",
+            "default": "launch/patient openid fhirUser offline_access patient/*.rs"
+          },
+          {
+            "name": "pkce_support",
+            "default": "enabled",
+            "locked": true
+          },
+          {
+            "name": "pkce_code_challenge_method",
+            "default": "S256",
+            "locked": true
+          },
+          {
+            "name": "auth_type",
+            "options": {
+              "list_options": [
+                {
+                  "label": "Public",
+                  "value": "public"
+                },
+                {
+                  "label": "Confidential Symmetric",
+                  "value": "symmetric"
+                },
+                {
+                  "label": "Confidential Asymmetric",
+                  "value": "asymmetric"
+                }
+              ]
+            }
+          },
+          {
+            "name": "use_discovery",
+            "locked": true
+          },
+          {
+            "name": "auth_request_method",
+            "default": "GET",
+            "locked": true
+          }
+        ]
+      },
+      "title": "Standalone Launch Credentials",
+      "type": "auth_info",
+      "value": {
+        "pkce_support": "enabled",
+        "pkce_code_challenge_method": "S256",
+        "auth_request_method": "GET",
+        "auth_type": "asymmetric",
+        "use_discovery": "true",
+        "requested_scopes": "launch/patient openid fhirUser offline_access patient/*.rs",
+        "client_id": "smart_client_test_demo",
+        "encryption_algorithm": "ES384"
+      },
+      "default": {}
+    },
+    {
+      "name": "ehr_smart_auth_info",
+      "options": {
+        "mode": "auth",
+        "components": [
+          {
+            "name": "requested_scopes",
+            "default": "launch openid fhirUser offline_access patient/*.rs"
+          },
+          {
+            "name": "pkce_support",
+            "default": "enabled",
+            "locked": true
+          },
+          {
+            "name": "pkce_code_challenge_method",
+            "default": "S256",
+            "locked": true
+          },
+          {
+            "name": "auth_type",
+            "options": {
+              "list_options": [
+                {
+                  "label": "Public",
+                  "value": "public"
+                },
+                {
+                  "label": "Confidential Symmetric",
+                  "value": "symmetric"
+                },
+                {
+                  "label": "Confidential Asymmetric",
+                  "value": "asymmetric"
+                }
+              ]
+            }
+          },
+          {
+            "name": "use_discovery",
+            "locked": true
+          },
+          {
+            "name": "auth_request_method",
+            "default": "GET",
+            "locked": true
+          }
+        ]
+      },
+      "title": "EHR Launch Credentials",
+      "type": "auth_info",
+      "value": {
+        "pkce_support": "enabled",
+        "pkce_code_challenge_method": "S256",
+        "auth_request_method": "GET",
+        "encryption_algorithm": "ES384",
+        "auth_type": "asymmetric",
+        "use_discovery": "true",
+        "requested_scopes": "launch openid fhirUser offline_access patient/*.rs",
+        "client_id": "smart_client_test_demo"
+      },
+      "default": {}
+    },
+    {
+      "name": "backend_services_smart_auth_info",
+      "options": {
+        "mode": "auth",
+        "components": [
+          {
+            "name": "auth_type",
+            "default": "backend_services",
+            "locked": "true"
+          },
+          {
+            "name": "use_discovery",
+            "locked": true
+          }
+        ]
+      },
+      "title": "Backend Services Credentials",
+      "type": "auth_info",
+      "value": {
+        "encryption_algorithm": "ES384",
+        "auth_type": "backend_services",
+        "use_discovery": "true",
+        "requested_scopes": "system/*.rs",
+        "client_id": "smart_client_test_demo"
+      },
+      "default": {}
+    },
+    {
+      "name": "custom_authorization_header",
+      "description": "Add custom headers for the introspection request by adding each header's name and value with a new line between each header. Ex:   <Header 1 Name>: <Value 1>",
+      "optional": true,
+      "title": "Custom HTTP Headers for Introspection Request",
+      "type": "textarea",
+      "value": ""
+    },
+    {
+      "name": "optional_introspection_request_params",
+      "description": "Any additional parameters to append to the request body, separated by &. Example: 'param1=abc&param2=def'",
+      "optional": true,
+      "title": "Additional Introspection Request Parameters",
+      "type": "textarea",
+      "value": ""
+    }
+  ]
+}

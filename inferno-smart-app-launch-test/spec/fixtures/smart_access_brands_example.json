@@ -1,0 +1,198 @@
+{
+  "resourceType" : "Bundle",
+  "id" : "example3",
+  "type" : "collection",
+  "timestamp" : "2023-09-05T20:23:42.723178-07:00",
+  "entry" : [
+    {
+      "fullUrl" : "https://examplehospital.fhirserver.org/Organization/examplehospital",
+      "resource" : {
+        "resourceType" : "Organization",
+        "id" : "examplehospital",
+        "extension" : [
+          {
+            "extension" : [
+              {
+                "url" : "brandLogo",
+                "valueUrl" : "https://fhirserver.org/examplehospital-ehr1/themes/custom/logo.svg"
+              }
+            ],
+            "url" : "http://hl7.org/fhir/StructureDefinition/organization-brand"
+          },
+          {
+            "extension" : [
+              {
+                "url" : "portalName",
+                "valueString" : "ExampleHospital Patient Gateway"
+              },
+              {
+                "url" : "portalUrl",
+                "valueUrl" : "https://patientgateway.examplehospital.ehr1.fhirserver.org"
+              },
+              {
+                "url" : "portalDescription",
+                "valueMarkdown" : "Patient Gateway is an online tool to help adult patients connect with health care providers, manage appointments, and refill prescriptions.\n"
+              },
+              {
+                "url" : "portalEndpoint",
+                "valueReference" : {
+                  "reference" : "https://ehr1.fhirserver.com/Endpoint/examplehospital-ehr1",
+                  "display" : "FHIR R4 Endpoint for EHR1"
+                }
+              }
+            ],
+            "url" : "http://hl7.org/fhir/StructureDefinition/organization-portal"
+          },
+          {
+            "extension" : [
+              {
+                "url" : "portalName",
+                "valueString" : "ExampleHospital Pediatric Portal"
+              },
+              {
+                "url" : "portalUrl",
+                "valueUrl" : "https://pediatrics.examplehospital.ehr2.fhirserver.org"
+              },
+              {
+                "url" : "portalDescription",
+                "valueMarkdown" : "Pediatric Portal is the entrypoint for pediatric patients."
+              },
+              {
+                "url" : "portalEndpoint",
+                "valueReference" : {
+                  "reference" : "https://ehr2.fhirserver.com/Endpoint/examplehospital-ehr2",
+                  "display" : "FHIR R4 Endpoint for EHR2"
+                }
+              }
+            ],
+            "url" : "http://hl7.org/fhir/StructureDefinition/organization-portal"
+          }
+        ],
+        "identifier" : [
+          {
+            "system" : "urn:ietf:rfc:3986",
+            "value" : "https://examplehospital.fhirserver.org"
+          }
+        ],
+        "active" : true,
+        "type" : [
+          {
+            "coding" : [
+              {
+                "system" : "http://terminology.hl7.org/CodeSystem/organization-type",
+                "code" : "prov",
+                "display" : "Healthcare Provider"
+              }
+            ]
+          }
+        ],
+        "name" : "ExampleHospital",
+        "alias" : [
+          "GoodHealth Healthcare"
+        ],
+        "telecom" : [
+          {
+            "system" : "url",
+            "value" : "https://examplehospital.fhirserver.org/contact"
+          }
+        ],
+        "address" : [
+          {
+            "city" : "Boston",
+            "state" : "MA"
+          },
+          {
+            "city" : "Newton",
+            "state" : "MA"
+          },
+          {
+            "city" : "Waltham",
+            "state" : "MA"
+          }
+        ],
+        "endpoint" : [
+          {
+            "reference" : "https://ehr1.fhirserver.com/Endpoint/examplehospital-ehr1",
+            "display" : "FHIR R4 Endpoint for EHR1"
+          },
+          {
+            "reference" : "https://ehr2.fhirserver.com/Endpoint/examplehospital-ehr2",
+            "display" : "FHIR R4 Endpoint for EHR2"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl" : "https://ehr1.fhirserver.com/Endpoint/examplehospital-ehr1",
+      "resource" : {
+        "resourceType" : "Endpoint",
+        "id" : "examplehospital-ehr1",
+        "extension" : [
+          {
+            "url" : "http://hl7.org/fhir/StructureDefinition/endpoint-fhir-version",
+            "valueCode" : "4.0.1"
+          }
+        ],
+        "status" : "active",
+        "connectionType" : {
+          "system" : "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+          "code" : "hl7-fhir-rest"
+        },
+        "name" : "FHIR R4 Endpoint for ExampleHospital's EHR1 Patient Gateway",
+        "contact" : [
+          {
+            "system" : "url",
+            "value" : "https://open.ehr1.fhirserver.com"
+          }
+        ],
+        "payloadType" : [
+          {
+            "coding" : [
+              {
+                "system" : "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
+                "code" : "none"
+              }
+            ]
+          }
+        ],
+        "address" : "http://example.com/api/FHIR/R4/1"
+      }
+    },
+    {
+      "fullUrl" : "https://ehr2.fhirserver.com/Endpoint/examplehospital-ehr2",
+      "resource" : {
+        "resourceType" : "Endpoint",
+        "id" : "examplehospital-ehr2",
+        "extension" : [
+          {
+            "url" : "http://hl7.org/fhir/StructureDefinition/endpoint-fhir-version",
+            "valueCode" : "4.0.1"
+          }
+        ],
+        "status" : "active",
+        "connectionType" : {
+          "system" : "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+          "code" : "hl7-fhir-rest"
+        },
+        "name" : "FHIR R4 Endpoint for ExampleHospital's EHR2 Pediatric Portal",
+        "contact" : [
+          {
+            "system" : "url",
+            "value" : "https://open.ehr2.fhirserver.com"
+          }
+        ],
+        "payloadType" : [
+          {
+            "coding" : [
+              {
+                "system" : "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
+                "code" : "none"
+              }
+            ]
+          }
+        ],
+        "address" : "http://example.com/api/FHIR/R4/2"
+      }
+    }
+  ]
+}

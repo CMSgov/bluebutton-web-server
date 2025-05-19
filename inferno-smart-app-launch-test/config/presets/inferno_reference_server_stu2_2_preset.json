@@ -1,0 +1,22 @@
+{
+  "title": "BB2 Server",
+  "id": "smart_stu2_2_reference_server",
+  "test_suite_id": "smart_stu2_2",
+  "inputs": [
+    {
+      "name": "url",
+      "type": "text",
+      "value": ""
+    },
+    {
+      "name": "standalone_smart_auth_info",
+      "type": "auth_info",
+      "value": {
+        "auth_type":"symmetric",
+        "requested_scopes":"launch/patient openid profile patient/Patient.rs",
+        "client_id":"",
+        "client_secret":""
+      }
+    }
+  ]
+}

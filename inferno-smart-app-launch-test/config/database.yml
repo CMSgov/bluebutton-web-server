@@ -1,0 +1,18 @@
+development:
+  adapter: sqlite
+  database: data/inferno_development.db
+  max_connections: 10
+  # user:
+  # password:
+  # host:
+  # port:
+
+production:
+  adapter: sqlite
+  database: data/inferno_production.db
+  max_connections: 10
+
+test:
+  adapter: sqlite
+  database: ':memory:'
+  max_connections: 10

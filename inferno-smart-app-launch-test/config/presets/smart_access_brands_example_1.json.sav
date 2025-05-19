@@ -1,0 +1,37 @@
+{
+  "title": "Labs with Locations Nationwide IG Example SMART Access Brands Bundle",
+  "id": "smart_access_brands_bundle_example_1",
+  "test_suite_id": "smart_access_brands",
+  "inputs": [
+    {
+      "name": "user_access_brands_publication_url",
+      "value": "https://hl7.org/fhir/smart-app-launch/STU2.2/Bundle-example1.json",
+      "title": "User Access Brands Publication URL",
+      "type": "text"
+    },
+    {
+      "name": "endpoint_availability_success_rate",
+      "default": "all",
+      "description": "Select an option to choose how many Endpoints have to be available and send back a valid capability       statement for the Endpoint validation test to pass.",
+      "options": {
+        "list_options": [
+          {
+            "label": "All",
+            "value": "all"
+          },
+          {
+            "label": "At Least 1",
+            "value": "at_least_1"
+          },
+          {
+            "label": "None",
+            "value": "none"
+          }
+        ]
+      },
+      "title": "Endpoint Availability Success Rate",
+      "type": "radio",
+      "value": "none"
+    }
+  ]
+}

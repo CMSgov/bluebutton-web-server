@@ -1,0 +1,79 @@
+{
+  "title": "Demo: Run Against the SMART Server Suite",
+  "id": "smart_run_client_against_server_v2_2",
+  "test_suite_id": "smart_client_stu2_2",
+  "inputs": [
+    {
+      "name": "client_id",
+      "description": "If a particular client id is desired, put it here. Otherwise a default of the Inferno session id will be used.",
+      "optional": true,
+      "title": "Client Id",
+      "type": "text",
+      "value": "smart_client_test_demo"
+    },
+    {
+      "name": "smart_launch_urls",
+      "description": "A comma-separated list of zero or more URLs that Inferno can use to launch the app. Not needed if the app does not support EHR launch.",
+      "optional": true,
+      "title": "SMART App Launch URL(s)",
+      "type": "textarea",
+      "value": "<%= Inferno::Application['base_url'] %>/custom/smart_stu2_2/launch"
+    },
+    {
+      "name": "smart_redirect_uris",
+      "description": "A comma-separated list of one or more URIs that the app will sepcify as the target of the redirect for Inferno to use when providing the authorization code. These tests can be run without this input, but will not pass without it.",
+      "optional": true,
+      "title": "SMART App Launch Redirect URI(s)",
+      "type": "textarea",
+      "value": "<%= Inferno::Application['base_url'] %>/custom/smart_stu2_2/redirect"
+    },
+    {
+      "name": "smart_jwk_set",
+      "description": "For confidential asymmetric clients, provide the JSON Web Key Set that will be used to sign tokens including the key(s) Inferno will need to verify signatures on token requests made by the client. May be provided as either a publicly accessible url containing the JWKS, or the raw JWKS JSON. Leave blank for public and confidential symmetric clients.",
+      "optional": true,
+      "title": "SMART Confidential Asymmetric JSON Web Key Set (JWKS)",
+      "type": "textarea",
+      "value": "<%= Inferno::Application['base_url'] %>/custom/smart_stu2_2/.well-known/jwks.json"
+    },
+    {
+      "name": "smart_client_secret",
+      "description": "For confidential symmetric clients, provide the client secret that will be provided during token requests to authenticate the client to Inferno. Leave blank for public and confidential asymmetric clients.",
+      "optional": true,
+      "title": "SMART Confidential Symmetric Client Secret",
+      "type": "text",
+      "value": "SAMPLE_SECRET"
+    },
+    {
+      "name": "launch_context",
+      "description": "Launch context details to be included in access token responses, specified as a JSON array. These contents will be merged into Inferno's token responses.",
+      "optional": true,
+      "title": "Launch Context",
+      "type": "textarea",
+      "value": "{ \"patient\": \"example\" }"
+    },
+    {
+      "name": "fhir_user_relative_reference",
+      "description": "A FHIR relative reference (<resource type>/<id>) for the FHIR user record to return when the openid and fhirUser scopes are requested. Include this resource in the **Available Resources** input so that it can be accessed.",
+      "optional": true,
+      "title": "FHIR User Relative Reference",
+      "type": "text",
+      "value": "Patient/example"
+    },
+    {
+      "name": "fhir_read_resources_bundle",
+      "description": "Resources to make available in Inferno's simulated FHIR server provided as a FHIR bundle. Each entry must contain a resource with the id element populated. Each instance present will be available for retrieval from Inferno at the endpoint: <fhir-base>/<resource type>/<instance id>. These are only available through the read interaction.",
+      "optional": true,
+      "title": "Available Resources",
+      "type": "textarea",
+      "value": "{\n  \"resourceType\": \"Bundle\",\n  \"entry\": [\n    {\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"id\": \"example\",\n        \"name\": [\n          {\n            \"family\": \"Chalmers\",\n            \"given\": [\n              \"Peter\",\n              \"James\"\n            ]\n          }\n        ],\n        \"gender\": \"male\",\n        \"birthDate\": \"1974-12-25\",\n        \"address\": [\n          {\n            \"line\": [\n              \"534 Erewhon St\"\n            ],\n            \"city\": \"Ann Arbor\",\n            \"state\": \"MI\",\n            \"postalCode\": \"48108\"\n          }\n        ]\n      }\n    }\n  ]\n}"
+    },
+    {
+      "name": "echoed_fhir_response",
+      "description": "JSON representation of a default FHIR resource for Inferno to echo when a request is made to the simulated FHIR server. Reads targetting resources in the  **Available Resources** input will return that resource instead of this. Otherwise, the content here will be echoed back exactly and no check will be made that it is appropriate for the request made. If nothing is provided, an OperationOutcome will be returned.",
+      "optional": true,
+      "title": "Default FHIR Response",
+      "type": "textarea",
+      "value": ""
+    }
+  ]
+}
