@@ -81,17 +81,24 @@ pipeline {
        agent {
         dockerfile {
           filename 'Dockerfile'
-          dir 'inferno-smart-app-launch-test'
+          dir 'smart-app-launch-test-kit'
         }
        }
 
        steps{
-        dir("./inferno-smart-app-launch-test/") {
+        script {
+          echo 'clone inferno test kits ...' 
+          git clone https://github.com/inferno-framework/smart-app-launch-test-kit.git
+          echo 'after clone inferno test kits ...' 
+        }
+        dir("./smart-app-launch-test-kit/") {
           sh """
+            echo 'inferno setup, and start ...' 
             docker compose pull
             docker compose build
             docker compose run inferno bundle exec inferno migrate
             docker compose up -d
+            echo 'inferno start in background ...' 
           """
         }
        }
