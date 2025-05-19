@@ -81,12 +81,12 @@ pipeline {
        agent {
         dockerfile {
           filename 'Dockerfile'
-          dir 'smart-app-launch-test-kit'
+          dir 'inferno-smart-app-launch-test'
         }
        }
 
        steps{
-        dir("./smart-app-launch-test-kit/") {
+        dir("./inferno-smart-app-launch-test/") {
           sh """
             docker compose pull
             docker compose build
