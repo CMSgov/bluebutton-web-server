@@ -17,6 +17,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("testclient_v2", True, "This enables the v2 auth links in the test client"),
     ("wellknown_applications", True, "This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test."),
     ("v3_endpoints", True, "This enables v3 endpoints."),
+    ("bfd_v3_connectathon", True, "This enables the bfd v3 features for connectathon demo"),
 )
 
 WAFFLE_FEATURE_FLAGS = (
