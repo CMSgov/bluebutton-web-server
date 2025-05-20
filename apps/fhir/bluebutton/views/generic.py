@@ -152,7 +152,7 @@ class FhirDataView(APIView):
 
         prepped = s.prepare_request(req)
         # Send signal
-        pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version == 2 else 'v1')
+        pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version > 1 else 'v1')
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
@@ -160,7 +160,7 @@ class FhirDataView(APIView):
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request,
-                               response=r, api_ver='v2' if self.version == 2 else 'v1')
+                               response=r, api_ver='v2' if self.version > 1 else 'v1')
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128

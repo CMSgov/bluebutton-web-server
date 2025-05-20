@@ -18,37 +18,37 @@ urlpatterns = [
     # Patient ReadView
     re_path(
         r"Patient/(?P<resource_id>[^/]+)",
-        ReadViewPatient.as_view(version=2),
-        name="bb_oauth_fhir_patient_read_or_update_or_delete_v2",
+        ReadViewPatient.as_view(version=3),
+        name="bb_oauth_fhir_patient_read_or_update_or_delete_v3",
     ),
     # Patient SearchView
     re_path(
         r"Patient[/]?",
-        SearchViewPatient.as_view(version=2),
-        name="bb_oauth_fhir_patient_search_v2",
+        SearchViewPatient.as_view(version=3),
+        name="bb_oauth_fhir_patient_search_v3",
     ),
     # Coverage ReadView
     re_path(
         r"Coverage/(?P<resource_id>[^/]+)",
-        ReadViewCoverage.as_view(version=2),
-        name="bb_oauth_fhir_coverage_read_or_update_or_delete_v2",
+        ReadViewCoverage.as_view(version=3),
+        name="bb_oauth_fhir_coverage_read_or_update_or_delete_v3",
     ),
     # Coverage SearchView
     re_path(
         r"Coverage[/]?",
-        SearchViewCoverage.as_view(version=2),
-        name="bb_oauth_fhir_coverage_search_v2",
+        SearchViewCoverage.as_view(version=3),
+        name="bb_oauth_fhir_coverage_search_v3",
     ),
     # EOB ReadView
     re_path(
         r"ExplanationOfBenefit/(?P<resource_id>[^/]+)",
-        ReadViewExplanationOfBenefit.as_view(version=2),
-        name="bb_oauth_fhir_eob_read_or_update_or_delete_v2",
+        ReadViewExplanationOfBenefit.as_view(version=3),
+        name="bb_oauth_fhir_eob_read_or_update_or_delete_v3",
     ),
     # EOB SearchView
     re_path(
         r"ExplanationOfBenefit[/]?",
-        SearchViewExplanationOfBenefit.as_view(version=2),
-        name="bb_oauth_fhir_eob_search_v2",
+        SearchViewExplanationOfBenefit.as_view(version=3),
+        name="bb_oauth_fhir_eob_search_v3",
     ),
 ]
