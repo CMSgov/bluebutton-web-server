@@ -151,27 +151,28 @@ class FhirDataView(APIView):
                 req.headers["BlueButton-Application"] = quote(req.headers.get("BlueButton-Application"))
 
         prepped = s.prepare_request(req)
-        # Send signal
-        if self.version == 3:
-            pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2')
-        elif self.version == 2:
-            pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2')
-        else:
-            pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v1')
 
+        if self.version == 1:
+            api_ver_str = 'v1'
+        elif self.version == 2:
+            api_ver_str = 'v2'
+        # v3 uses v2 for now
+        elif self.version == 3:
+            api_ver_str = 'v2'
+        # defaults to v3
+        else:
+            logger.debug('Unexpected version number %d, defaulting to v2' % self.version)
+            api_ver_str = 'v2'
+
+        # Send signal
+        pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
-        if self.version == 3:
-            post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver='v2')
-        elif self.version == 2:
-            post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver='v2')
-        else:
-            post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver='v1')
-
+        post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128
