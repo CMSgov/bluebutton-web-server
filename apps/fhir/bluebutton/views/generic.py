@@ -153,7 +153,7 @@ class FhirDataView(APIView):
         prepped = s.prepare_request(req)
         # Send signal
         if self.version == 3:
-            pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v3')
+            pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2')
         elif self.version == 2:
             pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2')
         else:
@@ -166,7 +166,7 @@ class FhirDataView(APIView):
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
         if self.version == 3:
-            post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver='v3')
+            post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver='v2')
         elif self.version == 2:
             post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver='v2')
         else:
