@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run the inferno tests against remote bb2 in docker
+# Run the inferno tests (selenium based) against BB2 server (LOCAL|PROD/SBX/TEST) 
 #
 # NOTE:
 #
@@ -20,7 +20,7 @@ display_usage() {
     echo "Usage:"
     echo "------------------"
     echo
-    echo "Syntax: run_inferno_tests_remote.sh [-h|p|g|t] [SBX|PROD|TEST|<bb2 server url>]"
+    echo "Syntax: run_inferno_tests.sh [-h|p|g|t] [LOCAL|SBX|PROD|TEST|<bb2 server url>]"
     echo
     echo "Options:"
     echo
@@ -31,11 +31,13 @@ display_usage() {
     echo
     echo "Examples:"
     echo
-    echo "run_inferno_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/ (or SBX)"
+    echo "run_inferno_tests.sh -p https://localhost:8000/ (or LOCAL)"
     echo
-    echo "run_inferno_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
+    echo "run_inferno_tests.sh -p https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
-    echo "run_inferno_tests_remote.sh -p  https://test.bluebutton.cms.gov/ (or TEST)"
+    echo "run_inferno_tests.sh  https://api.bluebutton.cms.gov/ (or PROD)"
+    echo
+    echo "run_inferno_tests.sh -p  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
     echo
@@ -51,7 +53,7 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_NEW_PERM_SCREEN=false
-export SERVICE_NAME="inferno-tests-remote"
+export SERVICE_NAME="inferno-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_inferno_tests.py"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
@@ -84,6 +86,9 @@ echo "last arg: " $last_arg
 if [[ -n ${last_arg} ]]
 then
     case "${last_arg}" in
+        LOCAL)
+            export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
+            ;;
         SBX)
             export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
             ;;
@@ -120,13 +125,12 @@ export USE_MSLSX=false
 export DJANGO_CLIENT_ID_4_INFERNO_TEST=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/inferno_test_client_id --query 'SecretString' --output text)
 export DJANGO_CLIENT_SECRET_4_INFERNO_TEST=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/inferno_test_client_secret --query 'SecretString' --output text)
 
-# stop all before run selenium remote tests
-docker compose -f docker-compose.inferno.remote.yml down --remove-orphans
-docker compose -f docker-compose.inferno.remote.yml run inferno-remote-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+# assume the target bb2 server is up, either local or remote
+docker compose -f docker-compose.inferno.yml run inferno-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg
 echo_msg "Stopping containers..."
 echo_msg
 
-docker compose -f docker-compose.inferno.remote.yml stop
+docker compose -f docker-compose.inferno.yml stop
