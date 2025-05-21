@@ -52,6 +52,8 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
+# export INFERNO_URL="http://localhost"
+export INFERNO_URL="http://192.168.0.146"
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="inferno-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_inferno_tests.py"
@@ -87,7 +89,7 @@ if [[ -n ${last_arg} ]]
 then
     case "${last_arg}" in
         LOCAL)
-            export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
+            export HOSTNAME_URL="http://localhost:8000/"
             ;;
         SBX)
             export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
@@ -121,12 +123,24 @@ echo "Selenium grid=" ${SELENIUM_GRID}
 export USE_NEW_PERM_SCREEN
 export USE_MSLSX=false
 
-# Inferno test app creds
-export DJANGO_CLIENT_ID_4_INFERNO_TEST=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/inferno_test_client_id --query 'SecretString' --output text)
-export DJANGO_CLIENT_SECRET_4_INFERNO_TEST=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/inferno_test_client_secret --query 'SecretString' --output text)
+if [[ -n ${last_arg} ]]
+then
+    case "${last_arg}" in
+        LOCAL)
+            export HOSTNAME_URL="http://localhost:8000/"
+            export DJANGO_CLIENT_ID_4_INFERNO_TEST="client_id_of_built_in_testapp"
+            export DJANGO_CLIENT_SECRET_4_INFERNO_TEST="client_secret_of_built_in_testapp"
+            ;;
+        *)
+            # Inferno test app creds
+            export DJANGO_CLIENT_ID_4_INFERNO_TEST=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/inferno_test_client_id --query 'SecretString' --output text)
+            export DJANGO_CLIENT_SECRET_4_INFERNO_TEST=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/inferno_test_client_secret --query 'SecretString' --output text)
+            ;;
+    esac
+fi
 
 # assume the target bb2 server is up, either local or remote
-docker compose -f docker-compose.inferno.yml run inferno-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker compose -f docker-compose.inferno.yml run inferno-tests bash -c "HOSTNAME_URL=${HOSTNAME_URL} CLIENT_ID_4_INFERNO_TEST=${DJANGO_CLIENT_ID_4_INFERNO_TEST} CLIENT_SECRET_4_INFERNO_TEST=${DJANGO_CLIENT_SECRET_4_INFERNO_TEST} INFERNO_URL=${INFERNO_URL} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg
