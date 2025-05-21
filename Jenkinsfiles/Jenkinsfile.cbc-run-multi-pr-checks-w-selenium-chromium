@@ -85,24 +85,25 @@ pipeline {
         }
        }
 
-       steps{
-        script {
-          echo 'clone inferno test kits ...' 
-          git clone https://github.com/inferno-framework/smart-app-launch-test-kit.git
-          echo 'after clone inferno test kits ...' 
-        }
-        dir("./smart-app-launch-test-kit/") {
-          sh """
-            echo 'inferno setup, and start ...' 
-            docker compose pull
-            docker compose build
-            docker compose run inferno bundle exec inferno migrate
-            docker compose up -d
-            echo 'inferno start in background ...' 
-          """
-        }
-       }
-    }
+    // Comment out to prevent hanging instance
+    //    steps{
+    //     script {
+    //       echo 'clone inferno test kits ...' 
+    //       git clone https://github.com/inferno-framework/smart-app-launch-test-kit.git
+    //       echo 'after clone inferno test kits ...' 
+    //     }
+    //     dir("./smart-app-launch-test-kit/") {
+    //       sh """
+    //         echo 'inferno setup, and start ...' 
+    //         docker compose pull
+    //         docker compose build
+    //         docker compose run inferno bundle exec inferno migrate
+    //         docker compose up -d
+    //         echo 'inferno start in background ...' 
+    //       """
+    //     }
+    //    }
+    // }
 
     stage("START BB2 server in background") {
        when {
@@ -156,18 +157,19 @@ pipeline {
        }
     }
 
-    stage("RUN inferno tests") {
-       when {
-        expression { params.RUN_INFERNO_TESTS == true }
-       }
-       steps{
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-          sh """
-            USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_inferno_tests.py
-          """
-        }
-       }
-    }
+    // Comment out to prevent hanging instance
+    // stage("RUN inferno tests") {
+    //    when {
+    //     expression { params.RUN_INFERNO_TESTS == true }
+    //    }
+    //    steps{
+    //     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+    //       sh """
+    //         USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_inferno_tests.py
+    //       """
+    //     }
+    //    }
+    // }
 
     stage("RUN integration tests") {
       steps{
