@@ -11,7 +11,7 @@ import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
-fhir_prefix = "/v[12]/fhir/"
+fhir_prefix = "/v[123]/fhir/"
 
 
 def create_group(name="BlueButton"):
