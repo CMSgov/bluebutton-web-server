@@ -83,12 +83,6 @@ class TestInfernoSuites(SeleniumGenericTests):
         # below is the inferno user action dialog
         driver.find_element(By.LINK_TEXT, "Follow this link to authorize with the SMART server").click()
         time.sleep(5)
-        # here a per run URL is recorded with relay=64664239213351163188174627 which won't work for next run...
-        # need to make it fixed (msls????)
-        # this URL is from the BB2 server e.g. https://test.medicare.gov/account/login
-        # TODO: make this a per test run URL
-        driver.get("https://test.medicare.gov/account/login/?client_id=bb2api&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fmymedicare%2Fsls-callback&relay=64664239213351163188174627") # noqa
-        time.sleep(5)
         driver.find_element(By.ID, "username-textbox").click()
         time.sleep(5)
         driver.find_element(By.ID, "username-textbox").clear()
@@ -103,9 +97,6 @@ class TestInfernoSuites(SeleniumGenericTests):
         time.sleep(5)
         driver.find_element(By.ID, "login-button").click()
         time.sleep(5)
-        # TODO: here AC is from session at the time interaction is recorded, it should be a per test run auth URL
-        auth_url = "{}/v2/o/authorize/61f693ec-cb8b-4959-b32c-48ff839b45a4/?response_type=code&client_id=client_id_of_built_in_testapp&redirect_uri=http%3A%2F%2Flocalhost%2Fcustom%2Fsmart_stu2_2%2Fredirect&scope=launch%2Fpatient+openid+patient%2FPatient.rs+patient%2FCoverage.rs+patient%2FExplanationOfBenefit.rs&state=5aa4bcd8-1e7c-4c63-a366-005181d3f2b5&aud=http%3A%2F%2F192.168.0.146%3A8000%2Fv2%2Ffhir%2F&code_challenge=M3SN8Qrp0AcVsncgiQqqQWQVdptwiONbcsbBSEskIdQ&code_challenge_method=S256".format(self.hostname_url) # noqa
-        driver.get(auth_url)
         time.sleep(5)
         driver.find_element(By.ID, "approve").click()
         time.sleep(5)
