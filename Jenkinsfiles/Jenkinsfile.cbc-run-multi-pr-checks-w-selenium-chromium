@@ -73,19 +73,18 @@ pipeline {
       }
     }
 
-    stage("START Inferno in background") {
-       when {
-        expression { params.RUN_INFERNO_TESTS == true }
-       }
-
-       agent {
-        dockerfile {
-          filename 'Dockerfile'
-          dir 'smart-app-launch-test-kit'
-        }
-       }
-
     // Comment out to prevent hanging instance
+    // stage("START Inferno in background") {
+    //    when {
+    //     expression { params.RUN_INFERNO_TESTS == true }
+    //    }
+
+    //    agent {
+    //     dockerfile {
+    //       filename 'Dockerfile'
+    //       dir 'smart-app-launch-test-kit'
+    //     }
+    //    }
     //    steps{
     //     script {
     //       echo 'clone inferno test kits ...' 
