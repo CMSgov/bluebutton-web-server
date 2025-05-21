@@ -78,7 +78,13 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     # Build URL with patient ID search by identifier.
     ver = "v{}".format(request.session.get('version', 1))
+    # Temp fixed to v2
+    if ver == "v3":
+        ver = "v2"
     url = f"{get_resourcerouter().fhir_url}/{ver}/fhir/Patient/_search"
+
+    # Temp reset to requested version
+    ver = "v{}".format(request.session.get('version', 1))
 
     max_retries = 3
     retries = 0

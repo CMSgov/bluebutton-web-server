@@ -133,7 +133,12 @@ def callback(request, version=2):
         user=request.user)
 
     # Only go back to app authorization
-    url_map_name = 'oauth2_provider_v2:authorize-instance-v2' if version == 2 else 'oauth2_provider:authorize-instance'
+    if version == 3:
+        url_map_name = 'oauth2_provider_v3:authorize-instance-v3'
+    elif version == 2:
+        url_map_name = 'oauth2_provider_v2:authorize-instance-v2'
+    else:
+        url_map_name = 'oauth2_provider:authorize-instance'
     auth_uri = reverse(url_map_name, args=[approval.uuid])
 
     _, _, auth_path, _, _ = urlsplit(auth_uri)
