@@ -174,6 +174,9 @@ if [[ -z "${NEW_RELEASE_HISTORY}" ]]; then
     exit 0
 fi
 
+# escape any quotes
+NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//\"/\\\"}"
+
 # Create and push new release tag
 #
 echo "Pushing new tag"
