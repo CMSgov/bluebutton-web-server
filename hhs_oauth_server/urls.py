@@ -41,6 +41,8 @@ urlpatterns = [
     path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
     path("v2/o/", include("apps.dot_ext.v2.urls")),
     path("v2/o/", include("apps.authorization.v2.urls")),
+    path("v3/o/", include("apps.dot_ext.v3.urls")),
+    path("v3/o/", include("apps.authorization.v3.urls")),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
