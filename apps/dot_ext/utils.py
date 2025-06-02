@@ -86,7 +86,9 @@ def get_application_from_meta(request):
         elif ac is not None:
             app = Application.objects.get(id=ac.application_id)
     except Application.DoesNotExist:
-        pass
+        raise InvalidClientError(
+            description="Application does not exist"
+        )
     return app
 
 
@@ -171,7 +173,9 @@ def get_application_from_data(request):
             app = Application.objects.get(id=rt.application_id)
 
     except Application.DoesNotExist:
-        pass
+        raise InvalidClientError(
+            description="Application does not exist"
+        )
     return app
 
 
