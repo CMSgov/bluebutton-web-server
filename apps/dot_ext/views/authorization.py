@@ -17,6 +17,7 @@ from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
+from waffle import switch_is_active
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
@@ -141,6 +142,11 @@ class AuthorizationView(DotAuthorizationView):
             # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
 
+        if switch_is_active("require_pkce"):
+            if not form.cleaned_data.get("code_challenge") or not form.cleaned_data.get("code_challenge_method"):
+                response = {"error": "Missing Required Parameter"}
+                return JsonResponse(response, status=400)
+
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
 
@@ -253,8 +259,13 @@ class ApprovalView(AuthorizationView):
         super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
-        if request.method == "POST" and request.POST.get("state") is None:
-            return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
+        if not switch_is_active("require_state"):
+            if request.method == "POST" and request.POST.get("state") is None:
+                return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
+        else:
+            if request.POST.get("state") is None:
+                response = {"error": "Missing Required Parameter"}
+                return JsonResponse(response, status=400)
 
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
