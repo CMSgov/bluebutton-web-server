@@ -177,7 +177,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "state": "1234567890",
             },
         )
-        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
         payload = {
             "client_id": application.client_id,
             "response_type": "code",
