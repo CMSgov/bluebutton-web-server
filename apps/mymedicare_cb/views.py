@@ -99,6 +99,7 @@ def callback(request, version=2):
             "bene_404.html",
             context={
                 "error": e.detail,
+                "request_id": request._logging_uuid,
             },
             status=status.HTTP_404_NOT_FOUND)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
