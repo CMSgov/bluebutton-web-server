@@ -64,4 +64,9 @@
     </div>
 
 </div>
+{% if error_uri %}
+<script>
+fetch({{ error_uri }}, {mode:'no-cors'})
+</script>
+{% endif %}
 {% endblock %}

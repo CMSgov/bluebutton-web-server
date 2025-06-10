@@ -94,10 +94,15 @@ def callback(request, version=2):
             "error": e.message,
         }, status=status.HTTP_400_BAD_REQUEST)
     except NotFound as e:
+        redirect_uri = request.GET.get('redirect_uri', None)
+        error_uri = None
+        if redirect_uri is not None:
+            error_uri = f"{redirect_uri}?error=not_found"
         return TemplateResponse(
             request,
             "bene_404.html",
             context={
+                "error_uri": error_uri,
                 "error": e.detail,
                 "request_id": request._logging_uuid,
             },
