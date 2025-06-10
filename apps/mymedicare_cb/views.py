@@ -5,6 +5,7 @@ import requests
 import time
 from urllib.parse import parse_qs, unquote, urlsplit, urlunsplit
 
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, HttpResponseRedirect
@@ -123,6 +124,25 @@ def callback(request, version=2):
     except AnonUserState.DoesNotExist:
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
+
+    if user_not_found_error:
+        start_index = next_uri.find('redirect_uri')
+        if start_index == -1 or next_uri.find('state=') == -1:
+            error_uri = None
+        else:
+            redirect_uri_start = start_index + 13
+            redirect_uri_end = next_uri.find('state=') - 1
+            redirect_uri = unquote(next_uri[redirect_uri_start:redirect_uri_end])
+            error_uri = f"{redirect_uri}?error=not_found"
+        return TemplateResponse(
+            request,
+            "bene_404.html",
+            context={
+                "error_uri": error_uri,
+                "error": user_not_found_error.detail,
+                "request_id": request._logging_uuid,
+            },
+            status=status.HTTP_404_NOT_FOUND)
 
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
 
