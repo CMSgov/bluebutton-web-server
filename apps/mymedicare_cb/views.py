@@ -3,7 +3,8 @@ import urllib.request as urllib_request
 import os
 import requests
 import time
-from urllib.parse import unquote
+from urllib.parse import parse_qs, unquote, urlsplit, urlunsplit
+
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -13,7 +14,6 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from urllib.parse import urlsplit, urlunsplit
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -145,6 +145,23 @@ def callback(request, version=2):
             status=status.HTTP_404_NOT_FOUND)
 
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
+
+    if user_not_found_error:
+        qs_dict = parse_qs(query_string)
+        if 'redirect_uri' in qs_dict:
+            redirect_uri = unquote(qs_dict['redirect_uri'][0])
+            error_uri = f"{redirect_uri}?error=not_found"
+        else:
+            error_uri = None
+        return TemplateResponse(
+            request,
+            "bene_404.html",
+            context={
+                "error_uri": error_uri,
+                "error": user_not_found_error.detail,
+                "request_id": request._logging_uuid,
+            },
+            status=status.HTTP_404_NOT_FOUND)
 
     approval = Approval.objects.create(
         user=request.user)
