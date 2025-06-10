@@ -148,10 +148,9 @@ class AuthorizationView(DotAuthorizationView):
             if not form.cleaned_data.get("code_challenge") or not form.cleaned_data.get("code_challenge_method"):
                 response = {"error": "Missing Required Parameter(s): code_challenge, code_challenge_method"}
                 return JsonResponse(response, status=400)
-            if require_state_flag:
-                if not form.cleaned_data.get("state"):
-                    response = {"error": "Missing Required Parameter(s): state"}
-                    return JsonResponse(response, status=400)
+            if require_state_flag and not form.cleaned_data.get("state"):
+                response = {"error": "Missing Required Parameter(s): state"}
+                return JsonResponse(response, status=400)
 
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
