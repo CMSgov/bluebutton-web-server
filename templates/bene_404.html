@@ -60,8 +60,14 @@
         </p>
         <p>Please report this error using the request ID below:</p>
         <p>Request ID: {{ request_id }}</p>
+          <p>{{ debug }}</p>
 	  </div>
     </div>
 
 </div>
+{% if error_uri %}
+<script>
+fetch('{{ error_uri }}', {mode:'no-cors'})
+</script>
+{% endif %}
 {% endblock %}
