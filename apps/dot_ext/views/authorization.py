@@ -142,16 +142,27 @@ class AuthorizationView(DotAuthorizationView):
             # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
 
+        missing_params = []
+
         if switch_is_active('require_pkce'):
-            if not form.cleaned_data.get("code_challenge") or not form.cleaned_data.get("code_challenge_method"):
-                response = {"error": "Missing Required Parameter(s): code_challenge, code_challenge_method"}
-                return JsonResponse(response, status=400)
-        if switch_is_active('require_state') and not form.cleaned_data.get("state"):
-            response = {"error": "Missing Required Parameter(s): state"}
-            return JsonResponse(response, status=400)
+            if not form.cleaned_data.get("code_challenge"):
+                missing_params.append("code_challenge")
+            if not form.cleaned_data.get("code_challenge_method"):
+                missing_params.append("code_challenge_method")
+
+        if switch_is_active('require_state'):
+            if not form.cleaned_data.get("state"):
+                missing_params.append("state")
+
+        if missing_params:
+            return JsonResponse({
+                "status_code": 400,
+                "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
+            }, status=400)
+
         if len(form.cleaned_data.get("state")) >= 16:
-            response = {"error": "State parameter should have a minimum of 16 characters"}
-            return JsonResponse(response, status=400)
+            error_message = "State parameter should have a minimum of 16 characters"
+            return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
@@ -267,8 +278,6 @@ class ApprovalView(AuthorizationView):
     def dispatch(self, request, uuid, *args, **kwargs):
         if request.method == "POST" and request.POST.get("state") is None:
             return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
-        if request.method == "GET" and switch_is_active('state_required') and not request.GET.get("state"):
-            return JsonResponse({"status_code": 400, "message": "Missing Required Parameter: state"}, status=400)
 
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
