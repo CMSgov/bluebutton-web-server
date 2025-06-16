@@ -160,7 +160,7 @@ class AuthorizationView(DotAuthorizationView):
                 "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
             }, status=400)
 
-        if len(form.cleaned_data.get("state")) >= 16:
+        if len(form.cleaned_data.get("state", "")) < 16:
             error_message = "State parameter should have a minimum of 16 characters"
             return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
