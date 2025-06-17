@@ -81,7 +81,11 @@ def get_application_from_meta(request):
                 decoded_credentials = b64decode(encoded_credentials).decode("utf-8").split(':')
                 client_id = decoded_credentials[0]
     try:
-        if client_id is not None:
+        if client_id is None:
+            raise InvalidClientError(
+                description="Missing Client ID"
+            )
+        elif client_id is not None:
             app = Application.objects.get(client_id=client_id)
         elif ac is not None:
             app = Application.objects.get(id=ac.application_id)
