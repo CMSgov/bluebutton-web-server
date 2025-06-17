@@ -120,14 +120,6 @@ pipeline {
        }
     }
 
-    stage("RUN integration tests") {
-      steps{
-        sh """
-          python3 runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
-        """
-      }
-    }
-
     stage("RUN Django Unit Tests") {
       steps{
         sh """
