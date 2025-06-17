@@ -4,6 +4,7 @@
 # python-coveralls
 flake8 == 6.0.*
 django-debug-toolbar
+h11 >= 0.16.0
 httmock
 debugpy
 selenium 
