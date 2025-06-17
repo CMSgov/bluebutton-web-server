@@ -568,10 +568,6 @@ SESSION_COOKIE_AGE = 5400
 SESSION_COOKIE_SECURE = env("DJANGO_SECURE_SESSION", True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-APPLICATION_NOT_FOUND = (
-    "No application was found."
-)
-
 APPLICATION_TEMPORARILY_INACTIVE = (
     "This application, {}, is temporarily inactive."
     " If you are the app maintainer, please contact the Blue Button 2.0 API team."
