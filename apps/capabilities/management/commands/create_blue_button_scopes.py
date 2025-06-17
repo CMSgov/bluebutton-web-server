@@ -11,7 +11,7 @@ import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
-fhir_prefix = "/v[12]/fhir/"
+fhir_prefix = "/v[123]/fhir/"
 
 
 def create_group(name="BlueButton"):
@@ -89,7 +89,6 @@ def create_patient_read_capability(group, fhir_prefix, title="Read my general pa
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -108,7 +107,6 @@ def create_patient_search_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -129,7 +127,6 @@ def create_patient_read_search_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -161,7 +158,6 @@ def create_eob_read_capability(group, fhir_prefix, title="Read my Medicare claim
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -176,7 +172,6 @@ def create_eob_search_capability(group, fhir_prefix, title="Search my Medicare c
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -194,7 +189,6 @@ def create_eob_read_search_capability(group, fhir_prefix, title="Read and search
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -228,7 +222,6 @@ def create_coverage_read_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -246,7 +239,6 @@ def create_coverage_search_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
@@ -265,7 +257,6 @@ def create_coverage_read_search_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 

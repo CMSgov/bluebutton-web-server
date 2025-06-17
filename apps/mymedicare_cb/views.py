@@ -3,6 +3,9 @@ import urllib.request as urllib_request
 import os
 import requests
 import time
+from urllib.parse import parse_qs, unquote, urlsplit, urlunsplit
+
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, HttpResponseRedirect
@@ -11,7 +14,6 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from urllib.parse import urlsplit, urlunsplit
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -87,6 +89,7 @@ def authenticate(request):
 
 @never_cache
 def callback(request, version=2):
+    user_not_found_error = None
     try:
         authenticate(request)
     except ValidationError as e:
@@ -94,13 +97,8 @@ def callback(request, version=2):
             "error": e.message,
         }, status=status.HTTP_400_BAD_REQUEST)
     except NotFound as e:
-        return TemplateResponse(
-            request,
-            "bene_404.html",
-            context={
-                "error": e.detail,
-            },
-            status=status.HTTP_404_NOT_FOUND)
+        # We can't immediately return because we need the next_uri
+        user_not_found_error = e
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
         return JsonResponse({
             "error": e.detail,
@@ -127,13 +125,54 @@ def callback(request, version=2):
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
+    if user_not_found_error:
+        start_index = next_uri.find('redirect_uri')
+        if start_index == -1 or next_uri.find('state=') == -1:
+            error_uri = None
+        else:
+            redirect_uri_start = start_index + 13
+            redirect_uri_end = next_uri.find('state=') - 1
+            redirect_uri = unquote(next_uri[redirect_uri_start:redirect_uri_end])
+            error_uri = f"{redirect_uri}?error=not_found"
+        return TemplateResponse(
+            request,
+            "bene_404.html",
+            context={
+                "error_uri": error_uri,
+                "error": user_not_found_error.detail,
+                "request_id": request._logging_uuid,
+            },
+            status=status.HTTP_404_NOT_FOUND)
+
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
+
+    if user_not_found_error:
+        qs_dict = parse_qs(query_string)
+        if 'redirect_uri' in qs_dict:
+            redirect_uri = unquote(qs_dict['redirect_uri'][0])
+            error_uri = f"{redirect_uri}?error=not_found"
+        else:
+            error_uri = None
+        return TemplateResponse(
+            request,
+            "bene_404.html",
+            context={
+                "error_uri": error_uri,
+                "error": user_not_found_error.detail,
+                "request_id": request._logging_uuid,
+            },
+            status=status.HTTP_404_NOT_FOUND)
 
     approval = Approval.objects.create(
         user=request.user)
 
     # Only go back to app authorization
-    url_map_name = 'oauth2_provider_v2:authorize-instance-v2' if version == 2 else 'oauth2_provider:authorize-instance'
+    if version == 3:
+        url_map_name = 'oauth2_provider_v3:authorize-instance-v3'
+    elif version == 2:
+        url_map_name = 'oauth2_provider_v2:authorize-instance-v2'
+    else:
+        url_map_name = 'oauth2_provider:authorize-instance'
     auth_uri = reverse(url_map_name, args=[approval.uuid])
 
     _, _, auth_path, _, _ = urlsplit(auth_uri)
@@ -159,12 +198,14 @@ def mymedicare_login(request, version=1):
             slsx_client = OAuth2ConfigSLSx()
             if slsx_client.service_health_check(request):
                 break
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 time.sleep(0.5)
                 # Checking target_env ensures the retry logic only happens on local
                 print(f"SLSx service health check during login failed. Retrying... ({retries+1}/{max_retries})")
                 retries += 1
+            else:
+                raise e
 
     relay_param_name = "relay"
     redirect = urllib_request.pathname2url(redirect)

@@ -9,6 +9,7 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 from django.contrib.auth.models import Group, User
@@ -339,15 +340,11 @@ class SimpleAllowForm(DotAllowForm):
         if scope is None:
             cleaned_data["scope"] = ""
             scope = ""
-
-        # Remove demographic information scopes, if beneficiary is not sharing
-        if cleaned_data.get("share_demographic_scopes") != "True":
-            cleaned_data["scope"] = " ".join(
-                [
-                    s
-                    for s in scope.split(" ")
-                    if s not in settings.BENE_PERSONAL_INFO_SCOPES
-                ]
-            )
+        else:
+            cleaned_scope_list = CapabilitiesScopes().condense_scopes(scope.split(" "))
+            # Remove demographic information scopes, if beneficiary is not sharing
+            if cleaned_data.get("share_demographic_scopes") != "True":
+                cleaned_scope_list = CapabilitiesScopes().remove_demographic_scopes(cleaned_scope_list)
+            cleaned_data["scope"] = " ".join(cleaned_scope_list)
 
         return cleaned_data

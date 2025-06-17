@@ -32,12 +32,25 @@ V2_SCOPES_ALL = [
     'patient/launch',
     'openid'
 ]
+V2_SCOPES_ALL_CONDENSED = [
+    'patient/Patient.rs',
+    'patient/ExplanationOfBenefit.rs',
+    'patient/Coverage.rs',
+    'patient/launch',
+    'openid'
+]
 V2_SCOPES_NON_DEMOGRAPHIC = [
     'patient/ExplanationOfBenefit.r',
     'patient/ExplanationOfBenefit.s',
     'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.r',
     'patient/Coverage.s',
+    'patient/Coverage.rs',
+    'patient/launch',
+    'openid'
+]
+V2_SCOPES_NON_DEMOGRAPHIC_CONDENSED = [
+    'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.rs',
     'patient/launch',
     'openid'
@@ -171,7 +184,7 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": V2_SCOPES_ALL,
         # Result:
         "result_form_is_valid": True,
-        "result_token_scopes_granted": V2_SCOPES_ALL,
+        "result_token_scopes_granted": V2_SCOPES_ALL_CONDENSED,
     },
     "test 11: share = False v2 Scopes": {
         # Request:
@@ -179,7 +192,7 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
         "request_scopes": V2_SCOPES_ALL,
         # Result:
         "result_form_is_valid": True,
-        "result_token_scopes_granted": V2_SCOPES_NON_DEMOGRAPHIC,
+        "result_token_scopes_granted": V2_SCOPES_NON_DEMOGRAPHIC_CONDENSED,
     },
 }
 

@@ -16,12 +16,6 @@ SCOPES_SUPPORTED = [
     "patient/Patient.read",
     "patient/ExplanationOfBenefit.read",
     "patient/Coverage.read",
-    "patient/Patient.r",
-    "patient/ExplanationOfBenefit.r",
-    "patient/Coverage.r",
-    "patient/Patient.s",
-    "patient/ExplanationOfBenefit.s",
-    "patient/Coverage.s",
     "patient/Patient.rs",
     "patient/ExplanationOfBenefit.rs",
     "patient/Coverage.rs",
@@ -29,12 +23,12 @@ SCOPES_SUPPORTED = [
 CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
 CAPABILITIES = [
     "client-confidential-symmetric",
-    "client-confidential-asymmetric",
     "context-standalone-patient",
     "launch-standalone",
     "permission-offline",
     "permission-patient",
     "permission-v1",
+    "permission-v2",
     "authorize-post"
 ]
 

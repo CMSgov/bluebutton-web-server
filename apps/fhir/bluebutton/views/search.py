@@ -1,3 +1,5 @@
+import waffle
+
 from voluptuous import (
     Required,
     All,
@@ -5,6 +7,7 @@ from voluptuous import (
     Range,
     Coerce,
     Schema,
+    Invalid,
     REMOVE_EXTRA,
 )
 from rest_framework import (permissions)
@@ -105,6 +108,16 @@ class SearchViewCoverage(SearchView):
 
 
 class SearchViewExplanationOfBenefit(SearchView):
+    # customized validator for better error reporting
+    def validate_tag(self):
+        def validator(value):
+            for v in value:
+                if not (v in ["Adjudicated", "PartiallyAdjudicated"]):
+                    msg = f"Invalid _tag value (='{v}'), 'PartiallyAdjudicated' or 'Adjudicated' expected."
+                    raise Invalid(msg)
+            return value
+        return validator
+
     # Class used for ExplanationOfBenefit resource search view
     required_scopes = ['patient/ExplanationOfBenefit.read', 'patient/ExplanationOfBenefit.rs', 'patient/ExplanationOfBenefit.s']
 
@@ -136,7 +149,7 @@ class SearchViewExplanationOfBenefit(SearchView):
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
                     'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
-                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")]
+                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")],
                     }
 
     def __init__(self, version=1):
@@ -158,7 +171,15 @@ class SearchViewExplanationOfBenefit(SearchView):
         if service_dates:
             params['service-date'] = service_dates
 
+        query_schema = getattr(self, "QUERY_SCHEMA", {})
+
+        if waffle.switch_is_active('bfd_v3_connectathon'):
+            query_schema['_tag'] = self.validate_tag()
+            # _tag if presents, is a string value
+            params['_tag'] = request.query_params.getlist('_tag')
+
         schema = Schema(
-            getattr(self, "QUERY_SCHEMA", {}),
+            query_schema,
             extra=REMOVE_EXTRA)
+
         return schema(params)

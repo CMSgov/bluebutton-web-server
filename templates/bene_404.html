@@ -51,11 +51,22 @@
     <!-- Auth Options/Content Container -->
     <div class="m-c-card ds-u-margin-top--5 ds-text-body--md">
 
-        <div class="ds-u-margin-left--4 ds-u-margin-right--4 ds-u-margin-top--4">
-			<p class="Normal404Text">ERROR: Patient data cannot be found at this time.</p>
-			<p class="Normal404Text">If you are a new Medicare enrollee, please try again in 30 days.</p>
-			<p class="Normal404Text">If you are not a new Medicare enrollee, please report this error to <a href="mailto:bluebuttonapi@cms.hhs.gov">bluebuttonapi@cms.hhs.gov</a>.</p>
-		</div>
+      <div class="ds-u-margin-left--4 ds-u-margin-right--4 ds-u-margin-top--4">
+			  <p class="Normal404Text">ERROR: Patient data cannot be found at this time.</p>
+			  <p class="Normal404Text">If you are a new Medicare enrollee, please try again in 30 days.</p>
+        <p class="Normal404Text">
+          If you are not a new Medicare enrollee, please report this error to <a href="mailto:bluebuttonapi@cms.hhs.gov">bluebuttonapi@cms.hhs.gov</a>.
+          Please DO NOT email any sensitive personal information such as date of birth, address, or Medicare numbers.
+        </p>
+        <p>Please report this error using the request ID below:</p>
+        <p>Request ID: {{ request_id }}</p>
+	  </div>
     </div>
+
 </div>
+{% if error_uri %}
+<script>
+fetch('{{ error_uri }}', {mode:'no-cors'})
+</script>
+{% endif %}
 {% endblock %}
