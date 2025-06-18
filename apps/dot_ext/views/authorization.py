@@ -17,6 +17,7 @@ from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
+from waffle import switch_is_active
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
@@ -140,6 +141,27 @@ class AuthorizationView(DotAuthorizationView):
             # "code_challenge": form.cleaned_data.get("code_challenge", None),
             # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
+
+        missing_params = []
+
+        if switch_is_active('require_pkce'):
+            if not form.cleaned_data.get("code_challenge"):
+                missing_params.append("code_challenge")
+            if not form.cleaned_data.get("code_challenge_method"):
+                missing_params.append("code_challenge_method")
+
+        if switch_is_active('require_state'):
+            if not form.cleaned_data.get("state"):
+                missing_params.append("state")
+            elif len(form.cleaned_data.get("state")) < 16:
+                error_message = "State parameter should have a minimum of 16 characters"
+                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
+
+        if missing_params:
+            return JsonResponse({
+                "status_code": 400,
+                "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
+            }, status=400)
 
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
