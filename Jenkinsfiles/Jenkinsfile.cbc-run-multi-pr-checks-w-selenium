@@ -32,7 +32,7 @@ pipeline {
   parameters {
     string(
       name: 'FHIR_URL',
-      defaultValue: "https://prod-sbx.bfd.cms.gov",
+      defaultValue: "https://prod-sbx.fhir.bfd.cmscloud.local",
       description: 'The default FHIR URL for the back end BFD service.'
     )
     booleanParam(
