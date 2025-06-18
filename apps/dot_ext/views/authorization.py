@@ -153,16 +153,15 @@ class AuthorizationView(DotAuthorizationView):
         if switch_is_active('require_state'):
             if not form.cleaned_data.get("state"):
                 missing_params.append("state")
+            elif len(form.cleaned_data.get("state")) < 16:
+                error_message = "State parameter should have a minimum of 16 characters"
+                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
         if missing_params:
             return JsonResponse({
                 "status_code": 400,
                 "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
             }, status=400)
-
-        if len(form.cleaned_data.get("state", "")) < 16:
-            error_message = "State parameter should have a minimum of 16 characters"
-            return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
