@@ -1035,7 +1035,7 @@ components:
           version: 2.141.0
         implementation:
           description: 'gov.cms.bfd:bfd-server-war'
-          url: 'https://prod-sbx.bfd.cms.gov/v1/fhir'
+          url: 'https://prod-sbx.fhir.bfd.cmscloud.local/v1/fhir'
         fhirVersion: 3.0.2
         acceptUnknown: extensions
         format:

@@ -27,7 +27,7 @@ DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
 DOCKER_TAG="py37-an27-tf12-boto3-botocore"
 
 # Backend FHIR server to use for integration tests of FHIR resource endpoints:
-FHIR_URL="https://prod-sbx.bfd.cms.gov"
+FHIR_URL="https://prod-sbx.fhir.bfd.cmscloud.local"
 
 # List of integration tests to run. To be passed in to runtests.py.
 INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
