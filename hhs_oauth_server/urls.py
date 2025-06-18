@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
@@ -15,6 +15,13 @@ admin.autodiscover()
 admin.site.enable_nav_sidebar = False
 
 ADMIN_REDIRECTOR = getattr(settings, "ADMIN_PREPEND_URL", "")
+
+
+def robots_txt(request):
+    return HttpResponse(
+        "User-agent: *\nDisallow: /v1/o/\nDisallow: /v2/o/\nDisallow: /v3/o/",
+        content_type="text/plain",
+    )
 
 
 urlpatterns = [
@@ -48,6 +55,7 @@ urlpatterns = [
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
     path("creds", include("apps.creds.urls")),
     path("akamai/testobject", testobject, name="akamai_testobject"),
+    path("robots.txt", robots_txt),
 ]
 
 
