@@ -1,8 +1,13 @@
 from datetime import datetime, timezone
+import json
 from django.core.management.base import BaseCommand
 
+from apps.accounts.models import GlobalStateMetric
 from apps.logging.loggers import log_global_state_metrics
+from apps.logging.management.commands.metrics_util import log_metric_json
 from apps.logging.utils import format_timestamp
+from django.utils.timezone import now
+
 
 
 class Command(BaseCommand):
@@ -19,5 +24,14 @@ class Command(BaseCommand):
         group_timestamp = format_timestamp(datetime.now())
        
         report_flag = False if options.get("no_report", None) else True
+        metrics_json = log_global_state_metrics(group_timestamp, report_flag)
 
-        log_global_state_metrics(group_timestamp, report_flag)
+        log_metric_json(metrics_json, timestamp=now())
+        # if isinstance(metricsJson, str):
+        #     metricsJson = json.loads(metricsJson)
+
+        # for item in metricsJson:
+        #     GlobalStateMetric.objects.using('timescale').create(
+        #         timestamp=now(),
+        #         data=item
+        #     )

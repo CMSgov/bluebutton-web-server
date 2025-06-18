@@ -285,6 +285,14 @@ DATABASES = {
     "default": dj_database_url.config(
         default=env("DATABASES_CUSTOM", "sqlite:///{}/db.sqlite3".format(BASE_DIR))
     ),
+    'timescale': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'metrics',
+        'USER': 'postgres',
+        'PASSWORD': 'toor',
+        'HOST': 'db',
+        'PORT': '5432',
+    }
 }
 
 # this helps Django messages format nicely with Bootstrap3

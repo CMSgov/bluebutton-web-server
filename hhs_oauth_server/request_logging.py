@@ -3,12 +3,14 @@ import hashlib
 import json
 import uuid
 
+from apps.logging.management.commands.metrics_util import log_metric_json
 import apps.logging.request_logger as logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
+from django.utils.timezone import now
 
 from apps.dot_ext.loggers import (
     SESSION_AUTH_FLOW_TRACE_KEYS,
@@ -544,7 +546,9 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def log_message(request, response):
-        audit.info(RequestResponseLog(request, response).to_dict())
+        log_data = RequestResponseLog(request, response).to_dict()
+        audit.info(log_data)
+        log_metric_json([log_data], timestamp=now())
         request._logging_pass += 1
 
     def process_request(self, request):

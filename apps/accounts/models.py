@@ -98,6 +98,12 @@ ISSUE_INVITE = (
     ("DONE", "Invite has been sent"),
 )
 
+class GlobalStateMetric(models.Model):
+    timestamp = models.DateTimeField()
+    data = models.JSONField()
+
+    class Meta:
+        db_table = 'metrics'
 
 class UserProfile(models.Model):
     user = models.OneToOneField(

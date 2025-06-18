@@ -7,11 +7,13 @@ services:
     profiles:
       - mocksls
   db:
-    image: postgres
+    image: timescale/timescaledb:latest-pg16
     env_file:
       - docker-compose/db-env-vars.env
     ports:
       - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
   web:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
@@ -60,3 +62,6 @@ services:
       - .:/code
     profiles:
       - tests
+
+volumes:
+  timescaledb_data:

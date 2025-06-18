@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from django.core.serializers.json import DjangoJSONEncoder
 
 import apps.logging.request_logger as logging
@@ -32,6 +33,8 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
     For use in apps/logging/management/commands/log_global_metrics.py management command
     NOTE:  print statements are for output when run via Jenkins
     """
+    metrics = []
+
     if report_flag:
         print("---")
         print("---RUNNING DJANGO COMMAND:  log_global_state_metrics")
@@ -313,6 +316,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
     }
 
     logger.info(log_dict)
+    metrics.append(log_dict)
 
     if report_flag:
         print("---")
@@ -391,6 +395,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         }
 
         logger.info(log_dict, cls=DjangoJSONEncoder)
+        metrics.append(log_dict)
 
         count = count + 1
 
@@ -406,3 +411,5 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         )
         print("---")
         print("SUCCESS")
+    
+    return json.dumps(metrics)
