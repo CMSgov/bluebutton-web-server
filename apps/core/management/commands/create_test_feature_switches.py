@@ -18,6 +18,8 @@ WAFFLE_FEATURE_SWITCHES = (
     ("wellknown_applications", True, "This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test."),
     ("v3_endpoints", True, "This enables v3 endpoints."),
     ("bfd_v3_connectathon", True, "This enables the bfd v3 features for connectathon demo"),
+    ("require_state", True, "This enforces the presence of the state parameter when authorizing"),
+    ("require_pkce", True, "This enforces the presence of the PKCE parameters code_challenge and code_challenge_method when authorizing"),
 )
 
 WAFFLE_FEATURE_FLAGS = (
