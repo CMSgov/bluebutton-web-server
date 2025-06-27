@@ -1,5 +1,6 @@
 import json
 import hashlib
+from apps.logging.utils import lookup_language
 
 
 class DataAccessGrantSerializer:
@@ -39,9 +40,10 @@ class Token:
     tkn = None
     action = None
 
-    def __init__(self, obj, action=None):
+    def __init__(self, obj, action=None, request=None):
         self.tkn = obj
         self.action = action
+        self.request = request
 
     def to_dict(self):
         # seems like this should be a serializer
@@ -56,7 +58,8 @@ class Token:
             scopes = " ".join(scopes_dict.keys())
         else:
             scopes = ""
-
+        # splunk dashboard auth flow dashboard baseSearch12
+        lang = lookup_language(self.request)
         result = {
             "type": "AccessToken",
             "action": self.action,
@@ -84,6 +87,7 @@ class Token:
                 "fhir_id": getattr(crosswalk, "fhir_id", None),
                 "user_id_type": getattr(crosswalk, "user_id_type", None),
             },
+            "auth_language": lang,
         }
 
         return result
