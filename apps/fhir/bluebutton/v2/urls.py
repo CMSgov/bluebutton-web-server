@@ -12,9 +12,16 @@ from apps.fhir.bluebutton.views.search import (
     SearchViewPatient,
 )
 
+from apps.fhir.bluebutton.views import smart_configuration 
+
 admin.autodiscover()
 
 urlpatterns = [
+    # OpenID Connect (OIDC)
+    url(r'.well-known/smart-configuration$',
+        smart_configuration,
+        name='smart-configuration-v2'),
+
     # Patient ReadView
     re_path(
         r"Patient/(?P<resource_id>[^/]+)",
