@@ -158,7 +158,7 @@ class FhirDataView(APIView):
             api_ver_str = 'v2'
         # v3 uses v2 for now
         elif self.version == 3:
-            api_ver_str = 'v2'
+            api_ver_str = 'v3'
         # defaults to v3
         else:
             logger.debug('Unexpected version number %d, defaulting to v2' % self.version)
