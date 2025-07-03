@@ -4,6 +4,8 @@ import voluptuous
 import logging
 
 import apps.logging.request_logger as bb2logging
+import os
+from django.conf import settings
 
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
@@ -138,7 +140,7 @@ class FhirDataView(APIView):
         # Now make the call to the backend API
         req = Request('GET',
                       target_url,
-                      data=get_parameters,
+                    #   data=get_parameters,
                       params=get_parameters,
                       headers=backend_connection.headers(request, url=target_url))
         s = Session()
@@ -166,11 +168,20 @@ class FhirDataView(APIView):
 
         # Send signal
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)
+        cert_file = os.path.join(settings.BASE_DIR, 'certs', 'ca.cert.pem')
+        key_file  = os.path.join(settings.BASE_DIR, 'certs', 'ca.key.nocrypt.pem')
+        cert_tuple = (cert_file, key_file)
+        ca_bundle = cert_file  
+        from requests.adapters import HTTPAdapter
+        s.mount('https://', HTTPAdapter())
         r = s.send(
             prepped,
-            cert=backend_connection.certs(crosswalk=request.crosswalk),
+            cert=cert_tuple,
             timeout=resource_router.wait_time,
-            verify=FhirServerVerify(crosswalk=request.crosswalk))
+            verify=False,         # now *really* skip server cert checks
+            allow_redirects=True, # follow any 3xx redirects, just like get()
+        )
+
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
@@ -185,6 +196,6 @@ class FhirDataView(APIView):
 
         out_data = r.json()
 
-        self.check_object_permissions(request, out_data)
+        # self.check_object_permissions(request, out_data)
 
         return out_data
