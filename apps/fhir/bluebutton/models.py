@@ -120,15 +120,14 @@ class Crosswalk(models.Model):
         db_index=True,
     )
     # This stores the unhashed MBI value.
-    # This will eventually replace _user_mbi_hash
     _user_mbi = models.CharField(
         max_length=11,
+        verbose_name="Unhashed MBI",
         null=True,
         default=None,
+        db_column="user_mbi",
         db_index=True,
-        verbose_name="Unhashed MBI"
     )
-
     objects = models.Manager()  # Default manager
     real_objects = RealCrosswalkManager()  # Real bene manager
     synth_objects = SynthCrosswalkManager()  # Synth bene manager
