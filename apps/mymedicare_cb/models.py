@@ -33,6 +33,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below:
         subject = ID provider's sub or username
         mbi_hash = Previously hashed mbi
+        mbi = Unhashed MBI from SLSx
         hicn_hash = Previously hashed hicn
         first_name
         last_name
@@ -63,6 +64,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         "subject": slsx_client.user_id,
         "fhir_id": fhir_id,
         "mbi_hash": slsx_client.mbi_hash,
+        "mbi": slsx_client.mbi,
         "hicn_hash": slsx_client.hicn_hash,
         "hash_lookup_type": hash_lookup_type,
         "crosswalk": {},
@@ -112,6 +114,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                     "id": user.crosswalk.id,
                     "user_hicn_hash": user.crosswalk.user_hicn_hash,
                     "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                    "user_mbi": user.crosswalk.user_mbi,
                     "fhir_id": user.crosswalk.fhir_id,
                     "user_id_type": user.crosswalk.user_id_type,
                 },
@@ -125,6 +128,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                 user.crosswalk.user_id_type = hash_lookup_type
                 user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
                 user.crosswalk.user_mbi_hash = slsx_client.mbi_hash
+                user.crosswalk.user_mbi = slsx_client.mbi
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
@@ -140,6 +144,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                 "id": user.crosswalk.id,
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                "user_mbi": user.crosswalk.user_mbi,
                 "fhir_id": user.crosswalk.fhir_id,
                 "user_id_type": user.crosswalk.user_id_type,
             },
@@ -164,6 +169,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "user_mbi": user.crosswalk.user_mbi,
             "fhir_id": user.crosswalk.fhir_id,
             "user_id_type": user.crosswalk.user_id_type,
         },
