@@ -153,6 +153,10 @@ class Crosswalk(models.Model):
     def user_mbi_hash(self):
         return self._user_mbi_hash
 
+    @property
+    def user_mbi(self):
+        return self._user_mbi
+
     @user_hicn_hash.setter
     def user_hicn_hash(self, value):
         self._user_id_hash = value
@@ -160,6 +164,10 @@ class Crosswalk(models.Model):
     @user_mbi_hash.setter
     def user_mbi_hash(self, value):
         self._user_mbi_hash = value
+
+    @user_mbi.setter
+    def user_mbi(self, value):
+        self._user_mbi = value
 
 
 class ArchivedCrosswalk(models.Model):
