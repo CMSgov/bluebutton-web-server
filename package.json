@@ -35,6 +35,14 @@
     "ansi-regex": "^6.0.1",
     "gulp": "^5.0.0",
     "node-gyp": "^10.0.0",
-    "node-sass": "^8.0.0"
+    "node-sass": "^9.0.0"
+  },
+  "overrides": {
+    "node-sass": {
+      "cross-spawn": "^7.0.5"
+    },
+    "findup-sync": {
+      "micromatch" : "^4.0.8"
+    }
   }
 }
