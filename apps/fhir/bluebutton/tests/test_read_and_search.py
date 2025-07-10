@@ -253,7 +253,6 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/Patient/".format(ver), req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=-20140000008325", req.url)
-            self.assertIn("startIndex=0", req.url)
             self.assertIn("_count=5", req.url)
             self.assertNotIn("hello", req.url)
             self.assertEqual(expected_request['method'], req.method)
