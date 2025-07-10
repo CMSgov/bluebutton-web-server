@@ -138,7 +138,6 @@ class FhirDataView(APIView):
         # Now make the call to the backend API
         req = Request('GET',
                       target_url,
-                      data=get_parameters,
                       params=get_parameters,
                       headers=backend_connection.headers(request, url=target_url))
         s = Session()
