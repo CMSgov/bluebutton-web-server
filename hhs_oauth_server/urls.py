@@ -7,7 +7,7 @@ from django.contrib import admin
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
-from apps.wellknown.views.openid import smart_configuration
+from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 from .views import testobject
 
@@ -46,7 +46,7 @@ urlpatterns = [
     path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
     path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
     path("v3/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration_v3"),
-    path("v3/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v3"),
+    path("v3/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
     path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
     path("v2/o/", include("apps.dot_ext.v2.urls")),
     path("v2/o/", include("apps.authorization.v2.urls")),
