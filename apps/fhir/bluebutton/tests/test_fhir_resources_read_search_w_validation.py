@@ -178,7 +178,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/ExplanationOfBenefit/".format(ver), req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             # parameters encoded in prepared request's body
-            self.assertTrue(("_tag=Adjudicated" in req.body) or ("_tag=PartiallyAdjudicated" in req.body))
+            self.assertTrue(("_tag=Adjudicated" in req.url) or ("_tag=PartiallyAdjudicated" in req.url))
 
             return {
                 'status_code': 200,

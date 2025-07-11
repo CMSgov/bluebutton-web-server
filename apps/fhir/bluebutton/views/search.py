@@ -53,7 +53,7 @@ class SearchView(FhirDataView):
     }
 
     QUERY_SCHEMA = {
-        Required('startIndex', default=0): Coerce(int),
+        'startIndex': Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
         '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
     }

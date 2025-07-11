@@ -138,7 +138,6 @@ class FhirDataView(APIView):
         # Now make the call to the backend API
         req = Request('GET',
                       target_url,
-                      data=get_parameters,
                       params=get_parameters,
                       headers=backend_connection.headers(request, url=target_url))
         s = Session()
@@ -156,7 +155,6 @@ class FhirDataView(APIView):
             api_ver_str = 'v1'
         elif self.version == 2:
             api_ver_str = 'v2'
-        # v3 uses v2 for now
         elif self.version == 3:
             api_ver_str = 'v3'
         # defaults to v3
