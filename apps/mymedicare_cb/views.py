@@ -89,7 +89,7 @@ def authenticate(request):
 
 @never_cache
 def callback(request, version=2):
-    
+
     state = request.GET.get('relay')
     if not state:
         return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -127,7 +127,6 @@ def callback(request, version=2):
         return JsonResponse({
             "error": e.detail,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
     try:
         anon_user_state = AnonUserState.objects.get(state=state)
