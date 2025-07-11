@@ -118,7 +118,7 @@ paths:
         - name: resource_id
           in: path
           required: true
-          description: "Pateint FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
+          description: "Patient FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
           schema:
             type: string
       responses:
@@ -265,12 +265,6 @@ paths:
               - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
               - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
               - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: startIndex
-          schema:
-            type: string
-          required: false
-          description: "The offset used for result pagination"
       responses:
         '200':
           content:
