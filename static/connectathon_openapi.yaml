@@ -365,6 +365,29 @@ paths:
               - __tag=Adjudicated_ defines a range between two provided dates
               - __tag=PartiallyAdjudicated_ will only return partially-adjudicated claims
               - both adjudicated and partially-adjudicated claims will be available by default (eg if _tag is not passed)
+        - in: query
+          name: service-date
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search request if a claim's _billable period_
+            falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+
+            Examples:
+              - _service-date=gt2023-01-02T00:00+00:00&service-date=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - _service-date=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - _service-date=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
       responses:
         '200':
           content:
