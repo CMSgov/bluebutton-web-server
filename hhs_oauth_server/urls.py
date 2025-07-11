@@ -7,7 +7,7 @@ from django.contrib import admin
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
-from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3
+from apps.wellknown.views.openid import smart_configuration
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 from .views import testobject
 

@@ -64,7 +64,7 @@ def smart_configuration_v3(request):
     issuer = base_issuer(request)
     data = build_smart_config_endpoint(data, issuer=issuer)
     
-    #v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
+    # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
     data["authorization_endpoint"] = data["authorization_endpoint"].replace("/v2/o/", "/v3/o/")
     data["revocation_endpoint"] = data["revocation_endpoint"].replace("/v2/o/", "/v3/o/")
     data["token_endpoint"] = data["token_endpoint"].replace("/v2/o/", "/v3/o/")
