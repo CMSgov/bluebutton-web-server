@@ -63,13 +63,13 @@ def smart_configuration_v3(request):
     data = OrderedDict()
     issuer = base_issuer(request)
     data = build_smart_config_endpoint(data, issuer=issuer)
-    
+
     # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
     data["authorization_endpoint"] = data["authorization_endpoint"].replace("/v2/o/", "/v3/o/")
     data["revocation_endpoint"] = data["revocation_endpoint"].replace("/v2/o/", "/v3/o/")
     data["token_endpoint"] = data["token_endpoint"].replace("/v2/o/", "/v3/o/")
     data["fhir_metadata_uri"] = data["fhir_metadata_uri"].replace("/v2/fhir/", "/v3/fhir/")
-    
+
     return JsonResponse(data)
 
 
@@ -136,6 +136,7 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["fhir_metadata_uri"] = issuer + \
         reverse('fhir_conformance_metadata_v2')
     return data
+
 
 def add_authorization_code_grant(data):
     if "authorization_code" not in data["grant_types_supported"]:
