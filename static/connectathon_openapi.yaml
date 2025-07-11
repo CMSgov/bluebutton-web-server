@@ -175,24 +175,6 @@ paths:
               - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
               - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
         - in: query
-          name: startIndex
-          schema:
-            type: string
-          required: false
-          description: "The offset used for result pagination"
-        - in: query
-          name: _has:Coverage
-          schema:
-            type: string
-          required: false
-          description: "Part D coverage type/year"
-        - in: query
-          name: cursor
-          schema:
-            type: string
-          required: false
-          description: "The cursor used for result pagination"
-        - in: query
           name: _id
           schema:
             type: string
@@ -371,46 +353,18 @@ paths:
               - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
               - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
         - in: query
-          name: excludeSAMHSA
-          schema:
-            type: string
-          required: false
-          description: "If true, exclude all SAMHSA-related resources"
-        - in: query
-          name: service-date
+          name: _tag
           schema:
             type: string
           required: false
           description: |-
-            Only satisfy the Search request if a claim's _billable period_
-            falls within a specified _DateRange_.
-
-            A _DateRange_ can be defined by providing _lt_ (less than), _le_
-            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
-            than or equal to) values.
-
-            This parameter can be included in a request one or more times.
-
-            Inexact timestamps are accepted, but not recommended, since the input will implicitly
-            be converted to use the server's timezone.
-
+            For the Connectathon, _tag can be used to filter for partially-adjudicated vs. fully-adjudicated claims at query time.
+            Acceptable values for _tag are Adjudicated and PartiallyAdjudicated
 
             Examples:
-              - _service-date=gt2023-01-02T00:00+00:00&service-date=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
-              - _service-date=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
-              - _service-date=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: startIndex
-          schema:
-            type: string
-          required: false
-          description: "The offset used for result pagination"
-        - in: query
-          name: type
-          schema:
-            type: string
-          required: false
-          description: "A list of claim types to include"
+              - __tag=Adjudicated_ defines a range between two provided dates
+              - __tag=PartiallyAdjudicated_ will only return partially-adjudicated claims
+              - both adjudicated and partially-adjudicated claims will be available by default (eg if _tag is not passed)
       responses:
         '200':
           content:
