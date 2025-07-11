@@ -89,6 +89,22 @@ def authenticate(request):
 
 @never_cache
 def callback(request, version=2):
+    
+    state = request.GET.get('relay')
+    if not state:
+        return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if state:
+        try:
+            anon_user_state = AnonUserState.objects.get(state=state)
+            next_uri = anon_user_state.next_uri or ""
+            if "/v3/o/authorize" in next_uri:
+                version = 3
+            elif "/v2/o/authorize" in next_uri:
+                version = 2
+        except AnonUserState.DoesNotExist:
+            pass
+
     user_not_found_error = None
     try:
         authenticate(request)
@@ -112,10 +128,6 @@ def callback(request, version=2):
             "error": e.detail,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    state = request.GET.get('relay')
-
-    if not state:
-        return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         anon_user_state = AnonUserState.objects.get(state=state)
