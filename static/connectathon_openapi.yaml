@@ -38,7 +38,7 @@ paths:
                   $ref: '#/components/examples/OpenIdConfigurationExample'
           description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
       tags:
-        - v2
+        - v3
 
   /v3/fhir/.well-known/smart-configuration:
     get:
@@ -140,7 +140,7 @@ paths:
         '502':
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
-        - v2
+        - v3
   /v3/fhir/Patient/:
     get:
       operationId: listSearchViewPatients_v3
