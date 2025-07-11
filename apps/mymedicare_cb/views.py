@@ -102,7 +102,6 @@ def callback(request, version=2):
     elif "/v2/o/authorize" in next_uri:
         version = 2
 
-
     user_not_found_error = None
     try:
         authenticate(request)
