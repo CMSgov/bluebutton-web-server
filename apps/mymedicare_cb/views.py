@@ -94,7 +94,6 @@ def callback(request, version=2):
     if not state:
         return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    
     anon_user_state = AnonUserState.objects.get(state=state)
     next_uri = anon_user_state.next_uri or ""
     if "/v3/o/authorize" in next_uri:
