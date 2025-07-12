@@ -702,7 +702,9 @@ def get_patient_by_id(id, request):
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
-    url = "{}Patient/{}?_format={}".format(
+    # for now this will only work for v1/v2 patients, but we'll need to be able to
+    # determine if the user is V3 and use those endpoints later
+    url = "{}/v2/fhir/Patient/{}?_format={}".format(
         get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
     )
     s = requests.Session()

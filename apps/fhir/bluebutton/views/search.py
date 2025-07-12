@@ -73,16 +73,19 @@ class SearchView(FhirDataView):
             # only if called by tests
             return "{}{}/".format(resource_router.fhir_url, resource_type)
         else:
+            fhir_url = resource_router.fhir_url
             match self.version:
                 case 3:
                     version_str = 'v3'
+                    if resource_router.fhir_url_v3:
+                        fhir_url = resource_router.fhir_url_v3
                 case 2:
                     version_str = 'v2'
                 case _:
                     version_str = 'v1'
 
             return "{base_url}/{version}/fhir/{resource_type}/".format(
-                base_url=resource_router.fhir_url,
+                base_url=fhir_url,
                 version=version_str,
                 resource_type=resource_type
             )
