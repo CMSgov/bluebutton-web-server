@@ -65,10 +65,10 @@ def smart_configuration_v3(request):
     data = build_smart_config_endpoint(data, issuer=issuer)
 
     # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
-    data["authorization_endpoint"] = data["authorization_endpoint"].replace("/v2/o/", "/v3/o/")
-    data["revocation_endpoint"] = data["revocation_endpoint"].replace("/v2/o/", "/v3/o/")
-    data["token_endpoint"] = data["token_endpoint"].replace("/v2/o/", "/v3/o/")
-    data["fhir_metadata_uri"] = data["fhir_metadata_uri"].replace("/v2/fhir/", "/v3/fhir/")
+    data["authorization_endpoint"] = data.get("authorization_endpoint", "").replace("/v2/o/", "/v3/o/")
+    data["revocation_endpoint"] = data.get("revocation_endpoint", "").replace("/v2/o/", "/v3/o/")
+    data["token_endpoint"] = data.get("token_endpoint", "").replace("/v2/o/", "/v3/o/")
+    data["fhir_metadata_uri"] = data.get("fhir_metadata_uri", "").replace("/v2/fhir/", "/v3/fhir/")
 
     return JsonResponse(data)
 
