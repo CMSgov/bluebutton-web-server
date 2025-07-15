@@ -21,6 +21,7 @@ class TestModels(BaseApiTest):
             fhir_id="-20000000000001",
             user_hicn_hash=self.test_hicn_hash,
             user_mbi_hash=self.test_mbi_hash,
+            user_mbi=self.test_mbi,
         )
 
         cw = Crosswalk.objects.get(user=user)
@@ -70,6 +71,7 @@ class TestModels(BaseApiTest):
             fhir_id="-20000000000001",
             user_hicn_hash=self.test_hicn_hash,
             user_mbi_hash=None,
+            user_mbi=None,
         )
 
         cw = Crosswalk.objects.get(user=user)
@@ -111,6 +113,7 @@ class TestModels(BaseApiTest):
             first_name="John",
             last_name="Smith",
             email="john@smith.net",
+            user_mbi="1SA0A00AA00",
         )
 
         cw = Crosswalk.objects.get(user=user)
@@ -132,6 +135,7 @@ class TestModels(BaseApiTest):
             last_name="Smith",
             email="john@smith.net",
             user_mbi_hash=None,
+            user_mbi="1SA0A00AA00",
         )
 
         cw = Crosswalk.objects.get(user=user)
@@ -167,6 +171,8 @@ class TestModels(BaseApiTest):
                 + str(cnt),
                 user_mbi_hash="9876543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
+                user_mbi="1SA0A00AA00"
+                + str(cnt),
             )
 
         # Create 7x Synthetic (negative FHIR_ID) users
@@ -181,6 +187,8 @@ class TestModels(BaseApiTest):
                 user_hicn_hash="255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi_hash="987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000"
+                + str(cnt),
+                user_mbi="1SA0A00AA00"
                 + str(cnt),
             )
 

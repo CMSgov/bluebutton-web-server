@@ -44,6 +44,7 @@ class BaseApiTest(TestCase):
         fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
         user_hicn_hash=test_hicn_hash,
         user_mbi_hash=test_mbi_hash,
+        user_mbi=test_mbi,
         user_type=None,
         **extra_fields
     ):
@@ -60,6 +61,7 @@ class BaseApiTest(TestCase):
             _fhir_id=fhir_id,
             _user_id_hash=user_hicn_hash,
             _user_mbi_hash=user_mbi_hash,
+            _user_mbi=user_mbi,
         )
         cw.save()
         # Create ben user profile, if it doesn't exist
@@ -200,7 +202,7 @@ class BaseApiTest(TestCase):
         return apps_qs.first()
 
     def create_token(
-        self, first_name, last_name, fhir_id=None, hicn_hash=None, mbi_hash=None
+        self, first_name, last_name, fhir_id=None, hicn_hash=None, mbi_hash=None, mbi=None
     ):
         passwd = "123456"
         user = self._create_user(
@@ -211,6 +213,7 @@ class BaseApiTest(TestCase):
             fhir_id=fhir_id if fhir_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
+            user_mbi=mbi if mbi is not None else self.test_mbi,
             email="%s@%s.net" % (first_name, last_name),
         )
         pt_id = fhir_id if fhir_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID
@@ -223,6 +226,7 @@ class BaseApiTest(TestCase):
             fhir_id=pt_id,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
+            user_mbi=mbi if mbi is not None else self.test_mbi,
         )
 
         # create a oauth2 application and add capabilities
@@ -400,6 +404,7 @@ class BaseApiTest(TestCase):
                 fhir_id=fhir_id,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
+                user_mbi=self.test_mbi,
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
