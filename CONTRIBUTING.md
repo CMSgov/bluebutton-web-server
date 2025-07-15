@@ -143,29 +143,14 @@ python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
 
 **Test Requirements:**
 - Write tests for new functionality
-- Ensure existing tests pass
-- Tests should cover OAuth2 flows, FHIR interactions, and Django views
-- Include tests for edge cases and error conditions
 
 ### Coding Style and Linters
 
 **Style Guidelines:**
-- Follow PEP 8 for Python code style
-- Use Django best practices for views, models, and templates
-- Follow OAuth2 and FHIR standards for API implementations
 - Write clear, self-documenting code with appropriate comments
 
 **Linting:**
 - Each application has its own linting guidelines
-- Lint and code tests are run on each commit
-- Run linters locally before committing
-- Ensure code passes all style checks before submitting pull requests
-
-**Security Considerations:**
-- This project handles sensitive Medicare data
-- Follow secure coding practices
-- Never commit credentials or secrets
-- Use environment variables for configuration
 
 ### Writing Issues
 
@@ -207,74 +192,12 @@ See our `.github/ISSUE_TEMPLATE.md` for more examples.
 - Ensure all tests pass
 - Include screenshots for UI changes
 
-**Commit Message Format:**
-```
-module-name: One line description of your change (less than 72 characters)
-
-Problem
-
-Explain the context and why you're making that change. What is the problem
-you're trying to solve? In some cases there is not a problem and this can be
-thought of being the motivation for your change.
-
-Solution
-
-Describe the modifications you've done.
-
-Result
-
-What will change as a result of your pull request? Note that sometimes this
-section is unnecessary because it is self-explanatory based on the solution.
-```
-
-**Summary Line Guidelines:**
-- Describe what was done; not the result
-- Use the active voice
-- Use the present tense
-- Capitalize properly
-- Do not end in a period — this is a title/subject
-- Prefix the subject with its scope
-
-See our `.github/PULL_REQUEST_TEMPLATE.md` for more examples.
-
-## Reviewing Pull Requests
+### Reviewing Pull Requests
 
 **Review Process:**
 The repository on GitHub is kept in sync with an internal repository at github.cms.gov. For the most part this process should be transparent to the project users, but it does have some implications for how pull requests are merged into the codebase.
 
-When you submit a pull request on GitHub, it will be reviewed by the project community (both inside and outside of github.cms.gov), and once the changes are approved, your commits will be brought into github.cms.gov's internal system for additional testing. Once the changes are merged internally, they will be pushed back to GitHub with the next sync.
-
-**Review Criteria:**
-- Code follows project style guidelines
-- Tests are included and passing
-- Documentation is updated as needed
-- Security considerations are addressed
-- FHIR and OAuth2 standards are followed
-- No sensitive data is exposed
-
-**For Reviewers:**
-- Focus on code quality, security, and adherence to standards
-- Provide constructive feedback
-- Test changes locally when possible
-- Review for potential healthcare data privacy issues
-
-## Shipping Releases
-
-The Blue Button Web Server sees regular updates and new releases. This section describes the general guidelines around how and when a new release is cut.
-
-**Release Process:**
-- Releases are coordinated by the CMS maintainer team
-- Security updates may be released on an expedited schedule
-- Major releases include new features and breaking changes
-- Minor releases include backwards-compatible functionality
-- Patch releases include backwards-compatible bug fixes
-
-**Versioning:**
-We follow [Semantic Versioning](https://semver.org/) principles:
-- `MAJOR.MINOR.PATCH` format
-- Breaking changes increment MAJOR version
-- New features increment MINOR version
-- Bug fixes increment PATCH version
+When you submit a pull request on GitHub, it will be reviewed by the project community, and once the changes are approved, your commits will be brought into github.cms.gov's internal system for additional testing. Once the changes are merged internally, they will be pushed back to GitHub with the next sync.
 
 ## Documentation
 
