@@ -16,6 +16,7 @@ USER_SETTINGS = getattr(settings, "FHIR_SERVER", None)
 
 DEFAULTS = {
     "FHIR_URL": None,
+    "FHIR_URL_V3": None,
     "CLIENT_AUTH": False,
     "CERT_FILE": "",
     "KEY_FILE": "",

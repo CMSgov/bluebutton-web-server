@@ -53,7 +53,7 @@ class SearchView(FhirDataView):
     }
 
     QUERY_SCHEMA = {
-        Required('startIndex', default=0): Coerce(int),
+        'startIndex': Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
         '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
     }
@@ -73,8 +73,22 @@ class SearchView(FhirDataView):
             # only if called by tests
             return "{}{}/".format(resource_router.fhir_url, resource_type)
         else:
-            return "{}/{}/fhir/{}/".format(resource_router.fhir_url, 'v2' if self.version == 2 else 'v1',
-                                           resource_type)
+            fhir_url = resource_router.fhir_url
+            match self.version:
+                case 3:
+                    version_str = 'v3'
+                    if resource_router.fhir_url_v3:
+                        fhir_url = resource_router.fhir_url_v3
+                case 2:
+                    version_str = 'v2'
+                case _:
+                    version_str = 'v1'
+
+            return "{base_url}/{version}/fhir/{resource_type}/".format(
+                base_url=fhir_url,
+                version=version_str,
+                resource_type=resource_type
+            )
 
 
 class SearchViewPatient(SearchView):

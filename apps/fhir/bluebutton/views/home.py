@@ -20,10 +20,14 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def fhir_conformance_v2(request, via_oauth=False):
-    return fhir_conformance(request, via_oauth, True)
+    return fhir_conformance(request, via_oauth, "v2")
 
 
-def fhir_conformance(request, via_oauth=False, v2=False, *args):
+def fhir_conformance_v3(request, via_oauth=False):
+    return fhir_conformance(request, via_oauth, "v3")
+
+
+def fhir_conformance(request, via_oauth=False, ver_str="v1", *args):
     """ Pull and filter fhir Conformance statement
 
     BaseStu3 = "CapabilityStatement"
@@ -36,13 +40,14 @@ def fhir_conformance(request, via_oauth=False, v2=False, *args):
     """
     crosswalk = None
     resource_router = get_resourcerouter()
-    parsed_url = urlparse(resource_router.fhir_url)
+    fhir_url = resource_router.fhir_url_v3 if ver_str == "v3" else resource_router.fhir_url
+    parsed_url = urlparse(fhir_url)
     call_to = None
     if parsed_url.path is not None:
-        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, 'v2' if v2 else 'v1')
+        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, ver_str)
     else:
         # url with no path
-        call_to = '{}/{}/fhir/metadata'.format(resource_router.fhir_url, 'v2' if v2 else 'v1')
+        call_to = '{}/{}/fhir/metadata'.format(fhir_url, ver_str)
 
     pass_params = {'_format': 'json'}
 

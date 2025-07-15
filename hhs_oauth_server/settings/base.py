@@ -600,6 +600,7 @@ FHIR_CLIENT_CERTSTORE = env(
 
 FHIR_SERVER = {
     "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
+    "FHIR_URL_V3": env("FHIR_URL_V3", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
     "CERT_FILE": os.path.join(
         FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")
     ),

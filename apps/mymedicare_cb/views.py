@@ -89,6 +89,20 @@ def authenticate(request):
 
 @never_cache
 def callback(request, version=2):
+    state = request.GET.get('relay')
+    if not state:
+        return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        anon_user_state = AnonUserState.objects.get(state=state)
+    except AnonUserState.DoesNotExist:
+        return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
+    next_uri = anon_user_state.next_uri or ""
+    if "/v3/o/authorize" in next_uri:
+        version = 3
+    elif "/v2/o/authorize" in next_uri:
+        version = 2
+
     user_not_found_error = None
     try:
         authenticate(request)
@@ -112,38 +126,6 @@ def callback(request, version=2):
             "error": e.detail,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    state = request.GET.get('relay')
-
-    if not state:
-        return JsonResponse({
-            "error": 'The state parameter is required'
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        anon_user_state = AnonUserState.objects.get(state=state)
-    except AnonUserState.DoesNotExist:
-        return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
-    next_uri = anon_user_state.next_uri
-
-    if user_not_found_error:
-        start_index = next_uri.find('redirect_uri')
-        if start_index == -1 or next_uri.find('state=') == -1:
-            error_uri = None
-        else:
-            redirect_uri_start = start_index + 13
-            redirect_uri_end = next_uri.find('state=') - 1
-            redirect_uri = unquote(next_uri[redirect_uri_start:redirect_uri_end])
-            error_uri = f"{redirect_uri}?error=not_found"
-        return TemplateResponse(
-            request,
-            "bene_404.html",
-            context={
-                "error_uri": error_uri,
-                "error": user_not_found_error.detail,
-                "request_id": request._logging_uuid,
-            },
-            status=status.HTTP_404_NOT_FOUND)
-
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
 
     if user_not_found_error:
@@ -163,8 +145,7 @@ def callback(request, version=2):
             },
             status=status.HTTP_404_NOT_FOUND)
 
-    approval = Approval.objects.create(
-        user=request.user)
+    approval = Approval.objects.create(user=request.user)
 
     # Only go back to app authorization
     if version == 3:
