@@ -200,7 +200,7 @@ class BaseApiTest(TestCase):
         return apps_qs.first()
 
     def create_token(
-        self, first_name, last_name, fhir_id=None, hicn_hash=None, mbi_hash=None, mbi=None
+        self, first_name, last_name, fhir_id=None, hicn_hash=None, mbi_hash=None
     ):
         passwd = "123456"
         user = self._create_user(
@@ -400,7 +400,6 @@ class BaseApiTest(TestCase):
                 fhir_id=fhir_id,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
-                user_mbi=self.test_mbi,
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
