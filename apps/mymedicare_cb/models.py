@@ -166,7 +166,6 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "user_mbi": user.crosswalk.user_mbi,
             "fhir_id": user.crosswalk.fhir_id,
             "user_id_type": user.crosswalk.user_id_type,
         },
@@ -234,6 +233,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
             user=user,
             user_hicn_hash=slsx_client.hicn_hash,
             user_mbi_hash=slsx_client.mbi_hash,
+            user_mbi=slsx_client.mbi,
             fhir_id=fhir_id,
             user_id_type=user_id_type,
         )
