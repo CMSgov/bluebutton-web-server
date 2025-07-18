@@ -231,10 +231,6 @@ class ArchivedCrosswalk(models.Model):
         db_column="user_mbi_hash",
         db_index=True,
     )
-<<<<<<< HEAD
-=======
-
->>>>>>> 08e3b3cd (adding mbi to archived crosswalk and removing test logic as it was causing errors in unit tests)
     # This stores the unhashed MBI value.
     _user_mbi = models.CharField(
         max_length=11,
@@ -258,7 +254,6 @@ class ArchivedCrosswalk(models.Model):
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
             _user_mbi_hash=crosswalk.user_mbi_hash,
-            _user_mbi=crosswalk.user_mbi,
             date_created=crosswalk.date_created,
         )
         acw.save()

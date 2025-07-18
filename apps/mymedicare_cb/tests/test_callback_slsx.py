@@ -142,7 +142,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_id="-20000000002346",
             user_hicn_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
             user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321",
-            user_mbi="1SA0A00AA00"
         )
         application = Application.objects.create(
             redirect_uris="http://test.com",

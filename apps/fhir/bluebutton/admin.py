@@ -25,6 +25,5 @@ class ArchivedCrosswalkAdmin(admin.ModelAdmin):
         "user_id_type",
         "_user_id_hash",
         "_user_mbi_hash",
-        "_user_mbi",
     )
-    search_fields = ("_fhir_id", "username", "_user_id_hash", "_user_mbi_hash", "_user_mbi")
+    search_fields = ("_fhir_id", "username", "_user_id_hash", "_user_mbi_hash")

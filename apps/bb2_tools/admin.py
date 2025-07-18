@@ -332,7 +332,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "get_connected_applications",
         "date_created",
     )
-    search_fields = ("user__username", "_fhir_id", "_user_id_hash", "_user_mbi_hash", "_user_mbi")
+    search_fields = ("user__username", "_fhir_id", "_user_id_hash", "_user_mbi_hash")
     readonly_fields = ("date_created",)
     raw_id_fields = ("user",)
 
