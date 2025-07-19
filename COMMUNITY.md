@@ -44,6 +44,223 @@ The Blue Button Web Server project welcomes contributions from developers, healt
 Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COUNT END-->
 
 <!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/aviars">
+                    <img src="https://avatars.githubusercontent.com/u/61345?v=4" width="100;" alt="aviars"/>
+                    <br />
+                    <sub><b>Alan Viars</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/ekivemark">
+                    <img src="https://avatars.githubusercontent.com/u/104304?v=4" width="100;" alt="ekivemark"/>
+                    <br />
+                    <sub><b>Mark Scrimshire</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/samgensburg-gov">
+                    <img src="https://avatars.githubusercontent.com/u/25462603?v=4" width="100;" alt="samgensburg-gov"/>
+                    <br />
+                    <sub><b>samgensburg-gov</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/whytheplatypus">
+                    <img src="https://avatars.githubusercontent.com/u/410846?v=4" width="100;" alt="whytheplatypus"/>
+                    <br />
+                    <sub><b>David Gage</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/dtisza1">
+                    <img src="https://avatars.githubusercontent.com/u/36048547?v=4" width="100;" alt="dtisza1"/>
+                    <br />
+                    <sub><b>David Tisza</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/JFU-GIT">
+                    <img src="https://avatars.githubusercontent.com/u/25412191?v=4" width="100;" alt="JFU-GIT"/>
+                    <br />
+                    <sub><b>Jim Fuqian</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/synasius">
+                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
+                    <br />
+                    <sub><b>Federico Frenguelli</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/palazzem">
+                    <img src="https://avatars.githubusercontent.com/u/1560405?v=4" width="100;" alt="palazzem"/>
+                    <br />
+                    <sub><b>Emanuele Palazzetti</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/loganbertram">
+                    <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
+                    <br />
+                    <sub><b>Logan Bertram</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/ajshred">
+                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
+                    <br />
+                    <sub><b>Adrian Jones</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jimmyfagan">
+                    <img src="https://avatars.githubusercontent.com/u/90421499?v=4" width="100;" alt="jimmyfagan"/>
+                    <br />
+                    <sub><b>jimmyfagan</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/JFU-NAVA-PBC">
+                    <img src="https://avatars.githubusercontent.com/u/135686833?v=4" width="100;" alt="JFU-NAVA-PBC"/>
+                    <br />
+                    <sub><b>Jim Fuqian</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/rnagle">
+                    <img src="https://avatars.githubusercontent.com/u/72608?v=4" width="100;" alt="rnagle"/>
+                    <br />
+                    <sub><b>Ryan Nagle</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/johnfrenchxyz">
+                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
+                    <br />
+                    <sub><b>John French</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/stiwarisemanticbits">
+                    <img src="https://avatars.githubusercontent.com/u/57143602?v=4" width="100;" alt="stiwarisemanticbits"/>
+                    <br />
+                    <sub><b>Shivam Tiwari</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/sharonfruit">
+                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
+                    <br />
+                    <sub><b>Sharon Su</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/bwang-icf">
+                    <img src="https://avatars.githubusercontent.com/u/178809349?v=4" width="100;" alt="bwang-icf"/>
+                    <br />
+                    <sub><b>bwang-icf</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/oragame">
+                    <img src="https://avatars.githubusercontent.com/u/22204906?v=4" width="100;" alt="oragame"/>
+                    <br />
+                    <sub><b>Don Seymour</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/sb-benohe">
+                    <img src="https://avatars.githubusercontent.com/u/71290292?v=4" width="100;" alt="sb-benohe"/>
+                    <br />
+                    <sub><b>sb-benohe</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/micahtaylor">
+                    <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
+                    <br />
+                    <sub><b>Micah Taylor</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jzulim">
+                    <img src="https://avatars.githubusercontent.com/u/25191356?v=4" width="100;" alt="jzulim"/>
+                    <br />
+                    <sub><b>John Zulim</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/aaronerussell">
+                    <img src="https://avatars.githubusercontent.com/u/147522282?v=4" width="100;" alt="aaronerussell"/>
+                    <br />
+                    <sub><b>Aaron Russell</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/sachin-panayil">
+                    <img src="https://avatars.githubusercontent.com/u/79382140?v=4" width="100;" alt="sachin-panayil"/>
+                    <br />
+                    <sub><b>Sachin Panayil</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/alex-dzeda">
+                    <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
+                    <br />
+                    <sub><b>alex-dzeda</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/meliGuzman">
+                    <img src="https://avatars.githubusercontent.com/u/148500681?v=4" width="100;" alt="meliGuzman"/>
+                    <br />
+                    <sub><b>meliGuzman</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/kellytaylorgov">
+                    <img src="https://avatars.githubusercontent.com/u/30160757?v=4" width="100;" alt="kellytaylorgov"/>
+                    <br />
+                    <sub><b>Kelly Taylor</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/hasanulchow">
+                    <img src="https://avatars.githubusercontent.com/u/42548277?v=4" width="100;" alt="hasanulchow"/>
+                    <br />
+                    <sub><b>Hasanul Chowdhury</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/dull7295">
+                    <img src="https://avatars.githubusercontent.com/u/1518259?v=4" width="100;" alt="dull7295"/>
+                    <br />
+                    <sub><b>MuraliKrishna Dulla</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/noor1027">
+                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
+                    <br />
+                    <sub><b>noor1027</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
 <!-- readme: contributors -end -->
 
 <!--
