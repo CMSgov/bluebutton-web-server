@@ -84,7 +84,7 @@ When participating in Blue Button Web Server open source community conversations
 - Be respectful of healthcare data privacy and security considerations.
 - Default to positive. Assume others' contributions are legitimate and valuable and that they are made with good intention.
 - Understand that this project handles sensitive healthcare data and follow appropriate security practices.
-- Participate in our Google Group at https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api for community discussions.
+- Participate in our [Google Group](https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api) for community discussions.
 
 ### Getting Support
 

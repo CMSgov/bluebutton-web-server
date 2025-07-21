@@ -13,7 +13,7 @@ We encourage you to read this project's CONTRIBUTING policy (you are here), its
 
 If you're new to the project, look for issues labeled with `good-first-issue` or `help-wanted` to get started. These are typically easier problems that don't require deep knowledge of the codebase.
 
-For more information on how to connect to the API implemented here, check out our developer documentation at https://cmsgov.github.io/bluebutton-developer-help/. You can also check out our Google Group at https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api for community discussions.
+For more information on how to connect to the API implemented here, check out our [developer documentation](https://cmsgov.github.io/bluebutton-developer-help/). You can also check out our [Google Group](https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api) for community discussions.
 
 ### Team Specific Guidelines
 
@@ -49,7 +49,7 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install --upgrade pip==9.0.1
+pip install --upgrade pip
 pip install pip-tools
 pip install -r requirements/requirements.txt
 
