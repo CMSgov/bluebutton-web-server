@@ -8,7 +8,9 @@ The Blue Button Web Server project is maintained by the Centers for Medicare & M
 
 | Role   | Name    | Affiliation    |
 | :----- | :------ | :------------- |
-| {role} | {names} | {affiliations} |
+| Maintainer | Jimmy Fagan | Nava PBC |
+| Maintainer | Shivam Tiwari | ICF |
+| Maintainer | Brandon Wang | ICF |
 
 See Community Guidelines on principles and guidelines for participating in this open source project.
 
