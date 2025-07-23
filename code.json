@@ -59,8 +59,8 @@
     "oauth2-server"
   ],
   "contact": {
-    "email": "opensource@cms.hhs.gov",
-    "name": "Benjamin Ohe"
+    "email": "jimmyfagan@navapbc.com",
+    "name": "Jimmy Fagan"
   },
   "feedbackMechanisms": [
     "https://github.com/CMSgov/bluebutton-web-server/issues"
