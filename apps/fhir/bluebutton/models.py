@@ -82,7 +82,7 @@ class Crosswalk(models.Model):
     _fhir_id = models.CharField(
         max_length=80,
         null=False,
-        unique=True,
+        unique=False,
         default=None,
         db_column="fhir_id",
         db_index=True,
