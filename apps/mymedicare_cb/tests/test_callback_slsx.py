@@ -371,6 +371,36 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
+        # Change existing fhir_id prior to next test
+        cw = Crosswalk.objects.get(id=1)
+        saved_fhir_id = cw._fhir_id
+        cw._fhir_id = "XXX"
+        cw.save()
+
+        with HTTMock(
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
+            fhir_patient_info_mock,
+            catchall,
+        ):
+            response = self.client.get(
+                self.callback_url, data={"req_token": "test", "relay": state}
+            )
+
+            # assert 500 exception
+            self.assertEqual(
+                response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            content = json.loads(response.content)
+            self.assertEqual(content["error"], "Found user's fhir_id did not match")
+
+        # Restore fhir_id
+        cw = Crosswalk.objects.get(id=1)
+        cw._fhir_id = saved_fhir_id
+        cw.save()
+
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
         with HTTMock(
             self.mock_response.slsx_token_mock,

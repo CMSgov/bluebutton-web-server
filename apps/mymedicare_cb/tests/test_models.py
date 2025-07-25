@@ -259,6 +259,24 @@ class BeneficiaryLoginTest(TestCase):
                 "exception": ValidationError,
                 "exception_mesg": "user_mbi_hash already exists",
             },
+            "colliding fhir_id": {
+                "args": [
+                    {
+                        "username": "30112233-4455-6677-8899-aabbccddeeff",
+                        "user_hicn_hash": "80ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_mbi_hash": "80a654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "fhir_id": "-19990000000005",
+                    },
+                    {
+                        "username": "40112233-4455-6677-8899-aabbccddeeff",
+                        "user_hicn_hash": "90ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_mbi_hash": "90a654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "fhir_id": "-19990000000005",
+                    },
+                ],
+                "exception": ValidationError,
+                "exception_mesg": "fhir_id already exists",
+            },
         }
 
         for name, case in cases.items():
