@@ -20,6 +20,7 @@ from apps.bb2_tools.models import (
     ArchivedTokenStats,
     DummyAdminObject,
     UserStats,
+    SyntheticBeneficiaryFilter,
 )
 from apps.fhir.bluebutton.utils import get_patient_by_id
 
@@ -800,6 +801,30 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
             ),
         }
         return response
+
+
+@admin.register(SyntheticBeneficiaryFilter)
+class SyntheticBeneficiaryAdmin(admin.ModelAdmin):
+    # Add fields to display
+    list_display = (
+        "beneficiary_id",
+        "mbi_unhashed",
+        "medicaid_un",
+        "medicaid_pw",
+        "age",
+        "part_d_events_total",
+    )
+
+    advanced_filter_list = ()
+
+    list_filter = ('state',)
+
+    search_fields = (
+        "beneficiary_id",
+        "mbi_unhashed",
+        "medicaid_un",
+        "medicaid_pw",
+    )
 
 
 class UserTypeFilter(admin.SimpleListFilter):
