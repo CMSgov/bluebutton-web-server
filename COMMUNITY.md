@@ -210,26 +210,26 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/sachin-panayil">
-                    <img src="https://avatars.githubusercontent.com/u/79382140?v=4" width="100;" alt="sachin-panayil"/>
-                    <br />
-                    <sub><b>Sachin Panayil</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/alex-dzeda">
                     <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
                     <br />
                     <sub><b>alex-dzeda</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/meliGuzman">
                     <img src="https://avatars.githubusercontent.com/u/148500681?v=4" width="100;" alt="meliGuzman"/>
                     <br />
                     <sub><b>meliGuzman</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/noor1027">
+                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
+                    <br />
+                    <sub><b>noor1027</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -251,13 +251,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/1518259?v=4" width="100;" alt="dull7295"/>
                     <br />
                     <sub><b>MuraliKrishna Dulla</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/noor1027">
-                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
-                    <br />
-                    <sub><b>noor1027</b></sub>
                 </a>
             </td>
 		</tr>
