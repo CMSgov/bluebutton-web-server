@@ -3,7 +3,7 @@ kind: Pod
 spec:
   containers:
     - name: bb2-cbc-build-selenium-python38
-      image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build-selenium-python38:latest"
+      image: "public.ecr.aws/q8j7a4l4/bb2-cbc-build-selenium-python38:latest"
       tty: true
       command: ["tail", "-f"]
       imagePullPolicy: Always
