@@ -145,14 +145,13 @@ def generate_info_headers(request):
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
     if crosswalk:
-        # we need to send the HicnHash or the fhir_id
-        # TODO: Can the hicnHash case ever be reached? Should refactor this!
-        if crosswalk.fhir_id is not None:
+        # Prefer fhir_id_v3 if present, else fallback to fhir_id, else hicnHash
+        if getattr(crosswalk, "fhir_id_v3", None):
+            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id_v3)
+        elif crosswalk.fhir_id is not None:
             result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id)
         else:
-            result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
-                crosswalk.user_hicn_hash
-            )
+            result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(crosswalk.user_hicn_hash)
     else:
         # Set to empty
         result["BlueButton-BeneficiaryId"] = ""
@@ -423,6 +422,9 @@ def crosswalk_patient_id(user):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
+        # Prefer fhir_id_v3 if present, else fallback to fhir_id
+        if getattr(patient, "fhir_id_v3", None):
+            return patient.fhir_id_v3
         if patient.fhir_id:
             return patient.fhir_id
 
@@ -439,7 +441,6 @@ def get_crosswalk(user):
 
     if user is None or user.is_anonymous:
         return None
-
     try:
         patient = Crosswalk.objects.get(user=user)
         return patient
@@ -692,20 +693,21 @@ def build_oauth_resource(request, format_type="json"):
     return security
 
 
-def get_patient_by_id(id, request):
+def get_patient_by_id(id, request, version="v2"):
     """
-    a helper adapted to just get patient given an id out of band of auth flow
-    or noraml data flow, use by tools such as BB2-Tools admin viewers
+    Get patient by FHIR ID for v2 or v3 endpoints.
     """
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
-    # for now this will only work for v1/v2 patients, but we'll need to be able to
-    # determine if the user is V3 and use those endpoints later
-    url = "{}/v2/fhir/Patient/{}?_format={}".format(
-        get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
+    url = "{}/{}{}/Patient/{}?_format={}".format(
+        get_resourcerouter().fhir_url,
+        f"/{version}" if version else "",
+        "/fhir",
+        id,
+        settings.FHIR_PARAM_FORMAT
     )
     s = requests.Session()
     req = requests.Request("GET", url, headers=headers)

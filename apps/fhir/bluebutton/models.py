@@ -87,8 +87,16 @@ class Crosswalk(models.Model):
         db_column="fhir_id",
         db_index=True,
     )
+    _fhir_id_v3 = models.CharField(
+        max_length=80,
+        null=True,  # This can be null since not all users/apps will have a v3 FHIR ID yet
+        verbose_name="FHIR ID v3",
+        unique=True,
+        default=None,
+        db_column="fhir_id_v3",
+        db_index=True,
+    )
     date_created = models.DateTimeField(auto_now_add=True)
-
     # This value is to be set to the type of lookup used MBI or HICN
     user_id_type = models.CharField(
         max_length=1,
@@ -146,6 +154,14 @@ class Crosswalk(models.Model):
         self._fhir_id = value
 
     @property
+    def fhir_id_v3(self):
+        return self._fhir_id_v3
+
+    @fhir_id_v3.setter
+    def fhir_id_v3(self, value):
+        self._fhir_id_v3 = value
+
+    @property
     def user_hicn_hash(self):
         return self._user_id_hash
 
@@ -198,7 +214,15 @@ class ArchivedCrosswalk(models.Model):
         db_column="fhir_id",
         db_index=True,
     )
-
+    _fhir_id_v3 = models.CharField(
+        max_length=80,
+        null=True,  # This can be null since not all users/apps will have a v3 FHIR ID yet
+        verbose_name="FHIR ID v3",
+        unique=True,
+        default=None,
+        db_column="fhir_id_v3",
+        db_index=True,
+    )
     # This value is to be set to the type of lookup used MBI or HICN
     user_id_type = models.CharField(
         max_length=1,
@@ -251,6 +275,7 @@ class ArchivedCrosswalk(models.Model):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
             _fhir_id=crosswalk.fhir_id,
+            _fhir_id_v3=crosswalk.fhir_id_v3,
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
             _user_mbi_hash=crosswalk.user_mbi_hash,

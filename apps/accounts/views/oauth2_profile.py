@@ -41,9 +41,16 @@ def openidconnect_userinfo(request, **kwargs):
 
 
 def get_fhir_id(user):
-
     r = None
     if Crosswalk.objects.filter(user=user).exists():
         c = Crosswalk.objects.get(user=user)
         r = c.fhir_id
-    return r
+        return r
+
+
+def get_fhir_id_v3(user):
+    fhir_id_v3 = None
+    if Crosswalk.objects.filter(user=user).exists():
+        user_crosswalk = Crosswalk.objects.get(user=user)
+        fhir_id_v3 = user_crosswalk.fhir_id_v3
+    return fhir_id_v3

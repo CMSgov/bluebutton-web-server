@@ -25,6 +25,12 @@ class DataAccessGrant(models.Model):
     expiration_date = models.DateTimeField(
         null=True, blank=True, verbose_name="Expiration Date"
     )
+    version = models.CharField(
+        max_length=5,
+        help_text="API version (e.g., v2, v3, or other future values)",
+        null=True,
+        db_column="version",
+    )
 
     class Meta:
         unique_together = ("beneficiary", "application")
@@ -74,6 +80,12 @@ class ArchivedDataAccessGrant(models.Model):
     archived_at = models.DateTimeField(auto_now_add=True)
     expiration_date = models.DateTimeField(
         null=True, blank=True, verbose_name="Expiration Date"
+    )
+    version = models.CharField(
+        max_length=5,
+        help_text="API version (e.g., v2, v3, or other future values)",
+        null=True,
+        db_column="version",
     )
 
     class Meta:

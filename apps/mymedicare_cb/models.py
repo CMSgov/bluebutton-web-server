@@ -23,7 +23,7 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
+def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
     """
     Find or create the user associated
     with the identity information from the ID provider.
@@ -39,6 +39,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         last_name
         email
         request = request from caller to pass along for logging info.
+        version = Version of the API, default is 2.
     Returns:
         user = The user that was existing or newly created
         crosswalk_type =  Type of crosswalk activity:
@@ -68,6 +69,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         "hash_lookup_type": hash_lookup_type,
         "crosswalk": {},
         "crosswalk_before": {},
+        "version": version,
     }
 
     # Init for types of crosswalk updates.
@@ -79,17 +81,18 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=slsx_client.user_id)
 
-        # fhir_id can not change for an existing user!
-        if user.crosswalk.fhir_id != fhir_id:
-            mesg = "Found user's fhir_id did not match"
-            log_dict.update({
-                "status": "FAIL",
-                "user_id": user.id,
-                "user_username": user.username,
-                "mesg": mesg,
-            })
-            logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
+        if version == 2:
+            # fhir_id can not change for an existing user!
+            if user.crosswalk.fhir_id != fhir_id:
+                mesg = "Found user's fhir_id did not match"
+                log_dict.update({
+                    "status": "FAIL",
+                    "user_id": user.id,
+                    "user_username": user.username,
+                    "mesg": mesg,
+                })
+                logger.info(log_dict)
+                raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
 
         # Did the hicn change?
         if user.crosswalk.user_hicn_hash != slsx_client.hicn_hash:
@@ -127,6 +130,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                 user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
                 user.crosswalk.user_mbi_hash = slsx_client.mbi_hash
                 user.crosswalk.user_mbi = slsx_client.mbi
+                if version == 3:
+                    user.crosswalk.fhir_id_v3 = fhir_id
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
@@ -138,6 +143,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
             "mbi_updated": mbi_updated,
             "mbi_updated_from_null": mbi_updated_from_null,
             "mesg": "RETURN existing beneficiary record",
+            "version": version,
             "crosswalk": {
                 "id": user.crosswalk.id,
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
@@ -162,6 +168,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         "mbi_updated": mbi_updated,
         "mbi_updated_from_null": mbi_updated_from_null,
         "mesg": "CREATE beneficiary record",
+        "version": version,
         "crosswalk": {
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
@@ -176,7 +183,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
 
 
 # TODO default empty strings to null, requires non-null constraints to be fixed
-def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_id_type="H", request=None):
+def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, fhir_id_v3=None, user_id_type="H", request=None):
 
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
@@ -184,11 +191,13 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         "type": "mymedicare_cb:create_beneficiary_record",
         "username": slsx_client.user_id,
         "fhir_id": fhir_id,
+        "fhir_id_v3": fhir_id_v3,
         "user_mbi_hash": slsx_client.mbi_hash,
         "user_hicn_hash": slsx_client.hicn_hash,
         "crosswalk": {},
     }
 
+    # Not yet including fhir_id_v3 validation as it is not fully required yet.
     _validate_asserts(logger, log_dict, [
         (slsx_client.user_id is None or slsx_client.user_id == "",
          "username can not be None or empty string",
@@ -235,6 +244,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
             user_mbi_hash=slsx_client.mbi_hash,
             user_mbi=slsx_client.mbi,
             fhir_id=fhir_id,
+            fhir_id_v3=fhir_id_v3,
             user_id_type=user_id_type,
         )
 
