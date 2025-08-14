@@ -49,7 +49,7 @@ class TestDataAccessGrant(BaseApiTest):
         DataAccessGrant.objects.create(
             application=test_app,
             beneficiary=bene_user,
-            version="v2",
+            version="2",
         )
         dag = DataAccessGrant.objects.get(
             beneficiary__username="test_beneficiary", application__name="test_app"
@@ -72,7 +72,7 @@ class TestDataAccessGrant(BaseApiTest):
                 DataAccessGrant.objects.create(
                     application=test_app,
                     beneficiary=bene_user,
-                    version="v2",
+                    version="2",
                 )
 
         # 4. Test delete and archived.
@@ -106,7 +106,7 @@ class TestDataAccessGrant(BaseApiTest):
 
         # 2. Create grant with expiration date in future.
         dag = DataAccessGrant.objects.create(
-            application=test_app, beneficiary=bene_user, version="v2"
+            application=test_app, beneficiary=bene_user, version="2"
         )
 
         # 3. Test update expiration_date on instance

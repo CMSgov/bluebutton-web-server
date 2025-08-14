@@ -87,13 +87,13 @@ class Crosswalk(models.Model):
         db_column="fhir_id",
         db_index=True,
     )
-    _fhir_id_v3 = models.CharField(
-        max_length=80,
+    _version = models.CharField(
+        max_length=3,
         null=True,  # This can be null since not all users/apps will have a v3 FHIR ID yet
-        verbose_name="FHIR ID v3",
-        unique=True,
-        default=None,
-        db_column="fhir_id_v3",
+        verbose_name="Version of API being used",
+        unique=False,
+        default=2,
+        db_column="version",
         db_index=True,
     )
     date_created = models.DateTimeField(auto_now_add=True)
@@ -154,32 +154,32 @@ class Crosswalk(models.Model):
         self._fhir_id = value
 
     @property
-    def fhir_id_v3(self):
-        return self._fhir_id_v3
+    def version(self):
+        return self._version
 
-    @fhir_id_v3.setter
-    def fhir_id_v3(self, value):
-        self._fhir_id_v3 = value
+    @version.setter
+    def version(self, value):
+        self._version = value
 
     @property
     def user_hicn_hash(self):
         return self._user_id_hash
 
-    @property
-    def user_mbi_hash(self):
-        return self._user_mbi_hash
-
-    @property
-    def user_mbi(self):
-        return self._user_mbi
-
     @user_hicn_hash.setter
     def user_hicn_hash(self, value):
         self._user_id_hash = value
 
+    @property
+    def user_mbi_hash(self):
+        return self._user_mbi_hash
+
     @user_mbi_hash.setter
     def user_mbi_hash(self, value):
         self._user_mbi_hash = value
+
+    @property
+    def user_mbi(self):
+        return self._user_mbi
 
     @user_mbi.setter
     def user_mbi(self, value):
@@ -214,13 +214,13 @@ class ArchivedCrosswalk(models.Model):
         db_column="fhir_id",
         db_index=True,
     )
-    _fhir_id_v3 = models.CharField(
-        max_length=80,
+    _version = models.CharField(
+        max_length=3,
         null=True,  # This can be null since not all users/apps will have a v3 FHIR ID yet
-        verbose_name="FHIR ID v3",
-        unique=True,
-        default=None,
-        db_column="fhir_id_v3",
+        verbose_name="Version of API being used",
+        unique=False,
+        default=2,
+        db_column="version",
         db_index=True,
     )
     # This value is to be set to the type of lookup used MBI or HICN

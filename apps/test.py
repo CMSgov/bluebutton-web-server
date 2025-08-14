@@ -184,7 +184,7 @@ class BaseApiTest(TestCase):
         response = self.client.post(reverse("oauth2_provider:token"), data=data)
         self.assertEqual(response.status_code, 200)
         DataAccessGrant.objects.update_or_create(
-            beneficiary=User.objects.get(username=username), application=application
+            beneficiary=User.objects.get(username=username), application=application, version="2"
         )
         # Unpack the response and return the token string
         content = json.loads(response.content.decode("utf-8"))

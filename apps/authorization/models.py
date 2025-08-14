@@ -26,9 +26,9 @@ class DataAccessGrant(models.Model):
         null=True, blank=True, verbose_name="Expiration Date"
     )
     version = models.CharField(
-        max_length=5,
-        help_text="API version (e.g., v2, v3, or other future values)",
-        null=True,
+        max_length=3,
+        help_text="API version (e.g., 2, 3, or other future values)",
+        null=False,
         db_column="version",
     )
 
@@ -82,8 +82,8 @@ class ArchivedDataAccessGrant(models.Model):
         null=True, blank=True, verbose_name="Expiration Date"
     )
     version = models.CharField(
-        max_length=5,
-        help_text="API version (e.g., v2, v3, or other future values)",
+        max_length=3,
+        help_text="API version (e.g., 2, 3, or other future values)",
         null=True,
         db_column="version",
     )

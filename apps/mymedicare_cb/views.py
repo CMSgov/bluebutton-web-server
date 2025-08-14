@@ -79,6 +79,7 @@ def authenticate(request, version=2):
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
                 "fhir_id": user.crosswalk.fhir_id,
                 "user_id_type": user.crosswalk.user_id_type,
+                "version": user.crosswalk.version,
             },
         },
     })

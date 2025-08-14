@@ -26,6 +26,7 @@ from oauth2_provider.models import (
     AbstractApplication,
     get_access_token_model,
     get_application_model,
+    AbstractAccessToken,
 )
 from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
@@ -317,6 +318,20 @@ class ApplicationLabel(models.Model):
     @property
     def short_description(self):
         return truncatechars(self.description, 80)
+
+
+class AccessToken(AbstractAccessToken):
+    """
+    Adds versioning to access tokens to support different API versions.
+    Database model is oauth2_provider_accesstoken.
+    The setting is OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL.
+    """
+    version = models.CharField(
+        max_length=3,
+        help_text="API version (e.g., 2, 3, or other future values)",
+        null=True,
+        db_column="version",
+    )
 
 
 class ExpiresInManager(models.Manager):

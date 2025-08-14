@@ -145,10 +145,7 @@ def generate_info_headers(request):
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
     if crosswalk:
-        # Prefer fhir_id_v3 if present, else fallback to fhir_id, else hicnHash
-        if getattr(crosswalk, "fhir_id_v3", None):
-            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id_v3)
-        elif crosswalk.fhir_id is not None:
+        if crosswalk.fhir_id is not None:
             result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id)
         else:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(crosswalk.user_hicn_hash)
@@ -422,9 +419,6 @@ def crosswalk_patient_id(user):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
-        # Prefer fhir_id_v3 if present, else fallback to fhir_id
-        if getattr(patient, "fhir_id_v3", None):
-            return patient.fhir_id_v3
         if patient.fhir_id:
             return patient.fhir_id
 

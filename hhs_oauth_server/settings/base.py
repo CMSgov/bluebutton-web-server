@@ -442,6 +442,7 @@ AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
 # Django Oauth Tookit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = "dot_ext.Application"
+OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = "dot_ext.AccessToken"
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": False,
     "OAUTH2_VALIDATOR_CLASS": "apps.dot_ext.oauth2_validators."
