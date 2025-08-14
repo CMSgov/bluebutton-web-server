@@ -329,7 +329,8 @@ class AccessToken(AbstractAccessToken):
     version = models.CharField(
         max_length=3,
         help_text="API version (e.g., 2, 3, or other future values)",
-        null=True,
+        default='2',
+        null=False,
         db_column="version",
     )
 

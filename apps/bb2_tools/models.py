@@ -1,7 +1,6 @@
-from oauth2_provider.models import AccessToken, RefreshToken
-
+from oauth2_provider.models import RefreshToken
 from apps.accounts.models import UserProfile
-from apps.dot_ext.models import Application, ArchivedToken
+from apps.dot_ext.models import Application, ArchivedToken, AccessToken
 from apps.fhir.bluebutton.models import Crosswalk
 
 

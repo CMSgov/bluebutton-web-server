@@ -29,6 +29,7 @@ class DataAccessGrant(models.Model):
         max_length=3,
         help_text="API version (e.g., 2, 3, or other future values)",
         null=False,
+        default=2,
         db_column="version",
     )
 
@@ -85,6 +86,7 @@ class ArchivedDataAccessGrant(models.Model):
         max_length=3,
         help_text="API version (e.g., 2, 3, or other future values)",
         null=True,
+        default=2,
         db_column="version",
     )
 

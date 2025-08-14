@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from oauth2_provider.models import AccessToken
+from apps.dot_ext.models import AccessToken
 from oauth2_provider.models import get_application_model
 
 from .csv import ExportCsvMixin
