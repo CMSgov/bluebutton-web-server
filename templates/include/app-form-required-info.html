@@ -20,11 +20,12 @@
 <!-- App Redirect URIs -->
 <label for="id_redirect_uris">Callback URLs / Redirect URIs</label>
 <textarea name="redirect_uris" cols="40" rows="10" id="id_redirect_uris">{{ application.redirect_uris }}</textarea>
+<div class="help-block ds-u-margin-top--2">Redirect URIs must start with <b>http://</b> or <b>https://</b> and contain no <b>fragments</b> (#) or <b>query strings</b> (?).</div>
 
 <!-- Demographic Filter -->
 <fieldset class="ds-c-fieldset">
 	<legend class="ds-u-font-weight--bold">
-		Does your application need to collect beneficiary demographic information (Name, address, date of birth, race, and gender)?
+		Does your application need to collect beneficiary demographic information (Name, address, date of birth, race, and sex)?
 	</legend>
 	<input class="ds-c-choice" id="id_demographic_filter_on" type="radio" name="require_demographic_scopes" value="True" 
             {% if application.require_demographic_scopes == True %} 

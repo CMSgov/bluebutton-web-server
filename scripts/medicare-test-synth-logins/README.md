@@ -92,12 +92,12 @@ optional arguments:
 
 ## Usage Example<a id="localusage4"></a>
 
-The following is a usage example. This will test logins for accounts in the range `BBUser28999` through `BBUser29001`. It will sleep for 1 second between the different actions used by the tool to perform a login.
+The following is a usage example. This will test logins for accounts in the range `BBUser09998` through `BBUser10000`. It will sleep for 1 second between the different actions used by the tool to perform a login.
 
 Run the following command line:
 ```
 python test_medicare_logins.py --url-base https://test.medicare.gov \
-    --begin-user-number 28999 --end-user-number 29001 \
+    --begin-user-number 9998 --end-user-number 10000 \
     --sleep-between-actions 1.0 
 ```
 
@@ -128,27 +128,27 @@ Output example:
 #        CONNECTION_ISSUE_SLEEP:  600
 #    MAX_CONNECTION_ISSUE_COUNT:  10
 #
-# Beginning User Number:  28999
-#    Ending User Number:  29001
+# Beginning User Number:  9998
+#    Ending User Number:  10000
 #
 # Starting.... Press CTRL-c twice to abort.
 #
 # ----
-# TESING(0):  n=28999 username=BBUser28999 passwd=PW28999!
+# TESTING(0):  n=9998 username=BBUser09998 passwd=PW09998!
 # LOGIN FAILED with:  FAIL-PW-EXPIRED
 # ----
-# TESING(0):  n=29000 username=BBUser29000 passwd=PW29000!
+# TESTING(0):  n=9999 username=BBUser09999 passwd=PW09999!
 # LOGIN SUCCESSFUL!
 #
 # ----
-# TESING(0):  n=29001 username=BBUser29001 passwd=PW29001!
+# TESTING(0):  n=10000 username=BBUser10000 passwd=PW10000!
 # LOGIN FAILED with:  FAIL-PW-EXPIRED
 #---
 #---
 #--- CSV REPORT ---
-https://test.medicare.gov, BBUser28999, FAIL-PW-EXPIRED
-https://test.medicare.gov, BBUser29000, SUCCESS
-https://test.medicare.gov, BBUser29001, FAIL-PW-EXPIRED
+https://test.medicare.gov, BBUser09998, FAIL-PW-EXPIRED
+https://test.medicare.gov, BBUser09999, SUCCESS
+https://test.medicare.gov, BBUser10000, FAIL-PW-EXPIRED
 #---
 #---
 ```

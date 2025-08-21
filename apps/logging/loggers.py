@@ -20,7 +20,6 @@ from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
 from apps.accounts.models import get_developer_counts
 
 from apps.logging.utils import format_timestamp
-from waffle import get_waffle_flag_model
 
 """
   Logger functions for logging module
@@ -340,9 +339,6 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
 
         grant_counts = get_grant_bene_counts(application=app)
 
-        flag = get_waffle_flag_model().get("limit_data_access")
-        user_limit_data_access = flag.rollout or (flag.is_active_for_user(app.user) if flag.id is not None else None)
-
         log_dict = {
             "type": "global_state_metrics_per_app",
             "group_timestamp": group_timestamp,
@@ -354,6 +350,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             "first_active": format_timestamp(app.first_active),
             "last_active": format_timestamp(app.last_active),
             "data_access_type": app.data_access_type,
+            "internal_application_labels": ", ".join(sorted([label.slug for label in app.internal_application_labels.all()])),
             "require_demographic_scopes": app.require_demographic_scopes,
             "real_bene_cnt": grant_counts.get(
                 "real", None
@@ -390,7 +387,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             "user_date_joined": format_timestamp(app.user.date_joined),
             "user_last_login": format_timestamp(app.user.last_login),
             "user_organization": getattr(user_profile, "organization_name", None),
-            "user_limit_data_access": user_limit_data_access
+            "user_limit_data_access": True
         }
 
         logger.info(log_dict, cls=DjangoJSONEncoder)

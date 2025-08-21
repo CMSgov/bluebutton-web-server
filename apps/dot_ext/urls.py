@@ -7,14 +7,15 @@ app_name = "oauth2_provider"
 
 
 base_urlpatterns = [
-    path("authorize/", views.AuthorizationView.as_view(), name="authorize"),
+    path("authorize/", views.AuthorizationView.as_view(version=2), name="authorize"),
     re_path(
         r"^authorize/(?P<uuid>[\w-]+)/$",
-        views.ApprovalView.as_view(),
+        views.ApprovalView.as_view(version=2),
         name="authorize-instance",
     ),
     path("token/", views.TokenView.as_view(), name="token"),
     path("revoke_token/", views.RevokeTokenView.as_view(), name="revoke-token"),
+    path("revoke/", views.RevokeView.as_view(), name="revoke"),
     path("introspect/", views.IntrospectTokenView.as_view(), name="introspect"),
 ]
 

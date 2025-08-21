@@ -7,7 +7,7 @@ from apps.logging.utils import format_timestamp
 
 class Command(BaseCommand):
     help = (
-        "Managment command to log global state type metrics when called on a schedule."
+        "Management command to log global state type metrics when called on a schedule."
     )
 
     def add_arguments(self, parser):

@@ -2,28 +2,31 @@ import os
 import time
 import re
 
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
+from .common_utils import extract_href_from_html, extract_last_part_of_url
 
 from .selenium_cases import (
     Action,
     TESTCASE_BANNER_FMT,
-    LNK_TXT_GET_TOKEN_V1,
-    LNK_TXT_GET_TOKEN_PKCE_V1,
-    LNK_TXT_GET_TOKEN_V2,
-    LNK_TXT_GET_TOKEN_PKCE_V2,
+    LNK_TXT_GET_TOKEN,
     LNK_TXT_RESTART_TESTCLIENT,
-    API_V2,
-    API_V1,
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
     PROD_URL,
+    ES_ES,
 )
 
 LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
+EN_MONTH_ABBR = ['Jan.', 'Feb.', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
+ES_MONTH_NAME = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
+                 'octubre', 'noviembre', 'diciembre']
 
 
 # class SeleniumGenericTests(TestCase):
@@ -43,10 +46,15 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.on_remote_ci = os.getenv('ON_REMOTE_CI', 'false')
+        self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', "chrome")
+        self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={},  hostname_url={}".format(self.use_mslsx, self.hostname_url))
+        msg_fmt = "use_mslsx={}, hostname_url={}, selenium_grid={}"
+        msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.selenium_grid)
+        print(msg)
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
@@ -58,11 +66,22 @@ class SeleniumGenericTests:
         opt.add_argument("--disable-popup-blocking")
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
-        opt.add_argument('--window-size=1920,1080')
         opt.add_argument("--whitelisted-ips=''")
 
-        self.driver = webdriver.Remote(
-            command_executor='http://chrome:4444/wd/hub', options=opt)
+        if self.selenium_grid.lower() == 'true':
+            # selenium hub
+            hub_url = "http://{}:4444/wd/hub".format(self.selenium_grid_host)
+            print("RemoteDriver: grid hub url={}".format(hub_url))
+            opt.binary_location = "/usr/bin/chromium"
+            self.driver = webdriver.Remote(
+                command_executor=hub_url, options=opt)
+        else:
+            driver_exec = '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
+            print("Chrome Driver, location={}".format(driver_exec))
+            opt.add_argument("--window-size=1920,980")
+            opt.add_argument("--headless")
+            ser = Service(driver_exec)
+            self.driver = webdriver.Chrome(service=ser, options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
@@ -72,7 +91,6 @@ class SeleniumGenericTests:
             Action.CHECK: self._check_page_title,
             Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
             Action.CONTAIN_TEXT: self._check_page_content,
-            Action.GET_SAMPLE_TOKEN_START: self._click_get_sample_token,
             Action.GET_SAMPLE_TOKEN_PKCE_START: self._click_get_sample_token_pkce,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
@@ -96,9 +114,10 @@ class SeleniumGenericTests:
                 if r.startswith(subj_line):
                     # print("SUBJ: {}".format(r))
                     email_subj_cnt += 1
-                elif key_line_prefix is not None and r.startswith(key_line_prefix):
+                elif key_line_prefix is not None and key_line_prefix in r:
                     # print("KEY: {}".format(r))
-                    ak = r.split(key_line_prefix)[1]
+                    href = extract_href_from_html(r)
+                    ak = extract_last_part_of_url(href)
                     key_cnt += 1
                 else:
                     pass
@@ -126,14 +145,8 @@ class SeleniumGenericTests:
         elem.send_keys(txt)
         return elem
 
-    def _click_get_sample_token(self, **kwargs):
-        return self._find_and_click(30, By.LINK_TEXT,
-                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver", API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
-
     def _click_get_sample_token_pkce(self, **kwargs):
-        return self._find_and_click(30, By.LINK_TEXT,
-                                    LNK_TXT_GET_TOKEN_PKCE_V2 if kwargs.get("api_ver", API_V1) == API_V2
-                                    else LNK_TXT_GET_TOKEN_PKCE_V1)
+        return self._find_and_click(30, By.LINK_TEXT, LNK_TXT_GET_TOKEN)
 
     def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
@@ -163,10 +176,41 @@ class SeleniumGenericTests:
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         assert content_txt in elem.text
 
-    def _check_date_format(self, timeout_sec, by, by_expr, format, **kwargs):
+    def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         pattern = re.compile(format)
-        assert pattern.match(elem.text)
+        m = pattern.match(elem.text)
+        print("date: " + elem.text)
+        assert m is not None, f"Date value '{elem.text}' doesn't match expected format"
+        try:
+            day = m.group('day')
+            month = m.group('month')
+            year = m.group('year')
+            month_num = -1
+            try:
+                if lang == ES_ES:
+                    # for ES_ES, month is full name
+                    # locale.setlocale(locale.LC_ALL, ES_ES) - choose not to use locale package (it might be thread unsafe)
+                    # use a pre-built array to do month name -> month num mapping
+                    month_num = ES_MONTH_NAME.index(month)
+                else:
+                    # for EN_US, month is abbr
+                    month_num = EN_MONTH_ABBR.index(month)
+            except ValueError as v:
+                print(v)
+                assert 1 < 0, f"Month value '{month}' is not recognized."
+            if month_num >= 0:
+                expire_date = datetime(int(year), month_num + 1, int(day))
+                expected_exp_date = datetime.today() + relativedelta(months=+13)
+                # Allow 1 day of wiggle room to ignore hour/min/sec
+                dates_match = timedelta(days=-1) < expire_date - expected_exp_date < timedelta(days=1)
+                assert dates_match, f"Expiration date is '{expire_date}', expected '{expected_exp_date}."
+            else:
+                assert 1 < 0, f"Month value '{month}' is not recognized."
+        except IndexError as e:
+            # bad date value
+            print(e)
+            assert 1 < 0, f"Malformed date value '{elem.text}'"
 
     def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))

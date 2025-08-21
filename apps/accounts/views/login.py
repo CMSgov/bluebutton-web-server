@@ -21,11 +21,6 @@ class LoginView(LoginView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        """
-        Extend django login view to do password expire check
-        and redirect to password-change instead of user account home
-        """
-        # auth_login(self.request, form.get_user())
         response = super().form_valid(form)
         if response.status_code == 302:
             passwd_validators = get_default_password_validators()

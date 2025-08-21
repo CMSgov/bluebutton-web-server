@@ -7,9 +7,8 @@ from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from unittest import mock
-from waffle.testutils import override_flag
 
-from apps.test import BaseApiTest, flag_is_active
+from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
 )
@@ -155,6 +154,13 @@ class TestDataAccessPermissions(BaseApiTest):
         The asserts will check for the expected_response_code
         and expected_response_detail_mesg to match.
         """
+        try:
+            ac = AccessToken.objects.get(token=access_token)
+            ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
+            ac.save()
+        except Exception:
+            pass
+
         # Test profile/userinfo v1
         response = self.client.get(
             "/v1/connect/userinfo", headers={"authorization": "Bearer " + access_token}
@@ -257,18 +263,12 @@ class TestDataAccessPermissions(BaseApiTest):
             )
         return content
 
-    @override_flag("limit_data_access", active=False)
-    def test_revoked_data_access_grant_without_flag_limit_data_access(self):
+    def test_revoked_data_access_grant(self):
         """
         Test data access grant deleted / revoked
 
-        Test data access for FHIR and profile end points
-        with limit_data_access flag False.
-
-        This will be the flag setting in Sandbox.
+        Test data access for FHIR and profile end points.
         """
-        assert not flag_is_active("limit_data_access")
-
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
@@ -277,10 +277,11 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            app_data_access_type="RESEARCH_STUDY",
         )
 
         # 2. Test application data access type
-        self.assertEqual(app.data_access_type, "THIRTEEN_MONTH")
+        self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
 
         # 3. Test grant obj created OK.
         dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
@@ -329,116 +330,12 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_detail_mesg="Authentication credentials were not provided.",
         )
 
-    @override_flag("limit_data_access", active=False)
-    def test_research_study_app_type_without_flag_limit_data_access(self):
+    def test_research_study_app_type(self):
         """
         Test Application.data_access_type="RESEARCH_STUDY".
 
         Test data access for FHIR and profile end points
-        with limit_data_access flag False.
-
-        This will be the flag setting in Sandbox.
         """
-        assert not flag_is_active("limit_data_access")
-
-        # 1. Use helper method to create app, user, authorized grant & access token.
-        user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id="-20140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
-            app_data_access_type="RESEARCH_STUDY",
-        )
-        self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
-
-        #     Test grant exists.
-        self.assertTrue(
-            DataAccessGrant.objects.filter(
-                beneficiary=user,
-                application=app,
-            ).exists()
-        )
-
-        # 2. Test that all calls are successful (response_code=200)
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
-        )
-
-        # 3. Test token refresh is successful (response_code=200)
-        ac = self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=200,
-        )
-
-        # 4. Set application to in-active/disabled
-        app.active = False
-        app.save()
-
-        # 5. Test FHIR end point while app in-active/disabled (response_code=401)
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
-            expected_response_code=401,
-            expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
-                app.name
-            ),
-        )
-
-        # 6. Test token refresh after applciation in-active/disabled (response_code=401)
-        self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=401,
-            expected_response_error_mesg="invalid_client",
-            expected_response_error_description_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
-                app.name
-            ),
-        )
-
-        # 7. Set application to active/endabled
-        app.active = True
-        app.save()
-
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
-        )
-
-        # 9. Test app not expired token refresh (response_code=200)
-        ac = self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=200,
-        )
-
-        # 10. Test with RESEARCH_STUDY application end_date IS expired w/o feature flag (response_code=200)
-        app.data_access_type = "RESEARCH_STUDY"
-        app.save()
-
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
-        )
-
-        # 11. Test app expired token refresh (response_code=200)
-        ac = self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=200,
-        )
-
-    @override_flag("limit_data_access", active=True)
-    def test_research_study_app_type_with_flag_limit_data_access(self):
-        """
-        Test Application.data_access_type="RESEARCH_STUDY".
-
-        Test data access for FHIR and profile end points
-        with limit_data_access flag True.
-
-        This will be the flag setting in PROD.
-        """
-        assert flag_is_active("limit_data_access")
-
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
@@ -514,66 +411,12 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_code=200,
         )
 
-    @override_flag("limit_data_access", active=False)
-    def test_one_time_app_type_without_flag_limit_data_access(self):
+    def test_one_time_app_type(self):
         """
         Test Application.data_access_type="ONE_TIME"
-        with limit_data_access flag False.
-
-        This will be the flag setting in Sandbox.
 
         NOTE: This type of application does not allow token refreshes
-              when the feature flag is enabled.
         """
-        assert not flag_is_active("limit_data_access")
-
-        # 1. Use helper method to create app, user, authorized grant & access token.
-        user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id="-20140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
-            app_data_access_type="ONE_TIME",
-        )
-
-        #     Test application default data access type
-        self.assertEqual(app.data_access_type, "ONE_TIME")
-
-        #     Test grant exists.
-        self.assertTrue(
-            DataAccessGrant.objects.filter(
-                beneficiary=user,
-                application=app,
-            ).exists()
-        )
-
-        # 2. Test token refresh is working OK (response_code=200)
-        ac = self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=200,
-        )
-
-        # 3. Test that all calls are successful (response_code=200)
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
-        )
-
-    @override_flag("limit_data_access", active=True)
-    def test_one_time_app_type_with_flag_limit_data_access(self):
-        """
-        Test Application.data_access_type="ONE_TIME"
-        with limit_data_access flag True
-
-        This will be the flag setting in PROD.
-
-        NOTE: This type of application does not allow token refreshes
-              when the feature flag is enabled.
-        """
-        assert flag_is_active("limit_data_access")
-
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
@@ -610,62 +453,11 @@ class TestDataAccessPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-    @override_flag("limit_data_access", active=False)
     @mock.patch("apps.authorization.models.datetime", StubDate)
-    def test_thirteen_month_app_type_without_flag_limit_data_access(self):
+    def test_thirteen_month_app_type(self):
         """
         Test Application.data_access_type="THIRTEEN_MONTH"
-        with limit_data_access flag False
-
-        This will be the flag setting in Sandbox.
         """
-        assert not flag_is_active("limit_data_access")
-
-        # 1. Use helper method to create app, user, authorized grant & access token.
-        user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id="-20140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
-            app_data_access_type="THIRTEEN_MONTH",
-        )
-
-        # 2. Test application data access type
-        self.assertEqual(app.data_access_type, "THIRTEEN_MONTH")
-
-        # 3. Test grant obj created OK.
-        dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
-        #     Assert is not None
-        self.assertNotEqual(dag, None)
-
-        #     Assert expiration date has NOT been set
-        self.assertEqual(dag.expiration_date, None)
-
-        # 4. Test token refresh is enabled for app (response_code=200)
-        ac = self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=200,
-        )
-
-        # 5. Test that all calls are successful (response_code=200)
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
-        )
-
-    @override_flag("limit_data_access", active=True)
-    @mock.patch("apps.authorization.models.datetime", StubDate)
-    def test_thirteen_month_app_type_with_flag_limit_data_access(self):
-        """
-        Test Application.data_access_type="THIRTEEN_MONTH"
-        with limit_data_access flag True
-
-        This will be the flag setting in SBX.
-        """
-        assert flag_is_active("limit_data_access")
-
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
@@ -780,7 +572,6 @@ class TestDataAccessPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-    @override_flag("limit_data_access", active=False)
     def test_data_access_grant_permissions_has_permission(self):
         """
         Test edge case bug fix for BB2-2130
@@ -791,7 +582,6 @@ class TestDataAccessPermissions(BaseApiTest):
         DataAccessGrant.DoesNotExist: DataAccessGrant matching query
           does not exist.
         """
-
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",

@@ -12,6 +12,7 @@ from django.http import HttpRequest
 
 from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
+from oauth2_provider.models import get_access_token_model
 from rest_framework import status
 
 from apps.dot_ext.models import Application
@@ -101,6 +102,10 @@ class TestAuditEventLoggers(BaseApiTest):
 
     def _fhir_events_logging(self, v2=False):
         first_access_token = self.create_token("John", "Smith")
+        AccessToken = get_access_token_model()
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
+        ac.save()
 
         @all_requests
         def catchall(url, req):
@@ -531,6 +536,46 @@ class TestAuditEventLoggers(BaseApiTest):
         self.assertEqual(json_rec.get("req_qparam_client_id"), non_exist_client_id)
         self.assertEqual(json_rec.get("req_app_name"), "")
         self.assertEqual(json_rec.get("req_app_id"), "")
+
+    def test_request_logger_data_facilitator_end_user(self):
+        self._request_logger_data_facilitator_end_user(False)
+
+    def test_request_logger_data_facilitator_end_user_v2(self):
+        self._request_logger_data_facilitator_end_user(True)
+
+    def _request_logger_data_facilitator_end_user(self, v2=False):
+        redirect_uri = "http://localhost"
+        self._create_user("anna", "123456")
+        capability_a = self._create_capability("Capability A", [])
+        capability_b = self._create_capability("Capability B", [])
+        application = self._create_application(
+            "an app",
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri,
+        )
+
+        application.scope.add(capability_a, capability_b)
+        api_ver = "v1" if not v2 else "v2"
+
+        request = HttpRequest()
+        self.client.login(request=request, username="anna", password="123456")
+
+        payload = {
+            "client_id": application.id,
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+        }
+
+        headers = {"DATA-END-USER": "End User App"}
+
+        response = self.client.get("/{}/o/authorize/".format(api_ver), data=payload, headers=headers)
+
+        self.assertNotEqual(response.status_code, 500)
+        # assert request logger record exist and app name, app id has expected value ""
+        request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+        self.assertIsNotNone(request_log_content)
+        json_rec = json.loads(request_log_content)
+        self.assertEqual(json_rec.get("data_facilitator_end_user"), "End User App")
 
     def test_auth_flow_lang_logger(self, v2=False):
         # copy and adapted to test auth flow logger

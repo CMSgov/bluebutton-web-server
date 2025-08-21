@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load i18n %}
-{% load bootstrap %}
+{% load bootstrap5 %}
 
 {% block navigation %}{% endblock %}
 
@@ -30,7 +30,7 @@
 			<li>Information about your doctor/hospital visits</li>
 			<li>Information about the prescription medications you take</li>
 			{% if application.require_demographic_scopes != False %}
-				<li>Personal Information like your name, address, date of birth, race, and gender</li>
+				<li>Personal Information like your name, address, date of birth, race, and sex</li>
 			{% endif %}
 
 		</ul>
@@ -50,7 +50,7 @@
 					<input class="ds-c-choice" id="radio-2" type="radio" name="share_demographic_scopes" value="False"/>
 					<label for="radio-2">
 						<span class="ds-u-font-size--lead">Share healthcare data, but not your personal info</span>
-						<span class="ds-c-field__hint">Block some of your personal data like name, address, date of birth, race, and gender</span>
+						<span class="ds-c-field__hint">Block some of your personal data like name, address, date of birth, race, and sex</span>
 					</label>
 				</fieldset>
 			{% endif %}

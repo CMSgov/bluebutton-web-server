@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 {% load l10n %}
-{% load bootstrap %}
+{% load bootstrap5 %}
 
 {% block navigation %}{% endblock %}
 
@@ -86,7 +86,7 @@
                                   />
                                   <label class="ds-c-label ds-u-text-align--left" for="radio_1">
 
-                                    <span class="ds-text-body--md">{% trans "Personal Information" %}<br>{% trans "Your name, address, date of birth, race, and gender" %}</span>
+                                    <span class="ds-text-body--md">{% trans "Personal Information" %}<br>{% trans "Your name, address, date of birth, race, and sex" %}</span>
                                   </label>
                                 </div>
                                     <span class="ds-c-field__hint" id="allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to personal information." %}</span>
@@ -142,7 +142,7 @@
                                             </g>
                                         </g>
                                     </g>
-                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">
+                                </svg><span id="permission_expire_info" class="ds-u-margin-left--3 ds-text-body--md">
                                     {{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
                                     {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>{% endif %}
                                 </span>

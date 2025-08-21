@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlparse
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
@@ -35,6 +35,7 @@ class BaseApiTest(TestCase):
 
     test_hicn_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
     test_mbi_hash = "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
+    test_mbi = "1SA0A00AA00"
 
     def _create_user(
         self,
@@ -108,6 +109,13 @@ class BaseApiTest(TestCase):
             **kwargs
         )
 
+        label = self._create_internal_application_labels(
+            label="Research app - multiple studies",
+            slug="research-app-multiple-studies",
+            description="Desc: place holder")
+
+        application.internal_application_labels.add(label)
+
         if data_access_type:
             application.data_access_type = data_access_type
 
@@ -140,6 +148,24 @@ class BaseApiTest(TestCase):
             group=group,
         )
         return capability
+
+    def _create_internal_application_labels(self, label, slug, description):
+        """
+        Helper method that creates a InternalApplicationLabels instance
+        """
+        # Create capability, if does not already exist
+        try:
+            label = InternalApplicationLabels.objects.get(slug=slug)
+            return label
+        except InternalApplicationLabels.DoesNotExist:
+            pass
+
+        label = InternalApplicationLabels.objects.create(
+            label=label,
+            slug=slug,
+            description=description,
+        )
+        return label
 
     def _get_access_token(self, username, password, application=None, **extra_fields):
         """

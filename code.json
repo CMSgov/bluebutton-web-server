@@ -1,0 +1,87 @@
+{
+  "name": "bluebutton-web-server",
+  "description": "Blue Button API",
+  "longDescription": "This server serves as a data provider for sharing Medicare claims data with third parties. The server connects to Medicare.gov for authentication, and uses OAuth2 to confirm permission grants to external app developers. The data itself comes from a back end FHIR server (https://github.com/CMSgov/beneficiary-fhir-data), which in turn pulls data from the CMS Chronic Conditions Warehouse (https://www.ccwdata.org)",
+  "status": "Production",
+  "permissions": {
+    "licenses": [
+      {
+        "name": "Apache-2.0",
+        "URL": "https://github.com/CMSgov/bluebutton-web-server/blob/main/LICENSE"
+      }
+    ],
+    "usageType": "openSource",
+    "exemptionText": ""
+  },
+  "organization": "Centers for Medicare & Medicaid Services",
+  "repositoryURL": "https://github.com/CMSgov/bluebutton-web-server",
+  "projectURL": "",
+  "repositoryHost": "github.com/CMSgov",
+  "repositoryVisibility": "public",
+  "vcs": "git",
+  "laborHours": 63652,
+  "reuseFrequency": {
+    "forks": 25
+  },
+  "platforms": [
+    "web"
+  ],
+  "categories": [
+    "it-development",
+    "application-development",
+    "cloud-management"
+  ],
+  "softwareType": "standalone/backend",
+  "languages": [
+    "Python",
+    "CSS",
+    "JavaScript",
+    "HTML",
+    "SCSS",
+    "Shell",
+    "TypeScript",
+    "PLpgSQL",
+    "Makefile",
+    "Dockerfile"
+  ],
+  "maintenance": "internal",
+  "contractNumber": "0",
+  "date": {
+    "created": "2016-01-20T21:52:00Z",
+    "lastModified": "2025-06-27T20:52:37Z",
+    "metaDataLastUpdated": "2025-07-08T15:34:48.074Z"
+  },
+  "tags": [
+    "django",
+    "fhir-server",
+    "oauth-provider",
+    "oauth-server",
+    "oauth2-server"
+  ],
+  "contact": {
+    "email": "jimmyfagan@navapbc.com",
+    "name": "Jimmy Fagan"
+  },
+  "feedbackMechanisms": [
+    "https://github.com/CMSgov/bluebutton-web-server/issues"
+  ],
+  "localisation": true,
+  "repositoryType": "APIs",
+  "userInput": true,
+  "fismaLevel": "Moderate",
+  "group": "CMS/OEDA/DASG",
+  "projects": [
+    "Bluebutton"
+  ],
+  "systems": [],
+  "upstream": "https://github.com/CMSgov/bluebutton-web-server/network/dependencies",
+  "subsetInHealthcare": [
+    "Operational",
+    "Medicare"
+  ],
+  "userType": [
+    "Providers",
+    "Government"
+  ],
+  "maturityModelTier": 3
+}

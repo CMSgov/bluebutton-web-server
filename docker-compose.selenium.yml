@@ -1,11 +1,11 @@
-version: '3'
-
 services:
   selenium-tests:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: pytest ./apps/integration_tests/selenium_tests.py
+    command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
+    ports:
+      - "8910:8910"
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
@@ -17,7 +17,7 @@ services:
         condition: service_started
 
   chrome:
-    image: seleniarm/standalone-chromium
+    image: selenium/standalone-chromium
     hostname: chrome
     ports:
       - "4444:4444"
@@ -50,6 +50,8 @@ services:
   bb2slsx:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
     env_file:
       # local devel specific variables go here!
       - .env

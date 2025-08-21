@@ -37,6 +37,7 @@ then
     python manage.py create_blue_button_scopes
     python manage.py create_test_user_and_application
     python manage.py create_user_identification_label_selection
+    echo "creating feature switches......"
     python manage.py create_test_feature_switches
 else
     echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."

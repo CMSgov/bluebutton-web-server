@@ -86,7 +86,9 @@ def get_application_from_meta(request):
         elif ac is not None:
             app = Application.objects.get(id=ac.application_id)
     except Application.DoesNotExist:
-        pass
+        raise InvalidClientError(
+            description="Application does not exist"
+        )
     return app
 
 
@@ -95,7 +97,8 @@ def validate_app_is_active(request):
     Utility function to check that an application
     is an active, valid application.
     This method will pull the application from the
-    request and then check the active flag.
+    request and then check the active flag and the
+    data access grant (dag) validity.
     RETURN:
         application or None
     """
@@ -170,7 +173,9 @@ def get_application_from_data(request):
             app = Application.objects.get(id=rt.application_id)
 
     except Application.DoesNotExist:
-        pass
+        raise InvalidClientError(
+            description="Application does not exist"
+        )
     return app
 
 

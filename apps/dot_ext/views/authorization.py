@@ -1,23 +1,28 @@
+import json
 import logging
-import waffle
-from waffle import get_waffle_flag_model
+from datetime import datetime, timedelta
+from time import strftime
 
-from django.http.response import HttpResponseBadRequest
+from django.http import JsonResponse
+from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauth2_provider.exceptions import OAuthToolkitError
+from oauth2_provider.views.base import app_authorized, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
+from waffle import switch_is_active
 from oauth2_provider.models import get_application_model
+from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
-
+import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
 
@@ -37,7 +42,7 @@ from ..utils import (
     validate_app_is_active,
     json_response_from_oauth2_error,
 )
-
+from ...authorization.models import DataAccessGrant
 
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -111,19 +116,8 @@ class AuthorizationView(DotAuthorizationView):
                 break
         return result
 
-    # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if waffle.switch_is_active('require-scopes'):
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.application.user)):
-                return ["design_system/new_authorize_v2.html"]
-            else:
-                return ["design_system/authorize_v2.html"]
-        else:
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.user)):
-                return ["design_system/new_authorize_v2.html"]
-            else:
-                return ["design_system/authorize.html"]
+        return ["design_system/new_authorize_v2.html"]
 
     def get_initial(self):
         initial_data = super().get_initial()
@@ -147,6 +141,27 @@ class AuthorizationView(DotAuthorizationView):
             # "code_challenge": form.cleaned_data.get("code_challenge", None),
             # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
+
+        missing_params = []
+
+        if switch_is_active('require_pkce'):
+            if not form.cleaned_data.get("code_challenge"):
+                missing_params.append("code_challenge")
+            if not form.cleaned_data.get("code_challenge_method"):
+                missing_params.append("code_challenge_method")
+
+        if switch_is_active('require_state'):
+            if not form.cleaned_data.get("state"):
+                missing_params.append("state")
+            elif len(form.cleaned_data.get("state")) < 16:
+                error_message = "State parameter should have a minimum of 16 characters"
+                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
+
+        if missing_params:
+            return JsonResponse({
+                "status_code": 400,
+                "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
+            }, status=400)
 
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
@@ -174,13 +189,19 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
+            if not scopes:
+                # Since the create_authorization_response will re-inject scopes even when none are
+                # valid, we want to pre-emptively treat this as an error case
+                raise OAuthToolkitError(
+                    error=AccessDeniedError(state=credentials.get("state", None)), redirect_uri=credentials["redirect_uri"]
+                )
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
 
-            if allow is False:
+            if allow is False or not scopes:
                 (data_access_grant_delete_cnt,
                  access_token_delete_cnt,
                  refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
@@ -239,6 +260,7 @@ class AuthorizationView(DotAuthorizationView):
         return self.redirect(self.success_url, application)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
@@ -253,6 +275,9 @@ class ApprovalView(AuthorizationView):
         super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
+        if request.method == "POST" and request.POST.get("state") is None:
+            return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
+
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
         try:
@@ -274,6 +299,11 @@ class ApprovalView(AuthorizationView):
 
         result = super().dispatch(request, *args, **kwargs)
 
+        if hasattr(result, "headers") \
+                and "Location" in result.headers \
+                and "invalid_scope" in result.headers['Location']:
+            return JsonResponse({"status_code": 400, "message": "Invalid scopes."}, status=400)
+
         if hasattr(self, 'oauth2_data'):
             application = self.oauth2_data.get('application', None)
             if application is not None:
@@ -292,11 +322,47 @@ class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:
-            validate_app_is_active(request)
+            app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
-        return super().post(request, args, kwargs)
+        url, headers, body, status = self.create_token_response(request)
+
+        if status == 200:
+            body = json.loads(body)
+            access_token = body.get("access_token")
+
+            dag_expiry = ""
+            if access_token is not None:
+                token = get_access_token_model().objects.get(
+                    token=access_token)
+                app_authorized.send(
+                    sender=self, request=request,
+                    token=token)
+
+                if app.data_access_type == "THIRTEEN_MONTH":
+                    try:
+                        dag = DataAccessGrant.objects.get(
+                            beneficiary=token.user,
+                            application=app
+                        )
+                        if dag.expiration_date is not None:
+                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                    except DataAccessGrant.DoesNotExist:
+                        dag_expiry = ""
+                elif app.data_access_type == "ONE_TIME":
+                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
+                    dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+                elif app.data_access_type == "RESEARCH_STUDY":
+                    dag_expiry = ""
+
+                body['access_grant_expiration'] = dag_expiry
+                body = json.dumps(body)
+
+        response = HttpResponse(content=body, status=status)
+        for k, v in headers.items():
+            response[k] = v
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -308,6 +374,40 @@ class RevokeTokenView(DotRevokeTokenView):
             validate_app_is_active(request)
         except InvalidClientError as error:
             return json_response_from_oauth2_error(error)
+
+        return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RevokeView(DotRevokeTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+        at_model = get_access_token_model()
+        try:
+            app = validate_app_is_active(request)
+        except (InvalidClientError, InvalidGrantError) as error:
+            return json_response_from_oauth2_error(error)
+
+        tkn = request.POST.get('token')
+        if tkn is not None:
+            escaped_tkn = html.escape(tkn)
+        else:
+            escaped_tkn = ""
+
+        try:
+            token = at_model.objects.get(token=tkn)
+        except at_model.DoesNotExist:
+            log.debug(f"Token {escaped_tkn} was not found.")
+
+        try:
+            dag = DataAccessGrant.objects.get(
+                beneficiary=token.user,
+                application=app
+            )
+            dag.delete()
+        except Exception:
+            log.debug(f"DAG lookup failed for token {escaped_tkn}.")
 
         return super().post(request, args, kwargs)
 

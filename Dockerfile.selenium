@@ -1,17 +1,18 @@
-FROM selenium/standalone-chrome
+FROM selenium/standalone-chromium
 
-ENV PYTHONUNBUFFERED 1
 USER root
-RUN apt-get update ; apt-get install -yq git curl libpq-dev libffi-dev
+
 RUN apt-get update ; apt-get install -yq python3 python3-venv
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
-RUN useradd -m -s /bin/bash DEV
-USER DEV
+
+# switch to existing seluser from selenium docker
+USER seluser
+
 ADD . /code
 WORKDIR /code
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip3 install --upgrade pip
-RUN pip3 install selenium pytest jsonschema
 
+RUN pip3 install --upgrade pip
+RUN pip3 install selenium pytest debugpy jsonschema python-dateutil

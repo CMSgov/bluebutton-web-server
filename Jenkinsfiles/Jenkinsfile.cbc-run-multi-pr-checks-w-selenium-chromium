@@ -1,0 +1,151 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build-selenium-python311-chromium"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p311-chromium.yaml"
+    }
+  }
+
+  environment {
+    DJANGO_LOG_JSON_FORMAT_PRETTY = true
+    DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
+    OAUTHLIB_INSECURE_TRANSPORT = true
+    DJANGO_SECURE_SESSION = false
+    DJANGO_FHIR_CERTSTORE = "./certstore"
+    // use mock login - safer, faster
+    USE_MSLSX = true
+    DJANGO_MEDICARE_SLSX_REDIRECT_URI = "http://localhost:8000/mymedicare/sls-callback"
+    DJANGO_MEDICARE_SLSX_LOGIN_URI = "http://localhost:8080/sso/authorize?client_id=bb2api"
+    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT = "http://localhost:8080/health"
+    DJANGO_SLSX_TOKEN_ENDPOINT = "http://localhost:8080/sso/session"
+    DJANGO_SLSX_SIGNOUT_ENDPOINT = "http://localhost:8080/sso/signout"
+    DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
+    DJANGO_SLSX_CLIENT_ID = credentials("bb2-selenium-tests-slsx-client-id")
+    DJANGO_SLSX_CLIENT_SECRET = credentials("bb2-selenium-tests-slsx-client-secret")
+    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
+    FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
+    FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
+    FHIR_URL = "${params.FHIR_URL}"
+    HOSTNAME_URL = "http://localhost:8000"
+  }
+
+  parameters {
+    string(
+      name: 'FHIR_URL',
+      defaultValue: "https://prod-sbx.fhir.bfd.cmscloud.local",
+      description: 'The default FHIR URL for the back end BFD service.'
+    )
+    booleanParam(
+        name: 'RUN_SELENIUM_TESTS', 
+        defaultValue: false, 
+        description: 'Set to true, selenium tests will be run as part of integration tests'
+    )
+  }
+
+  stages {
+    stage("SETUP FHIR cert and key") {
+      steps {
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
+    stage("INSTALL Python Packages") {
+      steps {
+        sh """
+          pip3 install --upgrade pip setuptools wheel
+          pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+        """
+      }
+    }
+
+    stage("CHECK Flake8 Python Lint/Style") {
+      steps{
+        sh """
+          flake8
+        """
+      }
+    }
+
+    stage("START BB2 server in background") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          mkdir ./docker-compose/tmp/
+          (python3 ./dev-local/app.py&) && 
+          python3 manage.py migrate &&
+          python3 manage.py create_admin_groups &&
+          python3 manage.py loaddata scopes.json &&
+          python3 manage.py create_blue_button_scopes &&
+          python3 manage.py create_test_user_and_application &&
+          python3 manage.py create_user_identification_label_selection &&
+          python3 manage.py create_test_feature_switches &&
+          (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) &&
+          echo 'starting bb2...' &&
+          (export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.logging_it && python3 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1 &)
+        """
+       }
+    }
+
+    stage("RUN logging integration tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+          sh """
+            USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+          """
+        }
+        sh """
+          echo '======================'
+          cat ./docker-compose/tmp/bb2_email_to_stdout.log
+          echo '======================'
+        """
+       }
+    }
+
+    stage("RUN selenium user and apps management tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh 'echo "RUN selenium tests - user account and app management tests"'
+        sh """
+          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
+        """
+       }
+    }
+
+    stage("RUN integration tests") {
+      steps{
+        sh """
+          python3 runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+        """
+      }
+    }
+
+    stage("RUN Django Unit Tests") {
+      steps{
+        sh """
+          python3 runtests.py
+        """
+      }
+    }
+
+    stage("RUN selenium tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
+        sh """
+          USE_NEW_PERM_SCREEN=true ON_REMOTE_CI=true pytest -s ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
+        """
+       }
+    }
+  }
+}

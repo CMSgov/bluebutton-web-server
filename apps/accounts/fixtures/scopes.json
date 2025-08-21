@@ -15,7 +15,7 @@
             "slug": "patient/Patient.read",
             "group": 5,
             "description": "Patient FHIR Resource",
-            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/?].*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/Patient[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v[123]/fhir/Patient[/?].*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -27,7 +27,7 @@
             "slug": "profile",
             "group": 5,
             "description": "OIDC userinfo endpoint /connect/userinfo",
-            "protected_resources": "[\n  [\n    \"GET\",\n    \"/v[12]/connect/userinfo.*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n    \"/v[123]/connect/userinfo.*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -39,7 +39,7 @@
             "slug": "patient/ExplanationOfBenefit.read",
             "group": 5,
             "description": "ExplanationOfBenefit FHIR Resource",
-            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[123]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -51,7 +51,7 @@
             "slug": "patient/Coverage.read",
             "group": 5,
             "description": "Coverage FHIR Resource",
-            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/?].*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[123]/fhir/Coverage[/?].*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -63,7 +63,6 @@
             "slug": "token_management",
             "group": 5,
             "description": "Allow an app to manage all of a user's tokens.",
-            "protected_resources": "[]",
             "protected_resources": "[[\"GET\", \"/some-url\"]]",
             "default": "False"
         }
@@ -76,8 +75,139 @@
             "slug": "token_introspect",
             "group": 5,
             "description": "Allow an app to introspect a user's tokens.",
+            "protected_resources": "[[\"POST\", \"/v[123]/o/introspect\"]]",
+            "default": "False"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 7,
+        "fields": {
+            "title": "Openid profile permissions.",
+            "slug": "openid",
+            "group": 5,
+            "description": "Enables user authentication and provides a unique identifier with basic profile info.",
             "protected_resources": "[]",
-            "protected_resources": "[[\"POST\", \"/v[12]/o/introspect\"]]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 8,
+        "fields": {
+            "title": "Read my general patient and demographic information.",
+            "slug": "patient/Patient.r",
+            "group": 5,
+            "description": "Patient FHIR Resource",
+            "protected_resources": "[\n \n [\n    \"GET\",\n   \"/v[123]/fhir/Patient[/?].*$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 9,
+        "fields": {
+            "title": "Search my general patient and demographic information.",
+            "slug": "patient/Patient.s",
+            "group": 5,
+            "description": "Patient FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/Patient[/]?$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 10,
+        "fields": {
+            "title": "Read and search my general patient and demographic information.",
+            "slug": "patient/Patient.rs",
+            "group": 5,
+            "description": "Patient FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/Patient[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v[123]/fhir/Patient[/?].*$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 11,
+        "fields": {
+            "title": "Read my Medicare claim information.",
+            "slug": "patient/ExplanationOfBenefit.r",
+            "group": 5,
+            "description": "ExplanationOfBenefit FHIR Resource",
+            "protected_resources": "[\n \n [\n    \"GET\",\n   \"/v[123]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 12,
+        "fields": {
+            "title": "Search my Medicare claim information.",
+            "slug": "patient/ExplanationOfBenefit.s",
+            "group": 5,
+            "description": "ExplanationOfBenefit FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/ExplanationOfBenefit[/]?$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 13,
+        "fields": {
+            "title": "Read and search my Medicare claim information.",
+            "slug": "patient/ExplanationOfBenefit.rs",
+            "group": 5,
+            "description": "ExplanationOfBenefit FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[123]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 14,
+        "fields": {
+            "title": "Read my Medicare and supplemental coverage information.",
+            "slug": "patient/Coverage.r",
+            "group": 5,
+            "description": "Coverage FHIR Resource",
+            "protected_resources": "[\n \n [\n    \"GET\",\n   \"/v[123]/fhir/Coverage[/?].*$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 15,
+        "fields": {
+            "title": "Search my Medicare and supplemental coverage information.",
+            "slug": "patient/Coverage.s",
+            "group": 5,
+            "description": "Coverage FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/Coverage[/]?$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+        {
+        "model": "capabilities.protectedcapability",
+        "pk": 16,
+        "fields": {
+            "title": "Read and search my Medicare and supplemental coverage information.",
+            "slug": "patient/Coverage.rs",
+            "group": 5,
+            "description": "Coverage FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[123]/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[123]/fhir/Coverage[/?].*$\"\n  ]\n]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 17,
+        "fields": {
+            "title": "Patient launch context.",
+            "slug": "launch/patient",
+            "group": 5,
+            "description": "Launch with FHIR Patient context.",
+            "protected_resources": "[]",
             "default": "False"
         }
     }

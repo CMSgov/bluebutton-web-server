@@ -65,31 +65,31 @@ To setup any ENV variables specific to your local development work, add them to 
 To startup the Docker containerized BB2 server using slsx:
 
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 Or equivalently:
 
 ```
-docker-compose --profile web up -d
+docker compose --profile web up -d
 ```
 
 To startup the Docker containerized BB2 server using msls:
 
 ```
-docker-compose --profile web_msls up -d
+docker compose --profile web_msls up -d
 ```
 
 To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
 
 ```
-docker-compose down
+docker compose down
 ```
 
 To monitor BB2 server logging:
 
 ```
-docker-compose logs -f | grep web
+docker compose logs -f | grep web
 ```
 
 Press Ctrl C will stop monitor logging.
@@ -100,7 +100,7 @@ NOTE: This is often needed when switching betwen PR branches where migrations we
 WARNING: This cleans up all Docker related images! If this is an issue, you may want to individually remove (rmi) images.
 
 ```
-docker-compose down
+docker compose down
 docker images  # To see list of images on your system
 docker image ls | awk '{ print $3}' | grep -v "IMAGE" | xargs docker image rm -f
 docker volume rm $(docker volume ls -qf dangling=true)
@@ -138,7 +138,7 @@ SUPER_USER_EMAIL=bluebutton@example.com
 
 if chose not to do db image migrations automatically, follow below steps:
 
-set the flag to false before run docker-compose up:
+set the flag to false before run docker compose up:
 
 ```
 DB_MIGRATIONS=false
@@ -148,7 +148,7 @@ If you're working with a fresh db image
 the migrations have to be run.
 
 ```
-docker-compose exec web docker-compose/migrate.sh
+docker compose exec web docker-compose/migrate.sh
 
 ```
 
@@ -156,7 +156,7 @@ If any permissions errors are thrown try the following command,
 then run the migrate script again:
 
 ```
-docker-compose exec web chmod +x docker-compose/migrate.sh
+docker compose exec web chmod +x docker-compose/migrate.sh
 ```
 
 ## DB Migrations
@@ -255,7 +255,7 @@ under BB2 local repo base directory:
 To run the Django unit tests, run the following command:
 
 ```
-docker-compose exec web python runtests.py
+docker compose exec web python runtests.py
 ```
 
 You can run individual applications tests or tests with in a specific area as well.
@@ -263,21 +263,21 @@ You can run individual applications tests or tests with in a specific area as we
 The following are a few examples (drilling down to a single test):
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests
+docker compose exec web python runtests.py apps.dot_ext.tests
 ```
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates
+docker compose exec web python runtests.py apps.dot_ext.tests.test_templates
 ```
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
+docker compose exec web python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
 ```
 
 Multiple arguments can be provided too:
 
 ```bash
-docker-compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
+docker compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
 ```
 
 # Work on Windows
@@ -373,11 +373,11 @@ Also, update launch.json to use this new port
 
 ## Remote debugging Blue Button unit tests
 
-Run the docker-compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
+Run the docker compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
 Attach to the unittests from an IDE (e.g. VSCode), then put break points in the test cases and debugging.
 
 ```
-docker-compose up -d unittests
+docker compose up -d unittests
 
 ```
 Now we can use Run and Debug in visual studio code and execute `Python Debugger: Remote Attach`
@@ -385,9 +385,50 @@ This name is same as one provided in launch.json above.
 
 We should be able to see breakpoints are hit.
 
+## Remote debugging Blue Button single unit test
+In order to debug single unit test (e.g test_app_form_template_with_default_initvalues) perform below steps
+
+1. Create launch.json at `.vscode/launch.json`
+```
+	{
+	    // Use IntelliSense to learn about possible attributes.
+	    // Hover to view descriptions of existing attributes.
+	    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	    "version": "0.2.0",
+	    "configurations": [
+	        {
+	            "name": "Python Debugger: Remote Attach",
+	            "type": "debugpy",
+	            "request": "attach",
+	            "connect": {
+	                "host": "0.0.0.0",
+	                "port": 6789
+	            },
+	            "pathMappings": [
+	                {
+	                    "localRoot": "${workspaceFolder}",
+	                    "remoteRoot": "."
+	                }
+	            ]
+	        }
+	    ]
+	}
+```
+2. Build and run unittest
+```
+$ docker compose build unittests
+$ docker compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py <relative-test-path>
+
+e.g
+docker compose run --service-ports unittests python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py apps.dot_ext.tests.test_app_form_templates.AppFormTemplateTestCase.test_app_form_template_with_default_initvalues
+```
+3. Start Debugger in VSCode with name `Python Debugger: Remote Attach`
+
+**Note:** We just have to execute `docker compose build unittests` once, also in order to re-run test execute test docker command again
+
 ## View Unit test logs
 ```
-docker-compose logs --tail 500 -f unittests
+docker compose logs --tail 500 -f unittests
 ```
 
 ## Test and Verify Using Sample Clients
@@ -447,7 +488,7 @@ To get usage help use the following command:
 docker-compose/run_integration_tests_local.sh
 ```
 
-1. Using the docker-compose local development setup and containers. This is the quickest!
+1. Using the docker compose local development setup and containers. This is the quickest!
 
    The currently checked out (or working branch) will be used.
 
@@ -469,7 +510,7 @@ docker-compose/run_integration_tests_local.sh
    docker-compose/run_integration_tests_local.sh cbc
    ```
 
-3. Using the docker-compose local development setup and containers with local bfd as backend.
+3. Using the docker compose local development setup and containers with local bfd as backend.
 
    The currently checked out (or working branch) will be used.
 

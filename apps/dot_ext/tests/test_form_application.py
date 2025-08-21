@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.forms import ModelMultipleChoiceField
 
 from PIL import Image
 from io import BytesIO
@@ -351,3 +352,24 @@ class TestRegisterApplicationForm(BaseApiTest):
         # as BB2 admin user added a new app with logo
         form.save(commit=False)
         return form
+
+    def test_create_application_form_has_fld_internal_app_labels(self):
+        """
+        Test application form has 'internal_application_labels' field by default
+        """
+        read_group = self._create_group('read')
+        self._create_capability('Read-Scope', [], read_group)
+        # create user and add it to the read group
+        user = self._create_user('john', '123456')
+        user.groups.add(read_group)
+        # create an application
+        self._create_application('john_app', user=user)
+
+        # Test form with exact app name has error
+        data = {'name': 'john_app'}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('name'), None)
+        f = form.fields.pop('internal_application_labels')
+        self.assertIsNotNone(f)
+        self.assertTrue(isinstance(f, ModelMultipleChoiceField))

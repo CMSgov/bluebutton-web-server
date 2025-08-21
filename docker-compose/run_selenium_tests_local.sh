@@ -40,6 +40,8 @@ display_usage() {
     echo
     echo "-h     Print this Help."
     echo "-p     Use new permissions screen (defaults to old style screen)."
+    echo "-g     Selenium grid used - hub on port 4444."
+    echo "-t     Show test case actions on std out."
     echo
 }
 
@@ -74,26 +76,38 @@ set -e -u -o pipefail
 export USE_MSLSX=true
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests"
-export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
+export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export BB2_SERVER_STD2FILE=""
+# selenium grid
+export SELENIUM_GRID=false
+# Show test actions on std out : pytest -s
+PYTEST_SHOW_TRACE_OPT=''
 
-set_slsx
+# this seems been overridden by set_msls below - comment out for removal
+# set_slsx
 
 # Parse command line option
-while getopts "hp" option; do
+while getopts "hpgt" option; do
    case $option in
       h)
          display_usage
          exit;;
       p)
          export USE_NEW_PERM_SCREEN=true;;
+      g)
+        export SELENIUM_GRID=true;;
+      t)
+        export PYTEST_SHOW_TRACE_OPT='-s';;
      \?)
          display_usage
          exit;;
    esac
 done
 
+eval last_arg=\$$#
+
+# the default is to use mock login - e.g. for account mgmt tests and logging integration tests
 set_msls
 
 # Parse command line option
@@ -101,19 +115,19 @@ if [ $# -eq 0 ]
 then
   echo "Use Mock SLS for identity service."
 else
-  echo $1
-  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" && $1 != "account" ]]
+  echo $last_arg
+  if [[ $last_arg != "slsx" && $last_arg != "mslsx" && $last_arg != "logit" && $last_arg != "account" ]]
   then
-    echo "Invalid argument: " $1
+    echo "Invalid argument: " $last_arg
     display_usage
     exit 1
   else
-    if [[ $1 == "slsx" ]]
+    if [[ $last_arg == "slsx" ]]
     then
         export USE_MSLSX=false
         set_slsx
     fi
-    if [[ $1 == "logit" ]]
+    if [[ $last_arg == "logit" ]]
     then
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/
@@ -122,7 +136,7 @@ else
       export TESTS_LIST="./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
-    if [[ $1 == "account" ]]
+    if [[ $last_arg == "account" ]]
     then
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/
@@ -137,6 +151,7 @@ fi
 
 echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
 echo "HOSTNAME_URL: " ${HOSTNAME_URL}
+echo "Selenium grid=" ${SELENIUM_GRID}
 
 # Set SYSTEM
 SYSTEM=$(uname -s)
@@ -199,7 +214,7 @@ else
 fi
 
 # stop all before run selenium tests
-docker-compose -f docker-compose.selenium.yml down --remove-orphans
+docker compose -f docker-compose.selenium.yml down --remove-orphans
 
 export DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT}
 export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
@@ -212,14 +227,14 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
-docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
+docker compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg
 echo_msg "Stopping containers..."
 echo_msg
 
-docker-compose -f docker-compose.selenium.yml stop
+docker compose -f docker-compose.selenium.yml stop
 
 #Remove certfiles from local directory
 echo_msg

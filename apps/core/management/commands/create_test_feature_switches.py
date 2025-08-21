@@ -4,20 +4,25 @@ from waffle.models import Switch
 from apps.core.models import Flag
 
 WAFFLE_FEATURE_SWITCHES = (
-    ("outreach_email", True),
-    ("wellknown_applications", True),
-    ("login", True),
-    ("signup", True),
-    ("require-scopes", True),
-    ("testclient_v2", True),
-    ("enable_testclient", True),
-    ("show_testclient_link", True),
-    ("interim-prod-access", True),
-    ("enable_swaggerui", True),
+    ("enable_swaggerui", True, "This enables a page for the openapi docs and a link to the page from the main page."),
+    ("enable_testclient", True, "This enables the test client."),
+    ("expire_grant_endpoint", True, "This enables the /v<1/2>/o/expire_authenticated_user/<patient_id>/ endpoint."),
+    ("login", True, "This enables login related URLs and code. See apps/accounts/urls.py file for more info."),
+    ("outreach_email", True, "This enables developer outreach emails. Not active in prod."),
+    ("require-scopes", True, "Thie enables enforcement of permission checking of scopes."),
+    ("show_django_message_sdk", True, "This enables the Django message in the developer sandbox home."),
+    ("show_testclient_link", True, "This controls the display of the test client link from the main page."),
+    ("signup", True, "This enables signup related URLs and code paths. Not active in prod."),
+    ("splunk_monitor", False, "This is used in other environments to ensure splunk forwarder is running."),
+    ("testclient_v2", True, "This enables the v2 auth links in the test client"),
+    ("wellknown_applications", True, "This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test."),
+    ("v3_endpoints", True, "This enables v3 endpoints."),
+    ("bfd_v3_connectathon", True, "This enables the bfd v3 features for connectathon demo"),
+    ("require_state", True, "This enforces the presence of the state parameter when authorizing"),
+    ("require_pkce", True, "This enforces the presence of the PKCE parameters code_challenge and code_challenge_method when authorizing"),
 )
 
 WAFFLE_FEATURE_FLAGS = (
-    ("limit_data_access", ['fred']),
 )
 
 
@@ -31,7 +36,7 @@ class Command(BaseCommand):
                 Switch.objects.get(name=switch[0])
                 self._log("Feature switch already exists: %s" % (str(switch)))
             except Switch.DoesNotExist:
-                Switch.objects.create(name=switch[0], active=switch[1])
+                Switch.objects.create(name=switch[0], active=switch[1], note=switch[2])
                 self._log("Feature switch created: %s" % (str(switch)))
 
         # Create feature flags for testing in local development

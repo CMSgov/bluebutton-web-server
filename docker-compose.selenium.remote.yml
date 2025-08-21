@@ -1,11 +1,9 @@
-version: '3'
-
 services:
   selenium-remote-tests:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: pytest ./apps/integration_tests/selenium_tests.py
+    command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
@@ -14,7 +12,7 @@ services:
       - chrome
 
   chrome:
-    image: seleniarm/standalone-chromium
+    image: selenium/standalone-chromium
     hostname: chrome
     ports:
       - "4444:4444"

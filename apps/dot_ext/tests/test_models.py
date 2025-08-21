@@ -1,35 +1,37 @@
 import json
-
 import apps.logging.request_logger as logging
 
+from django.contrib import admin
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
-from waffle.testutils import override_flag
+from unittest.mock import Mock
 
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import (
     get_application_counts,
     get_application_require_demographic_scopes_count,
+    InternalApplicationLabels,
+    Application
 )
+from apps.dot_ext.admin import MyApplicationAdmin
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
-from apps.test import BaseApiTest, flag_is_active
+from apps.test import BaseApiTest
 
 
 class TestDotExtModels(BaseApiTest):
+    fixtures = ['internal_application_labels.json']
+
     def setUp(self):
         self.logger_registry = redirect_loggers()
 
     def tearDown(self):
         cleanup_logger(self.logger_registry)
 
-    @override_flag('limit_data_access', active=True)
     def test_application_data_access_fields(self):
         """
         Test the CRUD operations & validation
         on new data access fields from apps.dot_ext.models
         """
-        assert flag_is_active('limit_data_access')
-
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 
@@ -69,13 +71,10 @@ class TestDotExtModels(BaseApiTest):
             test_app.data_access_type = "BAD_DATA_ACCESS_TYPE"
             test_app.save()
 
-    @override_flag('limit_data_access', active=True)
     def test_application_data_access_type_change(self):
         """
         Test the application.data_access_type change, make sure the change is logged
         """
-        assert flag_is_active('limit_data_access')
-
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 
@@ -113,13 +112,10 @@ class TestDotExtModels(BaseApiTest):
         self.assertEqual(log_entry_json['data_access_type_old'], "THIRTEEN_MONTH")
         self.assertEqual(log_entry_json['data_access_type_new'], "RESEARCH_STUDY")
 
-    @override_flag('limit_data_access', active=False)
     def test_application_data_access_type_change_switch_off(self):
         """
         Test the application.data_access_type change, access grants will not be affected
         """
-        assert (not flag_is_active('limit_data_access'))
-
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 
@@ -216,3 +212,85 @@ class TestDotExtModels(BaseApiTest):
 
         # Assert app count requiring demo scopes
         self.assertEqual(5, get_application_require_demographic_scopes_count())
+
+    def test_internal_application_labels_switch_on(self):
+        """
+        Test the Application model creation
+        check the 'internal_application_labels' field present
+        """
+        # Create dev user for tests.
+        dev_user = self._create_user("john", "123456")
+
+        # Create defaults
+        test_app = self._create_application("test_app", user=dev_user)
+        self.assertTrue(hasattr(test_app, 'internal_application_labels'))
+
+    def test_internal_application_labels_load(self):
+        """
+        Test the InternalApplicationLabels model creation and load with values from the fixture
+        """
+        internal_labels = InternalApplicationLabels.objects.all()
+        self.assertIsNotNone(internal_labels)
+        self.assertEqual(len(internal_labels), 11)
+
+    def test_internal_application_labels_getter(self):
+        """
+        Test the getter of the many to many field 'internal_application_labels'
+        """
+        internal_labels = InternalApplicationLabels.objects.all()
+        self.assertIsNotNone(internal_labels)
+        self.assertEqual(len(internal_labels), 11)
+
+        # Create dev user for tests.
+        dev_user = self._create_user("john", "123456")
+
+        # Create app
+        test_app = self._create_application("test_app", user=dev_user)
+        l1 = internal_labels[0]
+        l3 = internal_labels[2]
+        l5 = internal_labels[4]
+        l11 = internal_labels[10]
+        test_app.internal_application_labels.add(l1, l3, l5)
+        labels = test_app.get_internal_application_labels()
+        self.assertTrue(l1.label in labels)
+        self.assertTrue(l3.label in labels)
+        self.assertTrue(l5.label in labels)
+        self.assertTrue(not (l11.label in labels))
+
+    def test_internal_application_labels_admin(self):
+        """
+        Test 'internal_application_labels' wrapped in admin model
+        """
+        internal_labels = InternalApplicationLabels.objects.all()
+        self.assertIsNotNone(internal_labels)
+        self.assertEqual(len(internal_labels), 11)
+
+        # Create dev user for tests.
+        dev_user = self._create_user("john", "123456")
+
+        # Create app bound with internal_application_labels
+        test_app = self._create_application("test_app", user=dev_user)
+        l1 = internal_labels[0]
+        l3 = internal_labels[2]
+        l5 = internal_labels[4]
+        l11 = internal_labels[10]
+        test_app.internal_application_labels.add(l1, l3, l5)
+
+        app_admin = MyApplicationAdmin(Application, admin.site)
+
+        list_display = app_admin.get_list_display(None)
+        self.assertIn('get_internal_application_labels', list_display)
+
+        search_fields = app_admin.get_search_fields(None)
+        self.assertIn('internal_application_labels__label', search_fields)
+
+        request = Mock(user=dev_user)
+
+        field_sets = app_admin.get_fieldsets(request, None)
+        self.assertIn('internal_application_labels', str(field_sets))
+
+        internal_labels = app_admin.get_internal_application_labels(test_app)
+        self.assertTrue(l1.label in internal_labels)
+        self.assertTrue(l3.label in internal_labels)
+        self.assertTrue(l5.label in internal_labels)
+        self.assertTrue(l11.label not in internal_labels)

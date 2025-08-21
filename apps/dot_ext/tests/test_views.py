@@ -1,5 +1,7 @@
 import json
 import base64
+from datetime import date, timedelta
+
 from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
@@ -160,17 +162,8 @@ class TestAuthorizationView(BaseApiTest):
         # and here we test that only the capability-a scope has been issued
         self.assertEqual(content["scope"], "capability-a")
 
-    def test_post_with_share_demographic_scopes(self):
-        # Test with-out new_auth switch
-        self.testing_post_with_share_demographic_scopes()
-
-    @override_switch("new_auth", active=True)
-    def test_post_with_share_demographic_scopes_new_auth_switch(self):
-        # Test with new_auth switch.
-        self.testing_post_with_share_demographic_scopes()
-
     @override_switch("require-scopes", active=True)
-    def testing_post_with_share_demographic_scopes(self):
+    def test_post_with_share_demographic_scopes(self):
         """
         Test authorization related to different, beneficiary "share_demographic_scopes",
         application.require_demographic_scopes, and requested scopes values.
@@ -409,6 +402,8 @@ class TestTokenView(BaseApiTest):
             tkn = response.json()["access_token"]
 
         t = AccessToken.objects.get(token=tkn)
+        t.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
+        t.save()
         return t
 
     def _create_authorization_header(self, client_id, client_secret):
@@ -451,6 +446,43 @@ class TestTokenView(BaseApiTest):
         expected = [
             {
                 # can't predict the id in this case
+                "id": result[0]["id"],
+                "user": anna.id,
+                "application": {
+                    "id": application.id,
+                    "name": "an app",
+                    "logo_uri": "",
+                    "tos_uri": "",
+                    "policy_uri": "",
+                    "contacts": "",
+                },
+            }
+        ]
+        self.assertEqual(result, expected)
+
+        # Check tokens endpoint doesn't return expired
+        application2 = self._create_application(
+            "an expired app",
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris="http://example.it",
+            user=anna
+        )
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=anna, application=application2, expiration_date=date.today() - timedelta(days=1)
+        )
+        response = self.client.get(
+            "/v1/o/tokens/",
+            headers={
+                "authorization": self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
+                "x-authentication": self._create_authentication_header(self.test_uuid),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        result = response.json()
+        expected = [
+            {
                 "id": result[0]["id"],
                 "user": anna.id,
                 "application": {

@@ -3,8 +3,8 @@
 # Run the integration tests in:
 #
 #   * a one-off docker (cbc) or
-#   * docker-compose (dc) container or
-#   * docker-compose container with local bfd as backend
+#   * docker compose (dc) container or
+#   * docker compose container with local bfd as backend
 #
 # NOTE:
 #
@@ -27,7 +27,7 @@ DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
 DOCKER_TAG="py37-an27-tf12-boto3-botocore"
 
 # Backend FHIR server to use for integration tests of FHIR resource endpoints:
-FHIR_URL="https://prod-sbx.bfd.cms.gov"
+FHIR_URL="https://prod-sbx.fhir.bfd.cmscloud.local"
 
 # List of integration tests to run. To be passed in to runtests.py.
 INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
@@ -51,11 +51,11 @@ then
     echo
     echo "  Use one of the following command line options for the type of test to run:"
     echo
-    echo "    local  = Run using the docker-compose web local developer setup + local bfd (QUICK test)"
+    echo "    local  = Run using the docker compose web local developer setup + local bfd (QUICK test)"
     echo
     echo "    local-debug  = Same as 'local' with tests run waiting on port 6789 to be attached"
     echo
-    echo "    dc  = Run using the docker-compose web local developer setup (QUICK test)"
+    echo "    dc  = Run using the docker compose web local developer setup (QUICK test)"
     echo
     echo "    dc-debug  = Same as 'dc' with tests run waiting on port 5678 to be attached"
     echo
@@ -120,7 +120,7 @@ then
     then
         echo "Integration tests run in debug mode, waiting on port ${EXPO_PORTS} for attach..."
     fi
-    docker-compose run ${EXPO_PORTS} -e FHIR_URL=${FHIR_URL} -e HOSTNAME_URL=${HOSTNAME_URL} \
+    docker compose run ${EXPO_PORTS} -e FHIR_URL=${FHIR_URL} -e HOSTNAME_URL=${HOSTNAME_URL} \
         web bash -c "python ${DEBUG_OPTS} runtests.py --integration ${INTEGRATION_TESTS_LIST}"
 else
     # bc or dc mode
@@ -183,10 +183,10 @@ else
     if [[ $1 == dc* ]]
     then
         # Stop web if running and restart db
-        docker-compose stop web
-        docker-compose restart db
+        docker compose stop web
+        docker compose restart db
 
-        # Run docker-compose containter one-off
+        # Run docker compose containter one-off
         echo_msg
         echo_msg "------RUNNING DOCKER-COMPOSE CONTAINER WITH INTEGRATION TESTS------"
         echo_msg
@@ -195,7 +195,7 @@ else
 
         if [[ ${SYSTEM} == "Linux" || ${SYSTEM} == "Darwin" ]]
         then
-            docker-compose run \
+            docker compose run \
                 --service-ports \
                 -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
@@ -210,7 +210,7 @@ else
                 echo "Integration tests run in debug mode, waiting on port ${EXPO_PORTS} for attach..."
             fi
             # cygwin
-            docker-compose run ${EXPO_PORTS} \
+            docker compose run ${EXPO_PORTS} \
                 -e DJANGO_FHIR_CERTSTORE="/code/docker-compose${DJANGO_FHIR_CERTSTORE}" \
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \

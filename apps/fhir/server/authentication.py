@@ -1,5 +1,5 @@
 import requests
-
+import os
 from django.conf import settings
 from rest_framework import exceptions
 from urllib.parse import quote
@@ -18,13 +18,12 @@ from ..bluebutton.utils import (FhirServerAuth,
 from .loggers import log_match_fhir_id
 
 
-def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
+def search_fhir_id_by_identifier_mbi(mbi, request=None):
     """
         Search the backend FHIR server's patient resource
         using the mbi_hash identifier.
     """
-    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH \
-        + "%7C" + mbi_hash
+    search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
 
     return search_fhir_id_by_identifier(search_identifier, request)
 
@@ -34,8 +33,7 @@ def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None):
         Search the backend FHIR server's patient resource
         using the hicn_hash identifier.
     """
-    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_HICN_HASH \
-        + "%7C" + hicn_hash
+    search_identifier = f"{settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
 
     return search_fhir_id_by_identifier(search_identifier, request)
 
@@ -79,57 +77,42 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers = None
 
     # Build URL with patient ID search by identifier.
+    resource_router = get_resourcerouter()
     ver = "v{}".format(request.session.get('version', 1))
-    url = get_resourcerouter().fhir_url \
-        + "/{}/fhir/Patient/?identifier=".format(ver) + search_identifier \
-        + "&_format=" + settings.FHIR_PARAM_FORMAT
+    fhir_url = resource_router.fhir_url
+    if ver == 'v3' and resource_router.fhir_url_v3:
+        fhir_url = resource_router.fhir_url_v3
+    url = f"{fhir_url}/{ver}/fhir/Patient/_search"
 
-    s = requests.Session()
-
-    req = requests.Request('GET', url, headers=headers)
-    prepped = req.prepare()
-    pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
-    response = s.send(prepped, cert=certs, verify=False)
-    post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
-    response.raise_for_status()
-    backend_data = response.json()
-
-    # Parse and validate backend_data response.
-    if (
-        'total' in backend_data
-            and backend_data.get('total', 0) == 1
-            and 'entry' in backend_data
-            and isinstance(backend_data.get('entry', False), list)
-            and len(backend_data.get('entry', '')) == 1
-            and isinstance(backend_data['entry'][0].get('resource', False), dict)
-            and isinstance(backend_data['entry'][0]['resource'].get('resourceType', False), str)
-            and backend_data['entry'][0]['resource']['resourceType'] == "Patient"
-            and isinstance(backend_data['entry'][0]['resource'].get('id', False), str)
-            and len(backend_data['entry'][0]['resource']['id']) > 0
-    ):
-        # Found a single matching ID.
-        fhir_id = backend_data['entry'][0]['resource']['id']
-        return fhir_id
-    elif (
-        'total' in backend_data
-            and 'entry' in backend_data
-            and (backend_data.get('total', 0) > 1 or len(backend_data.get('entry', '')) > 1)
-    ):
-        # Has duplicate beneficiary IDs.
-        raise UpstreamServerException("Duplicate beneficiaries found in Patient resource bundle")
-    elif (
-        'total' in backend_data
-            and 'entry' not in backend_data
-            and backend_data.get('total', -1) == 0
-    ):
-        # Not found.
-        return None
-    else:
-        # Unexpected result! Something weird is happening?
-        raise UpstreamServerException("Unexpected result found in the Patient resource bundle")
+    max_retries = 3
+    retries = 0
+    env = os.environ.get('TARGET_ENV')
+    while retries <= max_retries:
+        try:
+            s = requests.Session()
+            payload = {"identifier": search_identifier}
+            req = requests.Request('POST', url, headers=headers, data=payload)
+            prepped = req.prepare()
+            pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
+            response = s.send(prepped, cert=certs, verify=False)
+            post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
+            response.raise_for_status()
+            backend_data = response.json()
+            # Parse and validate backend_data (bundle of patients) response.
+            fhir_id, err_detail = _validate_patient_search_result(backend_data)
+            if err_detail is not None:
+                raise UpstreamServerException(err_detail)
+            return fhir_id
+        except requests.exceptions.SSLError as e:
+            if retries < max_retries and (env is None or env == 'DEV'):
+                # Checking target_env ensures the retry logic only happens on local
+                print(f"FHIR ID search request failed. Retrying... ({retries+1}/{max_retries})")
+                retries += 1
+            else:
+                raise e
 
 
-def match_fhir_id(mbi_hash, hicn_hash, request=None):
+def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
     """
       Matches a patient identifier via the backend FHIR server
       using an MBI or HICN hash.
@@ -144,13 +127,13 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
         fhir_id = Matched patient identifier.
         hash_lookup_type = The type used for the successful lookup (M or H).
       Raises exceptions:
-        UpstreamServerException: If hicn_hash or mbi_hash search found duplicates.
+        UpstreamServerException: If hicn_hash or mbi search found duplicates.
         NotFound: If both searches did not match a fhir_id.
     """
-    # Perform primary lookup using MBI_HASH
-    if mbi_hash:
+    # Perform primary lookup using MBI
+    if mbi:
         try:
-            fhir_id = search_fhir_id_by_identifier_mbi_hash(mbi_hash, request)
+            fhir_id = search_fhir_id_by_identifier_mbi(mbi, request)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "M", str(err))
             # Don't return a 404 because retrying later will not fix this.
@@ -179,3 +162,63 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
         log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, False, None,
                           "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
         raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
+
+
+def _validate_patient_search_result(bundle_of_patients):
+    '''
+    helper to check the bundle of patient(s), expecting one and only one patient
+    input: patient search result - bundle of patients
+    return: fhir_id, err_detail
+    '''
+    fhir_id = None
+    err_detail = None
+    if bundle_of_patients:
+        if bundle_of_patients.get('resourceType') == "Bundle":
+            entries = bundle_of_patients.get('entry')
+            if entries:
+                if len(entries) > 1:
+                    err_detail = "Duplicate beneficiaries found in Patient resource bundle."
+                else:
+                    # further validate the only entry is Patient and its id is there,
+                    # see Patient resource excerpt below for reference:
+                    # {
+                    #     "resourceType": "Patient",
+                    #     "id": "-10000010254618",
+                    #     "meta": {
+                    #         "lastUpdated": "2023-06-14T18:17:07.293+00:00",
+                    #         "profile": [
+                    #             "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient"
+                    #         ]
+                    #     },
+                    #     "extension": [
+                    #         {
+                    #            ...............
+                    #
+                    pt = entries[0].get("resource")
+                    if pt:
+                        rs_type = pt.get('resourceType', "")
+                        fhir_id = pt.get('id')
+                        if rs_type == "Patient":
+                            if fhir_id:
+                                # Found a single matching ID (fhir_id).
+                                pass
+                            else:
+                                err_detail = ("Unexpected in Patient search: malformed Patient resource"
+                                              "- missing id attribute or id value empty.")
+                        else:
+                            err_detail = ("Unexpected in Patient search: expect Patient resource,"
+                                          " got 'resourceType': {}.").format(rs_type)
+                    else:
+                        err_detail = "Unexpected in Patient search: expect a resource, got None."
+            else:
+                # No patient match, not found - this leads to fhir_id = None and err_detail = None return to caller
+                # this else branch can be removed but keep it explicit for readability
+                pass
+        else:
+            err_detail = ("Unexpected in Patient search:"
+                          " expected result of 'resourceType': Bundle, got {}").format(bundle_of_patients.get('resourceType'))
+    else:
+        # Unexpected result, response json from back end is None
+        err_detail = "Unexpected in Patient search: response json is None."
+
+    return fhir_id, err_detail

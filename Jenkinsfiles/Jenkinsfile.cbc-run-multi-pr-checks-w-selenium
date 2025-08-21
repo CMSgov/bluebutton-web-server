@@ -1,13 +1,13 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium-python38"
-      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p38.yaml"
+      defaultContainer "bb2-cbc-build-selenium-python311"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p311.yaml"
     }
   }
 
   environment {
-    USE_MSLSX = false
+    USE_MSLSX = true
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
     OAUTHLIB_INSECURE_TRANSPORT = true
@@ -32,7 +32,7 @@ pipeline {
   parameters {
     string(
       name: 'FHIR_URL',
-      defaultValue: "https://prod-sbx.bfd.cms.gov",
+      defaultValue: "https://prod-sbx.fhir.bfd.cmscloud.local",
       description: 'The default FHIR URL for the back end BFD service.'
     )
     booleanParam(
@@ -55,7 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          make reqs-download
+          python -m pip install --upgrade pip setuptools wheel cryptography
           make reqs-install-dev
         """
       }
@@ -99,7 +99,7 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
-          pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+          USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
     }
@@ -134,7 +134,7 @@ pipeline {
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
           . venv/bin/activate
-          pytest ./apps/integration_tests/selenium_tests.py
+          USE_NEW_PERM_SCREEN=true pytest ./apps/integration_tests/selenium_tests.py
         """
        }
     }

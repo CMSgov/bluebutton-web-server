@@ -5,7 +5,7 @@ from oauth2_provider.models import get_application_model
 
 from .csv import ExportCsvMixin
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
-from .models import ApplicationLabel, AuthFlowUuid
+from .models import ApplicationLabel, AuthFlowUuid, InternalApplicationLabelsProxy
 
 Application = get_application_model()
 
@@ -77,6 +77,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             "support_email",
             "support_phone_number",
             "description",
+            "internal_application_labels",
             "active",
             "first_active",
             "last_active",
@@ -89,37 +90,68 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
 @admin.register(MyApplication)
 class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     form = CustomAdminApplicationForm
-    list_display = (
-        "name",
-        "get_data_access_type",
-        "user",
-        "client_id",
-        "require_demographic_scopes",
-        "scopes",
-        "created",
-        "updated",
-        "active",
-        "skip_authorization",
-    )
+
+    def get_list_display(self, request):
+        return (
+            "name",
+            "get_data_access_type",
+            "user",
+            "client_id",
+            "require_demographic_scopes",
+            "scopes",
+            "created",
+            "updated",
+            "active",
+            "skip_authorization",
+            "get_internal_application_labels",
+        )
+
     list_filter = (
         "data_access_type",
         "require_demographic_scopes",
         "active",
         "skip_authorization",
+        "internal_application_labels",
     )
+
     radio_fields = {
         "client_type": admin.HORIZONTAL,
         "authorization_grant_type": admin.VERTICAL,
     }
 
-    search_fields = (
-        "name",
-        "data_access_type",
-        "user__username",
-        "=client_id",
-        "=require_demographic_scopes",
-        "=authorization_grant_type",
-    )
+    def get_search_fields(self, request):
+        return (
+            "name",
+            "data_access_type",
+            "user__username",
+            "internal_application_labels__label",
+            "=client_id",
+            "=require_demographic_scopes",
+            "=authorization_grant_type",
+        )
+
+    def get_export_fields(self, request):
+        return (
+            "id",
+            "user",
+            "name",
+            "created",
+            "website_uri",
+            "redirect_uris",
+            "logo_uri",
+            "tos_uri",
+            "policy_uri",
+            "contacts",
+            "support_email",
+            "support_phone_number",
+            "description",
+            "active",
+            "first_active",
+            "last_active",
+            "require_demographic_scopes",
+            "data_access_type",
+            "internal_application_labels",
+        )
 
     raw_id_fields = ("user",)
 
@@ -128,6 +160,10 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     @admin.display(description="Data Access Type")
     def get_data_access_type(self, obj):
         return obj.data_access_type
+
+    @admin.display(description="Internal Application Labels")
+    def get_internal_application_labels(self, obj):
+        return obj.get_internal_application_labels()
 
 
 @admin.register(CreateNewApplication)
@@ -141,6 +177,7 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
         "updated",
         "active",
         "skip_authorization",
+        "get_internal_application_labels",
     )
     list_filter = (
         "client_type",
@@ -152,9 +189,14 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
         "name",
         "user__username",
         "=client_id",
+        "internal_application_labels__label",
     )
 
     raw_id_fields = ("user",)
+
+    @admin.display(description="Internal Application Labels")
+    def get_internal_application_labels(self, obj):
+        return obj.get_internal_application_labels()
 
 
 @admin.register(MyAccessToken)
@@ -204,3 +246,8 @@ class ApplicationLabelAdmin(admin.ModelAdmin):
     filter_horizontal = ("applications",)
     list_display = ("name", "slug", "short_description")
     list_filter = ("name", "slug")
+
+
+@admin.register(InternalApplicationLabelsProxy)
+class InternalApplicationLabelAdmin(admin.ModelAdmin):
+    list_display = ("label", "slug", "description")

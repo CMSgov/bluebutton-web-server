@@ -9,7 +9,8 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.models import Application
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 from django.contrib.auth.models import Group, User
 
@@ -64,6 +65,10 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields["authorization_grant_type"].required = False
         self.fields["redirect_uris"].label = "Redirect URIs*"
         self.fields["logo_uri"].disabled = True
+        self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
+            queryset=InternalApplicationLabels.objects.all(),
+            widget=forms.SelectMultiple)
+        self.fields["internal_application_labels"].required = False
 
     class Meta:
         model = get_application_model()
@@ -83,6 +88,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             "contacts",
             "agree",
             "require_demographic_scopes",
+            "internal_application_labels",
         )
 
     required_css_class = "required"
@@ -159,7 +165,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         app = self.instance
         # Only log agreement from a Register form
-        if app.agree and type(self) == CustomRegisterApplicationForm:
+        if app.agree and isinstance(self, CustomRegisterApplicationForm):
             logmsg = "%s agreed to %s for the application %s" % (
                 app.user,
                 app.op_tos_uri,
@@ -216,6 +222,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             "support_phone_number",
             "logo_image",
             "description",
+            "internal_application_labels",
         )
 
     # Duplication of clean_name() from above form, see TODO comment at start of file
@@ -333,15 +340,11 @@ class SimpleAllowForm(DotAllowForm):
         if scope is None:
             cleaned_data["scope"] = ""
             scope = ""
-
-        # Remove demographic information scopes, if beneficiary is not sharing
-        if cleaned_data.get("share_demographic_scopes") == "False":
-            cleaned_data["scope"] = " ".join(
-                [
-                    s
-                    for s in scope.split(" ")
-                    if s not in settings.BENE_PERSONAL_INFO_SCOPES
-                ]
-            )
+        else:
+            cleaned_scope_list = CapabilitiesScopes().condense_scopes(scope.split(" "))
+            # Remove demographic information scopes, if beneficiary is not sharing
+            if cleaned_data.get("share_demographic_scopes") != "True":
+                cleaned_scope_list = CapabilitiesScopes().remove_demographic_scopes(cleaned_scope_list)
+            cleaned_data["scope"] = " ".join(cleaned_scope_list)
 
         return cleaned_data
