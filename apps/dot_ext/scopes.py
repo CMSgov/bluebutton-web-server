@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db.models import Q
 from oauth2_provider.scopes import BaseScopes
 from apps.capabilities.models import ProtectedCapability
+from waffle import switch_is_active
 
 
 class CapabilitiesScopes(BaseScopes):
@@ -29,6 +30,10 @@ class CapabilitiesScopes(BaseScopes):
             ProtectedCapability.objects.filter(Q(default=True) | Q(application=application))
                                        .values_list('slug', flat=True).distinct())
 
+        if switch_is_active("enable_coverage_only"):
+            if "Coverage / Eligibility" in application.get_internal_application_labels():
+                app_scopes_avail = self.remove_eob_scopes(app_scopes_avail)
+
         # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
         if application.require_demographic_scopes in [True, None]:
             # Return all scopes
@@ -48,6 +53,10 @@ class CapabilitiesScopes(BaseScopes):
         # at the moment we assume that the default scopes are all those availables
         app_scopes_default = list(ProtectedCapability.objects.filter(default=True)
                                                              .values_list('slug', flat=True))
+
+        if switch_is_active("enable_coverage_only"):
+            if "Coverage / Eligibility" in application.get_internal_application_labels():
+                app_scopes_default = self.remove_eob_scopes(app_scopes_default)
 
         # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
         if application.require_demographic_scopes in [True, None]:
@@ -88,4 +97,15 @@ class CapabilitiesScopes(BaseScopes):
         for s in scopes:
             if s not in settings.BENE_PERSONAL_INFO_SCOPES:
                 out_scopes.append(s)
+        return out_scopes
+
+    def remove_eob_scopes(self, scopes):
+        """
+        Returns a list based on the provided list of scopes with eob scopes removed
+        """
+        out_scopes = set(scopes)
+        out_scopes.discard("patient/ExplanationOfBenefit.r")
+        out_scopes.discard("patient/ExplanationOfBenefit.s")
+        out_scopes.discard("patient/ExplanationOfBenefit.rs")
+        out_scopes.discard("patient/ExplanationOfBenefit.read")
         return out_scopes
