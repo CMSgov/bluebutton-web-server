@@ -36,7 +36,7 @@ class TokenHasProtectedCapability(permissions.BasePermission):
             token_scopes = token.scope.split()
 
             if switch_is_active("enable_coverage_only"):
-                if "Coverage / Eligibility" in request.auth.application.get_internal_application_labels():
+                if "coverage-eligibility" in request.auth.application.get_internal_application_labels():
                     token_scopes = CapabilitiesScopes().remove_eob_scopes(token_scopes)
 
             scopes = list(ProtectedCapability.objects.filter(

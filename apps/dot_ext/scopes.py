@@ -31,7 +31,7 @@ class CapabilitiesScopes(BaseScopes):
                                        .values_list('slug', flat=True).distinct())
 
         if switch_is_active("enable_coverage_only"):
-            if "Coverage / Eligibility" in application.get_internal_application_labels():
+            if "coverage-eligibility" in application.get_internal_application_labels():
                 app_scopes_avail = self.remove_eob_scopes(app_scopes_avail)
 
         # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
@@ -55,7 +55,7 @@ class CapabilitiesScopes(BaseScopes):
                                                              .values_list('slug', flat=True))
 
         if switch_is_active("enable_coverage_only"):
-            if "Coverage / Eligibility" in application.get_internal_application_labels():
+            if "coverage-eligibility" in application.get_internal_application_labels():
                 app_scopes_default = self.remove_eob_scopes(app_scopes_default)
 
         # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
