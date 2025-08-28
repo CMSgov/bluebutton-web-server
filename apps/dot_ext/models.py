@@ -212,7 +212,7 @@ class Application(AbstractApplication):
         return " ".join(scope_list).strip()
 
     def get_internal_application_labels(self):
-        return "\n".join([lb.label for lb in self.internal_application_labels.all()])
+        return "\n".join([lb.slug for lb in self.internal_application_labels.all()])
 
     def is_valid(self, scopes=None):
         return self.active and self.allow_scopes(scopes)

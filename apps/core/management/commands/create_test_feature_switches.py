@@ -20,6 +20,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("bfd_v3_connectathon", True, "This enables the bfd v3 features for connectathon demo"),
     ("require_state", True, "This enforces the presence of the state parameter when authorizing"),
     ("require_pkce", True, "This enforces the presence of the PKCE parameters code_challenge and code_challenge_method when authorizing"),
+    ("enable_coverage_only", True, "This enables the coverage-only use case."),
 )
 
 WAFFLE_FEATURE_FLAGS = (
