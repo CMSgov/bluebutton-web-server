@@ -1,0 +1,23 @@
+services:
+  inferno-tests:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: pytest ./apps/integration_tests/selenium_inferno_tests.py
+    ports:
+      - "8910:8910"
+    env_file:
+      - docker-compose/selenium-env-vars.env
+      - docker-compose/inferno-env-vars.env
+    volumes:
+      - .:/code
+    depends_on:
+      chrome:
+        condition: service_started
+
+  chrome:
+    image: selenium/standalone-chromium
+    hostname: chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"
