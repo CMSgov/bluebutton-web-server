@@ -125,6 +125,9 @@ class AuthorizationView(DotAuthorizationView):
                 return HttpResponseBadRequest(f"Illegal query parameter [{qp}] detected")
         return None
 
+    def get_template_names(self):
+        return ["design_system/new_authorize_v2.html"]
+
     def get_initial(self):
         initial_data = super().get_initial()
         # Prefer values parsed by DOT (self.oauth2_data); fall back to incoming request (GET/POST)
