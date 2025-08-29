@@ -11,6 +11,7 @@ from oauth2_provider.models import get_access_token_model, get_refresh_token_mod
 from django.http import HttpRequest
 from django.urls import reverse
 from django.test import Client
+from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
@@ -940,3 +941,65 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # revert app to active in case not to impact other tests
         application.active = True
         application.save()
+
+    def test_v1_token_endpoint_with_trailling_slash(self):
+        self._execute_token_endpoint('/v1/o/token/')
+
+    def test_v1_token_endpoint_without_trailling_slash(self):
+        self._execute_token_endpoint('/v1/o/token')
+
+    def test_v2_token_endpoint_with_trailling_slash(self):
+        self._execute_token_endpoint('/v2/o/token/')
+
+    def test_v2_token_endpoint_without_trailling_slash(self):
+        self._execute_token_endpoint('/v2/o/token')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_v3_token_endpoint_with_trailling_slash(self):
+        self._execute_token_endpoint('/v3/o/token/')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_v3_token_endpoint_without_trailling_slash(self):
+        self._execute_token_endpoint('/v3/o/token')
+
+    def _execute_token_endpoint(self, token_path):
+        redirect_uri = 'http://localhost'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.client.logout()
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
+        }
+        c = Client()
+        response = c.post(token_path, data=token_request_data)
+        self.assertEqual(response.status_code, 200)

@@ -15,7 +15,7 @@ base_urlpatterns = [
         waffle_switch("v3_endpoints")(views.ApprovalView.as_view(version=3)),
         name="authorize-instance-v3",
     ),
-    path("token/", waffle_switch("v3_endpoints")(views.TokenView.as_view()), name="token-v3"),
+    re_path(r"^token/?$", waffle_switch("v3_endpoints")(views.TokenView.as_view()), name="token-v3"),
     path("revoke_token/", waffle_switch("v3_endpoints")(views.RevokeTokenView.as_view()), name="revoke-token-v3"),
     path("revoke/", waffle_switch("v3_endpoints")(views.RevokeView.as_view()), name="revoke-v3"),
     path("introspect/", waffle_switch("v3_endpoints")(views.IntrospectTokenView.as_view()), name="introspect-v3"),
