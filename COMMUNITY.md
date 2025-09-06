@@ -145,17 +145,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/johnfrenchxyz">
-                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
-                    <br />
-                    <sub><b>John French</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/stiwarisemanticbits">
                     <img src="https://avatars.githubusercontent.com/u/57143602?v=4" width="100;" alt="stiwarisemanticbits"/>
                     <br />
                     <sub><b>Shivam Tiwari</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/johnfrenchxyz">
+                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
+                    <br />
+                    <sub><b>John French</b></sub>
                 </a>
             </td>
             <td align="center">
