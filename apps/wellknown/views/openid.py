@@ -65,9 +65,9 @@ def smart_configuration_v3(request):
     data = build_smart_config_endpoint(data, issuer=issuer)
 
     # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
-    data["authorization_endpoint"] = data.get("authorization_endpoint", "").replace("/v2/o/", "/v3/o/")
-    data["revocation_endpoint"] = data.get("revocation_endpoint", "").replace("/v2/o/", "/v3/o/")
-    data["token_endpoint"] = data.get("token_endpoint", "").replace("/v2/o/", "/v3/o/")
+    data["authorization_endpoint"] = data.get("authorization_endpoint", "").replace("/v2/o/", "/v3/o/").rstrip("/")
+    data["revocation_endpoint"] = data.get("revocation_endpoint", "").replace("/v2/o/", "/v3/o/").rstrip("/")
+    data["token_endpoint"] = data.get("token_endpoint", "").replace("/v2/o/", "/v3/o/").rstrip("/")
     data["fhir_metadata_uri"] = data.get("fhir_metadata_uri", "").replace("/v2/fhir/", "/v3/fhir/")
 
     return JsonResponse(data)
@@ -110,8 +110,8 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     """
     data["issuer"] = issuer
     data["authorization_endpoint"] = issuer + \
-        reverse('oauth2_provider_v2:authorize-v2')
-    data["revocation_endpoint"] = issuer + reverse('oauth2_provider_v2:revoke-token-v2')
+        reverse('oauth2_provider_v2:authorize-v2').rstrip("/")
+    data["revocation_endpoint"] = issuer + reverse('oauth2_provider_v2:revoke-token-v2').rstrip("/")
     data["token_endpoint"] = issuer + \
         reverse('oauth2_provider_v2:token-v2')
     data["userinfo_endpoint"] = issuer + \

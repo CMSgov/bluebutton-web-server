@@ -57,7 +57,8 @@ def get_grant_expiration(data_access_type):
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
-    use the custom AllowForm.
+    use the custom AllowForm. Supports both GET and POST
+    for OAuth params (query string OR form body).
     """
     application = None
     version = None
@@ -67,6 +68,14 @@ class AuthorizationView(DotAuthorizationView):
     def __init__(self, version=1):
         self.version = version
         super().__init__()
+
+    def _get_param(self, request, key, default=None):
+        """Fetch a param from GET first, then POST."""
+        return request.GET.get(key, request.POST.get(key, default))
+
+    def _has_param(self, request, key):
+        """True if param exists in either GET or POST."""
+        return (key in request.GET) or (key in request.POST)
 
     def get_context_data(self, **kwargs):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
@@ -102,28 +111,40 @@ class AuthorizationView(DotAuthorizationView):
             return result
 
         request.session['version'] = self.version
-        # Store the lang parameter value on the server side with session keyS
-        lang = request.GET.get('lang', None)
-        if lang is not None and (lang == 'en' or lang == 'es'):
+
+        # Accept lang from GET or POST
+        lang = self._get_param(request, 'lang')
+        if lang in ('en', 'es'):
             request.session['auth_language'] = lang
+
         return super().dispatch(request, *args, **kwargs)
 
     def sensitive_info_check(self, request):
-        result = None
         for qp in QP_CHECK_LIST:
-            if request.GET.get(qp, None) is not None:
-                result = HttpResponseBadRequest("Illegal query parameter [{}] detected".format(qp))
-                break
-        return result
+            if self._has_param(request, qp):
+                return HttpResponseBadRequest(f"Illegal query parameter [{qp}] detected")
+        return None
 
     def get_template_names(self):
         return ["design_system/new_authorize_v2.html"]
 
     def get_initial(self):
         initial_data = super().get_initial()
-        initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
-        initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
+        # Prefer values parsed by DOT (self.oauth2_data); fall back to incoming request (GET/POST)
+        initial_data["code_challenge"] = (
+            self.oauth2_data.get("code_challenge", None)
+            or self._get_param(self.request, "code_challenge")
+        )
+        initial_data["code_challenge_method"] = (
+            self.oauth2_data.get("code_challenge_method")
+            or self._get_param(self.request, "code_challenge_method")
+        )
         return initial_data
+
+    def post(self, request, *args, **kwargs):
+        kwargs['code_challenge'] = request.POST.get('code_challenge')
+        kwargs['code_challenge_method'] = request.POST.get('code_challenge_method')
+        return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         kwargs['code_challenge'] = request.GET.get('code_challenge', None)

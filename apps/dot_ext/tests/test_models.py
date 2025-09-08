@@ -252,10 +252,10 @@ class TestDotExtModels(BaseApiTest):
         l11 = internal_labels[10]
         test_app.internal_application_labels.add(l1, l3, l5)
         labels = test_app.get_internal_application_labels()
-        self.assertTrue(l1.label in labels)
-        self.assertTrue(l3.label in labels)
-        self.assertTrue(l5.label in labels)
-        self.assertTrue(not (l11.label in labels))
+        self.assertTrue(l1.slug in labels)
+        self.assertTrue(l3.slug in labels)
+        self.assertTrue(l5.slug in labels)
+        self.assertTrue(not (l11.slug in labels))
 
     def test_internal_application_labels_admin(self):
         """
@@ -290,7 +290,7 @@ class TestDotExtModels(BaseApiTest):
         self.assertIn('internal_application_labels', str(field_sets))
 
         internal_labels = app_admin.get_internal_application_labels(test_app)
-        self.assertTrue(l1.label in internal_labels)
-        self.assertTrue(l3.label in internal_labels)
-        self.assertTrue(l5.label in internal_labels)
-        self.assertTrue(l11.label not in internal_labels)
+        self.assertTrue(l1.slug in internal_labels)
+        self.assertTrue(l3.slug in internal_labels)
+        self.assertTrue(l5.slug in internal_labels)
+        self.assertTrue(l11.slug not in internal_labels)

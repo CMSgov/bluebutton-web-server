@@ -70,8 +70,20 @@
                 {% endfor %}
 
                 <p>{% trans "This application requires following permissions" %}</p>
-                {{ form.scope|bootstrap5 }}
-                {{ form.expires_in|bootstrap5 }}
+
+                {# Only render the fields if they’re present on the form #}
+                {% for bf in form.visible_fields %}
+                    {% if bf.name == 'scope' or bf.name == 'expires_in' %}
+                        {% bootstrap_field bf %}
+                    {% endif %}
+                {% endfor %}
+
+                {# If either happens to be a hidden field, include hidden fields too #}
+                {% for bf in form.hidden_fields %}
+                    {% if bf.name == 'scope' or bf.name == 'expires_in' %}
+                        {{ bf }}
+                    {% endif %}
+                {% endfor %}
 
                 {{ form.non_field_errors }}
 
