@@ -67,19 +67,17 @@ python3 -m venv venv
 sudo apt-get install python3-dev libxml2-dev libxslt1-dev
 
 # install the requirements
-pip install --upgrade pip==9.0.1
+pip install --upgrade pip==25.1.1
 pip install pip-tools
 pip install -r requirements/requirements.txt
-
-# prepare Django settings
-cp hhs_oauth_server/settings/local_sample.txt hhs_oauth_server/settings/local.py
 ```
 
 Note that most settings can be overridden by environment variables. See custom environment variables section below. Please ensure to create and use your own keys and secrets. See https://docs.djangoproject.com/en/1.11/topics/settings/ for more information. Continue the installation by issuing the following commands:
 
 ```bash
 python manage.py migrate
-python manage.py loaddata apps/accounts/fixtures/scopes_and_groups.json
+python manage.py loaddata apps/accounts/fixtures/scopes.json
+python manage.py loaddata apps/accounts/fixtures/groups.json
 python manage.py createsuperuser
 python manage.py create_admin_groups
 python manage.py create_blue_button_scopes
@@ -114,7 +112,7 @@ Instructions for running the development environment via `docker-compose` can be
 
 To keep our CSS organized and consolidated across our applications, we use a dedicated [Blue Button CSS Repo](https://github.com/CMSgov/bluebutton-css).
 
-In order to be able to see the styles locally for this project, you'll just need to clone the Blue Button CSS Repo at the root of this project.
+In order to be able to see the styles locally for this project, you'll just need to clone the Blue Button CSS Repo at the root of this project. You may also need to set the DEBUG env var to True.
 
 From within `bluebutton-web-server`, run the following commands (Bash):
 
