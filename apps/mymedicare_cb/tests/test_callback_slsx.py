@@ -18,6 +18,7 @@ from jsonschema import validate
 from requests.exceptions import HTTPError
 from rest_framework import status
 from urllib.parse import urlparse, parse_qs
+from waffle.testutils import override_switch
 
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
@@ -135,6 +136,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         response = self.client.get(auth_uri)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
+    @override_switch('require_state', active=False)
+    @override_switch('require_pkce', active=False)
     def test_authorize_uuid(self):
         user = User.objects.create_user("bob", password="bad")
         Crosswalk.objects.create(

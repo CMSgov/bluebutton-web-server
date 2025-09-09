@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 from time import strftime
 
+from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
@@ -54,7 +55,19 @@ def get_grant_expiration(data_access_type):
     pass
 
 
-class AuthorizationView(DotAuthorizationView):
+class RequirePostStateMixin:
+    def dispatch(self, request, *args, **kwargs):
+        require_state = switch_is_active("require_state")
+        if require_state and request.method == "POST" and not request.POST.get("state"):
+            return JsonResponse(
+                {"status_code": 401, "message": "State required for POST requests."},
+                status=401,
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AuthorizationView(RequirePostStateMixin, DotAuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm. Supports both GET and POST
@@ -116,6 +129,14 @@ class AuthorizationView(DotAuthorizationView):
         lang = self._get_param(request, 'lang')
         if lang in ('en', 'es'):
             request.session['auth_language'] = lang
+
+        if request.method == "POST" and not request.user.is_authenticated:
+            post_qs = request.POST.urlencode()
+            # preserve existing query too
+            existing_qs = request.META.get("QUERY_STRING", "")
+            merged_qs = f"{existing_qs}&{post_qs}" if existing_qs else post_qs
+            next_url = f"{request.path}?{merged_qs}"
+            return redirect_to_login(next_url, login_url=self.login_url)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -306,8 +327,6 @@ class ApprovalView(AuthorizationView):
         super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
-        if request.method == "POST" and request.POST.get("state") is None:
-            return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
 
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
