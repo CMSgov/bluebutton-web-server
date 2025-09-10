@@ -126,7 +126,17 @@ class AuthorizationView(DotAuthorizationView):
         return None
 
     def get_template_names(self):
-        return ["design_system/new_authorize_v2.html"]
+        # Default template
+        default_tpl = "design_system/new_authorize_v2.html"
+
+        if not switch_is_active("enable_coverage_only"):
+            return [default_tpl]
+
+        app = getattr(self, "application", None)
+        if app is not None and "coverage-eligibility" in app.get_internal_application_labels():
+            return ["design_system/authorize_v3_coverage_only.html"]
+
+        return [default_tpl]
 
     def get_initial(self):
         initial_data = super().get_initial()
