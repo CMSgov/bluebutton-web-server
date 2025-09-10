@@ -50,6 +50,7 @@ class SeleniumGenericTests:
         self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', "chrome")
         self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
         self.hostname_url = os.environ['HOSTNAME_URL']
+        print("HOSTNAME_URL={}".format(self.hostname_url))
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
         msg_fmt = "use_mslsx={}, hostname_url={}, selenium_grid={}"
