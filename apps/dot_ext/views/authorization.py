@@ -133,15 +133,7 @@ class AuthorizationView(DotAuthorizationView):
             return [default_tpl]
 
         app = getattr(self, "application", None)
-        if not app:
-            return [default_tpl]
-
-        try:
-            labels = app.get_internal_application_labels() or []
-        except Exception:
-            return [default_tpl]
-
-        if "coverage-eligibility" in labels:
+        if "coverage-eligibility" in app.get_internal_application_labels():
             return ["design_system/authorize_v3_coverage_only.html"]
 
         return [default_tpl]
