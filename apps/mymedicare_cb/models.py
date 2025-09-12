@@ -105,8 +105,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                 mbi_updated = True
                 mbi_updated_from_null = True
 
-        # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
-        if user.crosswalk.user_id_type != hash_lookup_type or hicn_updated or mbi_updated:
+        # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx
+        if user.crosswalk.user_mbi is None and slsx_client.mbi is not None:
             # Log crosswalk before state
             log_dict.update({
                 "crosswalk_before": {
@@ -141,6 +141,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
             "crosswalk": {
                 "id": user.crosswalk.id,
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                "user_mbi": user.crosswalk.user_mbi,
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
                 "fhir_id": user.crosswalk.fhir_id,
                 "user_id_type": user.crosswalk.user_id_type,
