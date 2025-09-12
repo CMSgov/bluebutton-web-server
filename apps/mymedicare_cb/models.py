@@ -110,6 +110,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         if (
             (user.crosswalk.user_mbi is None and slsx_client.mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != slsx_client.mbi)
+            or (user.crosswalk.user_id_type != hash_lookup_type or hicn_updated or mbi_updated)
         ):
             # Log crosswalk before state
             log_dict.update({
