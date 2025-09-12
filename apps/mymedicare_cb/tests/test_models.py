@@ -1,11 +1,13 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 
+from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
-from ..models import create_beneficiary_record
+from ..models import create_beneficiary_record, get_and_update_user
+from unittest.mock import patch, Mock
 
 
 class BeneficiaryLoginTest(TestCase):
@@ -287,3 +289,67 @@ class BeneficiaryLoginTest(TestCase):
                 arg1 = case["args"][1]
                 slsx_client1 = OAuth2ConfigSLSx(arg1)
                 create_beneficiary_record(slsx_client1, arg1["fhir_id"])
+
+    @patch("apps.mymedicare_cb.models.match_fhir_id", return_value=("-20000000002346", "M"))
+    @patch("apps.fhir.bluebutton.models.ArchivedCrosswalk.create")
+    def test_user_mbi_updated_from_null(self, mock_archive, mock_match_fhir) -> None:
+        """Test that user_mbi gets updated when previously null"""
+        fake_user = User.objects.create_user(
+            username="00112233-4455-6677-8899-aabbccddeeff",
+            email="fu@bar.bar"
+        )
+        slsx_mbi = "1S00EU7JH82"
+
+        crosswalk = Crosswalk.objects.create(
+            user=fake_user,
+            fhir_id="-20000000002346",
+            user_hicn_hash="50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+            user_mbi_hash="987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+            user_mbi=None,
+            user_id_type="M"
+        )
+
+        slsx_client = Mock(spec=OAuth2ConfigSLSx)
+        slsx_client.user_id = "00112233-4455-6677-8899-aabbccddeeff"
+        slsx_client.mbi = slsx_mbi
+        slsx_client.mbi_hash = "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
+        slsx_client.hicn_hash = "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
+
+        user, crosswalk_type = get_and_update_user(slsx_client)
+
+        user.refresh_from_db()
+        crosswalk.refresh_from_db()
+        self.assertEqual(user.crosswalk.user_mbi, slsx_mbi)
+        mock_archive.assert_called_once()
+
+    @patch("apps.mymedicare_cb.models.match_fhir_id", return_value=("-20000000002346", "M"))
+    @patch("apps.fhir.bluebutton.models.ArchivedCrosswalk.create")
+    def test_user_mbi_updated_from_different_value(self, mock_archive, mock_match_fhir) -> None:
+        """Test that user_mbi gets updated when previously null"""
+        fake_user = User.objects.create_user(
+            username='00112233-4455-6677-8899-aabbccddeeff',
+            email="fu@bar.bar"
+        )
+        slsx_mbi = "1S00EU7JH82"
+
+        crosswalk = Crosswalk.objects.create(
+            user=fake_user,
+            fhir_id="-20000000002346",
+            user_hicn_hash="50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+            user_mbi_hash="987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+            user_mbi="1S00EU7JH00",
+            user_id_type="M"
+        )
+
+        slsx_client = Mock(spec=OAuth2ConfigSLSx)
+        slsx_client.user_id = "00112233-4455-6677-8899-aabbccddeeff"
+        slsx_client.mbi = slsx_mbi
+        slsx_client.mbi_hash = "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
+        slsx_client.hicn_hash = "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
+
+        user, crosswalk_type = get_and_update_user(slsx_client)
+
+        user.refresh_from_db()
+        crosswalk.refresh_from_db()
+        self.assertEqual(user.crosswalk.user_mbi, slsx_mbi)
+        mock_archive.assert_called_once()
