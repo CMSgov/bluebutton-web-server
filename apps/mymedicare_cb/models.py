@@ -105,8 +105,12 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
                 mbi_updated = True
                 mbi_updated_from_null = True
 
-        # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx
-        if user.crosswalk.user_mbi is None and slsx_client.mbi is not None:
+        # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
+        # if the saved user_mbi value is different than what SLSx has
+        if (
+            (user.crosswalk.user_mbi is None and slsx_client.mbi is not None)
+            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != slsx_client.mbi)
+        ):
             # Log crosswalk before state
             log_dict.update({
                 "crosswalk_before": {
