@@ -325,7 +325,7 @@ class BeneficiaryLoginTest(TestCase):
     @patch("apps.mymedicare_cb.models.match_fhir_id", return_value=("-20000000002346", "M"))
     @patch("apps.fhir.bluebutton.models.ArchivedCrosswalk.create")
     def test_user_mbi_updated_from_different_value(self, mock_archive, mock_match_fhir) -> None:
-        """Test that user_mbi gets updated when previously null"""
+        """Test that user_mbi gets updated when previously a different value"""
         fake_user = User.objects.create_user(
             username='00112233-4455-6677-8899-aabbccddeeff',
             email="fu@bar.bar"
