@@ -136,8 +136,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         response = self.client.get(auth_uri)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
-    @override_switch('require_state', active=False)
-    @override_switch('require_pkce', active=False)
+    @override_switch('require_state', active=True)
     def test_authorize_uuid(self):
         user = User.objects.create_user("bob", password="bad")
         Crosswalk.objects.create(
@@ -188,7 +187,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
-            "state": "1234567890",
+            "state": "0123456789abcdef",
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)

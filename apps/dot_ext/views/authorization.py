@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime, timedelta
+from functools import wraps
 from time import strftime
 
 from django.contrib.auth.views import redirect_to_login
@@ -55,19 +56,21 @@ def get_grant_expiration(data_access_type):
     pass
 
 
-class RequirePostStateMixin:
-    def dispatch(self, request, *args, **kwargs):
-        require_state = switch_is_active("require_state")
-        if require_state and request.method == "POST" and not request.POST.get("state"):
+def require_post_state_decorator(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.method == "POST" and not request.POST.get("state") and switch_is_active("require_state"):
             return JsonResponse(
                 {"status_code": 401, "message": "State required for POST requests."},
                 status=401,
             )
-        return super().dispatch(request, *args, **kwargs)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class AuthorizationView(RequirePostStateMixin, DotAuthorizationView):
+@method_decorator(require_post_state_decorator, name="dispatch")
+class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm. Supports both GET and POST
@@ -313,6 +316,7 @@ class AuthorizationView(RequirePostStateMixin, DotAuthorizationView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(require_post_state_decorator, name="dispatch")
 class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
