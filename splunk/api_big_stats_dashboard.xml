@@ -1,5 +1,5 @@
 <form version="1.1">
-  <label>API Big Stats Dashboard - Structured (Greenfield)</label>
+  <label>API Big Stats Dashboard - Structured</label>
   <description>Top level API stats related to requests, result codes and client info.</description>
   <fieldset submitButton="false"></fieldset>
   <row>

@@ -1,5 +1,5 @@
 <form version="1.1">
-  <label>BB2 Authorization Flow Dashboard (Greenfield)</label>
+  <label>BB2 Authorization Flow Dashboard</label>
   <description>Dashboard panels related to the authorization flow log tracing</description>
   <fieldset submitButton="false"></fieldset>
   <row>
