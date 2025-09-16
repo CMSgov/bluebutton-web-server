@@ -1,4 +1,4 @@
-<form>
+<form version="1.1">
     <label>BB2 Synthetic Data Engagement Dashboard</label>
     <fieldset submitButton="false"></fieldset>
     <row>
