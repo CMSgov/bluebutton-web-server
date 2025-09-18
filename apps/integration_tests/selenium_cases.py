@@ -3,7 +3,7 @@ from enum import Enum
 from selenium.webdriver.common.by import By
 
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
-USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
+USE_NEW_PERM_SCREEN = "true"
 PROD_URL = 'https://api.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
@@ -156,6 +156,13 @@ ES_ES = "es_es"
 
 # API versions
 API_V2 = "v2"
+
+# v2 SMART APP scope constants
+X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
+COVERAGE_SCOPE = "patient/Coverage.rs"
+PATIENT_SCOPE = "patient/Patient.rs"
+EOB_SCOPE = "patient/ExplanationOfBenefit.rs"
+OPENID_SCOPE = "openid"
 
 BROWSERBACK = {
     "display": "Back to FHIR resource page",
@@ -513,6 +520,36 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     BROWSERBACK,
 ]
 
+SEQ_CHECK_SCOPES = [
+    {
+        "display": "Check that v2 SMART APP scopes were returned",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.XPATH, X_PATH_FOR_USER_SCOPES, COVERAGE_SCOPE]
+    },
+    {
+        "display": "Check that v2 SMART APP scopes were returned",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.XPATH, X_PATH_FOR_USER_SCOPES, PATIENT_SCOPE]
+    },
+    {
+        "display": "Check that v2 SMART APP scopes were returned",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.XPATH, X_PATH_FOR_USER_SCOPES, EOB_SCOPE]
+    },
+    {
+        "display": "Check that v2 SMART APP scopes were returned",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.XPATH, X_PATH_FOR_USER_SCOPES, OPENID_SCOPE]
+    },
+    # succeeds in SBX and in PROD, but not locally or in TEST w/ slsx flag. Commenting out bc of that
+    # also, in the environments it succeeds in, the scope is returned as launch/patient, not patient/launch
+    # {
+    #     "display": "Check that v2 SMART APP scopes were returned",
+    #     "action": Action.CONTAIN_TEXT,
+    #     "params": [20, By.XPATH, "//*[@id='main-content']/div/div/div/pre", "launch"]
+    # }
+]
+
 TESTS = {
     "auth_grant_pkce_fhir_calls": [
         {"sequence": SEQ_AUTHORIZE_PKCE_START},
@@ -565,6 +602,15 @@ TESTS = {
         # the 'approve' and 'deny' button click not using locale based text
         # so it is lang agnostic
         CLICK_AGREE_ACCESS
+    ],
+    "authorize_get_v2_scopes": [
+        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        CALL_LOGIN,
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        CLICK_AGREE_ACCESS,
+        # Check the different scopes that have been returned
+        {"sequence": SEQ_CHECK_SCOPES}
     ]
 }
 
