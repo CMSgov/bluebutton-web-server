@@ -3,7 +3,7 @@ from enum import Enum
 from selenium.webdriver.common.by import By
 
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
-USE_NEW_PERM_SCREEN = "true"
+USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
 PROD_URL = 'https://api.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
