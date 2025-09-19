@@ -64,6 +64,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
             'code_challenge': code_challenge,
             'code_challenge_method': 'S256',
         }
@@ -118,6 +119,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
@@ -159,6 +161,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
             'code_challenge': code_challenge,
             'code_challenge_method': 'S256',
         }
@@ -222,6 +225,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
@@ -250,6 +254,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -305,6 +310,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -361,6 +367,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -425,6 +432,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -480,6 +488,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -550,6 +559,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -594,6 +604,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -649,6 +660,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -715,6 +727,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -771,6 +784,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -831,6 +845,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -900,6 +915,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a', 'capability-b', 'introspection'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -986,6 +1002,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
