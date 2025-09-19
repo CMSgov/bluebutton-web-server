@@ -29,14 +29,14 @@ V2_SCOPES_ALL = [
     'patient/Coverage.r',
     'patient/Coverage.s',
     'patient/Coverage.rs',
-    'patient/launch',
+    'launch/patient',
     'openid'
 ]
 V2_SCOPES_ALL_CONDENSED = [
     'patient/Patient.rs',
     'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.rs',
-    'patient/launch',
+    'launch/patient',
     'openid'
 ]
 V2_SCOPES_NON_DEMOGRAPHIC = [
@@ -46,13 +46,13 @@ V2_SCOPES_NON_DEMOGRAPHIC = [
     'patient/Coverage.r',
     'patient/Coverage.s',
     'patient/Coverage.rs',
-    'patient/launch',
+    'launch/patient',
     'openid'
 ]
 V2_SCOPES_NON_DEMOGRAPHIC_CONDENSED = [
     'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.rs',
-    'patient/launch',
+    'launch/patient',
     'openid'
 ]
 

@@ -60,3 +60,18 @@ class TestBlueButtonAPI(SeleniumGenericTests):
             print("Skip test " + test_name + " - only for new perm screen.")
         self._testclient_home()
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    '''
+    Test authorizing through the test client, using v2 URLs, and ensuring all of the
+    SMART App v2 Scopes are available within the returned token
+    '''
+    def test_v2_authorization_and_scopes(self):
+        step = [0]
+        test_name = "authorize_get_v2_scopes"
+        api_ver = API_V2
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
