@@ -541,13 +541,11 @@ SEQ_CHECK_SCOPES = [
         "action": Action.CONTAIN_TEXT,
         "params": [20, By.XPATH, X_PATH_FOR_USER_SCOPES, OPENID_SCOPE]
     },
-    # succeeds in SBX and in PROD, but not locally or in TEST w/ slsx flag. Commenting out bc of that
-    # also, in the environments it succeeds in, the scope is returned as launch/patient, not patient/launch
-    # {
-    #     "display": "Check that v2 SMART APP scopes were returned",
-    #     "action": Action.CONTAIN_TEXT,
-    #     "params": [20, By.XPATH, "//*[@id='main-content']/div/div/div/pre", "launch"]
-    # }
+    {
+        "display": "Check that v2 SMART APP scopes were returned",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.XPATH, "//*[@id='main-content']/div/div/div/pre", "launch/patient"]
+    }
 ]
 
 TESTS = {
