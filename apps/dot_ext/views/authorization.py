@@ -59,7 +59,7 @@ def get_grant_expiration(data_access_type):
 def require_post_state_decorator(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
-        if request.method == "POST" and not request.POST.get("state") and switch_is_active("require_state"):
+        if request.method == "POST" and not request.POST.get("state"):
             return JsonResponse(
                 {"status_code": 401, "message": "State required for POST requests."},
                 status=401,
