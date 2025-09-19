@@ -103,6 +103,8 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
             if err_detail is not None:
                 raise UpstreamServerException(err_detail)
             return fhir_id
+        except requests.exceptions.HTTPError as e:
+            raise UpstreamServerException(e)
         except requests.exceptions.SSLError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 # Checking target_env ensures the retry logic only happens on local
@@ -146,22 +148,23 @@ def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
             return fhir_id, "M"
 
     # Perform secondary lookup using HICN_HASH
-    try:
-        fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
-    except UpstreamServerException as err:
-        log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "H", str(err))
-        # Don't return a 404 because retrying later will not fix this.
-        raise UpstreamServerException(err.detail)
+    if hicn_hash:
+        try:
+            fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
+        except UpstreamServerException as err:
+            log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "H", str(err))
+            # Don't return a 404 because retrying later will not fix this.
+            raise UpstreamServerException(err.detail)
 
-    if fhir_id:
-        # Found beneficiary!
-        log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, True, "H",
-                          "FOUND beneficiary via hicn_hash")
-        return fhir_id, "H"
-    else:
-        log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, False, None,
-                          "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
-        raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
+        if fhir_id:
+            # Found beneficiary!
+            log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, True, "H",
+                              "FOUND beneficiary via hicn_hash")
+            return fhir_id, "H"
+
+    log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, False, None,
+                      "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
+    raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
 
 
 def _validate_patient_search_result(bundle_of_patients):

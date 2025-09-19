@@ -3,7 +3,6 @@ import json
 from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
-from requests.exceptions import HTTPError
 from rest_framework import exceptions
 
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
@@ -111,7 +110,7 @@ class TestAuthentication(BaseApiTest):
             Expecting: HTTPError exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.ERROR_KEY, self.NOT_FOUND_KEY)):
-            with self.assertRaises(HTTPError):
+            with self.assertRaises(UpstreamServerException):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
@@ -124,7 +123,7 @@ class TestAuthentication(BaseApiTest):
             Expecting: HTTPError exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.ERROR_KEY)):
-            with self.assertRaises(HTTPError):
+            with self.assertRaises(UpstreamServerException):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
