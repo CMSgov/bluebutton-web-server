@@ -175,7 +175,6 @@ def _validate_patient_search_result(bundle_of_patients):
     '''
     fhir_id = None
     err_detail = None
-    return fhir_id, err_detail  # force this case to continue to the hicn lookup and compare behavior
     if bundle_of_patients:
         if bundle_of_patients.get('resourceType') == "Bundle":
             entries = bundle_of_patients.get('entry')
