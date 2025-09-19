@@ -185,7 +185,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
-            "state": "1234567890",
+            "state": "0123456789abcdef",
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)

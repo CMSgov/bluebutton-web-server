@@ -297,6 +297,7 @@ class BaseApiTest(TestCase):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
             "code_challenge": code_challenge,
             "code_challenge_method": "S256",
         }

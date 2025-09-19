@@ -155,6 +155,7 @@ class TestAuthorizationView(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
         response = self._authorize_and_request_token(payload, application)
         self.assertEqual(response.status_code, 200)
@@ -228,6 +229,7 @@ class TestAuthorizationView(BaseApiTest):
                 "redirect_uri": "http://example.it",
                 "expires_in": 86400,
                 "allow": True,
+                "state": "0123456789abcdef",
             }
 
             # Does the application choose to require demographic info?
@@ -373,6 +375,7 @@ class TestTokenView(BaseApiTest):
             "scope": application.scopes().split(" "),
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
             payload["response_type"] = "token"
