@@ -10,6 +10,7 @@ from typing import List, Optional, Dict, Any
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
+# This is likely not needed, still a bit unclear on how we will run it for TEST, then SBX, then PROD
 FHIR_BASE_URL = "https://{ENV}.bluebutton.cms.gov/v2/fhir/"
 MBI_URL = "http://hl7.org/fhir/sid/us-mbi"
 
@@ -31,34 +32,21 @@ class Command(BaseCommand):
             default=True,
             help='Show what would be updated without making changes'
         )
-        parser.add_argument(
-            '--env',
-            type=str,
-            default="test",
-            help='Show what would be updated without making changes'
-        )
 
     def handle(self, *args, **options):
-        # batch_size = options['batch_size']
-        # dry_run = options['dry-run']
-        # env = options['env']
-        batch_size = 10
-        dry_run = False
-        env = 'test'
-        script_url = FHIR_BASE_URL.format(ENV=env)
+        batch_size = options['batch_size']
+        dry_run = options['dry-run']
         logger.info("batch size %s" % (batch_size))
-        logger.info("env %s" % (env))
-        logger.info("script_url %s" % (script_url))
 
         records = self.retrieve_records(batch_size)
-        self.process_records(records, script_url, dry_run)
+        self.process_records(records, dry_run)
 
     def retrieve_records(self, batch_size: int) -> List[Crosswalk]:
         null_mbi_records = Crosswalk.objects.filter(_user_mbi__isnull=True)[:batch_size]
         logger.info("# of records returned %s" % (len(null_mbi_records)))
         return null_mbi_records
     
-    def process_records(self, crosswalk_records: List[Crosswalk], script_url: str, dry_run: bool) -> None:
+    def process_records(self, crosswalk_records: List[Crosswalk], dry_run: bool) -> None:
         for crosswalk in crosswalk_records:
             try:
                 patient_info = 0
