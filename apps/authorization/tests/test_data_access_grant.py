@@ -244,6 +244,7 @@ class TestDataAccessGrant(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(response["Location"], data=payload)
         self.assertEqual(response.status_code, 302)
@@ -286,6 +287,7 @@ class TestDataAccessGrant(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(response["Location"], data=payload)
 
@@ -401,6 +403,7 @@ class TestDataAccessGrant(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
 
         response = self.client.post(response["Location"], data=payload)

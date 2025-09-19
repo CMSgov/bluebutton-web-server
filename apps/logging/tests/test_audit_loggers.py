@@ -480,6 +480,7 @@ class TestAuditEventLoggers(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(response["Location"], data=payload)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -606,6 +607,7 @@ class TestAuditEventLoggers(BaseApiTest):
             "scope": ["capability-a"],
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
         }
         response = self.client.post(response["Location"], data=payload)
         request_log_content = get_log_content(self.logger_registry,
