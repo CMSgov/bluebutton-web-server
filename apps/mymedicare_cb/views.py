@@ -22,6 +22,7 @@ from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
 from apps.dot_ext.models import Approval
 from apps.mymedicare_cb.models import (BBMyMedicareCallbackCrosswalkCreateException,
                                        BBMyMedicareCallbackCrosswalkUpdateException)
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from .authorization import (OAuth2ConfigSLSx,
                             MedicareCallbackExceptionType,
                             BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException)
@@ -29,7 +30,7 @@ from .models import AnonUserState, get_and_update_user
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
-def authenticate(request):
+def authenticate(request, version=2):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
 
@@ -63,7 +64,7 @@ def authenticate(request):
     slsx_client.log_event(request, {})
 
     # Find or create the user associated with the identity information from SLS.
-    user, crosswalk_action = get_and_update_user(slsx_client, request=request)
+    user, crosswalk_action = get_and_update_user(slsx_client, request=request, version=version)
 
     # Set crosswalk_action and get auth flow session values.
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
@@ -105,7 +106,7 @@ def callback(request, version=2):
 
     user_not_found_error = None
     try:
-        authenticate(request)
+        authenticate(request, version=version)
     except ValidationError as e:
         return JsonResponse({
             "error": e.message,
@@ -124,6 +125,12 @@ def callback(request, version=2):
     except BBMyMedicareCallbackCrosswalkUpdateException as e:
         return JsonResponse({
             "error": e.detail,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except UpstreamServerException:
+        # Return more generic message to users to prevent oversharing information
+        # Full error details will be available in logs from match_fhir_id
+        return JsonResponse({
+            "error": "Failed to retrieve data from data source."
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
