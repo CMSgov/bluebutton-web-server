@@ -308,7 +308,6 @@ def authorize_link_v2(request):
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link(request, v2=False):
-    # Always force pkce true
     request.session.update(test_setup(v2=v2))
     oas = _get_oauth2_session_with_redirect(request)
 
