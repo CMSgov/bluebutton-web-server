@@ -28,15 +28,15 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--dry-run',
-            type=bool,
-            default=True,
+            action='store_false',
             help='Show what would be updated without making changes'
         )
 
     def handle(self, *args, **options):
         batch_size = options['batch_size']
-        dry_run = options['dry-run']
+        dry_run = options['dry_run']
         logger.info("batch size %s" % (batch_size))
+        logger.info("dry_run %s" % (dry_run))
 
         records = self.retrieve_records(batch_size)
         self.process_records(records, dry_run)
