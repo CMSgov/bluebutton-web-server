@@ -163,6 +163,7 @@ COVERAGE_SCOPE = "patient/Coverage.rs"
 PATIENT_SCOPE = "patient/Patient.rs"
 EOB_SCOPE = "patient/ExplanationOfBenefit.rs"
 OPENID_SCOPE = "openid"
+LAUNCH_SCOPE = "launch/patient"
 
 BROWSERBACK = {
     "display": "Back to FHIR resource page",
@@ -544,7 +545,7 @@ SEQ_CHECK_SCOPES = [
     {
         "display": "Check that v2 SMART APP scopes were returned",
         "action": Action.CONTAIN_TEXT,
-        "params": [20, By.XPATH, "//*[@id='main-content']/div/div/div/pre", "launch/patient"]
+        "params": [20, By.XPATH, X_PATH_FOR_USER_SCOPES, LAUNCH_SCOPE]
     }
 ]
 
