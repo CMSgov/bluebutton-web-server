@@ -1,4 +1,4 @@
-<form>
+<form version="1.1">
     <label>BB2 V2 Activities Dashboard</label>
     <description>Dashboard panels related to metrics for V2 stats reporting</description>
     <fieldset submitButton="false"></fieldset>
@@ -42,7 +42,7 @@
             <fieldForLabel>AppName</fieldForLabel>
             <fieldForValue>name</fieldForValue>
             <search>
-              <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
+              <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
               <earliest>$t_local.earliest$</earliest>
               <latest>$t_local.latest$</latest>
             </search>
@@ -71,14 +71,14 @@
     <!-- Setup of BASE searches to be used in panels -->
     <search id="baseSearchFhirV1">
         <!-- BASE search for FHIR V1 events -->
-       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path="/v1/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
+       <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path="/v1/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
        <earliest>$t_local.earliest$</earliest>
        <latest>$t_local.latest$</latest>
        <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearchFhirV2">
         <!-- BASE search for FHIR V2 events -->
-       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path="/v2/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
+       <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path="/v2/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
        <earliest>$t_local.earliest$</earliest>
        <latest>$t_local.latest$</latest>
        <sampleRatio>1</sampleRatio>
@@ -158,7 +158,7 @@
         <title>Active Apps (Accessed V2 API)</title>
         <single>
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path="/v2/*" message.response_code=200 | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
+            <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path="/v2/*" message.response_code=200 | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
           </search>
@@ -170,7 +170,7 @@
         <title>V2 Requests By App</title>
         <table>
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.response_code=200 message.path="/v2/*" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+            <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.response_code=200 message.path="/v2/*" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
           </search>
@@ -191,7 +191,7 @@
         <chart>
           <title>Total V2 Requests OK (200) TIME-CHART</title>
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.response_code=200 | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+            <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.response_code=200 | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>
@@ -209,7 +209,7 @@
         <chart>
           <title>Total V2 Requests TIME-CHART</title>
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+            <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>

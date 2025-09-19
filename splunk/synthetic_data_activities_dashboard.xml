@@ -1,4 +1,4 @@
-<form>
+<form version="1.1">
     <label>BB2 Synthetic Data Engagement Dashboard</label>
     <fieldset submitButton="false"></fieldset>
     <row>
@@ -52,7 +52,7 @@
                 <fieldForLabel>AppName</fieldForLabel>
                 <fieldForValue>name</fieldForValue>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=$bbEnvLabel$ host=$bbEnv$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ host=$bbEnv$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                 </search>
@@ -80,21 +80,21 @@
     </row>
 
     <search id="baseSearchFhirSynthetic">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
+        <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
 
     <search id="baseSearchFhirSyntheticLegacy">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
+        <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
 
     <search id="baseSearchFhirSyntheticNew">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
+        <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
@@ -120,7 +120,7 @@
                     <done>
                         <set token="tokSynthPatOKCount">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -137,7 +137,7 @@
                     <done>
                         <set token="tokSynthCoverageOKCount">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -154,7 +154,7 @@
                     <done>
                         <set token="tokSynthEobOKCount">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -187,7 +187,7 @@
                     <done>
                         <set token="tokSynthPatOKCountLegacy">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -204,7 +204,7 @@
                     <done>
                         <set token="tokSynthCoverageOKCountLegacy">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -221,7 +221,7 @@
                     <done>
                         <set token="tokSynthEobOKCountLegacy">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -254,7 +254,7 @@
                     <done>
                         <set token="tokSynthPatOKCountNew">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -271,7 +271,7 @@
                     <done>
                         <set token="tokSynthCoverageOKCountNew">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -288,7 +288,7 @@
                     <done>
                         <set token="tokSynthEobOKCountNew">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -318,7 +318,7 @@
             <chart>
                 <title>1C. Legacy vs New Patient Requests</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -331,7 +331,7 @@
             <chart>
                 <title>2C. Legacy vs New Coverage Requests</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -344,7 +344,7 @@
             <chart>
                 <title>3C. Legacy vs New EOB Requests</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -357,7 +357,7 @@
             <chart>
                 <title>4C. Legacy vs New TOTAL Requests</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | search message.response_code=200 | stats count by synthetic_type</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -372,7 +372,7 @@
             <chart>
                 <title>Total Synthetic FHIR Requests OK (200) TIME-CHART</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | timechart count by synthetic_type</query>
+                    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | timechart count by synthetic_type</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
