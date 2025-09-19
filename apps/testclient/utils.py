@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 from ..dot_ext.models import Application
 
 
-def test_setup(include_client_secret=True, v2=False, pkce=False):
+def test_setup(include_client_secret=True, v2=False):
     response = OrderedDict()
     ver = 'v2' if v2 else 'v1'
     response['api_ver'] = ver
@@ -29,12 +29,11 @@ def test_setup(include_client_secret=True, v2=False, pkce=False):
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
     response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
 
-    if pkce:
-        auth_data = __generate_auth_data()
-        response['code_challenge_method'] = "S256"
-        response['code_verifier'] = auth_data['code_verifier']
-        response['code_challenge'] = auth_data['code_challenge']
-        response['state'] = auth_data['state']
+    auth_data = __generate_auth_data()
+    response['code_challenge_method'] = "S256"
+    response['code_verifier'] = auth_data['code_verifier']
+    response['code_challenge'] = auth_data['code_challenge']
+    response['state'] = auth_data['state']
 
     response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, ver)
     response['token_uri'] = '{}/{}/o/token/'.format(host, ver)

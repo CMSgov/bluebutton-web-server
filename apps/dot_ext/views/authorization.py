@@ -1,8 +1,10 @@
 import json
 import logging
 from datetime import datetime, timedelta
+from functools import wraps
 from time import strftime
 
+from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
@@ -54,6 +56,20 @@ def get_grant_expiration(data_access_type):
     pass
 
 
+def require_post_state_decorator(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.method == "POST" and not request.POST.get("state"):
+            return JsonResponse(
+                {"status_code": 401, "message": "State required for POST requests."},
+                status=401,
+            )
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(require_post_state_decorator, name="dispatch")
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -116,6 +132,14 @@ class AuthorizationView(DotAuthorizationView):
         lang = self._get_param(request, 'lang')
         if lang in ('en', 'es'):
             request.session['auth_language'] = lang
+
+        if request.method == "POST" and not request.user.is_authenticated:
+            post_qs = request.POST.urlencode()
+            # preserve existing query too
+            existing_qs = request.META.get("QUERY_STRING", "")
+            merged_qs = f"{existing_qs}&{post_qs}" if existing_qs else post_qs
+            next_url = f"{request.path}?{merged_qs}"
+            return redirect_to_login(next_url, login_url=self.login_url)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -292,6 +316,7 @@ class AuthorizationView(DotAuthorizationView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(require_post_state_decorator, name="dispatch")
 class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
@@ -306,8 +331,6 @@ class ApprovalView(AuthorizationView):
         super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
-        if request.method == "POST" and request.POST.get("state") is None:
-            return JsonResponse({"status_code": 401, "message": "State required for POST requests."}, status=401)
 
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)

@@ -93,7 +93,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
                    'response_type': 'code',
                    'redirect_uri': 'http://example.it',
                    'expires_in': 86400,
-                   'allow': True}
+                   'allow': True,
+                   "state": "0123456789abcdef",
+                   }
 
         request_scopes = APPLICATION_SCOPES_FULL
         # Scopes to be requested in the authorization request
