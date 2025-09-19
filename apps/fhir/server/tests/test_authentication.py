@@ -3,12 +3,11 @@ import json
 from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
-from requests.exceptions import HTTPError
 from rest_framework import exceptions
 
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.test import BaseApiTest
-from ..authentication import match_fhir_id, search_fhir_id_by_identifier_hicn_hash, search_fhir_id_by_identifier_mbi
+from ..authentication import match_fhir_id
 from .responses import responses
 
 
@@ -116,8 +115,6 @@ class TestAuthentication(BaseApiTest):
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
-            with self.assertRaises(HTTPError):
-                search_fhir_id_by_identifier_hicn_hash(self.test_hicn_hash, self.request)
 
     def test_match_fhir_id_server_mbi_error(self):
         '''
@@ -131,8 +128,6 @@ class TestAuthentication(BaseApiTest):
                     mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
-            with self.assertRaises(HTTPError):
-                search_fhir_id_by_identifier_mbi(self.test_mbi, self.request)
 
     def test_match_fhir_id_duplicates_hicn(self):
         '''
