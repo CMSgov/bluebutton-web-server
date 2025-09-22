@@ -10,8 +10,6 @@ from typing import List, Optional, Dict, Any
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
-# This is likely not needed, still a bit unclear on how we will run it for TEST, then SBX, then PROD
-FHIR_BASE_URL = "https://{ENV}.bluebutton.cms.gov/v2/fhir/"
 MBI_URL = "http://hl7.org/fhir/sid/us-mbi"
 
 class Command(BaseCommand):
@@ -63,8 +61,11 @@ class Command(BaseCommand):
                 user_mbi = self.extract_mbi(patient_info)
 
                 logger.info("user_mbi %s" % (user_mbi))
-                if user_mbi and not dry_run:
-                    self.update_mbi(user_mbi, crosswalk)
+                if user_mbi:
+                    if not dry_run:
+                        self.update_mbi(user_mbi, crosswalk)
+                    else:
+                        logger.info("Not performing update - dry run flag set to true")
                 else:
                     logger.info("MBI not found, can't update crosswalk record for fhir_id = %s" % (fhir_id))
 
