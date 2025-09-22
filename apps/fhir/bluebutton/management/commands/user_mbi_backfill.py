@@ -25,26 +25,26 @@ class Command(BaseCommand):
             help='Number of records to process in each batch'
         )
         parser.add_argument(
-            '--dry-run',
+            '--execute',
             action='store_true',
-            help='Show what would be updated without making changes'
+            help='Apply DB updates'
         )
 
     def handle(self, *args, **options):
         batch_size = options['batch_size']
-        dry_run = options['dry_run']
+        execute = options['execute']
         logger.info("batch size %s" % (batch_size))
-        logger.info("dry_run %s" % (dry_run))
+        logger.info("execute %s" % (execute))
 
         records = self.retrieve_records(batch_size)
-        self.process_records(records, dry_run)
+        self.process_records(records, execute)
 
     def retrieve_records(self, batch_size: int) -> List[Crosswalk]:
         null_mbi_records = Crosswalk.objects.filter(_user_mbi__isnull=True)[:batch_size]
         logger.info("# of records returned %s" % (len(null_mbi_records)))
         return null_mbi_records
     
-    def process_records(self, crosswalk_records: List[Crosswalk], dry_run: bool) -> None:
+    def process_records(self, crosswalk_records: List[Crosswalk], execute: bool) -> None:
         for crosswalk in crosswalk_records:
             try:
                 patient_info = 0
@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
                 logger.info("user_mbi %s" % (user_mbi))
                 if user_mbi:
-                    if not dry_run:
+                    if execute:
                         self.update_mbi(user_mbi, crosswalk)
                     else:
                         logger.info("Not performing update - dry run flag set to true")
