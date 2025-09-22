@@ -26,7 +26,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--dry-run',
-            action='store_false',
+            action='store_true',
             help='Show what would be updated without making changes'
         )
 
