@@ -65,7 +65,7 @@ class Command(BaseCommand):
                     if execute:
                         self.update_mbi(user_mbi, crosswalk)
                     else:
-                        logger.info("Not performing update - dry run flag set to true")
+                        logger.info("Not performing update - execute flag set to false")
                 else:
                     logger.info("MBI not found, can't update crosswalk record for fhir_id = %s" % (fhir_id))
 
