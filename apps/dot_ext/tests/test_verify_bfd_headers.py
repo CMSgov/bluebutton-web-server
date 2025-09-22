@@ -63,6 +63,7 @@ class TestBFDHeaders(BaseApiTest):
             "scope": application.scopes().split(" "),
             "expires_in": 86400,
             "allow": True,
+            "state": "0123456789abcdef",
             "share_demographic_scopes": True
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
