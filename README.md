@@ -72,7 +72,7 @@ pip install pip-tools
 pip install -r requirements/requirements.txt
 ```
 
-Note that most settings can be overridden by environment variables. See custom environment variables section below. Please ensure to create and use your own keys and secrets. See https://docs.djangoproject.com/en/1.11/topics/settings/ for more information. Continue the installation by issuing the following commands:
+Note that most settings can be overridden by environment variables. See custom environment variables section below. Please ensure to create and use your own keys and secrets. See https://docs.djangoproject.com/en/4.2/topics/settings/ for more information. Continue the installation by issuing the following commands:
 
 ```bash
 python manage.py migrate
