@@ -10,6 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='crosswalk',
+            name='_fhir_id',
+            field=models.CharField(null=True, unique=False),
+        ),
         migrations.AddField(
             model_name='crosswalk',
             name='_v2_fhir_id',
