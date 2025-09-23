@@ -336,7 +336,7 @@ class TestAuthorizationView(BaseApiTest):
                         # Test ReadView for base path with FHIR_ID
                         if test_readview:
                             response = client.get(
-                                base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID
+                                base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
                             )
                             content = json.loads(response.content)
                             self._assertScopeResponse(
@@ -345,7 +345,7 @@ class TestAuthorizationView(BaseApiTest):
 
                         # Test SearchView for base path with FHIR_ID
                         response = client.get(
-                            base_path + "?" + settings.DEFAULT_SAMPLE_FHIR_ID
+                            base_path + "?" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
                         )
                         content = json.loads(response.content)
                         self._assertScopeResponse(

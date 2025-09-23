@@ -17,12 +17,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='crosswalk',
-            name='_v2_fhir_id',
-            field=models.CharField(db_column='v2_fhir_id', db_index=True, default=None, max_length=80, null=True, unique=True),
+            name='_fhir_id_v2',
+            field=models.CharField(db_column='fhir_id_v2', db_index=True, default=None, max_length=80, null=True, unique=True),
         ),
         migrations.AddField(
             model_name='crosswalk',
-            name='_v3_fhir_id',
-            field=models.CharField(db_column='v3_fhir_id', db_index=True, default=None, max_length=80, null=True, unique=True),
+            name='_fhir_id_v3',
+            field=models.CharField(db_column='fhir_id_v3', db_index=True, default=None, max_length=80, null=True, unique=True),
         ),
     ]

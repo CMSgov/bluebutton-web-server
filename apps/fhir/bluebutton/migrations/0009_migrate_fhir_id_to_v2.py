@@ -6,14 +6,14 @@ def migrate_fhir_id_to_v2(apps, schema_editor):
     Crosswalk = apps.get_model('bluebutton', 'Crosswalk')
     for crosswalk in Crosswalk.objects.all():
         if crosswalk._fhir_id:
-            crosswalk._v2_fhir_id = crosswalk._fhir_id
+            crosswalk._fhir_id_v2 = crosswalk._fhir_id
             crosswalk.save()
 
 def reverse_migrate_v2_to_fhir_id(apps, schema_editor):
     Crosswalk = apps.get_model('bluebutton', 'Crosswalk')
     for crosswalk in Crosswalk.objects.all():
-        if crosswalk._v2_fhir_id:
-            crosswalk._fhir_id = crosswalk._v2_fhir_id
+        if crosswalk._fhir_id_v2:
+            crosswalk._fhir_id = crosswalk._fhir_id_v2
             crosswalk.save()
 
 class Migration(migrations.Migration):

@@ -41,7 +41,8 @@ class BaseApiTest(TestCase):
         self,
         username,
         password,
-        fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+        fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2,
+        fhir_id_v3=settings.DEFAULT_SAMPLE_FHIR_ID_V3,
         user_hicn_hash=test_hicn_hash,
         user_mbi_hash=test_mbi_hash,
         user_type=None,
@@ -52,12 +53,12 @@ class BaseApiTest(TestCase):
         with `username` and `password` set.
         """
         user = User.objects.create_user(username, password=password, **extra_fields)
-        if Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
-            Crosswalk.objects.filter(_fhir_id=fhir_id).delete()
+        if Crosswalk.objects.filter(_v2_fhir_id=fhir_id_v2).exists():
+            Crosswalk.objects.filter(_v2_fhir_id=fhir_id_v2).delete()
 
         cw, _ = Crosswalk.objects.get_or_create(
             user=user,
-            _fhir_id=fhir_id,
+            fhir_id_v2=fhir_id_v2,
             _user_id_hash=user_hicn_hash,
             _user_mbi_hash=user_mbi_hash,
         )
@@ -200,7 +201,7 @@ class BaseApiTest(TestCase):
         return apps_qs.first()
 
     def create_token(
-        self, first_name, last_name, fhir_id=None, hicn_hash=None, mbi_hash=None
+        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None
     ):
         passwd = "123456"
         user = self._create_user(
@@ -208,14 +209,15 @@ class BaseApiTest(TestCase):
             passwd,
             first_name=first_name,
             last_name=last_name,
-            fhir_id=fhir_id if fhir_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID,
+            fhir_id_v2=fhir_id_v2 if fhir_id_v2 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V2,
+            v3_fhir_id=fhir_id_v3 if fhir_id_v3 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
             email="%s@%s.net" % (first_name, last_name),
         )
-        pt_id = fhir_id if fhir_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID
+        pt_id = fhir_id_v2 if fhir_id_v2 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
-        if Crosswalk.objects.filter(_fhir_id=pt_id).exists():
+        if Crosswalk.objects.filter(_v2_fhir_id=pt_id).exists():
             Crosswalk.objects.filter(_fhir_id=pt_id).delete()
 
         Crosswalk.objects.create(
@@ -348,7 +350,7 @@ class BaseApiTest(TestCase):
         return user
 
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id, app_name, app_username, app_user_organization,
+        self, first_name, last_name, fhir_id_v2, app_name, app_username, app_user_organization,
         app_data_access_type=None
     ):
         """
@@ -398,7 +400,7 @@ class BaseApiTest(TestCase):
             user = self._create_user(
                 username=username,
                 password="xxx123",
-                fhir_id=fhir_id,
+                fhir_id_v2=fhir_id_v2,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
             )
@@ -423,17 +425,17 @@ class BaseApiTest(TestCase):
         """
         user_dict = {}
         for i in range(0, count):
-            fhir_id = start_fhir_id + str(i)
+            fhir_id_v2 = start_fhir_id + str(i)
             user, app, ac = self._create_user_app_token_grant(
                 first_name="first",
-                last_name="last" + fhir_id,
-                fhir_id=fhir_id,
+                last_name="last" + fhir_id_v2,
+                fhir_id_v2=fhir_id_v2,
                 app_name=app_name,
                 app_username="user_" + app_name,
                 app_user_organization=app_user_organization,
             )
 
-            user_dict[fhir_id] = user
+            user_dict[fhir_id_v2] = user
         return app, user_dict
 
     def _revoke_range_users_app_token_grant(self, start_fhir_id, count, app_name):

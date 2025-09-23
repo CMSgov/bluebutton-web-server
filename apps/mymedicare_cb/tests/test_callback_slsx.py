@@ -373,8 +373,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_fhir_id = cw._fhir_id
-        cw._fhir_id = "XXX"
+        saved_fhir_id = cw._v2_fhir_id
+        cw._v2_fhir_id = "XXX"
         cw.save()
 
         with HTTMock(
@@ -398,7 +398,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Restore fhir_id
         cw = Crosswalk.objects.get(id=1)
-        cw._fhir_id = saved_fhir_id
+        cw._v2_fhir_id = saved_fhir_id
         cw.save()
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
@@ -598,7 +598,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 1)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -657,7 +657,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 1)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -760,7 +760,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -815,7 +815,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values. Did the hicn update to new value?
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
@@ -921,7 +921,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -1025,7 +1025,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",

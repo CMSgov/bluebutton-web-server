@@ -416,7 +416,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         json_resp = None
 
         try:
-            json_resp = get_patient_by_id(crosswalk.fhir_id, request)
+            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 

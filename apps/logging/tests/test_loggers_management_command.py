@@ -891,7 +891,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         # Setting synth user crosswalk entry to fhir_id="" and archiving cw
         cw = Crosswalk.objects.get(user=save_synth_user_dict["-60000000000003"])
         ArchivedCrosswalk.create(cw)
-        cw._fhir_id = ""
+        cw._v2_fhir_id = ""
         cw.save()
 
         self._call_management_command_log_global_state_metrics()
