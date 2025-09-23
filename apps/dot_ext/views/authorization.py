@@ -111,7 +111,7 @@ class AuthorizationView(DotAuthorizationView):
                 return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
         if switch_is_active('v3_endpoints') and v3:
-            if not request.GET.get('scope', None):
+            if 'scope' not in request.GET:
                 missing_params.append("scope")
 
         if missing_params:
