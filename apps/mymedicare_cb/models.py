@@ -187,14 +187,15 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
 
 
 # TODO default empty strings to null, requires non-null constraints to be fixed
-def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_id_type="H", request=None):
+def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id_v2=None, fhir_id_v3=None, user_id_type="H", request=None):
 
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     log_dict = {
         "type": "mymedicare_cb:create_beneficiary_record",
         "username": slsx_client.user_id,
-        "fhir_id": fhir_id,
+        "fhir_id_v2": fhir_id_v2,
+        "fhir_id_v3": fhir_id_v3,
         "user_mbi_hash": slsx_client.mbi_hash,
         "user_hicn_hash": slsx_client.hicn_hash,
         "crosswalk": {},
@@ -222,9 +223,12 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         (slsx_client.mbi_hash is not None and Crosswalk.objects.filter(_user_mbi_hash=slsx_client.mbi_hash).exists(),
          "user_mbi_hash already exists",
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi_hash),
-        (fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists(),
-         "fhir_id already exists",
-         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id),
+        (fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists(),
+         "fhir_id_v2 already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
+        (fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists(),
+         "fhir_id_v3 already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v3),
     ])
 
     with transaction.atomic():
@@ -239,7 +243,8 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
             user_hicn_hash=slsx_client.hicn_hash,
             user_mbi_hash=slsx_client.mbi_hash,
             user_mbi=slsx_client.mbi,
-            fhir_id=fhir_id,
+            fhir_id_v2=fhir_id_v2,
+            fhir_id_v3=fhir_id_v3,
             user_id_type=user_id_type,
         )
 
@@ -257,7 +262,8 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
                 "id": cw.id,
                 "user_hicn_hash": cw.user_hicn_hash,
                 "user_mbi_hash": cw.user_mbi_hash,
-                "fhir_id": cw.fhir_id(2),
+                "fhir_id_v2": cw.fhir_id(2),
+                "fhir_id_v3": cw.fhir_id(3),
                 "user_id_type": cw.user_id_type,
             },
         })

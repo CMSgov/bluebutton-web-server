@@ -13,31 +13,31 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='crosswalk',
             name='_fhir_id',
-            field=models.CharField(null=True, unique=False),
+            field=models.CharField(db_column='fhir_id', db_index=True, default=None, max_length=80, unique=True, null=True),
         ),
         migrations.AddField(
             model_name='crosswalk',
-            name='_fhir_id_v2',
-            field=models.CharField(db_column='fhir_id_v2', db_index=True, default=None, max_length=80, null=True, unique=True),
+            name='fhir_id_v2',
+            field=models.CharField(db_column='fhir_id_v2', db_index=True, max_length=80, null=True, unique=True),
         ),
         migrations.AddField(
             model_name='crosswalk',
-            name='_fhir_id_v3',
-            field=models.CharField(db_column='fhir_id_v3', db_index=True, default=None, max_length=80, null=True, unique=True),
+            name='fhir_id_v3',
+            field=models.CharField(db_column='fhir_id_v3', db_index=True, max_length=80, null=True, unique=True),
         ),
         migrations.AlterField(
             model_name='archivedcrosswalk',
             name='_fhir_id',
-            field=models.CharField(null=True),
+            field=models.CharField(db_column='fhir_id', db_index=True, default=None, max_length=80, unique=True, null=True)
         ),
         migrations.AddField(
             model_name='archivedcrosswalk',
-            name='_fhir_id_v2',
-            field=models.CharField(db_column='fhir_id_v2', db_index=True, default=None, max_length=80, null=True, unique=True),
+            name='fhir_id_v2',
+            field=models.CharField(db_column='fhir_id_v2', db_index=True, max_length=80, null=True, unique=True),
         ),
         migrations.AddField(
             model_name='archivedcrosswalk',
-            name='_fhir_id_v3',
-            field=models.CharField(db_column='fhir_id_v3', db_index=True, default=None, max_length=80, null=True, unique=True),
+            name='fhir_id_v3',
+            field=models.CharField(db_column='fhir_id_v3', db_index=True, max_length=80, null=True, unique=True),
         ),
     ]

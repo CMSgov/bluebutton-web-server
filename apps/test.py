@@ -53,8 +53,8 @@ class BaseApiTest(TestCase):
         with `username` and `password` set.
         """
         user = User.objects.create_user(username, password=password, **extra_fields)
-        if Crosswalk.objects.filter(_fhir_id_v2=fhir_id_v2).exists():
-            Crosswalk.objects.filter(_fhir_id_v2=fhir_id_v2).delete()
+        if Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists():
+            Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).delete()
 
         cw, _ = Crosswalk.objects.get_or_create(
             user=user,

@@ -69,7 +69,7 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
     def post(request, *args, **kwargs):
         try:
             patient_id = kwargs.pop('patient_id', None)
-            user = Crosswalk.objects.get(_fhir_id=patient_id).user
+            user = Crosswalk.objects.get(fhir_id_v2=patient_id).user
             client = get_application_from_meta(request)
             DataAccessGrant.objects.get(beneficiary=user.id, application=client).delete()
         except Crosswalk.DoesNotExist:

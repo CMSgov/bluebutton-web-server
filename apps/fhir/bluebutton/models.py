@@ -70,9 +70,8 @@ class Crosswalk(models.Model):
 
     Attributes:
         user: auth_user.id
-        _fhir_id: deprecated v1/v2 BFD fhir patient id, used for fallback, TODO remove
-        _fhir_id_v2: v1/v2 BFD fhir patient id
-        _fhir_id_v3: v3 BFD fhir patient id
+        fhir_id_v2: v1/v2 BFD fhir patient id
+        fhir_id_v3: v3 BFD fhir patient id
         date_created: date that record was created
         user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
         _user_id_hash: HICN hash value, TODO remove during BB2-3143
@@ -93,19 +92,17 @@ class Crosswalk(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
     )
-    _fhir_id_v2 = models.CharField(
+    fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
         unique=True,
-        default=None,
         db_column="fhir_id_v2",
         db_index=True,
     )
-    _fhir_id_v3 = models.CharField(
+    fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
         unique=True,
-        default=None,
         db_column="fhir_id_v3",
         db_index=True,
     )
@@ -150,36 +147,20 @@ class Crosswalk(models.Model):
     def fhir_id(self, version:int=2) -> str:
         """Helper method to return fhir_id based on BFD version"""
         if version == 2 or version == 1:
-            return str(self._fhir_id_v2)
+            return str(self.fhir_id_v2)
         elif version == 3:
-            return str(self._fhir_id_v3)
+            return str(self.fhir_id_v3)
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
 
     def set_fhir_id(self, value, version:int=2) -> None:
         """Helper method to set fhir_id based on BFD version"""
         if version == 2 or version == 1:
-            self._fhir_id_v2 = value
+            self.fhir_id_v2 = value
         elif version == 3:
-            self._fhir_id_v3 = value
+            self.fhir_id_v3 = value
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
-
-    @property
-    def fhir_id_v2(self):
-        return self._fhir_id_v2
-    
-    @fhir_id_v2.setter
-    def fhir_id_v2(self, value):
-        self._fhir_id_v2 = value
-
-    @property
-    def fhir_id_v3(self):
-        return self._fhir_id_v3
-    
-    @fhir_id_v3.setter
-    def fhir_id_v3(self, value):
-        self._fhir_id_v3 = value
 
     @property
     def user_hicn_hash(self):
@@ -219,8 +200,8 @@ class ArchivedCrosswalk(models.Model):
     in apps/mymedicare_cb/models.py
     Attributes:
         user: auth_user.id
-        _fhir_id_v2: v1/v2 BFD fhir patient id
-        _fhir_id_v3: v3 BFD fhir patient id
+        fhir_id_v2: v1/v2 BFD fhir patient id
+        fhir_id_v3: v3 BFD fhir patient id
         user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
         _user_id_hash: HICN hash value, TODO remove during BB2-3143
         _user_mbi_hash: MBI hash value
@@ -239,19 +220,17 @@ class ArchivedCrosswalk(models.Model):
         db_column="username",
         db_index=True,
     )
-    _fhir_id_v2 = models.CharField(
+    fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
         unique=True,
-        default=None,
         db_column="fhir_id_v2",
         db_index=True,
     )
-    _fhir_id_v3 = models.CharField(
+    fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
         unique=True,
-        default=None,
         db_column="fhir_id_v3",
         db_index=True,
     )
@@ -294,8 +273,8 @@ class ArchivedCrosswalk(models.Model):
     def create(crosswalk):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
-            _fhir_id_v2=crosswalk.fhir_id_v2,
-            _fhir_id_v3=crosswalk.fhir_id_v3,
+            fhir_id_v2=crosswalk.fhir_id_v2,
+            fhir_id_v3=crosswalk.fhir_id_v3,
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
             _user_mbi_hash=crosswalk.user_mbi_hash,

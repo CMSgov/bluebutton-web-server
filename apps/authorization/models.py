@@ -138,15 +138,15 @@ def get_grant_bene_counts(application=None):
     counts_returned["total"] = grant_queryset.count()
 
     real_grant_queryset = grant_queryset.filter(
-        ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2__="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary")
 
     synthetic_grant_queryset = grant_queryset.filter(
-        Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary")
 
     counts_returned["real"] = real_grant_queryset.count()
@@ -178,15 +178,15 @@ def get_grant_bene_counts(application=None):
     counts_returned["archived_total"] = archived_queryset.count()
 
     real_archived_queryset = archived_queryset.filter(
-        ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary")
 
     synthetic_archived_queryset = archived_queryset.filter(
-        Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary")
 
     counts_returned["archived_real_deduped"] = real_archived_queryset.distinct().count()
@@ -248,7 +248,7 @@ def get_beneficiary_counts():
         User.objects.select_related()
         .filter(userprofile__user_type="BEN")
         .annotate(
-            fhir_id=Min("crosswalk___fhir_id"),
+            fhir_id=Min("crosswalk__fhir_id_v2"),
             grant_count=Count("dataaccessgrant__application", distinct=True),
             grant_archived_count=Count(
                 "archiveddataaccessgrant__application", distinct=True
@@ -466,15 +466,15 @@ def get_beneficiary_grant_app_pair_counts():
     grant_queryset = DataAccessGrant.objects.values("beneficiary", "application")
 
     real_grant_queryset = grant_queryset.filter(
-        ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
     synthetic_grant_queryset = grant_queryset.filter(
-        Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
     counts_returned["grant_total"] = grant_queryset.count()
@@ -487,15 +487,15 @@ def get_beneficiary_grant_app_pair_counts():
     )
 
     real_grant_archived_queryset = grant_archived_queryset.filter(
-        ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
     synthetic_grant_archived_queryset = grant_archived_queryset.filter(
-        Q(beneficiary__crosswalk___fhir_id__startswith="-")
-        & ~Q(beneficiary__crosswalk___fhir_id="")
-        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
+        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
     # Get total table count

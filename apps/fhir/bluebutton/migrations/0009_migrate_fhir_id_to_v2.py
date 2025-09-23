@@ -6,24 +6,24 @@ def migrate_fhir_id_to_v2(apps, schema_editor):
     Crosswalk = apps.get_model('bluebutton', 'Crosswalk')
     for crosswalk in Crosswalk.objects.all():
         if crosswalk._fhir_id:
-            crosswalk._fhir_id_v2 = crosswalk._fhir_id
+            crosswalk.fhir_id_v2 = crosswalk._fhir_id
             crosswalk.save()
     ArchivedCrosswalk = apps.get_model('bluebutton', 'ArchivedCrosswalk')
     for archived in ArchivedCrosswalk.objects.all():
         if archived._fhir_id:
-            archived._fhir_id_v2 = archived._fhir_id
+            archived.fhir_id_v2 = archived._fhir_id
             archived.save()
 
 def reverse_migrate_v2_to_fhir_id(apps, schema_editor):
     Crosswalk = apps.get_model('bluebutton', 'Crosswalk')
     for crosswalk in Crosswalk.objects.all():
-        if crosswalk._fhir_id_v2:
-            crosswalk._fhir_id = crosswalk._fhir_id_v2
+        if crosswalk.fhir_id_v2:
+            crosswalk._fhir_id = crosswalk.fhir_id_v2
             crosswalk.save()
     ArchivedCrosswalk = apps.get_model('bluebutton', 'ArchivedCrosswalk')
     for archived in ArchivedCrosswalk.objects.all():
-        if archived._fhir_id_v2:
-            archived._fhir_id = archived._fhir_id_v2
+        if archived.fhir_id_v2:
+            archived._fhir_id = archived.fhir_id_v2
             archived.save()
 
 class Migration(migrations.Migration):
