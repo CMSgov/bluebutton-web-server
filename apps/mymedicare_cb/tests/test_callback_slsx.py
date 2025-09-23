@@ -373,8 +373,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_fhir_id = cw._v2_fhir_id
-        cw._v2_fhir_id = "XXX"
+        saved_fhir_id = cw.fhir_id_v2
+        cw.set_fhir_id("XXX", 2)
         cw.save()
 
         with HTTMock(
@@ -398,7 +398,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Restore fhir_id
         cw = Crosswalk.objects.get(id=1)
-        cw._v2_fhir_id = saved_fhir_id
+        cw.set_fhir_id(saved_fhir_id, 2)
         cw.save()
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username

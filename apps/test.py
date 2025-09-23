@@ -53,15 +53,15 @@ class BaseApiTest(TestCase):
         with `username` and `password` set.
         """
         user = User.objects.create_user(username, password=password, **extra_fields)
-        if Crosswalk.objects.filter(_v2_fhir_id=fhir_id_v2).exists():
-            Crosswalk.objects.filter(_v2_fhir_id=fhir_id_v2).delete()
+        if Crosswalk.objects.filter(_fhir_id_v2=fhir_id_v2).exists():
+            Crosswalk.objects.filter(_fhir_id_v2=fhir_id_v2).delete()
 
         cw, _ = Crosswalk.objects.get_or_create(
             user=user,
-            fhir_id_v2=fhir_id_v2,
             _user_id_hash=user_hicn_hash,
             _user_mbi_hash=user_mbi_hash,
         )
+        cw.set_fhir_id(fhir_id_v2, 2)
         cw.save()
         # Create ben user profile, if it doesn't exist
         if user_type:
@@ -210,15 +210,15 @@ class BaseApiTest(TestCase):
             first_name=first_name,
             last_name=last_name,
             fhir_id_v2=fhir_id_v2 if fhir_id_v2 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V2,
-            v3_fhir_id=fhir_id_v3 if fhir_id_v3 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V3,
+            fhir_id_v3=fhir_id_v3 if fhir_id_v3 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
             email="%s@%s.net" % (first_name, last_name),
         )
         pt_id = fhir_id_v2 if fhir_id_v2 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
-        if Crosswalk.objects.filter(_v2_fhir_id=pt_id).exists():
-            Crosswalk.objects.filter(_fhir_id=pt_id).delete()
+        if Crosswalk.objects.filter(_fhir_id_v2=pt_id).exists():
+            Crosswalk.objects.filter(_fhir_id_v2=pt_id).delete()
 
         Crosswalk.objects.create(
             user=user,

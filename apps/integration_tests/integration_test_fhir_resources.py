@@ -61,7 +61,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             endpoint_url = "{}/{}".format(endpoint_url, params)
         return endpoint_url
 
-    def _setup_apiclient(self, client, fn=None, ln=None, v2_fhir_id=None, v3_fhir_id=None, hicn_hash=None, mbi_hash=None):
+    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None):
         # Setup token in APIClient
         '''
         TODO: Perform auth flow here --- when selenium is included later.
@@ -80,7 +80,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # create user, app, and access token
         first_name = fn if fn is not None else "John"
         last_name = ln if ln is not None else "Doe"
-        access_token = base_api_test.create_token(first_name, last_name, v2_fhir_id, v3_fhir_id, hicn_hash, mbi_hash)
+        access_token = base_api_test.create_token(first_name, last_name, fhir_id_v2, fhir_id_v3, hicn_hash, mbi_hash)
 
         # Test scope in access_token
         at = AccessToken.objects.get(token=access_token)

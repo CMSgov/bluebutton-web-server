@@ -71,8 +71,8 @@ class Crosswalk(models.Model):
     Attributes:
         user: auth_user.id
         _fhir_id: deprecated v1/v2 BFD fhir patient id, used for fallback, TODO remove
-        _v2_fhir_id: v1/v2 BFD fhir patient id
-        _v3_fhir_id: v3 BFD fhir patient id
+        _fhir_id_v2: v1/v2 BFD fhir patient id
+        _fhir_id_v3: v3 BFD fhir patient id
         date_created: date that record was created
         user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
         _user_id_hash: HICN hash value, TODO remove during BB2-3143
@@ -80,7 +80,8 @@ class Crosswalk(models.Model):
         _user_mbi: unhashed MBI value
 
     Methods:
-        fhir_id(version): returns the fhir_id for the specified BFD version
+        fhir_id (version): returns the fhir_id for the specified BFD version
+        set_fhir_id (value, version): sets the fhir_id for the specified BFD version
 
     Managers:
         objects: default manager
@@ -97,7 +98,7 @@ class Crosswalk(models.Model):
         null=True,
         unique=True,
         default=None,
-        db_column="v2_fhir_id",
+        db_column="fhir_id_v2",
         db_index=True,
     )
     _fhir_id_v3 = models.CharField(
@@ -105,7 +106,7 @@ class Crosswalk(models.Model):
         null=True,
         unique=True,
         default=None,
-        db_column="v3_fhir_id",
+        db_column="fhir_id_v3",
         db_index=True,
     )
     date_created = models.DateTimeField(auto_now_add=True)
@@ -146,16 +147,16 @@ class Crosswalk(models.Model):
     def __str__(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
     
-    def fhir_id(self, version=2):
+    def fhir_id(self, version:int=2) -> str:
         """Helper method to return fhir_id based on BFD version"""
         if version == 2 or version == 1:
-            return self._fhir_id_v2
+            return str(self._fhir_id_v2)
         elif version == 3:
-            return self._fhir_id_v3
+            return str(self._fhir_id_v3)
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
 
-    def set_fhir_id(self, value, version=2):
+    def set_fhir_id(self, value, version:int=2) -> None:
         """Helper method to set fhir_id based on BFD version"""
         if version == 2 or version == 1:
             self._fhir_id_v2 = value
@@ -216,9 +217,20 @@ class ArchivedCrosswalk(models.Model):
 
     This is performed via code in the `get_and_update_user()` function
     in apps/mymedicare_cb/models.py
-    """
+    Attributes:
+        user: auth_user.id
+        _fhir_id_v2: v1/v2 BFD fhir patient id
+        _fhir_id_v3: v3 BFD fhir patient id
+        user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
+        _user_id_hash: HICN hash value, TODO remove during BB2-3143
+        _user_mbi_hash: MBI hash value
+        _user_mbi: unhashed MBI value
+        date_created: date that record was created
+        archived_at: date that record was archived
+    Methods:
+        create (crosswalk): static method to create an ArchivedCrosswalk from a Crosswalk instance
+    """   
 
-    # SLSx sub/username
     username = models.CharField(
         max_length=150,
         null=False,
@@ -227,28 +239,28 @@ class ArchivedCrosswalk(models.Model):
         db_column="username",
         db_index=True,
     )
-
-    # BFD fhir/patient id
-    _fhir_id = models.CharField(
+    _fhir_id_v2 = models.CharField(
         max_length=80,
-        null=False,
-        unique=False,
+        null=True,
+        unique=True,
         default=None,
-        db_column="fhir_id",
+        db_column="fhir_id_v2",
         db_index=True,
     )
-
-    # This value is to be set to the type of lookup used MBI or HICN
+    _fhir_id_v3 = models.CharField(
+        max_length=80,
+        null=True,
+        unique=True,
+        default=None,
+        db_column="fhir_id_v3",
+        db_index=True,
+    )
     user_id_type = models.CharField(
         max_length=1,
         verbose_name="Hash ID type last used for FHIR_ID lookup",
         default=settings.USER_ID_TYPE_DEFAULT,
         choices=settings.USER_ID_TYPE_CHOICES,
     )
-
-    # This stores the HICN hash value.
-    # TODO: Maybe rename this to _user_hicn_hash in future.
-    #   Keeping the same to not break backwards migration compatibility.
     _user_id_hash = models.CharField(
         max_length=64,
         verbose_name="HASH of User HICN ID",
@@ -258,9 +270,6 @@ class ArchivedCrosswalk(models.Model):
         db_column="user_id_hash",
         db_index=True,
     )
-
-    # This stores the MBI hash value.
-    #     Can be null for backwards migration compatibility.
     _user_mbi_hash = models.CharField(
         max_length=64,
         verbose_name="HASH of User MBI ID",
@@ -270,7 +279,6 @@ class ArchivedCrosswalk(models.Model):
         db_column="user_mbi_hash",
         db_index=True,
     )
-    # This stores the unhashed MBI value.
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name="Unhashed MBI",
@@ -279,17 +287,15 @@ class ArchivedCrosswalk(models.Model):
         db_column="user_mbi",
         db_index=True,
     )
-    # Date/time that the Crosswalk instance was created
     date_created = models.DateTimeField()
-
     archived_at = models.DateTimeField(auto_now_add=True)
 
-    # Static method utility to create archive of field values from a passed in Crosswalk instance
     @staticmethod
     def create(crosswalk):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
-            _fhir_id=crosswalk.fhir_id,
+            _fhir_id_v2=crosswalk.fhir_id_v2,
+            _fhir_id_v3=crosswalk.fhir_id_v3,
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
             _user_mbi_hash=crosswalk.user_mbi_hash,

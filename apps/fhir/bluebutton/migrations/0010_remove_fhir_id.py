@@ -14,4 +14,8 @@ class Migration(migrations.Migration):
             model_name='crosswalk',
             name='_fhir_id',
         ),
+        migrations.RemoveField(
+            model_name='archivedcrosswalk',
+            name='_fhir_id',
+        ),
     ]
