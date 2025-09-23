@@ -16,7 +16,7 @@ Chronic Conditions Warehouse (https://www.ccwdata.org)
 
 For more information on how to connect to the API implemented here, check out our developer documentation at https://cmsgov.github.io/bluebutton-developer-help/. Our most recent deployment is at https://sandbox.bluebutton.cms.gov, and you can also check out our Google Group at https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api for more details.
 
-The information below outlines setting up the server for development or your own environment. For general information on deploying Django see https://docs.djangoproject.com/en/1.11/howto/deployment/.
+The information below outlines setting up the server for development or your own environment. For general information on deploying Django see https://docs.djangoproject.com/en/4.2/howto/deployment/.
 
 NOTE: Internal software engineers or other interested parties should follow the documentation for running a Dockerized local development enviornment. For more information see https://github.com/CMSgov/bluebutton-web-server/blob/master/docker-compose/readme.md.
 
@@ -84,7 +84,7 @@ python manage.py create_blue_button_scopes
 python manage.py create_test_user_and_application
 ```
 
-The next step is optional: If your backend HAPI FHIR server is configured to require x509 certificates to access it then you need to obtain that keypair and place those files in certificate folder called `cerstore`.
+The next step is optional: If your backend HAPI FHIR server is configured to require x509 certificates to access it then you need to obtain that keypair and place those files in certificate folder called `certstore`.
 
 ```bash
 mkdir ../certstore
