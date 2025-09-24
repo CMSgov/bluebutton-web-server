@@ -102,7 +102,7 @@ class SearchViewPatient(SearchView):
     def build_parameters(self, request, *args, **kwargs):
         return {
             '_format': 'application/json+fhir',
-            '_id': request.crosswalk.fhir_id,
+            '_id': request.crosswalk.fhir_id(2),
         }
 
 
@@ -117,7 +117,7 @@ class SearchViewCoverage(SearchView):
     def build_parameters(self, request, *args, **kwargs):
         return {
             '_format': 'application/json+fhir',
-            'beneficiary': 'Patient/' + request.crosswalk.fhir_id,
+            'beneficiary': 'Patient/' + request.crosswalk.fhir_id(2),
         }
 
 
@@ -173,7 +173,7 @@ class SearchViewExplanationOfBenefit(SearchView):
     def build_parameters(self, request, *args, **kwargs):
         return {
             '_format': 'application/json+fhir',
-            'patient': request.crosswalk.fhir_id,
+            'patient': request.crosswalk.fhir_id(2),
         }
 
     def filter_parameters(self, request):

@@ -58,6 +58,11 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
     else:
         hicn_hash = slsx_client.hicn_hash
 
+    # BFD v2 Lookup
+
+
+    # BFD v3 Lookup
+
     fhir_id, hash_lookup_type = match_fhir_id(
         mbi=slsx_client.mbi,
         mbi_hash=slsx_client.mbi_hash,
@@ -85,7 +90,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
         user = User.objects.get(username=slsx_client.user_id)
 
         # fhir_id can not change for an existing user!
-        if user.crosswalk.fhir_id != fhir_id:
+        if user.crosswalk.fhir_id(version) != fhir_id:
             mesg = "Found user's fhir_id did not match"
             log_dict.update({
                 "status": "FAIL",
@@ -123,7 +128,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
                     "id": user.crosswalk.id,
                     "user_hicn_hash": user.crosswalk.user_hicn_hash,
                     "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                    "fhir_id": user.crosswalk.fhir_id,
+                    "fhir_id": user.crosswalk.fhir_id(version),
                     "user_id_type": user.crosswalk.user_id_type,
                 },
             })
@@ -153,7 +158,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "user_mbi": user.crosswalk.user_mbi,
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
+                "fhir_id": user.crosswalk.fhir_id(version),
                 "user_id_type": user.crosswalk.user_id_type,
             },
         })
@@ -163,7 +168,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
     except User.DoesNotExist:
         pass
 
-    user = create_beneficiary_record(slsx_client, fhir_id=fhir_id, user_id_type=hash_lookup_type, request=request)
+    user = create_beneficiary_record(slsx_client, fhir_id_v2=fhir_id, user_id_type=hash_lookup_type, request=request)
 
     log_dict.update({
         "status": "OK",
@@ -177,7 +182,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "fhir_id": user.crosswalk.fhir_id,
+            "fhir_id": user.crosswalk.fhir_id(version),
             "user_id_type": user.crosswalk.user_id_type,
         },
     })
@@ -224,11 +229,12 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id_v2=None, fh
          "user_mbi_hash already exists",
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi_hash),
         (fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists(),
-         "fhir_id_v2 already exists",
-         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
+         "fhir_id_v2 already exists", MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
+        (fhir_id_v2 == "", "fhir_id_v2 can not be an empty string", MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
         (fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists(),
          "fhir_id_v3 already exists",
          MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v3),
+        (fhir_id_v3 == "", "fhir_id_v3 can not be an empty string", MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v3),
     ])
 
     with transaction.atomic():
@@ -273,8 +279,17 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id_v2=None, fh
 
 
 def _validate_asserts(logger, log_dict, asserts):
-    # asserts is a list of tuple : (boolean expression, err message, exception type)
-    # iterate boolean expressions and log err message if the expression evalaute to true
+    """Asserts a list of tuples, iterating through, logging error messages and raising exceptions
+
+    Args:
+        logger (_type_): the logger
+        log_dict (_type_): the log dictionary to update
+        asserts (list : (boolean, string, enum)): the list of tuples to evaluate, t[0] is a boolean expression, t[1] is the error message to log, and t[2] is the enum of exception to raise
+
+    Raises:
+        err: the error based on the result of iterating over asserts
+    """    
+    
     for t in asserts:
         bexp = t[0]
         mesg = t[1]

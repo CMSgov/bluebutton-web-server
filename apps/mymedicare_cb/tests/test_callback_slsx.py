@@ -139,7 +139,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         user = User.objects.create_user("bob", password="bad")
         Crosswalk.objects.create(
             user=user,
-            fhir_id="-20000000002346",
+            fhir_id_v2="-20000000002346",
             user_hicn_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
             user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321",
         )
@@ -373,7 +373,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_fhir_id = cw.fhir_id_v2
+        saved_fhir_id = cw.fhir_id(2)
         cw.set_fhir_id("XXX", 2)
         cw.save()
 
@@ -672,7 +672,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=1)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -830,7 +830,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=2)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -885,7 +885,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
                     },
                 },
@@ -936,7 +936,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=2)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -989,7 +989,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
                     },
                 },
@@ -1040,7 +1040,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=3)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -1102,7 +1102,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
                     },
                 },

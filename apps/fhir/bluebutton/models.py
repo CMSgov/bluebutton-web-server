@@ -146,7 +146,7 @@ class Crosswalk(models.Model):
     
     def fhir_id(self, version:int=2) -> str:
         """Helper method to return fhir_id based on BFD version"""
-        if version == 2 or version == 1:
+        if version in (1,2):
             return str(self.fhir_id_v2)
         elif version == 3:
             return str(self.fhir_id_v3)
@@ -155,7 +155,9 @@ class Crosswalk(models.Model):
 
     def set_fhir_id(self, value, version:int=2) -> None:
         """Helper method to set fhir_id based on BFD version"""
-        if version == 2 or version == 1:
+        if value == "":
+            raise ValidationError("fhir_id can not be an empty string")
+        if version in (1,2):
             self.fhir_id_v2 = value
         elif version == 3:
             self.fhir_id_v3 = value
@@ -223,14 +225,14 @@ class ArchivedCrosswalk(models.Model):
     fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
-        unique=True,
+        unique=False,
         db_column="fhir_id_v2",
         db_index=True,
     )
     fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
-        unique=True,
+        unique=False,
         db_column="fhir_id_v3",
         db_index=True,
     )
@@ -273,8 +275,8 @@ class ArchivedCrosswalk(models.Model):
     def create(crosswalk):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
-            fhir_id_v2=crosswalk.fhir_id_v2,
-            fhir_id_v3=crosswalk.fhir_id_v3,
+            fhir_id_v2=crosswalk.fhir_id(2),
+            fhir_id_v3=crosswalk.fhir_id(3),
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
             _user_mbi_hash=crosswalk.user_mbi_hash,

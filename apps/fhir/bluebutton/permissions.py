@@ -31,7 +31,7 @@ class ResourcePermission(permissions.BasePermission):
 class HasCrosswalk(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(
-            request.user and request.user.crosswalk and request.user.crosswalk.fhir_id
+            request.user and request.user.crosswalk and request.user.crosswalk.fhir_id(2)
         )
 
 
@@ -45,16 +45,16 @@ class ReadCrosswalkPermission(HasCrosswalk):
             if request.resource_type == "Coverage":
                 reference = obj["beneficiary"]["reference"]
                 reference_id = reference.split("/")[1]
-                if reference_id != request.crosswalk.fhir_id:
+                if reference_id != request.crosswalk.fhir_id(2):
                     raise exceptions.NotFound()
             elif request.resource_type == "ExplanationOfBenefit":
                 reference = obj["patient"]["reference"]
                 reference_id = reference.split("/")[1]
-                if reference_id != request.crosswalk.fhir_id:
+                if reference_id != request.crosswalk.fhir_id(2):
                     raise exceptions.NotFound()
             else:
                 reference_id = obj["id"]
-                if reference_id != request.crosswalk.fhir_id:
+                if reference_id != request.crosswalk.fhir_id(2):
                     raise exceptions.NotFound()
 
         except exceptions.NotFound:
@@ -67,7 +67,7 @@ class ReadCrosswalkPermission(HasCrosswalk):
 
 class SearchCrosswalkPermission(HasCrosswalk):
     def has_object_permission(self, request, view, obj):
-        patient_id = request.crosswalk.fhir_id
+        patient_id = request.crosswalk.fhir_id(2)
 
         if "patient" in request.GET and request.GET["patient"] != patient_id:
             return False

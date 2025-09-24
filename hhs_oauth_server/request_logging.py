@@ -383,7 +383,7 @@ class RequestResponseLog(object):
         if user:
             self.log_msg["user"] = str(user)
             try:
-                self.log_msg["fhir_id"] = str(user.crosswalk.fhir_id)
+                self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(2)
             except ObjectDoesNotExist:
                 pass
 

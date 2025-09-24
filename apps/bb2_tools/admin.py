@@ -361,8 +361,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     )
     def get_identities(self, obj):
         return format_html(
-            "<div><ul><li>FHIR_ID:{}</li><li>HICN HASH:{}</li><li>MBI HASH:{}</li>".format(
-                obj.fhir_id, obj.user_hicn_hash, obj.user_mbi_hash
+            "<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI HASH:{}</li>".format(
+                obj.fhir_id(2), obj.user_hicn_hash, obj.user_mbi_hash
             )
         )
 
