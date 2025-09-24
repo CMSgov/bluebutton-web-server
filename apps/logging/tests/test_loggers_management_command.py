@@ -369,6 +369,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "extra_crosswalk_synth_user01@example.com",
             "xxx123",
             "-90000000000001",
+            "-90000000000001",
             "xxxExtraHicnSynth01xxx",
             None,
             "BEN",
@@ -376,6 +377,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         self._create_user(
             "extra_crosswalk_synth_user02@example.com",
             "xxx123",
+            "-90000000000002",
             "-90000000000002",
             "xxxExtraHicnSynth02xxx",
             None,
@@ -385,6 +387,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "extra_crosswalk_real_user01@example.com",
             "xxx123",
             "90000000000001",
+            "90000000000001",
             "xxxExtraHicnReal01xxx",
             None,
             "BEN",
@@ -393,6 +396,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "extra_crosswalk_real_user02@example.com",
             "xxx123",
             "90000000000002",
+            "90000000000002",
             "xxxExtraHicnReal02xxx",
             None,
             "BEN",
@@ -400,6 +404,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         self._create_user(
             "extra_crosswalk_real_user03@example.com",
             "xxx123",
+            "90000000000003",
             "90000000000003",
             "xxxExtraHicnReal03xxx",
             None,
@@ -882,16 +887,12 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         TEST #5:
 
-        Test that crosswalk record with fhir_id = "" is not counted.
-
-        NOTE: Due to a unique constraint on the fhir_id, there can only be one of these in the system.
-
-        Setting one synth bene crosswalk fhir_id = "" should reduce synth counts by 1.
+        Test that crosswalk record with fhir_id_v2 = "" is not counted.
+        Setting one synth bene crosswalk fhir_id_v2 = "" should reduce synth counts by 1.
         """
-        # Setting synth user crosswalk entry to fhir_id="" and archiving cw
         cw = Crosswalk.objects.get(user=save_synth_user_dict["-60000000000003"])
         ArchivedCrosswalk.create(cw)
-        cw.set_fhir_id("", 2)
+        cw.fhir_id_v2="" # Don't use helper method to bypass validation
         cw.save()
 
         self._call_management_command_log_global_state_metrics()

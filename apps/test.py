@@ -217,12 +217,12 @@ class BaseApiTest(TestCase):
         )
         pt_id = fhir_id_v2 if fhir_id_v2 is not None else settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
-        if Crosswalk.objects.filter(_fhir_id_v2=pt_id).exists():
-            Crosswalk.objects.filter(_fhir_id_v2=pt_id).delete()
+        if Crosswalk.objects.filter(fhir_id_v2=pt_id).exists():
+            Crosswalk.objects.filter(fhir_id_v2=pt_id).delete()
 
         Crosswalk.objects.create(
             user=user,
-            fhir_id=pt_id,
+            fhir_id_v2=pt_id,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
         )
@@ -350,7 +350,7 @@ class BaseApiTest(TestCase):
         return user
 
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id_v2, app_name, app_username, app_user_organization,
+        self, first_name, last_name, fhir_id, app_name, app_username, app_user_organization,
         app_data_access_type=None
     ):
         """
@@ -400,7 +400,7 @@ class BaseApiTest(TestCase):
             user = self._create_user(
                 username=username,
                 password="xxx123",
-                fhir_id_v2=fhir_id_v2,
+                fhir_id_v2=fhir_id,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
             )
@@ -429,7 +429,7 @@ class BaseApiTest(TestCase):
             user, app, ac = self._create_user_app_token_grant(
                 first_name="first",
                 last_name="last" + fhir_id_v2,
-                fhir_id_v2=fhir_id_v2,
+                fhir_id=fhir_id_v2,
                 app_name=app_name,
                 app_username="user_" + app_name,
                 app_user_organization=app_user_organization,
@@ -440,11 +440,11 @@ class BaseApiTest(TestCase):
 
     def _revoke_range_users_app_token_grant(self, start_fhir_id, count, app_name):
         """
-        Helper method that revokes a RANGE of users (by fhir_id) connected to an application.
+        Helper method that revokes a RANGE of users (by fhir_id_v2) connected to an application.
         This removes Access Token, and Grant. Useful for testing archived tokens and grants.
         """
         for i in range(0, count):
             fhir_id = start_fhir_id + str(i)
-            cw = Crosswalk.objects.get(_fhir_id=fhir_id)
+            cw = Crosswalk.objects.get(fhir_id_v2=fhir_id)
             app = Application.objects.get(name=app_name)
             remove_application_user_pair_tokens_data_access(app, cw.user)

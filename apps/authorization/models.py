@@ -139,7 +139,7 @@ def get_grant_bene_counts(application=None):
 
     real_grant_queryset = grant_queryset.filter(
         ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
-        & ~Q(beneficiary__crosswalk__fhir_id_v2__="")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
         & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary")
 
@@ -248,7 +248,7 @@ def get_beneficiary_counts():
         User.objects.select_related()
         .filter(userprofile__user_type="BEN")
         .annotate(
-            fhir_id=Min("crosswalk__fhir_id_v2"),
+            fhir_id_v2=Min("crosswalk__fhir_id_v2"),
             grant_count=Count("dataaccessgrant__application", distinct=True),
             grant_archived_count=Count(
                 "archiveddataaccessgrant__application", distinct=True
@@ -261,10 +261,10 @@ def get_beneficiary_counts():
     counts_returned["total"] = queryset.count()
 
     # Setup base Real queryset
-    real_queryset = queryset.filter(~Q(fhir_id__startswith="-") & ~Q(fhir_id=""))
+    real_queryset = queryset.filter(~Q(fhir_id_v2__startswith="-") & ~Q(fhir_id_v2=""))
 
     # Setup base synthetic queryset
-    synthetic_queryset = queryset.filter(Q(fhir_id__startswith="-") & ~Q(fhir_id=""))
+    synthetic_queryset = queryset.filter(Q(fhir_id_v2__startswith="-") & ~Q(fhir_id_v2=""))
 
     # Real/synth counts. This should match counts using the Crosswalk table directly.
     counts_returned["real"] = real_queryset.count()
@@ -493,9 +493,9 @@ def get_beneficiary_grant_app_pair_counts():
     ).values("beneficiary", "application")
 
     synthetic_grant_archived_queryset = grant_archived_queryset.filter(
-        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
-        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
-        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
+        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-") &
+        ~Q(beneficiary__crosswalk__fhir_id_v2="") &
+        Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
     # Get total table count

@@ -24,14 +24,18 @@ class RealCrosswalkManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .filter(~Q(_fhir_id_v2__startswith="-") & ~Q(_fhir_id_v2=""))
+            .filter(
+                ~Q(fhir_id_v2__startswith="-") &
+                ~Q(fhir_id_v2="") &
+                ~Q(fhir_id_v2__isnull=True)
+            )
         )
 
 
 # Synthetic fhir_id Manager subclass
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(Q(_fhir_id_v2__startswith="-"))
+        return super().get_queryset().filter(Q(fhir_id_v2__startswith="-"))
 
 
 def hash_id_value(hicn):

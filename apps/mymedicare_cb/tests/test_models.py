@@ -47,6 +47,7 @@ class BeneficiaryLoginTest(TestCase):
             "user_mbi_hash": None,
             "user_id_type": "H",
             "fhir_id_v2": "-20000000002346",
+            "fhir_id_v3": "-20000000002347",
             "first_name": "Hello",
             "last_name": "World",
             "email": "fu@bar.bar",
@@ -59,6 +60,7 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(bene.crosswalk.user_mbi_hash, args["user_mbi_hash"])
         self.assertEqual(bene.crosswalk.user_id_type, args["user_id_type"])
         self.assertEqual(bene.crosswalk.fhir_id(2), args["fhir_id_v2"])
+        self.assertEqual(bene.crosswalk.fhir_id(3), args["fhir_id_v3"])
         self.assertEqual(bene.userprofile.user_type, 'BEN')
 
     def test_create_beneficiary_record_no_mbi_hash(self):
@@ -69,6 +71,7 @@ class BeneficiaryLoginTest(TestCase):
             "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
             "user_id_type": "H",
             "fhir_id_v2": "-20000000002346",
+            "fhir_id_v3": "-20000000002347",
             "first_name": "Hello",
             "last_name": "World",
             "email": "fu@bar.bar",
@@ -81,6 +84,7 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(bene.crosswalk.user_mbi_hash, None)
         self.assertEqual(bene.crosswalk.user_id_type, args["user_id_type"])
         self.assertEqual(bene.crosswalk.fhir_id(2), args["fhir_id_v2"])
+        self.assertEqual(bene.crosswalk.fhir_id(3), args["fhir_id_v3"])
         self.assertEqual(bene.userprofile.user_type, 'BEN')
 
     def test_fail_create_beneficiary_record(self):
