@@ -82,7 +82,6 @@ class Command(BaseCommand):
                 _user_mbi__isnull=True,
                 _user_mbi_hash__isnull=False,
             )
-            .exclude(_fhir_id__startswith="-")
             [:batch_size]
         )
         logger.info("# of records returned %s" % (len(qualifying_records)))
@@ -107,17 +106,17 @@ class Command(BaseCommand):
                     
                     patient_info = get_patient_by_mbi_hash(user_mbi_hash, request)
 
-                    logger.info("patient_info %s" % (patient_info))
                     user_mbi = self.extract_mbi(patient_info)
 
                     logger.info("crosswalk.user_id %s" % (crosswalk.user_id))
                     if user_mbi:
                         if execute:
+                            logger.info("User %s: Updated MBI for user" % (crosswalk.user_id))
                             self.update_mbi(user_mbi, crosswalk)
                         else:
-                            logger.info("Not performing update - execute flag set to false")
+                            logger.info("User %s: Not updating MBI - execute flag set to false" % (crosswalk.user_id))
                     else:
-                        logger.info("MBI not found, can't update crosswalk record for fhir_id = %s" % (crosswalk.fhir_id))
+                        logger.info("User %s: MBI not found, can't update crosswalk record for user" % (crosswalk.user_id))
                     break
                 except requests.RequestException as e:
                     # try again 3 times, with increasingly longer sleeps, to get around any rate limit issues
