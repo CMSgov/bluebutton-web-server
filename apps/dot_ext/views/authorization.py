@@ -93,6 +93,35 @@ class AuthorizationView(DotAuthorizationView):
         """True if param exists in either GET or POST."""
         return (key in request.GET) or (key in request.POST)
 
+    def _check_for_required_params(self, request):
+        missing_params = []
+        v3 = True if request.path.startswith('/v3/o/authorize') else False
+
+        if switch_is_active('require_pkce'):
+            if not request.GET.get('code_challenge', None):
+                missing_params.append("code_challenge")
+            if not request.GET.get('code_challenge_method', None):
+                missing_params.append("code_challenge_method")
+
+        if switch_is_active('require_state'):
+            if not request.GET.get('state', None):
+                missing_params.append("state")
+            elif len(request.GET.get('state', None)) < 16:
+                error_message = "State parameter should have a minimum of 16 characters"
+                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
+
+        if switch_is_active('v3_endpoints') and v3:
+            if 'scope' not in request.GET:
+                missing_params.append("scope")
+
+        if missing_params:
+            return JsonResponse({
+                "status_code": 400,
+                "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
+            }, status=400)
+        else:
+            return None
+
     def get_context_data(self, **kwargs):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
@@ -181,6 +210,9 @@ class AuthorizationView(DotAuthorizationView):
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
         kwargs['code_challenge'] = request.GET.get('code_challenge', None)
         kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
@@ -196,27 +228,6 @@ class AuthorizationView(DotAuthorizationView):
             # "code_challenge": form.cleaned_data.get("code_challenge", None),
             # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
-
-        missing_params = []
-
-        if switch_is_active('require_pkce'):
-            if not form.cleaned_data.get("code_challenge"):
-                missing_params.append("code_challenge")
-            if not form.cleaned_data.get("code_challenge_method"):
-                missing_params.append("code_challenge_method")
-
-        if switch_is_active('require_state'):
-            if not form.cleaned_data.get("state"):
-                missing_params.append("state")
-            elif len(form.cleaned_data.get("state")) < 16:
-                error_message = "State parameter should have a minimum of 16 characters"
-                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
-
-        if missing_params:
-            return JsonResponse({
-                "status_code": 400,
-                "message": f"Missing Required Parameter(s): {', '.join(missing_params)}"
-            }, status=400)
 
         if form.cleaned_data.get("code_challenge"):
             credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
