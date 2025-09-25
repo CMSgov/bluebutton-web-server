@@ -2057,439 +2057,122 @@ components:
     V3FhirMetadataExample:
       value:
         resourceType: CapabilityStatement
-        id: 2d5aeb83-1575-45ec-9b33-af2d239f7aa8
+        id: 41ba8bae-b53d-46ff-abe4-4ba43dba81b3
+        text:
+          status: generated
+          div: <div xmlns="http://www.w3.org/1999/xhtml">HAPI FHIR Server</div>
         name: RestServer
         status: active
-        date: '2024-07-25T02:51:53.012-04:00'
-        publisher: Centers for Medicare & Medicaid Services
+        date: '2025-09-23T19:18:43.298+00:00'
+        publisher: Not provided
         kind: instance
         software:
-          name: 'Blue Button API: Direct'
-          version: 2.141.0
+          name: HAPI FHIR Server
+          version: 8.4.0
         implementation:
-          description: 'gov.cms.bfd:bfd-server-war'
-          url: 'https://sandbox.bluebutton.cms.gov/v2/fhir'
+          description: HAPI FHIR
+          url: http://localhost:8080/v3/fhir
         fhirVersion: 4.0.1
         format:
-          - application/json
-          - application/fhir+json
+        - application/json
+        - application/fhir+json
         rest:
-          - mode: server
-            resource:
-              - type: Coverage
-                profile: 'http://hl7.org/fhir/StructureDefinition/Coverage'
-                interaction:
-                  - code: read
-                  - code: search-type
-                searchInclude:
-                  - '*'
-                  - 'Coverage:beneficiary'
-                searchRevInclude:
-                  - 'Claim:mbi'
-                  - 'ClaimResponse:mbi'
-                  - 'Coverage:beneficiary'
-                  - 'ExplanationOfBenefit:patient'
-                searchParam:
-                  - name: beneficiary
-                    type: reference
-                    documentation: >-
-                      Fetch _Beneficiary_ data using a FHIR _IdType_ identifier; an
-                      IdType
-                      
-                      represents the logical identity for a resource, or as much of that
-                      
-                      identity that is known. In FHIR, every resource must have a
-                      _logical ID_ which is
-                      
-                      defined by the [FHIR
-                      specification](https://www.hl7.org/fhir/r4/datatypes.html#id) as:
-                      
-                      
-                      `Any combination of upper or lower case ASCII letters ('A'..'Z',
-                      and 'a'..'z', numerals ('0'..'9'),
-                      
-                      '-' and '.', with a length limit of 64 characters. (This might be
-                      an integer, an un-prefixed OID, UUID
-                      
-                      or any other identifier pattern that meets these constraints.)`
-                      
-                      
-                      This class contains that logical ID, and can optionally also
-                      contain a relative or absolute URL
-                      
-                      representing the resource identity; the following are all valid
-                      values for IdType, and all might
-                      
-                      represent the same resource:
-                      
-                      - `beneficiary=567834`
-                      
-                      - `beneficiary=1234`
-                  - name: _lastUpdated
-                    type: date
-                    documentation: >-
-                      Only satisfy the Search if the Beneficiary's `last_updated` Date
-                      falls within a specified _DateRange_.
-                      
-                      A _DateRange_ can be defined by providing less than `lt` and/or
-                      greater than `gt` values.
-                      
-                      This parameter can be included in a request one or more times.
-                      
-                      
-                      Examples:
-                        - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
-                        - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
-                        - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
-                  - name: _profile
-                    type: string
-                  - name: startIndex
-                    type: string
-                    documentation: >-
-                      When fetching a _Bundle Response_ using pagination, this URL
-                      parameter represents an offset
-                      
-                      (starting point) into the list of elements for the _Request_.
-                      
-                      It is optional and defaults to 1 if not supplied.
-                      
-                      A value 0 is not allowed and negative indices are not currently
-                      supported.
-                      
-                      
-                      Example:
-                         - `startIndex=100`
-              - type: ExplanationOfBenefit
-                profile: 'http://hl7.org/fhir/StructureDefinition/ExplanationOfBenefit'
-                interaction:
-                  - code: read
-                  - code: search-type
-                searchInclude:
-                  - '*'
-                  - 'ExplanationOfBenefit:patient'
-                searchRevInclude:
-                  - 'Claim:mbi'
-                  - 'ClaimResponse:mbi'
-                  - 'Coverage:beneficiary'
-                  - 'ExplanationOfBenefit:patient'
-                searchParam:
-                  - name: patient
-                    type: reference
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-                      
-                      
-                      Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
-                      
-                      represents the logical identity for a resource, or as much of that
-                      
-                      identity that is known. In FHIR, every resource must have a
-                      _logical ID_ which is
-                      
-                      defined by the [FHIR
-                      specification](https://www.hl7.org/fhir/r4/datatypes.html#id) as:
-                      
-                      
-                      `Any combination of upper or lower case ASCII letters ('A'..'Z',
-                      and 'a'..'z', numerals ('0'..'9'),
-                      
-                      '-' and '.', with a length limit of 64 characters. (This might be
-                      an integer, an un-prefixed OID, UUID
-                      
-                      or any other identifier pattern that meets these constraints.)`
-                      
-                      
-                      This class contains that logical ID, and can optionally also
-                      contain a relative or absolute URL
-                      
-                      representing the resource identity; the following are all valid
-                      values for IdType, and all might
-                      
-                      represent the same resource:
-                        - `_id=567834`
-                        - `_id=1234`
-                  - name: _lastUpdated
-                    type: date
-                    documentation: >-
-                      Only satisfy the Search if the Beneficiary's `last_updated` Date
-                      falls within a specified _DateRange_.
-                      
-                      A _DateRange_ can be defined by providing less than `lt` and/or
-                      greater than `gt` values.
-                      
-                      This parameter can be included in a request one or more times.
-                      
-                      
-                      Examples:
-                        - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
-                        - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
-                        - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
-                  - name: excludeSAMHSA
-                    type: string
-                    documentation: >-
-                      The _Substance Abuse and Mental Health Services Administration_
-                      (SAMHSA)
-                      
-                      is the agency within the U.S. Department of HHS that leads public
-                      health efforts to advance the behavioral health of the nation.
-                      
-                      Setting this flag to _true_, modifies the request to filter out
-                      all SAMSHA-related claims from the response.
-                      
-                      
-                      Examples:
-                         - `excludeSAMHSA=true`
-                  - name: includeTaxNumbers
-                    type: string
-                    documentation: >-
-                      Setting this flag to _true_, provides tax number in the EOB
-                      transformed data for the response.
-                      
-                      
-                      Example:
-                         - `includeTaxNumbers=true`
-                  - name: service-date
-                    type: date
-                    documentation: >-
-                      Only satisfy the Search request if a claim's _billable period_
-                      
-                      falls within a specified _DateRange_. A _DateRange_ can be
-                      
-                      defined by providing less than `lt` and/or greater than `gt`
-                      values.
-                      
-                      This parameter can be included in a request one or more times.
-                      
-                      
-                      Examples:
-                        - `service-date=gt2023-01-02&service-date=lt2023-05-01` defines a range between two provided dates
-                        - `service-date=gt2023-01-02` defines a range between the provided date and today
-                        - `service-date=lt2023-05-01` defines a range from the earliest available records until the provided date
-                  - name: startIndex
-                    type: string
-                    documentation: >-
-                      When fetching a _Bundle Response_ using pagination, this URL
-                      parameter represents an offset
-                      
-                      (starting point) into the list of elements for the _Request_.
-                      
-                      It is optional and defaults to 1 if not supplied.
-                      
-                      A value 0 is not allowed and negative indices are not currently
-                      supported.
-                      
-                      
-                      Example:
-                         - `startIndex=100`
-                  - name: type
-                    type: token
-                    documentation: >-
-                      One or more comma-delimited claim types that filters the response
-                      to contain only EoBs that include the specified claim types.
-                      
-                      This is optional and defaults to `*` denoting all types.
-                      
-                      Supported values for claim type:
-                         - `*` all types (default)
-                         - `carrier`
-                         - `dme`
-                         - `hha`
-                         - `hospice`
-                         - `inpatient`
-                         - `outpatient`
-                         - `partd`
-                         - `snf`
-                      
-                      Examples:
-                         - `type=carrier,inpatient,snf,dme`
-                         - `type=outpatient`
-                         - `type=*`
-              - type: Patient
-                profile: 'http://hl7.org/fhir/StructureDefinition/Patient'
-                interaction:
-                  - code: read
-                  - code: search-type
-                searchInclude:
-                  - '*'
-                searchRevInclude:
-                  - 'Claim:mbi'
-                  - 'ClaimResponse:mbi'
-                  - 'Coverage:beneficiary'
-                  - 'ExplanationOfBenefit:patient'
-                searchParam:
-                  - name: _id
-                    type: token
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-                      
-                      
-                      Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
-                      
-                      represents the logical identity for a resource, or as much of that
-                      
-                      identity that is known. In FHIR, every resource must have a
-                      _logical ID_ which is
-                      
-                      defined by the [FHIR
-                      specification](https://www.hl7.org/fhir/r4/datatypes.html#id) as:
-                      
-                      
-                      `Any combination of upper or lower case ASCII letters ('A'..'Z',
-                      and 'a'..'z', numerals ('0'..'9'),
-                      
-                      '-' and '.', with a length limit of 64 characters. (This might be
-                      an integer, an un-prefixed OID, UUID
-                      
-                      or any other identifier pattern that meets these constraints.)`
-                      
-                      
-                      This class contains that logical ID, and can optionally also
-                      contain a relative or absolute URL
-                      
-                      representing the resource identity; the following are all valid
-                      values for IdType, and all might
-                      
-                      represent the same resource:
-                        - `_id=567834`
-                        - `_id=1234`
-                  - name: _lastUpdated
-                    type: date
-                    documentation: >-
-                      Only satisfy the Search if the Beneficiary's `last_updated` Date
-                      falls within a specified _DateRange_.
-                      
-                      A _DateRange_ can be defined by providing less than `lt` and/or
-                      greater than `gt` values.
-                      
-                      This parameter can be included in a request one or more times.
-                      
-                      
-                      Examples:
-                        - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
-                        - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
-                        - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
-                  - name: startIndex
-                    type: string
-                    documentation: >-
-                      When fetching a _Bundle Response_ using pagination, this URL
-                      parameter represents an offset
-                      
-                      (starting point) into the list of elements for the _Request_.
-                      
-                      It is optional and defaults to 1 if not supplied.
-                      
-                      A value 0 is not allowed and negative indices are not currently
-                      supported.
-                      
-                      
-                      Example:
-                         - `startIndex=100`
-                  - name: identifier
-                    type: token
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-                      
-                      
-                      Fetch _Patient_ data using a FHIR _identifier_; an identifier
-                      contains a set of values that
-                      
-                      include the logical identity for a resource. In FHIR, the
-                      _identifier_ is a parent element
-                      
-                      defined by the [FHIR
-                      specification](https://www.hl7.org/fhir/r4/datatypes-definitions.html#Identifier)
-                      as:
-                      
-                      
-                      `A string, typically numeric or alphanumeric, that is associated
-                      with a single object or entity within a given system.
-                      
-                      Typically, identifiers are used to connect content in resources to
-                      external content available in other frameworks or protocols.
-                      
-                      Identifiers are associated with objects and may be changed or
-                      retired due to human or system process and errors.`
-                      
-                      
-                      This class contains the identifier, which is usually represented
-                      as a URL, along with a single, url encoded, pipe-delimited
-                      key|value pair, with the value as
-                      
-                      (mbi, hicn, etc); the following are all valid values for
-                      Identifier, and all might represent the same resource:
-                        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
-                        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
-                  - name: '_has:Coverage.extension'
-                    type: token
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-                      
-                      
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-                      
-                      the Part D contract value that will be used when determining
-                      eligibility.
-                      
-                      
-                      Example:
-                         - `_has:Coverage.extension=<Part D Contract ID Here>`
-                         - `_has:Coverage.extension=ABCD`
-                  - name: '_has:Coverage.rfrncyr'
-                    type: token
-                    documentation: >-
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-                      
-                      the reference year that will be applied when determining
-                      applicable Part D events.
-                      
-                      
-                      Example:
-                         - `_has:Coverage.rfrncyr=2023`
-                  - name: cursor
-                    type: string
-                    documentation: >-
-                      Provide a pagination cursor or numeric _offset_ for processing
-                      Patient's Part D events information.
-                      
-                      
-                      Examples:
-                         - `cursor=200` the first record is the 201st record
-                         - `cursor=1000` the first record is the 1001st record
-            security:
-              cors: true
-              service:
-                - text: OAuth
-                  coding:
-                    - system: 'http://hl7.org/fhir/restful-security-service'
-                      code: OAuth
-                      display: OAuth
-                - text: >-
-                    OAuth2 using SMART-on-FHIR profile (see
-                    http://docs.smarthealthit.org)
-                  coding:
-                    - system: 'http://hl7.org/fhir/restful-security-service'
-                      code: SMART-on-FHIR
-                      display: SMART-on-FHIR
+        - mode: server
+          resource:
+          - type: Coverage
+            profile: http://hl7.org/fhir/StructureDefinition/Coverage
+            interaction:
+            - code: read
+            - code: search-type
+            searchInclude:
+            - "*"
+            - Coverage:beneficiary
+            searchRevInclude:
+            - Coverage:beneficiary
+            - ExplanationOfBenefit:patient
+            searchParam:
+            - name: _id
+              type: string
+              documentation: The ID of the resource
+            - name: _lastUpdated
+              type: date
+              documentation: Only return resources which were last updated as specified by
+                the given range
+            - name: beneficiary
+              type: reference
+              documentation: Covered party
+          - type: ExplanationOfBenefit
+            profile: http://hl7.org/fhir/StructureDefinition/ExplanationOfBenefit
+            interaction:
+            - code: read
+            - code: search-type
+            searchInclude:
+            - "*"
+            - ExplanationOfBenefit:patient
+            searchRevInclude:
+            - Coverage:beneficiary
+            - ExplanationOfBenefit:patient
+            searchParam:
+            - name: patient
+              type: reference
+              documentation: The reference to the patient
+            - name: _lastUpdated
+              type: date
+              documentation: Only return resources which were last updated as specified by
+                the given range
+            - name: _tag
+              type: token
+              documentation: The tag of the resource
+            - name: service-date
+              type: date
+            - name: startIndex
+              type: number
+            - name: _id
+              type: string
+              documentation: The ID of the resource
+          - type: Patient
+            profile: http://hl7.org/fhir/StructureDefinition/Patient
+            interaction:
+            - code: read
+            - code: search-type
+            searchInclude:
+            - "*"
+            searchRevInclude:
+            - Coverage:beneficiary
+            - ExplanationOfBenefit:patient
+            searchParam:
+            - name: _id
+              type: string
+              documentation: The ID of the resource
+            - name: _lastUpdated
+              type: date
+              documentation: Only return resources which were last updated as specified by
+                the given range
+            - name: identifier
+              type: token
+              documentation: A patient identifier
+          security:
+            cors: true
+            service:
+            - text: OAuth
+              coding:
+              - system: http://hl7.org/fhir/restful-security-service
+                code: OAuth
+                display: OAuth
+            - text: OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)
+              coding:
+              - system: http://hl7.org/fhir/restful-security-service
+                code: SMART-on-FHIR
+                display: SMART-on-FHIR
+            extension:
+            - url: http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
               extension:
-                - url: >-
-                    http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
-                  extension:
-                    - url: token
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
-                    - url: authorize
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
-                    - url: revoke
-                      valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
+              - url: token
+                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/token
+              - url: authorize
+                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/authorize
+              - url: revoke
+                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/revoke_token
 
     V1UserInfoExample:
       value:
@@ -2636,78 +2319,56 @@ components:
     V3FhirPatientByIdExample:
       value:
         resourceType: Patient
-        id: '-10000010254647'
+        id: "-512738563"
         meta:
-          lastUpdated: '2023-06-14T14:17:07.293-04:00'
+          lastUpdated: '2025-09-18T13:39:37.328+00:00'
           profile:
-            - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient'
+          - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient|2.1.0
+          - http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|6.1.0
         extension:
-          - url: 'https://bluebutton.cms.gov/resources/variables/race'
+        - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-sex
+          valueCode: '248153007'
+        - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-race
+          extension:
+          - url: ombCategory
             valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/race'
-              code: '2'
-              display: Black
-          - url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race'
-            extension:
-              - url: ombCategory
-                valueCoding:
-                  system: 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'
-                  code: UNK
-                  display: Unknown
-              - url: text
-                valueString: Unknown
-          - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-            valueDate: '2025'
-          - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-              code: '02'
-              display: 'QMB and full Medicaid coverage, including prescription drugs'
-          - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-              code: '02'
-              display: 'QMB and full Medicaid coverage, including prescription drugs'
-          - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-              code: '02'
-              display: 'QMB and full Medicaid coverage, including prescription drugs'
+              system: urn:oid:2.16.840.1.113883.6.238
+              code: 2106-3
+              display: White
+          - url: text
+            valueCode: White
         identifier:
-          - type:
-              coding:
-                - system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
-                  code: MB
-                  display: Member Number
-            system: 'https://bluebutton.cms.gov/resources/variables/bene_id'
-            value: '-10000010254647'
-          - type:
-              coding:
-                - extension:
-                    - url: >-
-                        https://bluebutton.cms.gov/resources/codesystem/identifier-currency
-                      valueCoding:
-                        system: >-
-                          https://bluebutton.cms.gov/resources/codesystem/identifier-currency
-                        code: current
-                        display: Current
-                  system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
-                  code: MC
-                  display: Patient's Medicare number
-            system: 'http://hl7.org/fhir/sid/us-mbi'
-            value: 1S00EU7JH47
+        - type:
+            coding:
+            - system: http://terminology.hl7.org/CodeSystem/v2-0203
+              code: MB
+          system: http://hl7.org/fhir/sid/us-mbi
+          value: 1S00EU8DG31
+          period:
+            start: '2017-11-28T00:00:00+00:00'
         name:
-          - use: usual
-            family: Ratke343
-            given:
-              - Johnie961
-              - C
+        - family: Heaney114
+          given:
+          - Tanner110
+          - M
         gender: male
-        birthDate: '1990-08-14'
-        deceasedBoolean: false
+        birthDate: '1959-06-07'
         address:
-          - state: '01'
-            postalCode: '35756'
+        - line:
+          - 777 Brockton Avenue
+          city: Abington
+          state: MA
+          postalCode: '2351'
+        communication:
+        - language:
+            coding:
+            - system: urn:ietf:bcp:47
+              code: es
+        link:
+        - other:
+            reference: Patient/-264332726
+            display: "-264332726"
+          type: replaces
 
     V1FhirPatientExample:
       value:
@@ -2868,95 +2529,67 @@ components:
     V3FhirPatientExample:
       value:
         resourceType: Bundle
-        id: 2fa2bdb1-2caa-42ed-97c1-8496c3220ecd
+        id: 96a9cdf6-4678-4189-a5f5-3458b797ccd2
         meta:
-          lastUpdated: '2024-07-24T08:08:33.779-04:00'
+          lastUpdated: '2025-09-25T13:58:54.877+00:00'
         type: searchset
+        total: 10
         link:
-          - relation: first
-            url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
-          - relation: last
-            url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-10000010254647
-          - relation: self
-            url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-10000010254647&startIndex=0
+        - relation: self
+          url: http://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-512738563
         entry:
-          - resource:
-              resourceType: Patient
-              id: '-10000010254647'
-              meta:
-                lastUpdated: '2023-06-14T14:17:07.293-04:00'
-                profile:
-                  - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient'
+        - resource:
+            resourceType: Patient
+            id: "-512738563"
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|6.1.0
+            extension:
+            - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-sex
+              valueCode: '248153007'
+            - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-race
               extension:
-                - url: 'https://bluebutton.cms.gov/resources/variables/race'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/race'
-                    code: '2'
-                    display: Black
-                - url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race'
-                  extension:
-                    - url: ombCategory
-                      valueCoding:
-                        system: 'http://terminology.hl7.org/CodeSystem/v3-NullFlavor'
-                        code: UNK
-                        display: Unknown
-                    - url: text
-                      valueString: Unknown
-                - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-                  valueDate: '2025'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-              identifier:
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
-                        code: MB
-                        display: Member Number
-                  system: 'https://bluebutton.cms.gov/resources/variables/bene_id'
-                  value: '-10000010254647'
-                - type:
-                    coding:
-                      - extension:
-                          - url: >-
-                              https://bluebutton.cms.gov/resources/codesystem/identifier-currency
-                            valueCoding:
-                              system: >-
-                                https://bluebutton.cms.gov/resources/codesystem/identifier-currency
-                              code: current
-                              display: Current
-                        system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
-                        code: MC
-                        display: Patient's Medicare number
-                  system: 'http://hl7.org/fhir/sid/us-mbi'
-                  value: 1S00EU7JH47
-              name:
-                - use: usual
-                  family: Ratke343
-                  given:
-                    - Johnie961
-                    - C
-              gender: male
-              birthDate: '1990-08-14'
-              deceasedBoolean: false
-              address:
-                - state: '01'
-                  postalCode: '35756'
+              - url: ombCategory
+                valueCoding:
+                  system: urn:oid:2.16.840.1.113883.6.238
+                  code: 2106-3
+                  display: White
+              - url: text
+                valueCode: White
+            identifier:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+              period:
+                start: '2017-11-28T00:00:00+00:00'
+            name:
+            - family: Heaney114
+              given:
+              - Tanner110
+              - M
+            gender: male
+            birthDate: '1959-06-07'
+            address:
+            - line:
+              - 777 Brockton Avenue
+              city: Abington
+              state: MA
+              postalCode: '2351'
+            communication:
+            - language:
+                coding:
+                - system: urn:ietf:bcp:47
+                  code: es
+            link:
+            - other:
+                reference: Patient/-264332726
+                display: "-264332726"
+              type: replaces
 
     V1FhirCoverageExample:
       value:
@@ -4674,902 +4307,266 @@ components:
     V3FhirCoverageExample:
       value:
         resourceType: Bundle
-        id: 09d9f8b8-d3c2-45b9-98e4-0639fb790c76
+        id: 641e31bb-a9a6-4c73-86ec-a196cc047780
         meta:
-          lastUpdated: '2024-07-24T08:08:33.779-04:00'
+          lastUpdated: '2025-09-25T14:06:17.784+00:00'
         type: searchset
+        total: 10
         link:
-          - relation: first
-            url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
-          - relation: last
-            url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&beneficiary=Patient%2F-10000010254647
-          - relation: self
-            url: >-
-              https://sandbox.bluebutton.cms.gov/v2/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-10000010254647&startIndex=0
+        - relation: self
+          url: http://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-512738563
         entry:
-          - resource:
-              resourceType: Coverage
-              id: part-a--10000010254647
+        - resource:
+            resourceType: Coverage
+            id: part-a--512738563
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+            contained:
+            - resourceType: Organization
+              id: cms-org
               meta:
-                lastUpdated: '2023-06-14T14:17:07.293-04:00'
                 profile:
-                  - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage'
-              extension:
-                - url: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-                    code: '20'
-                    display: Disabled without ESRD
-                - url: 'https://bluebutton.cms.gov/resources/variables/orec'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/orec'
-                    code: '1'
-                    display: Disability insurance benefits (DIB)
-                - url: 'https://bluebutton.cms.gov/resources/variables/crec'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/crec'
-                    code: '1'
-                    display: Disability insurance benefits (DIB)
-                - url: 'https://bluebutton.cms.gov/resources/variables/esrd_ind'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/esrd_ind'
-                    code: '0'
-                    display: the beneficiary does not have ESRD
-                - url: 'https://bluebutton.cms.gov/resources/variables/a_trm_cd'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/a_trm_cd'
-                    code: '0'
-                    display: Not Terminated
-                - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-                  valueDate: '2025'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/buyin01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/buyin01'
-                    code: C
-                    display: Part A and Part B state buy-in
-                - url: 'https://bluebutton.cms.gov/resources/variables/buyin02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/buyin02'
-                    code: C
-                    display: Part A and Part B state buy-in
-                - url: 'https://bluebutton.cms.gov/resources/variables/buyin03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/buyin03'
-                    code: C
-                    display: Part A and Part B state buy-in
-              status: active
-              type:
+                - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+              - purpose:
+                  coding:
+                  - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                    code: PATINF
+                    display: Patient
+                telecom:
+                - system: phone
+                  value: 1-800-633-4227
+                - system: phone
+                  value: 'TTY: 1-877-486-2048'
+                - system: url
+                  value: www.medicare.gov
+            extension:
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-BUYIN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-BUYIN-CD
+                code: G
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ENRLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ENRLMT-RSN-CD
+                code: D
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-STUS-CD
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-STUS-CD
+                code: '31'
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ESRD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ESRD-STUS-ID
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DSBLD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DSBLD-STUS-ID
+                code: "N"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD
+                code: '3'
+            identifier:
+            - type:
                 coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
-                    code: SUBSIDIZ
-              subscriberId: 1S00EU7JH47
-              beneficiary:
-                reference: Patient/-10000010254647
-              relationship:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+            status: active
+            type:
+              coding:
+              - system: https://nahdo.org/sopt
+                code: '1'
+                display: MEDICARE
+            subscriberId: 1S00EU8DG31
+            beneficiary:
+              reference: Patient/-512738563
+            relationship:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+                code: self
+                display: Self
+            period:
+              start: '2017-11-28'
+            payor:
+            - reference: "#cms-org"
+            class:
+            - type:
                 coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
-                    code: self
-                    display: Self
-              period:
-                start: '2014-02-06'
-              payor:
-                - identifier:
-                    value: Centers for Medicare and Medicaid Services
-              class:
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: group
-                        display: Group
-                  value: Medicare
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: plan
-                        display: Plan
-                  value: Part A
-          - resource:
-              resourceType: Coverage
-              id: part-b--10000010254647
+                - system: http://terminology.hl7.org/CodeSystem/coverage-class
+                  code: plan
+              value: Part A
+        - resource:
+            resourceType: Coverage
+            id: part-b--512738563
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+            contained:
+            - resourceType: Organization
+              id: cms-org
               meta:
-                lastUpdated: '2023-06-14T14:17:07.293-04:00'
                 profile:
-                  - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage'
-              extension:
-                - url: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-                    code: '20'
-                    display: Disabled without ESRD
-                - url: 'https://bluebutton.cms.gov/resources/variables/b_trm_cd'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/b_trm_cd'
-                    code: '0'
-                    display: Not Terminated
-                - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-                  valueDate: '2025'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/buyin01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/buyin01'
-                    code: C
-                    display: Part A and Part B state buy-in
-                - url: 'https://bluebutton.cms.gov/resources/variables/buyin02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/buyin02'
-                    code: C
-                    display: Part A and Part B state buy-in
-                - url: 'https://bluebutton.cms.gov/resources/variables/buyin03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/buyin03'
-                    code: C
-                    display: Part A and Part B state buy-in
-              status: active
-              type:
+                - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+              - purpose:
+                  coding:
+                  - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                    code: PATINF
+                    display: Patient
+                telecom:
+                - system: phone
+                  value: 1-800-633-4227
+                - system: phone
+                  value: 'TTY: 1-877-486-2048'
+                - system: url
+                  value: www.medicare.gov
+            extension:
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-BUYIN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-BUYIN-CD
+                code: G
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ENRLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ENRLMT-RSN-CD
+                code: P
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-STUS-CD
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-STUS-CD
+                code: '31'
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ESRD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ESRD-STUS-ID
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DSBLD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DSBLD-STUS-ID
+                code: "N"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD
+                code: '3'
+            identifier:
+            - type:
                 coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
-                    code: SUBSIDIZ
-              subscriberId: 1S00EU7JH47
-              beneficiary:
-                reference: Patient/-10000010254647
-              relationship:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+            status: active
+            type:
+              coding:
+              - system: https://nahdo.org/sopt
+                code: '121'
+                display: MEDICARE FFS
+            subscriberId: 1S00EU8DG31
+            beneficiary:
+              reference: Patient/-512738563
+            relationship:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+                code: self
+                display: Self
+            period:
+              start: '2017-11-28'
+            payor:
+            - reference: "#cms-org"
+            class:
+            - type:
                 coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
-                    code: self
-                    display: Self
-              period:
-                start: '2014-02-06'
-              payor:
-                - identifier:
-                    value: Centers for Medicare and Medicaid Services
-              class:
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: group
-                        display: Group
-                  value: Medicare
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: plan
-                        display: Plan
-                  value: Part B
-          - resource:
-              resourceType: Coverage
-              id: part-c--10000010254647
+                - system: http://terminology.hl7.org/CodeSystem/coverage-class
+                  code: plan
+              value: Part B
+        - resource:
+            resourceType: Coverage
+            id: dual--512738563
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+            contained:
+            - resourceType: Organization
+              id: cms-org
               meta:
-                lastUpdated: '2023-06-14T14:17:07.293-04:00'
                 profile:
-                  - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage'
-              extension:
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptc_cntrct_id_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptc_cntrct_id_01'
-                    code: Y0003
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptc_cntrct_id_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptc_cntrct_id_02'
-                    code: Y0003
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptc_cntrct_id_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptc_cntrct_id_03'
-                    code: Y0003
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptc_pbp_id_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptc_pbp_id_01'
-                    code: '803'
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptc_pbp_id_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptc_pbp_id_02'
-                    code: '803'
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptc_pbp_id_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptc_pbp_id_03'
-                    code: '803'
-                - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-                  valueDate: '2025'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-              status: active
-              type:
+                - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+              - purpose:
+                  coding:
+                  - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                    code: PATINF
+                    display: Patient
+                telecom:
+                - system: phone
+                  value: 1-800-633-4227
+                - system: phone
+                  value: 'TTY: 1-877-486-2048'
+                - system: url
+                  value: www.medicare.gov
+            extension:
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DUAL-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DUAL-STUS-CD
+                code: '02'
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DUAL-TYPE-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DUAL-TYPE-CD
+                code: P
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/MEDICAID-STATE-CD
+              valueCoding:
+                system: https://www.usps.com
+                code: AL
+            identifier:
+            - type:
                 coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
-                    code: SUBSIDIZ
-              subscriberId: 1S00EU7JH47
-              beneficiary:
-                reference: Patient/-10000010254647
-              relationship:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+            status: active
+            type:
+              coding:
+              - system: https://nahdo.org/sopt
+                code: '14'
+                display: Dual Eligibility Medicare/Medicaid Organization
+            subscriberId: 1S00EU8DG31
+            beneficiary:
+              reference: Patient/-512738563
+            relationship:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+                code: self
+                display: Self
+            period:
+              start: '2020-01-23'
+            payor:
+            - reference: "#cms-org"
+            class:
+            - type:
                 coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
-                    code: self
-                    display: Self
-              payor:
-                - identifier:
-                    value: Centers for Medicare and Medicaid Services
-              class:
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: group
-                        display: Group
-                  value: Medicare
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: plan
-                        display: Plan
-                  value: Part C
-          - resource:
-              resourceType: Coverage
-              id: part-d--10000010254647
-              meta:
-                lastUpdated: '2023-06-14T14:17:07.293-04:00'
-                profile:
-                  - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage'
-              extension:
-                - url: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-                    code: '20'
-                    display: Disabled without ESRD
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2015-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2015-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2015-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2015-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2015-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2015-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2015-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2015-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2015-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2015-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2015-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2015-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2016-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2016-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2016-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2016-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2016-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2016-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2016-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2016-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2016-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2016-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2016-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2016-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2017-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2017-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2017-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2017-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2017-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2017-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2017-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2017-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2017-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2017-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2017-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2017-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0002
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2018-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2018-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2018-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2018-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2018-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2018-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2018-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2018-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2018-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2018-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2018-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2018-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2019-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2019-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2019-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2019-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2019-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2019-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2019-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2019-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2019-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2019-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2019-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2019-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0001
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2020-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2020-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2020-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2020-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2020-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2020-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2020-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2020-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2020-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2020-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2020-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2020-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0008
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2021-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2021-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2021-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2021-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2021-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2021-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2021-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2021-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2021-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2021-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2021-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2021-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2022-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2022-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2022-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2022-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2022-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2022-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2022-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2022-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2022-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2022-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2022-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2022-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2023-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2023-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2023-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2023-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2023-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2023-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2023-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2023-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2023-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2023-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2023-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2023-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2024-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2024-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2024-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04/2024-4'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct04'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05/2024-5'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct05'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06/2024-6'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct06'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07/2024-7'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct07'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08/2024-8'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct08'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09/2024-9'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct09'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10/2024-10'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct10'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11/2024-11'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct11'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12/2024-12'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct12'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01/2025-1'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct01'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02/2025-2'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct02'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03/2025-3'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdcntrct03'
-                    code: Z0006
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdpbpid01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdpbpid01'
-                    code: '800'
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdpbpid02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdpbpid02'
-                    code: '800'
-                - url: 'https://bluebutton.cms.gov/resources/variables/ptdpbpid03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/ptdpbpid03'
-                    code: '800'
-                - url: 'https://bluebutton.cms.gov/resources/variables/sgmtid01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/sgmtid01'
-                    code: '000'
-                - url: 'https://bluebutton.cms.gov/resources/variables/sgmtid02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/sgmtid02'
-                    code: '000'
-                - url: 'https://bluebutton.cms.gov/resources/variables/sgmtid03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/sgmtid03'
-                    code: '000'
-                - url: 'https://bluebutton.cms.gov/resources/variables/cstshr01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/cstshr01'
-                    code: '01'
-                    display: >-
-                      Beneficiary enrolled in Parts A and/or B, and Part D; deemed
-                      eligible for LIS with 100% premium subsidy and no copayment
-                - url: 'https://bluebutton.cms.gov/resources/variables/cstshr02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/cstshr02'
-                    code: '01'
-                    display: >-
-                      Beneficiary enrolled in Parts A and/or B, and Part D; deemed
-                      eligible for LIS with 100% premium subsidy and no copayment
-                - url: 'https://bluebutton.cms.gov/resources/variables/cstshr03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/cstshr03'
-                    code: '01'
-                    display: >-
-                      Beneficiary enrolled in Parts A and/or B, and Part D; deemed
-                      eligible for LIS with 100% premium subsidy and no copayment
-                - url: 'https://bluebutton.cms.gov/resources/variables/rdsind01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/rdsind01'
-                    code: 'N'
-                    display: No employer subsidization for the retired beneficiary
-                - url: 'https://bluebutton.cms.gov/resources/variables/rdsind02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/rdsind02'
-                    code: 'N'
-                    display: No employer subsidization for the retired beneficiary
-                - url: 'https://bluebutton.cms.gov/resources/variables/rdsind03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/rdsind03'
-                    code: 'N'
-                    display: No employer subsidization for the retired beneficiary
-                - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-                  valueDate: '2025'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-                - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                  valueCoding:
-                    system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-                    code: '02'
-                    display: 'QMB and full Medicaid coverage, including prescription drugs'
-              status: active
-              type:
-                coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
-                    code: SUBSIDIZ
-              subscriberId: 1S00EU7JH47
-              beneficiary:
-                reference: Patient/-10000010254647
-              relationship:
-                coding:
-                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
-                    code: self
-                    display: Self
-              period:
-                start: '2025-01-01'
-                end: '2025-03-04'
-              payor:
-                - identifier:
-                    value: Centers for Medicare and Medicaid Services
-              class:
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: group
-                        display: Group
-                  value: Medicare
-                - type:
-                    coding:
-                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                        code: plan
-                        display: Plan
-                  value: Part D
+                - system: http://terminology.hl7.org/CodeSystem/coverage-class
+                  code: plan
+              value: Dual Medicare/Medicaid
 
     V1FhirCoverageByIdExample:
       value:
@@ -5749,100 +4746,93 @@ components:
     V3FhirCoverageByIdExample:
       value:
         resourceType: Coverage
-        id: part-a--10000010254647
+        id: part-b--512738563
         meta:
-          lastUpdated: '2023-06-14T14:17:07.293-04:00'
+          lastUpdated: '2025-09-18T13:39:37.328+00:00'
           profile:
-            - 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage'
+          - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+          - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+        contained:
+        - resourceType: Organization
+          id: cms-org
+          meta:
+            profile:
+            - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+          active: true
+          name: Centers for Medicare and Medicaid Services
+          contact:
+          - purpose:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                code: PATINF
+                display: Patient
+            telecom:
+            - system: phone
+              value: 1-800-633-4227
+            - system: phone
+              value: 'TTY: 1-877-486-2048'
+            - system: url
+              value: www.medicare.gov
         extension:
-          - url: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/ms_cd'
-              code: '20'
-              display: Disabled without ESRD
-          - url: 'https://bluebutton.cms.gov/resources/variables/orec'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/orec'
-              code: '1'
-              display: Disability insurance benefits (DIB)
-          - url: 'https://bluebutton.cms.gov/resources/variables/crec'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/crec'
-              code: '1'
-              display: Disability insurance benefits (DIB)
-          - url: 'https://bluebutton.cms.gov/resources/variables/esrd_ind'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/esrd_ind'
-              code: '0'
-              display: the beneficiary does not have ESRD
-          - url: 'https://bluebutton.cms.gov/resources/variables/a_trm_cd'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/a_trm_cd'
-              code: '0'
-              display: Not Terminated
-          - url: 'https://bluebutton.cms.gov/resources/variables/rfrnc_yr'
-            valueDate: '2025'
-          - url: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/dual_01'
-              code: '02'
-              display: 'QMB and full Medicaid coverage, including prescription drugs'
-          - url: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/dual_02'
-              code: '02'
-              display: 'QMB and full Medicaid coverage, including prescription drugs'
-          - url: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/dual_03'
-              code: '02'
-              display: 'QMB and full Medicaid coverage, including prescription drugs'
-          - url: 'https://bluebutton.cms.gov/resources/variables/buyin01'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/buyin01'
-              code: C
-              display: Part A and Part B state buy-in
-          - url: 'https://bluebutton.cms.gov/resources/variables/buyin02'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/buyin02'
-              code: C
-              display: Part A and Part B state buy-in
-          - url: 'https://bluebutton.cms.gov/resources/variables/buyin03'
-            valueCoding:
-              system: 'https://bluebutton.cms.gov/resources/variables/buyin03'
-              code: C
-              display: Part A and Part B state buy-in
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-BUYIN-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-BUYIN-CD
+            code: G
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ENRLMT-RSN-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ENRLMT-RSN-CD
+            code: P
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-STUS-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-STUS-CD
+            code: "Y"
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-STUS-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-STUS-CD
+            code: '31'
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ESRD-STUS-ID
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ESRD-STUS-ID
+            code: "Y"
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DSBLD-STUS-ID
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DSBLD-STUS-ID
+            code: "N"
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD
+            code: '3'
+        identifier:
+        - type:
+            coding:
+            - system: http://terminology.hl7.org/CodeSystem/v2-0203
+              code: MB
+          system: http://hl7.org/fhir/sid/us-mbi
+          value: 1S00EU8DG31
         status: active
         type:
           coding:
-            - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
-              code: SUBSIDIZ
-        subscriberId: 1S00EU7JH47
+          - system: https://nahdo.org/sopt
+            code: '121'
+            display: MEDICARE FFS
+        subscriberId: 1S00EU8DG31
         beneficiary:
-          reference: Patient/-10000010254647
+          reference: Patient/-512738563
         relationship:
           coding:
-            - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
-              code: self
-              display: Self
+          - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+            code: self
+            display: Self
         period:
-          start: '2014-02-06'
+          start: '2017-11-28'
         payor:
-          - identifier:
-              value: Centers for Medicare and Medicaid Services
+        - reference: "#cms-org"
         class:
-          - type:
-              coding:
-                - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                  code: group
-                  display: Group
-            value: Medicare
-          - type:
-              coding:
-                - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
-                  code: plan
-                  display: Plan
-            value: Part A
+        - type:
+            coding:
+            - system: http://terminology.hl7.org/CodeSystem/coverage-class
+              code: plan
+          value: Part B
 
     V1FhirExplanationOfBenefitExample:
       value:
