@@ -33,6 +33,11 @@ These instructions provide a quick start for developers new to the project. You'
 sudo apt-get install python3-dev libxml2-dev libxslt1-dev
 ```
 
+**Mac Homebrew example:**
+```bash
+brew install python libxml2 libxslt
+```
+
 **For other operating systems:** Install equivalent development packages for your platform.
 
 ### Building the Project
@@ -52,18 +57,17 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install --upgrade pip
 pip install pip-tools
 pip install -r requirements/requirements.txt
-
-# Set up Django settings
-cp hhs_oauth_server/settings/local_sample.txt hhs_oauth_server/settings/local.py
 ```
 
 **Configure your environment:**
-Edit `hhs_oauth_server/settings/local.py` with your local settings. Most settings can be overridden by environment variables. Please ensure to create and use your own keys and secrets.
+Copy the environment variables from .env.example to .env, editing what you need to for your local settings. 
+Other environment variables used in the codebase are available in the docker-compose directory, in the different.env files. Please ensure to create and use your own keys and secrets.
 
 **Initialize the database:**
 ```bash
 python manage.py migrate
-python manage.py loaddata apps/accounts/fixtures/scopes_and_groups.json
+python manage.py loaddata apps/accounts/fixtures/scopes.json
+python manage.py loaddata apps/accounts/fixtures/groups.json
 python manage.py createsuperuser
 python manage.py create_admin_groups
 python manage.py create_blue_button_scopes
@@ -113,12 +117,12 @@ gulp watch
 We follow standard GitHub Flow practices:
 
 1. **Fork the project** (external contributors) or create a branch (internal contributors)
-2. **Check out the `main` branch**
+2. **Check out the `master` branch**
 3. **Create a feature branch** with a descriptive name
 4. **Write code and tests** for your change
-5. **From your branch, make a pull request** against `CMSGov/bluebutton-web-server/main`
+5. **From your branch, make a pull request** against `CMSGov/bluebutton-web-server/master`
 6. **Work with repo maintainers** to get your change reviewed
-7. **Wait for your change to be merged** into `main`
+7. **Wait for your change to be merged** into `master`
 8. **Delete your feature branch** after successful merge
 
 ### Testing Conventions
@@ -186,7 +190,7 @@ See our `.github/ISSUE_TEMPLATE.md` for more examples.
 ### Writing Pull Requests
 
 **Pull Request Guidelines:**
-- File pull requests against the `main` branch
+- File pull requests against the `master` branch
 - Include a clear description of changes
 - Reference any related issues
 - Ensure all tests pass
