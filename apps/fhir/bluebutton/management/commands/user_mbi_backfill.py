@@ -82,7 +82,7 @@ class Command(BaseCommand):
                 _user_mbi__isnull=True,
                 _user_mbi_hash__isnull=False,
             )
-            .exclude(_fhir_id__startswith="0")
+            .exclude(_fhir_id__startswith="-")
             [:batch_size]
         )
         logger.info("# of records returned %s" % (len(qualifying_records)))
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                     logger.info("patient_info %s" % (patient_info))
                     user_mbi = self.extract_mbi(patient_info)
 
-                    logger.info("user_mbi %s" % (user_mbi))
+                    logger.info("crosswalk.user_id %s" % (crosswalk.user_id))
                     if user_mbi:
                         if execute:
                             self.update_mbi(user_mbi, crosswalk)
