@@ -722,15 +722,12 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
 
-    # this works at least for first record
     search_identifier = f"https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}"
     payload = {"identifier": search_identifier}
     url = "{}/v2/fhir/Patient/_search".format(
         get_resourcerouter().fhir_url
     )
-    print("HEADERS: ", headers)
-    print("URL: ", url)
-    print("PAYLOAD: ", payload)
+
     s = requests.Session()
     req = requests.Request("POST", url, headers=headers, data=payload)
     prepped = req.prepare()

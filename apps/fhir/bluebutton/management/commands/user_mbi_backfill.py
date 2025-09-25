@@ -5,7 +5,7 @@ from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash
 import apps.logging.request_logger as bb2logging
 
 from django.core.management.base import BaseCommand
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 from django.test import RequestFactory
 from django.utils.timezone import now
 import logging
@@ -54,42 +54,45 @@ class Command(BaseCommand):
 
     def retrieve_records(self, batch_size: int) -> List[Crosswalk]:
         # Subquery for users associated with research studies
-        research_study_users = RefreshToken.objects.filter(
-            application__data_access_type="RESEARCH_STUDY"
-        ).values_list("user_id", flat=True)
-
-        # Subquery for active refresh tokens
-        active_users = RefreshToken.objects.filter(
-            revoked__isnull=True
-        ).values_list("user_id", flat=True)
-
-        # Subquery for active access grants
-        active_access_grants = DataAccessGrant.objects.filter(
+        research_q = RefreshToken.objects.filter(
+            application__data_access_type="RESEARCH_STUDY",
+            user_id=OuterRef("user_id")
+        )
+        # Subquery for users associated with an active refresh tokem
+        active_q = RefreshToken.objects.filter(
+            revoked__isnull=True,
+            user_id=OuterRef("user_id")
+        )
+        # Subquery for users associated with an active data access grant
+        grant_q = DataAccessGrant.objects.filter(
             expiration_date__isnull=False,
-            expiration_date__gte=now().date()
-        ).values_list("beneficiary_id", flat=True)
+            expiration_date__gte=now().date(),
+            beneficiary_id=OuterRef("user_id")
+        )
 
-        # Use the prior subqueries and where clauses to retrieve
-        # the crosswalk records we want to update
-        qualifying_records = Crosswalk.objects.filter(
-            Q(user_id__in=research_study_users) |
-            Q(user_id__in=active_users) |
-            Q(user_id__in=active_access_grants),
-            _user_mbi__isnull=True,
-            _user_mbi_hash__isnull=False,
-        ).exclude(
-            _fhir_id__startswith="0"
-        )[:batch_size]
+        qualifying_records = (
+            Crosswalk.objects
+            .annotate(
+                in_research=Exists(research_q),
+                in_active=Exists(active_q),
+                in_grant=Exists(grant_q),
+            )
+            .filter(
+                Q(in_research=True) | (Q(in_active=True) & Q(in_grant=True)),
+                _user_mbi__isnull=True,
+                _user_mbi_hash__isnull=False,
+            )
+            .exclude(_fhir_id__startswith="0")
+            [:batch_size]
+        )
         logger.info("# of records returned %s" % (len(qualifying_records)))
-
-        # null_mbi_records = Crosswalk.objects.filter(_user_mbi__isnull=True)[:batch_size]
-        # logger.info("# of records returned %s" % (len(null_mbi_records)))
 
         return qualifying_records
     
     def process_records(self, crosswalk_records: List[Crosswalk], execute: bool) -> None:
         for crosswalk in crosswalk_records:
             retries = 0
+            # retry three times if a RequestException occures
             while retries < MAX_RETRIES:
                 try:
                     patient_info = 0
@@ -135,7 +138,6 @@ class Command(BaseCommand):
         if patient_bundle.get("total") != 1:
             return None
 
-        # Get the first (and only) Patient resource
         entries = patient_bundle.get("entry", [])
         if not entries:
             return None
