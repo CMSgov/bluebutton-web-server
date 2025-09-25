@@ -2,6 +2,7 @@ import json
 import base64
 from datetime import date, timedelta
 
+from django.contrib.auth.models import User
 from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
@@ -364,7 +365,7 @@ class TestTokenView(BaseApiTest):
     test_uuid = "0123456789abcdefghijklmnopqrstuvwxyz"
     test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
 
-    def _create_test_token(self, user, application):
+    def _create_test_token(self, user:User, application:Application):
         # user logs in
         self.client.force_login(user)
         # post the authorization form with only one scope selected
@@ -534,11 +535,11 @@ class TestTokenView(BaseApiTest):
         application.save()
 
     def test_delete_token_success(self):
-        anna = self._create_user(self.test_username, "123456", fhir_id="19990000000002")
+        anna = self._create_user(self.test_username, "123456", fhir_id_v2="19990000000002")
         bob = self._create_user(
             "bob",
             "123456",
-            fhir_id="19990000000001",
+            fhir_id_v2="19990000000001",
             user_hicn_hash="86228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
             user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
         )

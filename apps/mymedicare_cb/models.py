@@ -23,7 +23,7 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
+def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     """
     Find or create the user associated
     with the identity information from the ID provider.
@@ -50,6 +50,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
         AssertionError: If a user is matched but not all identifiers match.
     """
 
+    version = request.session['version']
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     # Match a patient identifier via the backend FHIR server
@@ -59,8 +60,6 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
         hicn_hash = slsx_client.hicn_hash
 
     # BFD v2 Lookup
-
-
     # BFD v3 Lookup
 
     fhir_id, hash_lookup_type = match_fhir_id(

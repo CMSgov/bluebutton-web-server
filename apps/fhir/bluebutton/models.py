@@ -25,9 +25,12 @@ class RealCrosswalkManager(models.Manager):
             super()
             .get_queryset()
             .filter(
-                ~Q(fhir_id_v2__startswith="-") &
-                ~Q(fhir_id_v2="") &
-                ~Q(fhir_id_v2__isnull=True)
+                ~Q(fhir_id_v2__startswith="-")
+                & ~Q(fhir_id_v2="")
+                & ~Q(fhir_id_v2__isnull=True)
+                & ~Q(fhir_id_v3__startswith="-")
+                & ~Q(fhir_id_v3="")
+                & ~Q(fhir_id_v3__isnull=True)
             )
         )
 
@@ -35,7 +38,14 @@ class RealCrosswalkManager(models.Manager):
 # Synthetic fhir_id Manager subclass
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(Q(fhir_id_v2__startswith="-"))
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                Q(fhir_id_v2__startswith="-")
+                | Q(fhir_id_v3__startswith="-")
+            )
+        )
 
 
 def hash_id_value(hicn):
@@ -90,8 +100,7 @@ class Crosswalk(models.Model):
         objects: default manager
         real_objects: manager for real bene crosswalks
         synth_objects: manager for synthetic bene crosswalks
-    """    
-
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
@@ -147,21 +156,21 @@ class Crosswalk(models.Model):
 
     def __str__(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
-    
-    def fhir_id(self, version:int=2) -> str:
-        """Helper method to return fhir_id based on BFD version"""
-        if version in (1,2):
+
+    def fhir_id(self, version: int = 2) -> str:
+        """Helper method to return fhir_id based on BFD version, prerred over direct access"""
+        if version in (1, 2):
             return str(self.fhir_id_v2)
         elif version == 3:
             return str(self.fhir_id_v3)
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
 
-    def set_fhir_id(self, value, version:int=2) -> None:
-        """Helper method to set fhir_id based on BFD version"""
+    def set_fhir_id(self, value, version: int = 2) -> None:
+        """Helper method to set fhir_id based on BFD version, prerred over direct access"""
         if value == "":
             raise ValidationError("fhir_id can not be an empty string")
-        if version in (1,2):
+        if version in (1, 2):
             self.fhir_id_v2 = value
         elif version == 3:
             self.fhir_id_v3 = value
@@ -216,7 +225,7 @@ class ArchivedCrosswalk(models.Model):
         archived_at: date that record was archived
     Methods:
         create (crosswalk): static method to create an ArchivedCrosswalk from a Crosswalk instance
-    """   
+    """
 
     username = models.CharField(
         max_length=150,

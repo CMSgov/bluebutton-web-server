@@ -121,10 +121,11 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
-        result = self.sensitive_info_check(request)
+        sensitive_info_detected = self.sensitive_info_check(request)
 
-        if result:
-            return result
+        # Return early 4xx HttpResponseBadRequest if illegal query parameters detected
+        if sensitive_info_detected:
+            return sensitive_info_detected
 
         request.session['version'] = self.version
 

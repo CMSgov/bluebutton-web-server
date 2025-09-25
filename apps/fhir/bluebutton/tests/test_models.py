@@ -35,6 +35,7 @@ class TestModels(BaseApiTest):
             last_name="Smith",
             email="john@smith.net",
             fhir_id_v2="-20000000000001",
+            fhir_id_v3="-30000000000001",
             user_hicn_hash=self.test_hicn_hash,
             user_mbi_hash=None,
         )
@@ -49,13 +50,17 @@ class TestModels(BaseApiTest):
             first_name="John",
             last_name="Smith",
             email="john@smith.net",
+            fhir_id_v2="-20000000000001",
+            fhir_id_v3="-30000000000001",
         )
 
         cw = Crosswalk.objects.get(user=user)
+        self.assertEqual(cw.fhir_id(2), "-20000000000001")
+        self.assertEqual(cw.fhir_id(3), "-30000000000001")
         cw.set_fhir_id("-20000000000002", 2)
-        cw.set_fhir_id("-20000000000003", 3)
+        cw.set_fhir_id("-30000000000002", 3)
         self.assertEqual(cw.fhir_id(2), "-20000000000002")
-        self.assertEqual(cw.fhir_id(3), "-20000000000003")
+        self.assertEqual(cw.fhir_id(3), "-30000000000002")
 
     def test_mutable_user_hicn_hash(self):
         user = self._create_user(
@@ -132,6 +137,7 @@ class TestModels(BaseApiTest):
                 last_name="Smith",
                 email="john" + str(cnt) + "@smith.net",
                 fhir_id_v2="2000000000000" + str(cnt),
+                fhir_id_v3="3000000000000" + str(cnt),
                 user_hicn_hash="239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi_hash="9876543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
@@ -147,6 +153,7 @@ class TestModels(BaseApiTest):
                 last_name="Doe",
                 email="john" + str(cnt) + "@doe.net",
                 fhir_id_v2="-2000000000000" + str(cnt),
+                fhir_id_v3="-3000000000000" + str(cnt),
                 user_hicn_hash="255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi_hash="987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000"
