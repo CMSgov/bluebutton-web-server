@@ -42,17 +42,25 @@ class Command(BaseCommand):
             action='store_true',
             help='Apply DB updates'
         )
+        # leaving default of 0, so the limit can be applied when the query is first run
+        parser.add_argument(
+            '--start-user-id',
+            type=int,
+            default=0,
+            help='Resume processing after this user_id'
+        )
 
     def handle(self, *args, **options):
         batch_size = options['batch_size']
         execute = options['execute']
+        start_user_id = options['start_user_id']
         logger.info("batch size %s" % (batch_size))
         logger.info("execute %s" % (execute))
 
-        records = self.retrieve_records(batch_size)
+        records = self.retrieve_records(batch_size, start_user_id)
         self.process_records(records, execute)
 
-    def retrieve_records(self, batch_size: int) -> List[Crosswalk]:
+    def retrieve_records(self, batch_size: int, start_user_id: int) -> List[Crosswalk]:
         # Subquery for users associated with research studies
         research_q = RefreshToken.objects.filter(
             application__data_access_type="RESEARCH_STUDY",
@@ -81,7 +89,8 @@ class Command(BaseCommand):
                 Q(in_research=True) | (Q(in_active=True) & Q(in_grant=True)),
                 _user_mbi__isnull=True,
                 _user_mbi_hash__isnull=False,
-            )
+                user_id__gt=start_user_id
+            ).order_by("user_id")
             [:batch_size]
         )
         logger.info("# of records returned %s" % (len(qualifying_records)))
