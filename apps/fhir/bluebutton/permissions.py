@@ -31,6 +31,7 @@ class ResourcePermission(permissions.BasePermission):
 class HasCrosswalk(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(
+            # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
             request.user and request.user.crosswalk and request.user.crosswalk.fhir_id(2)
         )
 
@@ -38,22 +39,25 @@ class HasCrosswalk(permissions.BasePermission):
 class ReadCrosswalkPermission(HasCrosswalk):
     def has_object_permission(self, request, view, obj):
         # Now check that the user has permission to access the data
-        # Patient resources were taken care of above
+        # Patient resources were taken care of above # TODO - verify this
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
         try:
             if request.resource_type == "Coverage":
                 reference = obj["beneficiary"]["reference"]
                 reference_id = reference.split("/")[1]
+                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
                 if reference_id != request.crosswalk.fhir_id(2):
                     raise exceptions.NotFound()
             elif request.resource_type == "ExplanationOfBenefit":
                 reference = obj["patient"]["reference"]
                 reference_id = reference.split("/")[1]
+                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
                 if reference_id != request.crosswalk.fhir_id(2):
                     raise exceptions.NotFound()
             else:
                 reference_id = obj["id"]
+                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
                 if reference_id != request.crosswalk.fhir_id(2):
                     raise exceptions.NotFound()
 

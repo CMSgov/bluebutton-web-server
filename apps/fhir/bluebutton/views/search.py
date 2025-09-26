@@ -55,7 +55,7 @@ class SearchView(FhirDataView):
     QUERY_SCHEMA = {
         'startIndex': Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
-        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
+        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg='the _lastUpdated operator is not valid')]
     }
 
     def __init__(self, version=1):
@@ -77,7 +77,7 @@ class SearchView(FhirDataView):
                 fhir_url = resource_router.fhir_url_v3
             else:
                 fhir_url = resource_router.fhir_url
-            return f"{fhir_url}/{self.version}/fhir/{resource_type}/"
+            return f"{fhir_url}/v{self.version}/fhir/{resource_type}/"
 
 
 class SearchViewPatient(SearchView):
