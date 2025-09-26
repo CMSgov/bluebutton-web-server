@@ -16,9 +16,10 @@ info:
 
 tags:
   - name: v3
-    description: These endpoint are part of BB2 v3 which is currently 
+    description: These endpoints are part of BB2 v3 which is currently 
         available for pilot usage in the [Sandbox](https://sandbox.bluebutton.cms.gov/) environment by 
-        authorizing using synthetic users BBUser09001-BBUser09005.
+        authorizing using synthetic users BBUser09001-BBUser09005. In addition, authorization and 
+        token generation should also use the v3 APIs to ensure compatibility.
 
 paths:
 ########## V3 Endpoints ##########
