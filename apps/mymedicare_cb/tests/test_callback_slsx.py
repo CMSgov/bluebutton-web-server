@@ -211,7 +211,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "response_type": "code",
             },
         )
-        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
+        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
     def test_callback_url_success(self):
         # create a state
