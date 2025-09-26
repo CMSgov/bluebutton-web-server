@@ -73,7 +73,7 @@ def create_user(group, usr):
 
     if usr is None:
         c, g_o_c = Crosswalk.objects.get_or_create(user=u,
-                                                   _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                                   fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2,
                                                    _user_id_hash="ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536")
     return u
 

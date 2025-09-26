@@ -571,15 +571,15 @@ def get_token_bene_counts(application=None):
 
     # real/synth bene distinct counts (excludes granted to multiple apps)
     real_token_queryset = token_queryset.filter(
-        ~Q(user__crosswalk___fhir_id__startswith="-")
-        & ~Q(user__crosswalk___fhir_id="")
-        & Q(user__crosswalk___fhir_id__isnull=False)
+        ~Q(user__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(user__crosswalk__fhir_id_v2="")
+        & Q(user__crosswalk__fhir_id_v2__isnull=False)
     )
 
     synthetic_token_queryset = token_queryset.filter(
-        Q(user__crosswalk___fhir_id__startswith="-")
-        & ~Q(user__crosswalk___fhir_id="")
-        & Q(user__crosswalk___fhir_id__isnull=False)
+        Q(user__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(user__crosswalk__fhir_id_v2="")
+        & Q(user__crosswalk__fhir_id_v2__isnull=False)
     )
 
     counts_returned["real_deduped"] = real_token_queryset.distinct().count()

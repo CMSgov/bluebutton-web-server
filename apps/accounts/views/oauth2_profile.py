@@ -10,7 +10,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 
-def get_userinfo(user):
+def get_userinfo(user, version):
     """
     OIDC-style userinfo
     """
@@ -23,7 +23,7 @@ def get_userinfo(user):
     data['iat'] = user.date_joined
 
     # Get the FHIR ID if its there
-    fhir_id = get_fhir_id(user)
+    fhir_id = get_fhir_id(user, version)
     if fhir_id:
         data['patient'] = fhir_id
         data['sub'] = fhir_id
@@ -37,13 +37,12 @@ def get_userinfo(user):
                      DataAccessGrantPermission])
 @protected_resource()
 def openidconnect_userinfo(request, **kwargs):
-    return JsonResponse(get_userinfo(request.resource_owner))
+    return JsonResponse(get_userinfo(request.resource_owner, 2)) #TODO: where to get version from request? probably from the URL
 
 
-def get_fhir_id(user):
-
+def get_fhir_id(user, version):
     r = None
     if Crosswalk.objects.filter(user=user).exists():
         c = Crosswalk.objects.get(user=user)
-        r = c.fhir_id
+        r = c.fhir_id(version)
     return r

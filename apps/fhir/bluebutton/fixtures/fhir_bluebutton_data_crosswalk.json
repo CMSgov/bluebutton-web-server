@@ -2,7 +2,7 @@
  {"model": "bluebutton.crosswalk",
   "pk": 1,
   "fields": {"user": 1,
-             "fhir_id": "4995802",
+             "fhir_id_v2": "4995802",
              "date_created": "2016-05-25T05:03:49.342Z"}
  }
 ]

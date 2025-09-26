@@ -175,7 +175,7 @@ class TestAuditEventLoggers(BaseApiTest):
         self._callback_url_success_slsx_logger(True)
 
     def _callback_url_success_slsx_logger(self, v2=False):
-        # copy and adapted for SLS logger test
+        # copy and adapted for SLSx logger test
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
@@ -185,7 +185,7 @@ class TestAuditEventLoggers(BaseApiTest):
         # mock fhir user info endpoint
         @urlmatch(
             netloc="fhir.backend.bluebutton.hhsdevcloud.us",
-            path=r"/v[12]/fhir/Patient/",
+            path=r"/v[123]/fhir/Patient/",
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -260,6 +260,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(log_entries), 2)
 
             # Validate mymedicare_cb:create_beneficiary_record entry
+            x = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
                     MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])

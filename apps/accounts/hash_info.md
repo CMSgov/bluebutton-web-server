@@ -37,8 +37,8 @@ looking for a match on identifier
 ```
 
 If the search returns a searchset of a single record there is a match.
-the id of the matching Patienr resource can be saved to the Front-end 
-Crosswalk table in the fhir_id field. 
+the id of the matching Patient resource can be saved to the Front-end 
+Crosswalk table in the version appropriate fhir_id field. 
 
 ## Notes
 

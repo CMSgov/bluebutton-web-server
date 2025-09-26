@@ -92,8 +92,8 @@ class TestUserSelfEndpoint(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         # Check if the content of the response corresponds to the expected json
         expected_json = {
-            'sub': user.crosswalk.fhir_id,
-            'patient': user.crosswalk.fhir_id,
+            'sub': user.crosswalk.fhir_id(2),
+            'patient': user.crosswalk.fhir_id(2),
             'name': "%s %s" % (user.first_name, user.last_name),
             'given_name': user.first_name,
             'family_name': user.last_name,

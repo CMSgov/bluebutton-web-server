@@ -147,8 +147,8 @@ def generate_info_headers(request):
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
-        if crosswalk.fhir_id is not None:
-            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id)
+        if crosswalk.fhir_id(2) is not None:
+            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id(2))
         else:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
                 crosswalk.user_hicn_hash
@@ -423,8 +423,8 @@ def crosswalk_patient_id(user):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
-        if patient.fhir_id:
-            return patient.fhir_id
+        if patient.fhir_id(2):
+            return patient.fhir_id(2)
 
     except Crosswalk.DoesNotExist:
         pass

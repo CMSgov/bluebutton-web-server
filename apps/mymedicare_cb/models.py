@@ -23,7 +23,7 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
+def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     """
     Find or create the user associated
     with the identity information from the ID provider.
@@ -50,6 +50,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
         AssertionError: If a user is matched but not all identifiers match.
     """
 
+    version = request.session['version']
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     # Match a patient identifier via the backend FHIR server
@@ -57,6 +58,9 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
         hicn_hash = None
     else:
         hicn_hash = slsx_client.hicn_hash
+
+    # BFD v2 Lookup
+    # BFD v3 Lookup
 
     fhir_id, hash_lookup_type = match_fhir_id(
         mbi=slsx_client.mbi,
@@ -85,7 +89,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
         user = User.objects.get(username=slsx_client.user_id)
 
         # fhir_id can not change for an existing user!
-        if user.crosswalk.fhir_id != fhir_id:
+        if user.crosswalk.fhir_id(version) != fhir_id:
             mesg = "Found user's fhir_id did not match"
             log_dict.update({
                 "status": "FAIL",
@@ -123,7 +127,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
                     "id": user.crosswalk.id,
                     "user_hicn_hash": user.crosswalk.user_hicn_hash,
                     "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                    "fhir_id": user.crosswalk.fhir_id,
+                    "fhir_id": user.crosswalk.fhir_id(version),
                     "user_id_type": user.crosswalk.user_id_type,
                 },
             })
@@ -153,7 +157,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "user_mbi": user.crosswalk.user_mbi,
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
+                "fhir_id": user.crosswalk.fhir_id(version),
                 "user_id_type": user.crosswalk.user_id_type,
             },
         })
@@ -163,7 +167,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
     except User.DoesNotExist:
         pass
 
-    user = create_beneficiary_record(slsx_client, fhir_id=fhir_id, user_id_type=hash_lookup_type, request=request)
+    user = create_beneficiary_record(slsx_client, fhir_id_v2=fhir_id, user_id_type=hash_lookup_type, request=request)
 
     log_dict.update({
         "status": "OK",
@@ -177,7 +181,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "fhir_id": user.crosswalk.fhir_id,
+            "fhir_id": user.crosswalk.fhir_id(version),
             "user_id_type": user.crosswalk.user_id_type,
         },
     })
@@ -187,14 +191,15 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None, version=2):
 
 
 # TODO default empty strings to null, requires non-null constraints to be fixed
-def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_id_type="H", request=None):
+def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id_v2=None, fhir_id_v3=None, user_id_type="H", request=None):
 
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     log_dict = {
         "type": "mymedicare_cb:create_beneficiary_record",
         "username": slsx_client.user_id,
-        "fhir_id": fhir_id,
+        "fhir_id_v2": fhir_id_v2,
+        "fhir_id_v3": fhir_id_v3,
         "user_mbi_hash": slsx_client.mbi_hash,
         "user_hicn_hash": slsx_client.hicn_hash,
         "crosswalk": {},
@@ -213,12 +218,6 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         (slsx_client.mbi_hash is not None and len(slsx_client.mbi_hash) != 64,
          "incorrect user MBI hash format",
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (fhir_id is None,
-         "fhir_id can not be None",
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (fhir_id == "",
-         "fhir_id can not be an empty string",
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (User.objects.filter(username=slsx_client.user_id).exists(),
          "user already exists",
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.user_id),
@@ -228,9 +227,13 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         (slsx_client.mbi_hash is not None and Crosswalk.objects.filter(_user_mbi_hash=slsx_client.mbi_hash).exists(),
          "user_mbi_hash already exists",
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi_hash),
-        (fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists(),
-         "fhir_id already exists",
-         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id),
+        (fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists(),
+         "fhir_id_v2 already exists", MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
+        (fhir_id_v2 == "", "fhir_id_v2 can not be an empty string", MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
+        (fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists(),
+         "fhir_id_v3 already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v3),
+        (fhir_id_v3 == "", "fhir_id_v3 can not be an empty string", MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v3),
     ])
 
     with transaction.atomic():
@@ -245,7 +248,8 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
             user_hicn_hash=slsx_client.hicn_hash,
             user_mbi_hash=slsx_client.mbi_hash,
             user_mbi=slsx_client.mbi,
-            fhir_id=fhir_id,
+            fhir_id_v2=fhir_id_v2,
+            fhir_id_v3=fhir_id_v3,
             user_id_type=user_id_type,
         )
 
@@ -263,7 +267,8 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
                 "id": cw.id,
                 "user_hicn_hash": cw.user_hicn_hash,
                 "user_mbi_hash": cw.user_mbi_hash,
-                "fhir_id": cw.fhir_id,
+                "fhir_id_v2": cw.fhir_id(2),
+                "fhir_id_v3": cw.fhir_id(3),
                 "user_id_type": cw.user_id_type,
             },
         })
@@ -273,8 +278,17 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
 
 
 def _validate_asserts(logger, log_dict, asserts):
-    # asserts is a list of tuple : (boolean expression, err message, exception type)
-    # iterate boolean expressions and log err message if the expression evalaute to true
+    """Asserts a list of tuples, iterating through, logging error messages and raising exceptions
+
+    Args:
+        logger (_type_): the logger
+        log_dict (_type_): the log dictionary to update
+        asserts (list : (boolean, string, enum)): the list of tuples to evaluate, t[0] is a boolean expression, t[1] is the error message to log, and t[2] is the enum of exception to raise
+
+    Raises:
+        err: the error based on the result of iterating over asserts
+    """    
+    
     for t in asserts:
         bexp = t[0]
         mesg = t[1]

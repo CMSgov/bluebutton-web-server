@@ -98,7 +98,7 @@ class TestBFDHeaders(BaseApiTest):
 
     def test_fhir_request_has_header(self):
         # create an app for a user and obtain a token
-        anna = self._create_user("anna", "123456", fhir_id="-20140000008325")
+        anna = self._create_user("anna", "123456", fhir_id_v2="-20140000008325")
         application = self._create_application(
             "an app",
             grant_type=Application.GRANT_AUTHORIZATION_CODE,

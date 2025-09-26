@@ -18,8 +18,8 @@ class BlueButtonClientApiUserInfoTest(TestCase):
         self.testclient_setup = test_setup()
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
-        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
-        self.username = settings.DEFAULT_SAMPLE_FHIR_ID
+        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+        self.username = settings.DEFAULT_SAMPLE_FHIR_ID_V2
         self.another_patient = "20140000000001"
 
     def test_get_userinfo(self):
@@ -45,7 +45,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         self.testclient_setup = test_setup()
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
-        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
+        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
         self.another_patient = "20140000000001"
 
     def test_get_patient(self):

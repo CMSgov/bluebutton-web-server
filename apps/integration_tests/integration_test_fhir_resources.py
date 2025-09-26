@@ -61,7 +61,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             endpoint_url = "{}/{}".format(endpoint_url, params)
         return endpoint_url
 
-    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id=None, hicn_hash=None, mbi_hash=None):
+    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None):
         # Setup token in APIClient
         '''
         TODO: Perform auth flow here --- when selenium is included later.
@@ -80,7 +80,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # create user, app, and access token
         first_name = fn if fn is not None else "John"
         last_name = ln if ln is not None else "Doe"
-        access_token = base_api_test.create_token(first_name, last_name, fhir_id, hicn_hash, mbi_hash)
+        access_token = base_api_test.create_token(first_name, last_name, fhir_id_v2, fhir_id_v3, hicn_hash, mbi_hash)
 
         # Test scope in access_token
         at = AccessToken.objects.get(token=access_token)
@@ -354,7 +354,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             self._assertAddressOK(resource)
 
         # 3. Test READ VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID, v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V2, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
@@ -404,7 +404,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-" + settings.DEFAULT_SAMPLE_FHIR_ID, v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-" + settings.DEFAULT_SAMPLE_FHIR_ID_V2, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))

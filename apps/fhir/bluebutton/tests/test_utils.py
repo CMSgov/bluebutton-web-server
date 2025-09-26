@@ -214,7 +214,7 @@ class Patient_Resource_Test(BaseApiTest):
 
         xwalk = Crosswalk()
         xwalk.user = self.user
-        xwalk.fhir_id = "Patient/12345"
+        xwalk.set_fhir_id("Patient/12345", 2)
         xwalk.user_hicn_hash = uuid.uuid4()
         xwalk.user_mbi_hash = uuid.uuid4()
         xwalk.save()
@@ -233,20 +233,20 @@ class Patient_Resource_Test(BaseApiTest):
 
         x = Crosswalk()
         x.user = u
-        x.fhir_id = "Patient/23456"
+        x.set_fhir_id("Patient/23456", 2)
         x.user_hicn_hash = uuid.uuid4()
         x.user_mbi_hash = uuid.uuid4()
         x.save()
 
         result = crosswalk_patient_id(u)
 
-        self.assertEqual(x.fhir_id, result)
+        self.assertEqual(x.fhir_id(2), result)
 
         # Test the dt_reference for Patient
 
         result = dt_patient_reference(u)
 
-        expect = {'reference': x.fhir_id}
+        expect = {'reference': x.fhir_id(2)}
 
         self.assertEqual(result, expect)
 
