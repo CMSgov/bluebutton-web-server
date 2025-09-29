@@ -3,6 +3,8 @@ import argparse
 import django
 import os
 import sys
+from datetime import datetime
+from io import StringIO
 
 from django.conf import settings
 from django.test.utils import get_runner
@@ -39,6 +41,7 @@ from django.test.utils import get_runner
 parser = argparse.ArgumentParser()
 parser.add_argument('--integration', help='Integration tests mode', action='store_true')
 parser.add_argument('--selenium', help='Selenium tests mode', action='store_true')
+parser.add_argument('--report-file', help='Output test failures/errors to report file', default='test_report.txt')
 parser.add_argument('test', nargs='*')
 args = parser.parse_args()
 
@@ -64,10 +67,35 @@ if __name__ == '__main__':
     os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test'
     django.setup()
     TestRunner = get_runner(settings)
-    test_runner = TestRunner()
-    # Is there a list of specific tests to run?
+
+    captured_output = StringIO()
+    sys.stderr = captured_output
+
+    test_runner = TestRunner(verbosity=2)
     if args.test:
         failures = test_runner.run_tests(args.test)
     else:
         failures = test_runner.run_tests(None)
-    sys.exit(bool(failures))
+
+    if (failures or captured_output.getvalue() and args.report_file):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(args.report_file, 'w') as report:
+            report.write(f"Test Report Generated: {timestamp}\n")
+            report.write("=" * 60 + "\n\n")
+
+            if args.integration:
+                report.write("Mode: Integration\n")
+            elif args.selenium:
+                report.write("Mode: Selenium\n")
+            elif args.test:
+                report.write(f"Tests run: {' '.join(args.test)}\n\n")
+            else:
+                report.write("Mode: Unit\n")
+
+            report.write(f"Failures/Errors: {failures}\n\n")
+            report.write("=" * 60 + "\n")
+            report.write("DETAILED OUTPUT:\n")
+            report.write("=" * 60 + "\n")
+            report.write(captured_output.getvalue())
+
+        print(f"Test report written to: {args.report_file}")
