@@ -77,7 +77,7 @@ class AuthorizationView(DotAuthorizationView):
     for OAuth params (query string OR form body).
     """
     application = None
-    version = None
+    version = 1
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 

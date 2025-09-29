@@ -71,6 +71,7 @@ class ReadCrosswalkPermission(HasCrosswalk):
 
 class SearchCrosswalkPermission(HasCrosswalk):
     def has_object_permission(self, request, view, obj):
+        # BB2-4166-TODO: this is hardcoded to be version 2
         patient_id = request.crosswalk.fhir_id(2)
 
         if "patient" in request.GET and request.GET["patient"] != patient_id:

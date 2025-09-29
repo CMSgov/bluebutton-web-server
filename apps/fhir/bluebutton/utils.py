@@ -704,6 +704,7 @@ def get_patient_by_id(id, request):
     headers["includeIdentifiers"] = "true"
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
+    # BB2-4166-TODO: this should allow v3
     url = "{}/v2/fhir/Patient/{}?_format={}".format(
         get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
     )

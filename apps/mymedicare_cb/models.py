@@ -40,7 +40,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         email
         request = request from caller to pass along for logging info.
     Returns:
-        user = The user that was existing or newly created
+         = The user that was existing or newly created
         crosswalk_type =  Type of crosswalk activity:
             "R" = Returned existing crosswalk record
             "C" = Created new crosswalk record
@@ -59,6 +59,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     else:
         hicn_hash = slsx_client.hicn_hash
 
+    # BB2-4166-TODO: implement cross-lookup
     # BFD v2 Lookup
     # BFD v3 Lookup
 
@@ -71,6 +72,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
         "subject": slsx_client.user_id,
+        # BB2-4166-TODO: log_dict is wrong
         "fhir_id": fhir_id,
         "mbi_hash": slsx_client.mbi_hash,
         "hicn_hash": slsx_client.hicn_hash,

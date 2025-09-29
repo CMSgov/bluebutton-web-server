@@ -76,7 +76,8 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     else:
         headers = None
 
-    # Build URL with patient ID search by identifier.
+    # Build URL based on BFD version
+    # BB2-4166-TODO: generalize versionining of fhir server url
     resource_router = get_resourcerouter()
     ver = "v{}".format(request.session.get('version', 1))
     fhir_url = resource_router.fhir_url
