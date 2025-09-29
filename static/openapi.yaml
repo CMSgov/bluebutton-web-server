@@ -19,7 +19,7 @@ tags:
     description: These endpoints are part of BB2 v3 which is currently 
         available for pilot usage in the [Sandbox](https://sandbox.bluebutton.cms.gov/) environment by 
         authorizing using synthetic users BBUser09001-BBUser09005. In addition, authorization and 
-        token generation should also use the v3 APIs to ensure compatibility.
+        token generation should also use v3 endpoints (`/v3/o/authorize/` and `/v3/o/token/`) to ensure compatibility.
 
 paths:
 ########## V3 Endpoints ##########
