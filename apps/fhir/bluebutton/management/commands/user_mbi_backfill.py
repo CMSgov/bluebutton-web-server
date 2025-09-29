@@ -20,7 +20,6 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 MBI_URL = "http://hl7.org/fhir/sid/us-mbi"
 MAX_RETRIES = 3
 DEFAULT_SLEEP = 5
-ACCEPTABLE_ACCESS_TYPES = ["ONE_TIME", "RESEARCH_STUDY"]
 
 RefreshToken = get_refresh_token_model()
 Application = get_application_model()
@@ -50,34 +49,22 @@ class Command(BaseCommand):
             default=0,
             help='Resume processing after this user_id'
         )
-        # Allow users to specify ONE_TIME as another access-type to update MBIs for
-        parser.add_argument(
-            '--data-access-type',
-            type=str,
-            default='RESEARCH_STUDY',
-            help='Application data access type to pull back'
-        )
 
     def handle(self, *args, **options):
         batch_size = options['batch_size']
         execute = options['execute']
         start_user_id = options['start_user_id']
-        data_access_type = options['data_access_type']
+
         logger.info("batch size %s" % (batch_size))
         logger.info("execute %s" % (execute))
-        logger.info("data_access_type %s" % (data_access_type))
 
-        if data_access_type not in ACCEPTABLE_ACCESS_TYPES:
-            logger.error("Data access type = %s not allowed, exiting" % (data_access_type))
-            return
-
-        records = self.retrieve_records(batch_size, start_user_id, data_access_type)
+        records = self.retrieve_records(batch_size, start_user_id)
         self.process_records(records, execute)
 
-    def retrieve_records(self, batch_size: int, start_user_id: int, data_access_type: str) -> List[Crosswalk]:
+    def retrieve_records(self, batch_size: int, start_user_id: int) -> List[Crosswalk]:
         # Subquery for users associated with research studies
         research_q = RefreshToken.objects.filter(
-            application__data_access_type=data_access_type,
+            application__data_access_type="RESEARCH_STUDY",
             user_id=OuterRef("user_id")
         )
         # Subquery for users associated with an active refresh tokem
