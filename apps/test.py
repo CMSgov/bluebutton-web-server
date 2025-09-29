@@ -66,7 +66,7 @@ class BaseApiTest(TestCase):
         Returns:
             user: The created auth.User instance
         """
-        user = User.objects.create_user(username, password=password, **extra_fields)  
+        user = User.objects.create_user(username, password=password, **extra_fields)
         self._create_crosswalk(
             user=user,
             fhir_id_v2=fhir_id_v2,
