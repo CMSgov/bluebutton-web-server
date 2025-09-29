@@ -72,8 +72,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
         "subject": slsx_client.user_id,
-        # BB2-4166-TODO: log_dict is wrong
-        "fhir_id": fhir_id,
+        # BB2-4166-TODO: add fhir_id_v3 when the lookup above is completed
+        "fhir_id_v2": fhir_id,
         "mbi_hash": slsx_client.mbi_hash,
         "hicn_hash": slsx_client.hicn_hash,
         "hash_lookup_type": hash_lookup_type,
@@ -91,7 +91,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         user = User.objects.get(username=slsx_client.user_id)
 
         # fhir_id can not change for an existing user!
-        if user.crosswalk.fhir_id(version) != fhir_id:
+        # BB2-4166-TODO: this should be removed when we enable tandem v2/v3 usage
+        if user.crosswalk.fhir_id(2) != fhir_id:
             mesg = "Found user's fhir_id did not match"
             log_dict.update({
                 "status": "FAIL",
@@ -129,7 +130,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
                     "id": user.crosswalk.id,
                     "user_hicn_hash": user.crosswalk.user_hicn_hash,
                     "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                    "fhir_id": user.crosswalk.fhir_id(version),
+                    "fhir_id_v2": user.crosswalk.fhir_id(version),
                     "user_id_type": user.crosswalk.user_id_type,
                 },
             })
@@ -159,7 +160,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "user_mbi": user.crosswalk.user_mbi,
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id(version),
+                # BB2-4166-TODO: this is hardcoded to be version 2
+                "fhir_id_v2": user.crosswalk.fhir_id(2),
                 "user_id_type": user.crosswalk.user_id_type,
             },
         })
@@ -169,6 +171,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     except User.DoesNotExist:
         pass
 
+    # BB2-4166-TODO: this is hardcoded to be version 2, does not account for both fhir_ids
+    # v3 and v2 are BOTH saved in the v2 field
     user = create_beneficiary_record(slsx_client, fhir_id_v2=fhir_id, user_id_type=hash_lookup_type, request=request)
 
     log_dict.update({
@@ -183,7 +187,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "fhir_id": user.crosswalk.fhir_id(version),
+            # BB2-4166-TODO: this needs to include both fhir versions
+            "fhir_id_v2": user.crosswalk.fhir_id(2),
             "user_id_type": user.crosswalk.user_id_type,
         },
     })

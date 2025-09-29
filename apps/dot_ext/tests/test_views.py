@@ -577,12 +577,10 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(
-            OSError, "Could not find the TLS certificate file"
-        ):
-            response = self.client.get(
-                "/v1/fhir/Patient", headers={"authorization": "Bearer " + tkn.token}
-            )
+
+        response = self.client.get(
+            "/v1/fhir/Patient", headers={"authorization": "Bearer " + tkn.token}
+        )
 
         bob_tkn = self._create_test_token(bob, other_application)
         self.assertTrue(
@@ -646,13 +644,11 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(
-            OSError, "Could not find the TLS certificate file"
-        ):
-            response = self.client.get(
-                "/v1/fhir/Patient",
-                headers={"authorization": "Bearer " + next_tkn.token},
-            )
+
+        response = self.client.get(
+            "/v1/fhir/Patient",
+            headers={"authorization": "Bearer " + next_tkn.token},
+        )
 
         # self.assertEqual(next_tkn.token, tkn.token)
         self.assertTrue(

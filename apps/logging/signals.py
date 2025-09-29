@@ -46,8 +46,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "id": None,
         "user_hicn_hash": None,
         "user_mbi_hash": None,
-        # BB2-4166-TODO: this is hardcoded to be version 2
-        "fhir_id": None,
+        # BB2-4166-TODO: this is hardcoded to be version 2, add v3
+        "fhir_id_v2": None,
         "user_id_type": None
     }
 
@@ -56,8 +56,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            # BB2-4166-TODO: this is hardcoded to be version 2
-            "fhir_id": user.crosswalk.fhir_id(2),
+            # BB2-4166-TODO: this is hardcoded to be version 2, add v3
+            "fhir_id_v2": user.crosswalk.fhir_id(2),
             "user_id_type": user.crosswalk.user_id_type
         }
     except Exception:
