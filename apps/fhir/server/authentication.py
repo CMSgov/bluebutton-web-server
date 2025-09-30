@@ -116,20 +116,24 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
 
 def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
-    """
-      Matches a patient identifier via the backend FHIR server
-      using an MBI or HICN hash.
-
-      Summary:
+    """Matches a patient identifier via the backend FHIR server using an MBI or HICN hash.
         - Perform primary lookup using mbi_hash.
         - If there is an mbi_hash lookup issue, raise exception.
         - Perform secondary lookup using HICN_HASH
         - If there is a hicn_hash lookup issue, raise exception.
         - A NotFound exception is raised, if no match was found.
+
+      Args:
+        mbi (string): the mbi of the user
+        mbi_hash (string): the hashed mbi of the user
+        hicn_hash (string): the hashed hicn of the user
+        request (HttpRequest, optional): the Django request
+
       Returns:
         fhir_id = Matched patient identifier.
         hash_lookup_type = The type used for the successful lookup (M or H).
-      Raises exceptions:
+        
+      Raises:
         UpstreamServerException: If hicn_hash or mbi search found duplicates.
         NotFound: If both searches did not match a fhir_id.
     """

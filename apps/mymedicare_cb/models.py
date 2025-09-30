@@ -29,18 +29,17 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     with the identity information from the ID provider.
 
     Args:
-        Identity parameters passed in from ID provider.
         slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below:
-        subject = ID provider's sub or username
-        mbi_hash = Previously hashed mbi
-        mbi = Unhashed MBI from SLSx
-        hicn_hash = Previously hashed hicn
-        first_name
-        last_name
-        email
-        request = request from caller to pass along for logging info.
+            subject = ID provider's sub or username
+            mbi_hash = Previously hashed mbi
+            mbi = Unhashed MBI from SLSx
+            hicn_hash = Previously hashed hicn
+            first_name
+            last_name
+            email
+            request = request from caller to pass along for logging info.
     Returns:
-         = The user that was existing or newly created
+        The user that was existing or newly created
         crosswalk_type =  Type of crosswalk activity:
             "R" = Returned existing crosswalk record
             "C" = Created new crosswalk record
@@ -50,6 +49,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         AssertionError: If a user is matched but not all identifiers match.
     """
 
+    # BB2-4166-TODO: the request should probably be required, and tests should be rewritten with this in mind
     version = request.session['version']
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
@@ -198,8 +198,21 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
 
 
 # TODO default empty strings to null, requires non-null constraints to be fixed
-def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id_v2=None, fhir_id_v3=None, user_id_type="H", request=None):
+def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
+                              fhir_id_v2=None, fhir_id_v3=None,
+                              user_id_type="H", request=None) -> User:
+    """function that takes meta information and creates a User, Crosswalk, and UserProfile
 
+    Args:
+        slsx_client (OAuth2ConfigSLSx): slsx client
+        fhir_id_v2 (str, optional): fhir id for BFD v1/v2. Defaults to None.
+        fhir_id_v3 (str, optional): fhir id for BFD v3. Defaults to None.
+        user_id_type (str, optional): the type of user. Defaults to "H".
+        request (HttpRequest, optional): request object from upstream Django. Defaults to None.
+
+    Returns:
+        User: the User object that we created
+    """
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     log_dict = {
@@ -294,8 +307,8 @@ def _validate_asserts(logger, log_dict, asserts):
 
     Raises:
         err: the error based on the result of iterating over asserts
-    """    
-    
+    """
+
     for t in asserts:
         bexp = t[0]
         mesg = t[1]
