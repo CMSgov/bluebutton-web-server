@@ -167,7 +167,7 @@ class FHIRRequest(Request):
         return {
             "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
-            "fhir_id": self.fhir_id(),
+            "fhir_id_v2": self.fhir_id(2),
             "api_ver": self.api_ver if self.api_ver is not None else 'v1',
             "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),

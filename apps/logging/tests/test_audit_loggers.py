@@ -43,6 +43,7 @@ from .audit_logger_schemas import (
 
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
+
 class HTTMockWithResponseHook(HTTMock):
     def intercept(self, request, **kwargs):
         response = super().intercept(request, **kwargs)
@@ -127,14 +128,13 @@ class TestAuditEventLoggers(BaseApiTest):
                 # TODO replace this with true backend response, this has been post proccessed
                 'content': patient_response,
             }
+        reverse_url = 'bb_oauth_fhir_patient_search'
+        if version == 2:
+            reverse_url += '_v2'
 
         with HTTMock(catchall):
             self.client.get(
-                reverse(
-                    'bb_oauth_fhir_patient_search'
-                    if not v2
-                    else 'bb_oauth_fhir_patient_search_v2'
-                ),
+                reverse(reverse_url),
                 {'count': 5, 'hello': 'world'},
                 Authorization='Bearer %s' % (first_access_token),
             )
@@ -148,14 +148,14 @@ class TestAuditEventLoggers(BaseApiTest):
             # Validate fhir_pre_fetch entry
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), json.loads(log_entries[0])
+                    get_pre_fetch_fhir_log_entry_schema(version), json.loads(log_entries[0])
                 )
             )
 
             # Validate fhir_post_fetch entry
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_post_fetch_fhir_log_entry_schema(2 if v2 else 1), json.loads(log_entries[1])
+                    get_post_fetch_fhir_log_entry_schema(version), json.loads(log_entries[1])
                 )
             )
 
@@ -262,7 +262,6 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(log_entries), 2)
 
             # Validate mymedicare_cb:create_beneficiary_record entry
-            x = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
                     MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])
@@ -466,7 +465,9 @@ class TestAuditEventLoggers(BaseApiTest):
             redirect_uris=redirect_uri,
         )
         application.scope.add(capability_a, capability_b)
-        api_ver = 'v1' if not v2 else 'v2'
+        api_ver = 'v1'
+        if version == 2:
+            api_ver = 'v2'
         request = HttpRequest()
         self.client.login(request=request, username='anna', password='123456')
 
