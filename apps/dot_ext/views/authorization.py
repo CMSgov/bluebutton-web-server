@@ -59,11 +59,14 @@ def get_grant_expiration(data_access_type):
 def require_post_state_decorator(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
-        if request.method == "POST" and not request.POST.get("state"):
-            return JsonResponse(
-                {"status_code": 401, "message": "State required for POST requests."},
-                status=401,
-            )
+        # Only enforce for the base /authorize/ (no uuid in the match)
+        rm = getattr(request, "resolver_match", None)
+        if request.method == "POST" and rm and "uuid" not in getattr(rm, "kwargs", {}):
+            if not request.POST.get("state"):
+                return JsonResponse(
+                    {"status_code": 401, "message": "State required in POST body."},
+                    status=401,
+                )
         return view_func(request, *args, **kwargs)
     return _wrapped
 
