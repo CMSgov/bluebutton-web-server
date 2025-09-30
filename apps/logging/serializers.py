@@ -81,7 +81,7 @@ class Token:
                 "id": getattr(crosswalk, 'id', None),
                 "user_hicn_hash": getattr(crosswalk, "user_hicn_hash", None),
                 "user_mbi_hash": getattr(crosswalk, "user_mbi_hash", None),
-                "fhir_id": getattr(crosswalk, "fhir_id", None),
+                "fhir_id": getattr(crosswalk, "fhir_id", lambda: None)(),
                 "user_id_type": getattr(crosswalk, "user_id_type", None),
             },
         }
@@ -167,7 +167,7 @@ class FHIRRequest(Request):
         return {
             "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
-            "fhir_id_v2": self.fhir_id(2),
+            "fhir_id_v2": self.fhir_id(),
             "api_ver": self.api_ver if self.api_ver is not None else 'v1',
             "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),
