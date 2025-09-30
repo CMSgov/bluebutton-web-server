@@ -7,6 +7,8 @@ from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateExcepti
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 from ..models import create_beneficiary_record, get_and_update_user
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
 from unittest.mock import patch, Mock
 
 
@@ -203,7 +205,11 @@ class BeneficiaryLoginTest(TestCase):
         for name, case in cases.items():
             slsx_client = OAuth2ConfigSLSx(case["args"])
             with self.assertRaisesRegex(case["exception"], case["exception_mesg"]):
-                create_beneficiary_record(slsx_client, fhir_id_v2=case["args"].get("fhir_id_v2", None), fhir_id_v3=case["args"].get("fhir_id_v3", None))
+                create_beneficiary_record(
+                    slsx_client,
+                    fhir_id_v2=case["args"].get("fhir_id_v2", None),
+                    fhir_id_v3=case["args"].get("fhir_id_v3", None)
+                )
 
     def test_fail_create_multiple_beneficiary_record(self):
         cases = {
@@ -308,11 +314,19 @@ class BeneficiaryLoginTest(TestCase):
         for name, case in cases.items():
             arg0 = case["args"][0]
             slsx_client0 = OAuth2ConfigSLSx(case["args"][0])
-            create_beneficiary_record(slsx_client0, fhir_id_v2=arg0.get("fhir_id_v2", None), fhir_id_v3=arg0.get("fhir_id_v3", None))
+            create_beneficiary_record(
+                slsx_client0,
+                fhir_id_v2=arg0.get("fhir_id_v2", None),
+                fhir_id_v3=arg0.get("fhir_id_v3", None)
+            )
             with self.assertRaisesRegex(case["exception"], case["exception_mesg"]):
                 arg1 = case["args"][1]
                 slsx_client1 = OAuth2ConfigSLSx(arg1)
-                create_beneficiary_record(slsx_client1, fhir_id_v2=arg1.get("fhir_id_v2", None), fhir_id_v3=arg1.get("fhir_id_v3", None))
+                create_beneficiary_record(
+                    slsx_client1,
+                    fhir_id_v2=arg1.get("fhir_id_v2", None),
+                    fhir_id_v3=arg1.get("fhir_id_v3", None)
+                )
 
     @patch("apps.mymedicare_cb.models.match_fhir_id", return_value=("-20000000002346", "M"))
     @patch("apps.fhir.bluebutton.models.ArchivedCrosswalk.create")
@@ -339,7 +353,13 @@ class BeneficiaryLoginTest(TestCase):
         slsx_client.mbi_hash = "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
         slsx_client.hicn_hash = "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
 
-        user, crosswalk_type = get_and_update_user(slsx_client)
+        request = RequestFactory().get("/")
+        middleware = SessionMiddleware(get_response=lambda r: None)
+        middleware.process_request(request)
+        request.session.save()
+        request.session['version'] = 2
+
+        user, crosswalk_type = get_and_update_user(slsx_client, request)
 
         user.refresh_from_db()
         crosswalk.refresh_from_db()
@@ -371,7 +391,13 @@ class BeneficiaryLoginTest(TestCase):
         slsx_client.mbi_hash = "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
         slsx_client.hicn_hash = "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b"
 
-        user, crosswalk_type = get_and_update_user(slsx_client)
+        request = RequestFactory().get("/")
+        middleware = SessionMiddleware(get_response=lambda r: None)
+        middleware.process_request(request)
+        request.session.save()
+        request.session['version'] = 2
+
+        user, crosswalk_type = get_and_update_user(slsx_client, request)
 
         user.refresh_from_db()
         crosswalk.refresh_from_db()
