@@ -66,7 +66,6 @@ class BaseApiTest(TestCase):
         Returns:
             user: The created auth.User instance
         """
-        print("passed fhir_id_v3: ", fhir_id_v3)
         user = User.objects.create_user(username, password=password, **extra_fields)
         self._create_crosswalk(
             user=user,
@@ -197,16 +196,12 @@ class BaseApiTest(TestCase):
 
         # Delete any existing crosswalks with the same unique values as the ones coming in
         if fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists():
-            print("WE ARE DELETING 1")
             Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).delete()
         if fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists():
-            print("WE ARE DELETING 2")
             Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).delete()
         if hicn_hash and Crosswalk.objects.filter(_user_id_hash=hicn_hash).exists():
-            print("WE ARE DELETING 3")
             Crosswalk.objects.filter(_user_id_hash=hicn_hash).delete()
         if mbi_hash and Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).exists():
-            print("WE ARE DELETING 4")
             Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).delete()
 
         cw, _ = Crosswalk.objects.get_or_create(
