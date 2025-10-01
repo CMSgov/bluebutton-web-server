@@ -223,7 +223,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/"
+            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -345,7 +345,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/"
+            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -565,7 +565,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/"
+            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {

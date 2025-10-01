@@ -67,7 +67,6 @@ def require_post_state_decorator(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped
 
-
 @method_decorator(csrf_exempt, name="dispatch")
 @method_decorator(require_post_state_decorator, name="dispatch")
 class AuthorizationView(DotAuthorizationView):
@@ -76,8 +75,9 @@ class AuthorizationView(DotAuthorizationView):
     use the custom AllowForm. Supports both GET and POST
     for OAuth params (query string OR form body).
     """
-    application = None
-    version = 1
+    # TODO: rename this so that it isn't the same as self.version (works but confusing)
+    # this needs to be here for urls.py as_view(version) calls, but don't use it
+    version = 0
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
@@ -323,11 +323,13 @@ class ApprovalView(AuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
-    version = None
+    # TODO: rename this so that it isn't the same as self.version (works but confusing)
+    # this needs to be here for urls.py as_view(version) calls, but don't use it
+    version = 0
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
-    def __init__(self, version=1):
+    def __init__(self, version):
         self.version = version
         super().__init__()
 
