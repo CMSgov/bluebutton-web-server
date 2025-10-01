@@ -202,15 +202,15 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             for r in response.json()['entry']:
                 self._assertHasC4BBIdentifier(r['resource'], C4BB_SYSTEM_TYPES['IDTYPE'], version)
 
-    @override_switch('bfd_v3_connectathon', active=True)
+    @override_switch('v3_endpoints', active=True)
     def test_search_eob_by_parameter_tag(self):
         self._search_eob_by_parameter_tag(1)
 
-    @override_switch('bfd_v3_connectathon', active=True)
+    @override_switch('v3_endpoints', active=True)
     def test_search_eob_by_parameter_tag_v2(self):
         self._search_eob_by_parameter_tag(2)
 
-    @override_switch('bfd_v3_connectathon', active=True)
+    @override_switch('v3_endpoints', active=True)
     def _search_eob_by_parameter_tag(self, version=1):
         # create the user
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)

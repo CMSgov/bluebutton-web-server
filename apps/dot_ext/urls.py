@@ -1,7 +1,7 @@
 from django.urls import path, re_path
 from oauth2_provider import views as oauth2_views
 from . import views
-
+from .constants import AUTHORIZE_INSTANCE_PARAM
 
 app_name = "oauth2_provider"
 
@@ -9,7 +9,7 @@ app_name = "oauth2_provider"
 base_urlpatterns = [
     path("authorize/", views.AuthorizationView.as_view(version=2), name="authorize"),
     re_path(
-        r"^authorize/(?P<uuid>[\w-]+)/$",
+        rf"^authorize/(?P<{AUTHORIZE_INSTANCE_PARAM}>[\w-]+)/$",
         views.ApprovalView.as_view(version=2),
         name="authorize-instance",
     ),

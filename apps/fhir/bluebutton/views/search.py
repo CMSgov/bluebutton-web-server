@@ -179,7 +179,7 @@ class SearchViewExplanationOfBenefit(SearchView):
 
         query_schema = getattr(self, "QUERY_SCHEMA", {})
 
-        if waffle.switch_is_active('bfd_v3_connectathon'):
+        if waffle.switch_is_active('v3_endpoints'):
             query_schema['_tag'] = self.validate_tag()
             # _tag if presents, is a string value
             params['_tag'] = request.query_params.getlist('_tag')

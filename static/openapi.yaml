@@ -14,7 +14,213 @@ info:
     7. **Return to Swagger UI**: After consenting, you will be redirected back to this Swagger UI.
     8. **Explore APIs**: You can now start exploring and testing the APIs by providing the relevant parameters.
 
+tags:
+  - name: v3
+    description: These endpoints are part of BB2 v3 which is currently 
+        available for pilot usage in the [Sandbox](https://sandbox.bluebutton.cms.gov/) environment by 
+        authorizing using synthetic users BBUser09001-BBUser09005. In addition, authorization and 
+        token generation should also use v3 endpoints (`/v3/o/authorize/` and `/v3/o/token/`) to ensure compatibility.
+
 paths:
+########## V3 Endpoints ##########
+  /v3/fhir/metadata:
+    get:
+      operationId: fhirMetaData_v3
+      description: "Returns FHIR CapabilityStatement resource (public access, no token needed)"
+      summary: "FHIR CapabilityStatement resource"
+      security: []
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirMetadataExample:
+                  $ref: '#/components/examples/V3FhirMetadataExample'
+          description: "FHIR CapabilityStatement resource"
+        '502':
+
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+
+  /v3/fhir/Patient/{resource_id}:
+    get:
+      operationId: listReadViewPatients_v3
+      description: "Returns Patient FHIR resource identified by resource_id"
+      summary: "Patient FHIR resource identified by resource_id"
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: "Patient FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirPatientByIdExample:
+                  $ref: '#/components/examples/V3FhirPatientByIdExample'
+          description: "Patient FHIR resource"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '404':
+          description: "Error: Not Found, e.g. The requested resource does not exist."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Patient/:
+    get:
+      operationId: listSearchViewPatients_v3
+      description: "Returns Patient FHIR resources matching search criteria as a FHIR Bundle"
+      summary: "Patient FHIR resources matching search criteria as a FHIR Bundle"
+      parameters:
+        - in: query
+          name: identifier
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+            Examples:
+              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
+        - in: query
+          name: _id
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirPatientExample:
+                  $ref: '#/components/examples/V3FhirPatientExample'
+          description: "Patient FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Coverage/{resource_id}:
+    get:
+      operationId: listReadViewCoverages_v3
+      description: "Returns Coverage FHIR resource identified by resource_id"
+      summary: "Coverage FHIR resource identified by resource_id"
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: "Coverage FHIR resource id, e.g. part-a--20140000000001"
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirCoverageByIdExample:
+                  $ref: '#/components/examples/V3FhirCoverageByIdExample'
+          description: "Coverage FHIR resource"
+        '400':
+          description: "Error: Bad Request, e.g. Unsupported ID pattern: partparta_20140000000001."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '404':
+          description: "Error: Not Found, e.g. The requested resource does not exist."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Coverage/:
+    get:
+      operationId: listSearchViewCoverages_v3
+      description: "Returns Coverage FHIR resources matching the search criteria as a FHIR Bundle"
+      summary: "Coverage FHIR resources matching the search criteria as a FHIR Bundle"
+      parameters:
+        - in: query
+          name: beneficiary
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
+            
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+            Examples:
+              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirCoverageExample:
+                  $ref: '#/components/examples/V3FhirCoverageExample'
+          description: "Coverage FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+
+########## V2 Endpoints ##########
   /.well-known/openid-configuration:
     get:
       operationId: openIdConfig
@@ -429,6 +635,7 @@ paths:
       tags:
         - v2
 
+########## V1 Endpoints ##########
   /v1/fhir/.well-known/smart-configuration:
     get:
       operationId: smartConfigV1
@@ -1848,6 +2055,126 @@ components:
                     - url: revoke
                       valueUri: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
 
+    V3FhirMetadataExample:
+      value:
+        resourceType: CapabilityStatement
+        id: 41ba8bae-b53d-46ff-abe4-4ba43dba81b3
+        text:
+          status: generated
+          div: <div xmlns="http://www.w3.org/1999/xhtml">HAPI FHIR Server</div>
+        name: RestServer
+        status: active
+        date: '2025-09-23T19:18:43.298+00:00'
+        publisher: Not provided
+        kind: instance
+        software:
+          name: HAPI FHIR Server
+          version: 8.4.0
+        implementation:
+          description: HAPI FHIR
+          url: http://localhost:8080/v3/fhir
+        fhirVersion: 4.0.1
+        format:
+        - application/json
+        - application/fhir+json
+        rest:
+        - mode: server
+          resource:
+          - type: Coverage
+            profile: http://hl7.org/fhir/StructureDefinition/Coverage
+            interaction:
+            - code: read
+            - code: search-type
+            searchInclude:
+            - "*"
+            - Coverage:beneficiary
+            searchRevInclude:
+            - Coverage:beneficiary
+            - ExplanationOfBenefit:patient
+            searchParam:
+            - name: _id
+              type: string
+              documentation: The ID of the resource
+            - name: _lastUpdated
+              type: date
+              documentation: Only return resources which were last updated as specified by
+                the given range
+            - name: beneficiary
+              type: reference
+              documentation: Covered party
+          - type: ExplanationOfBenefit
+            profile: http://hl7.org/fhir/StructureDefinition/ExplanationOfBenefit
+            interaction:
+            - code: read
+            - code: search-type
+            searchInclude:
+            - "*"
+            - ExplanationOfBenefit:patient
+            searchRevInclude:
+            - Coverage:beneficiary
+            - ExplanationOfBenefit:patient
+            searchParam:
+            - name: patient
+              type: reference
+              documentation: The reference to the patient
+            - name: _lastUpdated
+              type: date
+              documentation: Only return resources which were last updated as specified by
+                the given range
+            - name: _tag
+              type: token
+              documentation: The tag of the resource
+            - name: service-date
+              type: date
+            - name: startIndex
+              type: number
+            - name: _id
+              type: string
+              documentation: The ID of the resource
+          - type: Patient
+            profile: http://hl7.org/fhir/StructureDefinition/Patient
+            interaction:
+            - code: read
+            - code: search-type
+            searchInclude:
+            - "*"
+            searchRevInclude:
+            - Coverage:beneficiary
+            - ExplanationOfBenefit:patient
+            searchParam:
+            - name: _id
+              type: string
+              documentation: The ID of the resource
+            - name: _lastUpdated
+              type: date
+              documentation: Only return resources which were last updated as specified by
+                the given range
+            - name: identifier
+              type: token
+              documentation: A patient identifier
+          security:
+            cors: true
+            service:
+            - text: OAuth
+              coding:
+              - system: http://hl7.org/fhir/restful-security-service
+                code: OAuth
+                display: OAuth
+            - text: OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)
+              coding:
+              - system: http://hl7.org/fhir/restful-security-service
+                code: SMART-on-FHIR
+                display: SMART-on-FHIR
+            extension:
+            - url: http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
+              extension:
+              - url: token
+                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/token
+              - url: authorize
+                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/authorize
+              - url: revoke
+                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/revoke_token
+
     V1UserInfoExample:
       value:
         sub: '-10000010254647'
@@ -1989,6 +2316,60 @@ components:
         address:
           - state: '01'
             postalCode: '35756'
+
+    V3FhirPatientByIdExample:
+      value:
+        resourceType: Patient
+        id: "-512738563"
+        meta:
+          lastUpdated: '2025-09-18T13:39:37.328+00:00'
+          profile:
+          - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient|2.1.0
+          - http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|6.1.0
+        extension:
+        - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-sex
+          valueCode: '248153007'
+        - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-race
+          extension:
+          - url: ombCategory
+            valueCoding:
+              system: urn:oid:2.16.840.1.113883.6.238
+              code: 2106-3
+              display: White
+          - url: text
+            valueCode: White
+        identifier:
+        - type:
+            coding:
+            - system: http://terminology.hl7.org/CodeSystem/v2-0203
+              code: MB
+          system: http://hl7.org/fhir/sid/us-mbi
+          value: 1S00EU8DG31
+          period:
+            start: '2017-11-28T00:00:00+00:00'
+        name:
+        - family: Heaney114
+          given:
+          - Tanner110
+          - M
+        gender: male
+        birthDate: '1959-06-07'
+        address:
+        - line:
+          - 777 Brockton Avenue
+          city: Abington
+          state: MA
+          postalCode: '2351'
+        communication:
+        - language:
+            coding:
+            - system: urn:ietf:bcp:47
+              code: es
+        link:
+        - other:
+            reference: Patient/-264332726
+            display: "-264332726"
+          type: replaces
 
     V1FhirPatientExample:
       value:
@@ -2145,6 +2526,71 @@ components:
               address:
                 - state: '01'
                   postalCode: '35756'
+
+    V3FhirPatientExample:
+      value:
+        resourceType: Bundle
+        id: 96a9cdf6-4678-4189-a5f5-3458b797ccd2
+        meta:
+          lastUpdated: '2025-09-25T13:58:54.877+00:00'
+        type: searchset
+        total: 10
+        link:
+        - relation: self
+          url: http://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-512738563
+        entry:
+        - resource:
+            resourceType: Patient
+            id: "-512738563"
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|6.1.0
+            extension:
+            - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-sex
+              valueCode: '248153007'
+            - url: http://hl7.org/fhir/us/core/StructureDefinition/us-core-race
+              extension:
+              - url: ombCategory
+                valueCoding:
+                  system: urn:oid:2.16.840.1.113883.6.238
+                  code: 2106-3
+                  display: White
+              - url: text
+                valueCode: White
+            identifier:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+              period:
+                start: '2017-11-28T00:00:00+00:00'
+            name:
+            - family: Heaney114
+              given:
+              - Tanner110
+              - M
+            gender: male
+            birthDate: '1959-06-07'
+            address:
+            - line:
+              - 777 Brockton Avenue
+              city: Abington
+              state: MA
+              postalCode: '2351'
+            communication:
+            - language:
+                coding:
+                - system: urn:ietf:bcp:47
+                  code: es
+            link:
+            - other:
+                reference: Patient/-264332726
+                display: "-264332726"
+              type: replaces
 
     V1FhirCoverageExample:
       value:
@@ -3859,6 +4305,270 @@ components:
                         display: Plan
                   value: Part D
 
+    V3FhirCoverageExample:
+      value:
+        resourceType: Bundle
+        id: 641e31bb-a9a6-4c73-86ec-a196cc047780
+        meta:
+          lastUpdated: '2025-09-25T14:06:17.784+00:00'
+        type: searchset
+        total: 10
+        link:
+        - relation: self
+          url: http://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&beneficiary=Patient%2F-512738563
+        entry:
+        - resource:
+            resourceType: Coverage
+            id: part-a--512738563
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+            contained:
+            - resourceType: Organization
+              id: cms-org
+              meta:
+                profile:
+                - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+              - purpose:
+                  coding:
+                  - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                    code: PATINF
+                    display: Patient
+                telecom:
+                - system: phone
+                  value: 1-800-633-4227
+                - system: phone
+                  value: 'TTY: 1-877-486-2048'
+                - system: url
+                  value: www.medicare.gov
+            extension:
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-BUYIN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-BUYIN-CD
+                code: G
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ENRLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ENRLMT-RSN-CD
+                code: D
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-STUS-CD
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-STUS-CD
+                code: '31'
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ESRD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ESRD-STUS-ID
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DSBLD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DSBLD-STUS-ID
+                code: "N"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD
+                code: '3'
+            identifier:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+            status: active
+            type:
+              coding:
+              - system: https://nahdo.org/sopt
+                code: '1'
+                display: MEDICARE
+            subscriberId: 1S00EU8DG31
+            beneficiary:
+              reference: Patient/-512738563
+            relationship:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+                code: self
+                display: Self
+            period:
+              start: '2017-11-28'
+            payor:
+            - reference: "#cms-org"
+            class:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/coverage-class
+                  code: plan
+              value: Part A
+        - resource:
+            resourceType: Coverage
+            id: part-b--512738563
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+            contained:
+            - resourceType: Organization
+              id: cms-org
+              meta:
+                profile:
+                - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+              - purpose:
+                  coding:
+                  - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                    code: PATINF
+                    display: Patient
+                telecom:
+                - system: phone
+                  value: 1-800-633-4227
+                - system: phone
+                  value: 'TTY: 1-877-486-2048'
+                - system: url
+                  value: www.medicare.gov
+            extension:
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-BUYIN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-BUYIN-CD
+                code: G
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ENRLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ENRLMT-RSN-CD
+                code: P
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-STUS-CD
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-STUS-CD
+                code: '31'
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ESRD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ESRD-STUS-ID
+                code: "Y"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DSBLD-STUS-ID
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DSBLD-STUS-ID
+                code: "N"
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD
+                code: '3'
+            identifier:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+            status: active
+            type:
+              coding:
+              - system: https://nahdo.org/sopt
+                code: '121'
+                display: MEDICARE FFS
+            subscriberId: 1S00EU8DG31
+            beneficiary:
+              reference: Patient/-512738563
+            relationship:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+                code: self
+                display: Self
+            period:
+              start: '2017-11-28'
+            payor:
+            - reference: "#cms-org"
+            class:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/coverage-class
+                  code: plan
+              value: Part B
+        - resource:
+            resourceType: Coverage
+            id: dual--512738563
+            meta:
+              lastUpdated: '2025-09-18T13:39:37.328+00:00'
+              profile:
+              - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+              - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+            contained:
+            - resourceType: Organization
+              id: cms-org
+              meta:
+                profile:
+                - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+              - purpose:
+                  coding:
+                  - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                    code: PATINF
+                    display: Patient
+                telecom:
+                - system: phone
+                  value: 1-800-633-4227
+                - system: phone
+                  value: 'TTY: 1-877-486-2048'
+                - system: url
+                  value: www.medicare.gov
+            extension:
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DUAL-STUS-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DUAL-STUS-CD
+                code: '02'
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DUAL-TYPE-CD
+              valueCoding:
+                system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DUAL-TYPE-CD
+                code: P
+            - url: https://bluebutton.cms.gov/fhir/StructureDefinition/MEDICAID-STATE-CD
+              valueCoding:
+                system: https://www.usps.com
+                code: AL
+            identifier:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/v2-0203
+                  code: MB
+              system: http://hl7.org/fhir/sid/us-mbi
+              value: 1S00EU8DG31
+            status: active
+            type:
+              coding:
+              - system: https://nahdo.org/sopt
+                code: '14'
+                display: Dual Eligibility Medicare/Medicaid Organization
+            subscriberId: 1S00EU8DG31
+            beneficiary:
+              reference: Patient/-512738563
+            relationship:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+                code: self
+                display: Self
+            period:
+              start: '2020-01-23'
+            payor:
+            - reference: "#cms-org"
+            class:
+            - type:
+                coding:
+                - system: http://terminology.hl7.org/CodeSystem/coverage-class
+                  code: plan
+              value: Dual Medicare/Medicaid
+
     V1FhirCoverageByIdExample:
       value:
         resourceType: Coverage
@@ -4033,6 +4743,97 @@ components:
                   code: plan
                   display: Plan
             value: Part A
+
+    V3FhirCoverageByIdExample:
+      value:
+        resourceType: Coverage
+        id: part-b--512738563
+        meta:
+          lastUpdated: '2025-09-18T13:39:37.328+00:00'
+          profile:
+          - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage|2.1.0
+          - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage|6.1.0
+        contained:
+        - resourceType: Organization
+          id: cms-org
+          meta:
+            profile:
+            - http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Organization|2.1.0
+          active: true
+          name: Centers for Medicare and Medicaid Services
+          contact:
+          - purpose:
+              coding:
+              - system: http://terminology.hl7.org/CodeSystem/contactentity-type
+                code: PATINF
+                display: Patient
+            telecom:
+            - system: phone
+              value: 1-800-633-4227
+            - system: phone
+              value: 'TTY: 1-877-486-2048'
+            - system: url
+              value: www.medicare.gov
+        extension:
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-BUYIN-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-BUYIN-CD
+            code: G
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ENRLMT-RSN-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ENRLMT-RSN-CD
+            code: P
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-STUS-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-STUS-CD
+            code: "Y"
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-STUS-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-STUS-CD
+            code: '31'
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-ESRD-STUS-ID
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-ESRD-STUS-ID
+            code: "Y"
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-DSBLD-STUS-ID
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-DSBLD-STUS-ID
+            code: "N"
+        - url: https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+          valueCoding:
+            system: https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD
+            code: '3'
+        identifier:
+        - type:
+            coding:
+            - system: http://terminology.hl7.org/CodeSystem/v2-0203
+              code: MB
+          system: http://hl7.org/fhir/sid/us-mbi
+          value: 1S00EU8DG31
+        status: active
+        type:
+          coding:
+          - system: https://nahdo.org/sopt
+            code: '121'
+            display: MEDICARE FFS
+        subscriberId: 1S00EU8DG31
+        beneficiary:
+          reference: Patient/-512738563
+        relationship:
+          coding:
+          - system: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+            code: self
+            display: Self
+        period:
+          start: '2017-11-28'
+        payor:
+        - reference: "#cms-org"
+        class:
+        - type:
+            coding:
+            - system: http://terminology.hl7.org/CodeSystem/coverage-class
+              code: plan
+          value: Part B
 
     V1FhirExplanationOfBenefitExample:
       value:

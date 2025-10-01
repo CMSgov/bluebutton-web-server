@@ -714,3 +714,25 @@ def get_patient_by_id(id, request):
     response = s.send(prepped, cert=certs, verify=False)
     response.raise_for_status()
     return response.json()
+
+
+def get_patient_by_mbi_hash(mbi_hash, request):
+    auth_settings = FhirServerAuth(None)
+    certs = (auth_settings["cert_file"], auth_settings["key_file"])
+    headers = generate_info_headers(request)
+    headers["BlueButton-Application"] = "BB2-Tools"
+    headers["includeIdentifiers"] = "true"
+
+    search_identifier = f"https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}"
+    payload = {"identifier": search_identifier}
+    url = "{}/v2/fhir/Patient/_search".format(
+        get_resourcerouter().fhir_url
+    )
+
+    s = requests.Session()
+    req = requests.Request("POST", url, headers=headers, data=payload)
+    prepped = req.prepare()
+    response = s.send(prepped, cert=certs, verify=False)
+
+    response.raise_for_status()
+    return response.json()

@@ -1,4 +1,5 @@
 from django.urls import path, re_path
+from apps.dot_ext.constants import AUTHORIZE_INSTANCE_PARAM
 from oauth2_provider import views as oauth2_views
 from waffle.decorators import waffle_switch
 
@@ -11,7 +12,7 @@ app_name = "oauth2_provider_v3"
 base_urlpatterns = [
     path("authorize/", waffle_switch("v3_endpoints")(views.AuthorizationView.as_view(version=3)), name="authorize-v3"),
     re_path(
-        r"^authorize/(?P<uuid>[\w-]+)/$",
+        rf"^authorize/(?P<{AUTHORIZE_INSTANCE_PARAM}>[\w-]+)/$",
         waffle_switch("v3_endpoints")(views.ApprovalView.as_view(version=3)),
         name="authorize-instance-v3",
     ),
