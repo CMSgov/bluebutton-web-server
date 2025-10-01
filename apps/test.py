@@ -66,6 +66,7 @@ class BaseApiTest(TestCase):
         Returns:
             user: The created auth.User instance
         """
+        print("passed fhir_id_v3: ", fhir_id_v3)
         user = User.objects.create_user(username, password=password, **extra_fields)
         self._create_crosswalk(
             user=user,
@@ -196,12 +197,16 @@ class BaseApiTest(TestCase):
 
         # Delete any existing crosswalks with the same unique values as the ones coming in
         if fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists():
+            print("WE ARE DELETING 1")
             Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).delete()
         if fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists():
+            print("WE ARE DELETING 2")
             Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).delete()
         if hicn_hash and Crosswalk.objects.filter(_user_id_hash=hicn_hash).exists():
+            print("WE ARE DELETING 3")
             Crosswalk.objects.filter(_user_id_hash=hicn_hash).delete()
         if mbi_hash and Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).exists():
+            print("WE ARE DELETING 4")
             Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).delete()
 
         cw, _ = Crosswalk.objects.get_or_create(
@@ -362,7 +367,7 @@ class BaseApiTest(TestCase):
         return user
 
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id, app_name, app_username, app_user_organization,
+        self, first_name, last_name, fhir_id, fhir_id_v3, app_name, app_username, app_user_organization,
         app_data_access_type=None
     ):
         """
@@ -413,6 +418,7 @@ class BaseApiTest(TestCase):
                 username=username,
                 password="xxx123",
                 fhir_id_v2=fhir_id,
+                fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
             )
@@ -428,12 +434,12 @@ class BaseApiTest(TestCase):
         return user, application, access_token
 
     def _create_range_users_app_token_grant(
-            self, 
-            start_fhir_id : str, 
-            count : int, 
-            app_name : str,
-            app_user_organization
-        ):
+        self,
+        start_fhir_id: str,
+        count: int,
+        app_name: str,
+        app_user_organization
+    ):
         """Helper method that creates a range of users
 
         Calls create_user_app_token_grant in a loop, which creates Users, Applications,
@@ -448,14 +454,16 @@ class BaseApiTest(TestCase):
         Returns:
             app: the created application
             user_dict: a dictionary of users with fhir_id_v2 as the key
-        """        
+        """
         user_dict = {}
         for i in range(0, count):
             fhir_id_v2 = start_fhir_id + str(i)
+            fhir_id_v3 = start_fhir_id + str(i + 1)
             user, app, ac = self._create_user_app_token_grant(
                 first_name="first",
                 last_name="last" + fhir_id_v2,
                 fhir_id=fhir_id_v2,
+                fhir_id_v3=fhir_id_v3,
                 app_name=app_name,
                 app_username="user_" + app_name,
                 app_user_organization=app_user_organization,

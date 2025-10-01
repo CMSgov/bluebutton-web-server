@@ -892,7 +892,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         cw = Crosswalk.objects.get(user=save_synth_user_dict["-60000000000003"])
         ArchivedCrosswalk.create(cw)
-        cw.fhir_id_v2="" # Don't use helper method to bypass validation
+        cw.fhir_id_v2 = ''  # Don't use helper method to bypass validation
+        cw.fhir_id_v3 = ''  # Don't use helper method to bypass validation
         cw.save()
 
         self._call_management_command_log_global_state_metrics()
