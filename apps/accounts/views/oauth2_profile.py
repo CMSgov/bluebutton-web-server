@@ -37,7 +37,8 @@ def get_userinfo(user, version):
                      DataAccessGrantPermission])
 @protected_resource()
 def openidconnect_userinfo(request, **kwargs):
-    return JsonResponse(get_userinfo(request.resource_owner, 2)) #TODO: where to get version from request? probably from the URL
+    # TODO: where to get version from request? probably from the URL
+    return JsonResponse(get_userinfo(request.resource_owner, 2))
 
 
 def get_fhir_id(user, version):

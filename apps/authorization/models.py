@@ -486,16 +486,18 @@ def get_beneficiary_grant_app_pair_counts():
         "beneficiary", "application"
     )
 
+    # BB2-4166-TODO: this only checks v2! it should be |or| on v3 as well
     real_grant_archived_queryset = grant_archived_queryset.filter(
         ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
         & ~Q(beneficiary__crosswalk__fhir_id_v2="")
         & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
+    # BB2-4166-TODO: this only checks v2! it should be |or| on v3 as well
     synthetic_grant_archived_queryset = grant_archived_queryset.filter(
-        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-") &
-        ~Q(beneficiary__crosswalk__fhir_id_v2="") &
-        Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
+        Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
+        & ~Q(beneficiary__crosswalk__fhir_id_v2="")
+        & Q(beneficiary__crosswalk__fhir_id_v2__isnull=False)
     ).values("beneficiary", "application")
 
     # Get total table count

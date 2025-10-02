@@ -8,8 +8,6 @@ from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateExcepti
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 from ..models import create_beneficiary_record, get_and_update_user
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory
 from unittest.mock import patch, Mock
 
 # Create the mock request

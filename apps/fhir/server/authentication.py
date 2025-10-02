@@ -132,7 +132,7 @@ def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
       Returns:
         fhir_id = Matched patient identifier.
         hash_lookup_type = The type used for the successful lookup (M or H).
-        
+
       Raises:
         UpstreamServerException: If hicn_hash or mbi search found duplicates.
         NotFound: If both searches did not match a fhir_id.

@@ -365,7 +365,7 @@ class TestTokenView(BaseApiTest):
     test_uuid = "0123456789abcdefghijklmnopqrstuvwxyz"
     test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
 
-    def _create_test_token(self, user:User, application:Application):
+    def _create_test_token(self, user: User, application: Application):
         # user logs in
         self.client.force_login(user)
         # post the authorization form with only one scope selected

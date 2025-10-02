@@ -52,7 +52,6 @@ QP_CHECK_LIST = ["client_secret"]
 
 
 def get_grant_expiration(data_access_type):
-
     pass
 
 

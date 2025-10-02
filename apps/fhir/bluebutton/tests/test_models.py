@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException

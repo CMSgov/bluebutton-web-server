@@ -303,7 +303,8 @@ def _validate_asserts(logger, log_dict, asserts):
     Args:
         logger (_type_): the logger
         log_dict (_type_): the log dictionary to update
-        asserts (list : (boolean, string, enum)): the list of tuples to evaluate, t[0] is a boolean expression, t[1] is the error message to log, and t[2] is the enum of exception to raise
+        asserts (list : (boolean, string, enum)): the list of tuples to evaluate, t[0] is a boolean expression, t[1] is the error
+                                                  message to log, and t[2] is the enum of exception to raise
 
     Raises:
         err: the error based on the result of iterating over asserts
