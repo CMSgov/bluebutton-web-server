@@ -98,7 +98,6 @@ class AuthorizationView(DotAuthorizationView):
 
     def _check_for_required_params(self, request):
         missing_params = []
-        v3 = True if request.path.startswith('/v3/o/authorize') else False
 
         if switch_is_active('require_pkce'):
             if not request.GET.get('code_challenge', None):
@@ -113,7 +112,7 @@ class AuthorizationView(DotAuthorizationView):
                 error_message = "State parameter should have a minimum of 16 characters"
                 return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
-        if switch_is_active('v3_endpoints') and v3:
+        if switch_is_active('v3_endpoints') and self.version == 3:
             if 'scope' not in request.GET:
                 missing_params.append("scope")
 
@@ -185,6 +184,9 @@ class AuthorizationView(DotAuthorizationView):
         # Default template
         default_tpl = "design_system/new_authorize_v2.html"
 
+        if self.version == 3:
+            return ["design_system/authorize_v3.html"]
+
         if not switch_is_active("enable_coverage_only"):
             return [default_tpl]
 
@@ -244,6 +246,8 @@ class AuthorizationView(DotAuthorizationView):
         # Get beneficiary demographic scopes sharing choice
         share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
+        share_coverage_scopes = form.cleaned_data.get("share_coverage_scopes")
+        share_eob_scopes = form.cleaned_data.get("share_eob_scopes")
 
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
@@ -283,6 +287,8 @@ class AuthorizationView(DotAuthorizationView):
                 user=self.request.user,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
+                share_coverage_scopes=share_coverage_scopes,
+                share_eob_scopes=share_eob_scopes,
                 scopes=scopes,
                 allow=allow,
                 access_token_delete_cnt=access_token_delete_cnt,
@@ -304,6 +310,8 @@ class AuthorizationView(DotAuthorizationView):
             user=self.request.user,
             application=application,
             share_demographic_scopes=share_demographic_scopes,
+            share_coverage_scopes=share_coverage_scopes,
+            share_eob_scopes=share_eob_scopes,
             scopes=scopes,
             allow=allow,
             access_token_delete_cnt=access_token_delete_cnt,
@@ -342,7 +350,7 @@ class ApprovalView(AuthorizationView):
 
     def __init__(self, version=1):
         self.version = version
-        super().__init__()
+        super().__init__(version=version)
 
     def dispatch(self, request, uuid, *args, **kwargs):
 

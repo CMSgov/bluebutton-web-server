@@ -301,6 +301,12 @@ def test_eob(request, version=1):
 
 @never_cache
 @waffle_switch('enable_testclient')
+def authorize_link_v3(request):
+    return authorize_link(request, True)
+
+
+@never_cache
+@waffle_switch('enable_testclient')
 def authorize_link_v2(request):
     return authorize_link(request, True)
 

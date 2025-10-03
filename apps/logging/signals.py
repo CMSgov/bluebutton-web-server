@@ -38,7 +38,8 @@ def handle_token_created(sender, request, token, **kwargs):
 
 @receiver(beneficiary_authorized_application)
 def handle_app_authorized(sender, request, auth_status, auth_status_code, user, application,
-                          share_demographic_scopes, scopes, allow, access_token_delete_cnt,
+                          share_demographic_scopes, share_coverage_scopes, share_eob_scopes,
+                          scopes, allow, access_token_delete_cnt,
                           refresh_token_delete_cnt, data_access_grant_delete_cnt, **kwargs):
 
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
@@ -78,6 +79,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
             "data_access_type": application.data_access_type,
         },
         "share_demographic_scopes": share_demographic_scopes,
+        "share_coverage_scopes": share_coverage_scopes,
+        "share_eob_scopes": share_eob_scopes,
         "scopes": scopes,
         "allow": allow,
         "access_token_delete_cnt": access_token_delete_cnt,

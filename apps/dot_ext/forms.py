@@ -332,6 +332,8 @@ class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
     share_demographic_scopes = forms.CharField(required=False)
+    share_coverage_scopes = forms.CharField(required=False)
+    share_eob_scopes = forms.CharField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -342,9 +344,13 @@ class SimpleAllowForm(DotAllowForm):
             scope = ""
         else:
             cleaned_scope_list = CapabilitiesScopes().condense_scopes(scope.split(" "))
-            # Remove demographic information scopes, if beneficiary is not sharing
+            # Remove any scopes beneficiary is not sharing
             if cleaned_data.get("share_demographic_scopes") != "True":
                 cleaned_scope_list = CapabilitiesScopes().remove_demographic_scopes(cleaned_scope_list)
+            if cleaned_data.get("share_coverage_scopes") != "True":
+                cleaned_scope_list = CapabilitiesScopes().remove_coverage_scopes(cleaned_scope_list)
+            if cleaned_data.get("share_eob_scopes") != "True":
+                cleaned_scope_list = CapabilitiesScopes().remove_eob_scopes(cleaned_scope_list)
             cleaned_data["scope"] = " ".join(cleaned_scope_list)
 
         return cleaned_data

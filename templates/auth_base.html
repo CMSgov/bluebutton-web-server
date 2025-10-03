@@ -19,9 +19,11 @@
 	<body class="ds-u-margin--0">
 <!-- US Banner -->
 <script type = "text/javascript">
-    function toggleHintText() {
-        const hint_allow = document.getElementById('allow_access');
-        const hint_block = document.getElementById('block_access');
+    function toggleHintText(elementIdPrefix="") {
+        const allow_id = elementIdPrefix + 'allow_access';
+        const block_id = elementIdPrefix + 'block_access';
+        const hint_allow = document.getElementById(allow_id);
+        const hint_block = document.getElementById(block_id);
         if (hint_allow.style.display === 'none') {
             hint_allow.style.display = 'inline';
             hint_block.style.display = 'none';

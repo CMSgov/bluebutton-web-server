@@ -99,6 +99,17 @@ class CapabilitiesScopes(BaseScopes):
                 out_scopes.append(s)
         return out_scopes
 
+    def remove_coverage_scopes(self, scopes):
+        """
+        Returns a list based on the provided list of scopes with coverage scopes removed
+        """
+        out_scopes = set(scopes)
+        out_scopes.discard("patient/Coverage.r")
+        out_scopes.discard("patient/Coverage.s")
+        out_scopes.discard("patient/Coverage.rs")
+        out_scopes.discard("patient/Coverage.read")
+        return out_scopes
+
     def remove_eob_scopes(self, scopes):
         """
         Returns a list based on the provided list of scopes with eob scopes removed
