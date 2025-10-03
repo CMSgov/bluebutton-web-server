@@ -11,8 +11,14 @@ from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 
 def get_userinfo(user, version):
-    """
-    OIDC-style userinfo
+    """ OIDC-style userinfo
+
+    Args:
+        user (AccessToken): AccessToken object from database
+        version (int): the version of BFD being accessed
+
+    Returns:
+        data (dict): dictionary of values according to OIDC
     """
     data = OrderedDict()
     data['sub'] = user.username
@@ -22,7 +28,6 @@ def get_userinfo(user, version):
     data['email'] = user.email
     data['iat'] = user.date_joined
 
-    # Get the FHIR ID if its there
     fhir_id = get_fhir_id(user, version)
     if fhir_id:
         data['patient'] = fhir_id
@@ -35,9 +40,10 @@ def get_userinfo(user, version):
 @permission_classes([ApplicationActivePermission,
                      TokenHasProtectedCapability,
                      DataAccessGrantPermission])
-@protected_resource()
+@protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
 def openidconnect_userinfo(request, **kwargs):
-    # TODO: where to get version from request? probably from the URL
+    # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
+    # a straight url that we need to get the version from the url (like we do in the fhir app)
     return JsonResponse(get_userinfo(request.resource_owner, 2))
 
 
