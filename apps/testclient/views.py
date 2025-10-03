@@ -15,7 +15,7 @@ from waffle.decorators import waffle_switch
 
 from .utils import test_setup, get_client_secret, extract_page_nav
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
-from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
+from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.wellknown.views.openid import openid_configuration
 
 import apps.logging.request_logger as bb2logging
@@ -165,76 +165,102 @@ def test_links(request, **kwargs):
         return render(request, HOME_PAGE, context={"session_token": None})
 
 
+# userinfo v3 currently not returning anything so this one is broken
+@never_cache
+@waffle_switch('enable_testclient')
+def test_userinfo_v3(request):
+    return test_userinfo(request, ver='v3')
+
+
 @never_cache
 @waffle_switch('enable_testclient')
 def test_userinfo_v2(request):
-    return test_userinfo(request, 2)
+    return test_userinfo(request, ver='v2')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def test_userinfo(request, version=1):
+def test_userinfo(request, ver='v1'):
 
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
+    params = [request.session['resource_uri'], ver]
 
     user_info = _get_data_json(request, 'userinfo', params)
 
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(user_info, indent=3),
                    "response_type": "Profile (OIDC Userinfo)",
-                   "api_ver": "v2" if version == 2 else "v1"})
+                   "api_ver": ver})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_metadata_v3(request):
+    return test_metadata(request, ver='v3')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def test_metadata_v2(request):
-    return test_metadata(request, True)
+    return test_metadata(request, ver='v2')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def test_metadata(request, v2=False):
-    json_response = _convert_to_json(fhir_conformance_v2(request) if v2 else fhir_conformance(request))
+def test_metadata(request, ver='v1'):
+    json_response = _convert_to_json(fhir_conformance(request, ver_str=ver))
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(json_response, indent=3),
                    "response_type": "FHIR Metadata",
-                   "api_ver": "v2" if v2 else "v1"})
+                   "api_ver": ver})
+
+
+# This is still using /.well-known/openid-configuration-v2, so not the most accurate for v3
+@never_cache
+@waffle_switch('enable_testclient')
+def test_openid_config_v3(request):
+    return test_openid_config(request, ver='v3')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def test_openid_config_v2(request):
-    return test_openid_config(request, True)
+    return test_openid_config(request, ver='v2')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def test_openid_config(request, v2=False):
+def test_openid_config(request, ver='v1'):
     # api ver agnostic for now, but show version any way on page
     json_response = _convert_to_json(openid_configuration(request))
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(json_response, indent=3),
                    "response_type": "OIDC Discovery",
-                   "api_ver": "v2" if v2 else "v1"})
+                   "api_ver": ver})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_coverage_v3(request):
+    return test_coverage(request, ver='v3', url_name='test_coverage_v3')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def test_coverage_v2(request):
-    return test_coverage(request, 2)
+    return test_coverage(request, ver='v2', url_name='test_coverage_v2')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def test_coverage(request, version=1):
+def test_coverage(request, ver='v1', url_name='test_coverage'):
 
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    coverage = _get_data_json(request, 'coverage', [request.session['resource_uri'], 'v1' if version == 1 else 'v2'])
+    coverage = _get_data_json(request, 'coverage', [request.session['resource_uri'], ver])
 
     nav_info, last_link = extract_page_nav(coverage)
 
@@ -242,48 +268,60 @@ def test_coverage(request, version=1):
 
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(coverage, indent=3),
-                   "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
+                   "url_name": url_name,
                    "nav_list": nav_info, "page_loc": pg_info,
                    "response_type": "Bundle of Coverage",
-                   "api_ver": "v2" if version == 2 else "v1"})
+                   "api_ver": ver})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_patient_v3(request):
+    return test_patient(request, ver='v3')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def test_patient_v2(request):
-    return test_patient(request, 2)
+    return test_patient(request, ver='v2')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def test_patient(request, version=1):
+def test_patient(request, ver='v1'):
 
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
+    params = [request.session['resource_uri'], ver, request.session['patient']]
 
     patient = _get_data_json(request, 'patient', params)
 
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(patient, indent=3),
                    "response_type": "Patient",
-                   "api_ver": "v2" if version == 2 else "v1"})
+                   "api_ver": ver})
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_eob_v3(request):
+    return test_eob(request, ver='v3', url_name='test_eob_v3')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def test_eob_v2(request):
-    return test_eob(request, 2)
+    return test_eob(request, ver='v2', url_name='test_eob_v2')
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def test_eob(request, version=1):
+def test_eob(request, ver='v1', url_name='test_eob'):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
+    params = [request.session['resource_uri'], ver]
 
     eob = _get_data_json(request, 'eob', params)
 
@@ -293,41 +331,43 @@ def test_eob(request, version=1):
 
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(eob, indent=3),
-                   "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
+                   "url_name": url_name,
                    "nav_list": nav_info, "page_loc": pg_info,
                    "response_type": "Bundle of ExplanationOfBenefit",
-                   "api_ver": "v2" if version == 2 else "v1"})
+                   "api_ver": ver})
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link_v3(request):
-    return authorize_link(request, True)
+    return authorize_link(request, ver="v3")
 
 
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link_v2(request):
-    return authorize_link(request, True)
+    return authorize_link(request, ver="v2")
 
 
 @never_cache
 @waffle_switch('enable_testclient')
-def authorize_link(request, v2=False):
-    request.session.update(test_setup(v2=v2))
+def authorize_link(request, ver="v1"):
+    request.session.update(test_setup(ver=ver))
     oas = _get_oauth2_session_with_redirect(request)
+
+    oas.scope = "profile openid patient/Patient.rs patient/ExplanationOfBenefit.rs patient/Coverage.rs"
 
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'],
         request.session['state'],
         code_challenge=request.session['code_challenge'],
-        code_challenge_method=request.session['code_challenge_method']
+        code_challenge_method=request.session['code_challenge_method'],
     )[0]
 
     return render(
         request,
         'authorize.html',
-        {"authorization_url": authorization_url, "api_ver": "v2" if v2 else "v1"}
+        {"authorization_url": authorization_url, "api_ver": ver}
     )
 
 

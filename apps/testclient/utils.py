@@ -10,9 +10,8 @@ from urllib.parse import parse_qs, urlparse
 from ..dot_ext.models import Application
 
 
-def test_setup(include_client_secret=True, v2=False):
+def test_setup(include_client_secret=True, ver='v2'):
     response = OrderedDict()
-    ver = 'v2' if v2 else 'v1'
     response['api_ver'] = ver
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id

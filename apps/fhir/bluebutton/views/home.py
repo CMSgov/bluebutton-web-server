@@ -19,21 +19,20 @@ import apps.logging.request_logger as bb2logging
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def fhir_conformance_v2(request, via_oauth=False):
-    return fhir_conformance(request, via_oauth, "v2")
+def fhir_conformance_v2(request):
+    return fhir_conformance(request, "v2")
 
 
-def fhir_conformance_v3(request, via_oauth=False):
-    return fhir_conformance(request, via_oauth, "v3")
+def fhir_conformance_v3(request):
+    return fhir_conformance(request, "v3")
 
 
-def fhir_conformance(request, via_oauth=False, ver_str="v1", *args):
+def fhir_conformance(request, ver_str="v1", *args):
     """ Pull and filter fhir Conformance statement
 
     BaseStu3 = "CapabilityStatement"
 
     :param request:
-    :param via_oauth:
     :param args:
     :param kwargs:
     :return:
