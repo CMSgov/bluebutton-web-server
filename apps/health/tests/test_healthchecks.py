@@ -31,14 +31,7 @@ class TestHealthchecks(BaseApiTest):
     def _call_health_external_endpoint(self, v2=False):
         with HTTMock(self.catchall):
             response = self.client.get(self.url + "/health/external_v2" if v2 else "/health/external")
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+        self.assertEqual(response.status_code, 404)
 
     def test_health_bfd_endpoint(self):
         self._call_health_bfd_endpoint(False)
@@ -49,41 +42,37 @@ class TestHealthchecks(BaseApiTest):
     def _call_health_bfd_endpoint(self, v2=False):
         with HTTMock(self.catchall):
             response = self.client.get(self.url + "/health/bfd_v2" if v2 else "/health/bfd")
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+        self.assertEqual(response.status_code, 404)
 
-    def test_health_db_endpoint(self):
+    def test_health_db_endpoint_throws_page_not_found(self):
         response = self.client.get(self.url + "/health/db")
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+        self.assertEqual(response.status_code, 404)
 
     def test_health_sls_endpoint(self):
         with HTTMock(self.catchall):
             response = self.client.get(self.url + "/health/sls")
+        self.assertEqual(response.status_code, 404)
+
+    def test_health_sls_fail(self):
+        with HTTMock(self.fail):
+            response = self.client.get(self.url + "/health/sls")
+        self.assertEqual(response.status_code, 404)
+
+    def test_health_internal_no_slash(self):
+        self._call_health_internal_endpoint('/health')
+
+    def test_health_internal_with_slash(self):
+        self._call_health_internal_endpoint('/health/')
+
+    def _call_health_internal_endpoint(self, request_url):
+        with HTTMock(self.catchall):
+            response = self.client.get(self.url + request_url)
+
         self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
+        content = json.loads(response.content.decode("utf-8"))
         msg = None
         try:
             msg = content['message']
         except KeyError:
             pass
         self.assertEqual(msg, "all's well")
-
-    def test_health_sls_fail(self):
-        with HTTMock(self.fail):
-            response = self.client.get(self.url + "/health/sls")
-        self.assertEqual(response.status_code, 503)
-        self.assertRegex(json.loads(response.content)["detail"],
-                         "^Service temporarily unavailable.*")
