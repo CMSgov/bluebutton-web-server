@@ -137,7 +137,7 @@ def get_grant_bene_counts(application=None):
     # Get total table count
     counts_returned["total"] = grant_queryset.count()
 
-    # BB2-4166-TODO: add the OR for v3
+    # BB2-4166-TODO: add the OR for v3 / Also remove clause excluding "" fhir_ids
     real_grant_queryset = grant_queryset.filter(
         ~Q(beneficiary__crosswalk__fhir_id_v2__startswith="-")
         & ~Q(beneficiary__crosswalk__fhir_id_v2="")

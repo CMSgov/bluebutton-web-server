@@ -362,7 +362,7 @@ class BaseApiTest(TestCase):
         return user
 
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id, fhir_id_v3, app_name, app_username, app_user_organization,
+        self, first_name, last_name, fhir_id_v2, fhir_id_v3, app_name, app_username, app_user_organization,
         app_data_access_type=None
     ):
         """
@@ -399,12 +399,12 @@ class BaseApiTest(TestCase):
         try:
             username = first_name + last_name + "@example.com"
 
-            # Create unique hashes using FHIR_ID
+            # Create unique hashes using fhir_id_v2
             hicn_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id + self.test_hicn_hash[len(fhir_id):]
+                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )
             mbi_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id + self.test_mbi_hash[len(fhir_id):]
+                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_mbi_hash[len(fhir_id_v2):]
             )
 
             user = User.objects.get(username=username)
@@ -412,7 +412,7 @@ class BaseApiTest(TestCase):
             user = self._create_user(
                 username=username,
                 password="xxx123",
-                fhir_id_v2=fhir_id,
+                fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
@@ -457,7 +457,7 @@ class BaseApiTest(TestCase):
             user, app, ac = self._create_user_app_token_grant(
                 first_name="first",
                 last_name="last" + fhir_id_v2,
-                fhir_id=fhir_id_v2,
+                fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 app_name=app_name,
                 app_username="user_" + app_name,
