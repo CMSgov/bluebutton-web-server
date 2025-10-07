@@ -14,7 +14,7 @@ from typing import List, Optional, Dict, Any
 import requests
 
 
-MBI_URL = "http://hl7.org/fhir/sid/us-mbi"
+MBI_URL = 'http://hl7.org/fhir/sid/us-mbi'
 MAX_RETRIES = 3
 DEFAULT_SLEEP = 5
 
@@ -24,7 +24,7 @@ Application = get_application_model()
 
 class Command(BaseCommand):
     help = (
-        "Management command to update bluebutton_crosswalk records where user_mbi column is null"
+        'Management command to update bluebutton_crosswalk records where user_mbi column is null'
     )
 
     def add_arguments(self, parser):
@@ -52,8 +52,8 @@ class Command(BaseCommand):
         execute = options['execute']
         start_user_id = options['start_user_id']
 
-        print("batch size %s" % (batch_size))
-        print("execute %s" % (execute))
+        print('batch size %s' % (batch_size))
+        print('execute %s' % (execute))
 
         records = self.retrieve_records(batch_size, start_user_id)
         self.process_records(records, execute)
@@ -61,19 +61,19 @@ class Command(BaseCommand):
     def retrieve_records(self, batch_size: int, start_user_id: int) -> List[Crosswalk]:
         # Subquery for users associated with research studies
         research_q = RefreshToken.objects.filter(
-            application__data_access_type="RESEARCH_STUDY",
-            user_id=OuterRef("user_id")
+            application__data_access_type='RESEARCH_STUDY',
+            user_id=OuterRef('user_id')
         )
         # Subquery for users associated with an active refresh tokem
         active_q = RefreshToken.objects.filter(
             revoked__isnull=True,
-            user_id=OuterRef("user_id")
+            user_id=OuterRef('user_id')
         )
         # Subquery for users associated with an active data access grant
         grant_q = DataAccessGrant.objects.filter(
             expiration_date__isnull=False,
             expiration_date__gte=now().date(),
-            beneficiary_id=OuterRef("user_id")
+            beneficiary_id=OuterRef('user_id')
         )
 
         qualifying_records = (
@@ -88,10 +88,10 @@ class Command(BaseCommand):
                 _user_mbi__isnull=True,
                 _user_mbi_hash__isnull=False,
                 user_id__gt=start_user_id
-            ).order_by("user_id")
+            ).order_by('user_id')
             [:batch_size]
         )
-        print("# of records returned %s" % (len(qualifying_records)))
+        print('# of records returned %s' % (len(qualifying_records)))
 
         return qualifying_records
     
@@ -104,57 +104,57 @@ class Command(BaseCommand):
                     patient_info = 0
                     user_mbi_hash = crosswalk.user_mbi_hash
                     rf = RequestFactory()
-                    request = rf.get("/")
-                    print("fhir_id %s" % (crosswalk.fhir_id))
-                    print("user_mbi_hash %s" % (user_mbi_hash))
+                    request = rf.get('/')
+                    print('fhir_id %s' % (crosswalk.fhir_id))
+                    print('user_mbi_hash %s' % (user_mbi_hash))
                     if not user_mbi_hash:
-                        print("can't update this record, no user_mbi_hash")
+                        print('can\'t update this record, no user_mbi_hash')
                         continue
                     
                     patient_info = get_patient_by_mbi_hash(user_mbi_hash, request)
 
                     user_mbi = self.extract_mbi(patient_info)
 
-                    print("crosswalk.user_id %s" % (crosswalk.user_id))
+                    print('crosswalk.user_id %s' % (crosswalk.user_id))
                     if user_mbi:
                         if execute:
-                            print("User %s: Updated MBI for user" % (crosswalk.user_id))
+                            print('User %s: Updated MBI for user' % (crosswalk.user_id))
                             self.update_mbi(user_mbi, crosswalk)
                         else:
-                            print("User %s: Not updating MBI - execute flag set to false" % (crosswalk.user_id))
+                            print('User %s: Not updating MBI - execute flag set to false' % (crosswalk.user_id))
                     else:
-                        print("User %s: MBI not found, can't update crosswalk record for user" % (crosswalk.user_id))
+                        print('User %s: MBI not found, can\'t update crosswalk record for user' % (crosswalk.user_id))
                     break
                 except requests.RequestException as e:
                     # try again 3 times, with increasingly longer sleeps, to get around any rate limit issues
                     retries += 1
-                    print("Exception in request %s" % (e))
-                    print("Moving on to retry number: %s" % (retries))
+                    print('Exception in request %s' % (e))
+                    print('Moving on to retry number: %s' % (retries))
                     retry_sleep = DEFAULT_SLEEP * retries
-                    print("Amount of sleep before trying again: %s" % (retry_sleep))
+                    print('Amount of sleep before trying again: %s' % (retry_sleep))
                     sleep(retry_sleep)
 
                 except Exception as e:
-                    print("error in process: %s" % (e))
+                    print('error in process: %s' % (e))
                     # if it's a non requests exception, move to next record
                     break
 
     def extract_mbi(self, patient_bundle: Dict[str, Any]) -> Optional[str]:
         # Only proceed if total == 1
-        if patient_bundle.get("total") != 1:
+        if patient_bundle.get('total') != 1:
             return None
 
-        entries = patient_bundle.get("entry", [])
+        entries = patient_bundle.get('entry', [])
         if not entries:
             return None
 
-        patient = entries[0].get("resource", {})
-        identifiers = patient.get("identifier", [])
+        patient = entries[0].get('resource', {})
+        identifiers = patient.get('identifier', [])
 
         # Look for the identifier with the MBI system
         for ident in identifiers:
-            if ident.get("system") == MBI_URL:
-                return ident.get("value")
+            if ident.get('system') == MBI_URL:
+                return ident.get('value')
 
         return None
     
