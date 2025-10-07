@@ -25,7 +25,7 @@ def robots_txt(request):
 
 
 urlpatterns = [
-    path("health", include("apps.health.urls")),
+    path("health/", include("apps.health.urls")),
     re_path(r"^.well-known/", include("apps.wellknown.urls")),
     path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("v1/accounts/", include("apps.accounts.urls")),

@@ -4,6 +4,15 @@ from django.test.client import Client
 from httmock import HTTMock, all_requests
 from apps.test import BaseApiTest
 
+ENDPOINT_TEST_CASES = [
+    ('/health/bd', 404),
+    ('/health/bfd_v3', 404),
+    ('/health/bfd_v2/live', 404),
+    ('/health/test', 404),
+    ('/health/internal', 404),
+    ('/health/', 200)
+]
+
 
 class TestHealthchecks(BaseApiTest):
 
@@ -30,8 +39,15 @@ class TestHealthchecks(BaseApiTest):
 
     def _call_health_external_endpoint(self, v2=False):
         with HTTMock(self.catchall):
-            response = self.client.get(self.url + '/health/external_v2' if v2 else '/health/external')
-        self.assertEqual(response.status_code, 404)
+            response = self.client.get(self.url + "/health/external_v2" if v2 else "/health/external")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
 
     def test_health_bfd_endpoint(self):
         self._call_health_bfd_endpoint(False)
@@ -41,32 +57,30 @@ class TestHealthchecks(BaseApiTest):
 
     def _call_health_bfd_endpoint(self, v2=False):
         with HTTMock(self.catchall):
-            response = self.client.get(self.url + '/health/bfd_v2' if v2 else '/health/bfd')
-        self.assertEqual(response.status_code, 404)
+            response = self.client.get(self.url + "/health/bfd_v2" if v2 else "/health/bfd")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
 
     def test_health_db_endpoint_throws_page_not_found(self):
-        response = self.client.get(self.url + '/health/db')
-        self.assertEqual(response.status_code, 404)
+        response = self.client.get(self.url + "/health/db")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
 
     def test_health_sls_endpoint(self):
         with HTTMock(self.catchall):
-            response = self.client.get(self.url + '/health/sls')
-        self.assertEqual(response.status_code, 404)
-
-    def test_health_sls_fail(self):
-        with HTTMock(self.fail):
-            response = self.client.get(self.url + '/health/sls')
-        self.assertEqual(response.status_code, 404)
-
-    def test_health_internal_no_slash(self):
-        self._call_health_internal_endpoint('/health')
-
-    def test_health_internal_with_slash(self):
-        self._call_health_internal_endpoint('/health/')
-
-    def _call_health_internal_endpoint(self, request_url):
-        with HTTMock(self.catchall):
-            response = self.client.get(self.url + request_url)
+            response = self.client.get(self.url + "/health/sls")
 
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
@@ -75,4 +89,14 @@ class TestHealthchecks(BaseApiTest):
             msg = content['message']
         except KeyError:
             pass
-        self.assertEqual(msg, 'all\'s well')
+        self.assertEqual(msg, "all's well")
+
+    def test_endpoints(self) -> None:
+        for endpoint in ENDPOINT_TEST_CASES:
+            self._call_health_endpoint(endpoint[0], endpoint[1])
+
+    def _call_health_endpoint(self, endpoint: str, expected_status_code: int) -> None:
+        with HTTMock(self.catchall):
+            response = self.client.get(self.url + endpoint)
+
+        self.assertEqual(response.status_code, expected_status_code)
