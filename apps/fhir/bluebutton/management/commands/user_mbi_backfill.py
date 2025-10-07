@@ -2,7 +2,6 @@
 from apps.authorization.models import DataAccessGrant
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash
-import apps.logging.request_logger as bb2logging
 
 from django.core.management.base import BaseCommand
 from django.db.models import Q, Exists, OuterRef
@@ -14,8 +13,6 @@ from time import sleep
 from typing import List, Optional, Dict, Any
 import requests
 
-
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 MBI_URL = "http://hl7.org/fhir/sid/us-mbi"
 MAX_RETRIES = 3
@@ -55,8 +52,8 @@ class Command(BaseCommand):
         execute = options['execute']
         start_user_id = options['start_user_id']
 
-        logger.info("batch size %s" % (batch_size))
-        logger.info("execute %s" % (execute))
+        print("batch size %s" % (batch_size))
+        print("execute %s" % (execute))
 
         records = self.retrieve_records(batch_size, start_user_id)
         self.process_records(records, execute)
@@ -94,7 +91,7 @@ class Command(BaseCommand):
             ).order_by("user_id")
             [:batch_size]
         )
-        logger.info("# of records returned %s" % (len(qualifying_records)))
+        print("# of records returned %s" % (len(qualifying_records)))
 
         return qualifying_records
     
@@ -108,8 +105,8 @@ class Command(BaseCommand):
                     user_mbi_hash = crosswalk.user_mbi_hash
                     rf = RequestFactory()
                     request = rf.get("/")
-                    logger.info("fhir_id %s" % (crosswalk.fhir_id))
-                    logger.info("user_mbi_hash %s" % (user_mbi_hash))
+                    print("fhir_id %s" % (crosswalk.fhir_id))
+                    print("user_mbi_hash %s" % (user_mbi_hash))
                     if not user_mbi_hash:
                         print("can't update this record, no user_mbi_hash")
                         continue
@@ -118,27 +115,27 @@ class Command(BaseCommand):
 
                     user_mbi = self.extract_mbi(patient_info)
 
-                    logger.info("crosswalk.user_id %s" % (crosswalk.user_id))
+                    print("crosswalk.user_id %s" % (crosswalk.user_id))
                     if user_mbi:
                         if execute:
-                            logger.info("User %s: Updated MBI for user" % (crosswalk.user_id))
+                            print("User %s: Updated MBI for user" % (crosswalk.user_id))
                             self.update_mbi(user_mbi, crosswalk)
                         else:
-                            logger.info("User %s: Not updating MBI - execute flag set to false" % (crosswalk.user_id))
+                            print("User %s: Not updating MBI - execute flag set to false" % (crosswalk.user_id))
                     else:
-                        logger.info("User %s: MBI not found, can't update crosswalk record for user" % (crosswalk.user_id))
+                        print("User %s: MBI not found, can't update crosswalk record for user" % (crosswalk.user_id))
                     break
                 except requests.RequestException as e:
                     # try again 3 times, with increasingly longer sleeps, to get around any rate limit issues
                     retries += 1
-                    logger.error("Exception in request %s" % (e))
-                    logger.info("Moving on to retry number: %s" % (retries))
+                    print("Exception in request %s" % (e))
+                    print("Moving on to retry number: %s" % (retries))
                     retry_sleep = DEFAULT_SLEEP * retries
-                    logger.info("Amount of sleep before trying again: %s" % (retry_sleep))
+                    print("Amount of sleep before trying again: %s" % (retry_sleep))
                     sleep(retry_sleep)
 
                 except Exception as e:
-                    logger.error("error in process: %s" % (e))
+                    print("error in process: %s" % (e))
                     # if it's a non requests exception, move to next record
                     break
 
