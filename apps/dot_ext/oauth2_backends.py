@@ -14,6 +14,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         SMART on FHIR Authorization
         http://docs.smarthealthit.org/authorization/
         """
+        self.validate_token_endpoint_request_body(request)
         # Get session values previously stored in AuthFlowUuid from AuthorizationView.form_valid() from code.
         body = dict(self.extract_body(request))
         clear_session_auth_flow_trace(request)
