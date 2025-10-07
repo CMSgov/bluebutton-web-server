@@ -41,15 +41,14 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     Returns:
         The user that was existing or newly created
         crosswalk_type =  Type of crosswalk activity:
-            "R" = Returned existing crosswalk record
-            "C" = Created new crosswalk record
+            'R' = Returned existing crosswalk record
+            'C' = Created new crosswalk record
     Raises:
         KeyError: If an expected key is missing from user_info.
         KeyError: If response from fhir server is malformed.
         AssertionError: If a user is matched but not all identifiers match.
     """
 
-    # BB2-4166-TODO: the request should probably be required, and tests should be rewritten with this in mind
     version = request.session['version']
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
@@ -70,15 +69,15 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     )
 
     log_dict = {
-        "type": "mymedicare_cb:get_and_update_user",
-        "subject": slsx_client.user_id,
+        'type': 'mymedicare_cb:get_and_update_user',
+        'subject': slsx_client.user_id,
         # BB2-4166-TODO: add fhir_id_v3 when the lookup above is completed
-        "fhir_id_v2": fhir_id,
-        "mbi_hash": slsx_client.mbi_hash,
-        "hicn_hash": slsx_client.hicn_hash,
-        "hash_lookup_type": hash_lookup_type,
-        "crosswalk": {},
-        "crosswalk_before": {},
+        'fhir_id_v2': fhir_id,
+        'mbi_hash': slsx_client.mbi_hash,
+        'hicn_hash': slsx_client.hicn_hash,
+        'hash_lookup_type': hash_lookup_type,
+        'crosswalk': {},
+        'crosswalk_before': {},
     }
 
     # Init for types of crosswalk updates.
@@ -95,10 +94,10 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         if user.crosswalk.fhir_id(2) != fhir_id:
             mesg = "Found user's fhir_id did not match"
             log_dict.update({
-                "status": "FAIL",
-                "user_id": user.id,
-                "user_username": user.username,
-                "mesg": mesg,
+                'status': 'FAIL',
+                'user_id': user.id,
+                'user_username': user.username,
+                'mesg': mesg,
             })
             logger.info(log_dict)
             raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
@@ -126,12 +125,12 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         ):
             # Log crosswalk before state
             log_dict.update({
-                "crosswalk_before": {
-                    "id": user.crosswalk.id,
-                    "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                    "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                    "fhir_id_v2": user.crosswalk.fhir_id(version),
-                    "user_id_type": user.crosswalk.user_id_type,
+                'crosswalk_before': {
+                    'id': user.crosswalk.id,
+                    'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                    'user_mbi_hash': user.crosswalk.user_mbi_hash,
+                    'fhir_id_v2': user.crosswalk.fhir_id(version),
+                    'user_id_type': user.crosswalk.user_id_type,
                 },
             })
 
@@ -148,26 +147,26 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
 
         # Beneficiary has been successfully matched!
         log_dict.update({
-            "status": "OK",
-            "user_id": user.id,
-            "user_username": user.username,
-            "hicn_updated": hicn_updated,
-            "mbi_updated": mbi_updated,
-            "mbi_updated_from_null": mbi_updated_from_null,
-            "mesg": "RETURN existing beneficiary record",
-            "crosswalk": {
-                "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi": user.crosswalk.user_mbi,
-                "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            'status': 'OK',
+            'user_id': user.id,
+            'user_username': user.username,
+            'hicn_updated': hicn_updated,
+            'mbi_updated': mbi_updated,
+            'mbi_updated_from_null': mbi_updated_from_null,
+            'mesg': 'RETURN existing beneficiary record',
+            'crosswalk': {
+                'id': user.crosswalk.id,
+                'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                'user_mbi': user.crosswalk.user_mbi,
+                'user_mbi_hash': user.crosswalk.user_mbi_hash,
                 # BB2-4166-TODO: this is hardcoded to be version 2
-                "fhir_id_v2": user.crosswalk.fhir_id(2),
-                "user_id_type": user.crosswalk.user_id_type,
+                'fhir_id_v2': user.crosswalk.fhir_id(2),
+                'user_id_type': user.crosswalk.user_id_type,
             },
         })
         logger.info(log_dict)
 
-        return user, "R"
+        return user, 'R'
     except User.DoesNotExist:
         pass
 
@@ -176,38 +175,37 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     user = create_beneficiary_record(slsx_client, fhir_id_v2=fhir_id, user_id_type=hash_lookup_type, request=request)
 
     log_dict.update({
-        "status": "OK",
-        "user_id": user.id,
-        "user_username": user.username,
-        "hicn_updated": hicn_updated,
-        "mbi_updated": mbi_updated,
-        "mbi_updated_from_null": mbi_updated_from_null,
-        "mesg": "CREATE beneficiary record",
-        "crosswalk": {
-            "id": user.crosswalk.id,
-            "user_hicn_hash": user.crosswalk.user_hicn_hash,
-            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+        'status': 'OK',
+        'user_id': user.id,
+        'user_username': user.username,
+        'hicn_updated': hicn_updated,
+        'mbi_updated': mbi_updated,
+        'mbi_updated_from_null': mbi_updated_from_null,
+        'mesg': 'CREATE beneficiary record',
+        'crosswalk': {
+            'id': user.crosswalk.id,
+            'user_hicn_hash': user.crosswalk.user_hicn_hash,
+            'user_mbi_hash': user.crosswalk.user_mbi_hash,
             # BB2-4166-TODO: this needs to include both fhir versions
-            "fhir_id_v2": user.crosswalk.fhir_id(2),
-            "user_id_type": user.crosswalk.user_id_type,
+            'fhir_id_v2': user.crosswalk.fhir_id(2),
+            'user_id_type': user.crosswalk.user_id_type,
         },
     })
     logger.info(log_dict)
 
-    return user, "C"
+    return user, 'C'
 
 
-# TODO default empty strings to null, requires non-null constraints to be fixed
 def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
                               fhir_id_v2=None, fhir_id_v3=None,
-                              user_id_type="H", request=None) -> User:
+                              user_id_type='H', request=None) -> User:
     """function that takes meta information and creates a User, Crosswalk, and UserProfile
 
     Args:
         slsx_client (OAuth2ConfigSLSx): slsx client
         fhir_id_v2 (str, optional): fhir id for BFD v1/v2. Defaults to None.
         fhir_id_v3 (str, optional): fhir id for BFD v3. Defaults to None.
-        user_id_type (str, optional): the type of user. Defaults to "H".
+        user_id_type (str, optional): describes the lookup method that found this user_id. Defaults to 'H'.
         request (HttpRequest, optional): request object from upstream Django. Defaults to None.
 
     Returns:
@@ -216,44 +214,46 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     log_dict = {
-        "type": "mymedicare_cb:create_beneficiary_record",
-        "username": slsx_client.user_id,
-        "fhir_id_v2": fhir_id_v2,
-        "fhir_id_v3": fhir_id_v3,
-        "user_mbi_hash": slsx_client.mbi_hash,
-        "user_hicn_hash": slsx_client.hicn_hash,
-        "crosswalk": {},
+        'type': 'mymedicare_cb:create_beneficiary_record',
+        'username': slsx_client.user_id,
+        'fhir_id_v2': fhir_id_v2,
+        'fhir_id_v3': fhir_id_v3,
+        'user_mbi_hash': slsx_client.mbi_hash,
+        'user_hicn_hash': slsx_client.hicn_hash,
+        'crosswalk': {},
     }
 
     _validate_asserts(logger, log_dict, [
-        (slsx_client.user_id is None or slsx_client.user_id == "",
-         "username can not be None or empty string",
+        (slsx_client.user_id is None or slsx_client.user_id == '',
+         'username can not be None or empty string',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (slsx_client.hicn_hash is None,
-         "user_hicn_hash can not be None",
+         'user_hicn_hash can not be None',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != 64,
-         "incorrect user HICN hash format",
+         'incorrect user HICN hash format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (slsx_client.mbi_hash is not None and len(slsx_client.mbi_hash) != 64,
-         "incorrect user MBI hash format",
+         'incorrect user MBI hash format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (User.objects.filter(username=slsx_client.user_id).exists(),
-         "user already exists",
+         'user already exists',
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.user_id),
         (Crosswalk.objects.filter(_user_id_hash=slsx_client.hicn_hash).exists(),
-         "user_hicn_hash already exists",
+         'user_hicn_hash already exists',
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.hicn_hash),
         (slsx_client.mbi_hash is not None and Crosswalk.objects.filter(_user_mbi_hash=slsx_client.mbi_hash).exists(),
-         "user_mbi_hash already exists",
+         'user_mbi_hash already exists',
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi_hash),
         (fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists(),
-         "fhir_id_v2 already exists", MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
-        (fhir_id_v2 == "", "fhir_id_v2 can not be an empty string", MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
+         'fhir_id_v2 already exists', MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
+        (fhir_id_v2 == '', 'fhir_id_v2 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
         (fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists(),
-         "fhir_id_v3 already exists",
+         'fhir_id_v3 already exists',
          MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v3),
-        (fhir_id_v3 == "", "fhir_id_v3 can not be an empty string", MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v3),
+        (fhir_id_v3 == '', 'fhir_id_v3 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v3),
+        (fhir_id_v2 is None and fhir_id_v3 is None, 'a crosswalk must contain at least one valid fhir_id',
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2, fhir_id_v3)
     ])
 
     with transaction.atomic():
@@ -275,21 +275,21 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
 
         # Extra user information
         # TODO: remove the idea of UserProfile
-        UserProfile.objects.create(user=user, user_type="BEN")
+        UserProfile.objects.create(user=user, user_type='BEN')
         # TODO: magic strings are bad
-        group = Group.objects.get(name="BlueButton")  # TODO: these do not need a group
+        group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
         user.groups.add(group)
 
         log_dict.update({
-            "status": "OK",
-            "mesg": "CREATE beneficiary record",
-            "crosswalk": {
-                "id": cw.id,
-                "user_hicn_hash": cw.user_hicn_hash,
-                "user_mbi_hash": cw.user_mbi_hash,
-                "fhir_id_v2": cw.fhir_id(2),
-                "fhir_id_v3": cw.fhir_id(3),
-                "user_id_type": cw.user_id_type,
+            'status': 'OK',
+            'mesg': 'CREATE beneficiary record',
+            'crosswalk': {
+                'id': cw.id,
+                'user_hicn_hash': cw.user_hicn_hash,
+                'user_mbi_hash': cw.user_mbi_hash,
+                'fhir_id_v2': cw.fhir_id(2),
+                'fhir_id_v3': cw.fhir_id(3),
+                'user_id_type': cw.user_id_type,
             },
         })
         logger.info(log_dict)
@@ -315,7 +315,7 @@ def _validate_asserts(logger, log_dict, asserts):
         mesg = t[1]
         err_enum = t[2]
         if bexp:
-            log_dict.update({"status": "FAIL", "mesg": mesg})
+            log_dict.update({'status': 'FAIL', 'mesg': mesg})
             logger.info(log_dict)
             err = None
             if err_enum == MedicareCallbackExceptionType.CALLBACK_CW_CREATE:
@@ -323,15 +323,15 @@ def _validate_asserts(logger, log_dict, asserts):
             elif err_enum == MedicareCallbackExceptionType.CALLBACK_CW_UPDATE:
                 err = BBMyMedicareCallbackCrosswalkUpdateException(mesg)
             elif err_enum == MedicareCallbackExceptionType.VALIDATION_ERROR:
-                err = ValidationError(mesg, t[3])
+                err = ValidationError(mesg, t[3:])
             else:
-                err = Exception("Unkown medicare callback crosswalk exception type: {}".format(err_enum))
+                err = Exception('Unkown medicare callback crosswalk exception type: {}'.format(err_enum))
             raise err
 
 
 class AnonUserState(models.Model):
-    state = models.CharField(default="", max_length=64, db_index=True)
-    next_uri = models.CharField(default="", max_length=512)
+    state = models.CharField(default='', max_length=64, db_index=True)
+    next_uri = models.CharField(default='', max_length=512)
 
     def __str__(self):
-        return "%s %s" % (self.state, self.next_uri)
+        return '%s %s' % (self.state, self.next_uri)

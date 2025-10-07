@@ -147,6 +147,7 @@ def generate_info_headers(request):
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
+        # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
         if crosswalk.fhir_id(2) is not None:
             result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id(2))
         else:

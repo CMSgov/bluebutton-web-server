@@ -157,6 +157,14 @@ class Crosswalk(models.Model):
     def __str__(self):
         return "%s %s" % (self.user.first_name, self.user.last_name)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False),
+                name='at_least_one_fhir_id_required'
+            )
+        ]
+
     def fhir_id(self, version: int = 2) -> str:
         """Helper method to return fhir_id based on BFD version, prerred over direct access"""
         if version in (1, 2):

@@ -212,6 +212,7 @@ def test_openid_config_v2(request):
 
 @never_cache
 @waffle_switch('enable_testclient')
+# BB2-4166-TODO: testclient v2, should generalize version
 def test_openid_config(request, v2=False):
     # api ver agnostic for now, but show version any way on page
     json_response = _convert_to_json(openid_configuration(request))

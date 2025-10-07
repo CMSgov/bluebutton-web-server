@@ -182,7 +182,6 @@ class BaseApiTest(TestCase):
     def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi_hash=test_mbi_hash):
         """Helper method that gets or creates a Crosswalk instance, deleting any existing
 
-
         Args:
             user (_type_): _description_
             fhir_id_v2 (_type_): _description_
@@ -204,7 +203,7 @@ class BaseApiTest(TestCase):
         if mbi_hash and Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).exists():
             Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).delete()
 
-        cw, _ = Crosswalk.objects.get_or_create(
+        cw = Crosswalk.objects.create(
             user=user,
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
@@ -399,7 +398,9 @@ class BaseApiTest(TestCase):
         try:
             username = first_name + last_name + "@example.com"
 
-            # Create unique hashes using fhir_id_v2
+            # Create unique hashes using FHIR_ID
+            # BB2-4166-TODO: this is only checking v2, possible rewrite these helper functions to allow more
+            # generalized fhir_id handling
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )

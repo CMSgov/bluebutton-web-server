@@ -273,7 +273,7 @@ class TestDataAccessPermissions(BaseApiTest):
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
-            fhir_id="-20140000008325",
+            fhir_id_v2="-20140000008325",
             fhir_id_v3="-30140000008325",
             app_name="test_app1",
             app_username="devuser1",
@@ -341,7 +341,7 @@ class TestDataAccessPermissions(BaseApiTest):
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
-            fhir_id="-20140000008325",
+            fhir_id_v2="-20140000008325",
             fhir_id_v3="-30140000008325",
             app_name="test_app1",
             app_username="devuser1",
@@ -423,7 +423,7 @@ class TestDataAccessPermissions(BaseApiTest):
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
-            fhir_id="-20140000008325",
+            fhir_id_v2="-20140000008325",
             fhir_id_v3="-30140000008325",
             app_name="test_app1",
             app_username="devuser1",
@@ -465,7 +465,7 @@ class TestDataAccessPermissions(BaseApiTest):
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
-            fhir_id="-20140000008325",
+            fhir_id_v2="-20140000008325",
             fhir_id_v3="-30140000008325",
             app_name="test_app1",
             app_username="devuser1",
@@ -539,7 +539,7 @@ class TestDataAccessPermissions(BaseApiTest):
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
-            fhir_id="-20140000008325",
+            fhir_id_v2="-20140000008325",
             fhir_id_v3="-30140000008325",
             app_name="test_app1",
             app_username="devuser1",
@@ -591,7 +591,7 @@ class TestDataAccessPermissions(BaseApiTest):
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
-            fhir_id="-20140000008325",
+            fhir_id_v2="-20140000008325",
             fhir_id_v3="-30140000008325",
             app_name="test_app1",
             app_username="devuser1",
