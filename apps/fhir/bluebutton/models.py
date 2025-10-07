@@ -186,7 +186,7 @@ class Crosswalk(models.Model):
             self.fhir_id_v3 = value
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
-    
+
     @property
     def user_hicn_hash(self):
         return self._user_id_hash
