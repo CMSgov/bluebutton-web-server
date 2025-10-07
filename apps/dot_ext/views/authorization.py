@@ -404,7 +404,7 @@ class TokenView(DotTokenView):
         if not match:
             return False
         version = int(match.group(1))
-        return version >= 2
+        return version >= 3
 
     def validate_token_endpoint_request_body(self, request):
         """
