@@ -9,7 +9,7 @@ from django.utils.crypto import pbkdf2
 from requests import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
-
+from django.core.validators import MinLengthValidator
 from apps.accounts.models import get_user_id_salt
 
 
@@ -111,6 +111,7 @@ class Crosswalk(models.Model):
         unique=True,
         db_column="fhir_id_v2",
         db_index=True,
+        validators=[MinLengthValidator(1)],
     )
     fhir_id_v3 = models.CharField(
         max_length=80,
@@ -118,6 +119,7 @@ class Crosswalk(models.Model):
         unique=True,
         db_column="fhir_id_v3",
         db_index=True,
+        validators=[MinLengthValidator(1)],
     )
     date_created = models.DateTimeField(auto_now_add=True)
     user_id_type = models.CharField(
@@ -184,7 +186,7 @@ class Crosswalk(models.Model):
             self.fhir_id_v3 = value
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
-
+    
     @property
     def user_hicn_hash(self):
         return self._user_id_hash
