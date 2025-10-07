@@ -67,7 +67,7 @@ class TestHealthchecks(BaseApiTest):
             pass
         self.assertEqual(msg, "all's well")
 
-    def test_health_db_endpoint_throws_page_not_found(self):
+    def test_health_db_endpoint(self):
         response = self.client.get(self.url + "/health/db")
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
