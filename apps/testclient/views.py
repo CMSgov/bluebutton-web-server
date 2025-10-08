@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import OAuth2Error
+from oauthlib.oauth2.rfc6749.errors import MissingTokenError, InvalidClientIdError
 from requests_oauthlib import OAuth2Session
 from rest_framework import status
 from urllib.parse import parse_qs, urlparse
@@ -118,11 +118,17 @@ def callback(request):
                                 client_secret=get_client_secret(),
                                 authorization_response=auth_uri,
                                 code_verifier=cv if cv else '')
-    except OAuth2Error as error:
+    except MissingTokenError:
+        logmsg = "Failed to get token from %s" % (request.session['token_uri'])
+        logger.error(logmsg)
+        return JsonResponse({'error': 'Failed to get token from',
+                             'code': 'MissingTokenError',
+                             'help': 'Try authorizing again.'}, status=500)
+    except InvalidClientIdError as error:
         logmsg = "Failed to get token from %s" % (request.session['token_uri'])
         logger.error(logmsg)
         return JsonResponse({'error': f'Failed to get token. {error.description}',
-                             'code': 'MissingTokenError',
+                             'code': 'InvalidRequestError',
                              'help': 'Try authorizing again.'}, status=500)
 
     # For test client allow only authorize on synthetic beneficiaries
