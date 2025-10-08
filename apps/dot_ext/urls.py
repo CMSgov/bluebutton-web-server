@@ -1,7 +1,7 @@
 from django.urls import path, re_path
 from oauth2_provider import views as oauth2_views
 from . import views
-from .constants import AUTHORIZE_INSTANCE_PARAM
+from .constants import AUTHORIZE_INSTANCE_PARAM, TOKEN_ENDPOINT_V1_KEY
 
 app_name = "oauth2_provider"
 
@@ -13,7 +13,7 @@ base_urlpatterns = [
         views.ApprovalView.as_view(version=2),
         name="authorize-instance",
     ),
-    re_path(r"^token/?$", views.TokenView.as_view(), name="token"),
+    re_path(r"^token/?$", views.TokenView.as_view(), name=TOKEN_ENDPOINT_V1_KEY),
     path("revoke_token/", views.RevokeTokenView.as_view(), name="revoke-token"),
     path("revoke/", views.RevokeView.as_view(), name="revoke"),
     path("introspect/", views.IntrospectTokenView.as_view(), name="introspect"),
