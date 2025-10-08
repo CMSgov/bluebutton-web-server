@@ -13,6 +13,14 @@ ENDPOINT_TEST_CASES = [
     ('/health/', 200)
 ]
 
+EXTERNAL_ENDPOINTS = [
+    '/health/external',
+    '/health/external_v2',
+    '/health/sls',
+    '/health/bfd',
+    '/health/bfd_v2',
+]
+
 
 class TestHealthchecks(BaseApiTest):
 
@@ -100,3 +108,12 @@ class TestHealthchecks(BaseApiTest):
             response = self.client.get(self.url + endpoint)
 
         self.assertEqual(response.status_code, expected_status_code)
+
+    def test_health_sls_fail(self):
+        for endpoint in EXTERNAL_ENDPOINTS:
+            with HTTMock(self.fail):
+                response = self.client.get(self.url + endpoint)
+            print("THE RESPONSE: ", response)
+            self.assertEqual(response.status_code, 503)
+            self.assertRegex(json.loads(response.content)["detail"],
+                             "^Service temporarily unavailable.*")
