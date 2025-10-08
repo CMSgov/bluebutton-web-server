@@ -57,167 +57,178 @@
 
             {% if not error %}
             <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">{% trans "If you connect, " %}{{ application.name }} {% trans "will have access to information about your:" %}</p>
-            <ul class="ds-u-margin-top--0">
+
+			<form id="authorizationForm" method="post">
+
 				{% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes %}
-					<li>Patient resource</li>
+				<div>
+					<div class="ds-c-choice-wrapper ds-u-margin-bottom--2 ds-u-margin-top--5" style="align-items: center;">
+						<input type="hidden" name="share_demographic_scopes" value="False" />
+						<input
+						onChange="toggleHintText('patient_')"
+						class="ds-c-choice"
+						id="radio_1"
+						name="share_demographic_scopes"
+						type="checkbox"
+						value="True"
+						checked=""
+						aria-describedby="patient_allow_access patient_block_access"
+						/>
+						<label class="ds-c-label ds-u-text-align--left" for="radio_1">
+							<span class="ds-text-body--md">{% trans "Personal Information" %}
+							</span>
+						</label>
+					</div>
+					<span class="ds-c-field__hint" id="patient_allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to personal information." %}</span>
+					<span class="ds-c-field__hint" id="patient_block_access" role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to personal information." %}</span>
+					<ul class="ds-u-margin-left--4">
+						<li>{% trans "Your name" %}</li>
+						<li>{% trans "Address" %}</li>
+						<li>{% trans "Date of Birth" %}</li>
+						<li>{% trans "Race" %}</li>
+						<li>{% trans "Sex" %}</li>
+						<li>{% trans "Medicare Number" %}</li>
+					</ul>
+				</div>
 				{% endif %}
 				{% if 'patient/Coverage.r' in scopes or 'patient/Coverage.s' in scopes or 'patient/Coverage.rs' in scopes or 'patient/Coverage.read' in scopes %}
-					<li>Coverage resource</li>
+				<div>
+					<div class="ds-c-choice-wrapper ds-u-margin-bottom--2 ds-u-margin-top--5" style="align-items: center;">
+						<input type="hidden" name="share_coverage_scopes" value="False" />
+						<input
+						onChange="toggleHintText('coverage_')"
+						class="ds-c-choice"
+						id="radio_2"
+						name="share_coverage_scopes"
+						type="checkbox"
+						value="True"
+						checked=""
+						aria-describedby="coverage_allow_access coverage_block_access"
+						/>
+						<label class="ds-c-label ds-u-text-align--left" for="radio_2">
+							<span class="ds-text-body--md">{% trans "Medicare coverage" %}
+							</span>
+						</label>
+					</div>
+					<span class="ds-c-field__hint" id="coverage_allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to coverage information." %}</span>
+					<span class="ds-c-field__hint" id="coverage_block_access" role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to coverage information." %}</span>
+					<ul class="ds-u-margin-left--4">
+						<li>{% trans "Medicare status (active, lapsed, cancelled)" %}</li>
+						<li>{% trans "Medicare start date" %}</li>
+						<li>{% trans "Reason for Medicare eligibility (age, disability, End-Stage Renal Disease)" %}</li>
+						<li>{% trans "Medicaid dual eligibility status" %}</li>
+					</ul>
+				</div>
 				{% endif %}
 				{% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
-					<li>ExplanationOfBenefit resource</li>
+				<div>
+					<div class="ds-c-choice-wrapper ds-u-margin-bottom--2 ds-u-margin-top--5" style="align-items: center;">
+						<input type="hidden" name="share_eob_scopes" value="False" />
+						<input
+						onChange="toggleHintText('eob_')"
+						class="ds-c-choice"
+						id="radio_3"
+						name="share_eob_scopes"
+						type="checkbox"
+						value="True"
+						checked=""
+						aria-describedby="eob_allow_access eob_block_access"
+						/>
+						<label class="ds-c-label ds-u-text-align--left" for="radio_3">
+							<span class="ds-text-body--md">{% trans "Medicare claim details" %}
+							</span>
+						</label>
+					</div>
+					<span class="ds-c-field__hint" id="eob_allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to claims information." %}</span>
+					<span class="ds-c-field__hint" id="eob_block_access" role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to claims information." %}</span>
+					<ul class="ds-u-margin-left--4">
+						<li>{% trans "Diagnoses" %}</li>
+						<li>{% trans "Prescriptions" %}</li>
+						<li>{% trans "Provider details" %}</li>
+						<li>{% trans "Lab results" %}</li>
+						<li>{% trans "Treatments and procedures" %}</li>
+						<li>{% trans "Hospital stays" %}</li>
+						<li>{% trans "Qualifying clinical trials" %}</li>
+						<li>{% trans "Medical costs and payments" %}</li>
+					</ul>
+				</div>
 				{% endif %}
-            </ul>
+				
+				{% csrf_token %}
 
-            <hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
-
-                <form id="authorizationForm" method="post">
-
-					{% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes %}
-					<div>
-						<div class="ds-c-choice-wrapper ds-u-margin-bottom--2" style="align-items: center;">
-							<input type="hidden" name="share_demographic_scopes" value="False" />
-							<input
-							onChange="toggleHintText('patient_')"
-							class="ds-c-choice"
-							id="radio_1"
-							name="share_demographic_scopes"
-							type="checkbox"
-							value="True"
-							checked=""
-							aria-describedby="patient_allow_access patient_block_access"
-							/>
-							<label class="ds-c-label ds-u-text-align--left" for="radio_1">
-
-							<span class="ds-text-body--md">{% trans "Personal Information" %}<br>{% trans "Your name, address, date of birth, race, and sex" %}</span>
-							</label>
-						</div>
-							<span class="ds-c-field__hint" id="patient_allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to personal information." %}</span>
-							<span class="ds-c-field__hint" id="patient_block_access"  role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to personal information." %}</span>
-					</div>
+				{% for field in form %}
+					{% if field.is_hidden %}
+					{{ field }}
 					{% endif %}
-					{% if 'patient/Coverage.r' in scopes or 'patient/Coverage.s' in scopes or 'patient/Coverage.rs' in scopes or 'patient/Coverage.read' in scopes %}
-					<div>
-						<div class="ds-c-choice-wrapper ds-u-margin-bottom--2" style="align-items: center;">
-							<input type="hidden" name="share_coverage_scopes" value="False" />
-							<input
-							onChange="toggleHintText('coverage_')"
-							class="ds-c-choice"
-							id="radio_1"
-							name="share_coverage_scopes"
-							type="checkbox"
-							value="True"
-							checked=""
-							aria-describedby="coverage_allow_access coverage_block_access"
-							/>
-							<label class="ds-c-label ds-u-text-align--left" for="radio_1">
+				{% endfor %}
 
-							<span class="ds-text-body--md">{% trans "Coverage Information" %}<br>{% trans "Your Coverage" %}</span>
-							</label>
-						</div>
-							<span class="ds-c-field__hint" id="coverage_allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to coverage information." %}</span>
-							<span class="ds-c-field__hint" id="coverage_block_access"  role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to coverage information." %}</span>
-					</div>
+				{{ form.non_field_errors }}
+
+				<div>
+					<p class="ds-u-margin-top--4 ds-u-margin-bottom--0" style="display: flex; align-items: center">
+						<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
+							<title>Icons/Learn</title>
+							<g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+								<g id="Permissions-Screen---mobile---13mo-Copy" transform="translate(-41.000000, -664.000000)" fill="#404040" fill-rule="nonzero">
+									<g id="PP-and-TC" transform="translate(41.000000, 650.000000)">
+										<g id="Q&amp;A" transform="translate(0.000000, 14.000000)">
+											<path d="M19.0769231,10.8585366 C18.2153846,9.95121951 16.9846154,9.36585366 15.6,9.36585366 L14.9230769,9.36585366 L9.13846154,9.36585366 L8.46153846,9.36585366 C7.04615385,9.36585366 5.78461538,9.95121951 4.92307692,10.9170732 L11.8769231,12.8780488 L19.0769231,10.8585366 Z" id="Path"></path>
+											<path d="M12.1538462,8.48780488 C14.6153846,8.48780488 16.6153846,6.58536585 16.6153846,4.24390244 C16.6153846,1.90243902 14.6153846,0 12.1538462,0 C9.69230769,0 7.69230769,1.90243902 7.69230769,4.24390244 C7.69230769,6.58536585 9.69230769,8.48780488 12.1538462,8.48780488 Z" id="Path"></path>
+											<path d="M20.4,16.5073171 C20.4,15.4829268 21.1384615,14.604878 22.1538462,14.3707317 L22.1538462,11.1219512 L12.1538462,13.902439 L2.15384615,11.1219512 L2.15384615,14.3707317 C3.16923077,14.604878 3.90769231,15.4829268 3.90769231,16.5073171 C3.90769231,17.5317073 3.16923077,18.4097561 2.15384615,18.6439024 L2.15384615,21.2195122 L12.1538462,24 L22.1538462,21.2195122 L22.1538462,18.6439024 C21.1384615,18.4097561 20.4,17.5317073 20.4,16.5073171 Z" id="Path"></path>
+											<path d="M23.7538462,15.7463415 C23.4153846,14.8097561 22.4615385,14.3414634 22.4615385,14.3414634 L22.4615385,15.1609756 C22.4615385,15.1609756 22.4615385,15.1609756 22.4615385,15.1609756 C21.6,15.1609756 20.9230769,15.7756098 20.9230769,16.5073171 C20.9230769,17.2390244 21.6,17.8536585 22.4615385,17.8536585 C23.3230769,17.8536585 24,17.2390244 24,16.5073171 C24,16.2146341 23.9076923,15.9804878 23.7538462,15.7463415 Z" id="Path"></path>
+											<path d="M3.07692308,16.5073171 C3.07692308,15.7756098 2.4,15.1609756 1.53846154,15.1609756 C1.53846154,15.1609756 1.53846154,15.1609756 1.53846154,15.1609756 L1.53846154,14.3414634 C1.53846154,14.3414634 0.584615385,14.8097561 0.246153846,15.7463415 C0.0923076923,15.9804878 0,16.2146341 0,16.5073171 C0,17.2390244 0.676923077,17.8536585 1.53846154,17.8536585 C2.4,17.8536585 3.07692308,17.2390244 3.07692308,16.5073171 Z" id="Path"></path>
+										</g>
+									</g>
+								</g>
+							</g>
+						</svg><span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Learn more about how " %}{{ application.name }}{% trans " uses your data in their " %}<a href="{{ application.policy_uri }}">{% trans "Privacy Policy" %}</a>{% trans " and " %}<a href="{{ application.tos_uri }}">{% trans "Terms and Conditions" %}</a>.</span>
+					</p>
+
+					{% if application.data_access_type != 'RESEARCH_STUDY' %}
+						<p  class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center;">
+							<svg width="23.9999544px" height="16px" alignment-baseline="baseline" viewBox="0 0 23.9999544 16" version="1.1" style="flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+								<title>Icons/Show password</title>
+								<g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+									<g id="no-demographic-option---mobile--13mo" transform="translate(-40.000023, -575.750000)" fill="#404040" fill-rule="nonzero">
+										<g id="access-duration" transform="translate(40.000000, 564.000000)">
+											<g id="Icons/Show-password" transform="translate(0.000000, 11.750000)">
+												<g id="eye-regular" transform="translate(0.000000, -0.000000)">
+													<path d="M12,3.33331195 C11.5583864,3.34023577 11.1200413,3.41039344 10.6983333,3.54166667 C10.8934003,3.88471525 10.9972621,4.2720454 11,4.66666667 C11,5.95533108 9.95533108,7 8.66666667,7 C8.2720454,6.99726213 7.88471525,6.89340027 7.54166667,6.69833333 C6.98660604,8.62336005 7.72561929,10.6875925 9.37631973,11.8229374 C11.0270202,12.9582824 13.2190201,12.9099888 14.8181159,11.7030452 C16.4172116,10.4961015 17.0645946,8.40132438 16.4252903,6.50261161 C15.785986,4.60389884 14.0034429,3.32728764 12,3.33331195 L12,3.33331195 Z M23.855,7.39166667 C21.5954167,2.98291667 17.1220833,0 12,0 C6.87791667,0 2.40333333,2.985 0.145,7.39208333 C-0.0483029532,7.77445825 -0.0483029532,8.22595841 0.145,8.60833333 C2.40458333,13.0170833 6.87791667,16 12,16 C17.1220833,16 21.5966667,13.015 23.855,8.60791667 C24.048303,8.22554175 24.048303,7.77404159 23.855,7.39166667 Z M12,14 C7.88958333,14 4.12125,11.7083333 2.08625,8 C4.12125,4.29166667 7.88916667,2 12,2 C16.1108333,2 19.87875,4.29166667 21.91375,8 C19.8791667,11.7083333 16.1108333,14 12,14 Z" id="Shape"></path>
+												</g>
+											</g>
+										</g>
+									</g>
+								</g>
+							</svg><span id="permission_expire_info" class="ds-u-margin-left--3 ds-text-body--md">
+								{{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
+								{% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>{% endif %}
+							</span>
+						</p>
 					{% endif %}
-					{% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
-					<div>
-						<div class="ds-c-choice-wrapper ds-u-margin-bottom--2" style="align-items: center;">
-							<input type="hidden" name="share_eob_scopes" value="False" />
-							<input
-							onChange="toggleHintText('eob_')"
-							class="ds-c-choice"
-							id="radio_1"
-							name="share_eob_scopes"
-							type="checkbox"
-							value="True"
-							checked=""
-							aria-describedby="eob_allow_access eob_block_access"
-							/>
-							<label class="ds-c-label ds-u-text-align--left" for="radio_1">
+					<p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center">
+						<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
+							<title>Icons/Help</title>
+							<g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+								<g id="Permissions-Screen---mobile---13mo-Copy" transform="translate(-42.000000, -840.000000)" fill="#404040" fill-rule="nonzero">
+									<g id="stop-sharing" transform="translate(42.000000, 826.000000)">
+										<g id="question-circle-solid" transform="translate(0.000000, 14.000000)">
+											<path d="M24,12 C24,18.6288871 18.6269516,24 12,24 C5.37304839,24 0,18.6288871 0,12 C0,5.37498387 5.37304839,0 12,0 C18.6269516,0 24,5.37498387 24,12 Z M12.3220161,3.96774194 C9.68506452,3.96774194 8.00322581,5.07856452 6.68254839,7.05280645 C6.51145161,7.30858065 6.56869355,7.65353226 6.81391935,7.83948387 L8.49290323,9.11254839 C8.74475806,9.30353226 9.10359677,9.25809677 9.29927419,9.00987097 C10.1636613,7.91351613 10.7563548,7.27775806 12.072,7.27775806 C13.0605,7.27775806 14.2831935,7.91395161 14.2831935,8.8725 C14.2831935,9.59714516 13.6849839,9.96929032 12.7089677,10.5165 C11.5707097,11.1545806 10.0645161,11.9487581 10.0645161,13.9354839 L10.0645161,14.1290323 C10.0645161,14.4496935 10.3245,14.7096774 10.6451613,14.7096774 L13.3548387,14.7096774 C13.6755,14.7096774 13.9354839,14.4496935 13.9354839,14.1290323 L13.9354839,14.0645323 C13.9354839,12.6873387 17.9606129,12.63 17.9606129,8.90322581 C17.9606129,6.09667742 15.0494032,3.96774194 12.3220161,3.96774194 L12.3220161,3.96774194 Z M12,15.9677419 C10.7726613,15.9677419 9.77419355,16.9662097 9.77419355,18.1935484 C9.77419355,19.4208387 10.7726613,20.4193548 12,20.4193548 C13.2273387,20.4193548 14.2258065,19.4208387 14.2258065,18.1935484 C14.2258065,16.9662097 13.2273387,15.9677419 12,15.9677419 Z" id="Shape"></path>
+										</g>
+									</g>
+								</g>
+							</g>
+						</svg><span class="ds-u-margin-left--3 ds-text-body--md ds-u-text-align--left">{% trans "To stop sharing your information with " %}{{ application.name }},{% trans " visit your " %}
+							<a href={%trans "https://www.medicare.gov/"%}>Medicare.gov</a>{% trans " account or call " %}<span  style="white-space: nowrap;">1-800-633-4227.</span></span>
+					</p>
+				</div>
 
-							<span class="ds-text-body--md">{% trans "Claims Information" %}<br>{% trans "Your Claims" %}</span>
-							</label>
-						</div>
-						<span class="ds-c-field__hint" id="eob_allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to claims information." %}</span>
-						<span class="ds-c-field__hint" id="eob_block_access"  role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to claims information." %}</span>
-					</div>
-					{% endif %}
-					
-                    {% csrf_token %}
+				<div class="ds-u-margin-top--5 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
+					<input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value={% trans "Cancel" %}>
+					<code class="ds-u-margin--1"></code>
+					<input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="allow" value={% trans "Connect" %}>
+				</div>
 
-                    {% for field in form %}
-                      {% if field.is_hidden %}
-                        {{ field }}
-                      {% endif %}
-                    {% endfor %}
-
-                    {{ form.non_field_errors }}
-
-                    <div>
-                        <p class="ds-u-margin-top--4 ds-u-margin-bottom--0" style="display: flex; align-items: center">
-                            <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                <title>Icons/Learn</title>
-                                <g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                    <g id="Permissions-Screen---mobile---13mo-Copy" transform="translate(-41.000000, -664.000000)" fill="#404040" fill-rule="nonzero">
-                                        <g id="PP-and-TC" transform="translate(41.000000, 650.000000)">
-                                            <g id="Q&amp;A" transform="translate(0.000000, 14.000000)">
-                                                <path d="M19.0769231,10.8585366 C18.2153846,9.95121951 16.9846154,9.36585366 15.6,9.36585366 L14.9230769,9.36585366 L9.13846154,9.36585366 L8.46153846,9.36585366 C7.04615385,9.36585366 5.78461538,9.95121951 4.92307692,10.9170732 L11.8769231,12.8780488 L19.0769231,10.8585366 Z" id="Path"></path>
-                                                <path d="M12.1538462,8.48780488 C14.6153846,8.48780488 16.6153846,6.58536585 16.6153846,4.24390244 C16.6153846,1.90243902 14.6153846,0 12.1538462,0 C9.69230769,0 7.69230769,1.90243902 7.69230769,4.24390244 C7.69230769,6.58536585 9.69230769,8.48780488 12.1538462,8.48780488 Z" id="Path"></path>
-                                                <path d="M20.4,16.5073171 C20.4,15.4829268 21.1384615,14.604878 22.1538462,14.3707317 L22.1538462,11.1219512 L12.1538462,13.902439 L2.15384615,11.1219512 L2.15384615,14.3707317 C3.16923077,14.604878 3.90769231,15.4829268 3.90769231,16.5073171 C3.90769231,17.5317073 3.16923077,18.4097561 2.15384615,18.6439024 L2.15384615,21.2195122 L12.1538462,24 L22.1538462,21.2195122 L22.1538462,18.6439024 C21.1384615,18.4097561 20.4,17.5317073 20.4,16.5073171 Z" id="Path"></path>
-                                                <path d="M23.7538462,15.7463415 C23.4153846,14.8097561 22.4615385,14.3414634 22.4615385,14.3414634 L22.4615385,15.1609756 C22.4615385,15.1609756 22.4615385,15.1609756 22.4615385,15.1609756 C21.6,15.1609756 20.9230769,15.7756098 20.9230769,16.5073171 C20.9230769,17.2390244 21.6,17.8536585 22.4615385,17.8536585 C23.3230769,17.8536585 24,17.2390244 24,16.5073171 C24,16.2146341 23.9076923,15.9804878 23.7538462,15.7463415 Z" id="Path"></path>
-                                                <path d="M3.07692308,16.5073171 C3.07692308,15.7756098 2.4,15.1609756 1.53846154,15.1609756 C1.53846154,15.1609756 1.53846154,15.1609756 1.53846154,15.1609756 L1.53846154,14.3414634 C1.53846154,14.3414634 0.584615385,14.8097561 0.246153846,15.7463415 C0.0923076923,15.9804878 0,16.2146341 0,16.5073171 C0,17.2390244 0.676923077,17.8536585 1.53846154,17.8536585 C2.4,17.8536585 3.07692308,17.2390244 3.07692308,16.5073171 Z" id="Path"></path>
-                                            </g>
-                                        </g>
-                                    </g>
-                                </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Learn more about how " %}{{ application.name }}{% trans " uses your data in their " %}<a href="{{ application.policy_uri }}">{% trans "Privacy Policy" %}</a>{% trans " and " %}<a href="{{ application.tos_uri }}">{% trans "Terms and Conditions" %}</a>.</span>
-                        </p>
-
-                        {% if application.data_access_type != 'RESEARCH_STUDY' %}
-                            <p  class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center;">
-                                <svg width="23.9999544px" height="16px" alignment-baseline="baseline" viewBox="0 0 23.9999544 16" version="1.1" style="flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                    <title>Icons/Show password</title>
-                                    <g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                        <g id="no-demographic-option---mobile--13mo" transform="translate(-40.000023, -575.750000)" fill="#404040" fill-rule="nonzero">
-                                            <g id="access-duration" transform="translate(40.000000, 564.000000)">
-                                                <g id="Icons/Show-password" transform="translate(0.000000, 11.750000)">
-                                                    <g id="eye-regular" transform="translate(0.000000, -0.000000)">
-                                                        <path d="M12,3.33331195 C11.5583864,3.34023577 11.1200413,3.41039344 10.6983333,3.54166667 C10.8934003,3.88471525 10.9972621,4.2720454 11,4.66666667 C11,5.95533108 9.95533108,7 8.66666667,7 C8.2720454,6.99726213 7.88471525,6.89340027 7.54166667,6.69833333 C6.98660604,8.62336005 7.72561929,10.6875925 9.37631973,11.8229374 C11.0270202,12.9582824 13.2190201,12.9099888 14.8181159,11.7030452 C16.4172116,10.4961015 17.0645946,8.40132438 16.4252903,6.50261161 C15.785986,4.60389884 14.0034429,3.32728764 12,3.33331195 L12,3.33331195 Z M23.855,7.39166667 C21.5954167,2.98291667 17.1220833,0 12,0 C6.87791667,0 2.40333333,2.985 0.145,7.39208333 C-0.0483029532,7.77445825 -0.0483029532,8.22595841 0.145,8.60833333 C2.40458333,13.0170833 6.87791667,16 12,16 C17.1220833,16 21.5966667,13.015 23.855,8.60791667 C24.048303,8.22554175 24.048303,7.77404159 23.855,7.39166667 Z M12,14 C7.88958333,14 4.12125,11.7083333 2.08625,8 C4.12125,4.29166667 7.88916667,2 12,2 C16.1108333,2 19.87875,4.29166667 21.91375,8 C19.8791667,11.7083333 16.1108333,14 12,14 Z" id="Shape"></path>
-                                                    </g>
-                                                </g>
-                                            </g>
-                                        </g>
-                                    </g>
-                                </svg><span id="permission_expire_info" class="ds-u-margin-left--3 ds-text-body--md">
-                                    {{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
-                                    {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>{% endif %}
-                                </span>
-                            </p>
-                        {% endif %}
-                        <p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center">
-                            <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                <title>Icons/Help</title>
-                                <g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                    <g id="Permissions-Screen---mobile---13mo-Copy" transform="translate(-42.000000, -840.000000)" fill="#404040" fill-rule="nonzero">
-                                        <g id="stop-sharing" transform="translate(42.000000, 826.000000)">
-                                            <g id="question-circle-solid" transform="translate(0.000000, 14.000000)">
-                                                <path d="M24,12 C24,18.6288871 18.6269516,24 12,24 C5.37304839,24 0,18.6288871 0,12 C0,5.37498387 5.37304839,0 12,0 C18.6269516,0 24,5.37498387 24,12 Z M12.3220161,3.96774194 C9.68506452,3.96774194 8.00322581,5.07856452 6.68254839,7.05280645 C6.51145161,7.30858065 6.56869355,7.65353226 6.81391935,7.83948387 L8.49290323,9.11254839 C8.74475806,9.30353226 9.10359677,9.25809677 9.29927419,9.00987097 C10.1636613,7.91351613 10.7563548,7.27775806 12.072,7.27775806 C13.0605,7.27775806 14.2831935,7.91395161 14.2831935,8.8725 C14.2831935,9.59714516 13.6849839,9.96929032 12.7089677,10.5165 C11.5707097,11.1545806 10.0645161,11.9487581 10.0645161,13.9354839 L10.0645161,14.1290323 C10.0645161,14.4496935 10.3245,14.7096774 10.6451613,14.7096774 L13.3548387,14.7096774 C13.6755,14.7096774 13.9354839,14.4496935 13.9354839,14.1290323 L13.9354839,14.0645323 C13.9354839,12.6873387 17.9606129,12.63 17.9606129,8.90322581 C17.9606129,6.09667742 15.0494032,3.96774194 12.3220161,3.96774194 L12.3220161,3.96774194 Z M12,15.9677419 C10.7726613,15.9677419 9.77419355,16.9662097 9.77419355,18.1935484 C9.77419355,19.4208387 10.7726613,20.4193548 12,20.4193548 C13.2273387,20.4193548 14.2258065,19.4208387 14.2258065,18.1935484 C14.2258065,16.9662097 13.2273387,15.9677419 12,15.9677419 Z" id="Shape"></path>
-                                            </g>
-                                        </g>
-                                    </g>
-                                </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md ds-u-text-align--left">{% trans "To stop sharing your information with " %}{{ application.name }},{% trans " visit your " %}
-                                <a href={%trans "https://www.medicare.gov/"%}>Medicare.gov</a>{% trans " account or call " %}<span  style="white-space: nowrap;">1-800-633-4227.</span></span>
-                        </p>
-                    </div>
-
-                    <div class="ds-u-margin-top--5 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
-                        <input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value={% trans "Cancel" %}>
-                        <code class="ds-u-margin--1"></code>
-                        <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="allow" value={% trans "Connect" %}>
-                    </div>
-
-                </form>
+			</form>
             {% else %}
                 <h3>Error: {{ error.error }}</h3>
                 <p>{{ error.description }}</p>
