@@ -4,6 +4,23 @@ from django.test.client import Client
 from httmock import HTTMock, all_requests
 from apps.test import BaseApiTest
 
+ENDPOINT_TEST_CASES = [
+    ('/health/bd', 404),
+    ('/health/bfd_v3', 404),
+    ('/health/bfd_v2/live', 404),
+    ('/health/test', 404),
+    ('/health/internal', 404),
+    ('/health/', 200)
+]
+
+EXTERNAL_ENDPOINTS = [
+    '/health/external',
+    '/health/external_v2',
+    '/health/sls',
+    '/health/bfd',
+    '/health/bfd_v2',
+]
+
 
 class TestHealthchecks(BaseApiTest):
 
@@ -72,6 +89,7 @@ class TestHealthchecks(BaseApiTest):
     def test_health_sls_endpoint(self):
         with HTTMock(self.catchall):
             response = self.client.get(self.url + "/health/sls")
+
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         msg = None
@@ -81,9 +99,20 @@ class TestHealthchecks(BaseApiTest):
             pass
         self.assertEqual(msg, "all's well")
 
+    def test_endpoints(self) -> None:
+        for endpoint in ENDPOINT_TEST_CASES:
+            self._call_health_endpoint(endpoint[0], endpoint[1])
+
+    def _call_health_endpoint(self, endpoint: str, expected_status_code: int) -> None:
+        with HTTMock(self.catchall):
+            response = self.client.get(self.url + endpoint)
+
+        self.assertEqual(response.status_code, expected_status_code)
+
     def test_health_sls_fail(self):
-        with HTTMock(self.fail):
-            response = self.client.get(self.url + "/health/sls")
-        self.assertEqual(response.status_code, 503)
-        self.assertRegex(json.loads(response.content)["detail"],
-                         "^Service temporarily unavailable.*")
+        for endpoint in EXTERNAL_ENDPOINTS:
+            with HTTMock(self.fail):
+                response = self.client.get(self.url + endpoint)
+            self.assertEqual(response.status_code, 503)
+            self.assertRegex(json.loads(response.content)["detail"],
+                             "^Service temporarily unavailable.*")
