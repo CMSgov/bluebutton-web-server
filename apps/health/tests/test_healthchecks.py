@@ -113,7 +113,6 @@ class TestHealthchecks(BaseApiTest):
         for endpoint in EXTERNAL_ENDPOINTS:
             with HTTMock(self.fail):
                 response = self.client.get(self.url + endpoint)
-            print("THE RESPONSE: ", response)
             self.assertEqual(response.status_code, 503)
             self.assertRegex(json.loads(response.content)["detail"],
                              "^Service temporarily unavailable.*")
