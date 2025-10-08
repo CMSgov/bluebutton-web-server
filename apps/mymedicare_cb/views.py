@@ -97,7 +97,6 @@ def callback(request):
     state = request.GET.get('relay')
     if not state:
         return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
         anon_user_state = AnonUserState.objects.get(state=state)
     except AnonUserState.DoesNotExist:

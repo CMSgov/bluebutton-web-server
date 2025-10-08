@@ -333,6 +333,12 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
+        versions = [1, 2, 3]
+        for version in versions:
+            with self.subTest(version=version):
+                self._callback_exception_runner(version)
+
+    def _callback_exception_runner(self, version):
         # BB2-237: Added to test ASSERTS replaced with exceptions.
         #          These are typically for conditions that should never be reached, so generate a 500.
 
@@ -340,12 +346,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri=f'''http://www.google.com/v{version}/o/authorize?client_id=test
+                         &redirect_uri=test.com&response_type=token&state=test''',
         )
 
         # mock fhir user info endpoint
+        # currently, we use v2 fhir endpoint even if the request coming in is v1 authorize (because we treat them the same)
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v2/fhir/Patient/"
+            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path=f"/v{version if version == 3 else 2}/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {
