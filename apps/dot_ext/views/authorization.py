@@ -11,6 +11,7 @@ from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
+from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.views.base import app_authorized, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
@@ -22,7 +23,7 @@ from oauth2_provider.views.introspect import (
 from waffle import switch_is_active
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2 import AccessDeniedError
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -49,6 +50,8 @@ from ...authorization.models import DataAccessGrant
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ["client_secret"]
+ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY = {"code", "grant_type", "code_verifier", "redirect_uri",
+                                        "client_id", "client_secret", "refresh_token"}
 
 
 def get_grant_expiration(data_access_type):
@@ -390,11 +393,29 @@ class ApprovalView(AuthorizationView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
+
+    def validate_token_endpoint_request_body(self, request):
+        """
+        Validate request body keys for v3 token endpoints.
+        """
+        rm = getattr(request, "resolver_match", None)
+        url_name = rm.url_name
+        if url_name != TOKEN_ENDPOINT_V3_KEY:
+            return
+        body = request.POST.dict()
+        invalid_parameters = set(body.keys()) - ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY
+
+        if invalid_parameters:
+            raise InvalidRequestError(
+                description=f"Invalid parameters in request: {invalid_parameters}"
+            )
+
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:
+            self.validate_token_endpoint_request_body(request)
             app = validate_app_is_active(request)
-        except (InvalidClientError, InvalidGrantError) as error:
+        except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
 
         url, headers, body, status = self.create_token_response(request)
