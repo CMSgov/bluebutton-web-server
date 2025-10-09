@@ -55,7 +55,6 @@ ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY = {"code", "grant_type", "code_verifier", "
 
 
 def get_grant_expiration(data_access_type):
-
     pass
 
 
@@ -82,8 +81,9 @@ class AuthorizationView(DotAuthorizationView):
     use the custom AllowForm. Supports both GET and POST
     for OAuth params (query string OR form body).
     """
-    application = None
-    version = None
+    # TODO: rename this so that it isn't the same as self.version (works but confusing)
+    # this needs to be here for urls.py as_view(version) calls, but don't use it
+    version = 0
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
@@ -156,10 +156,11 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
-        result = self.sensitive_info_check(request)
+        sensitive_info_detected = self.sensitive_info_check(request)
 
-        if result:
-            return result
+        # Return early 4xx HttpResponseBadRequest if illegal query parameters detected
+        if sensitive_info_detected:
+            return sensitive_info_detected
 
         request.session['version'] = self.version
 
@@ -339,11 +340,13 @@ class ApprovalView(AuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
-    version = None
+    # TODO: rename this so that it isn't the same as self.version (works but confusing)
+    # this needs to be here for urls.py as_view(version) calls, but don't use it
+    version = 0
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
-    def __init__(self, version=1):
+    def __init__(self, version):
         self.version = version
         super().__init__()
 

@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException
@@ -7,39 +6,6 @@ from ..models import Crosswalk, get_crosswalk_bene_counts, hash_hicn, hash_mbi
 
 
 class TestModels(BaseApiTest):
-    def test_crosswalk_setter_properties(self):
-        """
-        Test the Crosswalk setters
-        and that they can not be modified once set.
-        """
-        user = self._create_user(
-            "john",
-            "password",
-            first_name="John",
-            last_name="Smith",
-            email="john@smith.net",
-            fhir_id="-20000000000001",
-            user_hicn_hash=self.test_hicn_hash,
-            user_mbi_hash=self.test_mbi_hash,
-        )
-
-        cw = Crosswalk.objects.get(user=user)
-
-        with self.assertRaisesRegexp(ValidationError, "this value cannot be modified."):
-            cw.fhir_id = "-20000000000002"
-
-    def test_require_fhir_id(self):
-        with self.assertRaisesRegexp(
-            IntegrityError, "[NOT NULL constraint|null value in column].*fhir_id.*"
-        ):
-            self._create_user(
-                "john",
-                "password",
-                first_name="John",
-                last_name="Smith",
-                email="john@smith.net",
-                fhir_id=None,
-            )
 
     def test_require_user_hicn_hash(self):
         # NOTE: The user_hicn_hash's DB field name is still user_id_hash in regex below.
@@ -52,7 +18,7 @@ class TestModels(BaseApiTest):
                 first_name="John",
                 last_name="Smith",
                 email="john@smith.net",
-                fhir_id="-20000000000001",
+                fhir_id_v2="-20000000000001",
                 user_hicn_hash=None,
             )
 
@@ -67,7 +33,8 @@ class TestModels(BaseApiTest):
             first_name="John",
             last_name="Smith",
             email="john@smith.net",
-            fhir_id="-20000000000001",
+            fhir_id_v2="-20000000000001",
+            fhir_id_v3="-30000000000001",
             user_hicn_hash=self.test_hicn_hash,
             user_mbi_hash=None,
         )
@@ -75,18 +42,24 @@ class TestModels(BaseApiTest):
         cw = Crosswalk.objects.get(user=user)
         self.assertEqual(cw.user_mbi_hash, None)
 
-    def test_immutable_fhir_id(self):
+    def test_mutable_fhir_id(self):
         user = self._create_user(
             "john",
             "password",
             first_name="John",
             last_name="Smith",
             email="john@smith.net",
+            fhir_id_v2="-20000000000001",
+            fhir_id_v3="-30000000000001",
         )
 
         cw = Crosswalk.objects.get(user=user)
-        with self.assertRaises(ValidationError):
-            cw.fhir_id = "-20000000000002"
+        self.assertEqual(cw.fhir_id(2), "-20000000000001")
+        self.assertEqual(cw.fhir_id(3), "-30000000000001")
+        cw.set_fhir_id("-20000000000002", 2)
+        cw.set_fhir_id("-30000000000002", 3)
+        self.assertEqual(cw.fhir_id(2), "-20000000000002")
+        self.assertEqual(cw.fhir_id(3), "-30000000000002")
 
     def test_mutable_user_hicn_hash(self):
         user = self._create_user(
@@ -162,7 +135,8 @@ class TestModels(BaseApiTest):
                 first_name="John1" + str(cnt),
                 last_name="Smith",
                 email="john" + str(cnt) + "@smith.net",
-                fhir_id="2000000000000" + str(cnt),
+                fhir_id_v2="2000000000000" + str(cnt),
+                fhir_id_v3="3000000000000" + str(cnt),
                 user_hicn_hash="239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi_hash="9876543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
@@ -177,7 +151,8 @@ class TestModels(BaseApiTest):
                 first_name="John1" + str(cnt),
                 last_name="Doe",
                 email="john" + str(cnt) + "@doe.net",
-                fhir_id="-2000000000000" + str(cnt),
+                fhir_id_v2="-2000000000000" + str(cnt),
+                fhir_id_v3="-3000000000000" + str(cnt),
                 user_hicn_hash="255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi_hash="987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000"

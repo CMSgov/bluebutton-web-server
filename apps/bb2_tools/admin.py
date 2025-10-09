@@ -332,7 +332,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "get_connected_applications",
         "date_created",
     )
-    search_fields = ("user__username", "_fhir_id", "_user_id_hash", "_user_mbi_hash")
+    # BB2-4166-TODO: add support for v3
+    search_fields = ("user__username", "fhir_id_v2", "_user_id_hash", "_user_mbi_hash")
     readonly_fields = ("date_created",)
     raw_id_fields = ("user",)
 
@@ -360,9 +361,10 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         ordering="MyIdentities",
     )
     def get_identities(self, obj):
+        # BB2-4166-TODO: add support for v3
         return format_html(
-            "<div><ul><li>FHIR_ID:{}</li><li>HICN HASH:{}</li><li>MBI HASH:{}</li>".format(
-                obj.fhir_id, obj.user_hicn_hash, obj.user_mbi_hash
+            "<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI HASH:{}</li>".format(
+                obj.fhir_id(2), obj.user_hicn_hash, obj.user_mbi_hash
             )
         )
 
@@ -416,7 +418,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         json_resp = None
 
         try:
-            json_resp = get_patient_by_id(crosswalk.fhir_id, request)
+            # BB2-4166-TODO: this is hardcoded to be version 2
+            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 

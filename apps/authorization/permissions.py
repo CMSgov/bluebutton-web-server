@@ -32,7 +32,8 @@ class DataAccessGrantPermission(permissions.BasePermission):
         # Patient resources were taken care of above
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
-        return is_resource_for_patient(obj, request.crosswalk.fhir_id)
+        # BB2-4166-TODO: this is hardcoded to be version 2
+        return is_resource_for_patient(obj, request.crosswalk.fhir_id(2))
 
 
 def is_resource_for_patient(obj, patient_id):

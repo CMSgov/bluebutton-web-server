@@ -30,7 +30,7 @@ ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA = {
                 "user_mbi_hash": {
                     "pattern": "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
                 },
-                "fhir_id": {"pattern": "-20140000008325"},
+                "fhir_id_v2": {"pattern": "-20140000008325"},
                 "user_id_type": {"pattern": "H"},
             },
         },
@@ -108,7 +108,7 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
                         "user_mbi_hash": {
                             "pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"
                         },
-                        "fhir_id": {"pattern": "-20140000008325"},
+                        "fhir_id_v2": {"pattern": "-20140000008325"},
                         "user_id_type": {"pattern": "M"},
                     },
                 },
@@ -141,7 +141,7 @@ AUTHORIZATION_LOG_SCHEMA = {
                         "user_mbi_hash": {
                             "pattern": "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
                         },
-                        "fhir_id": {"pattern": "-20140000008325"},
+                        "fhir_id_v2": {"pattern": "-20140000008325"},
                         "user_id_type": {"pattern": "H"},
                     },
                 },
@@ -235,7 +235,7 @@ def get_post_fetch_fhir_log_entry_schema(version):
         "properties": {
             "type": {"pattern": "fhir_post_fetch"},
             "uuid": {"type": "string"},
-            "fhir_id": {"pattern": "-20140000008325"},
+            "fhir_id_v2": {"pattern": "-20140000008325"},
             "includeAddressFields": {"pattern": "False"},
             "user": {"pattern": FHIR_PAT_ID_STR},
             "application": {
@@ -255,7 +255,7 @@ def get_post_fetch_fhir_log_entry_schema(version):
         "required": [
             "type",
             "uuid",
-            "fhir_id",
+            "fhir_id_v2",
             "includeAddressFields",
             "user",
             "application",
@@ -275,7 +275,7 @@ def get_pre_fetch_fhir_log_entry_schema(version):
         "properties": {
             "type": {"pattern": "fhir_pre_fetch"},
             "uuid": {"type": "string"},
-            "fhir_id": {"pattern": "-20140000008325"},
+            "fhir_id_v2": {"pattern": "-20140000008325"},
             "includeAddressFields": {"pattern": "False"},
             "user": {"pattern": FHIR_PAT_ID_STR},
             "application": {
@@ -292,7 +292,7 @@ def get_pre_fetch_fhir_log_entry_schema(version):
         "required": [
             "type",
             "uuid",
-            "fhir_id",
+            "fhir_id_v2",
             "includeAddressFields",
             "user",
             "application",
@@ -316,7 +316,7 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
         "auth_client_id": {"type": "null"},
         "auth_pkce_method": {"type": "null"},
-        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
         "hicn_hash": {
             "type": "string",
             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
@@ -340,7 +340,7 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
         "auth_app_data_access_type",
         "auth_client_id",
         "auth_pkce_method",
-        "fhir_id",
+        "fhir_id_v2",
         "hicn_hash",
         "mbi_hash",
         "match_found",
@@ -356,7 +356,8 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
         "type": {"pattern": "mymedicare_cb:create_beneficiary_record"},
         "status": {"pattern": "OK"},
         "username": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
-        "fhir_id": {"pattern": "-20140000008325"},
+        "fhir_id_v2": {"pattern": "-20140000008325"},
+        "fhir_id_v3": {"pattern": ""},
         "user_mbi_hash": {
             "pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"
         },
@@ -369,7 +370,8 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
         "type",
         "status",
         "username",
-        "fhir_id",
+        "fhir_id_v2",
+        "fhir_id_v3",
         "user_mbi_hash",
         "user_hicn_hash",
         "mesg",
@@ -390,7 +392,7 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
             "type": "string",
             "pattern": "^00112233-4455-6677-8899-aabbccddeeff$",
         },
-        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
         "hicn_hash": {
             "type": "string",
             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
@@ -412,7 +414,7 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
                     "type": "string",
                     "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                 },
-                "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                 "user_id_type": {"type": "string", "pattern": "^M$"},
             },
         },
@@ -431,7 +433,7 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
         "status",
         "subject",
         "user_username",
-        "fhir_id",
+        "fhir_id_v2",
         "hicn_hash",
         "mbi_hash",
         "crosswalk",
@@ -462,7 +464,7 @@ REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA = {
         "request_method": {"pattern": "GET"},
         "request_scheme": {"pattern": "http"},
         "user": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
-        "fhir_id": {"pattern": "-20140000008325"},
+        "fhir_id_v2": {"pattern": "-20140000008325"},
         "response_code": {"type": "integer", "enum": [status.HTTP_302_FOUND]},
     },
     "required": [
@@ -480,7 +482,7 @@ REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA = {
         "request_method",
         "request_scheme",
         "user",
-        "fhir_id",
+        "fhir_id_v2",
         "response_code",
     ],
 }

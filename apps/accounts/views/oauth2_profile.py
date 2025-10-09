@@ -10,9 +10,15 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 
-def get_userinfo(user):
-    """
-    OIDC-style userinfo
+def get_userinfo(user, version):
+    """ OIDC-style userinfo
+
+    Args:
+        user (AccessToken): AccessToken object from database
+        version (int): the version of BFD being accessed
+
+    Returns:
+        data (dict): dictionary of values according to OIDC
     """
     data = OrderedDict()
     data['sub'] = user.username
@@ -22,8 +28,7 @@ def get_userinfo(user):
     data['email'] = user.email
     data['iat'] = user.date_joined
 
-    # Get the FHIR ID if its there
-    fhir_id = get_fhir_id(user)
+    fhir_id = get_fhir_id(user, version)
     if fhir_id:
         data['patient'] = fhir_id
         data['sub'] = fhir_id
@@ -35,15 +40,16 @@ def get_userinfo(user):
 @permission_classes([ApplicationActivePermission,
                      TokenHasProtectedCapability,
                      DataAccessGrantPermission])
-@protected_resource()
+@protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
 def openidconnect_userinfo(request, **kwargs):
-    return JsonResponse(get_userinfo(request.resource_owner))
+    # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
+    # a straight url that we need to get the version from the url (like we do in the fhir app)
+    return JsonResponse(get_userinfo(request.resource_owner, 2))
 
 
-def get_fhir_id(user):
-
+def get_fhir_id(user, version):
     r = None
     if Crosswalk.objects.filter(user=user).exists():
         c = Crosswalk.objects.get(user=user)
-        r = c.fhir_id
+        r = c.fhir_id(version)
     return r
