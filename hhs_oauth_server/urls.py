@@ -6,7 +6,7 @@ from django.urls import include, path, re_path
 from django.contrib import admin
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
-from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2, fhir_conformance_v3
+from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 from .views import testobject
@@ -24,18 +24,30 @@ def robots_txt(request):
     )
 
 
-urlpatterns = [
+all_versions = [
     path("health/", include("apps.health.urls")),
+    path("docs/", include("apps.docs.urls")),
+    re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
+    re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
+    path("creds", include("apps.creds.urls")),
+    path("akamai/testobject", testobject, name="akamai_testobject"),
+    path("robots.txt", robots_txt),
+]
+
+urlpatterns_v1 = [
     re_path(r"^.well-known/", include("apps.wellknown.urls")),
     path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("v1/accounts/", include("apps.accounts.urls")),
     re_path(
         r"^v1/connect/userinfo", openidconnect_userinfo, name="openid_connect_userinfo"
     ),
-    path("v1/fhir/metadata", fhir_conformance, name="fhir_conformance_metadata"),
+    path("v1/fhir/metadata", fhir_conformance_v1, name="fhir_conformance_metadata"),
     path("v1/fhir/", include("apps.fhir.bluebutton.urls")),
     path("v1/o/", include("apps.dot_ext.urls")),
     path("v1/o/", include("apps.authorization.urls")),
+]
+
+urlpatterns_v2 = [
     path("v2/accounts/", include("apps.accounts.v2.urls")),
     re_path(
         r"^v2/connect/userinfo",
@@ -45,21 +57,20 @@ urlpatterns = [
     path("v2/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
     path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
+    path("v2/o/", include("apps.dot_ext.v2.urls")),
+    path("v2/o/", include("apps.authorization.v2.urls")),
+]
+
+urlpatterns_v3 = [
     path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
     path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),
     path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
-    path("v2/o/", include("apps.dot_ext.v2.urls")),
-    path("v2/o/", include("apps.authorization.v2.urls")),
     path("v3/o/", include("apps.dot_ext.v3.urls")),
     path("v3/o/", include("apps.authorization.v3.urls")),
-    path("docs/", include("apps.docs.urls")),
-    re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
-    re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
-    path("creds", include("apps.creds.urls")),
-    path("akamai/testobject", testobject, name="akamai_testobject"),
-    path("robots.txt", robots_txt),
+
 ]
 
+urlpatterns = all_versions + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
 
 # If running in local development, add the media and static urls:
 if settings.IS_MEDIA_URL_LOCAL is True:

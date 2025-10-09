@@ -188,6 +188,9 @@ class AuthorizationView(DotAuthorizationView):
         if not switch_is_active("enable_coverage_only"):
             return [default_tpl]
 
+        if self.version == 3:
+            return ["design_system/authorize_v3.html"]
+
         app = getattr(self, "application", None)
         if app is not None and "coverage-eligibility" in app.get_internal_application_labels():
             return ["design_system/authorize_v3_coverage_only.html"]
@@ -342,7 +345,7 @@ class ApprovalView(AuthorizationView):
 
     def __init__(self, version=1):
         self.version = version
-        super().__init__()
+        super().__init__(version=version)
 
     def dispatch(self, request, uuid, *args, **kwargs):
 

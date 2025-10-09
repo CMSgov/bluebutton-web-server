@@ -45,6 +45,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			<br />
 
 			<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token</a>
+			<a id="auth_link_v3" href="{% url 'authorize_link_v3' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token (v3)</a>
 			{% endif %}
 	
             <!-- If a user DOES have a token, reflect the success of that action -->
@@ -58,6 +59,14 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 				{% url 'test_eob_v2' as test_eob_url %}
 				{% url 'test_patient_v2' as test_patient_url %}
 				{% url 'test_coverage_v2' as test_coverage_url %}
+			{% elif api_ver == 'v3' %}
+				{% url 'authorize_link_v3' as auth_url %}
+				{% url 'test_metadata_v3' as meta_url %}
+				{% url 'test_openid_config_v3' as openid_cfg_url %}
+				{% url 'test_userinfo_v3' as test_userinfo_url %}
+				{% url 'test_eob_v3' as test_eob_url %}
+				{% url 'test_patient_v3' as test_patient_url %}
+				{% url 'test_coverage_v3' as test_coverage_url %}
 			{% else %}
 				{% url 'authorize_link' as auth_url %}
 				{% url 'test_metadata' as meta_url %}

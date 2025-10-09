@@ -13,76 +13,35 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         get_response_text,
                                         build_oauth_resource)
+from apps.constants import Versions
 
 import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def fhir_conformance_v2(request, via_oauth=False):
-    return fhir_conformance(request, via_oauth, "v2")
+def get_supported_resources(resources, resource_names):
+    """ Filter resources for resource type matches """
 
+    resource_list = []
 
-def fhir_conformance_v3(request, via_oauth=False):
-    return fhir_conformance(request, via_oauth, "v3")
+    # if resource 'type in resource_names add resource to resource_list
+    for item in resources:
+        for k, v in item.items():
+            if k == 'type':
+                if v in resource_names:
+                    item['interaction'] = [{"code": "read"}, {"code": "search-type"}]
+                    resource_list.append(item)
 
-
-def fhir_conformance(request, via_oauth=False, ver_str="v1", *args):
-    """ Pull and filter fhir Conformance statement
-
-    BaseStu3 = "CapabilityStatement"
-
-    :param request:
-    :param via_oauth:
-    :param args:
-    :param kwargs:
-    :return:
-    """
-    crosswalk = None
-    resource_router = get_resourcerouter()
-    fhir_url = resource_router.fhir_url_v3 if ver_str == "v3" else resource_router.fhir_url
-    parsed_url = urlparse(fhir_url)
-    call_to = None
-    if parsed_url.path is not None:
-        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, ver_str)
-    else:
-        # url with no path
-        call_to = '{}/{}/fhir/metadata'.format(fhir_url, ver_str)
-
-    pass_params = {'_format': 'json'}
-
-    encoded_params = urlencode(pass_params)
-    pass_params = prepend_q(encoded_params)
-
-    r = request_call(request, call_to + pass_params, crosswalk)
-
-    text_out = ''
-
-    if r.status_code >= 300:
-        logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content),
-                            status=r.status_code,
-                            content_type='application/json')
-
-    text_in = get_response_text(fhir_response=r)
-
-    text_out = json.loads(text_in, object_pairs_hook=OrderedDict)
-
-    od = conformance_filter(text_out)
-
-    # Append Security to ConformanceStatement
-    security_endpoint = build_oauth_resource(request, format_type="json")
-    od['rest'][0]['security'] = security_endpoint
-    # Fix format values
-    od['format'] = ['application/json', 'application/fhir+json']
-
-    return JsonResponse(od)
+    return resource_list
 
 
 def conformance_filter(text_block):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
+    # FIXME TODO MCJ: This... assumes you know the structure of the object in question.
+    # This needs better documentation around it. And, perhaps, some cleanup.
 
     resource_names = constants.ALLOWED_RESOURCE_TYPES
     ct = 0
@@ -102,17 +61,78 @@ def conformance_filter(text_block):
     return text_block
 
 
-def get_supported_resources(resources, resource_names):
-    """ Filter resources for resource type matches """
+def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
+    """ Pull and filter fhir Conformance statement
 
-    resource_list = []
+    BaseStu3 = "CapabilityStatement"
 
-    # if resource 'type in resource_names add resource to resource_list
-    for item in resources:
-        for k, v in item.items():
-            if k == 'type':
-                if v in resource_names:
-                    item['interaction'] = [{"code": "read"}, {"code": "search-type"}]
-                    resource_list.append(item)
+    :param request:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    crosswalk = None
+    resource_router = get_resourcerouter()
 
-    return resource_list
+    match version:
+        case Versions.V1:
+            # QUESITON MCJ: Should this be possible?
+            fhir_url = resource_router.fhir_url
+        case Versions.V2:
+            fhir_url = resource_router.fhir_url
+        case Versions.V3:
+            fhir_url = resource_router.fhir_url_v3
+        case _:
+            # TODO FIXME
+            raise
+
+    parsed_url = urlparse(fhir_url)
+    call_to = None
+    if parsed_url.path is not None:
+        call_to = f'{parsed_url.scheme}://{parsed_url.netloc}/{version}/fhir/metadata'
+    else:
+        # url with no path
+        call_to = f'{fhir_url}/{version}/fhir/metadata'
+
+    pass_params = {'_format': 'json'}
+
+    encoded_params = urlencode(pass_params)
+    pass_params = prepend_q(encoded_params)
+
+    r = request_call(request, call_to + pass_params, crosswalk)
+
+    text_out = ''
+
+    if r.status_code >= 300:
+        logger.debug(f"We have an error code to deal with: {r.status_code}")
+        return HttpResponse(json.dumps(r._content),
+                            status=r.status_code,
+                            content_type='application/json')
+
+    text_in = get_response_text(fhir_response=r)
+
+    text_out = json.loads(text_in, object_pairs_hook=OrderedDict)
+
+    od = conformance_filter(text_out)
+
+    # FIXME TODO MCJ: Perhaps this should be pushed into conformance_filter above?
+    # Append Security to ConformanceStatement
+    security_endpoint = build_oauth_resource(request, format_type="json")
+    # QUESTION MCJ: This is extremely opaque, and fragile. Improve?
+    od['rest'][0]['security'] = security_endpoint
+    # Fix format values
+    od['format'] = ['application/json', 'application/fhir+json']
+
+    return JsonResponse(od)
+
+
+def fhir_conformance_v1(request):
+    return _fhir_conformance(request, version=Versions.V1)
+
+
+def fhir_conformance_v2(request):
+    return _fhir_conformance(request, version=Versions.V2)
+
+
+def fhir_conformance_v3(request):
+    return _fhir_conformance(request, version=Versions.V3)

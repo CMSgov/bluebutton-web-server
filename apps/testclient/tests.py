@@ -5,6 +5,7 @@ from .utils import test_setup
 from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
+from apps.constants import Versions
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
@@ -15,7 +16,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     def setUp(self):
         call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
-        self.testclient_setup = test_setup()
+        self.testclient_setup = test_setup(version=Versions.V1)
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
         self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
@@ -42,7 +43,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def setUp(self):
         call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
-        self.testclient_setup = test_setup()
+        self.testclient_setup = test_setup(version=Versions.V1)
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
         self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
