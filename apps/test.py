@@ -39,29 +39,41 @@ class BaseApiTest(TestCase):
 
     def _create_user(
         self,
-        username,
-        password,
-        fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-        user_hicn_hash=test_hicn_hash,
-        user_mbi_hash=test_mbi_hash,
-        user_type=None,
+        username: str,
+        password: str,
+        fhir_id_v2: str | None = settings.DEFAULT_SAMPLE_FHIR_ID_V2,
+        fhir_id_v3: str | None = settings.DEFAULT_SAMPLE_FHIR_ID_V3,
+        user_hicn_hash: str | None = test_hicn_hash,
+        user_mbi_hash: str | None = test_mbi_hash,
+        user_type=None,  # TODO: This is not used currently, consider removing
         **extra_fields
-    ):
-        """
-        Helper method that creates a user instance
-        with `username` and `password` set.
+    ) -> User:
+        """Helper method that creates a User instance with associated Crosswalk data
+
+        Creates a user, deletes existing Crosswalks with the same fhir_ids, recreates
+        the Crosswalk with the provided data, and optionally creates a UserProfile if
+        user_type is specified
+
+        Args:
+            username (str): _description_
+            password (str): _description_
+            fhir_id_v2 (str | None, optional): crosswalk.fhir_id_v2
+            fhir_id_v3 (str | None, optional): crosswalk.fhir_id_v3
+            user_hicn_hash (str | None, optional): _description_. Defaults to test_hicn_hash.
+            user_mbi_hash (str | None, optional): _description_. Defaults to test_mbi_hash.
+            user_type (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            user: The created auth.User instance
         """
         user = User.objects.create_user(username, password=password, **extra_fields)
-        if Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
-            Crosswalk.objects.filter(_fhir_id=fhir_id).delete()
-
-        cw, _ = Crosswalk.objects.get_or_create(
+        self._create_crosswalk(
             user=user,
-            _fhir_id=fhir_id,
-            _user_id_hash=user_hicn_hash,
-            _user_mbi_hash=user_mbi_hash,
+            fhir_id_v2=fhir_id_v2,
+            fhir_id_v3=fhir_id_v3,
+            hicn_hash=user_hicn_hash,
+            mbi_hash=user_mbi_hash,
         )
-        cw.save()
         # Create ben user profile, if it doesn't exist
         if user_type:
             try:
@@ -167,6 +179,41 @@ class BaseApiTest(TestCase):
         )
         return label
 
+    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi_hash=test_mbi_hash):
+        """Helper method that gets or creates a Crosswalk instance, deleting any existing
+
+        Args:
+            user (_type_): _description_
+            fhir_id_v2 (_type_): _description_
+            fhir_id_v3 (_type_, optional): _description_. Defaults to None.
+            hicn_hash (_type_, optional): _description_. Defaults to test_hicn_hash.
+            mbi_hash (_type_, optional): _description_. Defaults to test_mbi_hash.
+
+        Returns:
+            Crosswalk: The resultant crosswalk
+        """
+
+        # Delete any existing crosswalks with the same unique values as the ones coming in
+        if fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists():
+            Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).delete()
+        if fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists():
+            Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).delete()
+        if hicn_hash and Crosswalk.objects.filter(_user_id_hash=hicn_hash).exists():
+            Crosswalk.objects.filter(_user_id_hash=hicn_hash).delete()
+        if mbi_hash and Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).exists():
+            Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).delete()
+
+        cw = Crosswalk.objects.create(
+            user=user,
+            fhir_id_v2=fhir_id_v2,
+            fhir_id_v3=fhir_id_v3,
+            _user_id_hash=hicn_hash,
+            _user_mbi_hash=mbi_hash,
+        )
+        cw.save()
+
+        return cw
+
     def _get_access_token(self, username, password, application=None, **extra_fields):
         """
         Helper method that creates an access_token using the password grant.
@@ -198,40 +245,6 @@ class BaseApiTest(TestCase):
             user__username=username
         )
         return apps_qs.first()
-
-    def create_token(
-        self, first_name, last_name, fhir_id=None, hicn_hash=None, mbi_hash=None
-    ):
-        passwd = "123456"
-        user = self._create_user(
-            first_name,
-            passwd,
-            first_name=first_name,
-            last_name=last_name,
-            fhir_id=fhir_id if fhir_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID,
-            user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
-            user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
-            email="%s@%s.net" % (first_name, last_name),
-        )
-        pt_id = fhir_id if fhir_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID
-
-        if Crosswalk.objects.filter(_fhir_id=pt_id).exists():
-            Crosswalk.objects.filter(_fhir_id=pt_id).delete()
-
-        Crosswalk.objects.create(
-            user=user,
-            fhir_id=pt_id,
-            user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
-            user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
-        )
-
-        # create a oauth2 application and add capabilities
-        application = self._create_application(
-            "%s_%s_test" % (first_name, last_name), user=user
-        )
-        application.scope.add(self.read_capability, self.write_capability)
-        # get the first access token for the user 'john'
-        return self._get_access_token(first_name, passwd, application)
 
     def assert_log_entry_valid(
         self, entry_dict, compare_dict, attrexist_list, hasvalue_list
@@ -348,7 +361,7 @@ class BaseApiTest(TestCase):
         return user
 
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id, app_name, app_username, app_user_organization,
+        self, first_name, last_name, fhir_id_v2, fhir_id_v3, app_name, app_username, app_user_organization,
         app_data_access_type=None
     ):
         """
@@ -386,11 +399,13 @@ class BaseApiTest(TestCase):
             username = first_name + last_name + "@example.com"
 
             # Create unique hashes using FHIR_ID
+            # BB2-4166-TODO: this is only checking v2, possible rewrite these helper functions to allow more
+            # generalized fhir_id handling
             hicn_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id + self.test_hicn_hash[len(fhir_id):]
+                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )
             mbi_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id + self.test_mbi_hash[len(fhir_id):]
+                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_mbi_hash[len(fhir_id_v2):]
             )
 
             user = User.objects.get(username=username)
@@ -398,7 +413,8 @@ class BaseApiTest(TestCase):
             user = self._create_user(
                 username=username,
                 password="xxx123",
-                fhir_id=fhir_id,
+                fhir_id_v2=fhir_id_v2,
+                fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
             )
@@ -413,36 +429,76 @@ class BaseApiTest(TestCase):
 
         return user, application, access_token
 
-    def _create_range_users_app_token_grant(self, start_fhir_id, count, app_name,
-                                            app_user_organization):
-        """
-        Helper method that creates a RANGE of users connected to an application
-        with Crosswalk, Access Token, and Grant for use in tests.
+    def _create_range_users_app_token_grant(
+        self,
+        start_fhir_id: str,
+        count: int,
+        app_name: str,
+        app_user_organization
+    ):
+        """Helper method that creates a range of users
 
-        Returns a DICT of users granted by fhir_id.
+        Calls create_user_app_token_grant in a loop, which creates Users, Applications,
+        Crosswalks, Access Tokens, and Grants for use in tests.
+
+        Args:
+            start_fhir_id (_type_): _description_
+            count (_type_): _description_
+            app_name (_type_): _description_
+            app_user_organization (_type_): _description_
+
+        Returns:
+            app: the created application
+            user_dict: a dictionary of users with fhir_id_v2 as the key
         """
         user_dict = {}
         for i in range(0, count):
-            fhir_id = start_fhir_id + str(i)
+            fhir_id_v2 = start_fhir_id + str(i)
+            fhir_id_v3 = start_fhir_id + str(i + 1)
             user, app, ac = self._create_user_app_token_grant(
                 first_name="first",
-                last_name="last" + fhir_id,
-                fhir_id=fhir_id,
+                last_name="last" + fhir_id_v2,
+                fhir_id_v2=fhir_id_v2,
+                fhir_id_v3=fhir_id_v3,
                 app_name=app_name,
                 app_username="user_" + app_name,
                 app_user_organization=app_user_organization,
             )
 
-            user_dict[fhir_id] = user
+            user_dict[fhir_id_v2] = user
         return app, user_dict
 
     def _revoke_range_users_app_token_grant(self, start_fhir_id, count, app_name):
         """
-        Helper method that revokes a RANGE of users (by fhir_id) connected to an application.
+        Helper method that revokes a RANGE of users (by fhir_id_v2) connected to an application.
         This removes Access Token, and Grant. Useful for testing archived tokens and grants.
         """
         for i in range(0, count):
             fhir_id = start_fhir_id + str(i)
-            cw = Crosswalk.objects.get(_fhir_id=fhir_id)
+            cw = Crosswalk.objects.get(fhir_id_v2=fhir_id)
             app = Application.objects.get(name=app_name)
             remove_application_user_pair_tokens_data_access(app, cw.user)
+
+    def create_token(
+        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None
+    ):
+        passwd = "123456"
+        user = self._create_user(
+            first_name,
+            passwd,
+            first_name=first_name,
+            last_name=last_name,
+            fhir_id_v2=fhir_id_v2,
+            fhir_id_v3=fhir_id_v3,
+            user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
+            user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
+            email="%s@%s.net" % (first_name, last_name),
+        )
+
+        # create a oauth2 application and add capabilities
+        application = self._create_application(
+            "%s_%s_test" % (first_name, last_name), user=user
+        )
+        application.scope.add(self.read_capability, self.write_capability)
+        # get the first access token for the user 'john'
+        return self._get_access_token(first_name, passwd, application)

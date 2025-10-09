@@ -36,7 +36,7 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):
-    version = None
+    version = 1
     parser_classes = [JSONParser, FHIRParser]
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]

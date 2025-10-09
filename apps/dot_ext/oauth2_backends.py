@@ -31,7 +31,8 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
             if Crosswalk.objects.filter(user=token.user).exists():
                 fhir_body = json.loads(body)
                 cw = Crosswalk.objects.get(user=token.user)
-                fhir_body["patient"] = cw.fhir_id
+                # BB2-4166-TODO: this is hardcoded to be version 2
+                fhir_body["patient"] = cw.fhir_id(2)
                 body = json.dumps(fhir_body)
 
         return uri, headers, body, status

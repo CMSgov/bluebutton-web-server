@@ -147,8 +147,9 @@ def generate_info_headers(request):
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
-        if crosswalk.fhir_id is not None:
-            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id)
+        # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
+        if crosswalk.fhir_id(2) is not None:
+            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id(2))
         else:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
                 crosswalk.user_hicn_hash
@@ -423,8 +424,8 @@ def crosswalk_patient_id(user):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
-        if patient.fhir_id:
-            return patient.fhir_id
+        if patient.fhir_id(2):
+            return patient.fhir_id(2)
 
     except Crosswalk.DoesNotExist:
         pass
@@ -708,6 +709,7 @@ def get_patient_by_id(id, request):
     headers["includeIdentifiers"] = "true"
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
+    # BB2-4166-TODO: this should allow v3
     url = "{}/v2/fhir/Patient/{}?_format={}".format(
         get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
     )

@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import MissingTokenError
+from oauthlib.oauth2.rfc6749.errors import MissingTokenError, InvalidClientIdError
 from requests_oauthlib import OAuth2Session
 from rest_framework import status
 from urllib.parse import parse_qs, urlparse
@@ -124,6 +124,12 @@ def callback(request):
         return JsonResponse({'error': 'Failed to get token from',
                              'code': 'MissingTokenError',
                              'help': 'Try authorizing again.'}, status=500)
+    except InvalidClientIdError as error:
+        logmsg = "Failed to get token from %s" % (request.session['token_uri'])
+        logger.error(logmsg)
+        return JsonResponse({'error': f'Failed to get token. {error.description}',
+                             'code': 'InvalidRequestError',
+                             'help': 'Try authorizing again.'}, status=500)
 
     # For test client allow only authorize on synthetic beneficiaries
     patient = token.get("patient", None)
@@ -212,6 +218,7 @@ def test_openid_config_v2(request):
 
 @never_cache
 @waffle_switch('enable_testclient')
+# BB2-4166-TODO: testclient v2, should generalize version
 def test_openid_config(request, v2=False):
     # api ver agnostic for now, but show version any way on page
     json_response = _convert_to_json(openid_configuration(request))

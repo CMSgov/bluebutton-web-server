@@ -2,6 +2,7 @@ import json
 import base64
 from datetime import date, timedelta
 
+from django.contrib.auth.models import User
 from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
@@ -336,7 +337,7 @@ class TestAuthorizationView(BaseApiTest):
                         # Test ReadView for base path with FHIR_ID
                         if test_readview:
                             response = client.get(
-                                base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID
+                                base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
                             )
                             content = json.loads(response.content)
                             self._assertScopeResponse(
@@ -345,7 +346,7 @@ class TestAuthorizationView(BaseApiTest):
 
                         # Test SearchView for base path with FHIR_ID
                         response = client.get(
-                            base_path + "?" + settings.DEFAULT_SAMPLE_FHIR_ID
+                            base_path + "?" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
                         )
                         content = json.loads(response.content)
                         self._assertScopeResponse(
@@ -364,7 +365,7 @@ class TestTokenView(BaseApiTest):
     test_uuid = "0123456789abcdefghijklmnopqrstuvwxyz"
     test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
 
-    def _create_test_token(self, user, application):
+    def _create_test_token(self, user: User, application: Application):
         # user logs in
         self.client.force_login(user)
         # post the authorization form with only one scope selected
@@ -534,11 +535,12 @@ class TestTokenView(BaseApiTest):
         application.save()
 
     def test_delete_token_success(self):
-        anna = self._create_user(self.test_username, "123456", fhir_id="19990000000002")
+        anna = self._create_user(self.test_username, "123456", fhir_id_v2="19990000000002", fhir_id_v3=None)
         bob = self._create_user(
             "bob",
             "123456",
-            fhir_id="19990000000001",
+            fhir_id_v2="19990000000001",
+            fhir_id_v3=None,
             user_hicn_hash="86228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
             user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
         )
@@ -547,26 +549,26 @@ class TestTokenView(BaseApiTest):
             "token_management", [["DELETE", r"/v1/o/tokens/\d+/"]], default=False
         )
         # create an application and add capabilities
-        application = self._create_application(
+        anna_application = self._create_application(
             "an app",
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris="http://example.it",
         )
-        application.scope.add(capability_a)
-        other_application = self._create_application(
+        anna_application.scope.add(capability_a)
+        bob_application = self._create_application(
             "another app",
             grant_type=Application.GRANT_IMPLICIT,
             client_type=Application.CLIENT_PUBLIC,
             redirect_uris="http://example.it",
-            user=application.user,
+            user=anna_application.user,
         )
-        other_application.scope.add(capability_a)
-        tkn = self._create_test_token(anna, application)
+        bob_application.scope.add(capability_a)
+        anna_token = self._create_test_token(anna, bob_application)
 
         self.assertTrue(
             DataAccessGrant.objects.filter(
                 beneficiary=anna,
-                application=application,
+                application=bob_application,
             ).exists()
         )
 
@@ -580,14 +582,14 @@ class TestTokenView(BaseApiTest):
             OSError, "Could not find the TLS certificate file"
         ):
             response = self.client.get(
-                "/v1/fhir/Patient", headers={"authorization": "Bearer " + tkn.token}
+                "/v1/fhir/Patient", headers={"authorization": "Bearer " + anna_token.token}
             )
 
-        bob_tkn = self._create_test_token(bob, other_application)
+        bob_tkn = self._create_test_token(bob, bob_application)
         self.assertTrue(
             DataAccessGrant.objects.filter(
                 beneficiary=bob,
-                application=other_application,
+                application=bob_application,
             ).exists()
         )
 
@@ -595,7 +597,7 @@ class TestTokenView(BaseApiTest):
             reverse("token_management:token-list"),
             headers={
                 "authorization": self._create_authorization_header(
-                    application.client_id, application.client_secret_plain
+                    anna_application.client_id, anna_application.client_secret_plain
                 ),
                 "x-authentication": self._create_authentication_header(self.test_uuid),
             },
@@ -603,7 +605,7 @@ class TestTokenView(BaseApiTest):
         grant_list = response.json()
         self.assertEqual(1, len(grant_list))
         http_authz = self._create_authorization_header(
-            application.client_id, application.client_secret_plain
+            anna_application.client_id, anna_application.client_secret_plain
         )
         http_authn = self._create_authentication_header(self.test_uuid)
         response = self.client.delete(
@@ -613,7 +615,7 @@ class TestTokenView(BaseApiTest):
         self.assertEqual(response.status_code, 204)
         url_1 = reverse("token_management:token-detail", args=[grant_list[0]["id"]])
         http_authz = self._create_authorization_header(
-            application.client_id, application.client_secret_plain
+            anna_application.client_id, anna_application.client_secret_plain
         )
         http_authn = self._create_authentication_header(self.test_uuid)
         failed_response = self.client.delete(
@@ -621,14 +623,14 @@ class TestTokenView(BaseApiTest):
         )
         self.assertEqual(failed_response.status_code, 404)
         response = self.client.get(
-            "/v1/fhir/Patient", headers={"authorization": "Bearer " + tkn.token}
+            "/v1/fhir/Patient", headers={"authorization": "Bearer " + anna_token.token}
         )
         self.assertEqual(response.status_code, 401)
 
         self.assertFalse(
             DataAccessGrant.objects.filter(
                 beneficiary=anna,
-                application=application,
+                application=anna_application,
             ).exists()
         )
 
@@ -641,7 +643,7 @@ class TestTokenView(BaseApiTest):
                 "/v1/fhir/Patient", headers={"authorization": "Bearer " + bob_tkn.token}
             )
 
-        next_tkn = self._create_test_token(anna, application)
+        next_tkn = self._create_test_token(anna, anna_application)
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
@@ -657,7 +659,7 @@ class TestTokenView(BaseApiTest):
         self.assertTrue(
             DataAccessGrant.objects.filter(
                 beneficiary=anna,
-                application=application,
+                application=anna_application,
             ).exists()
         )
 
