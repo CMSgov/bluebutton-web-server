@@ -179,7 +179,15 @@ class TestDataAccessPermissions(BaseApiTest):
             content = json.loads(response.content)
             self.assertEqual(content["detail"], expected_response_detail_mesg)
 
-        # 4184 TODO - add v3 support
+        # Test profile/userinfo v3
+        response = self.client.get(
+            "/v3/connect/userinfo", headers={"authorization": "Bearer " + access_token}
+        )
+        self.assertEqual(response.status_code, expected_response_code)
+        if expected_response_detail_mesg is not None:
+            content = json.loads(response.content)
+            self.assertEqual(content["detail"], expected_response_detail_mesg)
+
         # Test FHIR read views
         with HTTMock(
             self.fhir_request_patient_readview_v1_success_mock,

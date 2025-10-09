@@ -2353,13 +2353,13 @@ components:
 
     V3UserInfoExample:
       value:
-        sub: '-10000010254647'
+        sub: '-30000010254647'
         name: 'John Doe'
         given_name: 'John'
         family_name: 'Doe'
         email: 'test@example.com'
-        iat: '2023-07-17T20:02:38.512Z'
-        patient: '-10000010254647'
+        iat: '2025-07-17T20:02:38.512Z'
+        patient: '-30000010254647'
 
     V1FhirPatientByIdExample:
       value:
