@@ -353,7 +353,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # mock fhir user info endpoint
         # currently, we use v2 fhir endpoint even if the request coming in is v1 authorize (because we treat them the same)
         @urlmatch(
-            netloc=f'fhir.backend.bluebutton.hhsdevcloud.us', path=f'/v{version if version == 3 else 2}/fhir/Patient/'
+            netloc='fhir.backend.bluebutton.hhsdevcloud.us', path=f'/v{version if version == 3 else 2}/fhir/Patient/'
         )
         def fhir_patient_info_mock(url, request):
             return {
