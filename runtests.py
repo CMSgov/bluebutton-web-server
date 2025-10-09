@@ -20,6 +20,9 @@ from django.test.utils import get_runner
         --selenium  This optional flag indicates tests are to run in selenium test mode.
         Space separated list of Django tests to run.
 
+        --report-file This optional file name indicates that tests should be written to a file of
+        this name
+
     For example:
 
         $ docker compose exec web python runtests.py apps.dot_ext.tests
@@ -41,7 +44,7 @@ from django.test.utils import get_runner
 parser = argparse.ArgumentParser()
 parser.add_argument('--integration', help='Integration tests mode', action='store_true')
 parser.add_argument('--selenium', help='Selenium tests mode', action='store_true')
-parser.add_argument('--report-file', help='Output test failures/errors to report file', default='test_report.txt')
+parser.add_argument('--report-file', help='Output test failures/errors to report file')
 parser.add_argument('test', nargs='*')
 args = parser.parse_args()
 
@@ -68,8 +71,12 @@ if __name__ == '__main__':
     django.setup()
     TestRunner = get_runner(settings)
 
-    captured_output = StringIO()
-    sys.stderr = captured_output
+    # Only capture output if report_file is specified and test flag is set
+    if args.report_file and args.test:
+        captured_output = StringIO()
+        sys.stderr = captured_output
+    else:
+        captured_output = None
 
     test_runner = TestRunner(verbosity=2)
     if args.test:
@@ -77,7 +84,7 @@ if __name__ == '__main__':
     else:
         failures = test_runner.run_tests(None)
 
-    if (failures or captured_output.getvalue() and args.report_file):
+    if captured_output and failures and args.report_file and args.test:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(args.report_file, 'w') as report:
             report.write(f"Test Report Generated: {timestamp}\n")
@@ -87,10 +94,10 @@ if __name__ == '__main__':
                 report.write("Mode: Integration\n")
             elif args.selenium:
                 report.write("Mode: Selenium\n")
-            elif args.test:
-                report.write(f"Tests run: {' '.join(args.test)}\n\n")
             else:
                 report.write("Mode: Unit\n")
+
+            report.write(f"Tests run: {' '.join(args.test)}\n\n")
 
             report.write(f"Failures/Errors: {failures}\n\n")
             report.write("=" * 60 + "\n")
