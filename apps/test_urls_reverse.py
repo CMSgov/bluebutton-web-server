@@ -54,6 +54,7 @@ EXPECTED = {
     'mymedicare-sls-callback': '/mymedicare/sls-callback',
     'openid_connect_userinfo': '/v1/connect/userinfo',
     'openid_connect_userinfo_v2': '/v2/connect/userinfo',
+    'openid_connect_userinfo_v3': '/v3/connect/userinfo',
     'test_coverage': '/testclient/Coverage',
     'test_eob': '/testclient/ExplanationOfBenefit',
     'test_links': '/testclient/',

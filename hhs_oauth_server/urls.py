@@ -7,7 +7,7 @@ from django.contrib import admin
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2, fhir_conformance_v3
-from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3
+from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3, openid_configuration
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 from .views import testobject
 
@@ -52,6 +52,20 @@ urlpatterns = [
     path("v2/o/", include("apps.authorization.v2.urls")),
     path("v3/o/", include("apps.dot_ext.v3.urls")),
     path("v3/o/", include("apps.authorization.v3.urls")),
+    re_path(
+        r"^v3/connect/userinfo",
+        openidconnect_userinfo,
+        name="openid_connect_userinfo_v3",
+    ),
+    path(
+        "v1/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration"
+    ),
+    path(
+        "v2/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration-v2"
+    ),
+    path(
+        "v3/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration-v3"
+    ),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),

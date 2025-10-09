@@ -608,6 +608,10 @@ def build_oauth_resource(request, format_type="json"):
     :return: security
     """
     endpoints = build_endpoint_info(OrderedDict(), issuer=base_issuer(request))
+    if 'v3' in request.path:
+        endpoints['token_endpoint'] = endpoints['token_endpoint'].replace('v2', 'v3')
+        endpoints['authorization_endpoint'] = endpoints['authorization_endpoint'].replace('v2', 'v3')
+        endpoints['revocation_endpoint'] = endpoints['revocation_endpoint'].replace('v2', 'v3')
 
     if format_type.lower() == "xml":
 
