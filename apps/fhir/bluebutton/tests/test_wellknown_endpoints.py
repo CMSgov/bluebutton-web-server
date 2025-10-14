@@ -4,7 +4,6 @@ from collections import namedtuple as NT
 from django.conf import settings
 from django.test.client import Client
 from httmock import all_requests, HTTMock
-import os
 from oauth2_provider.models import get_access_token_model
 import requests
 from unittest import skipIf
@@ -15,8 +14,6 @@ from unittest import skipIf
 #
 # PRECONDITION
 # You must be on the VPN. Tested against TEST w.r.t. certs.
-
-print(os.getenv('RUN_ONLINE_TESTS'))
 
 
 Appropriate = NT('Status', 'url,version,status_code')
@@ -87,9 +84,10 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 response = requests.get(f'{BASEURL}/{test.url}')
                 if response.status_code == test.status_code:
                     the_json = response.json()
-                    # These should match the version
+                    # These should match the version, and connect should be present as well
+                    # to be SMART on FHIR compliant
                     for field in ['issuer']:
-                        self.assertIn(test.version, the_json[field])
+                        self.assertIn(test.version + '/connect/', the_json[field])
 
                     # These will be v2 for all v1 urls
                     if test.version == 'v1':
@@ -106,7 +104,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 else:
                     self.fail('Failed to connect with a good status code.')
 
-    # @skipIf(settings.OFFLINE, 'Can't reach external sites.')
+    @skipIf(settings.OFFLINE, 'Can\'t reach external sites.')
     def test_smart_configuration_missing_fields_in_v3(self):
         for test in TESTS:
             if isinstance(test, MissingFields):
