@@ -146,17 +146,19 @@ class BlueButtonTestEndpoints(BaseApiTest):
     # Make sure FHIR v3 extensions are correct when the metadata is fetched; the extensions object
     # is commented above for reference. This would be a good use of jsonpath in our codebase...
     @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @override_switch('v3_endpoints', active=True)
     def test_fhir_metadata_extensions_have_v3(self):
         response = self.client.get(f'{BASEURL}/v3/fhir/metadata')
-        if response.status_code == 200:
-            json = response.json()
-            self.assertIn('v3', json['implementation']['url'])
-            for obj in json['rest']:
-                for ext in obj['security']['extension']:
-                    for e in ext['extension']:
-                        self.assertIn('v3', e['valueUri'])
+        json = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('v3', json['implementation']['url'])
+        for obj in json['rest']:
+            for ext in obj['security']['extension']:
+                for e in ext['extension']:
+                    self.assertIn('v3', e['valueUri'])
 
     @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @override_switch('v3_endpoints', active=False)
     def test_page_not_found_when_waffle_switch_disabled(self):
         for test in PAGE_NOT_FOUND_TESTS:
             response = self.client.get(f'{BASEURL}/' + test.url)
