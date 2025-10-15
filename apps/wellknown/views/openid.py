@@ -57,7 +57,6 @@ def openid_configuration(request):
     """
     Views that returns openid_configuration.
     """
-    # print("SANITY CHECK part 2: ", switch_is_active('v3_endpoints'))
     data = OrderedDict()
     issuer = base_issuer(request)
     data = build_endpoint_info(data, issuer=issuer)
