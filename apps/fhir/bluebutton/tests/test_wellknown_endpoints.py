@@ -5,6 +5,7 @@ from django.conf import settings
 from django.test.client import Client
 from httmock import all_requests, HTTMock
 from oauth2_provider.models import get_access_token_model
+import os
 import requests
 from unittest import skipIf
 
@@ -15,10 +16,11 @@ from unittest import skipIf
 # PRECONDITION
 # You must be on the VPN. Tested against TEST w.r.t. certs.
 
-
+# Ensure that the status_code, version, and other attributes of the response are valid
 Appropriate = NT('Status', 'url,version,status_code')
+# Ensure the correct status_code is returned for a given endpoint
 Status = NT('Status', 'url,status_code')
-ContainsVersion = NT('ContainsVersion', 'url,version,path')
+# These test cases ensure that certain fields are not present in the response for a given endpoint
 MissingFields = NT('MissingFields', 'url,version,fields,status_code')
 
 AccessToken = get_access_token_model()
@@ -42,7 +44,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
 
-    @skipIf(settings.OFFLINE, 'Can\'t reach external sites.')
+    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
     def test_userinfo_returns_200(self):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
@@ -68,7 +70,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     # This makes sure URLs return 200s.
-    @skipIf(settings.OFFLINE, 'Can\'t reach external sites.')
+    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
     def test_url_status_codes(self):
         for test in TESTS:
             if isinstance(test, Appropriate) or isinstance(test, Status) or isinstance(test, MissingFields):
@@ -77,7 +79,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
 
     # This looks at the given set of URLs and makes sure that the version value encoded in the
     # reponses are correctly versioned. Note the handling of v1/v2.
-    @skipIf(settings.OFFLINE, 'Can\'t reach external sites.')
+    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
     def test_urls_appropriate(self):
         for test in TESTS:
             if isinstance(test, Appropriate):
@@ -104,7 +106,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 else:
                     self.fail('Failed to connect with a good status code.')
 
-    @skipIf(settings.OFFLINE, 'Can\'t reach external sites.')
+    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
     def test_smart_configuration_missing_fields_in_v3(self):
         for test in TESTS:
             if isinstance(test, MissingFields):
@@ -137,7 +139,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     # ]
     # Make sure FHIR v3 extensions are correct when the metadata is fetched; the extensions object
     # is commented above for reference. This would be a good use of jsonpath in our codebase...
-    @skipIf(settings.OFFLINE, 'Can\'t reach external sites.')
+    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
     def test_fhir_metadata_extensions_have_v3(self):
         response = requests.get(f'{BASEURL}/v3/fhir/metadata')
         if response.status_code == 200:

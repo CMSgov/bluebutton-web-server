@@ -4,6 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
+from waffle.decorators import waffle_switch
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2, fhir_conformance_v3
@@ -54,7 +55,7 @@ urlpatterns = [
     path("v3/o/", include("apps.authorization.v3.urls")),
     re_path(
         r"^v3/connect/userinfo",
-        openidconnect_userinfo,
+        waffle_switch("v3_endpoints")(openidconnect_userinfo),
         name="openid_connect_userinfo_v3",
     ),
     path(
@@ -64,7 +65,9 @@ urlpatterns = [
         "v2/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration-v2"
     ),
     path(
-        "v3/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration-v3"
+        "v3/connect/.well-known/openid-configuration",
+        waffle_switch("v3_endpoints")(openid_configuration),
+        name="openid-configuration-v3"
     ),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),

@@ -25,7 +25,7 @@ paths:
 ########## V3 Endpoints ##########
   /v3/connect/.well-known/openid-configuration:
     get:
-      operationId: openIdConfig
+      operationId: openIdConfigv3
       description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
       summary: "OpenID Connect protocol (OIDC) Discovery information"
       security: []
@@ -61,14 +61,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/SmartConfiguration'
               examples:
-                SmartConfigurationExample:
-                  $ref: '#/components/examples/SmartConfigurationExample'
+                SmartConfigurationExamplev3:
+                  $ref: '#/components/examples/SmartConfigurationExamplev3'
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/SmartConfiguration'
               examples:
-                SmartConfigurationExample:
-                  $ref: '#/components/examples/SmartConfigurationExample'
+                SmartConfigurationExamplev3:
+                  $ref: '#/components/examples/SmartConfigurationExamplev3'
           description: "Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
       tags:
         - v3
@@ -298,7 +298,7 @@ paths:
 ########## V2 Endpoints ##########
   /v2/connect/.well-known/openid-configuration:
     get:
-      operationId: openIdConfig
+      operationId: openIdConfigv2
       description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
       summary: "OpenID Connect protocol (OIDC) Discovery information"
       security: []
@@ -1347,6 +1347,44 @@ components:
           - code
           - token
         fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v3/fhir/metadata'
+
+    SmartConfigurationExamplev3:
+      value:
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/revoke_token/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/token/'
+        grant_types_supported:
+          - authorization_code
+        response_types_supported:
+          - code
+          - token
+        scopes_supported:
+          - openid
+          - profile
+          - launch/patient
+          - patient/Patient.read
+          - patient/ExplanationOfBenefit.read
+          - patient/Coverage.read
+          - patient/Patient.r
+          - patient/ExplanationOfBenefit.r
+          - patient/Coverage.r
+          - patient/Patient.s
+          - patient/ExplanationOfBenefit.s
+          - patient/Coverage.s
+          - patient/Patient.rs
+          - patient/ExplanationOfBenefit.rs
+          - patient/Coverage.rs
+        code_challenge_methods_supported:
+          - S256
+        capabilities:
+          - client-confidential-symmetric
+          - client-confidential-asymmetric
+          - context-standalone-patient
+          - launch-standalone
+          - permission-offline
+          - permission-patient
+          - permission-v1
+          - authorize-post
 
     SmartConfigurationExample:
       value:

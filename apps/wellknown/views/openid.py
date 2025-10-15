@@ -34,7 +34,7 @@ CAPABILITIES = [
 WELL_KNOWN_INDICATOR = '.well-known'
 
 
-def format_v3_links(request_dict: OrderedDict, openid_request: bool) -> OrderedDict:
+def format_v3_links(request_dict: OrderedDict) -> OrderedDict:
     # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
     request_dict['authorization_endpoint'] = (
         request_dict
@@ -44,9 +44,11 @@ def format_v3_links(request_dict: OrderedDict, openid_request: bool) -> OrderedD
     )
     request_dict['revocation_endpoint'] = request_dict.get('revocation_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
     request_dict['token_endpoint'] = request_dict.get('token_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
-    if openid_request:
+    if request_dict.get('fhir_metadata_uri'):
         request_dict['fhir_metadata_uri'] = request_dict.get('fhir_metadata_uri', '').replace('/v2/fhir/', '/v3/fhir/')
+    if request_dict.get('userinfo_endpoint'):
         request_dict['userinfo_endpoint'] = request_dict.get('userinfo_endpoint', '').replace('/v2/', '/v3/')
+
     return request_dict
 
 
@@ -65,7 +67,7 @@ def openid_configuration(request):
     version_info = request.path.split(WELL_KNOWN_INDICATOR)[0]
     data['issuer'] = data['issuer'] + version_info
     if 'v3' in request.path:
-        data = format_v3_links(data, True)
+        data = format_v3_links(data)
 
     return JsonResponse(data)
 
@@ -90,7 +92,7 @@ def smart_configuration_v3(request):
     issuer = base_issuer(request)
     data = build_smart_config_endpoint(data, issuer=issuer)
 
-    data = format_v3_links(data, False)
+    data = format_v3_links(data)
 
     return JsonResponse(data)
 

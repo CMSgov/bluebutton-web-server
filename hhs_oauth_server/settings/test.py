@@ -2,14 +2,6 @@ from .dev import *
 
 del LOGGING['loggers']
 
-
-def truthy(value) -> bool:
-    if value in [1, 'true', 'True', 'yes', 'Yes', 'y', 'Y', True]:
-        return True
-    else:
-        return False
-
-
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 REQUIRE_AUTHOIRZE_APP_FLAG = False
@@ -18,12 +10,7 @@ LOGIN_RATE = '100/m'
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-if truthy(os.getenv("RUN_ONLINE_TESTS")):
-    # We are offline. Skip tests that require us to be online.
-    OFFLINE = False
-else:
-    # We are not offline. Go ahead and run the tests.
-    OFFLINE = True
+OFFLINE = False
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
