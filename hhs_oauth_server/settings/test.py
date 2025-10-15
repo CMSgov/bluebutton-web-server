@@ -4,13 +4,16 @@ del LOGGING['loggers']
 
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
-REQUIRE_AUTHOIRZE_APP_FLAG = False
+
+# 20251010 MCJ This variable seems to be unused.
+# REQUIRE_AUTHOIRZE_APP_FLAG = False
 
 LOGIN_RATE = '100/m'
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-OFFLINE = True
+# 20251010 MCJ FIXME TODO If we need this for testing, it should be documented somewhere.
+OFFLINE = False
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps

@@ -6,12 +6,18 @@ import string
 from collections import OrderedDict
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
+from apps.constants import Versions
 
 from ..dot_ext.models import Application
 
 # Default the version to `v0` to cause errors in the event
 # of the parameter not being set correctly at the calling site.
-def test_setup(include_client_secret=True, version='v0'):
+
+# 20251010 MCJ This was defaulted to V2. Now, I've defaulted it to V0.
+# Could this be why things are failing?
+
+
+def test_setup(include_client_secret=True, version=Versions.NOT_AN_API_VERSION):
     response = OrderedDict()
 
     response['api_ver'] = version
@@ -20,7 +26,7 @@ def test_setup(include_client_secret=True, version='v0'):
 
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
-    
+
     # TODO: MAGIC(URL)
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
 

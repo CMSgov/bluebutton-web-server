@@ -12,6 +12,8 @@ from rest_framework import status
 from urllib.parse import parse_qs, urlparse
 from json import JSONDecodeError
 from typing import Dict
+import re
+from collections import namedtuple
 
 from waffle.decorators import waffle_switch
 
@@ -28,8 +30,9 @@ from apps.constants import Versions
 from apps.testclient.constants import (
     HOME_PAGE,
     RESULTS_PAGE,
-    ENDPOINT_URL_FMT,
-    NAV_URI_FMT
+    # ENDPOINT_URL_FMT,
+    NAV_URI_FMT,
+    EndpointUrl
 )
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -47,14 +50,22 @@ def _get_oauth2_session_with_token(request: HttpRequest) -> OAuth2Session:
 
 
 # QUESTION MCJ: Should this have a more descriptive name? get_fhir_json_from_backend?
-def _get_data_json(request: HttpRequest, name: str, params: list[str, str]) -> Dict[str, object]:
+# Giving a name to the params. The patient is optional.
+FhirDataParams = namedtuple("FhirDataParams", "uri,version,patient")
+
+
+def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
     """Make a call to the FHIR backend and return the JSON data from the call"""
 
-    nav_link = request.GET.get('nav_link', None)
-
+    # nav_link_formatter = formatters[version]
     # TODO: Do I want this to be a function?
-    uri = ENDPOINT_URL_FMT[name].format(*params)
+    # uri = ENDPOINT_URL_FMT[name].format(*params)
+    # Unpack the params so the type does not have to be pushed down.
+    # The EndpointUrl.fmt() function will fail/raise an exception if the `name` is not one of the valid choices.
+    uri = EndpointUrl.fmt(FhirDataParams.name, FhirDataParams.uri, FhirDataParams.version, FhirDataParams.patient)
 
+    # FIXME: This is for pagination, which is different/not present (?) for v3.
+    nav_link = request.GET.get('nav_link', None)
     if nav_link is not None:
         q_params = [uri]
         q_params.append(request.GET.get('_count', 10))
@@ -62,21 +73,28 @@ def _get_data_json(request: HttpRequest, name: str, params: list[str, str]) -> D
 
         # for now it's either EOB or Coverage, make this more generic later
         patient = request.GET.get('patient')
-
-        if patient is not None:
-            q_params.append('patient')
-            q_params.append(patient)
-
         beneficiary = request.GET.get('beneficiary')
+        if patient is not None:
+            id_type = 'patient'
+            id = patient
+        elif beneficiary is not None:
+            id_type = 'beneficiary'
+            id = beneficiary
+        else:
+            # FIXME: We should not be able to get here.
+            # Raise an exception? Return an error JSON?
+            raise
 
-        if beneficiary is not None:
-            q_params.append('beneficiary')
-            q_params.append(beneficiary)
-
-        uri = NAV_URI_FMT.format(*q_params)
+        # uri = NAV_URI_FMT.format(*q_params)
+        uri = EndpointUrl.nav_uri(uri,
+                                  count=request.GET.get('_count', 10),
+                                  start_index=request.GET.get('startIndex', 0),
+                                  id_type=id_type,
+                                  id=id)
 
     oas = _get_oauth2_session_with_token(request)
     r = oas.get(uri)
+
     return r.json()
 
 
@@ -117,8 +135,36 @@ def _pagination_info(request: HttpRequest, last_url: str) -> str:
 
 
 def _is_synthetic_patient_id(patient_id: str) -> bool:
-    """Tells us if a beneficiary ID is synthetic"""
-    return patient_id is not None and not patient_id.startswith('-')
+    '''Checks if a string is a synthetic patient ID.
+    '''
+    return (
+        patient_id is not None
+        and patient_id.startswith('-')
+        and re.match('^-\d+$', patient_id)
+    )
+
+
+def _start_url_with_https(host: str) -> str:
+    """Makes sure a URL starts with HTTPS
+
+    This is not comprehensive. It is a light refactoring of old code.
+    It tries to make sure that a host starts with HTTPS.
+
+    Args:
+        host: string
+    Returns:
+        host: string (with "https://")
+    """
+    if host.startswith("https://"):
+        # This is fine.
+        pass
+    elif host.startswith("http://"):
+        host = "https://" + host[7:]
+    elif not (host.startswith('http://') or host.startswith('https://')):
+        # The previous code was *only* this elif case.
+        host = f'https://{host}'
+
+    return host
 
 ############################################################
 # ALL VERSIONS
@@ -130,20 +176,36 @@ def _is_synthetic_patient_id(patient_id: str) -> bool:
 
 @waffle_switch('enable_testclient')
 def callback(request: HttpRequest):
-    # Authorization has been denied or another error has occured, remove token if existing
-    # and redirect to home page view to force re-authorization
+    """Called when returning from authorizing as a beneficiary.
+
+    When using the text client, users can authorize as a beneficiary as part of the auth workflow.
+
+    https://bluebutton.cms.gov/developers/#authorization:~:text=Click-,Authorize%20as%20a%20Beneficiary,-.
+
+    When they return from that workflow, the `callback` function (*this* function*) is called.
+
+    If we make it through the function, we return a page with instructions for the developer to
+    continue testing against the API (with httpie, Postman, code, etc.). There are also several
+    links that provide examples of the Patient, Explanation of Benefits, etc. endpoints. Those URLs
+    map to functions below (e.g. `test_patient_vX`).
+
+    Args:
+        request: A Django HttpRequest from the authorizing server
+    Returns:
+        redirect: Redirects to the `test_links` Django view.
+    """
+
+    # RESET TOKEN ON ERROR
+    # If there was an error in the process (authorization denied, for example),
+    # and there is a token in the session, we want to remove that token, redirect back to the page,
+    # and in doing so, force re-authorization.
     if 'error' in request.GET:
         if 'token' in request.session:
             del request.session['token']
         return redirect('test_links', permanent=True)
 
-    oas = _get_oauth2_session_with_redirect(request)
-
-    host = settings.HOSTNAME_URL
-
-    if not (host.startswith('http://') or host.startswith('https://')):
-        host = f'https://{host}'
-
+    # We (mostly) trust the authorizing agent to send us a good URL.
+    host = _start_url_with_https(settings.HOSTNAME_URL)
     auth_uri = host + request.get_full_path()
     token_uri = host
 
@@ -163,16 +225,18 @@ def callback(request: HttpRequest):
         case Versions.V2:
             token_uri += reverse('oauth2_provider_v2:token-v2')
         case Versions.V3:
-            # TODO add v3 pathway
-            # Simply break for now.
-            raise
+            token_uri += reverse('oauth2_provider_v3:token-v3')
         case _:
-            # TODO RAISE EXCEPTION
-            pass
+            logger.error(f"Failed to get valid API version back from authorizing agent. Given: [{version}]")
+            # TODO RAISE APPROPRIATTE EXCEPTION
+            raise
 
     try:
-        # Default the CV to '' if it is not part of the session;
-        # This was an inline if, below. Not sure why it should be '' instead of None.
+        # Default the CV to '' if it is not part of the session.
+        # This was an inline if, below. As written, it allowed '' as a code verifier.
+        # It is not clear, now (2025) why it should be '' instead of `None`.
+        # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
+        # cannot be pulled from the session.
         cv = request.session.get('code_verifier', '')
         token = oas.fetch_token(token_uri,
                                 client_secret=get_client_secret(),
@@ -181,14 +245,35 @@ def callback(request: HttpRequest):
     except MissingTokenError:
         logmsg = 'Failed to get token from %s' % (request.session['token_uri'])
         logger.error(logmsg)
+        # FIXME/TODO: We throw a 500 here. Should we? Is there a more graceful way to handle this?
         return JsonResponse({'error': 'Failed to get token from',
                              'code': 'MissingTokenError',
                              'help': 'Try authorizing again.'},
                             status=500)
 
-    # For test client allow only authorize on synthetic beneficiaries
-    patient_id = token.get('patient', None)
-    if _is_synthetic_patient_id(patient_id):
+    # 20251014 MCJ REMOVE AS PART OF REVIEW
+    # I am suggesting here that we change the callback behavior. If we cannot
+    # find a patient, let's throw a 500 instead of continuing.
+    try:
+        # For test client allow only authorize on synthetic beneficiaries
+        patient_id = token.get('patient')
+    except KeyError:
+        # FIXME: This would actually handle the error as opposed to setting it to `None`
+        logger.error("No key found in the token for `patient`.")
+        # Old code had the behavior of setting patient_id and continuing.
+        #
+        # patient_id = None
+        # pass
+        #
+        # Instead of setting `patient_id` to `None`, what happens if we throw a 500?
+        return JsonResponse({'error': 'No patient found in token; only synthetic benficiares can be used.',
+                             'code': 'MissingPatientError',
+                             'help': 'Try authorizing again.'},
+                            status=500)
+
+    # If we made it here, lets make sure we have a synthetic patient ID.
+    # If we do not, then we need to clear the token and send back an error to the client.
+    if not _is_synthetic_patient_id(patient_id):
         logger.error(f'Failed token is for a non-synthetic patient ID = {patient_id}')
         if 'token' in request.session:
             del request.session['token']
@@ -198,26 +283,22 @@ def callback(request: HttpRequest):
                              },
                             status=status.HTTP_403_FORBIDDEN)
 
-    # MCJ: At this point, the patient_id could still be None.
-    # The if, above, is both "is it not none, AND does it not start with a negative?"
-    # Therefore, it could... be None.
-
+    # We now are guaranteed that the patient_id is not None, and is a synthetic user id.
     request.session['token'] = token
-
     userinfo_uri = request.session['userinfo_uri']
+
+    oas = _get_oauth2_session_with_redirect(request)
     try:
         userinfo = oas.get(userinfo_uri).json()
     except Exception:
-        # MCJ: This does not make sense. If we failed to do a good get above,
-        # we now... could be setting the patient_id to None.
         userinfo = {'patient': patient_id}
 
-    # QUESTION MCJ: Why can we get here with None as the patient_id? We should bail sooner.
-    # This allows us to set the session['patient'] to None.
     request.session['patient'] = userinfo.get('patient', patient_id)
 
-    # We are done using auth flow trace, clear from the session.
-    # MCJ: WAT
+    # This removes keys from the request object that we do not want to continue
+    # carrying. It is code in `loggers.py`, which suggests that it... makes sure we do
+    # not accidentally log values that might be privileged. The *reason* for this is not
+    # captured in the code/docstring, but that is the *behavior*.
     cleanup_session_auth_flow_trace(request)
 
     # Successful token response, redirect to home page view
@@ -229,7 +310,7 @@ def callback(request: HttpRequest):
 
 @waffle_switch('enable_testclient')
 def restart(request: HttpRequest):
-    """We hit the `restart` case when a user clicks on the restart link on the API try-out page."""
+    '''We hit the `restart` case when a user clicks on the restart link on the API try-out page.'''
     if 'token' in request.session:
         del request.session['token']
 
@@ -244,20 +325,25 @@ def test_links(request: HttpRequest, **kwargs):
     # New home page view consolidates separate success, error, and access denied views
     # If authorization was successful, pass token to template
     if 'token' in request.session:
+        # FIXME: Is it possible for the session to not declare the API version?
+        # If so, should we...
+        # 1. Default to a valid version? E.g.: Versions.DEFAULT_API_VERSION
+        # 2. Raise an error.
+        version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
+        if version == Versions.NOT_AN_API_VERSION:
+            raise
         return render(request, HOME_PAGE,
                       context={'session_token': request.session['token'],
                                # QUESTION MCJ: Why is this defaulted to v2?
-                               'api_ver': request.session.get('api_ver', Versions.DEFAULT_API_VERSION)})
+                               'api_ver': version})
     else:
+        # If we don't have a token, go back home.
         return render(request, HOME_PAGE, context={'session_token': None})
 
 ############################################################
-# BASE TESTS
+# ENDPOINT LINKS
 ############################################################
-# These tests are version-agnostic for versions 1, 2, and 3.
-# The version is passed as a parameter for testing purposes.
-# In the event that v3 or future versions break these, we can
-# either parameterize the tests further, or
+
 
 ###############
 # authorize_link
@@ -288,8 +374,9 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], version]
-    coverage = _get_data_json(request, 'coverage', params)
+    # params = [request.session['resource_uri'], version]
+    coverage = _get_fhir_data_as_json(request, FhirDataParams(
+        EndpointUrl.coverage, request.session['resource_uri'], version, None))
 
     nav_info, last_link = extract_page_nav(coverage)
 
@@ -328,7 +415,9 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     params = [request.session['resource_uri'], version]
 
-    eob = _get_data_json(request, 'eob', params)
+    # eob = _get_fhir_data_as_json(request, 'eob', params)
+    eob = _get_fhir_data_as_json(request, FhirDataParams(EndpointUrl.explanation_of_benefit,
+                                 request.session['resource_uri'], version, None))
 
     nav_info, last_link = extract_page_nav(eob)
 
@@ -385,9 +474,9 @@ def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
-
-    patient = _get_data_json(request, 'patient', params)
+    # params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
+    patient = _get_fhir_data_as_json(request, FhirDataParams(
+        EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']))
 
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(patient, indent=3),
@@ -403,9 +492,9 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
-
-    user_info = _get_data_json(request, 'userinfo', params)
+    # params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
+    user_info = _get_fhir_data_as_json(request, FhirDataParams(
+        EndpointUrl.userinfo, request.session['resource_uri'], version, None))
 
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(user_info, indent=3),
