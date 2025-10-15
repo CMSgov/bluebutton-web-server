@@ -5,9 +5,10 @@ from django.conf import settings
 from django.test.client import Client
 from httmock import all_requests, HTTMock
 from oauth2_provider.models import get_access_token_model
-import os
 import requests
 from unittest import skipIf
+from waffle.testutils import override_switch
+from waffle import switch_is_active
 
 # Introduced in bb2-4184
 # Rudimentary tests to make sure endpoints exist and are returning
@@ -34,6 +35,14 @@ TESTS = [
     Status('.well-known/openid-configuration', 200),
     Status('.well-known/openid-configuration-v2', 200)
 ]
+
+PAGE_NOT_FOUND_TESTS = [
+    # Status('v3/connect/.well-known/openid-configuration', 404),
+    Status('v3/fhir/.well-known/smart-configuration', 404),
+    Status('v3/fhir/metadata', 404),
+    Status('v3/connect/userinfo', 404),
+    Status('.well-known/openid-configuration-v3', 404),
+]
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
 
@@ -44,52 +53,50 @@ class BlueButtonTestEndpoints(BaseApiTest):
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
 
-    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     def test_userinfo_returns_200(self):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
-        ac = AccessToken.objects.get(token=first_access_token)
-        ac.save()
+        with override_switch('v3_endpoints', active=True):
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+            ac = AccessToken.objects.get(token=first_access_token)
+            ac.save()
 
-        @all_requests
-        def catchall(url, req):
-            return {'status_code': 200,
-                    'content': {
-                        'sub': FHIR_ID_V2,
-                        'name': ' ',
-                        'given_name': '',
-                        'family_name': '',
-                        'email': '',
-                        'iat': '2025-10-14T18:01:01.660Z',
-                        'patient': FHIR_ID_V2
-                    }}
+            @all_requests
+            def catchall(url, req):
+                return {'status_code': 200,
+                        'content': {
+                            'sub': FHIR_ID_V2,
+                            'name': ' ',
+                            'given_name': '',
+                            'family_name': '',
+                            'email': '',
+                            'iat': '2025-10-14T18:01:01.660Z',
+                            'patient': FHIR_ID_V2
+                        }}
 
-        with HTTMock(catchall):
-            response = self.client.get(
-                f'{BASEURL}/v3/connect/userinfo',
-                Authorization='Bearer %s' % (first_access_token))
-            self.assertEqual(response.status_code, 200)
+            with HTTMock(catchall):
+                response = self.client.get(
+                    f'{BASEURL}/v3/connect/userinfo',
+                    Authorization='Bearer %s' % (first_access_token))
+                self.assertEqual(response.status_code, 200)
 
     # This makes sure URLs return 200s.
-    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     def test_url_status_codes(self):
-        for test in TESTS:
-            if isinstance(test, Appropriate) or isinstance(test, Status) or isinstance(test, MissingFields):
-                response = requests.get(f'{BASEURL}/{test.url}')
-                self.assertEqual(response.status_code, test.status_code)
+        with override_switch('v3_endpoints', active=True):
+            for test in TESTS:
+                if isinstance(test, Appropriate) or isinstance(test, Status) or isinstance(test, MissingFields):
+                    response = requests.get(f'{BASEURL}/{test.url}')
+                    self.assertEqual(response.status_code, test.status_code)
 
     # This looks at the given set of URLs and makes sure that the version value encoded in the
     # reponses are correctly versioned. Note the handling of v1/v2.
-    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     def test_urls_appropriate(self):
         for test in TESTS:
             if isinstance(test, Appropriate):
                 response = requests.get(f'{BASEURL}/{test.url}')
                 if response.status_code == test.status_code:
                     the_json = response.json()
-                    # These should match the version, and connect should be present as well
-                    # to be SMART on FHIR compliant
-                    for field in ['issuer']:
-                        self.assertIn(test.version + '/connect/', the_json[field])
 
                     # These will be v2 for all v1 urls
                     if test.version == 'v1':
@@ -106,7 +113,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 else:
                     self.fail('Failed to connect with a good status code.')
 
-    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     def test_smart_configuration_missing_fields_in_v3(self):
         for test in TESTS:
             if isinstance(test, MissingFields):
@@ -139,7 +146,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     # ]
     # Make sure FHIR v3 extensions are correct when the metadata is fetched; the extensions object
     # is commented above for reference. This would be a good use of jsonpath in our codebase...
-    @skipIf(os.getenv('DO_NOT_RUN_ONLINE_TESTS'), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     def test_fhir_metadata_extensions_have_v3(self):
         response = requests.get(f'{BASEURL}/v3/fhir/metadata')
         if response.status_code == 200:
@@ -149,3 +156,15 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 for ext in obj['security']['extension']:
                     for e in ext['extension']:
                         self.assertIn('v3', e['valueUri'])
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    def test_page_not_found_when_waffle_switch_disabled(self):
+        print("SANITY CHECK: ", switch_is_active('v3_endpoints'))
+        with override_switch('v3_endpoints', active=True):
+            print("SANITY CHECK after with: ", switch_is_active('v3_endpoints'))
+            for test in PAGE_NOT_FOUND_TESTS:
+                print("test.url: ", test.url)
+                response = requests.get(f'{BASEURL}/' + test.url)
+                print("test.url: ", test.url)
+                print("response code: ", response.status_code)
+                self.assertEqual(response.status_code, test.status_code)

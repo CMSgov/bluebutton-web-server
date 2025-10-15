@@ -46,9 +46,13 @@ urlpatterns = [
     path("v2/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
     path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
-    path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
-    path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),
-    path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
+    path(
+        "v3/fhir/.well-known/smart-configuration",
+        waffle_switch("v3_endpoints")(smart_configuration_v3),
+        name="smart_configuration_v3"
+    ),
+    path("v3/fhir/metadata", waffle_switch("v3_endpoints")(fhir_conformance_v3), name="fhir_conformance_metadata_v3"),
+    path("v3/fhir/", waffle_switch("v3_endpoints")(include("apps.fhir.bluebutton.v3.urls"))),
     path("v2/o/", include("apps.dot_ext.v2.urls")),
     path("v2/o/", include("apps.authorization.v2.urls")),
     path("v3/o/", include("apps.dot_ext.v3.urls")),

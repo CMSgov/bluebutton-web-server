@@ -57,15 +57,14 @@ def openid_configuration(request):
     """
     Views that returns openid_configuration.
     """
+    # print("SANITY CHECK part 2: ", switch_is_active('v3_endpoints'))
     data = OrderedDict()
     issuer = base_issuer(request)
     data = build_endpoint_info(data, issuer=issuer)
 
-    # BB2-4184: To be SMART on FHIR compliant for the openid configuration endpoint, the issuer
-    # must match the request URL before '/.well-known'. So we need to append the version + fhir/
-    # only modifying issuer, so the other attributes of the response have the correct url
-    version_info = request.path.split(WELL_KNOWN_INDICATOR)[0]
-    data['issuer'] = data['issuer'] + version_info
+    # As part of BB2-4184 and SMART on FHIR compliance, we were unsure what the issuer should be
+    # for the openid-configuration call. Link to PR where this was discussed is here:
+    # https://github.com/CMSgov/bluebutton-web-server/pull/1394
     if 'v3' in request.path:
         data = format_v3_links(data)
 
