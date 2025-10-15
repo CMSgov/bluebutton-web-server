@@ -10,6 +10,29 @@ from apps.constants import Versions
 
 from ..dot_ext.models import Application
 
+
+def _start_url_with_http_or_https(host: str) -> str:
+    """Makes sure a URL starts with HTTPS
+
+    This is not comprehensive. It is a light refactoring of old code.
+    It tries to make sure that a host starts with HTTPS.
+
+    Args:
+        host: string
+    Returns:
+        host: string (with "https://")
+    """
+    if host.startswith("https://"):
+        # This is fine.
+        pass
+    elif host.startswith("http://"):
+        # This is also fine
+        pass
+    else:
+        host = f'https://{host}'
+
+    return host
+
 # Default the version to `v0` to cause errors in the event
 # of the parameter not being set correctly at the calling site.
 
@@ -30,8 +53,7 @@ def test_setup(include_client_secret=True, version=Versions.NOT_AN_API_VERSION):
     # TODO: MAGIC(URL)
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
 
-    if not (host.startswith("http://") or host.startswith("https://")):
-        host = "https://" + host
+    host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)

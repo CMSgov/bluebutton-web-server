@@ -17,7 +17,11 @@ from collections import namedtuple
 
 from waffle.decorators import waffle_switch
 
-from .utils import test_setup, get_client_secret, extract_page_nav
+from .utils import (test_setup,
+                    get_client_secret,
+                    extract_page_nav,
+                    _start_url_with_http_or_https)
+
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import (
     fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3)
@@ -31,7 +35,7 @@ from apps.testclient.constants import (
     HOME_PAGE,
     RESULTS_PAGE,
     # ENDPOINT_URL_FMT,
-    NAV_URI_FMT,
+    # NAV_URI_FMT,
     EndpointUrl
 )
 
@@ -49,28 +53,22 @@ def _get_oauth2_session_with_token(request: HttpRequest) -> OAuth2Session:
     return OAuth2Session(client_id, token=token)
 
 
-# QUESTION MCJ: Should this have a more descriptive name? get_fhir_json_from_backend?
 # Giving a name to the params. The patient is optional.
-FhirDataParams = namedtuple("FhirDataParams", "uri,version,patient")
+FhirDataParams = namedtuple("FhirDataParams", "name,uri,version,patient")
 
 
 def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
     """Make a call to the FHIR backend and return the JSON data from the call"""
 
-    # nav_link_formatter = formatters[version]
     # TODO: Do I want this to be a function?
     # uri = ENDPOINT_URL_FMT[name].format(*params)
     # Unpack the params so the type does not have to be pushed down.
     # The EndpointUrl.fmt() function will fail/raise an exception if the `name` is not one of the valid choices.
-    uri = EndpointUrl.fmt(FhirDataParams.name, FhirDataParams.uri, FhirDataParams.version, FhirDataParams.patient)
+    uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     # FIXME: This is for pagination, which is different/not present (?) for v3.
     nav_link = request.GET.get('nav_link', None)
     if nav_link is not None:
-        q_params = [uri]
-        q_params.append(request.GET.get('_count', 10))
-        q_params.append(request.GET.get('startIndex', 0))
-
         # for now it's either EOB or Coverage, make this more generic later
         patient = request.GET.get('patient')
         beneficiary = request.GET.get('beneficiary')
@@ -93,6 +91,7 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
                                   id=id)
 
     oas = _get_oauth2_session_with_token(request)
+    logger.info(f"_get_fhir_data uri: {uri}")
     r = oas.get(uri)
 
     return r.json()
@@ -144,28 +143,6 @@ def _is_synthetic_patient_id(patient_id: str) -> bool:
     )
 
 
-def _start_url_with_https(host: str) -> str:
-    """Makes sure a URL starts with HTTPS
-
-    This is not comprehensive. It is a light refactoring of old code.
-    It tries to make sure that a host starts with HTTPS.
-
-    Args:
-        host: string
-    Returns:
-        host: string (with "https://")
-    """
-    if host.startswith("https://"):
-        # This is fine.
-        pass
-    elif host.startswith("http://"):
-        host = "https://" + host[7:]
-    elif not (host.startswith('http://') or host.startswith('https://')):
-        # The previous code was *only* this elif case.
-        host = f'https://{host}'
-
-    return host
-
 ############################################################
 # ALL VERSIONS
 ############################################################
@@ -205,7 +182,7 @@ def callback(request: HttpRequest):
         return redirect('test_links', permanent=True)
 
     # We (mostly) trust the authorizing agent to send us a good URL.
-    host = _start_url_with_https(settings.HOSTNAME_URL)
+    host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
     auth_uri = host + request.get_full_path()
     token_uri = host
 
@@ -231,6 +208,7 @@ def callback(request: HttpRequest):
             # TODO RAISE APPROPRIATTE EXCEPTION
             raise
 
+    oas = _get_oauth2_session_with_redirect(request)
     try:
         # Default the CV to '' if it is not part of the session.
         # This was an inline if, below. As written, it allowed '' as a code verifier.
@@ -287,7 +265,6 @@ def callback(request: HttpRequest):
     request.session['token'] = token
     userinfo_uri = request.session['userinfo_uri']
 
-    oas = _get_oauth2_session_with_redirect(request)
     try:
         userinfo = oas.get(userinfo_uri).json()
     except Exception:
@@ -413,11 +390,13 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
-    params = [request.session['resource_uri'], version]
-
+    # params = [request.session['resource_uri'], version]
     # eob = _get_fhir_data_as_json(request, 'eob', params)
-    eob = _get_fhir_data_as_json(request, FhirDataParams(EndpointUrl.explanation_of_benefit,
-                                 request.session['resource_uri'], version, None))
+
+    params = FhirDataParams(EndpointUrl.explanation_of_benefit,
+                            request.session['resource_uri'], version, None)
+    logger.info(params)
+    eob = _get_fhir_data_as_json(request, params)
 
     nav_info, last_link = extract_page_nav(eob)
 
