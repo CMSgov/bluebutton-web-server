@@ -12,6 +12,7 @@ from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
 )
+from waffle.testutils import override_switch
 from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation import (
     get_response_json,
 )
@@ -141,6 +142,7 @@ class TestDataAccessPermissions(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
+    @override_switch('v3_endpoints', active=True)
     def _assert_call_all_fhir_endpoints(
         self,
         access_token=None,

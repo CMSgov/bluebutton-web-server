@@ -10,7 +10,7 @@ LOGIN_RATE = '100/m'
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-OFFLINE = False
+OFFLINE = True
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
