@@ -33,7 +33,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
         self.assertEqual(jr["sub"], self.username)
 
 
-@skipIf(settings.OFFLINE, "Can't reach external sites.")
+@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
 class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
@@ -180,7 +180,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
-@skipIf(settings.OFFLINE, "Can't reach external sites.")
+@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
 class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints

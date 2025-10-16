@@ -10,27 +10,46 @@ import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 SCOPES_SUPPORTED = [
-    "openid",
-    "profile",
-    "launch/patient",
-    "patient/Patient.read",
-    "patient/ExplanationOfBenefit.read",
-    "patient/Coverage.read",
-    "patient/Patient.rs",
-    "patient/ExplanationOfBenefit.rs",
-    "patient/Coverage.rs",
+    'openid',
+    'profile',
+    'launch/patient',
+    'patient/Patient.read',
+    'patient/ExplanationOfBenefit.read',
+    'patient/Coverage.read',
+    'patient/Patient.rs',
+    'patient/ExplanationOfBenefit.rs',
+    'patient/Coverage.rs',
 ]
 CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
 CAPABILITIES = [
-    "client-confidential-symmetric",
-    "context-standalone-patient",
-    "launch-standalone",
-    "permission-offline",
-    "permission-patient",
-    "permission-v1",
-    "permission-v2",
-    "authorize-post"
+    'client-confidential-symmetric',
+    'context-standalone-patient',
+    'launch-standalone',
+    'permission-offline',
+    'permission-patient',
+    'permission-v1',
+    'permission-v2',
+    'authorize-post'
 ]
+WELL_KNOWN_INDICATOR = '.well-known'
+
+
+def format_v3_links(request_dict: OrderedDict) -> OrderedDict:
+    # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
+    request_dict['authorization_endpoint'] = (
+        request_dict
+        .get('authorization_endpoint', '')
+        .replace('/v2/o/', '/v3/o/')
+        .rstrip('/')
+    )
+    request_dict['revocation_endpoint'] = request_dict.get('revocation_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
+    request_dict['token_endpoint'] = request_dict.get('token_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
+    if request_dict.get('fhir_metadata_uri'):
+        request_dict['fhir_metadata_uri'] = request_dict.get('fhir_metadata_uri', '').replace('/v2/fhir/', '/v3/fhir/')
+    if request_dict.get('userinfo_endpoint'):
+        request_dict['userinfo_endpoint'] = request_dict.get('userinfo_endpoint', '').replace('/v2/', '/v3/')
+
+    return request_dict
 
 
 @require_GET
@@ -41,6 +60,13 @@ def openid_configuration(request):
     data = OrderedDict()
     issuer = base_issuer(request)
     data = build_endpoint_info(data, issuer=issuer)
+
+    # As part of BB2-4184 and SMART on FHIR compliance, we were unsure what the issuer should be
+    # for the openid-configuration call. Link to PR where this was discussed is here:
+    # https://github.com/CMSgov/bluebutton-web-server/pull/1394
+    if 'v3' in request.path:
+        data = format_v3_links(data)
+
     return JsonResponse(data)
 
 
@@ -64,11 +90,7 @@ def smart_configuration_v3(request):
     issuer = base_issuer(request)
     data = build_smart_config_endpoint(data, issuer=issuer)
 
-    # v3 specific info, very important since tokens aren't compatible between versions 1/2 and 3
-    data["authorization_endpoint"] = data.get("authorization_endpoint", "").replace("/v2/o/", "/v3/o/").rstrip("/")
-    data["revocation_endpoint"] = data.get("revocation_endpoint", "").replace("/v2/o/", "/v3/o/").rstrip("/")
-    data["token_endpoint"] = data.get("token_endpoint", "").replace("/v2/o/", "/v3/o/").rstrip("/")
-    data["fhir_metadata_uri"] = data.get("fhir_metadata_uri", "").replace("/v2/fhir/", "/v3/fhir/")
+    data = format_v3_links(data)
 
     return JsonResponse(data)
 

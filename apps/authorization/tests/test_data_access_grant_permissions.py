@@ -12,6 +12,7 @@ from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
 )
+from waffle.testutils import override_switch
 from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation import (
     get_response_json,
 )
@@ -141,6 +142,7 @@ class TestDataAccessPermissions(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
+    @override_switch('v3_endpoints', active=True)
     def _assert_call_all_fhir_endpoints(
         self,
         access_token=None,
@@ -173,6 +175,15 @@ class TestDataAccessPermissions(BaseApiTest):
         # Test profile/userinfo v2
         response = self.client.get(
             "/v2/connect/userinfo", headers={"authorization": "Bearer " + access_token}
+        )
+        self.assertEqual(response.status_code, expected_response_code)
+        if expected_response_detail_mesg is not None:
+            content = json.loads(response.content)
+            self.assertEqual(content["detail"], expected_response_detail_mesg)
+
+        # Test profile/userinfo v3
+        response = self.client.get(
+            "/v3/connect/userinfo", headers={"authorization": "Bearer " + access_token}
         )
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
