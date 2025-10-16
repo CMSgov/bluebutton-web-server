@@ -34,9 +34,8 @@ from apps.constants import Versions
 from apps.testclient.constants import (
     HOME_PAGE,
     RESULTS_PAGE,
-    # ENDPOINT_URL_FMT,
-    # NAV_URI_FMT,
-    EndpointUrl
+    EndpointUrl,
+    ResponseErrors
 )
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -59,11 +58,6 @@ FhirDataParams = namedtuple("FhirDataParams", "name,uri,version,patient")
 
 def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
     """Make a call to the FHIR backend and return the JSON data from the call"""
-
-    # TODO: Do I want this to be a function?
-    # uri = ENDPOINT_URL_FMT[name].format(*params)
-    # Unpack the params so the type does not have to be pushed down.
-    # The EndpointUrl.fmt() function will fail/raise an exception if the `name` is not one of the valid choices.
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     # FIXME: This is for pagination, which is different/not present (?) for v3.
@@ -103,6 +97,8 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
         try:
             return json.loads(json_response.content)
         except JSONDecodeError:
+            # FIXME: We bury an error condition here, but hide it as a good response.
+            # This should be handled differently?
             return {'error': f'Could not decode JSON; status code {json_response.status_code}'}
     else:
         return {'error': json_response.status_code}
@@ -186,18 +182,12 @@ def callback(request: HttpRequest):
     auth_uri = host + request.get_full_path()
     token_uri = host
 
-    # TODO: Make the version pathways version specific
-    # FIXME: Should this be... our default API version as opposed to v1?
-    # This was 'v1', which I've turned into a constant... but, I don't know if we should
-    # instead be using the DEFAULT constant instead as we make this change.
-    # DECISION: I'm going to make sure we have a value, but it will cause things to fail.
-    # The callback should always have an `api_ver` as a parameter; therefore, we should
-    # not default down to (say) v1 or v2.
+    # To guarantee that the `version` is a value, we provide a default for the `get`.
+    # However, the default is `v0`, which is an invalid version. This keeps it of the
+    # same type as valid values, but does not allow us to proceed if something has broken.
     version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
     match version:
         case Versions.V1:
-            # QUESTION MCJ: Is this even possible? I think we determined that the v1
-            # pathway was not possible. This is also problematic for a v3 pathway.
             token_uri += reverse('oauth2_provider:token')
         case Versions.V2:
             token_uri += reverse('oauth2_provider_v2:token-v2')
@@ -205,8 +195,7 @@ def callback(request: HttpRequest):
             token_uri += reverse('oauth2_provider_v3:token-v3')
         case _:
             logger.error(f"Failed to get valid API version back from authorizing agent. Given: [{version}]")
-            # TODO RAISE APPROPRIATTE EXCEPTION
-            raise
+            return ResponseErrors.MissingCallbackVersionContext(version)
 
     oas = _get_oauth2_session_with_redirect(request)
     try:
@@ -221,47 +210,43 @@ def callback(request: HttpRequest):
                                 authorization_response=auth_uri,
                                 code_verifier=cv)
     except MissingTokenError:
-        logmsg = 'Failed to get token from %s' % (request.session['token_uri'])
-        logger.error(logmsg)
-        # FIXME/TODO: We throw a 500 here. Should we? Is there a more graceful way to handle this?
-        return JsonResponse({'error': 'Failed to get token from',
-                             'code': 'MissingTokenError',
-                             'help': 'Try authorizing again.'},
-                            status=500)
+        token_uri = request.session['token_uri']
+        logger.error(f'Failed to get token from {token_uri}')
+        return ResponseErrors.MissingTokenError(token_uri)
 
     # 20251014 MCJ REMOVE AS PART OF REVIEW
     # I am suggesting here that we change the callback behavior. If we cannot
     # find a patient, let's throw a 500 instead of continuing.
-    try:
-        # For test client allow only authorize on synthetic beneficiaries
-        patient_id = token.get('patient')
-    except KeyError:
-        # FIXME: This would actually handle the error as opposed to setting it to `None`
-        logger.error("No key found in the token for `patient`.")
-        # Old code had the behavior of setting patient_id and continuing.
-        #
-        # patient_id = None
-        # pass
-        #
-        # Instead of setting `patient_id` to `None`, what happens if we throw a 500?
-        return JsonResponse({'error': 'No patient found in token; only synthetic benficiares can be used.',
-                             'code': 'MissingPatientError',
-                             'help': 'Try authorizing again.'},
-                            status=500)
+    # try:
+    #     # For test client allow only authorize on synthetic beneficiaries
+    #     patient_id = token.get('patient')
+    # except KeyError:
+    #     # FIXME: This would actually handle the error as opposed to setting it to `None`
+    #     logger.error("No key found in the token for `patient`.")
+    #     # Old code had the behavior of setting patient_id and continuing.
+    #     #
+    #     # patient_id = None
+    #     # pass
+    #     #
+    #     # Instead of setting `patient_id` to `None`, what happens if we throw a 500?
+    #     return ResponseErrors.MissingPatientError(patient_id)
 
-    # If we made it here, lets make sure we have a synthetic patient ID.
-    # If we do not, then we need to clear the token and send back an error to the client.
-    if not _is_synthetic_patient_id(patient_id):
-        logger.error(f'Failed token is for a non-synthetic patient ID = {patient_id}')
+    # If we cannot find a patient id in the tokent, return an error.
+    # If we find a non-synthetic id, return an error.
+    # Otherwise, continue.
+    patient_id = token.get('patient', None)
+    if patient_id is None:
+        return ResponseErrors.MissingPatientError()
+    elif not _is_synthetic_patient_id(patient_id):
+        # If we made it here, lets make sure we have a synthetic patient ID.
+        # If we do not, then we need to clear the token and send back an error to the client.
+        logmsg = f'Failed token is for a non-synthetic patient ID = {patient_id}'
+        logger.error(logmsg)
         if 'token' in request.session:
             del request.session['token']
-        return JsonResponse({'error': logmsg,
-                             'code': 'NonSyntheticTokenError',
-                             'help': 'Try authorizing again.'
-                             },
-                            status=status.HTTP_403_FORBIDDEN)
+        return ResponseErrors.NonSyntheticTokenError(patient_id)
 
-    # We now are guaranteed that the patient_id is not None, and is a synthetic user id.
+    # We are guaranteed at this point that the patient_id is not None, and it is a synthetic user id.
     request.session['token'] = token
     userinfo_uri = request.session['userinfo_uri']
 
@@ -302,17 +287,20 @@ def test_links(request: HttpRequest, **kwargs):
     # New home page view consolidates separate success, error, and access denied views
     # If authorization was successful, pass token to template
     if 'token' in request.session:
-        # FIXME: Is it possible for the session to not declare the API version?
-        # If so, should we...
-        # 1. Default to a valid version? E.g.: Versions.DEFAULT_API_VERSION
-        # 2. Raise an error.
+        # In the event that we have a bad API version in the session, send them
+        # back to the homepage.
         version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
         if version == Versions.NOT_AN_API_VERSION:
-            raise
-        return render(request, HOME_PAGE,
-                      context={'session_token': request.session['token'],
-                               # QUESTION MCJ: Why is this defaulted to v2?
-                               'api_ver': version})
+            # If somehow we ended up with a non-API version,
+            # we return and clear the session token context.
+            del request.session['token']
+            return render(request, HOME_PAGE, context={'session_token': None})
+        else:
+            return render(request, HOME_PAGE,
+                          context={
+                              'session_token': request.session['token'],
+                              'api_ver': version,
+                          })
     else:
         # If we don't have a token, go back home.
         return render(request, HOME_PAGE, context={'session_token': None})
@@ -322,11 +310,21 @@ def test_links(request: HttpRequest, **kwargs):
 ############################################################
 
 
+def _link_session_or_version_is_bad(session, version):
+    if 'token' not in session or version == Versions.NOT_AN_API_VERSION:
+        return redirect('test_links', permanent=True)
+    else:
+        return False
+
 ###############
 # authorize_link
 
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
+
+    # FIXME: Should this be here, too?
+    # _link_session_or_version_is_bad(request.session, version)
+
     request.session.update(test_setup(version=version))
     oas = _get_oauth2_session_with_redirect(request)
 
@@ -348,8 +346,8 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
 
 def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
 
     # params = [request.session['resource_uri'], version]
     coverage = _get_fhir_data_as_json(request, FhirDataParams(
@@ -366,12 +364,14 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             url_name = 'test_coverage_v2'
         case Versions.V3:
             url_name = 'test_coverage_v3'
-            raise
         case _:
-            # TODO raise a better error
-            raise
+            del request.session['token']
+            return render(request, RESULTS_PAGE,
+                          {'error': f'Invalid API version',
+                           'response_type': 'BB2 error: test_coverage',
+                           'api_ver': version
+                           })
 
-    # QUESTION MCJ: Why do we indent an odd number? Why not 2 or 4?
     return render(request,
                   RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(coverage, indent=3),
@@ -387,11 +387,8 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
 
 def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
-
-    # params = [request.session['resource_uri'], version]
-    # eob = _get_fhir_data_as_json(request, 'eob', params)
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
 
     params = FhirDataParams(EndpointUrl.explanation_of_benefit,
                             request.session['resource_uri'], version, None)
@@ -402,18 +399,39 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
 
+    match version:
+        case Versions.V1:
+            url_name = 'test_eob'
+        case Versions.V2:
+            url_name = 'test_eob_v2'
+        case Versions.V3:
+            url_name = 'test_eob_v3'
+        case _:
+            del request.session['token']
+            return render(request, RESULTS_PAGE,
+                          {'error': f'Invalid API version',
+                           'response_type': 'BB2 error: test_eob',
+                           'api_ver': version
+                           })
+
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(eob, indent=3),
-                   'url_name': 'test_eob_v2' if version == 2 else 'test_eob',
-                   'nav_list': nav_info, 'page_loc': pg_info,
+                   'url_name': url_name,
+                   'nav_list': nav_info,
+                   'page_loc': pg_info,
                    'response_type': 'Bundle of ExplanationOfBenefit',
-                   'api_ver': 'v2' if version == 2 else 'v1'})
+                   'api_ver': version
+                   })
 
 ###############
 # test_metadata
 
 
 def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
+    # FIXME: Should this be here?
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
+
     # Grab the conformance function that we'll use for
     # validating the FHIR JSON string.
     match version:
@@ -424,9 +442,15 @@ def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case Versions.V3:
             conformance = fhir_conformance_v3
         case _:
-            # TODO FIXME
-            raise
+            del request.session['token']
+            return render(request, RESULTS_PAGE,
+                          {'error': f'Invalid API version',
+                           'response_type': 'BB2 error: test_metadata',
+                           'api_ver': version
+                           })
+
     json_response = _convert_response_string_to_json(conformance(request))
+    # FIXME: Handle the error burried in _convert, return an error instead
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(json_response, indent=3),
                    'response_type': 'FHIR Metadata',
@@ -437,48 +461,52 @@ def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
 
 def _test_openid_config(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
+    # FIXME: Should this be here?
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
+
     # api ver agnostic for now, but show version any way on page
     json_response = _convert_response_string_to_json(openid_configuration(request))
+    # FIXME: handle the error burried in _convert
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(json_response, indent=3),
                    'response_type': 'OIDC Discovery',
-                   'api_ver': 'v2' if v2 else 'v1'})
+                   'api_ver': version
+                   })
 
 ###############
 # test_patient
 
 
 def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
 
-    if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
-
-    # params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
     patient = _get_fhir_data_as_json(request, FhirDataParams(
         EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']))
 
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(patient, indent=3),
                    'response_type': 'Patient',
-                   'api_ver': 'v2' if version == 2 else 'v1'})
+                   'api_ver': version
+                   })
 
 ###############
 # test_userinfo
 
 
 def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
 
-    if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
-
-    # params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
     user_info = _get_fhir_data_as_json(request, FhirDataParams(
         EndpointUrl.userinfo, request.session['resource_uri'], version, None))
 
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(user_info, indent=3),
                    'response_type': 'Profile (OIDC Userinfo)',
-                   'api_ver': 'v2' if version == 2 else 'v1'})
+                   'api_ver': version
+                   })
 
 
 ############################################################
