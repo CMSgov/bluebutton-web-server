@@ -5,6 +5,7 @@ import requests
 
 import apps.logging.request_logger as logging
 
+from django.conf import settings
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
@@ -40,12 +41,14 @@ from .audit_logger_schemas import (
     SLSX_USERINFO_LOG_SCHEMA,
 )
 
+FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+
 
 class HTTMockWithResponseHook(HTTMock):
     def intercept(self, request, **kwargs):
         response = super().intercept(request, **kwargs)
         # process hooks - we only have response hook for now
-        self.dispatch_hook("response", request.hooks, response, **kwargs)
+        self.dispatch_hook('response', request.hooks, response, **kwargs)
         return response
 
     def dispatch_hook(self, key, hooks, hook_data, **kwargs):
@@ -53,7 +56,7 @@ class HTTMockWithResponseHook(HTTMock):
         hooks = hooks or {}
         hooks = hooks.get(key)
         if hooks:
-            if hasattr(hooks, "__call__"):
+            if hasattr(hooks, '__call__'):
                 hooks = [hooks]
             for hook in hooks:
                 _hook_data = hook(hook_data, **kwargs)
@@ -64,17 +67,17 @@ class HTTMockWithResponseHook(HTTMock):
 
 class TestAuditEventLoggers(BaseApiTest):
     def setUp(self):
-        Group.objects.create(name="BlueButton")
-        self.callback_url = reverse("mymedicare-sls-callback")
-        self.read_capability = self._create_capability("Read", [])
-        self.write_capability = self._create_capability("Write", [])
+        Group.objects.create(name='BlueButton')
+        self.callback_url = reverse('mymedicare-sls-callback')
+        self.read_capability = self._create_capability('Read', [])
+        self.write_capability = self._create_capability('Write', [])
         self._create_capability(
-            "patient",
+            'patient',
             [
-                ["GET", r"\/v1\/fhir\/Patient\/\-\d+"],
-                ["GET", "/v1/fhir/Patient"],
-                ["GET", r"\/v2\/fhir\/Patient\/\-\d+"],
-                ["GET", "/v2/fhir/Patient"],
+                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
+                ['GET', '/v1/fhir/Patient'],
+                ['GET', r'\/v2\/fhir\/Patient\/\-\d+'],
+                ['GET', '/v2/fhir/Patient'],
             ],
         )
         # Setup the RequestFactory
@@ -90,18 +93,18 @@ class TestAuditEventLoggers(BaseApiTest):
             validate(instance=content, schema=schema)
         except jsonschema.exceptions.ValidationError as e:
             # Show error info for debugging
-            print("jsonschema.exceptions.ValidationError: ", e)
+            print('jsonschema.exceptions.ValidationError: ', e)
             return False
         return True
 
     def test_fhir_events_logging(self):
-        self._fhir_events_logging(False)
+        self._fhir_events_logging(1)
 
     def test_fhir_events_logging_v2(self):
-        self._fhir_events_logging(True)
+        self._fhir_events_logging(2)
 
-    def _fhir_events_logging(self, v2=False):
-        first_access_token = self.create_token("John", "Smith")
+    def _fhir_events_logging(self, version=1):
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         AccessToken = get_access_token_model()
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
@@ -116,25 +119,24 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entry_dict = json.loads(fhir_log_content)
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict
+                    get_pre_fetch_fhir_log_entry_schema(version), log_entry_dict
                 )
             )
 
             return {
-                "status_code": status.HTTP_200_OK,
+                'status_code': status.HTTP_200_OK,
                 # TODO replace this with true backend response, this has been post proccessed
-                "content": patient_response,
+                'content': patient_response,
             }
+        reverse_url = 'bb_oauth_fhir_patient_search'
+        if version == 2:
+            reverse_url += '_v2'
 
         with HTTMock(catchall):
             self.client.get(
-                reverse(
-                    "bb_oauth_fhir_patient_search"
-                    if not v2
-                    else "bb_oauth_fhir_patient_search_v2"
-                ),
-                {"count": 5, "hello": "world"},
-                Authorization="Bearer %s" % (first_access_token),
+                reverse(reverse_url),
+                {'count': 5, 'hello': 'world'},
+                Authorization='Bearer %s' % (first_access_token),
             )
 
             # fhir_log_content, token_log_content
@@ -146,14 +148,14 @@ class TestAuditEventLoggers(BaseApiTest):
             # Validate fhir_pre_fetch entry
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), json.loads(log_entries[0])
+                    get_pre_fetch_fhir_log_entry_schema(version), json.loads(log_entries[0])
                 )
             )
 
             # Validate fhir_post_fetch entry
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_post_fetch_fhir_log_entry_schema(2 if v2 else 1), json.loads(log_entries[1])
+                    get_post_fetch_fhir_log_entry_schema(version), json.loads(log_entries[1])
                 )
             )
 
@@ -169,28 +171,28 @@ class TestAuditEventLoggers(BaseApiTest):
             )
 
     def test_callback_url_success_slsx_logger(self):
-        self._callback_url_success_slsx_logger(False)
+        self._callback_url_success_slsx_logger(1)
 
     def test_callback_url_success_slsx_logger_v2(self):
-        self._callback_url_success_slsx_logger(True)
+        self._callback_url_success_slsx_logger(2)
 
-    def _callback_url_success_slsx_logger(self, v2=False):
-        # copy and adapted for SLS logger test
+    def _callback_url_success_slsx_logger(self, version=1):
+        # copy and adapted for SLSx logger test
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri='http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test',
         )
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us",
-            path=r"/v[12]/fhir/Patient/",
+            netloc='fhir.backend.bluebutton.hhsdevcloud.us',
+            path=r'/v[123]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
             return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
             }
 
         @all_requests
@@ -207,23 +209,23 @@ class TestAuditEventLoggers(BaseApiTest):
             s = self.client.session
             s.update(
                 {
-                    "auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
-                    "auth_app_id": "2",
-                    "version": 2 if v2 else 1,
-                    "auth_app_name": "TestApp-001",
-                    "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop",
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_app_id': '2',
+                    'version': version,
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
                 }
             )
             s.save()
 
             self.client.get(
                 self.callback_url,
-                data={"req_token": "xxxx-request-token-xxxx", "relay": state},
+                data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
             )
 
             slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
 
-            quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
+            quoted_strings = re.findall('{[^{}]+}', slsx_log_content)
             self.assertEqual(len(quoted_strings), 2)
 
             # Validate token response
@@ -312,27 +314,27 @@ class TestAuditEventLoggers(BaseApiTest):
             )
 
     def test_callback_url_slsx_tkn_error_logger(self):
-        self._callback_url_slsx_tkn_error_logger(False)
+        self._callback_url_slsx_tkn_error_logger(1)
 
     def test_callback_url_slsx_tkn_error_logger_v2(self):
-        self._callback_url_slsx_tkn_error_logger(True)
+        self._callback_url_slsx_tkn_error_logger(2)
 
-    def _callback_url_slsx_tkn_error_logger(self, v2=False):
+    def _callback_url_slsx_tkn_error_logger(self, version):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri='http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test',
         )
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us",
-            path=r"/v[12]/fhir/Patient/",
+            netloc='fhir.backend.bluebutton.hhsdevcloud.us',
+            path=r'/v[123]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
             return {
-                "status_code": 200,
-                "content": patient_response,
+                'status_code': 200,
+                'content': patient_response,
             }
 
         @all_requests
@@ -348,11 +350,11 @@ class TestAuditEventLoggers(BaseApiTest):
             s = self.client.session
             s.update(
                 {
-                    "auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
-                    "auth_app_id": "2",
-                    "version": 2 if v2 else 1,
-                    "auth_app_name": "TestApp-001",
-                    "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop",
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_app_id': '2',
+                    'version': version,
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
                 }
             )
             s.save()
@@ -360,46 +362,46 @@ class TestAuditEventLoggers(BaseApiTest):
             try:
                 self.client.get(
                     self.callback_url,
-                    data={"req_token": "xxxx-request-token-xxxx", "relay": state},
+                    data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
-                self.fail("HTTP Error 403 expected.")
+                self.fail('HTTP Error 403 expected.')
             except requests.exceptions.HTTPError as err:
                 self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
 
             slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
-            quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
+            quoted_strings = re.findall('{[^{}]+}', slsx_log_content)
 
             self.assertEqual(len(quoted_strings), 1)
 
             log_entry_dict = json.loads(quoted_strings[0])
-            self.assertIsNotNone(log_entry_dict.get("message"))
+            self.assertIsNotNone(log_entry_dict.get('message'))
             self.assertEqual(
-                log_entry_dict.get("message"),
-                "JSONDecodeError thrown when parsing response text.",
+                log_entry_dict.get('message'),
+                'JSONDecodeError thrown when parsing response text.',
             )
 
     def test_callback_url_slsx_userinfo_error_logger(self):
-        self._callback_url_slsx_userinfo_error_logger(False)
+        self._callback_url_slsx_userinfo_error_logger(1)
 
     def test_callback_url_slsx_userinfo_error_logger_v2(self):
-        self._callback_url_slsx_userinfo_error_logger(True)
+        self._callback_url_slsx_userinfo_error_logger(2)
 
-    def _callback_url_slsx_userinfo_error_logger(self, v2=False):
+    def _callback_url_slsx_userinfo_error_logger(self, version=1):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri='http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test',
         )
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us",
-            path=r"/v[12]/fhir/Patient/",
+            netloc='fhir.backend.bluebutton.hhsdevcloud.us',
+            path=r'/v[123]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
             return {
-                "status_code": 200,
-                "content": patient_response,
+                'status_code': 200,
+                'content': patient_response,
             }
 
         @all_requests
@@ -415,11 +417,11 @@ class TestAuditEventLoggers(BaseApiTest):
             s = self.client.session
             s.update(
                 {
-                    "auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
-                    "auth_app_id": "2",
-                    "version": 2 if v2 else 1,
-                    "auth_app_name": "TestApp-001",
-                    "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop",
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_app_id': '2',
+                    'version': version,
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
                 }
             )
             s.save()
@@ -427,62 +429,64 @@ class TestAuditEventLoggers(BaseApiTest):
             try:
                 self.client.get(
                     self.callback_url,
-                    data={"req_token": "xxxx-request-token-xxxx", "relay": state},
+                    data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
-                self.fail("HTTP Error 403 expected.")
+                self.fail('HTTP Error 403 expected.')
             except requests.exceptions.HTTPError as err:
                 self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
 
             slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
-            quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
+            quoted_strings = re.findall('{[^{}]+}', slsx_log_content)
 
             self.assertEqual(len(quoted_strings), 2)
 
             log_entry_dict = json.loads(quoted_strings[1])
-            self.assertIsNotNone(log_entry_dict.get("message"))
+            self.assertIsNotNone(log_entry_dict.get('message'))
             self.assertEqual(
-                log_entry_dict.get("message"),
-                "JSONDecodeError thrown when parsing response text.",
+                log_entry_dict.get('message'),
+                'JSONDecodeError thrown when parsing response text.',
             )
 
     def test_creation_on_approval_token_logger(self):
-        self._creation_on_approval_token_logger(False)
+        self._creation_on_approval_token_logger(1)
 
     def test_creation_on_approval_token_logger_v2(self):
-        self._creation_on_approval_token_logger(True)
+        self._creation_on_approval_token_logger(2)
 
-    def _creation_on_approval_token_logger(self, v2=False):
+    def _creation_on_approval_token_logger(self, version=1):
         # copy and adapted to test token logger
-        redirect_uri = "http://localhost"
-        self._create_user("anna", "123456")
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        redirect_uri = 'http://localhost'
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri,
         )
         application.scope.add(capability_a, capability_b)
-        api_ver = "v1" if not v2 else "v2"
+        api_ver = 'v1'
+        if version == 2:
+            api_ver = 'v2'
         request = HttpRequest()
-        self.client.login(request=request, username="anna", password="123456")
+        self.client.login(request=request, username='anna', password='123456')
 
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
         }
-        response = self.client.get("/{}/o/authorize".format(api_ver), data=payload)
+        response = self.client.get('/{}/o/authorize'.format(api_ver), data=payload)
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
-            "scope": ["capability-a"],
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
         }
-        response = self.client.post(response["Location"], data=payload)
+        response = self.client.post(response['Location'], data=payload)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         # assert token logger record works by assert some top level fields
         token_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_TOKEN_LOGGER)
@@ -495,96 +499,94 @@ class TestAuditEventLoggers(BaseApiTest):
         )
 
     def test_request_logger_app_not_exist(self):
-        self._request_logger_app_not_exist(False)
+        self._request_logger_app_not_exist(1)
 
     def test_request_logger_app_not_exist_v2(self):
-        self._request_logger_app_not_exist(True)
+        self._request_logger_app_not_exist(2)
 
-    def _request_logger_app_not_exist(self, v2=False):
+    def _request_logger_app_not_exist(self, version=1):
         # copy and adapted to test token logger
-        redirect_uri = "http://localhost"
-        self._create_user("anna", "123456")
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        redirect_uri = 'http://localhost'
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri,
         )
 
         application.scope.add(capability_a, capability_b)
-        api_ver = "v1" if not v2 else "v2"
 
         request = HttpRequest()
-        self.client.login(request=request, username="anna", password="123456")
+        self.client.login(request=request, username='anna', password='123456')
 
-        non_exist_client_id = application.client_id + "_non_exist"
+        non_exist_client_id = application.client_id + '_non_exist'
 
         payload = {
-            "client_id": non_exist_client_id,
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
+            'client_id': non_exist_client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
         }
 
-        response = self.client.get("/{}/o/authorize/".format(api_ver), data=payload)
+        response = self.client.get(f'/v{version}/o/authorize/', data=payload)
 
         self.assertNotEqual(response.status_code, 500)
-        # assert request logger record exist and app name, app id has expected value ""
+        # assert request logger record exist and app name, app id has expected value ''
         request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
         json_rec = json.loads(request_log_content)
         self.assertTrue(self._validateJsonSchema(REQUEST_PARTIAL_LOG_REC_SCHEMA, json_rec))
-        self.assertEqual(json_rec.get("req_qparam_client_id"), non_exist_client_id)
-        self.assertEqual(json_rec.get("req_app_name"), "")
-        self.assertEqual(json_rec.get("req_app_id"), "")
+        self.assertEqual(json_rec.get('req_qparam_client_id'), non_exist_client_id)
+        self.assertEqual(json_rec.get('req_app_name'), '')
+        self.assertEqual(json_rec.get('req_app_id'), '')
 
     def test_request_logger_data_facilitator_end_user(self):
-        self._request_logger_data_facilitator_end_user(False)
+        self._request_logger_data_facilitator_end_user(1)
 
     def test_request_logger_data_facilitator_end_user_v2(self):
-        self._request_logger_data_facilitator_end_user(True)
+        self._request_logger_data_facilitator_end_user(2)
 
-    def _request_logger_data_facilitator_end_user(self, v2=False):
-        redirect_uri = "http://localhost"
-        self._create_user("anna", "123456")
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+    def _request_logger_data_facilitator_end_user(self, version=1):
+        redirect_uri = 'http://localhost'
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri,
         )
 
         application.scope.add(capability_a, capability_b)
-        api_ver = "v1" if not v2 else "v2"
 
         request = HttpRequest()
-        self.client.login(request=request, username="anna", password="123456")
+        self.client.login(request=request, username='anna', password='123456')
 
         payload = {
-            "client_id": application.id,
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
+            'client_id': application.id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
         }
 
-        headers = {"DATA-END-USER": "End User App"}
+        headers = {'DATA-END-USER': 'End User App'}
 
-        response = self.client.get("/{}/o/authorize/".format(api_ver), data=payload, headers=headers)
+        response = self.client.get(f'/v{version}/o/authorize/', data=payload, headers=headers)
 
         self.assertNotEqual(response.status_code, 500)
-        # assert request logger record exist and app name, app id has expected value ""
+        # assert request logger record exist and app name, app id has expected value ''
         request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
         json_rec = json.loads(request_log_content)
-        self.assertEqual(json_rec.get("data_facilitator_end_user"), "End User App")
+        self.assertEqual(json_rec.get('data_facilitator_end_user'), 'End User App')
 
-    def test_auth_flow_lang_logger(self, v2=False):
+    def test_auth_flow_lang_logger(self, version=1):
         # copy and adapted to test auth flow logger
-        redirect_uri = "http://localhost"
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        redirect_uri = 'http://localhost'
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri,
         )
@@ -593,28 +595,28 @@ class TestAuditEventLoggers(BaseApiTest):
         # dispatch
 
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
-            "lang": "es",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'lang': 'es',
         }
 
-        response = self.client.get("/v2/o/authorize", data=payload)
+        response = self.client.get('/v2/o/authorize', data=payload)
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
-            "scope": ["capability-a"],
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
         }
-        response = self.client.post(response["Location"], data=payload)
+        response = self.client.post(response['Location'], data=payload)
         request_log_content = get_log_content(self.logger_registry,
                                               logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
-        quoted_strings = re.findall("{[^{}]+}", request_log_content)
+        quoted_strings = re.findall('{[^{}]+}', request_log_content)
         self.assertEqual(len(quoted_strings), 2)
 
         second_stanza_dict = json.loads(quoted_strings[1])
-        self.assertEqual(second_stanza_dict.get("auth_language"), "es")
+        self.assertEqual(second_stanza_dict.get('auth_language'), 'es')

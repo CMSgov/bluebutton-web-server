@@ -139,7 +139,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         user = User.objects.create_user("bob", password="bad")
         Crosswalk.objects.create(
             user=user,
-            fhir_id="-20000000002346",
+            fhir_id_v2="-20000000002346",
             user_hicn_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
             user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321",
         )
@@ -223,7 +223,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/"
+            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -333,6 +333,12 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
+        versions = [1, 2]
+        for version in versions:
+            with self.subTest(version=version):
+                self._callback_exception_runner(version)
+
+    def _callback_exception_runner(self, version):
         # BB2-237: Added to test ASSERTS replaced with exceptions.
         #          These are typically for conditions that should never be reached, so generate a 500.
 
@@ -340,12 +346,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri=f'''http://www.google.com/v{version}/o/authorize?client_id=test
+                         &redirect_uri=test.com&response_type=token&state=test''',
         )
 
         # mock fhir user info endpoint
+        # currently, we use v2 fhir endpoint even if the request coming in is v1 authorize (because we treat them the same)
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/"
+            netloc='fhir.backend.bluebutton.hhsdevcloud.us', path=f'/v{version if version == 3 else 2}/fhir/Patient/'
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -373,8 +381,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_fhir_id = cw._fhir_id
-        cw._fhir_id = "XXX"
+        saved_fhir_id = cw.fhir_id(2)
+        cw.set_fhir_id("XXX", 2)
         cw.save()
 
         with HTTMock(
@@ -398,7 +406,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Restore fhir_id
         cw = Crosswalk.objects.get(id=1)
-        cw._fhir_id = saved_fhir_id
+        cw.set_fhir_id(saved_fhir_id, 2)
         cw.save()
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
@@ -565,7 +573,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
         @urlmatch(
-            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/"
+            netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -598,7 +606,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 1)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -657,7 +665,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 1)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -672,7 +680,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=1)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -760,7 +768,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -815,7 +823,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values. Did the hicn update to new value?
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
@@ -830,7 +838,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=2)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -885,7 +893,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
                     },
                 },
@@ -921,7 +929,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -936,7 +944,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=2)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -989,7 +997,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
                     },
                 },
@@ -1025,7 +1033,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
         self.assertEqual(cw.user.id, 2)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw.fhir_id(2), "-20140000008325")
         self.assertEqual(
             cw._user_id_hash,
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
@@ -1040,7 +1048,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         acw = ArchivedCrosswalk.objects.get(id=3)
 
         self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
         self.assertEqual(
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
@@ -1102,7 +1110,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
+                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
                     },
                 },

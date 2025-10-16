@@ -156,6 +156,9 @@ class RequestResponseLog(object):
         # Log message update from a passed in object
         try:
             value = getattr(obj, obj_key, None)
+            # Added as the fhir_id column on crosswalk is now a method rather than a property
+            if callable(value):
+                value = value()
             if value is not None:
                 if len(str(value)) > 0:
                     self.log_msg[key] = value
@@ -383,7 +386,8 @@ class RequestResponseLog(object):
         if user:
             self.log_msg["user"] = str(user)
             try:
-                self.log_msg["fhir_id"] = str(user.crosswalk.fhir_id)
+                # BB2-4166-TODO: this is hardcoded to be version 2
+                self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(2)
             except ObjectDoesNotExist:
                 pass
 

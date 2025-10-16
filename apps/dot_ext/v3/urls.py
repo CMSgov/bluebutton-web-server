@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from apps.dot_ext.constants import AUTHORIZE_INSTANCE_PARAM
+from apps.dot_ext.constants import AUTHORIZE_INSTANCE_PARAM, TOKEN_ENDPOINT_V3_KEY
 from oauth2_provider import views as oauth2_views
 from waffle.decorators import waffle_switch
 
@@ -16,7 +16,7 @@ base_urlpatterns = [
         waffle_switch("v3_endpoints")(views.ApprovalView.as_view(version=3)),
         name="authorize-instance-v3",
     ),
-    re_path(r"^token/?$", waffle_switch("v3_endpoints")(views.TokenView.as_view()), name="token-v3"),
+    re_path(r"^token/?$", waffle_switch("v3_endpoints")(views.TokenView.as_view()), name=TOKEN_ENDPOINT_V3_KEY),
     path("revoke_token/", waffle_switch("v3_endpoints")(views.RevokeTokenView.as_view()), name="revoke-token-v3"),
     path("revoke/", waffle_switch("v3_endpoints")(views.RevokeView.as_view()), name="revoke-v3"),
     path("introspect/", waffle_switch("v3_endpoints")(views.IntrospectTokenView.as_view()), name="introspect-v3"),

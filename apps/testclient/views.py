@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import MissingTokenError
+from oauthlib.oauth2.rfc6749.errors import MissingTokenError, InvalidClientIdError
 from requests_oauthlib import OAuth2Session
 from rest_framework import status
 from urllib.parse import parse_qs, urlparse
@@ -211,8 +211,13 @@ def callback(request: HttpRequest):
                                 code_verifier=cv)
     except MissingTokenError:
         token_uri = request.session['token_uri']
-        logger.error(f'Failed to get token from {token_uri}')
+        logger.error(f'MissingToken: failed to get token from {token_uri}')
         return ResponseErrors.MissingTokenError(token_uri)
+    except InvalidClientIdError as error:
+        token_uri = request.session['token_uri']
+        logger.error(f'InvalidClient: failed to get token from {token_uri}')
+        logger.error(logmsg)
+        return ResponseErrors.InvalidClient(token_uri)
 
     # 20251014 MCJ REMOVE AS PART OF REVIEW
     # I am suggesting here that we change the callback behavior. If we cannot
@@ -321,11 +326,10 @@ def _link_session_or_version_is_bad(session, version):
 
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-
     # FIXME: Should this be here, too?
     # _link_session_or_version_is_bad(request.session, version)
-
     request.session.update(test_setup(version=version))
+
     oas = _get_oauth2_session_with_redirect(request)
 
     authorization_url = oas.authorization_url(

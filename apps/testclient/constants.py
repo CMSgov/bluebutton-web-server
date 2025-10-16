@@ -68,6 +68,13 @@ class ResponseErrors:
             'help': 'Try authorizing again'},
             500)
 
+    def InvalidClient(self, msg):
+        return JsonResponse({
+            'error': f'Failed to get token from {msg}',
+            'code': 'InvalidClient',
+            'help': 'Try authorizing again'},
+            500)
+
     def MissingPatientError(self):
         return JsonResponse({
             'error': 'No patient found in token; only synthetic benficiares can be used.',

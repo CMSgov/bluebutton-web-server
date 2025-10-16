@@ -30,9 +30,11 @@ from .models import AnonUserState, get_and_update_user
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
-def authenticate(request, version=2):
+def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
+
+    version = request.session['version']
 
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
@@ -64,12 +66,13 @@ def authenticate(request, version=2):
     slsx_client.log_event(request, {})
 
     # Find or create the user associated with the identity information from SLS.
-    user, crosswalk_action = get_and_update_user(slsx_client, request=request, version=version)
+    user, crosswalk_action = get_and_update_user(slsx_client, request)
 
     # Set crosswalk_action and get auth flow session values.
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
 
     # Log successful authentication with beneficiary when we return back here.
+    # BB2-4166-TODO: set both fhir_ids if we get both of them
     slsx_client.log_authn_success(request, {
         "user": {
             "id": user.id,
@@ -78,7 +81,8 @@ def authenticate(request, version=2):
                 "id": user.crosswalk.id,
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
+                # BB2-4166-TODO: this needs to account for both fhir_ids if they are found
+                ("fhir_id_v3" if version == 3 else "fhir_id_v2"): user.crosswalk.fhir_id(version),
                 "user_id_type": user.crosswalk.user_id_type,
             },
         },
@@ -89,24 +93,29 @@ def authenticate(request, version=2):
 
 
 @never_cache
-def callback(request, version=2):
+def callback(request):
     state = request.GET.get('relay')
     if not state:
         return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
         anon_user_state = AnonUserState.objects.get(state=state)
     except AnonUserState.DoesNotExist:
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
-    next_uri = anon_user_state.next_uri or ""
+    next_uri = anon_user_state.next_uri
+
+    # BB2-4166-TODO: refactor this to be generalized
     if "/v3/o/authorize" in next_uri:
         version = 3
     elif "/v2/o/authorize" in next_uri:
         version = 2
+    else:
+        version = 2
+
+    request.session['version'] = version
 
     user_not_found_error = None
     try:
-        authenticate(request, version=version)
+        authenticate(request)
     except ValidationError as e:
         return JsonResponse({
             "error": e.message,
@@ -173,7 +182,7 @@ def generate_nonce(length=26):
 
 
 @never_cache
-def mymedicare_login(request, version=1):
+def mymedicare_login(request):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
     env = os.environ.get('TARGET_ENV')
@@ -210,7 +219,7 @@ def mymedicare_login(request, version=1):
             mymedicare_login_url += "&lang=es-mx"
         elif language == 'en':
             mymedicare_login_url += "&lang=en-us"
-    next_uri = request.GET.get('next', "")
+    next_uri = request.GET.get('next', '')
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 
