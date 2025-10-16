@@ -83,8 +83,13 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
         case Versions.V3:
             fhir_url = resource_router.fhir_url_v3
         case _:
-            # TODO FIXME
-            raise
+            # MCJ FIXME: Perhaps everything should be a JSONResponse here?
+            return HttpResponse(
+                json.dumps({
+                    'error': f'Invalid API version: {version}'
+                }),
+                status=r.status_code,
+                content_type='application/json')
 
     parsed_url = urlparse(fhir_url)
     call_to = None
