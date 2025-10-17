@@ -15,6 +15,8 @@ from typing import Dict
 import re
 from collections import namedtuple
 
+from apps.fhir.bluebutton.models import Crosswalk
+
 from waffle.decorators import waffle_switch
 
 from .utils import (test_setup,
@@ -61,28 +63,29 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     # FIXME: This is for pagination, which is different/not present (?) for v3.
-    nav_link = request.GET.get('nav_link', None)
-    if nav_link is not None:
-        # for now it's either EOB or Coverage, make this more generic later
-        patient = request.GET.get('patient')
-        beneficiary = request.GET.get('beneficiary')
-        if patient is not None:
-            id_type = 'patient'
-            id = patient
-        elif beneficiary is not None:
-            id_type = 'beneficiary'
-            id = beneficiary
-        else:
-            # FIXME: We should not be able to get here.
-            # Raise an exception? Return an error JSON?
-            raise
+    if params.version in [Versions.V1, Versions.V2]:
+        nav_link = request.GET.get('nav_link', None)
+        if nav_link is not None:
+            # for now it's either EOB or Coverage, make this more generic later
+            patient = request.GET.get('patient')
+            beneficiary = request.GET.get('beneficiary')
+            if patient is not None:
+                id_type = 'patient'
+                id = patient
+            elif beneficiary is not None:
+                id_type = 'beneficiary'
+                id = beneficiary
+            else:
+                # FIXME: We should not be able to get here.
+                # Raise an exception? Return an error JSON?
+                raise
 
-        # uri = NAV_URI_FMT.format(*q_params)
-        uri = EndpointUrl.nav_uri(uri,
-                                  count=request.GET.get('_count', 10),
-                                  start_index=request.GET.get('startIndex', 0),
-                                  id_type=id_type,
-                                  id=id)
+            # uri = NAV_URI_FMT.format(*q_params)
+            uri = EndpointUrl.nav_uri(uri,
+                                      count=request.GET.get('_count', 10),
+                                      start_index=request.GET.get('startIndex', 0),
+                                      id_type=id_type,
+                                      id=id)
 
     oas = _get_oauth2_session_with_token(request)
     logger.info(f"_get_fhir_data uri: {uri}")
@@ -295,17 +298,24 @@ def test_links(request: HttpRequest, **kwargs):
         # In the event that we have a bad API version in the session, send them
         # back to the homepage.
         version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
-        if version == Versions.NOT_AN_API_VERSION:
-            # If somehow we ended up with a non-API version,
-            # we return and clear the session token context.
-            del request.session['token']
-            return render(request, HOME_PAGE, context={'session_token': None})
-        else:
-            return render(request, HOME_PAGE,
-                          context={
-                              'session_token': request.session['token'],
-                              'api_ver': version,
-                          })
+        match version:
+            case Versions.NOT_AN_API_VERSION:
+                # If somehow we ended up with a non-API version,
+                # we return and clear the session token context.
+                del request.session['token']
+                return render(request, HOME_PAGE, context={'session_token': None})
+            case Versions.V1:
+                pass
+            case Versions.V2:
+                pass
+            case Versions.V3:
+                pass
+
+        return render(request, HOME_PAGE,
+                      context={
+                          'session_token': request.session['token'],
+                          'api_ver': version,
+                      })
     else:
         # If we don't have a token, go back home.
         return render(request, HOME_PAGE, context={'session_token': None})
@@ -343,7 +353,7 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case Versions.V3:
             # https://bluebutton.cms.gov/developers/#authorization:~:text=response%20type%3A%20code-,scope,-optional
             # FIXME MCJ: Should the test client request all scopes? Some scopes? Lets try all.
-            oas.scope = "patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs profile"
+            oas.scope = "profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs"  # profile
         case _:
             if 'token' in request.session:
                 del request.session['token']

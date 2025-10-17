@@ -18,21 +18,15 @@ class Versions:
     # For now, we are defaulting to v2.
     NOT_AN_API_VERSION = 'v0'
 
-    _MINVERSION = 1
-    _MAXVERSION = 3
-
     def as_int(version: str) -> int:
-        if isinstance(version, int) and version >= Versions.MINVERSION and version <= Versions.MAXVERSION:
-            return version
-        elif isinstance(version, str):
-            match version:
-                case Versions.V1:
-                    return 1
-                case Versions.V2:
-                    return 2
-                case Versions.V3:
-                    return 3
-
-        # FIXME MCJ: Raise an exception here.
-        # Do something noisy. We should not end up here.
-        raise ValidationError(f"{version} is not a valid version constant")
+        match version:
+            case Versions.V1:
+                return 1
+            case Versions.V2:
+                return 2
+            case Versions.V3:
+                return 3
+            case _:
+                # FIXME MCJ: Raise an exception here.
+                # Do something noisy. We should not end up here.
+                raise ValidationError(f"{version} is not a valid version constant")

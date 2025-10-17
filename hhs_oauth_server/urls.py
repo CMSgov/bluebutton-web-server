@@ -62,11 +62,11 @@ urlpatterns_v2 = [
 ]
 
 urlpatterns_v3 = [
-    # path("v3/accounts/", include("apps.accounts.v2.urls")),
+    # path("v3/accounts/", include("apps.accounts.v3.urls")),
     re_path(
         r"^v3/connect/userinfo",
         openidconnect_userinfo_v3,
-        name="openid_connect_userinfo_v2",
+        name="openid_connect_userinfo_v3",
     ),
     path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
     path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),

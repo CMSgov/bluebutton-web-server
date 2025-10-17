@@ -172,7 +172,12 @@ class Crosswalk(models.Model):
         if version in (1, 2):
             return str(self.fhir_id_v2)
         elif version == 3:
-            return str(self.fhir_id_v3)
+            # FIXME TODO: We will need to do something different as we transition to
+            # handling v3 ids. For now, as part of the transition, we have been putting the
+            # v3 ID into the v2 column. Therefore, the "correct" behavior at *this* moment
+            # in time is to return the v2 value when we come through in a v3 pathway.
+            # This likely needs to change as part of a V3 switchover/handling.
+            return str(self.fhir_id_v2)
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
 
