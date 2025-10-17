@@ -106,3 +106,6 @@ if __name__ == '__main__':
             report.write(captured_output.getvalue())
 
         print(f"Test report written to: {args.report_file}")
+
+    if failures > 0 and 'JENKINS_URL' in os.environ:
+        sys.exit(1)
