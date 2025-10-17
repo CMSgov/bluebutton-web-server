@@ -5,7 +5,7 @@ from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
 
-from apps.accounts.views.oauth2_profile import openidconnect_userinfo
+from apps.accounts.views.oauth2_profile import openidconnect_userinfo_v1, openidconnect_userinfo_v2, openidconnect_userinfo_v3
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
@@ -39,7 +39,7 @@ urlpatterns_v1 = [
     path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
     path("v1/accounts/", include("apps.accounts.urls")),
     re_path(
-        r"^v1/connect/userinfo", openidconnect_userinfo, name="openid_connect_userinfo"
+        r"^v1/connect/userinfo", openidconnect_userinfo_v1, name="openid_connect_userinfo"
     ),
     path("v1/fhir/metadata", fhir_conformance_v1, name="fhir_conformance_metadata"),
     path("v1/fhir/", include("apps.fhir.bluebutton.urls")),
@@ -51,7 +51,7 @@ urlpatterns_v2 = [
     path("v2/accounts/", include("apps.accounts.v2.urls")),
     re_path(
         r"^v2/connect/userinfo",
-        openidconnect_userinfo,
+        openidconnect_userinfo_v2,
         name="openid_connect_userinfo_v2",
     ),
     path("v2/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
@@ -62,6 +62,12 @@ urlpatterns_v2 = [
 ]
 
 urlpatterns_v3 = [
+    # path("v3/accounts/", include("apps.accounts.v2.urls")),
+    re_path(
+        r"^v3/connect/userinfo",
+        openidconnect_userinfo_v3,
+        name="openid_connect_userinfo_v2",
+    ),
     path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
     path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),
     path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),

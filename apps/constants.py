@@ -1,7 +1,10 @@
+from django.core.exceptions import ValidationError
 
 # Anywhere we want to use/reference/manipulate versions,
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.
+
+
 class Versions:
     V1 = 'v1'
     V2 = 'v2'
@@ -14,3 +17,22 @@ class Versions:
     # In some cases, we need to default to an API version.
     # For now, we are defaulting to v2.
     NOT_AN_API_VERSION = 'v0'
+
+    _MINVERSION = 1
+    _MAXVERSION = 3
+
+    def as_int(version: str) -> int:
+        if isinstance(version, int) and version >= Versions.MINVERSION and version <= Versions.MAXVERSION:
+            return version
+        elif isinstance(version, str):
+            match version:
+                case Versions.V1:
+                    return 1
+                case Versions.V2:
+                    return 2
+                case Versions.V3:
+                    return 3
+
+        # FIXME MCJ: Raise an exception here.
+        # Do something noisy. We should not end up here.
+        raise ValidationError(f"{version} is not a valid version constant")

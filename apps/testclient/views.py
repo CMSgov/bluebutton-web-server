@@ -327,14 +327,12 @@ def _link_session_or_version_is_bad(session, version):
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     # FIXME: Should this be here, too?
+    # THOUGHT: Probably not. It is not part of the authorized flow; this is the first step of the flow.
+    # Therefore, we do not need to look for a version AND token. We probably should have a version, though?
     # _link_session_or_version_is_bad(request.session, version)
     request.session.update(test_setup(version=version))
 
     oas = _get_oauth2_session_with_redirect(request)
-
-    authorization_url_kwargs = {}
-    authorization_url_kwargs["code_challenge"] = request.session['code_challenge']
-    authorization_url_kwargs["code_challenge_method"] = request.session['code_challenge_method']
 
     # We need scopes in V3.
     match version:
@@ -344,23 +342,25 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             pass
         case Versions.V3:
             # https://bluebutton.cms.gov/developers/#authorization:~:text=response%20type%3A%20code-,scope,-optional
-            # FIXME MCJ: Should the test client request all scopes? Some scopes?
-            # Lets try all.
-            # setattr(oas, "scope", "patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs")
-            oas.scope = "patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs"
+            # FIXME MCJ: Should the test client request all scopes? Some scopes? Lets try all.
+            oas.scope = "patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs profile"
         case _:
-            # Although we should only have valid versions,
-            # doing nothing in this context is safe.
-            pass
+            if 'token' in request.session:
+                del request.session['token']
+            return render(request, RESULTS_PAGE,
+                          {'error': f'Invalid API version',
+                           'response_type': 'BB2 error: authorize_link',
+                           'api_ver': version
+                           })
 
-    #    def authorization_url(self, url: str, state=None, **kwargs) -> tuple[str, str]: ...
+    authorization_url_kwargs = {}
+    authorization_url_kwargs["code_challenge"] = request.session['code_challenge']
+    authorization_url_kwargs["code_challenge_method"] = request.session['code_challenge_method']
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'],
         request.session['state'],
         **authorization_url_kwargs
     )[0]
-
-    print(authorization_url)
 
     return render(
         request,
