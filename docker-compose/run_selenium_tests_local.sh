@@ -74,7 +74,7 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_MSLSX=true
-export USE_NEW_PERM_SCREEN=false
+export USE_NEW_PERM_SCREEN=true
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"

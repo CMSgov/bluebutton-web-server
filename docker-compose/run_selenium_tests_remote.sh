@@ -50,7 +50,7 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-export USE_NEW_PERM_SCREEN=false
+export USE_NEW_PERM_SCREEN=true
 export SERVICE_NAME="selenium-tests-remote"
 # TODO optionally add the Spanish selenium tests here if desired
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
