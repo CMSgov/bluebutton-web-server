@@ -110,21 +110,21 @@ def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
     return OAuth2Session(client_id, redirect_uri=redirect_uri)
 
 
-def _pagination_info(request: HttpRequest, last_url: str) -> str:
+def _pagination_info(request: HttpRequest, last_url: str, version=Versions.NOT_AN_API_VERSION) -> str:
     # with no total resource count of a bundle, use
     # backend pagination links for total page vs current page
-    cur_start_index = int(request.GET.get('startIndex', 0))
-    pg_count = int(request.GET.get('_count', 10))
-    qparams = parse_qs(urlparse(last_url).query)
-    last_pg_index = qparams.get('startIndex', 0)
-
     pg_info = 'No pagination info from backend'
 
-    if last_pg_index:
-        last_pg_index = int(last_pg_index[0])
-        current_index_display = cur_start_index // pg_count + 1
-        last_index_display = last_pg_index // pg_count + 1
-        pg_info = f'{current_index_display}/{last_index_display}'
+    if version in [Versions.V1, Versions.V2]:
+        cur_start_index = int(request.GET.get('startIndex', 0))
+        pg_count = int(request.GET.get('_count', 10))
+        qparams = parse_qs(urlparse(last_url).query)
+        last_pg_index = qparams.get('startIndex', 0)
+        if last_pg_index:
+            last_pg_index = int(last_pg_index[0])
+            current_index_display = cur_start_index // pg_count + 1
+            last_index_display = last_pg_index // pg_count + 1
+            pg_info = f'{current_index_display}/{last_index_display}'
 
     return pg_info
 
@@ -332,20 +332,10 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     oas = _get_oauth2_session_with_redirect(request)
 
-    #    def authorization_url(self, url: str, state=None, **kwargs) -> tuple[str, str]: ...
-    authorization_url = oas.authorization_url(
-        request.session['authorization_uri'],
-        request.session['state'],
-        code_challenge=request.session['code_challenge'],
-        code_challenge_method=request.session['code_challenge_method']
-    )[0]
+    authorization_url_kwargs = {}
+    authorization_url_kwargs["code_challenge"] = request.session['code_challenge']
+    authorization_url_kwargs["code_challenge_method"] = request.session['code_challenge_method']
 
-    auth_url_args = {}
-    auth_url_args["code_challenge"] = request.session['code_challenge']
-    auth_url_args["code_challenge_method"] = request.session['code_challenge_method']
-    auth_url_args["scope"] = "patient/Patient.rs"
-
-    print(authorization_url)
     # We need scopes in V3.
     match version:
         case Versions.V1:
@@ -353,11 +343,24 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case Versions.V2:
             pass
         case Versions.V3:
-            pass
+            # https://bluebutton.cms.gov/developers/#authorization:~:text=response%20type%3A%20code-,scope,-optional
+            # FIXME MCJ: Should the test client request all scopes? Some scopes?
+            # Lets try all.
+            # setattr(oas, "scope", "patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs")
+            oas.scope = "patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs"
         case _:
             # Although we should only have valid versions,
             # doing nothing in this context is safe.
             pass
+
+    #    def authorization_url(self, url: str, state=None, **kwargs) -> tuple[str, str]: ...
+    authorization_url = oas.authorization_url(
+        request.session['authorization_uri'],
+        request.session['state'],
+        **authorization_url_kwargs
+    )[0]
+
+    print(authorization_url)
 
     return render(
         request,
@@ -373,13 +376,14 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    # params = [request.session['resource_uri'], version]
     coverage = _get_fhir_data_as_json(request, FhirDataParams(
         EndpointUrl.coverage, request.session['resource_uri'], version, None))
 
     nav_info, last_link = extract_page_nav(coverage)
 
-    pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
+    # _pagination_info is only returned for versions v1, v2
+    # The string 'No pagination info from backend' is returned otherwise.
+    pg_info = _pagination_info(request, last_link, version) if nav_info and len(nav_info) > 0 else None
 
     match version:
         case Versions.V1:
@@ -421,7 +425,9 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     nav_info, last_link = extract_page_nav(eob)
 
-    pg_info = _pagination_info(request, last_link) if nav_info and len(nav_info) > 0 else None
+    # _pagination_info is only returned for versions v1, v2
+    # The string 'No pagination info from backend' is returned otherwise.
+    pg_info = _pagination_info(request, last_link, version) if nav_info and len(nav_info) > 0 else None
 
     match version:
         case Versions.V1:
