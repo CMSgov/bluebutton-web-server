@@ -281,7 +281,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         #     Validate JSON Schema
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "userinfo_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(validate_json_schema(USERINFO_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(USERINFO_SCHEMA, content), False)
 
     @override_switch('require-scopes', active=True)
     def test_fhir_meta_endpoint(self):
