@@ -41,8 +41,8 @@ class BaseApiTest(TestCase):
         self,
         username: str,
         password: str,
-        fhir_id_v2: str | None,
-        fhir_id_v3: str | None,
+        fhir_id_v2: str | None = None,
+        fhir_id_v3: str | None = None,
         user_hicn_hash: str | None = test_hicn_hash,
         user_mbi_hash: str | None = test_mbi_hash,
         user_type=None,  # TODO: This is not used currently, consider removing
