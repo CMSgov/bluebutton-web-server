@@ -332,12 +332,32 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     oas = _get_oauth2_session_with_redirect(request)
 
+    #    def authorization_url(self, url: str, state=None, **kwargs) -> tuple[str, str]: ...
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'],
         request.session['state'],
         code_challenge=request.session['code_challenge'],
         code_challenge_method=request.session['code_challenge_method']
     )[0]
+
+    auth_url_args = {}
+    auth_url_args["code_challenge"] = request.session['code_challenge']
+    auth_url_args["code_challenge_method"] = request.session['code_challenge_method']
+    auth_url_args["scope"] = "patient/Patient.rs"
+
+    print(authorization_url)
+    # We need scopes in V3.
+    match version:
+        case Versions.V1:
+            pass
+        case Versions.V2:
+            pass
+        case Versions.V3:
+            pass
+        case _:
+            # Although we should only have valid versions,
+            # doing nothing in this context is safe.
+            pass
 
     return render(
         request,
