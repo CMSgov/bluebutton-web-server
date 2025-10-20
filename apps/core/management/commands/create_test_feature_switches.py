@@ -13,6 +13,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("show_django_message_sdk", True, "This controls if the Spanish language parameter message is shown in developer sandbox home."),
     ("show_testclient_link", True, "This controls the display of the test client link from the main page."),
     ("signup", True, "This enables signup related URLs and code paths. Not active in prod."),
+    ("splunk_monitor", False, "This is used in other environments to ensure splunk forwarder is running."),
     ("wellknown_applications", True, "This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test."),
     ("v3_endpoints", True, "This enables v3 endpoints."),
     ("require_state", True, "This enforces the presence of the state parameter when authorizing"),
