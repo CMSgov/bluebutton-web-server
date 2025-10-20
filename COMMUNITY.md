@@ -268,6 +268,15 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
 		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/decause-gov">
+                    <img src="https://avatars.githubusercontent.com/u/107957201?v=4" width="100;" alt="decause-gov"/>
+                    <br />
+                    <sub><b>decause-gov</b></sub>
+                </a>
+            </td>
+		</tr>
 	<tbody>
 </table>
 <!-- readme: contributors -end -->
