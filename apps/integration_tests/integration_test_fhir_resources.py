@@ -30,7 +30,6 @@ C4BB_PROFILE_URLS = {
     "NONCLINICIAN": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician",
 }
 
-SAMPLE_A_888_MBI_HASH = '37c37d08d239f7f1da60e949674c8e4b5bb2106077cb0671d3dfcbf510ec3248'
 SAMPLE_A_888_MBI = '1SA0A00CC11'
 SAMPLE_A_888_HICN_HASH = '3637b48c050b8d7a3aa29cd012a535c0ab0e52fe18ddcf1863266b217adc242f'
 

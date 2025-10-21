@@ -39,9 +39,8 @@ class BaseApiTest(TestCase):
     protected with oauth2 using DOT.
     """
 
-    test_hicn_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
-    test_mbi_hash = "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
-    test_mbi = "1SA0A00AA00"
+    test_hicn_hash = '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7'
+    test_mbi = '1SA0A00AA00'
 
     def _create_user(
         self,
@@ -187,7 +186,7 @@ class BaseApiTest(TestCase):
         )
         return label
 
-    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi=test_mbi_hash):
+    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi=test_mbi):
         """Helper method that gets or creates a Crosswalk instance, deleting any existing
 
         Args:
@@ -511,5 +510,5 @@ class BaseApiTest(TestCase):
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, passwd, application)
 
-    def _generate_random_mbi(self):
+    def _generate_random_mbi(self) -> str:
         return ''.join(random.choice(MBI_CHARS) for _ in range(MAX_MBI_LENGTH))

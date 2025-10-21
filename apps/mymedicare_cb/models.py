@@ -35,7 +35,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     Args:
         slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below:
             subject = ID provider's sub or username
-            mbi = Unhashed MBI from SLSx
+            mbi = MBI from SLSx
             hicn_hash = Previously hashed hicn
             first_name
             last_name

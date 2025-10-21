@@ -139,66 +139,66 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         user = User.objects.create_user("bob", password="bad")
         Crosswalk.objects.create(
             user=user,
-            fhir_id_v2="-20000000002346",
-            user_hicn_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
-            user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321",
+            fhir_id_v2='-20000000002346',
+            user_hicn_hash='96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
+            user_mbi='1SA0A00AA00',
         )
         application = Application.objects.create(
-            redirect_uris="http://test.com",
-            authorization_grant_type="authorization-code",
-            name="test01",
+            redirect_uris='http://test.com',
+            authorization_grant_type='authorization-code',
+            name='test01',
             user=user,
         )
 
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application.scope.add(capability_a, capability_b)
 
         approval = Approval.objects.create(user=user)
-        auth_uri = reverse("oauth2_provider:authorize-instance", args=[approval.uuid])
+        auth_uri = reverse('oauth2_provider:authorize-instance', args=[approval.uuid])
         response = self.client.get(
             auth_uri,
             data={
-                "client_id": application.client_id,
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
+                'client_id': application.client_id,
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
             },
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         approval.refresh_from_db()
         self.assertEqual(application, approval.application)
-        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertNotIn('_auth_user_id', self.client.session)
         response = self.client.post(
             auth_uri,
             data={
-                "client_id": "bad",
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
-                "state": "1234567890",
+                'client_id': 'bad',
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
+                'state': '1234567890',
             },
         )
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": "http://test.com",
-            "scope": ["capability-a"],
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': 'http://test.com',
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
-        self.assertIn("code=", response.url)
-        approval.created_at = datetime.now() - parse_duration("601")
+        self.assertIn('code=', response.url)
+        approval.created_at = datetime.now() - parse_duration('601')
         approval.save()
         response = self.client.post(
             auth_uri,
             data={
-                "client_id": application.client_id,
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
-                "state": "1234567890",
+                'client_id': application.client_id,
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
+                'state': '1234567890',
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -206,9 +206,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         response = self.client.post(
             auth_uri,
             data={
-                "client_id": application.client_id,
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
+                'client_id': application.client_id,
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -555,7 +555,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             7. The bene's MBI has been changed in the mock SLSx user_info response.
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_mbi
 
-               The new behavior updates the MBI hash in the crosswalk.
+               The new behavior updates the user_mbi in the crosswalk.
 
             8. Restore saved_mbi in Crosswalk prior to next test. Restore crosswalk state to same as #4.
 
@@ -611,7 +611,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(cw._user_mbi_hash, None)
 
         # Validate ArchiveCrosswalk count
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
@@ -680,7 +679,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(acw._user_mbi_hash, None)
 
         # Validate logging
         log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
@@ -696,10 +694,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema["properties"]["crosswalk"]["properties"].update(
             {
                 "user_id_type": {"pattern": "^M$"},
-                "user_mbi_hash": {
-                    "type": "string",
-                    "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
-                },
             }
         )
 
@@ -789,7 +783,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Save crosswalk values for restoring prior to later tests.
         saved_hicn_hash = cw._user_id_hash
-        saved_mbi_hash = cw._user_mbi_hash
 
         # 5. The bene's HICN has been changed in the mock SLSx user_info response.
         with HTTMock(
@@ -967,12 +960,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Assert correct log values using json schema
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
-        # 8. Restore crosswalk's mbi hash to original.
-        cw = Crosswalk.objects.get(id=2)
-        cw._user_mbi_hash = saved_mbi_hash
-        cw.save()
-
-        # 9. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
+        # 8. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
         with HTTMock(
             self.mock_response.slsx_token_mock,
             self.mock_response.slsx_user_info_mock_changed_hicn_mbi,

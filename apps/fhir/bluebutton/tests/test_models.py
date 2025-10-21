@@ -2,7 +2,7 @@ from django.db.utils import IntegrityError
 
 from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException
 from apps.test import BaseApiTest
-from ..models import Crosswalk, get_crosswalk_bene_counts, hash_hicn, hash_mbi
+from ..models import Crosswalk, get_crosswalk_bene_counts, hash_hicn
 
 
 class TestModels(BaseApiTest):
@@ -178,16 +178,3 @@ class TestModels(BaseApiTest):
             BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"
         ):
             hash_hicn("")
-
-    def test_hash_mbi_empty_string(self):
-        """
-        BB2-237: Test the hash_mbi(mbi) function for empty string produces exception instead of assert
-        """
-        # Test non-empty value first
-        hash_mbi("1SA0A00AA00")
-
-        # Test empty value
-        with self.assertRaisesRegexp(
-            BBFhirBluebuttonModelException, "MBI cannot be the empty string.*"
-        ):
-            hash_mbi("")

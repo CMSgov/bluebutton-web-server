@@ -67,18 +67,6 @@ def hash_hicn(hicn):
     return hash_id_value(hicn)
 
 
-def hash_mbi(mbi):
-    # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
-    if mbi == "":
-        raise BBFhirBluebuttonModelException("MBI cannot be the empty string")
-
-    # NOTE: mbi value can be None here.
-    if mbi is None:
-        return None
-    else:
-        return hash_id_value(mbi)
-
-
 class Crosswalk(models.Model):
     """Represents a crosswalk between a Django user (auth_user) and their MBI/HICN/FHIR IDs
 
