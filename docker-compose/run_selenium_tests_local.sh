@@ -39,7 +39,6 @@ display_usage() {
     echo "Options:"
     echo
     echo "-h     Print this Help."
-    echo "-p     Use new permissions screen (defaults to old style screen)."
     echo "-g     Selenium grid used - hub on port 4444."
     echo "-t     Show test case actions on std out."
     echo
@@ -93,8 +92,6 @@ while getopts "hpgt" option; do
       h)
          display_usage
          exit;;
-      p)
-         export USE_NEW_PERM_SCREEN=true;;
       g)
         export SELENIUM_GRID=true;;
       t)
