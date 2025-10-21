@@ -35,7 +35,7 @@ class BeneficiaryLoginTest(TestCase):
             'email': 'fu@bar.bar',
         }
         slsx_client = OAuth2ConfigSLSx(args)
-        print("WHAT ARE WE PASSING: ", slsx_client, slsx_client.mbi)
+
         bene = create_beneficiary_record(slsx_client, fhir_id_v2=args['fhir_id_v2'], fhir_id_v3=args['fhir_id_v3'])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args['username'])
