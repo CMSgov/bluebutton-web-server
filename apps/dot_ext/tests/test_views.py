@@ -535,8 +535,9 @@ class TestTokenView(BaseApiTest):
         application.save()
 
     def test_delete_token_success(self):
-        anna = self._create_user(
-            self.test_username,
+        anna = self._create_user(self.test_username, "123456", fhir_id_v2="19990000000002", fhir_id_v3="39990000000002")
+        bob = self._create_user(
+            "bob",
             "123456",
             fhir_id_v2="19990000000002",
             fhir_id_v3=None,

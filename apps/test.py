@@ -47,8 +47,8 @@ class BaseApiTest(TestCase):
         self,
         username: str,
         password: str,
-        fhir_id_v2: str | None = settings.DEFAULT_SAMPLE_FHIR_ID_V2,
-        fhir_id_v3: str | None = settings.DEFAULT_SAMPLE_FHIR_ID_V3,
+        fhir_id_v2: str | None = None,
+        fhir_id_v3: str | None = None,
         user_hicn_hash: str | None = test_hicn_hash,
         user_mbi: str | None = test_mbi,
         user_type=None,  # TODO: This is not used currently, consider removing
@@ -72,6 +72,8 @@ class BaseApiTest(TestCase):
         Returns:
             user: The created auth.User instance
         """
+        fhir_id_v2 = fhir_id_v2 or settings.DEFAULT_SAMPLE_FHIR_ID_V2
+        fhir_id_v3 = fhir_id_v3 or settings.DEFAULT_SAMPLE_FHIR_ID_V3
         user = User.objects.create_user(username, password=password, **extra_fields)
         self._create_crosswalk(
             user=user,
