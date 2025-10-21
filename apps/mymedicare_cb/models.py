@@ -13,6 +13,10 @@ from apps.fhir.server.authentication import match_fhir_id
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
 
+MAX_HICN_HASH_LENGTH = 64
+MAX_MBI_LENGTH = 11
+
+
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
     # BB2-237 custom exception
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -204,8 +208,11 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
         (slsx_client.hicn_hash is None,
          'user_hicn_hash can not be None',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != 64,
+        (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != MAX_HICN_HASH_LENGTH,
          'incorrect user HICN hash format',
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (slsx_client.mbi is not None and len(slsx_client.mbi) != MAX_MBI_LENGTH,
+         'incorrect user MBI format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (User.objects.filter(username=slsx_client.user_id).exists(),
          'user already exists',
@@ -226,7 +233,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
         (fhir_id_v2 is None and fhir_id_v3 is None, 'a crosswalk must contain at least one valid fhir_id',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2, fhir_id_v3)
     ])
-    print("THE CLIENT: ", slsx_client, slsx_client.mbi)
+
     with transaction.atomic():
         user = User(username=slsx_client.user_id,
                     first_name=slsx_client.firstname,

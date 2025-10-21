@@ -158,11 +158,11 @@ class BeneficiaryLoginTest(TestCase):
                 'exception_mesg': 'incorrect user HICN hash format',
             },
             # try to create a record with a len(user_mbi) > 11
-            'invalid_mbi_hash': {
+            'invalid_mbi_too_long': {
                 'args': {
                     'username': '00112233-4455-6677-8899-aabbccddeeff',
                     'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
-                    'user_mbi': '1SA0A00AA00000',
+                    'mbi': '1SA0A00AA00000',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
                     'first_name': 'Hello',
@@ -170,14 +170,13 @@ class BeneficiaryLoginTest(TestCase):
                     'email': 'fu@bar.bar',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
-                'exception_mesg': 'incorrect user MBI hash format',
+                'exception_mesg': 'incorrect user MBI format',
             },
-            # TODO 4193: Does the blank string rule apply here too?
             'empty string mbi': {
                 'args': {
                     'username': '00112233-4455-6677-8899-aabbccddeeff',
                     'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
-                    'user_mbi': '',
+                    'mbi': '',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
                     'first_name': 'Hello',
@@ -278,25 +277,25 @@ class BeneficiaryLoginTest(TestCase):
                 'exception': ValidationError,
                 'exception_mesg': 'user_hicn_hash already exists',
             },
-            'colliding mbi_hash': {
+            'colliding mbi': {
                 'args': [
                     {
                         'username': '60112233-4455-6677-8899-aabbccddeeff',
                         'user_hicn_hash': 'a0ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
-                        'user_mbi_hash': 'a0a654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                        'mbi': '1SA0A00AA00',
                         'user_id_type': 'H',
                         'fhir_id_v2': '-19990000000006',
                     },
                     {
                         'username': '70112233-4455-6677-8899-aabbccddeeff',
                         'user_hicn_hash': 'a0bd63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
-                        'user_mbi_hash': 'a0a654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                        'mbi': '1SA0A00AA00',
                         'user_id_type': 'H',
                         'fhir_id_v2': '-19990000000007',
                     },
                 ],
                 'exception': ValidationError,
-                'exception_mesg': 'user_mbi_hash already exists',
+                'exception_mesg': 'mbi already exists',
             },
             'colliding fhir_id_v2': {
                 'args': [
@@ -337,6 +336,7 @@ class BeneficiaryLoginTest(TestCase):
         }
 
         for name, case in cases.items():
+            print("name: ", name)
             arg0 = case['args'][0]
             slsx_client0 = OAuth2ConfigSLSx(case['args'][0])
             create_beneficiary_record(slsx_client0,

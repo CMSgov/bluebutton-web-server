@@ -333,8 +333,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         # Create 5x synth benes -20000000000000 thru -20000000000004 connected to app0
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-2000000000000", count=5, app_name="app0",
-            app_user_organization="app0-org"
+            start_fhir_id='-2000000000000', count=5, app_name='app0',
+            app_user_organization='app0-org',
         )
 
         # Add app & user tuples to remove in TEST #3
@@ -371,7 +371,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "-90000000000001",
             "-90000000000001",
             "xxxExtraHicnSynth01xxx",
-            None,
+            '1SA0A00BB01',
             "BEN",
         )
         self._create_user(
@@ -380,7 +380,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "-90000000000002",
             "-90000000000002",
             "xxxExtraHicnSynth02xxx",
-            None,
+            '1SA0A00BB02',
             "BEN",
         )
         self._create_user(
@@ -389,7 +389,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "90000000000001",
             "90000000000001",
             "xxxExtraHicnReal01xxx",
-            None,
+            '1SA0A00BB03',
             "BEN",
         )
         self._create_user(
@@ -398,7 +398,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "90000000000002",
             "90000000000002",
             "xxxExtraHicnReal02xxx",
-            None,
+            '1SA0A00BB04',
             "BEN",
         )
         self._create_user(
@@ -407,7 +407,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "90000000000003",
             "90000000000003",
             "xxxExtraHicnReal03xxx",
-            None,
+            '1SA0A00BB05',
             "BEN",
         )
 

@@ -1,6 +1,8 @@
 # import io
 import json
+import random
 import re
+import string
 
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
@@ -19,7 +21,11 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.mymedicare_cb.models import MAX_MBI_LENGTH
 from waffle import get_waffle_flag_model
+
+
+MBI_CHARS = string.ascii_uppercase + string.digits
 
 
 def flag_is_active(name):
@@ -362,7 +368,7 @@ class BaseApiTest(TestCase):
 
     def _create_user_app_token_grant(
         self, first_name, last_name, fhir_id_v2, fhir_id_v3, app_name, app_username, app_user_organization,
-        app_data_access_type=None
+        mbi: str, app_data_access_type=None
     ):
         """
         Helper method that creates a user connected to an application
@@ -393,7 +399,8 @@ class BaseApiTest(TestCase):
             capability_b = self._create_capability("Capability B", [])
             application.scope.add(capability_a, capability_b)
             application.save()
-
+        if not mbi:
+            mbi = self.test_mbi
         # Create beneficiary user, if it doesn't exist
         try:
             username = first_name + last_name + "@example.com"
@@ -404,8 +411,6 @@ class BaseApiTest(TestCase):
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )
-            # TODO: See if this needs to be changing to avoid accidental deletions
-            # mbi = self.test_mbi
 
             user = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -415,7 +420,7 @@ class BaseApiTest(TestCase):
                 fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
-                user_mbi=self.test_mbi,
+                user_mbi=mbi,
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
@@ -454,14 +459,16 @@ class BaseApiTest(TestCase):
         for i in range(0, count):
             fhir_id_v2 = start_fhir_id + str(i)
             fhir_id_v3 = start_fhir_id + str(i + 1)
+            # mbi = self._generate_random_mbi()
             user, app, ac = self._create_user_app_token_grant(
-                first_name="first",
-                last_name="last" + fhir_id_v2,
+                first_name='first',
+                last_name='last' + fhir_id_v2,
                 fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 app_name=app_name,
-                app_username="user_" + app_name,
+                app_username='user_' + app_name,
                 app_user_organization=app_user_organization,
+                mbi=self._generate_random_mbi()
             )
 
             user_dict[fhir_id_v2] = user
@@ -501,3 +508,6 @@ class BaseApiTest(TestCase):
         application.scope.add(self.read_capability, self.write_capability)
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, passwd, application)
+
+    def _generate_random_mbi(self):
+        return ''.join(random.choice(MBI_CHARS) for _ in range(MAX_MBI_LENGTH))

@@ -147,9 +147,9 @@ def match_fhir_id(mbi, hicn_hash, request=None):
 
         if fhir_id:
             # Found beneficiary!
-            log_match_fhir_id(request, fhir_id, hicn_hash, True, "M",
-                              "FOUND beneficiary via mbi")
-            return fhir_id, "M"
+            log_match_fhir_id(request, fhir_id, hicn_hash, True, 'M',
+                              'FOUND beneficiary via user_mbi')
+            return fhir_id, 'M'
 
     # Perform secondary lookup using HICN_HASH
     if hicn_hash:

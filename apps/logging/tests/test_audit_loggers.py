@@ -258,7 +258,6 @@ class TestAuditEventLoggers(BaseApiTest):
             )
 
             mymedicare_cb_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
-            print("prior log entries: ", mymedicare_cb_log_content)
             log_entries = mymedicare_cb_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 
@@ -268,8 +267,7 @@ class TestAuditEventLoggers(BaseApiTest):
                     MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])
                 )
             )
-            print("MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA: ", MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
-            print("comp: ", json.loads(log_entries[1]))
+
             # Validate mymedicare_cb:get_and_update_user entry
             self.assertTrue(
                 self._validateJsonSchema(

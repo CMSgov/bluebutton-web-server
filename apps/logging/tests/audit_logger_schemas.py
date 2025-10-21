@@ -320,10 +320,6 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
             "type": "string",
             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
         },
-        "user_mbi": {
-            "type": "string",
-            "pattern": "^1SA0A00AA00$",
-        },
         "match_found": {"type": "boolean"},
         "hash_lookup_type": {"type": "string", "pattern": "^M$"},
         "hash_lookup_mesg": {
@@ -341,7 +337,6 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
         "auth_pkce_method",
         "fhir_id_v2",
         "hicn_hash",
-        "user_mbi",
         "match_found",
         "hash_lookup_type",
         "hash_lookup_mesg",
@@ -357,10 +352,6 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
         "username": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
         "fhir_id_v2": {"pattern": "-20140000008325"},
         "fhir_id_v3": {"pattern": ""},
-        "user_mbi": {
-            "type": "string",
-            "pattern": "1SA0A00AA00",
-        },
         "user_hicn_hash": {
             "pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"
         },
@@ -372,7 +363,6 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
         "username",
         "fhir_id_v2",
         "fhir_id_v3",
-        "user_mbi",
         "user_hicn_hash",
         "mesg",
     ],
@@ -397,10 +387,6 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
             "type": "string",
             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
         },
-        "user_mbi": {
-            "type": "string",
-            "pattern": "^1SA0A00AA00$",
-        },
         "hash_lookup_type": {"type": "string", "pattern": "^M$"},
         "crosswalk": {
             "type": "object",
@@ -419,8 +405,6 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
             },
         },
         "hicn_updated": {"enum": [False]},
-        "mbi_updated": {"enum": [False]},
-        "mbi_updated_from_null": {"enum": [False]},
         "mesg": {"type": "string", "pattern": "^CREATE beneficiary record$"},
         "request_uuid": {"type": "string"},
         "crosswalk_before": {
@@ -435,11 +419,8 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
         "user_username",
         "fhir_id_v2",
         "hicn_hash",
-        "user_mbi",
         "crosswalk",
         "hicn_updated",
-        "mbi_updated",
-        "mbi_updated_from_null",
         "mesg",
         "request_uuid",
         "crosswalk_before",

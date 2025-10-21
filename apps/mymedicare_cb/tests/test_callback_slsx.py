@@ -638,8 +638,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "hash_lookup_type": {"pattern": "^H$"},
             }
         )
-        print("CHECKING: ", log_schema)
-        print("AGAIN: ", log_dict)
+
         #   Assert correct log values using original json schema
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
@@ -669,10 +668,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(
-            cw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
@@ -710,8 +706,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema["properties"].update(
             {
                 "mesg": {"pattern": "^RETURN existing beneficiary record$"},
-                "mbi_updated": {"enum": [True]},
-                "mbi_updated_from_null": {"enum": [True]},
                 "user_mbi": {
                     "type": "string",
                     "pattern": "^1SA0A00AA00$",
@@ -725,7 +719,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
                         },
-                        "user_mbi_hash": {"type": "null"},
                         "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^H$"},
                     },
@@ -772,10 +765,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(
-            cw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
         # Validate ArchiveCrosswalk count
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
@@ -827,10 +817,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
         )
-        self.assertEqual(
-            cw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
@@ -842,10 +829,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(
-            acw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(acw._user_mbi, '1SA0A00AA00')
 
         # Validate logging
         log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
@@ -887,10 +871,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                         "user_hicn_hash": {
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
-                        },
-                        "user_mbi_hash": {
-                            "type": "string",
-                            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
                         "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
@@ -934,8 +914,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
         self.assertEqual(
-            cw._user_mbi_hash,
-            "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0",
+            cw._user_mbi,
+            '1SA0A00AA01',
         )
 
         # Assert correct archived crosswalk values
@@ -949,8 +929,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
         self.assertEqual(
-            acw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
+            acw._user_mbi,
+            '1SA0A00AA00',
         )
 
         # Validate logging
@@ -963,26 +943,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Set working copy of schema
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
-        #   Update json schema for what changed (mbi)
-        log_schema["properties"]["crosswalk"]["properties"].update(
-            {
-                "user_mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
-                }
-            }
-        )
-
         log_schema["properties"].update(
             {
                 "mesg": {
                     "type": "string",
                     "pattern": "^RETURN existing beneficiary record$",
-                },
-                "mbi_updated": {"enum": [True]},
-                "mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
                 },
                 "crosswalk_before": {
                     "type": "object",
@@ -991,10 +956,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                         "user_hicn_hash": {
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
-                        },
-                        "user_mbi_hash": {
-                            "type": "string",
-                            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
                         "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
@@ -1038,8 +999,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
         )
         self.assertEqual(
-            cw._user_mbi_hash,
-            "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0",
+            cw._user_mbi,
+            '1SA0A00AA01',
         )
 
         # Assert correct archived crosswalk values:
@@ -1053,8 +1014,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
         self.assertEqual(
-            acw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
+            acw._user_mbi,
+            '1SA0A00AA00',
         )
 
         # Validate logging
@@ -1074,10 +1035,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     "type": "string",
                     "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
                 },
-                "user_mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
-                },
             }
         )
 
@@ -1088,14 +1045,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     "pattern": "^RETURN existing beneficiary record$",
                 },
                 "hicn_updated": {"enum": [True]},
-                "mbi_updated": {"enum": [True]},
                 "hicn_hash": {
                     "type": "string",
                     "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
-                },
-                "mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
                 },
                 "crosswalk_before": {
                     "type": "object",
@@ -1104,10 +1056,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                         "user_hicn_hash": {
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
-                        },
-                        "user_mbi_hash": {
-                            "type": "string",
-                            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
                         "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
