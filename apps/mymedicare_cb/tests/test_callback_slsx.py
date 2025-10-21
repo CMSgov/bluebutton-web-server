@@ -528,15 +528,15 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                   a bene with fhir_id = -20140000008325
 
             1. First successful matching for beneficiary having only a valid hicn and EMPTY mbi.
-               This creates a new Crosswalk entry with hicn and NULL mbi hash values in the crosswalk.
+               This creates a new Crosswalk entry with hicn and NULL mbi values in the crosswalk.
 
             2. The bene's MBI has been changed from empty to valid value in the mock SLSx user_info response.
-               The crosswalk is updated with the new MBI hash.
+               The crosswalk is updated with the new mbi.
 
             3. Remove Crosswalk and ArchivedCrosswalk entries for a start fresh.
 
             4. Successful matching for beneficiary having valid hicn/mbi.
-               This creates a new Crosswalk entry with hicn/mbi hash values used in the initial match.
+               This creates a new Crosswalk entry with hicn hash/mbi values used in the initial match.
 
             5. The bene's HICN has been changed in the mock SLSx user_info response.
 
@@ -557,12 +557,12 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
                The new behavior updates the MBI hash in the crosswalk.
 
-            8. Restore saved_mbi_hash in Crosswalk prior to next test. Restore crosswalk state to same as #4.
+            8. Restore saved_mbi in Crosswalk prior to next test. Restore crosswalk state to same as #4.
 
-            9. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
+            9. The bene's HICN hash & MBI (both) have been changed in the mock SLSx user_info response.
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn_mbi
 
-               The new behavior updates the HICN & MBI hash in the crosswalk.
+               The new behavior updates the HICN hash & MBI in the crosswalk.
         """
         # create a state
         state = generate_nonce()
@@ -630,17 +630,16 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema["properties"]["crosswalk"]["properties"].update(
             {
                 "user_id_type": {"pattern": "^H$"},
-                "user_mbi_hash": {"type": "null"},
             }
         )
 
         log_schema["properties"].update(
             {
-                "mbi_hash": {"type": "null"},
                 "hash_lookup_type": {"pattern": "^H$"},
             }
         )
-
+        print("CHECKING: ", log_schema)
+        print("AGAIN: ", log_dict)
         #   Assert correct log values using original json schema
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
@@ -713,9 +712,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "mesg": {"pattern": "^RETURN existing beneficiary record$"},
                 "mbi_updated": {"enum": [True]},
                 "mbi_updated_from_null": {"enum": [True]},
-                "mbi_hash": {
+                "user_mbi": {
                     "type": "string",
-                    "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
+                    "pattern": "^1SA0A00AA00$",
                 },
                 "hash_lookup_type": {"type": "string", "pattern": "^M$"},
                 "crosswalk_before": {

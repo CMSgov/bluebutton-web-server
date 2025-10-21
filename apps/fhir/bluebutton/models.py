@@ -302,7 +302,7 @@ class ArchivedCrosswalk(models.Model):
             fhir_id_v3=crosswalk.fhir_id(3),
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
-            _user_mbi_hash=crosswalk.user_mbi_hash,
+            _user_mbi=crosswalk._user_mbi,
             date_created=crosswalk.date_created,
         )
         acw.save()

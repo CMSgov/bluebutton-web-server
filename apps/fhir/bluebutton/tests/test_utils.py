@@ -217,6 +217,7 @@ class Patient_Resource_Test(BaseApiTest):
         xwalk.set_fhir_id("Patient/12345", 2)
         xwalk.user_hicn_hash = uuid.uuid4()
         xwalk.user_mbi_hash = uuid.uuid4()
+        xwalk.user_mbi = '1SA0A00AA00'
         xwalk.save()
 
     def test_crosswalk_fhir_id(self):

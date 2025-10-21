@@ -9,7 +9,7 @@ from enum import Enum
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from apps.fhir.bluebutton.models import hash_hicn
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
 from .signals import response_hook_wrapper
@@ -94,8 +94,7 @@ class OAuth2ConfigSLSx(object):
         self.token_status_code = None
         self.userinfo_status_code = None
         self.validate_signout_status_code = None
-        self.mbi = None
-        self.mbi_hash = args_dict.get("user_mbi_hash", None) if args_dict else None
+        self.mbi = args_dict.get("mbi", None) if args_dict else None
         self.hicn = None
         self.hicn_hash = args_dict.get("user_hicn_hash", None) if args_dict else None
         self.mbi_format_valid = None
@@ -268,7 +267,6 @@ class OAuth2ConfigSLSx(object):
         self.mbi_format_valid, self.mbi_format_msg = is_mbi_format_valid(self.mbi)
 
         self.hicn_hash = hash_hicn(self.hicn)
-        self.mbi_hash = hash_mbi(self.mbi)
 
         return data_user_response
 
@@ -379,7 +377,6 @@ class OAuth2ConfigSLSx(object):
             "sls_mbi_format_msg": None,
             "sls_mbi_format_synthetic": None,
             "sls_hicn_hash": None,
-            "sls_mbi_hash": None,
         }
 
         for t in asserts:
@@ -427,7 +424,6 @@ class OAuth2ConfigSLSx(object):
             "sls_mbi_format_msg": self.mbi_format_msg,
             "sls_mbi_format_synthetic": self.mbi_format_synthetic,
             "sls_hicn_hash": self.hicn_hash,
-            "sls_mbi_hash": self.mbi_hash,
         }
 
         log_dict.update(extra)

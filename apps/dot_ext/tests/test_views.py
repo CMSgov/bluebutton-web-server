@@ -535,14 +535,20 @@ class TestTokenView(BaseApiTest):
         application.save()
 
     def test_delete_token_success(self):
-        anna = self._create_user(self.test_username, "123456", fhir_id_v2="19990000000002", fhir_id_v3=None)
-        bob = self._create_user(
-            "bob",
+        anna = self._create_user(
+            self.test_username,
             "123456",
-            fhir_id_v2="19990000000001",
+            fhir_id_v2="19990000000002",
             fhir_id_v3=None,
-            user_hicn_hash="86228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
-            user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
+            user_mbi='1SA0A00AA00'
+        )
+        bob = self._create_user(
+            'bob',
+            '123456',
+            fhir_id_v2='19990000000001',
+            fhir_id_v3=None,
+            user_hicn_hash='86228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
+            user_mbi='1SA0A00AA01',
         )
         # create a couple of capabilities
         capability_a = self._create_capability(

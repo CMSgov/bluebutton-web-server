@@ -31,6 +31,7 @@ C4BB_PROFILE_URLS = {
 }
 
 SAMPLE_A_888_MBI_HASH = '37c37d08d239f7f1da60e949674c8e4b5bb2106077cb0671d3dfcbf510ec3248'
+SAMPLE_A_888_MBI = '1SA0A00CC11'
 SAMPLE_A_888_HICN_HASH = '3637b48c050b8d7a3aa29cd012a535c0ab0e52fe18ddcf1863266b217adc242f'
 
 FHIR_RES_TYPE_EOB = "ExplanationOfBenefit"
@@ -61,7 +62,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             endpoint_url = "{}/{}".format(endpoint_url, params)
         return endpoint_url
 
-    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None):
+    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None):
         # Setup token in APIClient
         '''
         TODO: Perform auth flow here --- when selenium is included later.
@@ -80,7 +81,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # create user, app, and access token
         first_name = fn if fn is not None else "John"
         last_name = ln if ln is not None else "Doe"
-        access_token = base_api_test.create_token(first_name, last_name, fhir_id_v2, fhir_id_v3, hicn_hash, mbi_hash)
+        access_token = base_api_test.create_token(first_name, last_name, fhir_id_v2, fhir_id_v3, hicn_hash, mbi)
 
         # Test scope in access_token
         at = AccessToken.objects.get(token=access_token)
@@ -554,7 +555,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                               'sample_a_88888888888888',
                               '-88888888888888',
                               SAMPLE_A_888_HICN_HASH,
-                              SAMPLE_A_888_MBI_HASH)
+                              SAMPLE_A_888_MBI)
 
         # EOB search endpoint
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, True))

@@ -27,8 +27,9 @@ ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA = {
                 "user_hicn_hash": {
                     "pattern": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
                 },
-                "user_mbi_hash": {
-                    "pattern": "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
+                "user_mbi": {
+                    "type": "string",
+                    "pattern": "1SA0A00AA00",
                 },
                 "fhir_id_v2": {"pattern": "-20140000008325"},
                 "user_id_type": {"pattern": "H"},
@@ -60,9 +61,6 @@ AUTHENTICATION_START_LOG_SCHEMA = {
         "sls_hicn_hash": {
             "pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"
         },
-        "sls_mbi_hash": {
-            "pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"
-        },
         "sls_signout_status_code": {"type": "integer", "enum": [status.HTTP_302_FOUND]},
         "sls_token_status_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
         "sls_userinfo_status_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
@@ -79,7 +77,6 @@ AUTHENTICATION_START_LOG_SCHEMA = {
         "sls_mbi_format_valid",
         "sls_mbi_format_synthetic",
         "sls_hicn_hash",
-        "sls_mbi_hash",
         "sls_signout_status_code",
         "sls_token_status_code",
         "sls_userinfo_status_code",
@@ -105,8 +102,9 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
                         "user_hicn_hash": {
                             "pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"
                         },
-                        "user_mbi_hash": {
-                            "pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"
+                        "user_mbi": {
+                            "type": "string",
+                            "pattern": "1SA0A00AA00",
                         },
                         "fhir_id_v2": {"pattern": "-20140000008325"},
                         "user_id_type": {"pattern": "M"},
@@ -138,8 +136,9 @@ AUTHORIZATION_LOG_SCHEMA = {
                         "user_hicn_hash": {
                             "pattern": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
                         },
-                        "user_mbi_hash": {
-                            "pattern": "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
+                        "user_mbi": {
+                            "type": "string",
+                            "pattern": "1SA0A00AA00",
                         },
                         "fhir_id_v2": {"pattern": "-20140000008325"},
                         "user_id_type": {"pattern": "H"},
@@ -321,15 +320,15 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
             "type": "string",
             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
         },
-        "mbi_hash": {
+        "user_mbi": {
             "type": "string",
-            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
+            "pattern": "^1SA0A00AA00$",
         },
         "match_found": {"type": "boolean"},
         "hash_lookup_type": {"type": "string", "pattern": "^M$"},
         "hash_lookup_mesg": {
             "type": "string",
-            "pattern": "^FOUND beneficiary via mbi_hash$",
+            "pattern": "^FOUND beneficiary via user_mbi$",
         },
     },
     "required": [
@@ -342,7 +341,7 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
         "auth_pkce_method",
         "fhir_id_v2",
         "hicn_hash",
-        "mbi_hash",
+        "user_mbi",
         "match_found",
         "hash_lookup_type",
         "hash_lookup_mesg",
@@ -358,8 +357,9 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
         "username": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
         "fhir_id_v2": {"pattern": "-20140000008325"},
         "fhir_id_v3": {"pattern": ""},
-        "user_mbi_hash": {
-            "pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"
+        "user_mbi": {
+            "type": "string",
+            "pattern": "1SA0A00AA00",
         },
         "user_hicn_hash": {
             "pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"
@@ -372,7 +372,7 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
         "username",
         "fhir_id_v2",
         "fhir_id_v3",
-        "user_mbi_hash",
+        "user_mbi",
         "user_hicn_hash",
         "mesg",
     ],
@@ -397,9 +397,9 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
             "type": "string",
             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
         },
-        "mbi_hash": {
+        "user_mbi": {
             "type": "string",
-            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
+            "pattern": "^1SA0A00AA00$",
         },
         "hash_lookup_type": {"type": "string", "pattern": "^M$"},
         "crosswalk": {
@@ -410,9 +410,9 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
                     "type": "string",
                     "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
                 },
-                "user_mbi_hash": {
+                "user_mbi": {
                     "type": "string",
-                    "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
+                    "pattern": "^1SA0A00AA00$",
                 },
                 "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                 "user_id_type": {"type": "string", "pattern": "^M$"},
@@ -435,7 +435,7 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
         "user_username",
         "fhir_id_v2",
         "hicn_hash",
-        "mbi_hash",
+        "user_mbi",
         "crosswalk",
         "hicn_updated",
         "mbi_updated",

@@ -110,7 +110,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                     args = {
                         "username": str(uuid.uuid1()),
                         "user_hicn_hash": hash_hicn(hicn),
-                        "user_mbi_hash": hash_mbi(mbi),
+                        "user_mbi": mbi,
                         "user_id_type": "H",
                         "fhir_id_v2": fhir_id,
                         "first_name": fn,

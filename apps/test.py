@@ -44,7 +44,7 @@ class BaseApiTest(TestCase):
         fhir_id_v2: str | None = settings.DEFAULT_SAMPLE_FHIR_ID_V2,
         fhir_id_v3: str | None = settings.DEFAULT_SAMPLE_FHIR_ID_V3,
         user_hicn_hash: str | None = test_hicn_hash,
-        user_mbi_hash: str | None = test_mbi_hash,
+        user_mbi: str | None = test_mbi,
         user_type=None,  # TODO: This is not used currently, consider removing
         **extra_fields
     ) -> User:
@@ -60,7 +60,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2 (str | None, optional): crosswalk.fhir_id_v2
             fhir_id_v3 (str | None, optional): crosswalk.fhir_id_v3
             user_hicn_hash (str | None, optional): _description_. Defaults to test_hicn_hash.
-            user_mbi_hash (str | None, optional): _description_. Defaults to test_mbi_hash.
+            user_mbi (str | None, optional): _description_. Defaults to test_mbi.
             user_type (_type_, optional): _description_. Defaults to None.
 
         Returns:
@@ -72,7 +72,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             hicn_hash=user_hicn_hash,
-            mbi_hash=user_mbi_hash,
+            mbi=user_mbi,
         )
         # Create ben user profile, if it doesn't exist
         if user_type:
@@ -179,7 +179,7 @@ class BaseApiTest(TestCase):
         )
         return label
 
-    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi_hash=test_mbi_hash):
+    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi=test_mbi_hash):
         """Helper method that gets or creates a Crosswalk instance, deleting any existing
 
         Args:
@@ -187,7 +187,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2 (_type_): _description_
             fhir_id_v3 (_type_, optional): _description_. Defaults to None.
             hicn_hash (_type_, optional): _description_. Defaults to test_hicn_hash.
-            mbi_hash (_type_, optional): _description_. Defaults to test_mbi_hash.
+            mbi (_type_, optional): _description_. Defaults to test_mbi.
 
         Returns:
             Crosswalk: The resultant crosswalk
@@ -200,15 +200,15 @@ class BaseApiTest(TestCase):
             Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).delete()
         if hicn_hash and Crosswalk.objects.filter(_user_id_hash=hicn_hash).exists():
             Crosswalk.objects.filter(_user_id_hash=hicn_hash).delete()
-        if mbi_hash and Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).exists():
-            Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).delete()
+        if mbi and Crosswalk.objects.filter(_user_mbi=mbi).exists():
+            Crosswalk.objects.filter(_user_mbi=mbi).delete()
 
         cw = Crosswalk.objects.create(
             user=user,
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             _user_id_hash=hicn_hash,
-            _user_mbi_hash=mbi_hash,
+            _user_mbi=mbi,
         )
         cw.save()
 
@@ -404,9 +404,8 @@ class BaseApiTest(TestCase):
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )
-            mbi_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_mbi_hash[len(fhir_id_v2):]
-            )
+            # TODO: See if this needs to be changing to avoid accidental deletions
+            # mbi = self.test_mbi
 
             user = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -416,7 +415,7 @@ class BaseApiTest(TestCase):
                 fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
-                user_mbi_hash=mbi_hash,
+                user_mbi=self.test_mbi,
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
@@ -480,7 +479,7 @@ class BaseApiTest(TestCase):
             remove_application_user_pair_tokens_data_access(app, cw.user)
 
     def create_token(
-        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None
+        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None
     ):
         passwd = "123456"
         user = self._create_user(
@@ -491,7 +490,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
-            user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
+            user_mbi=mbi if mbi is not None else self.test_mbi,
             email="%s@%s.net" % (first_name, last_name),
         )
 
