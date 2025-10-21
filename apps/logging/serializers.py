@@ -58,31 +58,31 @@ class Token:
             scopes = ""
 
         result = {
-            "type": "AccessToken",
-            "action": self.action,
-            "id": getattr(self.tkn, 'pk', None),
-            "access_token": hashlib.sha256(
+            'type': 'AccessToken',
+            'action': self.action,
+            'id': getattr(self.tkn, 'pk', None),
+            'access_token': hashlib.sha256(
                 str(getattr(self.tkn, 'token', None)).encode('utf-8')).hexdigest(),
-            "scopes": scopes,
-            "application": {
-                "id": getattr(app, 'id', None),
-                "name": getattr(app, 'name', None),
-                "data_access_type": getattr(app, 'data_access_type', None),
-                "user": {
-                    "id": getattr(app_user, 'id', None),
-                    "username": getattr(app_user, 'username', None),
+            'scopes': scopes,
+            'application': {
+                'id': getattr(app, 'id', None),
+                'name': getattr(app, 'name', None),
+                'data_access_type': getattr(app, 'data_access_type', None),
+                'user': {
+                    'id': getattr(app_user, 'id', None),
+                    'username': getattr(app_user, 'username', None),
                 },
             },
-            "user": {
-                "id": getattr(user, 'id', None),
-                "username": getattr(user, 'username', None),
+            'user': {
+                'id': getattr(user, 'id', None),
+                'username': getattr(user, 'username', None),
             },
-            "crosswalk": {
-                "id": getattr(crosswalk, 'id', None),
-                "user_hicn_hash": getattr(crosswalk, "user_hicn_hash", None),
-                "user_mbi": getattr(crosswalk, "user_mbi", None),
-                "fhir_id": getattr(crosswalk, "fhir_id", lambda: None)(),
-                "user_id_type": getattr(crosswalk, "user_id_type", None),
+            'crosswalk': {
+                'id': getattr(crosswalk, 'id', None),
+                'user_hicn_hash': getattr(crosswalk, 'user_hicn_hash', None),
+                'user_mbi': getattr(crosswalk, 'user_mbi', None),
+                'fhir_id': getattr(crosswalk, 'fhir_id', lambda: None)(),
+                'user_id_type': getattr(crosswalk, 'user_id_type', None),
             },
         }
 

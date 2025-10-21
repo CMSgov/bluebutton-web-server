@@ -74,16 +74,16 @@ def authenticate(request):
     # Log successful authentication with beneficiary when we return back here.
     # BB2-4166-TODO: set both fhir_ids if we get both of them
     slsx_client.log_authn_success(request, {
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "crosswalk": {
-                "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi": user.crosswalk.user_mbi,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'crosswalk': {
+                'id': user.crosswalk.id,
+                'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                'user_mbi': user.crosswalk.user_mbi,
                 # BB2-4166-TODO: this needs to account for both fhir_ids if they are found
-                ("fhir_id_v3" if version == 3 else "fhir_id_v2"): user.crosswalk.fhir_id(version),
-                "user_id_type": user.crosswalk.user_id_type,
+                ('fhir_id_v3' if version == 3 else 'fhir_id_v2'): user.crosswalk.fhir_id(version),
+                'user_id_type': user.crosswalk.user_id_type,
             },
         },
     })

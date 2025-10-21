@@ -43,22 +43,22 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
 
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
     crosswalk_log = {
-        "id": None,
-        "user_hicn_hash": None,
-        "user_mbi": None,
+        'id': None,
+        'user_hicn_hash': None,
+        'user_mbi': None,
         # BB2-4166-TODO: this is hardcoded to be version 2, add v3
-        "fhir_id_v2": None,
-        "user_id_type": None
+        'fhir_id_v2': None,
+        'user_id_type': None
     }
 
     try:
         crosswalk_log = {
-            "id": user.crosswalk.id,
-            "user_hicn_hash": user.crosswalk.user_hicn_hash,
-            "user_mbi": user.crosswalk.user_mbi,
+            'id': user.crosswalk.id,
+            'user_hicn_hash': user.crosswalk.user_hicn_hash,
+            'user_mbi': user.crosswalk.user_mbi,
             # BB2-4166-TODO: this is hardcoded to be version 2, add v3
-            "fhir_id_v2": user.crosswalk.fhir_id(2),
-            "user_id_type": user.crosswalk.user_id_type
+            'fhir_id_v2': user.crosswalk.fhir_id(2),
+            'user_id_type': user.crosswalk.user_id_type
         }
     except Exception:
         # TODO consider logging exception name here
@@ -66,25 +66,25 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         pass
 
     log_dict = {
-        "type": "Authorization",
-        "auth_status": auth_status,
-        "auth_status_code": auth_status_code,
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "crosswalk": crosswalk_log,
+        'type': 'Authorization',
+        'auth_status': auth_status,
+        'auth_status_code': auth_status_code,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'crosswalk': crosswalk_log,
         },
-        "application": {
-            "id": application.id,
-            "name": application.name,
-            "data_access_type": application.data_access_type,
+        'application': {
+            'id': application.id,
+            'name': application.name,
+            'data_access_type': application.data_access_type,
         },
-        "share_demographic_scopes": share_demographic_scopes,
-        "scopes": scopes,
-        "allow": allow,
-        "access_token_delete_cnt": access_token_delete_cnt,
-        "refresh_token_delete_cnt": access_token_delete_cnt,
-        "data_access_grant_delete_cnt": data_access_grant_delete_cnt,
+        'share_demographic_scopes': share_demographic_scopes,
+        'scopes': scopes,
+        'allow': allow,
+        'access_token_delete_cnt': access_token_delete_cnt,
+        'refresh_token_delete_cnt': access_token_delete_cnt,
+        'data_access_grant_delete_cnt': data_access_grant_delete_cnt,
     }
 
     token_logger.info(log_dict)

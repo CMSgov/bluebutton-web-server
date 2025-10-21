@@ -8,42 +8,42 @@ from rest_framework import status
 FHIR_PAT_ID_STR = "patientId:-20140000008325"
 
 ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA = {
-    "title": "AccessTokenAuthorizedLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {"pattern": "AccessToken"},
-        "action": {"pattern": "authorized"},
-        "auth_grant_type": {"pattern": "password"},
-        "id": {"type": "integer"},
-        "scopes": {"pattern": "read write patient"},
-        "user": {
-            "type": "object",
-            "properties": {"id": {"type": "integer"}, "username": {"pattern": "John"}},
+    'title': 'AccessTokenAuthorizedLogSchema',
+    'type': 'object',
+    'properties': {
+        'type': {'pattern': 'AccessToken'},
+        'action': {'pattern': 'authorized'},
+        'auth_grant_type': {'pattern': 'password'},
+        'id': {'type': 'integer'},
+        'scopes': {'pattern': 'read write patient'},
+        'user': {
+            'type': 'object',
+            'properties': {'id': {'type': 'integer'}, 'username': {'pattern': 'John'}},
         },
-        "crosswalk": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "user_hicn_hash": {
-                    "pattern": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
+        'crosswalk': {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'integer'},
+                'user_hicn_hash': {
+                    'pattern': '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7'
                 },
-                "user_mbi": {
-                    "type": "string",
-                    "pattern": "1SA0A00AA00",
+                'user_mbi': {
+                    'type': 'string',
+                    'pattern': '1SA0A00AA00',
                 },
-                "fhir_id_v2": {"pattern": "-20140000008325"},
-                "user_id_type": {"pattern": "H"},
+                'fhir_id_v2': {'pattern': '-20140000008325'},
+                'user_id_type': {'pattern': 'H'},
             },
         },
     },
-    "required": [
-        "type",
-        "action",
-        "auth_grant_type",
-        "id",
-        "scopes",
-        "user",
-        "crosswalk",
+    'required': [
+        'type',
+        'action',
+        'auth_grant_type',
+        'id',
+        'scopes',
+        'user',
+        'crosswalk',
     ],
 }
 
@@ -85,106 +85,106 @@ AUTHENTICATION_START_LOG_SCHEMA = {
 }
 
 AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
-    "title": "AuthenticationSuccessLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {"pattern": "Authentication:success"},
-        "sub": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
-        "user": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "username": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
-                "crosswalk": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "integer"},
-                        "user_hicn_hash": {
-                            "pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"
+    'title': 'AuthenticationSuccessLogSchema',
+    'type': 'object',
+    'properties': {
+        'type': {'pattern': 'Authentication:success'},
+        'sub': {'pattern': '00112233-4455-6677-8899-aabbccddeeff'},
+        'user': {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'integer'},
+                'username': {'pattern': '00112233-4455-6677-8899-aabbccddeeff'},
+                'crosswalk': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'user_hicn_hash': {
+                            'pattern': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948'
                         },
-                        "user_mbi": {
-                            "type": "string",
-                            "pattern": "1SA0A00AA00",
+                        'user_mbi': {
+                            'type': 'string',
+                            'pattern': '1SA0A00AA00',
                         },
-                        "fhir_id_v2": {"pattern": "-20140000008325"},
-                        "user_id_type": {"pattern": "M"},
+                        'fhir_id_v2': {'pattern': '-20140000008325'},
+                        'user_id_type': {'pattern': 'M'},
                     },
                 },
             },
         },
-        "auth_crosswalk_action": {"pattern": "C"},
+        'auth_crosswalk_action': {'pattern': 'C'},
     },
-    "required": ["type", "sub", "user", "auth_crosswalk_action"],
+    'required': ['type', 'sub', 'user', 'auth_crosswalk_action'],
 }
 
 AUTHORIZATION_LOG_SCHEMA = {
-    "title": "AuthorizationLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {"pattern": "Authorization"},
-        "auth_status": {"pattern": "OK"},
-        "auth_status_code": {"type": "null"},
-        "user": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "username": {"pattern": "anna"},
-                "crosswalk": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "integer"},
-                        "user_hicn_hash": {
-                            "pattern": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
+    'title': 'AuthorizationLogSchema',
+    'type': 'object',
+    'properties': {
+        'type': {'pattern': 'Authorization'},
+        'auth_status': {'pattern': 'OK'},
+        'auth_status_code': {'type': 'null'},
+        'user': {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'integer'},
+                'username': {'pattern': 'anna'},
+                'crosswalk': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'user_hicn_hash': {
+                            'pattern': '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7'
                         },
-                        "user_mbi": {
-                            "type": "string",
-                            "pattern": "1SA0A00AA00",
+                        'user_mbi': {
+                            'type': 'string',
+                            'pattern': '1SA0A00AA00',
                         },
-                        "fhir_id_v2": {"pattern": "-20140000008325"},
-                        "user_id_type": {"pattern": "H"},
+                        'fhir_id_v2': {'pattern': '-20140000008325'},
+                        'user_id_type': {'pattern': 'H'},
                     },
                 },
             },
         },
-        "application": {
-            "type": "object",
-            "properties": {"id": {"pattern": "1"}, "name": {"pattern": "an app"}},
+        'application': {
+            'type': 'object',
+            'properties': {'id': {'pattern': '1'}, 'name': {'pattern': 'an app'}},
         },
-        "share_demographic_scopes": {"pattern": "^$"},
-        "scopes": {"pattern": "capability-a"},
-        "allow": {"type": "boolean"},
-        "access_token_delete_cnt": {"type": "integer", "enum": [0]},
-        "refresh_token_delete_cnt": {"type": "integer", "enum": [0]},
-        "data_access_grant_delete_cnt": {"type": "integer", "enum": [0]},
-        "auth_uuid": {"type": "string", "format": "uuid"},
-        "auth_client_id": {"type": "string"},
-        "auth_app_id": {"pattern": "^1$"},
-        "auth_app_name": {"pattern": "an app"},
-        "auth_app_data_access_type": {"pattern": "THIRTEEN_MONTH"},
-        "auth_pkce_method": {"type": "null"},
-        "auth_share_demographic_scopes": {"pattern": "^$"},
-        "auth_require_demographic_scopes": {"pattern": "^True$"},
+        'share_demographic_scopes': {'pattern': '^$'},
+        'scopes': {'pattern': 'capability-a'},
+        'allow': {'type': 'boolean'},
+        'access_token_delete_cnt': {'type': 'integer', 'enum': [0]},
+        'refresh_token_delete_cnt': {'type': 'integer', 'enum': [0]},
+        'data_access_grant_delete_cnt': {'type': 'integer', 'enum': [0]},
+        'auth_uuid': {'type': 'string', 'format': 'uuid'},
+        'auth_client_id': {'type': 'string'},
+        'auth_app_id': {'pattern': '^1$'},
+        'auth_app_name': {'pattern': 'an app'},
+        'auth_app_data_access_type': {'pattern': 'THIRTEEN_MONTH'},
+        'auth_pkce_method': {'type': 'null'},
+        'auth_share_demographic_scopes': {'pattern': '^$'},
+        'auth_require_demographic_scopes': {'pattern': '^True$'},
     },
-    "required": [
-        "type",
-        "auth_status",
-        "auth_status_code",
-        "user",
-        "application",
-        "share_demographic_scopes",
-        "scopes",
-        "allow",
-        "access_token_delete_cnt",
-        "refresh_token_delete_cnt",
-        "data_access_grant_delete_cnt",
-        "auth_uuid",
-        "auth_client_id",
-        "auth_app_id",
-        "auth_app_name",
-        "auth_app_data_access_type",
-        "auth_pkce_method",
-        "auth_share_demographic_scopes",
-        "auth_require_demographic_scopes",
+    'required': [
+        'type',
+        'auth_status',
+        'auth_status_code',
+        'user',
+        'application',
+        'share_demographic_scopes',
+        'scopes',
+        'allow',
+        'access_token_delete_cnt',
+        'refresh_token_delete_cnt',
+        'data_access_grant_delete_cnt',
+        'auth_uuid',
+        'auth_client_id',
+        'auth_app_id',
+        'auth_app_name',
+        'auth_app_data_access_type',
+        'auth_pkce_method',
+        'auth_share_demographic_scopes',
+        'auth_require_demographic_scopes',
     ],
 }
 
@@ -302,44 +302,44 @@ def get_pre_fetch_fhir_log_entry_schema(version):
 
 
 MATCH_FHIR_ID_LOG_SCHEMA = {
-    "title": "MatchFhirIdLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {
-            "type": "string",
-            "pattern": "^fhir.server.authentication.match_fhir_id$",
+    'title': 'MatchFhirIdLogSchema',
+    'type': 'object',
+    'properties': {
+        'type': {
+            'type': 'string',
+            'pattern': '^fhir.server.authentication.match_fhir_id$',
         },
-        "auth_uuid": {"type": "null"},
-        "auth_app_id": {"type": "null"},
-        "auth_app_name": {"type": "null"},
-        "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_client_id": {"type": "null"},
-        "auth_pkce_method": {"type": "null"},
-        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
-        "hicn_hash": {
-            "type": "string",
-            "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+        'auth_uuid': {'type': 'null'},
+        'auth_app_id': {'type': 'null'},
+        'auth_app_name': {'type': 'null'},
+        'auth_app_data_access_type': {'pattern': 'RESEARCH_STUDY'},
+        'auth_client_id': {'type': 'null'},
+        'auth_pkce_method': {'type': 'null'},
+        'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
+        'hicn_hash': {
+            'type': 'string',
+            'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
         },
-        "match_found": {"type": "boolean"},
-        "hash_lookup_type": {"type": "string", "pattern": "^M$"},
-        "hash_lookup_mesg": {
-            "type": "string",
-            "pattern": "^FOUND beneficiary via user_mbi$",
+        'match_found': {'type': 'boolean'},
+        'hash_lookup_type': {'type': 'string', 'pattern': '^M$'},
+        'hash_lookup_mesg': {
+            'type': 'string',
+            'pattern': '^FOUND beneficiary via user_mbi$',
         },
     },
-    "required": [
-        "type",
-        "auth_uuid",
-        "auth_app_id",
-        "auth_app_name",
-        "auth_app_data_access_type",
-        "auth_client_id",
-        "auth_pkce_method",
-        "fhir_id_v2",
-        "hicn_hash",
-        "match_found",
-        "hash_lookup_type",
-        "hash_lookup_mesg",
+    'required': [
+        'type',
+        'auth_uuid',
+        'auth_app_id',
+        'auth_app_name',
+        'auth_app_data_access_type',
+        'auth_client_id',
+        'auth_pkce_method',
+        'fhir_id_v2',
+        'hicn_hash',
+        'match_found',
+        'hash_lookup_type',
+        'hash_lookup_mesg',
     ],
 }
 
@@ -369,61 +369,61 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
 }
 
 MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
-    "title": "MyMedicareCbGetUpdateBeneLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {"type": "string", "pattern": "^mymedicare_cb:get_and_update_user$"},
-        "status": {"type": "string", "pattern": "^OK$"},
-        "subject": {
-            "type": "string",
-            "pattern": "^00112233-4455-6677-8899-aabbccddeeff$",
+    'title': 'MyMedicareCbGetUpdateBeneLogSchema',
+    'type': 'object',
+    'properties': {
+        'type': {'type': 'string', 'pattern': '^mymedicare_cb:get_and_update_user$'},
+        'status': {'type': 'string', 'pattern': '^OK$'},
+        'subject': {
+            'type': 'string',
+            'pattern': '^00112233-4455-6677-8899-aabbccddeeff$',
         },
-        "user_username": {
-            "type": "string",
-            "pattern": "^00112233-4455-6677-8899-aabbccddeeff$",
+        'user_username': {
+            'type': 'string',
+            'pattern': '^00112233-4455-6677-8899-aabbccddeeff$',
         },
-        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
-        "hicn_hash": {
-            "type": "string",
-            "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+        'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
+        'hicn_hash': {
+            'type': 'string',
+            'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
         },
-        "hash_lookup_type": {"type": "string", "pattern": "^M$"},
-        "crosswalk": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "user_hicn_hash": {
-                    "type": "string",
-                    "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+        'hash_lookup_type': {'type': 'string', 'pattern': '^M$'},
+        'crosswalk': {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'integer'},
+                'user_hicn_hash': {
+                    'type': 'string',
+                    'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
                 },
-                "user_mbi": {
-                    "type": "string",
-                    "pattern": "^1SA0A00AA00$",
+                'user_mbi': {
+                    'type': 'string',
+                    'pattern': '^1SA0A00AA00$',
                 },
-                "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
-                "user_id_type": {"type": "string", "pattern": "^M$"},
+                'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
+                'user_id_type': {'type': 'string', 'pattern': '^M$'},
             },
         },
-        "hicn_updated": {"enum": [False]},
-        "mesg": {"type": "string", "pattern": "^CREATE beneficiary record$"},
-        "request_uuid": {"type": "string"},
-        "crosswalk_before": {
-            "type": "object",
-            "properties": {},
+        'hicn_updated': {'enum': [False]},
+        'mesg': {'type': 'string', 'pattern': '^CREATE beneficiary record$'},
+        'request_uuid': {'type': 'string'},
+        'crosswalk_before': {
+            'type': 'object',
+            'properties': {},
         },
     },
-    "required": [
-        "type",
-        "status",
-        "subject",
-        "user_username",
-        "fhir_id_v2",
-        "hicn_hash",
-        "crosswalk",
-        "hicn_updated",
-        "mesg",
-        "request_uuid",
-        "crosswalk_before",
+    'required': [
+        'type',
+        'status',
+        'subject',
+        'user_username',
+        'fhir_id_v2',
+        'hicn_hash',
+        'crosswalk',
+        'hicn_updated',
+        'mesg',
+        'request_uuid',
+        'crosswalk_before',
     ],
 }
 

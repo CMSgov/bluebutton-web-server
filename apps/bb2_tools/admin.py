@@ -333,9 +333,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "date_created",
     )
     # BB2-4166-TODO: add support for v3
-    search_fields = ("user__username", "fhir_id_v2", "_user_id_hash", "_user_mbi")
-    readonly_fields = ("date_created",)
-    raw_id_fields = ("user",)
+    search_fields = ('user__username', 'fhir_id_v2', '_user_id_hash', '_user_mbi')
+    readonly_fields = ('date_created',)
+    raw_id_fields = ('user',)
 
     def get_queryset(self, request):
         qs = super(BeneficiaryDashboardAdmin, self).get_queryset(request)

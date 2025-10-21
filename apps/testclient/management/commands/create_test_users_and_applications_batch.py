@@ -108,14 +108,14 @@ def create_dev_users_apps_and_bene_crosswalks(
                 # skip fred
                 if fhir_id != '-20140000008325':
                     args = {
-                        "username": str(uuid.uuid1()),
-                        "user_hicn_hash": hash_hicn(hicn),
-                        "user_mbi": mbi,
-                        "user_id_type": "H",
-                        "fhir_id_v2": fhir_id,
-                        "first_name": fn,
-                        "last_name": ln,
-                        "email": fn + '.' + ln + "@xyz.net",
+                        'username': str(uuid.uuid1()),
+                        'user_hicn_hash': hash_hicn(hicn),
+                        'user_mbi': mbi,
+                        'user_id_type': 'H',
+                        'fhir_id_v2': fhir_id,
+                        'first_name': fn,
+                        'last_name': ln,
+                        'email': fn + '.' + ln + '@xyz.net',
                     }
                     slsx_client = OAuth2ConfigSLSx(args)
                     try:

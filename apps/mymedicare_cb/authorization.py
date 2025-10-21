@@ -94,7 +94,7 @@ class OAuth2ConfigSLSx(object):
         self.token_status_code = None
         self.userinfo_status_code = None
         self.validate_signout_status_code = None
-        self.mbi = args_dict.get("mbi", None) if args_dict else None
+        self.mbi = args_dict.get('mbi', None) if args_dict else None
         self.hicn = None
         self.hicn_hash = args_dict.get("user_hicn_hash", None) if args_dict else None
         self.mbi_format_valid = None

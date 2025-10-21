@@ -91,7 +91,7 @@ class TestModels(BaseApiTest):
 
         cw = Crosswalk.objects.get(user=user)
         self.assertEqual(cw.user_mbi, self.test_mbi)
-        cw.user_mbi = "1SA0A00BB00"
+        cw.user_mbi = '1SA0A00BB00'
         cw.save()
 
     def test_mutable_user_mbi_when_null(self):
@@ -116,14 +116,14 @@ class TestModels(BaseApiTest):
         self.assertEqual(cw.user_mbi, None)
 
         cw.user_mbi = (
-            "1SA0A00CC00"
+            '1SA0A00CC00'
         )
         cw.save()
 
         cw = Crosswalk.objects.get(user=user)
         self.assertEqual(
             cw.user_mbi,
-            "1SA0A00CC00",
+            '1SA0A00CC00',
         )
 
     def test_crosswalk_real_synth_query_managers(self):
@@ -144,7 +144,8 @@ class TestModels(BaseApiTest):
                 fhir_id_v3="3000000000000" + str(cnt),
                 user_hicn_hash="239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
-                user_mbi='1SA0A00BB0' + str(cnt),
+                user_mbi=self._generate_random_mbi(),
+                # user_mbi='1SA0A00BB0' + str(cnt),
             )
 
         # Create 7x Synthetic (negative FHIR_ID) users
@@ -159,7 +160,8 @@ class TestModels(BaseApiTest):
                 fhir_id_v3="-3000000000000" + str(cnt),
                 user_hicn_hash="255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
-                user_mbi='1SA0A00EE0' + str(cnt),
+                user_mbi=self._generate_random_mbi(),
+                # user_mbi='1SA0A00EE0' + str(cnt),
             )
 
         cc = get_crosswalk_bene_counts()
