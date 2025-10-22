@@ -36,7 +36,7 @@ class EndpointUrl:
                 return f"{uri}/{version}/connect/userinfo"
             case EndpointUrl.patient:
                 if patient is None or patient == BAD_PATIENT_ID:
-                    logger.error(f"EndpointUrl format called with invalid patient id: {patient}")
+                    logger.error(f"EndpointUrl format called with invalid patient id")
                     raise
                 return f"{uri}/{version}/fhir/Patient/{patient}?_format=json"
             case EndpointUrl.explanation_of_benefit:

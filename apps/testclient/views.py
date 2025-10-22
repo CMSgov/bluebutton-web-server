@@ -91,7 +91,6 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
                                       id=id)
 
     oas = _get_oauth2_session_with_token(request)
-    logger.info(f"_get_fhir_data uri: {uri}")
     r = oas.get(uri)
 
     return r.json()
@@ -224,23 +223,6 @@ def callback(request: HttpRequest):
         logger.error(f'InvalidClient: failed to get token from {token_uri}')
         logger.error(logmsg)
         return ResponseErrors.InvalidClient(token_uri)
-
-    # 20251014 MCJ REMOVE AS PART OF REVIEW
-    # I am suggesting here that we change the callback behavior. If we cannot
-    # find a patient, let's throw a 500 instead of continuing.
-    # try:
-    #     # For test client allow only authorize on synthetic beneficiaries
-    #     patient_id = token.get('patient')
-    # except KeyError:
-    #     # FIXME: This would actually handle the error as opposed to setting it to `None`
-    #     logger.error("No key found in the token for `patient`.")
-    #     # Old code had the behavior of setting patient_id and continuing.
-    #     #
-    #     # patient_id = None
-    #     # pass
-    #     #
-    #     # Instead of setting `patient_id` to `None`, what happens if we throw a 500?
-    #     return ResponseErrors.MissingPatientError(patient_id)
 
     # If we cannot find a patient id in the tokent, return an error.
     # If we find a non-synthetic id, return an error.
