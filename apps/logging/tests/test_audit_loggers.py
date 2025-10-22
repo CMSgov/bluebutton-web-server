@@ -41,7 +41,11 @@ from .audit_logger_schemas import (
     SLSX_USERINFO_LOG_SCHEMA,
 )
 
+from hhs_oauth_server.settings.base import FHIR_SERVER
+from urllib.parse import urlparse
+
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+MOCK_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
 
 
 class HTTMockWithResponseHook(HTTMock):
@@ -186,7 +190,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc='fhir.backend.bluebutton.hhsdevcloud.us',
+            netloc=MOCK_ENDPOINT_HOSTNAME,
             path=r'/v[123]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
@@ -328,7 +332,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc='fhir.backend.bluebutton.hhsdevcloud.us',
+            netloc=MOCK_ENDPOINT_HOSTNAME,
             path=r'/v[123]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
@@ -395,7 +399,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc='fhir.backend.bluebutton.hhsdevcloud.us',
+            netloc=MOCK_ENDPOINT_HOSTNAME,
             path=r'/v[123]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):

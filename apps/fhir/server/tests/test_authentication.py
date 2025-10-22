@@ -4,15 +4,18 @@ from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from rest_framework import exceptions
-
+from urllib.parse import urlparse
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.test import BaseApiTest
 from ..authentication import match_fhir_id
 from .responses import responses
 
+from hhs_oauth_server.settings.base import FHIR_SERVER
+MOCK_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
+
 
 class TestAuthentication(BaseApiTest):
-    MOCK_FHIR_URL = "fhir.backend.bluebutton.hhsdevcloud.us"
+    MOCK_FHIR_URL = MOCK_ENDPOINT_HOSTNAME
     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
     MOCK_FHIR_HICN_QUERY = ".*hicnHash.*"
     MOCK_FHIR_MBI_QUERY = ".*us-mbi|.*"
@@ -44,8 +47,8 @@ class TestAuthentication(BaseApiTest):
                     return responses[mbi_response_key]
                 else:
                     raise Exception(f"Invalid identifier: {identifier}")
-            except json.JSONDecodeError:
-                raise Exception("Failed to parse json")
+            except json.JSONDecodeError as e:
+                raise Exception(f"Failed to parse json: {e.msg}")
         return mock_fhir_post
 
     def test_match_fhir_id_success(self):

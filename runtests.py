@@ -58,6 +58,7 @@ if args.integration:
             del os.environ[env_var]
 elif not args.selenium:
     # Unset ENV variables for Django unit type tests so default values get set.
+    # 20251022 Removed 'FHIR_URL' from the list of env vars that are deleted.
     for env_var in ['DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
                     'DJANGO_SLSX_USERINFO_ENDPOINT', 'DJANGO_SLSX_TOKEN_ENDPOINT',
                     'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', "DJANGO_SLSX_SIGNOUT_ENDPOINT",

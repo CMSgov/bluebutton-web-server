@@ -598,7 +598,11 @@ FHIR_CLIENT_CERTSTORE = env(
     os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
 )
 
+# from hhs_oauth_server.settings.base import FHIR_SERVER
+
 FHIR_SERVER = {
+    # "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
+    # TODO: It would be good to make sure FHIR_URL and FHIR_URL_V3 do NOT end in a `/`.
     "FHIR_URL": env("FHIR_URL", "https://INVALID_FHIR_URL.gov"),
     "FHIR_URL_V3": env("FHIR_URL_V3", "https://INVALID_FHIR_URL_V3.gov"),
     "CERT_FILE": os.path.join(
