@@ -512,7 +512,9 @@ class BaseApiTest(TestCase):
 
     def _generate_random_mbi(self) -> str:
         """
-            Generate a random MBI for use in different tests
+            Generate a random MBI for use in different tests. The reason the MBI is constructed as such
+            is to follow the guidelines for MBI laid out by CMS here:
+            https://www.cms.gov/medicare/new-medicare-card/understanding-the-mbi.pdf
             Args:
                 N/A
             Returns:
