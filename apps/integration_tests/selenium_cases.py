@@ -134,8 +134,8 @@ APP_CSS_SELECTOR_EDIT_APP = ".cta-button:nth-child(1)"
 APP_CSS_SELECTOR_DELETE_APP = ".cta-button:nth-child(2)"
 
 # SLSX login form
-SLSX_TXT_FLD_USERNAME = "username"
-SLSX_TXT_FLD_PASSWORD = "password"
+SLSX_TXT_FLD_USERNAME = 'username'
+SLSX_TXT_FLD_PASSWORD = 'password'
 SLSX_TXT_FLD_USERNAME_VAL = "BBUser00001"
 SLSX_TXT_FLD_PASSWORD_VAL = "PW00001!"
 SLSX_CSS_BUTTON = "login-button"
