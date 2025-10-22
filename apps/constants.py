@@ -5,6 +5,13 @@ from django.core.exceptions import ValidationError
 # e.g. A use of 'v1' should become Versions.V1.
 
 
+class VersionNotMatched(Exception):
+    """
+    A custom exception to be thrown when we do not match a version.
+    """
+    pass
+
+
 class Versions:
     V1 = 'v1'
     V2 = 'v2'
@@ -29,4 +36,4 @@ class Versions:
             case _:
                 # FIXME MCJ: Raise an exception here.
                 # Do something noisy. We should not end up here.
-                raise ValidationError(f"{version} is not a valid version constant")
+                raise VersionNotMatched(f"{version} is not a valid version constant")

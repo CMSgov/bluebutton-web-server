@@ -13,20 +13,21 @@ RESULTS_PAGE = "results.html"
 BAD_PATIENT_ID = "INTERNAL_BAD_PATIENT_ID"
 
 
-# ENDPOINT_URL_FMT = {
-#     "userinfo": "{}/{}/connect/userinfo",
-#     "patient": "{}/{}/fhir/Patient/{}?_format=json",
-#     "eob": "{}/{}/fhir/ExplanationOfBenefit/?_format=json",
-#     "coverage": "{}/{}/fhir/Coverage/?_format=json",
-# }
-# NAV_URI_FMT = "{}&_count={}&startIndex={}&{}={}"
+class EndpointFormatException(Exception):
+    """Exception for endpoint formatting errors.
+
+    The goal of endpoint formatting is to make it *hard* to end up with an exception.
+    Therefore, this exception should only be thrown in the situation where a URI was asked
+    to be formatted, but no matching case could be found. 
+    """
+    pass
+
 
 class EndpointUrl:
     userinfo = "userinfo"
     patient = "patient"
     explanation_of_benefit = "eob"
     coverage = "coverage"
-    # This is a special case?
     nav = "nav"
 
     def fmt(name: str, uri: str, version: str, patient: str = BAD_PATIENT_ID):
@@ -45,19 +46,12 @@ class EndpointUrl:
             case _:
                 logger.error(f"Could not match name in EndpointUrl: {name}")
 
-        # Should not be possible to exit the match statement without a match.
-        # Raise an error instead of returning? (The dictionary-based approach would similarly
-        # fail badly, so this is not different behavior.)
-        raise
+        # If we are asked to format something that doesn't exist, raise an exception. This situation should
+        # never occur, and therefore we want something to break.
+        raise EndpointFormatException(f"Could not format URI name[{name}] uri[{uri}] version[{version}]")
 
     def nav_uri(uri, count, start_index, id_type=None, id=None):
         return f"{uri}&_count={count}&startIndex={start_index}&{id_type}={id}"
-
-
-class RespErr:
-    def __init__(self, json, status):
-        self.json = json
-        self.status = status
 
 
 class ResponseErrors:

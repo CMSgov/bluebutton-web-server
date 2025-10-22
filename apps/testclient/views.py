@@ -19,7 +19,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 
 from waffle.decorators import waffle_switch
 
-from .utils import (test_setup,
+from .utils import (testclient_http_response_setup,
                     get_client_secret,
                     extract_page_nav,
                     _start_url_with_http_or_https)
@@ -63,6 +63,9 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     # FIXME: This is for pagination, which is different/not present (?) for v3.
+    # This sets up the navigation URI (pagination) based on whether we are handling
+    # a patient or a beneficiary. All of this logic is essentially to add one parameter,
+    # name correctly, to the nav URI.
     if params.version in [Versions.V1, Versions.V2]:
         nav_link = request.GET.get('nav_link', None)
         if nav_link is not None:
@@ -80,7 +83,7 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
                 # Raise an exception? Return an error JSON?
                 raise
 
-            # uri = NAV_URI_FMT.format(*q_params)
+            # Extend the base URI with pagination information.
             uri = EndpointUrl.nav_uri(uri,
                                       count=request.GET.get('_count', 10),
                                       start_index=request.GET.get('startIndex', 0),
@@ -336,11 +339,7 @@ def _link_session_or_version_is_bad(session, version):
 
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    # FIXME: Should this be here, too?
-    # THOUGHT: Probably not. It is not part of the authorized flow; this is the first step of the flow.
-    # Therefore, we do not need to look for a version AND token. We probably should have a version, though?
-    # _link_session_or_version_is_bad(request.session, version)
-    request.session.update(test_setup(version=version))
+    request.session.update(testclient_http_response_setup(version=version))
 
     oas = _get_oauth2_session_with_redirect(request)
 
@@ -352,8 +351,8 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             pass
         case Versions.V3:
             # https://bluebutton.cms.gov/developers/#authorization:~:text=response%20type%3A%20code-,scope,-optional
-            # FIXME MCJ: Should the test client request all scopes? Some scopes? Lets try all.
-            oas.scope = "profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs"  # profile
+            # Should the test client request all scopes for v3? Some scopes?
+            oas.scope = "profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs"
         case _:
             if 'token' in request.session:
                 del request.session['token']

@@ -9,13 +9,14 @@ from urllib.parse import parse_qs, urlparse
 from apps.constants import Versions
 
 from ..dot_ext.models import Application
+from apps.testclient.constants import EndpointUrl
 
 
 def _start_url_with_http_or_https(host: str) -> str:
     """Makes sure a URL starts with HTTPS
 
     This is not comprehensive. It is a light refactoring of old code.
-    It tries to make sure that a host starts with HTTPS.
+    It tries to make sure that a host starts with HTTP or HTTPS.
 
     Args:
         host: string
@@ -33,14 +34,22 @@ def _start_url_with_http_or_https(host: str) -> str:
 
     return host
 
-# Default the version to `v0` to cause errors in the event
-# of the parameter not being set correctly at the calling site.
 
-# 20251010 MCJ This was defaulted to V2. Now, I've defaulted it to V0.
-# Could this be why things are failing?
+def testclient_http_response_setup(include_client_secret: bool = True, version: str = Versions.NOT_AN_API_VERSION) -> OrderedDict:
+    """Prepare testclient response environment
 
+    When navigating through the testclient, we need to update the Django session
+    so that the authorization process can complete. This function builds a dictionary
+    that is used to extend the Django session. It is also used in several unit tests for
+    a similar purpose.
 
-def test_setup(include_client_secret=True, version=Versions.NOT_AN_API_VERSION):
+    Args:
+        include_client_secret (bool) : What it says.
+        version (Version): Which version of the API are we navigating through.
+
+    Returns:
+        OrderedDict: A dictionary used to prepare/extend the Django session.
+    """
     response = OrderedDict()
 
     response['api_ver'] = version
@@ -50,9 +59,8 @@ def test_setup(include_client_secret=True, version=Versions.NOT_AN_API_VERSION):
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
 
-    # TODO: MAGIC(URL)
+    # QUESTION: Do these tests run in CI/CD? If not, why is this parameterized at all?
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
-
     host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
@@ -71,7 +79,8 @@ def test_setup(include_client_secret=True, version=Versions.NOT_AN_API_VERSION):
     response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, version)
     response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, version)
     response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version)
-    return (response)
+
+    return response
 
 
 def get_client_secret():
