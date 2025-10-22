@@ -233,7 +233,7 @@ def callback(request: HttpRequest):
     elif not _is_synthetic_patient_id(patient_id):
         # If we made it here, lets make sure we have a synthetic patient ID.
         # If we do not, then we need to clear the token and send back an error to the client.
-        logmsg = f'Failed token is for a non-synthetic patient ID = {patient_id}'
+        logmsg = f'Failed token is for a non-synthetic patient ID'
         logger.error(logmsg)
         if 'token' in request.session:
             del request.session['token']
