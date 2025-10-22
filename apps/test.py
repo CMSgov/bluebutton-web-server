@@ -512,25 +512,13 @@ class BaseApiTest(TestCase):
 
     def _generate_random_mbi(self) -> str:
         """
-            Generate a random MBI for use in different tests. The reason the MBI is constructed as such
-            is to follow the guidelines for MBI laid out by CMS here:
-            https://www.cms.gov/medicare/new-medicare-card/understanding-the-mbi.pdf
-            Args:
-                N/A
-            Returns:
-                str: A randomly generated MBI that begins with '1S' signifying it is synthetic data
-            """
-        mbi = [
-            '1',
-            'S',
-            random.choice(MBI_CHARS),
-            random.choice(DIGITS),
-            random.choice(LETTERS),
-            random.choice(MBI_CHARS),
-            random.choice(DIGITS),
-            random.choice(LETTERS),
-            random.choice(LETTERS),
-            random.choice(DIGITS),
-            random.choice(DIGITS)
-        ]
-        return ''.join(mbi)
+        Generate a random MBI for use in different tests. The reason the MBI is constructed as such
+        is to follow the guidelines for MBI laid out by CMS here:
+        https://www.cms.gov/medicare/new-medicare-card/understanding-the-mbi.pdf
+        Args:
+            N/A
+        Returns:
+            str: A randomly generated MBI that begins with '1S' signifying it is synthetic data
+        """
+        pattern = [MBI_CHARS, DIGITS, LETTERS, MBI_CHARS, DIGITS, LETTERS, LETTERS, DIGITS, DIGITS]
+        return '1S' + ''.join(random.choice(chars) for chars in pattern)
