@@ -21,7 +21,7 @@ from .loggers import log_match_fhir_id
 def search_fhir_id_by_identifier_mbi(mbi, request=None):
     """
         Search the backend FHIR server's patient resource
-        using the mbi_hash identifier.
+        using the mbi identifier.
     """
     search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
 
@@ -115,17 +115,16 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
                 raise e
 
 
-def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
+def match_fhir_id(mbi, hicn_hash, request=None):
     """Matches a patient identifier via the backend FHIR server using an MBI or HICN hash.
-        - Perform primary lookup using mbi_hash.
-        - If there is an mbi_hash lookup issue, raise exception.
+        - Perform primary lookup using mbi.
+        - If there is an mbi lookup issue, raise exception.
         - Perform secondary lookup using HICN_HASH
         - If there is a hicn_hash lookup issue, raise exception.
         - A NotFound exception is raised, if no match was found.
 
       Args:
         mbi (string): the mbi of the user
-        mbi_hash (string): the hashed mbi of the user
         hicn_hash (string): the hashed hicn of the user
         request (HttpRequest, optional): the Django request
 
@@ -142,34 +141,34 @@ def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request)
         except UpstreamServerException as err:
-            log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "M", str(err))
+            log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
             raise UpstreamServerException(err.detail)
 
         if fhir_id:
             # Found beneficiary!
-            log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, True, "M",
-                              "FOUND beneficiary via mbi_hash")
-            return fhir_id, "M"
+            log_match_fhir_id(request, fhir_id, hicn_hash, True, 'M',
+                              'FOUND beneficiary via user_mbi')
+            return fhir_id, 'M'
 
     # Perform secondary lookup using HICN_HASH
     if hicn_hash:
         try:
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
         except UpstreamServerException as err:
-            log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "H", str(err))
+            log_match_fhir_id(request, None, hicn_hash, False, 'H', str(err))
             # Don't return a 404 because retrying later will not fix this.
             raise UpstreamServerException(err.detail)
 
         if fhir_id:
             # Found beneficiary!
-            log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, True, "H",
-                              "FOUND beneficiary via hicn_hash")
-            return fhir_id, "H"
+            log_match_fhir_id(request, fhir_id, hicn_hash, True, 'H',
+                              'FOUND beneficiary via hicn_hash')
+            return fhir_id, 'H'
 
-    log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, False, None,
-                      "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
-    raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
+    log_match_fhir_id(request, fhir_id, hicn_hash, False, None,
+                      'FHIR ID NOT FOUND for both mbi and hicn_hash')
+    raise exceptions.NotFound('The requested Beneficiary has no entry, however this may change')
 
 
 def _validate_patient_search_result(bundle_of_patients):

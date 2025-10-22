@@ -333,8 +333,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         # Create 5x synth benes -20000000000000 thru -20000000000004 connected to app0
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-2000000000000", count=5, app_name="app0",
-            app_user_organization="app0-org"
+            start_fhir_id='-2000000000000', count=5, app_name='app0',
+            app_user_organization='app0-org',
         )
 
         # Add app & user tuples to remove in TEST #3
@@ -366,49 +366,49 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         # Create users / crosswalks that DO NOT have grants & access tokens (2x synth and 3x real).
         self._create_user(
-            "extra_crosswalk_synth_user01@example.com",
-            "xxx123",
-            "-90000000000001",
-            "-90000000000001",
-            "xxxExtraHicnSynth01xxx",
-            None,
-            "BEN",
+            'extra_crosswalk_synth_user01@example.com',
+            'xxx123',
+            '-90000000000001',
+            '-90000000000001',
+            'xxxExtraHicnSynth01xxx',
+            self._generate_random_mbi(),
+            'BEN',
         )
         self._create_user(
-            "extra_crosswalk_synth_user02@example.com",
-            "xxx123",
-            "-90000000000002",
-            "-90000000000002",
-            "xxxExtraHicnSynth02xxx",
-            None,
-            "BEN",
+            'extra_crosswalk_synth_user02@example.com',
+            'xxx123',
+            '-90000000000002',
+            '-90000000000002',
+            'xxxExtraHicnSynth02xxx',
+            self._generate_random_mbi(),
+            'BEN',
         )
         self._create_user(
-            "extra_crosswalk_real_user01@example.com",
-            "xxx123",
-            "90000000000001",
-            "90000000000001",
-            "xxxExtraHicnReal01xxx",
-            None,
-            "BEN",
+            'extra_crosswalk_real_user01@example.com',
+            'xxx123',
+            '90000000000001',
+            '90000000000001',
+            'xxxExtraHicnReal01xxx',
+            self._generate_random_mbi(),
+            'BEN',
         )
         self._create_user(
-            "extra_crosswalk_real_user02@example.com",
-            "xxx123",
-            "90000000000002",
-            "90000000000002",
-            "xxxExtraHicnReal02xxx",
-            None,
-            "BEN",
+            'extra_crosswalk_real_user02@example.com',
+            'xxx123',
+            '90000000000002',
+            '90000000000002',
+            'xxxExtraHicnReal02xxx',
+            self._generate_random_mbi(),
+            'BEN',
         )
         self._create_user(
-            "extra_crosswalk_real_user03@example.com",
-            "xxx123",
-            "90000000000003",
-            "90000000000003",
-            "xxxExtraHicnReal03xxx",
-            None,
-            "BEN",
+            'extra_crosswalk_real_user03@example.com',
+            'xxx123',
+            '90000000000003',
+            '90000000000003',
+            'xxxExtraHicnReal03xxx',
+            self._generate_random_mbi(),
+            'BEN',
         )
 
         self._call_management_command_log_global_state_metrics()

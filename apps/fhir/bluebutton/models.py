@@ -67,18 +67,6 @@ def hash_hicn(hicn):
     return hash_id_value(hicn)
 
 
-def hash_mbi(mbi):
-    # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
-    if mbi == "":
-        raise BBFhirBluebuttonModelException("MBI cannot be the empty string")
-
-    # NOTE: mbi value can be None here.
-    if mbi is None:
-        return None
-    else:
-        return hash_id_value(mbi)
-
-
 class Crosswalk(models.Model):
     """Represents a crosswalk between a Django user (auth_user) and their MBI/HICN/FHIR IDs
 
@@ -302,7 +290,7 @@ class ArchivedCrosswalk(models.Model):
             fhir_id_v3=crosswalk.fhir_id(3),
             user_id_type=crosswalk.user_id_type,
             _user_id_hash=crosswalk.user_hicn_hash,
-            _user_mbi_hash=crosswalk.user_mbi_hash,
+            _user_mbi=crosswalk._user_mbi,
             date_created=crosswalk.date_created,
         )
         acw.save()
