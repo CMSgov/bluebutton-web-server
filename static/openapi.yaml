@@ -23,6 +23,56 @@ tags:
 
 paths:
 ########## V3 Endpoints ##########
+  /v3/connect/.well-known/openid-configuration:
+    get:
+      operationId: openIdConfigv3
+      description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
+      summary: "OpenID Connect protocol (OIDC) Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenIdConfiguration'
+              examples:
+                OpenIdConfigurationExamplev3:
+                  $ref: '#/components/examples/OpenIdConfigurationExamplev3'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OpenIdConfiguration'
+              examples:
+                OpenIdConfigurationExamplev3:
+                  $ref: '#/components/examples/OpenIdConfigurationExamplev3'
+          description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
+      tags:
+        - v3
+
+  /v3/fhir/.well-known/smart-configuration:
+    get:
+      operationId: smartConfigV3
+      description: "Returns Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      summary: "Smart App Launch Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExamplev3:
+                  $ref: '#/components/examples/SmartConfigurationExamplev3'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExamplev3:
+                  $ref: '#/components/examples/SmartConfigurationExamplev3'
+          description: "Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      tags:
+        - v3
+
   /v3/fhir/metadata:
     get:
       operationId: fhirMetaData_v3
@@ -41,6 +91,31 @@ paths:
           description: "FHIR CapabilityStatement resource"
         '502':
 
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+
+  /v3/connect/userinfo:
+    get:
+      operationId: listopenidconnect_userinfos_v3
+      description: "Returns OpenID Connect protocol (OIDC) userinfo"
+      summary: "OpenID Connect protocol (OIDC) userinfo"
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V3UserInfo'
+              examples:
+                V3UserInfoExample:
+                  $ref: '#/components/examples/V3UserInfoExample'
+          description:  "OIDC userinfo"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '502':
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v3
@@ -221,9 +296,9 @@ paths:
         - v3
 
 ########## V2 Endpoints ##########
-  /.well-known/openid-configuration:
+  /v2/connect/.well-known/openid-configuration:
     get:
-      operationId: openIdConfig
+      operationId: openIdConfigv2
       description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
       summary: "OpenID Connect protocol (OIDC) Discovery information"
       security: []
@@ -234,14 +309,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/OpenIdConfiguration'
               examples:
-                OpenIdConfigurationExample:
-                  $ref: '#/components/examples/OpenIdConfigurationExample'
+                OpenIdConfigurationExamplev2:
+                  $ref: '#/components/examples/OpenIdConfigurationExamplev2'
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/OpenIdConfiguration'
               examples:
-                OpenIdConfigurationExample:
-                  $ref: '#/components/examples/OpenIdConfigurationExample'
+                OpenIdConfigurationExamplev2:
+                  $ref: '#/components/examples/OpenIdConfigurationExamplev2'
           description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
       tags:
         - v2
@@ -636,6 +711,31 @@ paths:
         - v2
 
 ########## V1 Endpoints ##########
+  /v1/connect/.well-known/openid-configuration:
+    get:
+      operationId: openIdConfig
+      description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
+      summary: "OpenID Connect protocol (OIDC) Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenIdConfiguration'
+              examples:
+                OpenIdConfigurationExample:
+                  $ref: '#/components/examples/OpenIdConfigurationExample'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OpenIdConfiguration'
+              examples:
+                OpenIdConfigurationExample:
+                  $ref: '#/components/examples/OpenIdConfigurationExample'
+          description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
+      tags:
+        - v1
+
   /v1/fhir/.well-known/smart-configuration:
     get:
       operationId: smartConfigV1
@@ -1172,10 +1272,28 @@ components:
         patient:
           type: string
 
+    V3UserInfo:
+      properties:
+        sub:
+          type: string
+        name:
+          type: string
+        given_name:
+          type: string
+        family_name:
+          type: string
+        email:
+          type: string
+        iat:
+          type: string
+          format: date-time
+        patient:
+          type: string
+
   examples:
     OpenIdConfigurationExample:
       value:
-        issuer: 'https://sandbox.bluebutton.cms.gov'
+        issuer: 'https://sandbox.bluebutton.cms.gov/v1/connect/'
         authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
         revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
         token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
@@ -1191,6 +1309,82 @@ components:
           - code
           - token
         fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
+
+    OpenIdConfigurationExamplev2:
+      value:
+        issuer: 'https://sandbox.bluebutton.cms.gov/v2/connect/'
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/revoke/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/o/token/'
+        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v2/connect/userinfo'
+        ui_locales_supported:
+          - en-US
+        service_documentation: 'https://bluebutton.cms.gov/developers'
+        op_tos_uri: 'https://bluebutton.cms.gov/terms'
+        grant_types_supported:
+          - authorization_code
+          - refresh_token
+        response_types_supported:
+          - code
+          - token
+        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v2/fhir/metadata'
+
+    OpenIdConfigurationExamplev3:
+      value:
+        issuer: 'https://sandbox.bluebutton.cms.gov/v3/connect/'
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/revoke/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/token/'
+        userinfo_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/connect/userinfo'
+        ui_locales_supported:
+          - en-US
+        service_documentation: 'https://bluebutton.cms.gov/developers'
+        op_tos_uri: 'https://bluebutton.cms.gov/terms'
+        grant_types_supported:
+          - authorization_code
+          - refresh_token
+        response_types_supported:
+          - code
+          - token
+        fhir_metadata_uri: 'https://sandbox.bluebutton.cms.gov/v3/fhir/metadata'
+
+    SmartConfigurationExamplev3:
+      value:
+        authorization_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/authorize/'
+        revocation_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/revoke_token/'
+        token_endpoint: 'https://sandbox.bluebutton.cms.gov/v3/o/token/'
+        grant_types_supported:
+          - authorization_code
+        response_types_supported:
+          - code
+          - token
+        scopes_supported:
+          - openid
+          - profile
+          - launch/patient
+          - patient/Patient.read
+          - patient/ExplanationOfBenefit.read
+          - patient/Coverage.read
+          - patient/Patient.r
+          - patient/ExplanationOfBenefit.r
+          - patient/Coverage.r
+          - patient/Patient.s
+          - patient/ExplanationOfBenefit.s
+          - patient/Coverage.s
+          - patient/Patient.rs
+          - patient/ExplanationOfBenefit.rs
+          - patient/Coverage.rs
+        code_challenge_methods_supported:
+          - S256
+        capabilities:
+          - client-confidential-symmetric
+          - client-confidential-asymmetric
+          - context-standalone-patient
+          - launch-standalone
+          - permission-offline
+          - permission-patient
+          - permission-v1
+          - authorize-post
 
     SmartConfigurationExample:
       value:
@@ -2169,11 +2363,11 @@ components:
             - url: http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris
               extension:
               - url: token
-                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/token
+                valueUri: https://sandbox.bluebutton.cms.gov/v3/o/token
               - url: authorize
-                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/authorize
+                valueUri: https://sandbox.bluebutton.cms.gov/v3/o/authorize
               - url: revoke
-                valueUri: https://sandbox.bluebutton.cms.gov/v2/o/revoke_token
+                valueUri: https://sandbox.bluebutton.cms.gov/v3/o/revoke_token
 
     V1UserInfoExample:
       value:
@@ -2194,6 +2388,16 @@ components:
         email: 'test@example.com'
         iat: '2023-07-17T20:02:38.512Z'
         patient: '-10000010254647'
+
+    V3UserInfoExample:
+      value:
+        sub: '-30000010254647'
+        name: 'John Doe'
+        given_name: 'John'
+        family_name: 'Doe'
+        email: 'test@example.com'
+        iat: '2025-07-17T20:02:38.512Z'
+        patient: '-30000010254647'
 
     V1FhirPatientByIdExample:
       value:

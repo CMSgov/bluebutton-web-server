@@ -1,4 +1,5 @@
 from .dev import *
+import os
 
 del LOGGING['loggers']
 
@@ -12,8 +13,9 @@ LOGIN_RATE = '100/m'
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-# 20251010 MCJ FIXME TODO If we need this for testing, it should be documented somewhere.
-OFFLINE = False
+RUN_ONLINE_TESTS = False
+if os.getenv('RUN_ONLINE_TESTS', 'false') in ['true', 'True']:
+    RUN_ONLINE_TESTS = True
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps

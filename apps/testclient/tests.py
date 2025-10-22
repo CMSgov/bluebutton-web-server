@@ -147,7 +147,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     #     self._test_get_userinfo(Versions.V3)
 
 
-@skipIf(settings.OFFLINE, "Can't reach external sites.")
+@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
 class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
@@ -397,7 +397,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     #     self._test_get_coverage_negative(Versions.V3)
 
 
-@skipIf(settings.OFFLINE, "Can't reach external sites.")
+@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
 class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints
