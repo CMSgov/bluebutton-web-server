@@ -21,11 +21,12 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.mymedicare_cb.models import MAX_MBI_LENGTH
 from waffle import get_waffle_flag_model
 
 
 MBI_CHARS = string.ascii_uppercase + string.digits
+LETTERS = string.ascii_uppercase
+DIGITS = string.digits
 
 
 def flag_is_active(name):
@@ -510,4 +511,24 @@ class BaseApiTest(TestCase):
         return self._get_access_token(first_name, passwd, application)
 
     def _generate_random_mbi(self) -> str:
-        return ''.join(random.choice(MBI_CHARS) for _ in range(MAX_MBI_LENGTH))
+        """
+            Generate a random MBI for use in different tests
+            Args:
+                N/A
+            Returns:
+                str: A randomly generated MBI that begins with '1S' signifying it is synthetic data
+            """
+        mbi = [
+            '1',
+            'S',
+            random.choice(MBI_CHARS),
+            random.choice(DIGITS),
+            random.choice(LETTERS),
+            random.choice(MBI_CHARS),
+            random.choice(DIGITS),
+            random.choice(LETTERS),
+            random.choice(LETTERS),
+            random.choice(DIGITS),
+            random.choice(DIGITS)
+        ]
+        return ''.join(mbi)
