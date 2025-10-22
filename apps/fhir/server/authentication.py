@@ -141,7 +141,7 @@ def match_fhir_id(mbi, hicn_hash, request=None):
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request)
         except UpstreamServerException as err:
-            log_match_fhir_id(request, None, hicn_hash, False, "M", str(err))
+            log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
             raise UpstreamServerException(err.detail)
 

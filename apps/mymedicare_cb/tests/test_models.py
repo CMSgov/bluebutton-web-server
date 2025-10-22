@@ -325,7 +325,6 @@ class BeneficiaryLoginTest(TestCase):
         }
 
         for name, case in cases.items():
-            print("name: ", name)
             arg0 = case['args'][0]
             slsx_client0 = OAuth2ConfigSLSx(case['args'][0])
             create_beneficiary_record(slsx_client0,

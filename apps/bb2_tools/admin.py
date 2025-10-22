@@ -363,7 +363,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     def get_identities(self, obj):
         # BB2-4166-TODO: add support for v3
         return format_html(
-            "<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>".format(
+            '<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
                 obj.fhir_id(2), obj.user_hicn_hash, obj.user_mbi
             )
         )

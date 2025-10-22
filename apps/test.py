@@ -202,16 +202,12 @@ class BaseApiTest(TestCase):
 
         # Delete any existing crosswalks with the same unique values as the ones coming in
         if fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists():
-            print("delete 1")
             Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).delete()
         if fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists():
-            print("delete 2")
             Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).delete()
         if hicn_hash and Crosswalk.objects.filter(_user_id_hash=hicn_hash).exists():
-            print("delete 3")
             Crosswalk.objects.filter(_user_id_hash=hicn_hash).delete()
         if mbi and Crosswalk.objects.filter(_user_mbi=mbi).exists():
-            print("delete 4")
             Crosswalk.objects.filter(_user_mbi=mbi).delete()
 
         cw = Crosswalk.objects.create(

@@ -145,7 +145,6 @@ class TestModels(BaseApiTest):
                 user_hicn_hash="239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi=self._generate_random_mbi(),
-                # user_mbi='1SA0A00BB0' + str(cnt),
             )
 
         # Create 7x Synthetic (negative FHIR_ID) users
@@ -161,7 +160,6 @@ class TestModels(BaseApiTest):
                 user_hicn_hash="255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
                 user_mbi=self._generate_random_mbi(),
-                # user_mbi='1SA0A00EE0' + str(cnt),
             )
 
         cc = get_crosswalk_bene_counts()

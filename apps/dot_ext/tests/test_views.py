@@ -584,7 +584,6 @@ class TestTokenView(BaseApiTest):
             response = self.client.get(
                 '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
             )
-            print("response.json(): ", response.json(), response.status_code)
 
         bob_tkn = self._create_test_token(bob, bob_application)
         self.assertTrue(
