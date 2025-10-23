@@ -27,6 +27,7 @@ display_usage() {
     echo "-h     Print this Help."
     echo "-g     Selenium grid used."
     echo "-t     Show test case actions on std out."
+    echo '-l     Use Login with Medicare.gov button'
     echo
     echo "Examples:"
     echo
@@ -50,6 +51,7 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_NEW_PERM_SCREEN=true
+export USE_LOGIN_WITH_MEDICARE_BUTTON='false'
 export SERVICE_NAME="selenium-tests-remote"
 # TODO optionally add the Spanish selenium tests here if desired
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
@@ -67,6 +69,8 @@ while getopts "hpgt" option; do
         exit;;
       g)
         export SELENIUM_GRID=true;;
+      l)
+        export USE_LOGIN_WITH_MEDICARE_BUTTON='true';;
       t)
         export PYTEST_SHOW_TRACE_OPT='-s';;
      \?)
@@ -90,6 +94,7 @@ then
             ;;
         TEST)
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
+            export USE_LOGIN_WITH_MEDICARE_BUTTON='true'
             ;;
         *)
             if [[ ${last_arg} == 'http'* ]]
@@ -108,6 +113,7 @@ fi
 SYSTEM=$(uname -s)
 
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
+echo "USE_LOGIN_WITH_MEDICARE_BUTTON=" ${USE_LOGIN_WITH_MEDICARE_BUTTON}
 echo "BB2 Server URL=" ${HOSTNAME_URL}
 echo "Selenium grid=" ${SELENIUM_GRID}
 
@@ -116,7 +122,10 @@ export USE_MSLSX=false
 
 # stop all before run selenium remote tests
 docker compose -f docker-compose.selenium.remote.yml down --remove-orphans
-docker compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c \
+"SELENIUM_GRID=${SELENIUM_GRID} \
+ USE_LOGIN_WITH_MEDICARE_BUTTON=${USE_LOGIN_WITH_MEDICARE_BUTTON} \
+ pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg

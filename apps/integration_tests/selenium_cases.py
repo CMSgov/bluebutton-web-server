@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
+USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
@@ -269,6 +270,17 @@ SEQ_LOGIN_MSLSX = [
 ]
 
 SEQ_LOGIN_SLSX = [
+    *(
+        [{
+            "display": "Click 'Log in with Medicare.gov' button",
+            "action": Action.FIND_CLICK,
+            "params": [
+                20,
+                By.CSS_SELECTOR,
+                "button.ds-c-button.ds-c-button--solid.ds-u-margin-top--2"
+            ],
+        }] if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true' else []
+    ),
     {
         "display": "Medicare.gov login username",
         "action": Action.FIND_SEND_KEY,
