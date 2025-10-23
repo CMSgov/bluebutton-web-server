@@ -51,6 +51,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
         OrderedDict: A dictionary used to prepare/extend the Django session.
     """
     response = OrderedDict()
+    version_as_string = Versions.as_str(version)
 
     response['api_ver'] = version
     oa2client = Application.objects.get(name="TestApp")
@@ -65,7 +66,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
 
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version)
+    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version_as_string)
 
     auth_data = __generate_auth_data()
     response['code_challenge_method'] = "S256"
@@ -73,12 +74,12 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
 
-    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, version)
-    response['token_uri'] = '{}/{}/o/token/'.format(host, version)
-    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, version)
-    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, version)
-    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, version)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version)
+    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, version_as_string)
+    response['token_uri'] = '{}/{}/o/token/'.format(host, version_as_string)
+    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, version_as_string)
+    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, version_as_string)
+    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, version_as_string)
+    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version_as_string)
 
     return response
 

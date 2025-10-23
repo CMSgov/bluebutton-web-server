@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 import apps.logging.request_logger as bb2logging
 import logging
+from apps.constants import Versions
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -30,25 +31,26 @@ class EndpointUrl:
     coverage = "coverage"
     nav = "nav"
 
-    def fmt(name: str, uri: str, version: str, patient: str = BAD_PATIENT_ID):
+    def fmt(name: str, uri: str, version: int, patient: str = BAD_PATIENT_ID):
+        version_as_string = Versions.as_str(version)
         match name:
             case EndpointUrl.userinfo:
-                return f"{uri}/{version}/connect/userinfo"
+                return f"{uri}/{version_as_string}/connect/userinfo"
             case EndpointUrl.patient:
                 if patient is None or patient == BAD_PATIENT_ID:
                     logger.error(f"EndpointUrl format called with invalid patient id")
                     raise
-                return f"{uri}/{version}/fhir/Patient/{patient}?_format=json"
+                return f"{uri}/{version_as_string}/fhir/Patient/{patient}?_format=json"
             case EndpointUrl.explanation_of_benefit:
-                return f"{uri}/{version}/fhir/ExplanationOfBenefit/?_format=json"
+                return f"{uri}/{version_as_string}/fhir/ExplanationOfBenefit/?_format=json"
             case EndpointUrl.coverage:
-                return f"{uri}/{version}/fhir/Coverage/?_format=json"
+                return f"{uri}/{version_as_string}/fhir/Coverage/?_format=json"
             case _:
                 logger.error(f"Could not match name in EndpointUrl: {name}")
 
         # If we are asked to format something that doesn't exist, raise an exception. This situation should
         # never occur, and therefore we want something to break.
-        raise EndpointFormatException(f"Could not format URI name[{name}] uri[{uri}] version[{version}]")
+        raise EndpointFormatException(f"Could not format URI name[{name}] uri[{uri}] version[{version_as_string}]")
 
     def nav_uri(uri, count, start_index, id_type=None, id=None):
         return f"{uri}&_count={count}&startIndex={start_index}&{id_type}={id}"

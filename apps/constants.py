@@ -13,9 +13,9 @@ class VersionNotMatched(Exception):
 
 
 class Versions:
-    V1 = 'v1'
-    V2 = 'v2'
-    V3 = 'v3'
+    V1 = 1
+    V2 = 2
+    V3 = 3
 
     # If we use a default version anywhere, this is the current
     # default version for BB2
@@ -23,9 +23,12 @@ class Versions:
 
     # In some cases, we need to default to an API version.
     # For now, we are defaulting to v2.
-    NOT_AN_API_VERSION = 'v0'
+    NOT_AN_API_VERSION = 0
 
-    def as_int(version: str) -> int:
+    def as_str(version: int):
+        return f'v{version}'
+
+    def as_int(version: int) -> int:
         match version:
             case Versions.V1:
                 return 1

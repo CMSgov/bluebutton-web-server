@@ -265,11 +265,11 @@ class BlueButtonClientApiFhirTest(TestCase):
             case Versions.V1:
                 self.assertTrue(_deepfind(
                     response_data,
-                    f"{version}/fhir/ExplanationOfBenefit"))
+                    f"{Versions.as_str(version)}/fhir/ExplanationOfBenefit"))
             case Versions.V2:
                 self.assertTrue(_deepfind(
                     response_data,
-                    f"{version}/fhir/ExplanationOfBenefit"))
+                    f"{Versions.as_str(version)}/fhir/ExplanationOfBenefit"))
             case Versions.V3:
                 # V3 tests not implemented yet. Assert a failure.
                 self.fail("Failing _test_get_eob for v3")
@@ -312,6 +312,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["eob_uri"],
             self.patient,
         )
+
         response = self.client.get(uri)
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
