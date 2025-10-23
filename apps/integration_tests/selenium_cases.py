@@ -269,18 +269,20 @@ SEQ_LOGIN_MSLSX = [
     },
 ]
 
-SEQ_LOGIN_SLSX = [
-    *(
-        [{
-            "display": "Click 'Log in with Medicare.gov' button",
-            "action": Action.FIND_CLICK,
-            "params": [
-                20,
-                By.CSS_SELECTOR,
-                "button.ds-c-button.ds-c-button--solid.ds-u-margin-top--2"
-            ],
-        }] if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true' else []
-    ),
+LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
+if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
+    LOGIN_WITH_MEDICARE_BUTTON_SETUP = [{
+        "display": "Click 'Log in with Medicare.gov' button",
+        "action": Action.FIND_CLICK,
+        "params": [
+            20,
+            By.CSS_SELECTOR,
+            "button.ds-c-button.ds-c-button--solid.ds-u-margin-top--2"
+        ],
+    }]
+
+SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
+
     {
         "display": "Medicare.gov login username",
         "action": Action.FIND_SEND_KEY,

@@ -31,11 +31,11 @@ display_usage() {
     echo
     echo "Examples:"
     echo
-    echo "run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/ (or SBX)"
+    echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
     echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
     echo
-    echo "run_selenium_tests_remote.sh -p  https://test.bluebutton.cms.gov/ (or TEST)"
+    echo "run_selenium_tests_remote.sh  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
     echo
@@ -50,8 +50,8 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
+USE_LOGIN_WITH_MEDICARE_BUTTON="${USE_LOGIN_WITH_MEDICARE_BUTTON:-}"
 export USE_NEW_PERM_SCREEN=true
-export USE_LOGIN_WITH_MEDICARE_BUTTON='false'
 export SERVICE_NAME="selenium-tests-remote"
 # TODO optionally add the Spanish selenium tests here if desired
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
@@ -94,7 +94,9 @@ then
             ;;
         TEST)
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
-            export USE_LOGIN_WITH_MEDICARE_BUTTON='true'
+            if [[ -z "${USE_LOGIN_WITH_MEDICARE_BUTTON}" ]]; then
+                export USE_LOGIN_WITH_MEDICARE_BUTTON='true'
+            fi
             ;;
         *)
             if [[ ${last_arg} == 'http'* ]]
