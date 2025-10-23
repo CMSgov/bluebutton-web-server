@@ -111,7 +111,7 @@ urlpatterns_v3 = [
     path("v3/fhir/metadata", waffle_switch("v3_endpoints")(fhir_conformance_v3), name="fhir_conformance_metadata_v3"),
     # openid_config
     path(
-        "v3/connect/.well-known/openid-configuration", waffle_switch("v3_endpoints")(openid_configuration_v3), name="openid-configuration"
+        "v3/connect/.well-known/openid-configuration", waffle_switch("v3_endpoints")(openid_configuration_v3), name="openid-configuration-v3"
     ),
     # smart config
     path("v3/fhir/.well-known/smart-configuration", waffle_switch("v3_endpoints")

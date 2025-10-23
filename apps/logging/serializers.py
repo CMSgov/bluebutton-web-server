@@ -291,9 +291,7 @@ class SLSxTokenResponse(SLSResponse):
                 event_dict = json.loads(self.resp.text)
             except json.decoder.JSONDecodeError:
                 json_exception = {
-                    "message": f"JSONDecodeError thrown when parsing response text. See response text.",
-                    # 20251015 FIXME/WARNING MCJ: Can we add this to the logs safely?
-                    "response_text": self.resp.text,
+                    "message": f"JSONDecodeError thrown when parsing response text.",
                 }
 
         event_dict.update(super().to_dict().copy())
