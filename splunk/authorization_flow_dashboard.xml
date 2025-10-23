@@ -126,13 +126,13 @@
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch3">
-    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_hicn_hash message.auth_pkce_method</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch11">
-    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
@@ -461,7 +461,7 @@
     <panel>
       <table>
         <search base="baseSearch3">
-          <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+          <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -627,7 +627,7 @@
     <panel>
       <table>
         <search base="baseSearch11">
-          <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
+          <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>

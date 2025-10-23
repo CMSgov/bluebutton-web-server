@@ -105,7 +105,8 @@ class Command(BaseCommand):
                     user_mbi_hash = crosswalk.user_mbi_hash
                     rf = RequestFactory()
                     request = rf.get('/')
-                    print('fhir_id %s' % (crosswalk.fhir_id))
+                    # TODO - tied to BB2-4193, remove these references to user_mbi_hash as part
+                    # of the ticket to remove the user_mbi_hash column from the crosswalk table 
                     print('user_mbi_hash %s' % (user_mbi_hash))
                     if not user_mbi_hash:
                         print('can\'t update this record, no user_mbi_hash')

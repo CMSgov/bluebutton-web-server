@@ -141,66 +141,66 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         user = User.objects.create_user("bob", password="bad")
         Crosswalk.objects.create(
             user=user,
-            fhir_id_v2="-20000000002346",
-            user_hicn_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
-            user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321",
+            fhir_id_v2='-20000000002346',
+            user_hicn_hash='96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
+            user_mbi='1SA0A00AA00',
         )
         application = Application.objects.create(
-            redirect_uris="http://test.com",
-            authorization_grant_type="authorization-code",
-            name="test01",
+            redirect_uris='http://test.com',
+            authorization_grant_type='authorization-code',
+            name='test01',
             user=user,
         )
 
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application.scope.add(capability_a, capability_b)
 
         approval = Approval.objects.create(user=user)
-        auth_uri = reverse("oauth2_provider:authorize-instance", args=[approval.uuid])
+        auth_uri = reverse('oauth2_provider:authorize-instance', args=[approval.uuid])
         response = self.client.get(
             auth_uri,
             data={
-                "client_id": application.client_id,
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
+                'client_id': application.client_id,
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
             },
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         approval.refresh_from_db()
         self.assertEqual(application, approval.application)
-        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertNotIn('_auth_user_id', self.client.session)
         response = self.client.post(
             auth_uri,
             data={
-                "client_id": "bad",
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
-                "state": "1234567890",
+                'client_id': 'bad',
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
+                'state': '1234567890',
             },
         )
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": "http://test.com",
-            "scope": ["capability-a"],
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': 'http://test.com',
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
-        self.assertIn("code=", response.url)
-        approval.created_at = datetime.now() - parse_duration("601")
+        self.assertIn('code=', response.url)
+        approval.created_at = datetime.now() - parse_duration('601')
         approval.save()
         response = self.client.post(
             auth_uri,
             data={
-                "client_id": application.client_id,
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
-                "state": "1234567890",
+                'client_id': application.client_id,
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
+                'state': '1234567890',
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -208,9 +208,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         response = self.client.post(
             auth_uri,
             data={
-                "client_id": application.client_id,
-                "redirect_uri": "http://test.com",
-                "response_type": "code",
+                'client_id': application.client_id,
+                'redirect_uri': 'http://test.com',
+                'response_type': 'code',
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -530,15 +530,15 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                   a bene with fhir_id = -20140000008325
 
             1. First successful matching for beneficiary having only a valid hicn and EMPTY mbi.
-               This creates a new Crosswalk entry with hicn and NULL mbi hash values in the crosswalk.
+               This creates a new Crosswalk entry with hicn and NULL mbi values in the crosswalk.
 
             2. The bene's MBI has been changed from empty to valid value in the mock SLSx user_info response.
-               The crosswalk is updated with the new MBI hash.
+               The crosswalk is updated with the new mbi.
 
             3. Remove Crosswalk and ArchivedCrosswalk entries for a start fresh.
 
             4. Successful matching for beneficiary having valid hicn/mbi.
-               This creates a new Crosswalk entry with hicn/mbi hash values used in the initial match.
+               This creates a new Crosswalk entry with hicn hash/mbi values used in the initial match.
 
             5. The bene's HICN has been changed in the mock SLSx user_info response.
 
@@ -557,14 +557,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             7. The bene's MBI has been changed in the mock SLSx user_info response.
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_mbi
 
-               The new behavior updates the MBI hash in the crosswalk.
+               The new behavior updates the user_mbi in the crosswalk.
 
-            8. Restore saved_mbi_hash in Crosswalk prior to next test. Restore crosswalk state to same as #4.
+            8. Restore saved_mbi in Crosswalk prior to next test. Restore crosswalk state to same as #4.
 
-            9. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
+            9. The bene's HICN hash & MBI (both) have been changed in the mock SLSx user_info response.
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn_mbi
 
-               The new behavior updates the HICN & MBI hash in the crosswalk.
+               The new behavior updates the HICN hash & MBI in the crosswalk.
         """
         # create a state
         state = generate_nonce()
@@ -613,7 +613,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(cw._user_mbi_hash, None)
 
         # Validate ArchiveCrosswalk count
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
@@ -632,13 +631,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema["properties"]["crosswalk"]["properties"].update(
             {
                 "user_id_type": {"pattern": "^H$"},
-                "user_mbi_hash": {"type": "null"},
             }
         )
 
         log_schema["properties"].update(
             {
-                "mbi_hash": {"type": "null"},
                 "hash_lookup_type": {"pattern": "^H$"},
             }
         )
@@ -672,10 +669,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(
-            cw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
@@ -687,7 +681,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(acw._user_mbi_hash, None)
 
         # Validate logging
         log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
@@ -703,21 +696,15 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema["properties"]["crosswalk"]["properties"].update(
             {
                 "user_id_type": {"pattern": "^M$"},
-                "user_mbi_hash": {
-                    "type": "string",
-                    "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
-                },
             }
         )
 
         log_schema["properties"].update(
             {
                 "mesg": {"pattern": "^RETURN existing beneficiary record$"},
-                "mbi_updated": {"enum": [True]},
-                "mbi_updated_from_null": {"enum": [True]},
-                "mbi_hash": {
+                "user_mbi": {
                     "type": "string",
-                    "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
+                    "pattern": "^1SA0A00AA00$",
                 },
                 "hash_lookup_type": {"type": "string", "pattern": "^M$"},
                 "crosswalk_before": {
@@ -728,7 +715,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
                         },
-                        "user_mbi_hash": {"type": "null"},
                         "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^H$"},
                     },
@@ -775,10 +761,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(
-            cw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
         # Validate ArchiveCrosswalk count
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
@@ -802,7 +785,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Save crosswalk values for restoring prior to later tests.
         saved_hicn_hash = cw._user_id_hash
-        saved_mbi_hash = cw._user_mbi_hash
 
         # 5. The bene's HICN has been changed in the mock SLSx user_info response.
         with HTTMock(
@@ -830,10 +812,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             cw._user_id_hash,
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
         )
-        self.assertEqual(
-            cw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
@@ -845,10 +824,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             acw._user_id_hash,
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
-        self.assertEqual(
-            acw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
-        )
+        self.assertEqual(acw._user_mbi, '1SA0A00AA00')
 
         # Validate logging
         log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
@@ -890,10 +866,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                         "user_hicn_hash": {
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
-                        },
-                        "user_mbi_hash": {
-                            "type": "string",
-                            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
                         "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
@@ -937,8 +909,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
         self.assertEqual(
-            cw._user_mbi_hash,
-            "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0",
+            cw._user_mbi,
+            '1SA0A00AA01',
         )
 
         # Assert correct archived crosswalk values
@@ -952,8 +924,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
         self.assertEqual(
-            acw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
+            acw._user_mbi,
+            '1SA0A00AA00',
         )
 
         # Validate logging
@@ -966,26 +938,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Set working copy of schema
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
-        #   Update json schema for what changed (mbi)
-        log_schema["properties"]["crosswalk"]["properties"].update(
-            {
-                "user_mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
-                }
-            }
-        )
-
         log_schema["properties"].update(
             {
                 "mesg": {
                     "type": "string",
                     "pattern": "^RETURN existing beneficiary record$",
-                },
-                "mbi_updated": {"enum": [True]},
-                "mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
                 },
                 "crosswalk_before": {
                     "type": "object",
@@ -994,10 +951,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                         "user_hicn_hash": {
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
-                        },
-                        "user_mbi_hash": {
-                            "type": "string",
-                            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
                         "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},
@@ -1009,12 +962,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Assert correct log values using json schema
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
-        # 8. Restore crosswalk's mbi hash to original.
-        cw = Crosswalk.objects.get(id=2)
-        cw._user_mbi_hash = saved_mbi_hash
-        cw.save()
-
-        # 9. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
+        # 8. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
         with HTTMock(
             self.mock_response.slsx_token_mock,
             self.mock_response.slsx_user_info_mock_changed_hicn_mbi,
@@ -1041,8 +989,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
         )
         self.assertEqual(
-            cw._user_mbi_hash,
-            "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0",
+            cw._user_mbi,
+            '1SA0A00AA01',
         )
 
         # Assert correct archived crosswalk values:
@@ -1056,8 +1004,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
         )
         self.assertEqual(
-            acw._user_mbi_hash,
-            "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28",
+            acw._user_mbi,
+            '1SA0A00AA00',
         )
 
         # Validate logging
@@ -1077,10 +1025,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     "type": "string",
                     "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
                 },
-                "user_mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
-                },
             }
         )
 
@@ -1091,14 +1035,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     "pattern": "^RETURN existing beneficiary record$",
                 },
                 "hicn_updated": {"enum": [True]},
-                "mbi_updated": {"enum": [True]},
                 "hicn_hash": {
                     "type": "string",
                     "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
-                },
-                "mbi_hash": {
-                    "type": "string",
-                    "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$",
                 },
                 "crosswalk_before": {
                     "type": "object",
@@ -1107,10 +1046,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                         "user_hicn_hash": {
                             "type": "string",
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
-                        },
-                        "user_mbi_hash": {
-                            "type": "string",
-                            "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$",
                         },
                         "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
                         "user_id_type": {"type": "string", "pattern": "^M$"},

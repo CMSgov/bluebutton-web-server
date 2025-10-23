@@ -6,7 +6,7 @@ import apps.logging.request_logger as logging
 """
 
 
-def log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash,
+def log_match_fhir_id(request, fhir_id, hicn_hash,
                       match_found, hash_lookup_type, hash_lookup_mesg):
     '''
         Logging for "fhir.server.authentication.match_fhir_id" type
@@ -16,7 +16,6 @@ def log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash,
     match_fhir_id_logger.info({
         "type": "fhir.server.authentication.match_fhir_id",
         "fhir_id_v2": fhir_id,
-        "mbi_hash": mbi_hash,
         "hicn_hash": hicn_hash,
         "match_found": match_found,
         "hash_lookup_type": hash_lookup_type,

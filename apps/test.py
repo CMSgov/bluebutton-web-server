@@ -1,6 +1,8 @@
 # import io
 import json
+import random
 import re
+import string
 
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
@@ -22,6 +24,11 @@ from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 
 
+MBI_CHARS = string.ascii_uppercase + string.digits
+LETTERS = string.ascii_uppercase
+DIGITS = string.digits
+
+
 def flag_is_active(name):
     flag = get_waffle_flag_model().get(name)
     return flag.everyone
@@ -33,9 +40,8 @@ class BaseApiTest(TestCase):
     protected with oauth2 using DOT.
     """
 
-    test_hicn_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
-    test_mbi_hash = "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
-    test_mbi = "1SA0A00AA00"
+    test_hicn_hash = '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7'
+    test_mbi = '1SA0A00AA00'
 
     def _create_user(
         self,
@@ -44,7 +50,7 @@ class BaseApiTest(TestCase):
         fhir_id_v2: str | None = None,
         fhir_id_v3: str | None = None,
         user_hicn_hash: str | None = test_hicn_hash,
-        user_mbi_hash: str | None = test_mbi_hash,
+        user_mbi: str | None = test_mbi,
         user_type=None,  # TODO: This is not used currently, consider removing
         **extra_fields
     ) -> User:
@@ -60,7 +66,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2 (str | None, optional): crosswalk.fhir_id_v2
             fhir_id_v3 (str | None, optional): crosswalk.fhir_id_v3
             user_hicn_hash (str | None, optional): _description_. Defaults to test_hicn_hash.
-            user_mbi_hash (str | None, optional): _description_. Defaults to test_mbi_hash.
+            user_mbi (str | None, optional): _description_. Defaults to test_mbi.
             user_type (_type_, optional): _description_. Defaults to None.
 
         Returns:
@@ -74,7 +80,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             hicn_hash=user_hicn_hash,
-            mbi_hash=user_mbi_hash,
+            mbi=user_mbi,
         )
         # Create ben user profile, if it doesn't exist
         if user_type:
@@ -181,7 +187,7 @@ class BaseApiTest(TestCase):
         )
         return label
 
-    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi_hash=test_mbi_hash):
+    def _create_crosswalk(self, user, fhir_id_v2, fhir_id_v3=None, hicn_hash=test_hicn_hash, mbi=test_mbi):
         """Helper method that gets or creates a Crosswalk instance, deleting any existing
 
         Args:
@@ -189,7 +195,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2 (_type_): _description_
             fhir_id_v3 (_type_, optional): _description_. Defaults to None.
             hicn_hash (_type_, optional): _description_. Defaults to test_hicn_hash.
-            mbi_hash (_type_, optional): _description_. Defaults to test_mbi_hash.
+            mbi (_type_, optional): _description_. Defaults to test_mbi.
 
         Returns:
             Crosswalk: The resultant crosswalk
@@ -202,15 +208,15 @@ class BaseApiTest(TestCase):
             Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).delete()
         if hicn_hash and Crosswalk.objects.filter(_user_id_hash=hicn_hash).exists():
             Crosswalk.objects.filter(_user_id_hash=hicn_hash).delete()
-        if mbi_hash and Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).exists():
-            Crosswalk.objects.filter(_user_mbi_hash=mbi_hash).delete()
+        if mbi and Crosswalk.objects.filter(_user_mbi=mbi).exists():
+            Crosswalk.objects.filter(_user_mbi=mbi).delete()
 
         cw = Crosswalk.objects.create(
             user=user,
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             _user_id_hash=hicn_hash,
-            _user_mbi_hash=mbi_hash,
+            _user_mbi=mbi,
         )
         cw.save()
 
@@ -364,7 +370,7 @@ class BaseApiTest(TestCase):
 
     def _create_user_app_token_grant(
         self, first_name, last_name, fhir_id_v2, fhir_id_v3, app_name, app_username, app_user_organization,
-        app_data_access_type=None
+        mbi: str, app_data_access_type=None
     ):
         """
         Helper method that creates a user connected to an application
@@ -395,7 +401,8 @@ class BaseApiTest(TestCase):
             capability_b = self._create_capability("Capability B", [])
             application.scope.add(capability_a, capability_b)
             application.save()
-
+        if not mbi:
+            mbi = self.test_mbi
         # Create beneficiary user, if it doesn't exist
         try:
             username = first_name + last_name + "@example.com"
@@ -406,9 +413,6 @@ class BaseApiTest(TestCase):
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )
-            mbi_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_mbi_hash[len(fhir_id_v2):]
-            )
 
             user = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -418,7 +422,7 @@ class BaseApiTest(TestCase):
                 fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
-                user_mbi_hash=mbi_hash,
+                user_mbi=mbi,
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
@@ -458,13 +462,14 @@ class BaseApiTest(TestCase):
             fhir_id_v2 = start_fhir_id + str(i)
             fhir_id_v3 = start_fhir_id + str(i + 1)
             user, app, ac = self._create_user_app_token_grant(
-                first_name="first",
-                last_name="last" + fhir_id_v2,
+                first_name='first',
+                last_name='last' + fhir_id_v2,
                 fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 app_name=app_name,
-                app_username="user_" + app_name,
+                app_username='user_' + app_name,
                 app_user_organization=app_user_organization,
+                mbi=self._generate_random_mbi()
             )
 
             user_dict[fhir_id_v2] = user
@@ -482,7 +487,7 @@ class BaseApiTest(TestCase):
             remove_application_user_pair_tokens_data_access(app, cw.user)
 
     def create_token(
-        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi_hash=None
+        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None
     ):
         passwd = "123456"
         user = self._create_user(
@@ -493,7 +498,7 @@ class BaseApiTest(TestCase):
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
-            user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
+            user_mbi=mbi if mbi is not None else self.test_mbi,
             email="%s@%s.net" % (first_name, last_name),
         )
 
@@ -504,3 +509,16 @@ class BaseApiTest(TestCase):
         application.scope.add(self.read_capability, self.write_capability)
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, passwd, application)
+
+    def _generate_random_mbi(self) -> str:
+        """
+        Generate a random MBI for use in different tests. The reason the MBI is constructed as such
+        is to follow the guidelines for MBI laid out by CMS here:
+        https://www.cms.gov/medicare/new-medicare-card/understanding-the-mbi.pdf
+        Args:
+            N/A
+        Returns:
+            str: A randomly generated MBI that begins with '1S' signifying it is synthetic data
+        """
+        pattern = [MBI_CHARS, DIGITS, LETTERS, MBI_CHARS, DIGITS, LETTERS, LETTERS, DIGITS, DIGITS]
+        return '1S' + ''.join(random.choice(chars) for chars in pattern)
