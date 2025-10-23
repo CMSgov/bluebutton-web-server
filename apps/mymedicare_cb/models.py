@@ -13,6 +13,10 @@ from apps.fhir.server.authentication import match_fhir_id
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
 
+MAX_HICN_HASH_LENGTH = 64
+MAX_MBI_LENGTH = 11
+
+
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
     # BB2-237 custom exception
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -31,8 +35,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     Args:
         slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below:
             subject = ID provider's sub or username
-            mbi_hash = Previously hashed mbi
-            mbi = Unhashed MBI from SLSx
+            mbi = MBI from SLSx
             hicn_hash = Previously hashed hicn
             first_name
             last_name
@@ -63,9 +66,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     # BFD v3 Lookup
 
     fhir_id, hash_lookup_type = match_fhir_id(
-        mbi=slsx_client.mbi,
-        mbi_hash=slsx_client.mbi_hash,
-        hicn_hash=hicn_hash, request=request
+        mbi=slsx_client.mbi, hicn_hash=hicn_hash, request=request
     )
 
     log_dict = {
@@ -73,17 +74,14 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         'subject': slsx_client.user_id,
         # BB2-4166-TODO: add fhir_id_v3 when the lookup above is completed
         'fhir_id_v2': fhir_id,
-        'mbi_hash': slsx_client.mbi_hash,
         'hicn_hash': slsx_client.hicn_hash,
         'hash_lookup_type': hash_lookup_type,
         'crosswalk': {},
         'crosswalk_before': {},
     }
 
-    # Init for types of crosswalk updates.
+    # Init for hicn crosswalk updates.
     hicn_updated = False
-    mbi_updated = False
-    mbi_updated_from_null = False
 
     try:
         # Does an existing user and crosswalk exist for SLSx username?
@@ -106,29 +104,18 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         if user.crosswalk.user_hicn_hash != slsx_client.hicn_hash:
             hicn_updated = True
 
-        # Did the mbi change?
-        if user.crosswalk.user_mbi_hash is not None:
-            if user.crosswalk.user_mbi_hash != slsx_client.mbi_hash:
-                mbi_updated = True
-        else:
-            # Did the mbi change from previously stored None/Null value?
-            if slsx_client.mbi_hash is not None:
-                mbi_updated = True
-                mbi_updated_from_null = True
-
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
         if (
             (user.crosswalk.user_mbi is None and slsx_client.mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != slsx_client.mbi)
-            or (user.crosswalk.user_id_type != hash_lookup_type or hicn_updated or mbi_updated)
+            or (user.crosswalk.user_id_type != hash_lookup_type or hicn_updated)
         ):
             # Log crosswalk before state
             log_dict.update({
                 'crosswalk_before': {
                     'id': user.crosswalk.id,
                     'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                    'user_mbi_hash': user.crosswalk.user_mbi_hash,
                     'fhir_id_v2': user.crosswalk.fhir_id(version),
                     'user_id_type': user.crosswalk.user_id_type,
                 },
@@ -141,7 +128,6 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
                 # Update crosswalk per changes
                 user.crosswalk.user_id_type = hash_lookup_type
                 user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
-                user.crosswalk.user_mbi_hash = slsx_client.mbi_hash
                 user.crosswalk.user_mbi = slsx_client.mbi
                 user.crosswalk.save()
 
@@ -151,14 +137,10 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
             'user_id': user.id,
             'user_username': user.username,
             'hicn_updated': hicn_updated,
-            'mbi_updated': mbi_updated,
-            'mbi_updated_from_null': mbi_updated_from_null,
             'mesg': 'RETURN existing beneficiary record',
             'crosswalk': {
                 'id': user.crosswalk.id,
                 'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                'user_mbi': user.crosswalk.user_mbi,
-                'user_mbi_hash': user.crosswalk.user_mbi_hash,
                 # BB2-4166-TODO: this is hardcoded to be version 2
                 'fhir_id_v2': user.crosswalk.fhir_id(2),
                 'user_id_type': user.crosswalk.user_id_type,
@@ -179,13 +161,10 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         'user_id': user.id,
         'user_username': user.username,
         'hicn_updated': hicn_updated,
-        'mbi_updated': mbi_updated,
-        'mbi_updated_from_null': mbi_updated_from_null,
         'mesg': 'CREATE beneficiary record',
         'crosswalk': {
             'id': user.crosswalk.id,
             'user_hicn_hash': user.crosswalk.user_hicn_hash,
-            'user_mbi_hash': user.crosswalk.user_mbi_hash,
             # BB2-4166-TODO: this needs to include both fhir versions
             'fhir_id_v2': user.crosswalk.fhir_id(2),
             'user_id_type': user.crosswalk.user_id_type,
@@ -218,7 +197,6 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
         'username': slsx_client.user_id,
         'fhir_id_v2': fhir_id_v2,
         'fhir_id_v3': fhir_id_v3,
-        'user_mbi_hash': slsx_client.mbi_hash,
         'user_hicn_hash': slsx_client.hicn_hash,
         'crosswalk': {},
     }
@@ -230,11 +208,11 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
         (slsx_client.hicn_hash is None,
          'user_hicn_hash can not be None',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != 64,
+        (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != MAX_HICN_HASH_LENGTH,
          'incorrect user HICN hash format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (slsx_client.mbi_hash is not None and len(slsx_client.mbi_hash) != 64,
-         'incorrect user MBI hash format',
+        (slsx_client.mbi is not None and len(slsx_client.mbi) != MAX_MBI_LENGTH,
+         'incorrect user MBI format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (User.objects.filter(username=slsx_client.user_id).exists(),
          'user already exists',
@@ -242,9 +220,9 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
         (Crosswalk.objects.filter(_user_id_hash=slsx_client.hicn_hash).exists(),
          'user_hicn_hash already exists',
          MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.hicn_hash),
-        (slsx_client.mbi_hash is not None and Crosswalk.objects.filter(_user_mbi_hash=slsx_client.mbi_hash).exists(),
-         'user_mbi_hash already exists',
-         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi_hash),
+        (slsx_client.mbi is not None and Crosswalk.objects.filter(_user_mbi=slsx_client.mbi).exists(),
+         'user_mbi already exists',
+         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi),
         (fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists(),
          'fhir_id_v2 already exists', MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
         (fhir_id_v2 == '', 'fhir_id_v2 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
@@ -266,7 +244,6 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
         cw = Crosswalk.objects.create(
             user=user,
             user_hicn_hash=slsx_client.hicn_hash,
-            user_mbi_hash=slsx_client.mbi_hash,
             user_mbi=slsx_client.mbi,
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
@@ -286,7 +263,6 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
             'crosswalk': {
                 'id': cw.id,
                 'user_hicn_hash': cw.user_hicn_hash,
-                'user_mbi_hash': cw.user_mbi_hash,
                 'fhir_id_v2': cw.fhir_id(2),
                 'fhir_id_v3': cw.fhir_id(3),
                 'user_id_type': cw.user_id_type,

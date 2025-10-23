@@ -151,6 +151,7 @@ class TestDataAccessGrant(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
         )
 
         user, application_2, ac = self._create_user_app_token_grant(
@@ -161,6 +162,7 @@ class TestDataAccessGrant(BaseApiTest):
             app_name="test_app2",
             app_username="devuser2",
             app_user_organization="org2",
+            mbi=self._generate_random_mbi(),
         )
 
         # 2. verify grant creation - errors if DNE or more than one is found

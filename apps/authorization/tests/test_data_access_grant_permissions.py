@@ -290,6 +290,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
             app_data_access_type="RESEARCH_STUDY",
         )
 
@@ -358,6 +359,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
             app_data_access_type="RESEARCH_STUDY",
         )
         self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
@@ -440,6 +442,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
             app_data_access_type="ONE_TIME",
         )
 
@@ -482,6 +485,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
             app_data_access_type="THIRTEEN_MONTH",
         )
 
@@ -556,6 +560,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
             app_data_access_type="THIRTEEN_MONTH",
         )
 
@@ -608,6 +613,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            mbi=self._generate_random_mbi(),
         )
 
         # 2. Test grant obj created OK.

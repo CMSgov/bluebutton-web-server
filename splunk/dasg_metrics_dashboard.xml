@@ -36,21 +36,21 @@
   <!-- Setup of BASE searches to be used in panels -->
   <search id="baseSearch1a">
     <!-- BASE search 1a. New Beneficiaries Added -->
-    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | dedup message.fhir_id message.auth_client_id message.auth_uuid message.username | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | dedup message.fhir_id message.auth_client_id message.auth_uuid message.username | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_hicn_hash message.auth_pkce_method message.status</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch1b">
     <!-- BASE search 1b. RETURNING Beneficiaries who have re-authorized -->
-    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | dedup message.fhir_id message.auth_client_id message.auth_uuid | fields time message.auth_uuid message.fhir_id message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | dedup message.fhir_id message.auth_client_id message.auth_uuid | fields time message.auth_uuid message.fhir_id message.auth_app_name message.mesg mesg message.user_hicn_hash message.auth_pkce_method message.status</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch2">
     <!-- BASE search benes choosing to share demographics -->
-    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action message.user.crosswalk.fhir_id</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action message.user.crosswalk.fhir_id</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
