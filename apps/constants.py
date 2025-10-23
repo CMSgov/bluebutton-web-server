@@ -34,6 +34,4 @@ class Versions:
             case Versions.V3:
                 return 3
             case _:
-                # FIXME MCJ: Raise an exception here.
-                # Do something noisy. We should not end up here.
                 raise VersionNotMatched(f"{version} is not a valid version constant")

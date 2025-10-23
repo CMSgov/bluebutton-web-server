@@ -15,8 +15,6 @@ from typing import Dict
 import re
 from collections import namedtuple
 
-from apps.fhir.bluebutton.models import Crosswalk
-
 from waffle.decorators import waffle_switch
 
 from .utils import (testclient_http_response_setup,
@@ -31,7 +29,7 @@ from apps.wellknown.views.openid import openid_configuration_v1
 
 import apps.logging.request_logger as bb2logging
 
-from apps.constants import Versions
+from apps.constants import Versions, VersionNotMatched
 
 from apps.testclient.constants import (
     HOME_PAGE,
@@ -62,10 +60,9 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     """Make a call to the FHIR backend and return the JSON data from the call"""
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
-    # FIXME: This is for pagination, which is different/not present (?) for v3.
     # This sets up the navigation URI (pagination) based on whether we are handling
     # a patient or a beneficiary. All of this logic is essentially to add one parameter,
-    # name correctly, to the nav URI.
+    # name correctly, to the nav URI. It is version dependent (there is no pagination in V3).
     if params.version in [Versions.V1, Versions.V2]:
         nav_link = request.GET.get('nav_link', None)
         if nav_link is not None:
@@ -79,9 +76,8 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
                 id_type = 'beneficiary'
                 id = beneficiary
             else:
-                # FIXME: We should not be able to get here.
-                # Raise an exception? Return an error JSON?
-                raise
+                # We should not be able to get here.
+                raise VersionNotMatched(f"Failed to set a patient id for version; given {params.version}")
 
             # Extend the base URI with pagination information.
             uri = EndpointUrl.nav_uri(uri,
@@ -102,10 +98,9 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
         try:
             return json.loads(json_response.content)
         except JSONDecodeError:
-            # FIXME: We bury an error condition here, but hide it as a good response.
-            # This should be handled differently?
             return {'error': f'Could not decode JSON; status code {json_response.status_code}'}
     else:
+        # Same as above.
         return {'error': json_response.status_code}
 
 
@@ -449,7 +444,6 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
 
 def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    # FIXME: Should this be here?
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
@@ -471,7 +465,7 @@ def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
                            })
 
     json_response = _convert_response_string_to_json(conformance(request))
-    # FIXME: Handle the error burried in _convert, return an error instead
+
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(json_response, indent=3),
                    'response_type': 'FHIR Metadata',
@@ -482,13 +476,12 @@ def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
 
 def _test_openid_config(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    # FIXME: Should this be here?
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
     # api ver agnostic for now, but show version any way on page
     json_response = _convert_response_string_to_json(openid_configuration_v1(request))
-    # FIXME: handle the error burried in _convert
+
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(json_response, indent=3),
                    'response_type': 'OIDC Discovery',

@@ -123,7 +123,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
             case _:
                 raise VersionNotMatched(f"Failed to set up tests with a valid version number; given {version}")
 
-        # FIXME: No idea what to do with this in a V3 context.
+        # TODO V3: This may need to be parameterized based on the version number.
         self.another_patient = "20140000000001"
 
     def _test_get_userinfo(self, version=Versions.NOT_AN_API_VERSION):
@@ -156,7 +156,9 @@ class BlueButtonClientApiFhirTest(TestCase):
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
         call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
-        # FIXME: This was V1. Can it be v2? Should it ever be v3?
+        # TODO V3: The testclient response setup prepares URLs; the URLs we pass back
+        # are not the same as those produced by EndpointUrl. We may want to centralized/
+        # standardize those URLs for robustness.
         self.testclient_setup = testclient_http_response_setup(version=version)
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))

@@ -40,9 +40,10 @@ def conformance_filter(text_block):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
-    # FIXME TODO MCJ: This... assumes you know the structure of the object in question.
-    # This needs better documentation around it. And, perhaps, some cleanup.
-
+    # TODO: This is fragile based on the structure of the resource.
+    # A more robust way of pulling this apart as we increment versions
+    # may be something to explore. Or, at least, handling possible key errors
+    # when reaching multiple levels deep into a structure.
     resource_names = constants.ALLOWED_RESOURCE_TYPES
     ct = 0
     if text_block:
@@ -83,7 +84,6 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
         case Versions.V3:
             fhir_url = resource_router.fhir_url_v3
         case _:
-            # MCJ FIXME: Perhaps everything should be a JSONResponse here?
             return HttpResponse(
                 json.dumps({
                     'error': f'Invalid API version: {version}'
@@ -120,7 +120,6 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
 
     od = conformance_filter(text_out)
 
-    # FIXME TODO MCJ: Perhaps this should be pushed into conformance_filter above?
     # Append Security to ConformanceStatement
     security_endpoint = build_oauth_resource(request, format_type="json")
     # QUESTION MCJ: This is extremely opaque, and fragile. Improve?

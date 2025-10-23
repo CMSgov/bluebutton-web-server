@@ -71,7 +71,5 @@ def get_fhir_id(user, version=Versions.NOT_AN_API_VERSION):
     if Crosswalk.objects.filter(user=user).exists():
         c = Crosswalk.objects.get(user=user)
         # fhir_id expects an integer (1, 2, 3, etc.)
-        # FIXME MCJ: Is it possible, if we ask for a v3 FHIR Id that
-        # this will fail? It looks like "no", so this should be OK.
         r = c.fhir_id(Versions.as_int(version))
     return r
