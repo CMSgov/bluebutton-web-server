@@ -39,13 +39,11 @@ from apps.test import BaseApiTest
 
 from .responses import patient_response
 
-from hhs_oauth_server.settings.base import FHIR_SERVER
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 ERR_MSG_HICN_EMPTY_OR_NONE = "User info HICN cannot be empty or None."
 ERR_MSG_HICN_NOT_STR = "User info HICN must be str."
 ERR_MSG_MBI_NOT_STR = "User info MBI must be str."
-
-MOCK_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
 
 
 class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
@@ -227,7 +225,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc=MOCK_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
+            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -357,7 +355,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # mock fhir user info endpoint
         # currently, we use v2 fhir endpoint even if the request coming in is v1 authorize (because we treat them the same)
         @urlmatch(
-            netloc=MOCK_ENDPOINT_HOSTNAME, path=f'/v{version if version == 3 else 2}/fhir/Patient/'
+            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path=f'/v{version if version == 3 else 2}/fhir/Patient/'
         )
         def fhir_patient_info_mock(url, request):
             return {
@@ -577,7 +575,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
         @urlmatch(
-            netloc=MOCK_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
+            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
         )
         def fhir_patient_info_mock(url, request):
             return {

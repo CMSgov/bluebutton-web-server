@@ -10,12 +10,11 @@ from apps.test import BaseApiTest
 from ..authentication import match_fhir_id
 from .responses import responses
 
-from hhs_oauth_server.settings.base import FHIR_SERVER
-MOCK_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 
 class TestAuthentication(BaseApiTest):
-    MOCK_FHIR_URL = MOCK_ENDPOINT_HOSTNAME
+    MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME
     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
     MOCK_FHIR_HICN_QUERY = ".*hicnHash.*"
     MOCK_FHIR_MBI_QUERY = ".*us-mbi|.*"
