@@ -56,40 +56,53 @@ def _get_oauth2_session_with_token(request: HttpRequest) -> OAuth2Session:
 FhirDataParams = namedtuple("FhirDataParams", "name,uri,version,patient")
 
 
+def _build_pagination_uri(params, request):
+    uri = None
+    # This sets up the navigation URI (pagination) based on whether we are handling
+    # a patient or a beneficiary. All of this logic is essentially to add one parameter,
+    # name correctly, to the nav URI. It is version dependent (there is no pagination in V3).
+    nav_link = request.GET.get('nav_link', None)
+    if nav_link is not None:
+        # for now it's either EOB or Coverage, make this more generic later
+        patient = request.GET.get('patient')
+        beneficiary = request.GET.get('beneficiary')
+        if patient is not None:
+            id_type = 'patient'
+            id = patient
+        elif beneficiary is not None:
+            id_type = 'beneficiary'
+            id = beneficiary
+        else:
+            # We should not be able to get here.
+            raise VersionNotMatched(f"Failed to set a patient id for version; given {params.version}")
+
+        # Extend the base URI with pagination information.
+        uri = EndpointUrl.nav_uri(uri,
+                                  count=request.GET.get('_count', 10),
+                                  start_index=request.GET.get('startIndex', 0),
+                                  id_type=id_type,
+                                  id=id)
+    return uri
+
+
 def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
     """Make a call to the FHIR backend and return the JSON data from the call"""
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
-    # This sets up the navigation URI (pagination) based on whether we are handling
-    # a patient or a beneficiary. All of this logic is essentially to add one parameter,
-    # name correctly, to the nav URI. It is version dependent (there is no pagination in V3).
     if params.version in [Versions.V1, Versions.V2]:
-        nav_link = request.GET.get('nav_link', None)
-        if nav_link is not None:
-            # for now it's either EOB or Coverage, make this more generic later
-            patient = request.GET.get('patient')
-            beneficiary = request.GET.get('beneficiary')
-            if patient is not None:
-                id_type = 'patient'
-                id = patient
-            elif beneficiary is not None:
-                id_type = 'beneficiary'
-                id = beneficiary
-            else:
-                # We should not be able to get here.
-                raise VersionNotMatched(f"Failed to set a patient id for version; given {params.version}")
-
-            # Extend the base URI with pagination information.
-            uri = EndpointUrl.nav_uri(uri,
-                                      count=request.GET.get('_count', 10),
-                                      start_index=request.GET.get('startIndex', 0),
-                                      id_type=id_type,
-                                      id=id)
+        pagination_uri = _build_pagination_uri(params, request)
+        if pagination_uri is not None:
+            uri = pagination_uri
 
     oas = _get_oauth2_session_with_token(request)
     r = oas.get(uri)
 
-    return r.json()
+    try:
+        result_json = r.json()
+    except JSONDecodeError as err:
+        result_json = {'error': f'Unrecoverable error fetching FHIR data: {err.msg}'}
+
+    return result_json
 
 
 def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
@@ -369,7 +382,10 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     # _pagination_info is only returned for versions v1, v2
     # The string 'No pagination info from backend' is returned otherwise.
-    pg_info = _pagination_info(request, last_link, version) if nav_info and len(nav_info) > 0 else None
+    if nav_info and len(nav_info) > 0:
+        pg_info = _pagination_info(request, last_link, version)
+    else:
+        pg_info = None
 
     match version:
         case Versions.V1:
@@ -406,7 +422,7 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
 
     params = FhirDataParams(EndpointUrl.explanation_of_benefit,
                             request.session['resource_uri'], version, None)
-    logger.info(params)
+
     eob = _get_fhir_data_as_json(request, params)
 
     nav_info, last_link = extract_page_nav(eob)

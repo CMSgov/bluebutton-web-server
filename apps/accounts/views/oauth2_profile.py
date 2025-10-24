@@ -43,7 +43,7 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
                      TokenHasProtectedCapability,
                      DataAccessGrantPermission])
 @protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
-def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION, **kwargs):
+def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
 
     # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
@@ -51,19 +51,19 @@ def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION, **kwar
     return JsonResponse(_get_userinfo(request.resource_owner, version))
 
 
-def openidconnect_userinfo_v1(request, **kwargs):
+def openidconnect_userinfo_v1(request):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
-    return _openidconnect_userinfo(request, version=Versions.V1, **kwargs)
+    return _openidconnect_userinfo(request, version=Versions.V1)
 
 
-def openidconnect_userinfo_v2(request, **kwargs):
+def openidconnect_userinfo_v2(request):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
-    return _openidconnect_userinfo(request, version=Versions.V2, **kwargs)
+    return _openidconnect_userinfo(request, version=Versions.V2)
 
 
-def openidconnect_userinfo_v3(request, **kwargs):
+def openidconnect_userinfo_v3(request):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
-    return _openidconnect_userinfo(request, version=Versions.V3, **kwargs)
+    return _openidconnect_userinfo(request, version=Versions.V3)
 
 
 def get_fhir_id(user, version=Versions.NOT_AN_API_VERSION):

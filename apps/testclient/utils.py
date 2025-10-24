@@ -34,6 +34,8 @@ def _start_url_with_http_or_https(host: str) -> str:
 
     return host
 
+# TODO/FIXME: Why do we pass in a version, and then get the version from the session oject?
+
 
 def testclient_http_response_setup(include_client_secret: bool = True, version: str = Versions.NOT_AN_API_VERSION) -> OrderedDict:
     """Prepare testclient response environment
@@ -51,16 +53,19 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
         OrderedDict: A dictionary used to prepare/extend the Django session.
     """
     response = OrderedDict()
-    version_as_string = Versions.as_str(version)
 
     response['api_ver'] = version
+    version_as_string = Versions.as_str(version)
+
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
 
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
 
-    # QUESTION: Do these tests run in CI/CD? If not, why is this parameterized at all?
+    # FIXME: This seems dangerous, to default to localhost.
+    # If this code is running in production, it could redirect to the user's machine.
+    # Better that we set this, and pull the host URL from settings established at startup.
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
     host = _start_url_with_http_or_https(host)
 
@@ -74,12 +79,12 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
 
-    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, version_as_string)
-    response['token_uri'] = '{}/{}/o/token/'.format(host, version_as_string)
-    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, version_as_string)
-    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, version_as_string)
-    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, version_as_string)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version_as_string)
+    response['authorization_uri'] = f'{host}/{version_as_string}/o/authorize/'
+    response['token_uri'] = f'{host}/{version_as_string}/o/token/'
+    response['userinfo_uri'] = f'{host}/{version_as_string}/connect/userinfo'
+    response['patient_uri'] = f'{host}/{version_as_string}/fhir/Patient/'
+    response['eob_uri'] = f'{host}/{version_as_string}/fhir/ExplanationOfBenefit/'
+    response['coverage_uri'] = f'{host}/{version_as_string}/fhir/Coverage/'
 
     return response
 

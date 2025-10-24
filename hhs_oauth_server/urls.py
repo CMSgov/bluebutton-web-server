@@ -5,6 +5,7 @@ from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
 from waffle.decorators import waffle_switch
+from waffle import switch_is_active
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo_v1, openidconnect_userinfo_v2, openidconnect_userinfo_v3
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
@@ -97,26 +98,29 @@ urlpatterns_v3 = [
     # path("v3/accounts/", waffle_switch("v3_endpoints")(include("apps.accounts.v3.urls"))),
     # authorization
     path("v3/o/", include("apps.authorization.v3.urls")),
-    # connect/userinfo
-    re_path(
-        r"^v3/connect/userinfo",
-        waffle_switch("v3_endpoints")(openidconnect_userinfo_v3),
-        name="openid_connect_userinfo_v3",
-    ),
     # dot_ext
     path("v3/o/", include("apps.dot_ext.v3.urls")),
-    # fhir/bluebutton
-    path("v3/fhir/", waffle_switch("v3_endpoints")(include("apps.fhir.bluebutton.v3.urls"))),
-    # fhir/metadata
-    path("v3/fhir/metadata", waffle_switch("v3_endpoints")(fhir_conformance_v3), name="fhir_conformance_metadata_v3"),
-    # openid_config
-    path(
-        "v3/connect/.well-known/openid-configuration", waffle_switch("v3_endpoints")(openid_configuration_v3), name="openid-configuration-v3"
-    ),
-    # smart config
-    path("v3/fhir/.well-known/smart-configuration", waffle_switch("v3_endpoints")
-         (smart_configuration_v3), name="smart_configuration_v3"),
 ]
+
+if switch_is_active('v3_endpoints'):
+    urlpatterns_v3 += [
+        # connect/userinfo
+        re_path(
+            r"^v3/connect/userinfo",
+            openidconnect_userinfo_v3,
+            name="openid_connect_userinfo_v3",
+        ),
+        # fhir/bluebutton
+        path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
+        # fhir/metadata
+        path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),
+        # openid_config
+        path(
+            "v3/connect/.well-known/openid-configuration", openid_configuration_v3, name="openid-configuration-v3"
+        ),
+        # smart config
+        path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
+    ]
 
 urlpatterns = all_versions + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
 

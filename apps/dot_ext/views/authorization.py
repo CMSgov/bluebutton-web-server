@@ -192,10 +192,6 @@ class AuthorizationView(DotAuthorizationView):
         if not switch_is_active("enable_coverage_only"):
             return [default_tpl]
 
-        if self.version == 3:
-            # TODO V3: This may want to become a new template.
-            return ["design_system/authorize_v2.html"]
-
         app = getattr(self, "application", None)
         if app is not None and "coverage-eligibility" in app.get_internal_application_labels():
             return ["design_system/authorize_v3_coverage_only.html"]
