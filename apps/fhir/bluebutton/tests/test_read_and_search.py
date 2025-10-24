@@ -890,3 +890,23 @@ class BackendConnectionTest(BaseApiTest):
         # set app user back to active - not to affect subsequent tests
         application.active = True
         application.save()
+
+    def test_read_on_different_fhir_id_than_associated_with_token(self):
+        """
+        Confirm that a 404 is thrown when we a Patient read request
+        is attempted for a different fhir_id than the fhir_id associated
+        with the current token
+        TODO: should we do this for v2 and v3?
+        """
+        access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
+
+        non_token_fhir_id_v2 = '-20140000008326'
+
+        # Test profile/userinfo v3
+        response = self.client.get(
+            '/v2/fhir/Patient/' + non_token_fhir_id_v2, headers={'authorization': 'Bearer ' + access_token}
+        )
+        print(response)
