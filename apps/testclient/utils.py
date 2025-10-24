@@ -1,33 +1,77 @@
 import base64
 import hashlib
-import random
+import secrets
 import string
 
 from collections import OrderedDict
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
+from apps.constants import Versions
 
 from ..dot_ext.models import Application
+from apps.testclient.constants import EndpointUrl
 
 
-def test_setup(include_client_secret=True, v2=False):
+def _start_url_with_http_or_https(host: str) -> str:
+    """Makes sure a URL starts with HTTPS
+
+    This is not comprehensive. It is a light refactoring of old code.
+    It tries to make sure that a host starts with HTTP or HTTPS.
+
+    Args:
+        host: string
+    Returns:
+        host: string (with "https://")
+    """
+    if host.startswith("https://"):
+        # This is fine.
+        pass
+    elif host.startswith("http://"):
+        # This is also fine
+        pass
+    else:
+        host = f'https://{host}'
+
+    return host
+
+# TODO/FIXME: Why do we pass in a version, and then get the version from the session oject?
+
+
+def testclient_http_response_setup(include_client_secret: bool = True, version: str = Versions.NOT_AN_API_VERSION) -> OrderedDict:
+    """Prepare testclient response environment
+
+    When navigating through the testclient, we need to update the Django session
+    so that the authorization process can complete. This function builds a dictionary
+    that is used to extend the Django session. It is also used in several unit tests for
+    a similar purpose.
+
+    Args:
+        include_client_secret (bool) : What it says.
+        version (Version): Which version of the API are we navigating through.
+
+    Returns:
+        OrderedDict: A dictionary used to prepare/extend the Django session.
+    """
     response = OrderedDict()
-    ver = 'v2' if v2 else 'v1'
-    response['api_ver'] = ver
+
+    response['api_ver'] = version
+    version_as_string = Versions.as_str(version)
+
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
 
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
 
+    # FIXME: This seems dangerous, to default to localhost.
+    # If this code is running in production, it could redirect to the user's machine.
+    # Better that we set this, and pull the host URL from settings established at startup.
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
-
-    if not (host.startswith("http://") or host.startswith("https://")):
-        host = "https://" + host
+    host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
+    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version_as_string)
 
     auth_data = __generate_auth_data()
     response['code_challenge_method'] = "S256"
@@ -35,13 +79,14 @@ def test_setup(include_client_secret=True, v2=False):
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
 
-    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, ver)
-    response['token_uri'] = '{}/{}/o/token/'.format(host, ver)
-    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, ver)
-    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, ver)
-    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, ver)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
-    return (response)
+    response['authorization_uri'] = f'{host}/{version_as_string}/o/authorize/'
+    response['token_uri'] = f'{host}/{version_as_string}/o/token/'
+    response['userinfo_uri'] = f'{host}/{version_as_string}/connect/userinfo'
+    response['patient_uri'] = f'{host}/{version_as_string}/fhir/Patient/'
+    response['eob_uri'] = f'{host}/{version_as_string}/fhir/ExplanationOfBenefit/'
+    response['coverage_uri'] = f'{host}/{version_as_string}/fhir/Coverage/'
+
+    return response
 
 
 def get_client_secret():
@@ -82,7 +127,7 @@ def __base64_url_encode(buffer):
 
 def __get_random_string(length) -> str:
     letters = string.ascii_letters + string.digits + string.punctuation
-    result = "".join(random.choice(letters) for i in range(length))
+    result = ''.join(secrets.choice(letters) for i in range(length))
     return result
 
 

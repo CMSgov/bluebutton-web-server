@@ -348,7 +348,7 @@ class ApprovalView(AuthorizationView):
 
     def __init__(self, version):
         self.version = version
-        super().__init__()
+        super().__init__(version=version)
 
     def dispatch(self, request, uuid, *args, **kwargs):
 

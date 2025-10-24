@@ -14,6 +14,8 @@ from apps.fhir.bluebutton.views.home import (conformance_filter)
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
 
+from hhs_oauth_server.settings.base import FHIR_SERVER
+
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
 
@@ -23,7 +25,7 @@ AccessToken = get_access_token_model()
 def get_expected_read_request(version: int):
     return {
         'method': 'GET',
-        'url': f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/{FHIR_ID_V2}/?_format=json',
+        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{FHIR_ID_V2}/?_format=json',
         'headers': {
             # 'User-Agent': 'python-requests/2.20.0',
             'Accept-Encoding': 'gzip, deflate',
@@ -35,7 +37,7 @@ def get_expected_read_request(version: int):
             'X-Forwarded-For': '127.0.0.1',
             'keep-alive': 'timeout=120, max=10',
             'BlueButton-OriginalUrl': f'/v{version}/fhir/Patient/{FHIR_ID_V2}',
-            'BlueButton-BackendCall': (f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/'
+            'BlueButton-BackendCall': (f'{FHIR_SERVER["FHIR_URL"]}/v{version}/'
                                        f'fhir/Patient/{FHIR_ID_V2}/'),
         }
     }
@@ -43,7 +45,7 @@ def get_expected_read_request(version: int):
 
 def get_expected_request(version):
     return {'method': 'GET',
-            'url': (f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/'
+            'url': (f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/'
                     f'?_format=application%2Fjson%2Bfhir&_id={FHIR_ID_V2}'),
             'headers': {
                 # 'User-Agent': 'python-requests/2.20.0',
@@ -56,7 +58,7 @@ def get_expected_request(version):
                 'X-Forwarded-For': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': f'/v{version}/fhir/Patient',
-                'BlueButton-BackendCall': f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/', }
+                'BlueButton-BackendCall': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', }
             }
 
 
@@ -280,7 +282,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertIn('_count=5', req.url)
@@ -358,7 +360,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -440,7 +442,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -495,7 +497,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/Patient/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -528,7 +530,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/ExplanationOfBenefit/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
 
             return {

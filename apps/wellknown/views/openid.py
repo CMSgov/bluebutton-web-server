@@ -8,6 +8,8 @@ from django.urls import reverse
 
 import apps.logging.request_logger as bb2logging
 
+from apps.constants import Versions
+
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 SCOPES_SUPPORTED = [
     'openid',
@@ -52,8 +54,7 @@ def format_v3_links(request_dict: OrderedDict) -> OrderedDict:
     return request_dict
 
 
-@require_GET
-def openid_configuration(request):
+def _openid_configuration(request, version=Versions.NOT_AN_API_VERSION):
     """
     Views that returns openid_configuration.
     """
@@ -64,35 +65,64 @@ def openid_configuration(request):
     # As part of BB2-4184 and SMART on FHIR compliance, we were unsure what the issuer should be
     # for the openid-configuration call. Link to PR where this was discussed is here:
     # https://github.com/CMSgov/bluebutton-web-server/pull/1394
-    if 'v3' in request.path:
-        data = format_v3_links(data)
+    match version:
+        case Versions.V1:
+            pass
+        case Versions.V2:
+            pass
+        case Versions.V3:
+            data = format_v3_links(data)
 
     return JsonResponse(data)
 
 
 @require_GET
-def smart_configuration(request):
+def openid_configuration_v1(request):
+    return _openid_configuration(request, version=Versions.V1)
+
+
+@require_GET
+def openid_configuration_v2(request):
+    return _openid_configuration(request, version=Versions.V2)
+
+
+@require_GET
+def openid_configuration_v3(request):
+    return _openid_configuration(request, version=Versions.V3)
+
+
+def _smart_configuration(request, version=Versions.NOT_AN_API_VERSION):
     """
     Views that returns smart_configuration.
     """
     data = OrderedDict()
     issuer = base_issuer(request)
     data = build_smart_config_endpoint(data, issuer=issuer)
+
+    match version:
+        case Versions.V1:
+            pass
+        case Versions.V2:
+            pass
+        case Versions.V3:
+            data = format_v3_links(data)
+
     return JsonResponse(data)
 
 
 @require_GET
+def smart_configuration_v1(request):
+    return _smart_configuration(request, version=Versions.V1)
+
+
+@require_GET
+def smart_configuration_v2(request):
+    return _smart_configuration(request, version=Versions.V2)
+
+
+@require_GET
 def smart_configuration_v3(request):
-    """
-    Views that returns smart_configuration for v3.
-    """
-    data = OrderedDict()
-    issuer = base_issuer(request)
-    data = build_smart_config_endpoint(data, issuer=issuer)
-
-    data = format_v3_links(data)
-
-    return JsonResponse(data)
+    return _smart_configuration(request, version=Versions.V3)
 
 
 def base_issuer(request):

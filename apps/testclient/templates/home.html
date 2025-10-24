@@ -45,12 +45,17 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			<br />
 
 			<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token</a>
+			
+			{% switch "v3_testclient" %}
+				<a id="auth_link_v3" href="{% url 'authorize_link_v3' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token (v3)</a>
+			{% endswitch %}
+
 			{% endif %}
-	
+
             <!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_token is not None %}
 			{% url 'testclient-restart' as restart_url %}
-			{% if api_ver == 'v2' %}
+			{% if api_ver == 2 %}
 				{% url 'authorize_link_v2' as auth_url %}
 				{% url 'test_metadata_v2' as meta_url %}
 				{% url 'test_openid_config_v2' as openid_cfg_url %}
@@ -58,14 +63,24 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 				{% url 'test_eob_v2' as test_eob_url %}
 				{% url 'test_patient_v2' as test_patient_url %}
 				{% url 'test_coverage_v2' as test_coverage_url %}
+			{% elif api_ver == 3 %}
+				{% switch "v3_testclient" %}
+					{% url 'authorize_link_v3' as auth_url %}
+					{% url 'test_metadata_v3' as meta_url %}
+					{% url 'test_openid_config_v3' as openid_cfg_url %}
+					{% url 'test_userinfo_v3' as test_userinfo_url %}
+					{% url 'test_eob_v3' as test_eob_url %}
+					{% url 'test_patient_v3' as test_patient_url %}
+					{% url 'test_coverage_v3' as test_coverage_url %}
+				{% endswitch %}
 			{% else %}
-				{% url 'authorize_link' as auth_url %}
-				{% url 'test_metadata' as meta_url %}
-				{% url 'test_openid_config' as openid_cfg_url %}
-				{% url 'test_userinfo' as test_userinfo_url %}
-				{% url 'test_eob' as test_eob_url %}
-				{% url 'test_patient' as test_patient_url %}
-				{% url 'test_coverage' as test_coverage_url %}
+				{% url 'authorize_link_v1' as auth_url %}
+				{% url 'test_metadata_v1' as meta_url %}
+				{% url 'test_openid_config_v1' as openid_cfg_url %}
+				{% url 'test_userinfo_v1' as test_userinfo_url %}
+				{% url 'test_eob_v1' as test_eob_url %}
+				{% url 'test_patient_v1' as test_patient_url %}
+				{% url 'test_coverage_v1' as test_coverage_url %}
 			{% endif %}
 
             <p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat this step if you need a new token.</a> or <a href="{{ restart_url }}">restart testclient</a></p>

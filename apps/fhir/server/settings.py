@@ -11,7 +11,6 @@ FHIR_SERVER = {
 """
 from django.conf import settings
 
-
 USER_SETTINGS = getattr(settings, "FHIR_SERVER", None)
 
 DEFAULTS = {

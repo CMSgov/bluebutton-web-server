@@ -145,7 +145,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     # ]
     # Make sure FHIR v3 extensions are correct when the metadata is fetched; the extensions object
     # is commented above for reference. This would be a good use of jsonpath in our codebase...
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     def test_fhir_metadata_extensions_have_v3(self):
         response = self.client.get(f'{BASEURL}/v3/fhir/metadata')

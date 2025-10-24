@@ -24,6 +24,8 @@ from .demographic_scopes_test_cases import (
     SCOPES_TO_URL_BASE_PATH,
 )
 
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
+
 
 class TestApplicationUpdateView(BaseApiTest):
     def test_update_form_show(self):
@@ -48,7 +50,7 @@ class TestApplicationUpdateView(BaseApiTest):
 class TestAuthorizationView(BaseApiTest):
     fixtures = ["scopes.json"]
 
-    MOCK_FHIR_URL = "fhir.backend.bluebutton.hhsdevcloud.us"
+    MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME  # "fhir.backend.bluebutton.hhsdevcloud.us"
     MOCK_FHIR_PATIENT_READVIEW_PATH = r"/v1/fhir/Patient/[-]?\d+[/]?"
     MOCK_FHIR_PATIENT_SEARCHVIEW_PATH = r"/v1/fhir/Patient[/]?"
     MOCK_FHIR_EOB_PATH = r"/v1/fhir/ExplanationOfBenefit[/]?"

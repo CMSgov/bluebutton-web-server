@@ -9,6 +9,8 @@ from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
 
+from hhs_oauth_server.settings.base import FHIR_SERVER
+
 AccessToken = get_access_token_model()
 
 C4BB_PROFILE_URLS = {
@@ -221,7 +223,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         @all_requests
         def catchall_w_tag_qparam(url, req):
             # this is called in case EOB search with good tag
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/ExplanationOfBenefit/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
             # parameters encoded in prepared request's body
             self.assertTrue(('_tag=Adjudicated' in req.url) or ('_tag=PartiallyAdjudicated' in req.url))
@@ -233,7 +235,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/ExplanationOfBenefit/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
 
             return {
@@ -277,7 +279,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(f'https://fhir.backend.bluebutton.hhsdevcloud.us/v{version}/fhir/ExplanationOfBenefit/', req.url)
+            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
 
             return {

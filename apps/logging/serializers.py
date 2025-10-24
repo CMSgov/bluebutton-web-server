@@ -291,7 +291,7 @@ class SLSxTokenResponse(SLSResponse):
                 event_dict = json.loads(self.resp.text)
             except json.decoder.JSONDecodeError:
                 json_exception = {
-                    "message": "JSONDecodeError thrown when parsing response text."
+                    "message": f"JSONDecodeError thrown when parsing response text.",
                 }
 
         event_dict.update(super().to_dict().copy())
