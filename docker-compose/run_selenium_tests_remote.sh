@@ -70,7 +70,7 @@ while getopts "hpgt" option; do
       g)
         export SELENIUM_GRID=true;;
       l)
-        export USE_LOGIN_WITH_MEDICARE_BUTTON='true';;
+        export USE_LOGIN_WITH_MEDICARE_BUTTON=true;;
       t)
         export PYTEST_SHOW_TRACE_OPT='-s';;
      \?)
@@ -95,7 +95,7 @@ then
         TEST)
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
             if [[ -z "${USE_LOGIN_WITH_MEDICARE_BUTTON}" ]]; then
-                export USE_LOGIN_WITH_MEDICARE_BUTTON='true'
+                export USE_LOGIN_WITH_MEDICARE_BUTTON=true
             fi
             ;;
         *)
