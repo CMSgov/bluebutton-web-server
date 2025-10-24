@@ -208,7 +208,7 @@
             "group": 5,
             "description": "Launch with FHIR Patient context.",
             "protected_resources": "[]",
-            "default": "False"
+            "default": "True"
         }
     }
 ]
