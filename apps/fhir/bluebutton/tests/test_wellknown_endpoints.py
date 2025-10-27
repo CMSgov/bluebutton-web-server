@@ -7,7 +7,6 @@ from httmock import all_requests, HTTMock
 from oauth2_provider.models import get_access_token_model
 from unittest import skipIf
 from waffle.testutils import override_switch
-from waffle import switch_is_active
 
 # Introduced in bb2-4184
 # Rudimentary tests to make sure endpoints exist and are returning

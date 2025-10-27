@@ -5,13 +5,13 @@ from apps.constants import Versions
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
-HOME_PAGE = "home.html"
-RESULTS_PAGE = "results.html"
+HOME_PAGE = 'home.html'
+RESULTS_PAGE = 'results.html'
 
 # Used as a default patient ID in the EndpointUrl formatter.
 # It should be impossible for us to see it, but it forces
 # an error condition if we do.
-BAD_PATIENT_ID = "INTERNAL_BAD_PATIENT_ID"
+BAD_PATIENT_ID = 'INTERNAL_BAD_PATIENT_ID'
 
 
 class EndpointFormatException(Exception):
@@ -19,7 +19,7 @@ class EndpointFormatException(Exception):
 
     The goal of endpoint formatting is to make it *hard* to end up with an exception.
     Therefore, this exception should only be thrown in the situation where a URI was asked
-    to be formatted, but no matching case could be found. 
+    to be formatted, but no matching case could be found.
     """
     pass
 
@@ -35,25 +35,25 @@ class EndpointUrl:
         version_as_string = Versions.as_str(version)
         match name:
             case EndpointUrl.userinfo:
-                return f"{uri}/{version_as_string}/connect/userinfo"
+                return f'{uri}/{version_as_string}/connect/userinfo'
             case EndpointUrl.patient:
                 if patient is None or patient == BAD_PATIENT_ID:
-                    logger.error(f"EndpointUrl format called with invalid patient id")
-                    raise EndpointFormatException(f"EndpointUrl format called with invalid patient id")
-                return f"{uri}/{version_as_string}/fhir/Patient/{patient}?_format=json"
+                    logger.error('EndpointUrl format called with invalid patient id')
+                    raise EndpointFormatException('EndpointUrl format called with invalid patient id')
+                return f'{uri}/{version_as_string}/fhir/Patient/{patient}?_format=json'
             case EndpointUrl.explanation_of_benefit:
-                return f"{uri}/{version_as_string}/fhir/ExplanationOfBenefit/?_format=json"
+                return f'{uri}/{version_as_string}/fhir/ExplanationOfBenefit/?_format=json'
             case EndpointUrl.coverage:
-                return f"{uri}/{version_as_string}/fhir/Coverage/?_format=json"
+                return f'{uri}/{version_as_string}/fhir/Coverage/?_format=json'
             case _:
-                logger.error(f"Could not match name in EndpointUrl: {name}")
+                logger.error(f'Could not match name in EndpointUrl: {name}')
 
         # If we are asked to format something that doesn't exist, raise an exception. This situation should
         # never occur, and therefore we want something to break.
-        raise EndpointFormatException(f"Could not format URI name[{name}] uri[{uri}] version[{version_as_string}]")
+        raise EndpointFormatException(f'Could not format URI name[{name}] uri[{uri}] version[{version_as_string}]')
 
     def nav_uri(uri, count, start_index, id_type=None, id=None):
-        return f"{uri}&_count={count}&startIndex={start_index}&{id_type}={id}"
+        return f'{uri}&_count={count}&startIndex={start_index}&{id_type}={id}'
 
 
 class ResponseErrors:
@@ -87,7 +87,7 @@ class ResponseErrors:
 
     def MissingCallbackVersionContext(self, msg):
         return JsonResponse({
-            'error': f'Missing API version in callback session',
+            'error': 'Missing API version in callback session',
             'code': 'MissingCallbackVersion',
             'help': 'Try authorizing again'
         }, 500)

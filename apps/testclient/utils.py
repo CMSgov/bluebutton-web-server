@@ -9,7 +9,6 @@ from urllib.parse import parse_qs, urlparse
 from apps.constants import Versions
 
 from ..dot_ext.models import Application
-from apps.testclient.constants import EndpointUrl
 
 
 def _start_url_with_http_or_https(host: str) -> str:

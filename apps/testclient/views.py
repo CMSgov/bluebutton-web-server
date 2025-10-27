@@ -2,13 +2,11 @@ import json
 import logging
 from django.http import HttpRequest
 from django.conf import settings
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError, InvalidClientIdError
 from requests_oauthlib import OAuth2Session
-from rest_framework import status
 from urllib.parse import parse_qs, urlparse
 from json import JSONDecodeError
 from typing import Dict
@@ -148,7 +146,7 @@ def _is_synthetic_patient_id(patient_id: str) -> bool:
     return (
         patient_id is not None
         and patient_id.startswith('-')
-        and re.match('^-\d+$', patient_id)
+        and re.match(r'^-\d+$', patient_id)
     )
 
 
@@ -226,10 +224,10 @@ def callback(request: HttpRequest):
         token_uri = request.session['token_uri']
         logger.error(f'MissingToken: failed to get token from {token_uri}')
         return ResponseErrors.MissingTokenError(token_uri)
-    except InvalidClientIdError as error:
+    except InvalidClientIdError as err:
         token_uri = request.session['token_uri']
         logger.error(f'InvalidClient: failed to get token from {token_uri}')
-        logger.error(logmsg)
+        logger.error(str(err))
         return ResponseErrors.InvalidClient(token_uri)
 
     # If we cannot find a patient id in the tokent, return an error.
@@ -241,7 +239,7 @@ def callback(request: HttpRequest):
     elif not _is_synthetic_patient_id(patient_id):
         # If we made it here, lets make sure we have a synthetic patient ID.
         # If we do not, then we need to clear the token and send back an error to the client.
-        logmsg = f'Failed token is for a non-synthetic patient ID'
+        logmsg = 'Failed token is for a non-synthetic patient ID'
         logger.error(logmsg)
         if 'token' in request.session:
             del request.session['token']
@@ -347,7 +345,7 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             if 'token' in request.session:
                 del request.session['token']
             return render(request, RESULTS_PAGE,
-                          {'error': f'Invalid API version',
+                          {'error': 'Invalid API version',
                            'response_type': 'BB2 error: authorize_link',
                            'api_ver': version
                            })
@@ -397,7 +395,7 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case _:
             del request.session['token']
             return render(request, RESULTS_PAGE,
-                          {'error': f'Invalid API version',
+                          {'error': 'Invalid API version',
                            'response_type': 'BB2 error: test_coverage',
                            'api_ver': version
                            })
@@ -441,7 +439,7 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case _:
             del request.session['token']
             return render(request, RESULTS_PAGE,
-                          {'error': f'Invalid API version',
+                          {'error': 'Invalid API version',
                            'response_type': 'BB2 error: test_eob',
                            'api_ver': version
                            })
@@ -475,7 +473,7 @@ def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case _:
             del request.session['token']
             return render(request, RESULTS_PAGE,
-                          {'error': f'Invalid API version',
+                          {'error': 'Invalid API version',
                            'response_type': 'BB2 error: test_metadata',
                            'api_ver': version
                            })

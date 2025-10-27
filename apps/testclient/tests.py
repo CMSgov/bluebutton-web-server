@@ -9,8 +9,6 @@ from apps.constants import Versions, VersionNotMatched
 
 from apps.testclient.constants import EndpointUrl
 
-from hhs_oauth_server.settings.base import FHIR_SERVER
-
 
 def _ormap(fun, ls):
     """True if `fun` returns true for any element of the list.

@@ -13,7 +13,7 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         get_response_text,
                                         build_oauth_resource)
-from apps.constants import Versions
+from apps.constants import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging
 
@@ -82,12 +82,7 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
         case Versions.V3:
             fhir_url = resource_router.fhir_url_v3
         case _:
-            return HttpResponse(
-                json.dumps({
-                    'error': f'Invalid API version: {version}'
-                }),
-                status=r.status_code,
-                content_type='application/json')
+            raise VersionNotMatched('Could not match API version in _fhir_conformance')
 
     parsed_url = urlparse(fhir_url)
     call_to = None

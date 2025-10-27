@@ -7,7 +7,6 @@ from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from unittest import mock
-from urllib.parse import urlparse
 from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,

@@ -5,7 +5,6 @@ from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
 from waffle.decorators import waffle_switch
-from waffle import switch_is_active
 
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo_v1, openidconnect_userinfo_v2, openidconnect_userinfo_v3
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3

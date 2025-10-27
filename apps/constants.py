@@ -1,5 +1,3 @@
-from django.core.exceptions import ValidationError
-
 # Anywhere we want to use/reference/manipulate versions,
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.

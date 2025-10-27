@@ -4,7 +4,6 @@ from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from rest_framework import exceptions
-from urllib.parse import urlparse
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.test import BaseApiTest
 from ..authentication import match_fhir_id
