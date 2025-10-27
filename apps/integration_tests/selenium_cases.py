@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
+USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
@@ -134,11 +135,13 @@ APP_CSS_SELECTOR_EDIT_APP = ".cta-button:nth-child(1)"
 APP_CSS_SELECTOR_DELETE_APP = ".cta-button:nth-child(2)"
 
 # SLSX login form
-SLSX_TXT_FLD_USERNAME = "username-textbox"
-SLSX_TXT_FLD_PASSWORD = "password-textbox"
+SLSX_TXT_FLD_USERNAME = 'username'
+SLSX_TXT_FLD_PASSWORD = 'password'
 SLSX_TXT_FLD_USERNAME_VAL = "BBUser00001"
 SLSX_TXT_FLD_PASSWORD_VAL = "PW00001!"
 SLSX_CSS_BUTTON = "login-button"
+SLSX_CSS_CONTINUE_BUTTON = "button[type='submit']"
+SLSX_CSS_LOGIN_BUTTON = "//button[@type='submit' and (normalize-space(text())='Log in' or normalize-space(text())='Entrar')]"
 
 # Demographic info access grant form
 BTN_ID_GRANT_DEMO_ACCESS = "approve"
@@ -266,22 +269,42 @@ SEQ_LOGIN_MSLSX = [
     },
 ]
 
-SEQ_LOGIN_SLSX = [
+LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
+if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
+    LOGIN_WITH_MEDICARE_BUTTON_SETUP = [{
+        "display": "Click 'Log in with Medicare.gov' button",
+        "action": Action.FIND_CLICK,
+        "params": [
+            20,
+            By.CSS_SELECTOR,
+            "button.ds-c-button.ds-c-button--solid.ds-u-margin-top--2"
+        ],
+    }]
+
+SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
+
     {
         "display": "Medicare.gov login username",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.ID, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
+        "params": [20, By.NAME, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
     },
+    {
+        "display": "Click 'Continue' on SLSX login form",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.CSS_SELECTOR, SLSX_CSS_CONTINUE_BUTTON]
+    },
+    WAIT_SECONDS,
     {
         "display": "Medicare.gov login password",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.ID, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
+        "params": [20, By.NAME, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
     },
     {
-        "display": "Click 'submit' on SLSX login form",
+        "display": "Click 'Log In' on SLSX login form",
         "action": Action.FIND_CLICK,
-        "params": [20, By.ID, SLSX_CSS_BUTTON]
+        "params": [20, By.XPATH, SLSX_CSS_LOGIN_BUTTON]
     },
+    WAIT_SECONDS
 ]
 
 SEQ_REACH_AUTHORIZE_BTN = [
