@@ -139,37 +139,37 @@
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch3">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_hicn_hash message.auth_pkce_method</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch4">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.hicn_hash message.auth_pkce_method</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch5">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.hicn_hash message.auth_pkce_method message.status</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch6a">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.hicn_hash message.auth_pkce_method message.status</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch6b">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_hicn_hash message.auth_pkce_method message.status</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch7">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
@@ -193,7 +193,7 @@
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch11">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
@@ -762,7 +762,7 @@
         <panel>
             <table>
                 <search base="baseSearch3">
-                    <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+                    <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_hicn_hash message.auth_pkce_method</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>
@@ -888,7 +888,7 @@
         <panel>
             <table>
                 <search base="baseSearch4">
-                    <query>table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+                    <query>table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.hicn_hash message.auth_pkce_method</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>
@@ -1015,7 +1015,7 @@
         <panel>
             <table>
                 <search base="baseSearch5">
-                    <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+                    <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.hicn_hash message.auth_pkce_method</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>
@@ -1141,7 +1141,7 @@
         <panel>
             <table>
                 <search base="baseSearch6a">
-                    <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+                    <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.hicn_hash message.auth_pkce_method</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>
@@ -1245,7 +1245,7 @@
         <panel>
             <table>
                 <search base="baseSearch6b">
-                    <query>table time message.auth_uuid message.status message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method</query>
+                    <query>table time message.auth_uuid message.status message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_hicn_hash message.auth_pkce_method</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>
@@ -1331,7 +1331,7 @@
         <panel>
             <table>
                 <search base="baseSearch7">
-                    <query>table time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
+                    <query>table time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>
@@ -1809,7 +1809,7 @@
         <panel>
             <table>
                 <search base="baseSearch11">
-                    <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
+                    <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
                 </search>
                 <option name="count">10</option>
                 <option name="dataOverlayMode">none</option>

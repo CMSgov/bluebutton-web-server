@@ -535,31 +535,31 @@ class TestTokenView(BaseApiTest):
         application.save()
 
     def test_delete_token_success(self):
-        anna = self._create_user(self.test_username, "123456", fhir_id_v2="19990000000002", fhir_id_v3=None)
+        anna = self._create_user(self.test_username, '123456', fhir_id_v2='19990000000002', fhir_id_v3='39990000000002')
         bob = self._create_user(
-            "bob",
-            "123456",
-            fhir_id_v2="19990000000001",
+            'bob',
+            '123456',
+            fhir_id_v2='19990000000001',
             fhir_id_v3=None,
-            user_hicn_hash="86228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
-            user_mbi_hash="98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7",
+            user_hicn_hash='86228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
+            user_mbi='1SA0A00AA02',
         )
         # create a couple of capabilities
         capability_a = self._create_capability(
-            "token_management", [["DELETE", r"/v1/o/tokens/\d+/"]], default=False
+            'token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False
         )
         # create an application and add capabilities
         anna_application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         anna_application.scope.add(capability_a)
         bob_application = self._create_application(
-            "another app",
+            'another app',
             grant_type=Application.GRANT_IMPLICIT,
             client_type=Application.CLIENT_PUBLIC,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
             user=anna_application.user,
         )
         bob_application.scope.add(capability_a)
@@ -579,10 +579,10 @@ class TestTokenView(BaseApiTest):
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         with self.assertRaisesRegexp(
-            OSError, "Could not find the TLS certificate file"
+            OSError, 'Could not find the TLS certificate file'
         ):
             response = self.client.get(
-                "/v1/fhir/Patient", headers={"authorization": "Bearer " + anna_token.token}
+                '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
             )
 
         bob_tkn = self._create_test_token(bob, bob_application)
@@ -594,12 +594,12 @@ class TestTokenView(BaseApiTest):
         )
 
         response = self.client.get(
-            reverse("token_management:token-list"),
+            reverse('token_management:token-list'),
             headers={
-                "authorization": self._create_authorization_header(
+                'authorization': self._create_authorization_header(
                     anna_application.client_id, anna_application.client_secret_plain
                 ),
-                "x-authentication": self._create_authentication_header(self.test_uuid),
+                'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
         grant_list = response.json()
@@ -609,21 +609,21 @@ class TestTokenView(BaseApiTest):
         )
         http_authn = self._create_authentication_header(self.test_uuid)
         response = self.client.delete(
-            reverse("token_management:token-detail", args=[grant_list[0]["id"]]),
-            headers={"authorization": http_authz, "x-authentication": http_authn},
+            reverse('token_management:token-detail', args=[grant_list[0]['id']]),
+            headers={'authorization': http_authz, 'x-authentication': http_authn},
         )
         self.assertEqual(response.status_code, 204)
-        url_1 = reverse("token_management:token-detail", args=[grant_list[0]["id"]])
+        url_1 = reverse('token_management:token-detail', args=[grant_list[0]['id']])
         http_authz = self._create_authorization_header(
             anna_application.client_id, anna_application.client_secret_plain
         )
         http_authn = self._create_authentication_header(self.test_uuid)
         failed_response = self.client.delete(
-            url_1, headers={"authorization": http_authz, "x-authentication": http_authn}
+            url_1, headers={'authorization': http_authz, 'x-authentication': http_authn}
         )
         self.assertEqual(failed_response.status_code, 404)
         response = self.client.get(
-            "/v1/fhir/Patient", headers={"authorization": "Bearer " + anna_token.token}
+            '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
         )
         self.assertEqual(response.status_code, 401)
 
@@ -637,10 +637,10 @@ class TestTokenView(BaseApiTest):
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         with self.assertRaisesRegexp(
-            OSError, "Could not find the TLS certificate file"
+            OSError, 'Could not find the TLS certificate file'
         ):
             response = self.client.get(
-                "/v1/fhir/Patient", headers={"authorization": "Bearer " + bob_tkn.token}
+                '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + bob_tkn.token}
             )
 
         next_tkn = self._create_test_token(anna, anna_application)
@@ -648,11 +648,11 @@ class TestTokenView(BaseApiTest):
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         with self.assertRaisesRegexp(
-            OSError, "Could not find the TLS certificate file"
+            OSError, 'Could not find the TLS certificate file'
         ):
             response = self.client.get(
-                "/v1/fhir/Patient",
-                headers={"authorization": "Bearer " + next_tkn.token},
+                '/v1/fhir/Patient',
+                headers={'authorization': 'Bearer ' + next_tkn.token},
             )
 
         # self.assertEqual(next_tkn.token, tkn.token)

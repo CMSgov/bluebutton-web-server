@@ -2,7 +2,7 @@ from django.db.utils import IntegrityError
 
 from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException
 from apps.test import BaseApiTest
-from ..models import Crosswalk, get_crosswalk_bene_counts, hash_hicn, hash_mbi
+from ..models import Crosswalk, get_crosswalk_bene_counts, hash_hicn
 
 
 class TestModels(BaseApiTest):
@@ -22,9 +22,9 @@ class TestModels(BaseApiTest):
                 user_hicn_hash=None,
             )
 
-    def test_not_require_user_mbi_hash(self):
+    def test_not_require_user_mbi(self):
         """
-        user_mbi_hash can be null for backward compatability
+        user_mbi can be null for backward compatability
         and also an empty string return value from SLS.
         """
         user = self._create_user(
@@ -36,11 +36,11 @@ class TestModels(BaseApiTest):
             fhir_id_v2="-20000000000001",
             fhir_id_v3="-30000000000001",
             user_hicn_hash=self.test_hicn_hash,
-            user_mbi_hash=None,
+            user_mbi=None,
         )
 
         cw = Crosswalk.objects.get(user=user)
-        self.assertEqual(cw.user_mbi_hash, None)
+        self.assertEqual(cw.user_mbi, None)
 
     def test_mutable_fhir_id(self):
         user = self._create_user(
@@ -77,7 +77,10 @@ class TestModels(BaseApiTest):
         )
         cw.save()
 
-    def test_mutable_user_mbi_hash(self):
+    def test_mutable_user_mbi(self):
+        '''
+        Ensure the user_mbi column on crosswalk can be updated
+        '''
         user = self._create_user(
             "john",
             "password",
@@ -87,38 +90,40 @@ class TestModels(BaseApiTest):
         )
 
         cw = Crosswalk.objects.get(user=user)
-        self.assertEqual(cw.user_mbi_hash, self.test_mbi_hash)
-        cw.user_mbi_hash = (
-            "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130"
-        )
+        self.assertEqual(cw.user_mbi, self.test_mbi)
+        cw.user_mbi = '1SA0A00BB00'
         cw.save()
 
-    def test_mutable_user_mbi_hash_when_null(self):
+    def test_mutable_user_mbi_when_null(self):
         """
-        Test replacing Null mbi_hash value in crosswalk.
+        Test replacing Null mbi value in crosswalk.
         Unlike hich_hash, this case is OK if past value was Null/None.
         """
+        '''
+        Ensure the user_mbi column on crosswalk can be updated
+        even if the prior value was None
+        '''
         user = self._create_user(
             "john",
             "password",
             first_name="John",
             last_name="Smith",
             email="john@smith.net",
-            user_mbi_hash=None,
+            user_mbi=None,
         )
 
         cw = Crosswalk.objects.get(user=user)
-        self.assertEqual(cw.user_mbi_hash, None)
+        self.assertEqual(cw.user_mbi, None)
 
-        cw.user_mbi_hash = (
-            "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130"
+        cw.user_mbi = (
+            '1SA0A00CC00'
         )
         cw.save()
 
         cw = Crosswalk.objects.get(user=user)
         self.assertEqual(
-            cw.user_mbi_hash,
-            "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130",
+            cw.user_mbi,
+            '1SA0A00CC00',
         )
 
     def test_crosswalk_real_synth_query_managers(self):
@@ -139,8 +144,7 @@ class TestModels(BaseApiTest):
                 fhir_id_v3="3000000000000" + str(cnt),
                 user_hicn_hash="239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
-                user_mbi_hash="9876543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
-                + str(cnt),
+                user_mbi=self._generate_random_mbi(),
             )
 
         # Create 7x Synthetic (negative FHIR_ID) users
@@ -155,8 +159,7 @@ class TestModels(BaseApiTest):
                 fhir_id_v3="-3000000000000" + str(cnt),
                 user_hicn_hash="255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000"
                 + str(cnt),
-                user_mbi_hash="987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000"
-                + str(cnt),
+                user_mbi=self._generate_random_mbi(),
             )
 
         cc = get_crosswalk_bene_counts()
@@ -175,16 +178,3 @@ class TestModels(BaseApiTest):
             BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"
         ):
             hash_hicn("")
-
-    def test_hash_mbi_empty_string(self):
-        """
-        BB2-237: Test the hash_mbi(mbi) function for empty string produces exception instead of assert
-        """
-        # Test non-empty value first
-        hash_mbi("1SA0A00AA00")
-
-        # Test empty value
-        with self.assertRaisesRegexp(
-            BBFhirBluebuttonModelException, "MBI cannot be the empty string.*"
-        ):
-            hash_mbi("")
