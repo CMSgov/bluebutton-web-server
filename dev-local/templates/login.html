@@ -114,7 +114,7 @@
           <select id="userSelect">
             <option value="">-- Select a user or enter manually below --</option>
             {% for user in users %}
-            <option value='{{ user | tojson }}'>{{ user.username }} - {{ user.name }}</option>
+            <option value='{{ user | tojson }}'>{{ user.username }} - {{ user.first_name }}</option>
             {% endfor %}
           </select>
         </div>

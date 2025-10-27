@@ -14,6 +14,8 @@ csrf.init_app(app)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
+signed_in = True
+
 ENCODE_NAME = 'ascii'
 
 ID_FIELD = 'id'
@@ -144,37 +146,40 @@ def token():
 
 @app.route('/v1/users/<usr>', methods=['GET'])
 def userinfo(usr):
-    tkn = request.headers.get(AUTH_HEADER, None)
 
-    if tkn is None:
-        return make_response(jsonify({'message': 'Bad Request, missing Authorization header.'}), 400)
+    global signed_in
 
-    if not tkn.startswith('Bearer '):
-        return make_response(jsonify({'message': 'Bad Request, malformed bearer token.'}), 400)
-
-    tkn = tkn.split(None, 1)[1]
-    user_info = _decode(tkn)
-
-    slsx_userinfo = {
-        'data': {
-            'user': {
-                'id': user_info['usr'],
-                'username': user_info['name'],
-                'email': user_info['email'],
-                'firstName': user_info['first_name'],
-                'lastName': user_info['last_name'],
-                'hicn': user_info['hicn'],
-                'mbi': user_info['mbi'],
+    if signed_in is True:
+        tkn = request.headers.get(AUTH_HEADER, None)
+        if tkn is None:
+            return make_response(jsonify({"message": "Bad Request, missing request token."}), 400)
+        if not tkn.startswith("Bearer "):
+            return make_response(jsonify({"message": "Bad Request, malformed bearer token."}), 400)
+        tkn = tkn.split()[1]
+        user_info = _decode(tkn)
+        slsx_userinfo = {
+            "data": {
+                "user": {
+                    "id": user_info["usr"],
+                    "username": user_info["name"],
+                    "email": user_info["email"],
+                    "firstName": user_info["first_name"],
+                    "lastName": user_info["last_name"],
+                    "hicn": user_info["hicn"],
+                    "mbi": user_info["mbi"],
+                },
             },
-        },
-    }
+        }
+        signed_in = False
+        return make_response(jsonify(slsx_userinfo))
+    else:
+        signed_in = True
+        return make_response(jsonify({"message": "not signed in."}), 403)
 
-    return make_response(jsonify(slsx_userinfo))
 
-
-@app.route('/sso/signout', methods=['GET', 'POST'])
+@app.route('/sso/signout', methods=['GET'])
 def signout():
-    return make_response(jsonify({'message': 'signed out.'}), 200)
+    return make_response(jsonify({'message': 'signed out.'}), 302)
 
 
 if __name__ == '__main__':
