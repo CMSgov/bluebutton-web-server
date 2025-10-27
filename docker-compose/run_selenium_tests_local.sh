@@ -39,7 +39,6 @@ display_usage() {
     echo "Options:"
     echo
     echo "-h     Print this Help."
-    echo "-p     Use new permissions screen (defaults to old style screen)."
     echo "-g     Selenium grid used - hub on port 4444."
     echo "-t     Show test case actions on std out."
     echo
@@ -74,7 +73,7 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_MSLSX=true
-export USE_NEW_PERM_SCREEN=false
+export USE_NEW_PERM_SCREEN=true
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
@@ -93,8 +92,6 @@ while getopts "hpgt" option; do
       h)
          display_usage
          exit;;
-      p)
-         export USE_NEW_PERM_SCREEN=true;;
       g)
         export SELENIUM_GRID=true;;
       t)
