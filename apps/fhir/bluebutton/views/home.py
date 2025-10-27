@@ -26,12 +26,11 @@ def get_supported_resources(resources, resource_names):
     resource_list = []
 
     # if resource 'type in resource_names add resource to resource_list
-    for item in resources:
-        for k, v in item.items():
-            if k == 'type':
-                if v in resource_names:
-                    item['interaction'] = [{"code": "read"}, {"code": "search-type"}]
-                    resource_list.append(item)
+    for resource in resources:
+        resource_type = resource.get('type', [])
+        if resource_type in resource_names:
+            resource['interaction'] = [{'code': 'read'}, {'code': 'search-type'}]
+            resource_list.append(resource)
 
     return resource_list
 
@@ -77,7 +76,6 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
 
     match version:
         case Versions.V1:
-            # QUESITON MCJ: Should this be possible?
             fhir_url = resource_router.fhir_url
         case Versions.V2:
             fhir_url = resource_router.fhir_url
@@ -94,10 +92,10 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
     parsed_url = urlparse(fhir_url)
     call_to = None
     if parsed_url.path is not None:
-        call_to = f'{parsed_url.scheme}://{parsed_url.netloc}/{Versions.as_str(version)}/fhir/metadata'
+        call_to = f'{parsed_url.scheme}://{parsed_url.netloc}/v{version}/fhir/metadata'
     else:
         # url with no path
-        call_to = f'{fhir_url}/{Versuibs, as_str(version)}/fhir/metadata'
+        call_to = f'{fhir_url}/v{version}/fhir/metadata'
 
     pass_params = {'_format': 'json'}
 
@@ -109,7 +107,7 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
     text_out = ''
 
     if r.status_code >= 300:
-        logger.debug(f"We have an error code to deal with: {r.status_code}")
+        logger.debug(f'We have an error code to deal with: {r.status_code}')
         return HttpResponse(json.dumps(r._content),
                             status=r.status_code,
                             content_type='application/json')
@@ -121,8 +119,7 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
     od = conformance_filter(text_out)
 
     # Append Security to ConformanceStatement
-    security_endpoint = build_oauth_resource(request, format_type="json")
-    # QUESTION MCJ: This is extremely opaque, and fragile. Improve?
+    security_endpoint = build_oauth_resource(request, format_type='json')
     od['rest'][0]['security'] = security_endpoint
     # Fix format values
     od['format'] = ['application/json', 'application/fhir+json']

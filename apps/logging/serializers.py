@@ -16,21 +16,21 @@ class DataAccessGrantSerializer:
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
         return {
-            "type": "DataAccessGrant",
-            "action": self.action,
-            "id": getattr(self.tkn, 'pk', None),
-            "application": {
-                "id": getattr(app, 'id', None),
-                "name": getattr(app, 'name', None),
-                "data_access_type": getattr(app, 'data_access_type', None),
-                "user": {
-                    "id": getattr(app_user, 'id', None),
-                    "username": getattr(app_user, 'username', None),
+            'type': 'DataAccessGrant',
+            'action': self.action,
+            'id': getattr(self.tkn, 'pk', None),
+            'application': {
+                'id': getattr(app, 'id', None),
+                'name': getattr(app, 'name', None),
+                'data_access_type': getattr(app, 'data_access_type', None),
+                'user': {
+                    'id': getattr(app_user, 'id', None),
+                    'username': getattr(app_user, 'username', None),
                 },
             },
-            "user": {
-                "id": getattr(user, 'id', None),
-                "username": getattr(user, 'username', None),
+            'user': {
+                'id': getattr(user, 'id', None),
+                'username': getattr(user, 'username', None),
             }
         }
 
@@ -53,9 +53,9 @@ class Token:
 
         if scopes_dict:
             # Convert dict keys list to str
-            scopes = " ".join(scopes_dict.keys())
+            scopes = ' '.join(scopes_dict.keys())
         else:
-            scopes = ""
+            scopes = ''
 
         result = {
             'type': 'AccessToken',
@@ -101,11 +101,11 @@ class Request:
 
     def to_dict(self):
         return {
-            "uuid": self.uuid(),
-            "user": self.user(),
-            "start_time": self.start_time(),
-            "application": self.application(),
-            "path": self.path(),
+            'uuid': self.uuid(),
+            'user': self.user(),
+            'start_time': self.start_time(),
+            'application': self.application(),
+            'path': self.path(),
         }
 
 
@@ -153,10 +153,10 @@ class FHIRRequest(Request):
 
     def application(self):
         return {
-            "name": self.req.headers.get('BlueButton-Application'),
-            "id": self.req.headers.get('BlueButton-ApplicationId'),
-            "user": {
-                "id": self.req.headers.get('BlueButton-DeveloperId'),
+            'name': self.req.headers.get('BlueButton-Application'),
+            'id': self.req.headers.get('BlueButton-ApplicationId'),
+            'user': {
+                'id': self.req.headers.get('BlueButton-DeveloperId'),
             },
         }
 
@@ -165,15 +165,15 @@ class FHIRRequest(Request):
 
     def to_dict(self):
         return {
-            "type": "fhir_pre_fetch",
-            "uuid": self.uuid(),
-            "fhir_id_v2": self.fhir_id(),
-            "api_ver": self.api_ver if self.api_ver is not None else 'v1',
-            "includeAddressFields": self.includeAddressFields(),
-            "user": self.user(),
-            "application": self.application(),
-            "path": self.path(),
-            "start_time": self.start_time(),
+            'type': 'fhir_pre_fetch',
+            'uuid': self.uuid(),
+            'fhir_id_v2': self.fhir_id(),
+            'api_ver': self.api_ver if self.api_ver is not None else 'v1',
+            'includeAddressFields': self.includeAddressFields(),
+            'user': self.user(),
+            'application': self.application(),
+            'path': self.path(),
+            'start_time': self.start_time(),
         }
 
 
@@ -193,12 +193,12 @@ class FHIRRequestForAuth(Request):
 
     def to_dict(self):
         result = {
-            "type": "fhir_auth_pre_fetch",
-            "uuid": self.uuid(),
-            "api_ver": self.api_ver if self.api_ver is not None else 'v1',
-            "includeAddressFields": self.includeAddressFields(),
-            "path": "patient search",
-            "start_time": self.start_time(),
+            'type': 'fhir_auth_pre_fetch',
+            'uuid': self.uuid(),
+            'api_ver': self.api_ver if self.api_ver is not None else 'v1',
+            'includeAddressFields': self.includeAddressFields(),
+            'path': 'patient search',
+            'start_time': self.start_time(),
         }
         return result
 
@@ -222,9 +222,9 @@ class Response:
 
     def to_dict(self):
         resp_dict = {
-            "code": self.code(),
-            "size": self.size(),
-            "elapsed": self.elapsed(),
+            'code': self.code(),
+            'size': self.size(),
+            'elapsed': self.elapsed(),
         }
         resp_dict.update(self.req)
         return resp_dict
@@ -240,9 +240,9 @@ class FHIRResponse(Response):
     def to_dict(self):
         super_dict = super().to_dict()
         # add fhir version info
-        super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
+        super_dict.update({'api_ver': self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
-        super_dict.update({"type": "fhir_post_fetch"})
+        super_dict.update({'type': 'fhir_post_fetch'})
         return super_dict
 
 
@@ -256,9 +256,9 @@ class FHIRResponseForAuth(Response):
     def to_dict(self):
         super_dict = super().to_dict()
         # add fhir version info
-        super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
+        super_dict.update({'api_ver': self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
-        super_dict.update({"type": "fhir_auth_post_fetch"})
+        super_dict.update({'type': 'fhir_auth_post_fetch'})
         return super_dict
 
 
@@ -291,21 +291,21 @@ class SLSxTokenResponse(SLSResponse):
                 event_dict = json.loads(self.resp.text)
             except json.decoder.JSONDecodeError:
                 json_exception = {
-                    "message": f"JSONDecodeError thrown when parsing response text.",
+                    'message': f'JSONDecodeError thrown when parsing response text.',
                 }
 
         event_dict.update(super().to_dict().copy())
 
         resp_dict = {
-            "type": event_dict.get('type', 'unknown'),
-            "uuid": event_dict.get('uuid', ''),
-            "path": event_dict.get('path', ''),
-            "auth_token": 'Not available' if event_dict.get('auth_token') is None else hashlib.sha256(
+            'type': event_dict.get('type', 'unknown'),
+            'uuid': event_dict.get('uuid', ''),
+            'path': event_dict.get('path', ''),
+            'auth_token': 'Not available' if event_dict.get('auth_token') is None else hashlib.sha256(
                 str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
-            "code": event_dict.get('code', 306),
-            "size": event_dict.get('size', 0),
-            "start_time": event_dict.get('start_time', ''),
-            "elapsed": event_dict.get('elapsed', 0.0),
+            'code': event_dict.get('code', 306),
+            'size': event_dict.get('size', 0),
+            'start_time': event_dict.get('start_time', ''),
+            'elapsed': event_dict.get('elapsed', 0.0),
         }
 
         # update json parse err if any
@@ -333,21 +333,21 @@ class SLSxUserInfoResponse(SLSResponse):
                 event_dict = json.loads(self.resp.text)
             except json.decoder.JSONDecodeError:
                 json_exception = {
-                    "message": "JSONDecodeError thrown when parsing response text."
+                    'message': 'JSONDecodeError thrown when parsing response text.'
                 }
 
         event_dict.update(super().to_dict().copy())
 
         resp_dict = {
-            "type": event_dict.get('type', ''),
-            "uuid": event_dict.get('uuid', ''),
-            "path": event_dict.get('path', ''),
-            "sub": event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
+            'type': event_dict.get('type', ''),
+            'uuid': event_dict.get('uuid', ''),
+            'path': event_dict.get('path', ''),
+            'sub': event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
             # use http unused code as place holder - unittests now check schema
-            "code": event_dict.get('code', 306),
-            "size": event_dict.get('size', 0),
-            "start_time": event_dict.get('start_time', ''),
-            "elapsed": event_dict.get('elapsed', 0.0),
+            'code': event_dict.get('code', 306),
+            'size': event_dict.get('size', 0),
+            'start_time': event_dict.get('start_time', ''),
+            'elapsed': event_dict.get('elapsed', 0.0),
         }
 
         # update json parse err if any

@@ -20,6 +20,11 @@ admin.site.enable_nav_sidebar = False
 
 ADMIN_REDIRECTOR = getattr(settings, "ADMIN_PREPEND_URL", "")
 
+##################
+# NOTE: The waffle_switch('...')(...) construct can ONLY be used for
+# views and functions. It is a decorator. It cannot wrap an `include(...)` statement.
+##################
+
 
 def robots_txt(request):
     return HttpResponse(
@@ -102,25 +107,27 @@ urlpatterns_v3 = [
     path("v3/o/", include("apps.dot_ext.v3.urls")),
 ]
 
-if switch_is_active('v3_endpoints'):
-    urlpatterns_v3 += [
-        # connect/userinfo
-        re_path(
-            r"^v3/connect/userinfo",
-            openidconnect_userinfo_v3,
-            name="openid_connect_userinfo_v3",
-        ),
-        # fhir/bluebutton
-        path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
-        # fhir/metadata
-        path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),
-        # openid_config
-        path(
-            "v3/connect/.well-known/openid-configuration", openid_configuration_v3, name="openid-configuration-v3"
-        ),
-        # smart config
-        path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
-    ]
+urlpatterns_v3 = urlpatterns_v3 + [
+    # connect/userinfo
+    re_path(
+        r"^v3/connect/userinfo",
+        waffle_switch('v3_endpoints')(openidconnect_userinfo_v3),
+        name="openid_connect_userinfo_v3",
+    ),
+    # fhir/bluebutton
+    path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
+    # fhir/metadata
+    path("v3/fhir/metadata", waffle_switch('v3_endpoints')(fhir_conformance_v3), name="fhir_conformance_metadata_v3"),
+    # openid_config
+    path(
+        "v3/connect/.well-known/openid-configuration", waffle_switch('v3_endpoints')(openid_configuration_v3),
+        name="openid-configuration-v3"
+    ),
+    # smart config
+    path("v3/fhir/.well-known/smart-configuration",
+         waffle_switch('v3_endpoints')(smart_configuration_v3),
+         name="smart_configuration_v3"),
+]
 
 urlpatterns = all_versions + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
 
