@@ -35,7 +35,7 @@ from .views import (
 
 )
 
-all_versions = [
+urlpatterns_unversioned = [
     path('callback', callback, name='testclient-callback'),
     path('restart', restart, name='testclient-restart'),
     path('', test_links, name='test_links'),
@@ -71,4 +71,4 @@ urlpatterns_v3 = [
     path('userinfoV3', test_userinfo_v3, name='test_userinfo_v3'),
 ]
 
-urlpatterns = all_versions + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
+urlpatterns = urlpatterns_unversioned + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3

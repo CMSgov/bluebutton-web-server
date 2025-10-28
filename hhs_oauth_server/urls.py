@@ -32,7 +32,7 @@ def robots_txt(request):
     )
 
 
-all_versions = [
+urlpatterns_unversioned = [
     path("health/", include("apps.health.urls")),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
@@ -97,16 +97,10 @@ urlpatterns_v2 = [
 ]
 
 urlpatterns_v3 = [
-    # accounts
-    # TODO: This does not exist yet.
-    # path("v3/accounts/", waffle_switch("v3_endpoints")(include("apps.accounts.v3.urls"))),
     # authorization
     path("v3/o/", include("apps.authorization.v3.urls")),
     # dot_ext
     path("v3/o/", include("apps.dot_ext.v3.urls")),
-]
-
-urlpatterns_v3 = urlpatterns_v3 + [
     # connect/userinfo
     re_path(
         r"^v3/connect/userinfo",
@@ -128,7 +122,8 @@ urlpatterns_v3 = urlpatterns_v3 + [
          name="smart_configuration_v3"),
 ]
 
-urlpatterns = all_versions + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
+
+urlpatterns = urlpatterns_unversioned + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
 
 # If running in local development, add the media and static urls:
 if settings.IS_MEDIA_URL_LOCAL is True:
