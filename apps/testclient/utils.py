@@ -33,8 +33,6 @@ def _start_url_with_http_or_https(host: str) -> str:
 
     return host
 
-# TODO/FIXME: Why do we pass in a version, and then get the version from the session oject?
-
 
 def testclient_http_response_setup(include_client_secret: bool = True, version: str = Versions.NOT_AN_API_VERSION) -> OrderedDict:
     """Prepare testclient response environment
@@ -62,9 +60,6 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
 
-    # FIXME: This seems dangerous, to default to localhost.
-    # If this code is running in production, it could redirect to the user's machine.
-    # Better that we set this, and pull the host URL from settings established at startup.
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
     host = _start_url_with_http_or_https(host)
 
