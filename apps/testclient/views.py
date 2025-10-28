@@ -23,7 +23,7 @@ from .utils import (testclient_http_response_setup,
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import (
     fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3)
-from apps.wellknown.views.openid import openid_configuration_v1
+from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
 
 import apps.logging.request_logger as bb2logging
 
@@ -493,8 +493,15 @@ def _test_openid_config(request: HttpRequest, version=Versions.NOT_AN_API_VERSIO
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    # api ver agnostic for now, but show version any way on page
-    json_response = _convert_response_string_to_json(openid_configuration_v1(request))
+    match version:
+        case Versions.V1:
+            json_response = _convert_response_string_to_json(openid_configuration_v1(request))
+        case Versions.V2:
+            json_response = _convert_response_string_to_json(openid_configuration_v2(request))
+        case Versions.V3:
+            json_response = _convert_response_string_to_json(openid_configuration_v3(request))
+        case _:
+            raise VersionNotMatched("Version not matched in openid_config.")
 
     return render(request, RESULTS_PAGE,
                   {'fhir_json_pretty': json.dumps(json_response, indent=3),
