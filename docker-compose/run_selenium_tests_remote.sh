@@ -25,17 +25,17 @@ display_usage() {
     echo "Options:"
     echo
     echo "-h     Print this Help."
-    echo "-p     Test for newer permissions screen. Defaults to older screen."
     echo "-g     Selenium grid used."
     echo "-t     Show test case actions on std out."
+    echo '-l     Use Login with Medicare.gov button'
     echo
     echo "Examples:"
     echo
-    echo "run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/ (or SBX)"
+    echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
     echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
     echo
-    echo "run_selenium_tests_remote.sh -p  https://test.bluebutton.cms.gov/ (or TEST)"
+    echo "run_selenium_tests_remote.sh  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
     echo
@@ -50,7 +50,8 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-export USE_NEW_PERM_SCREEN=false
+USE_LOGIN_WITH_MEDICARE_BUTTON="${USE_LOGIN_WITH_MEDICARE_BUTTON:-}"
+export USE_NEW_PERM_SCREEN=true
 export SERVICE_NAME="selenium-tests-remote"
 # TODO optionally add the Spanish selenium tests here if desired
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
@@ -66,10 +67,10 @@ while getopts "hpgt" option; do
       h)
         display_usage;
         exit;;
-      p)
-        export USE_NEW_PERM_SCREEN=true;;
       g)
         export SELENIUM_GRID=true;;
+      l)
+        export USE_LOGIN_WITH_MEDICARE_BUTTON=true;;
       t)
         export PYTEST_SHOW_TRACE_OPT='-s';;
      \?)
@@ -93,6 +94,9 @@ then
             ;;
         TEST)
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
+            if [[ -z "${USE_LOGIN_WITH_MEDICARE_BUTTON}" ]]; then
+                export USE_LOGIN_WITH_MEDICARE_BUTTON=true
+            fi
             ;;
         *)
             if [[ ${last_arg} == 'http'* ]]
@@ -111,6 +115,7 @@ fi
 SYSTEM=$(uname -s)
 
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
+echo "USE_LOGIN_WITH_MEDICARE_BUTTON=" ${USE_LOGIN_WITH_MEDICARE_BUTTON}
 echo "BB2 Server URL=" ${HOSTNAME_URL}
 echo "Selenium grid=" ${SELENIUM_GRID}
 
@@ -119,7 +124,10 @@ export USE_MSLSX=false
 
 # stop all before run selenium remote tests
 docker compose -f docker-compose.selenium.remote.yml down --remove-orphans
-docker compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+docker compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c \
+"SELENIUM_GRID=${SELENIUM_GRID} \
+ USE_LOGIN_WITH_MEDICARE_BUTTON=${USE_LOGIN_WITH_MEDICARE_BUTTON} \
+ pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg
