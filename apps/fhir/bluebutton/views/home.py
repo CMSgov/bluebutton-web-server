@@ -114,7 +114,7 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
     od = conformance_filter(text_out)
 
     # Append Security to ConformanceStatement
-    security_endpoint = build_oauth_resource(request, format_type='json')
+    security_endpoint = build_oauth_resource(request, version, format_type='json')
     od['rest'][0]['security'] = security_endpoint
     # Fix format values
     od['format'] = ['application/json', 'application/fhir+json']

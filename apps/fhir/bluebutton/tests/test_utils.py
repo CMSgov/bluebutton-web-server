@@ -6,6 +6,7 @@ from django.test import TestCase, RequestFactory
 from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.constants import Versions
 
 from apps.fhir.bluebutton.utils import (
     notNone,
@@ -284,7 +285,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request)
+        result = build_oauth_resource(request, version=Versions.V1)
 
         expected = True
 
@@ -296,7 +297,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, "json")
+        result = build_oauth_resource(request, Versions.V1, "json")
 
         expected = True
 
@@ -308,7 +309,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, "xml")
+        result = build_oauth_resource(request, Versions.V1, "xml")
 
         expected = "<cors>true</cors>"
 

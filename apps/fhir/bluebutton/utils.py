@@ -14,7 +14,7 @@ from pytz import timezone
 from django.conf import settings
 from django.contrib import messages
 from apps.fhir.server.settings import fhir_settings
-
+from apps.constants import Versions, VersionNotMatched
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
@@ -35,7 +35,6 @@ def get_user_from_request(request):
 
 
 def get_ip_from_request(request):
-
     """Returns the IP of the request, accounting for the possibility of being
     behind a proxy.
     """
@@ -600,7 +599,7 @@ def get_response_text(fhir_response=None):
         return text_in
 
 
-def build_oauth_resource(request, format_type="json"):
+def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_type="json"):
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
@@ -608,7 +607,7 @@ def build_oauth_resource(request, format_type="json"):
     :return: security
     """
     endpoints = build_endpoint_info(OrderedDict(), issuer=base_issuer(request))
-    if 'v3' in request.path:
+    if version == Versions.V3:
         endpoints['token_endpoint'] = endpoints['token_endpoint'].replace('v2', 'v3')
         endpoints['authorization_endpoint'] = endpoints['authorization_endpoint'].replace('v2', 'v3')
         endpoints['revocation_endpoint'] = endpoints['revocation_endpoint'].replace('v2', 'v3')
