@@ -6,51 +6,8 @@ from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
 from apps.constants import Versions, VersionNotMatched
-
+from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
-
-
-def _ormap(fun, ls):
-    """True if `fun` returns true for any element of the list.
-
-    See https://stackoverflow.com/questions/35784074/does-python-have-andmap-ormap.
-
-    Args:
-        fun (any -> boolean): Function of one argument; takes any value and returns a boolean
-        ls (list): A list of elements of any type
-
-    Returns:
-        bool: True if `fun` returned true when applied to any element of the list.
-    """
-    return any(map(fun, ls))
-
-
-def _deepfind(obj, val: str):
-    """Looks for a value anywhere in a datastructure.
-
-    Args:
-        obj (iterable | any): The object we want to search
-        val (str): The string we want to search for.
-
-    Returns:
-        bool: true if the string is found as a subset of any string or iterable
-            within the data structure.
-    """
-    if isinstance(obj, str):
-        # If we are looking at a string, ask if the value we are looking for is
-        # equal to or a substring of the string in question.
-        return val in obj
-    elif isinstance(obj, list):
-        # If we are looking at a list, then we should return true if _deepfind on
-        # any of the elements of the list returns true.
-        return _ormap(lambda o: _deepfind(o, val), obj)
-    elif isinstance(obj, dict):
-        # If we have a k/v dictionary, then we return true if _deepfind on
-        # any of the values in the dict returns true.
-        return _ormap(lambda o: _deepfind(o, val), obj.values())
-    else:
-        # We return false in all other cases. This guarantees termination.
-        return False
 
 
 class TestclientHelpers(TestCase):
@@ -140,7 +97,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     def test_get_userinfo_v2(self):
         self._test_get_userinfo(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_userinfo_v3(self):
     #     self._test_get_userinfo(Versions.V3)
 
@@ -188,7 +145,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_patient_v2(self):
         self._test_get_patient(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_patient_v3(self):
     #     self._test_get_patient(Versions.V3)
 
@@ -212,7 +169,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_patient_fhir_v2(self):
         self._test_get_patient_fhir(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_patient_fhir_v3(self):
     #     self._test_get_patient_fhir(Versions.V3)
 
@@ -228,7 +185,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_patient_negative_v2(self):
         self._test_get_patient_negative(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_patient_negative_v3(self):
     #     self._test_get_patient_negative(Versions.V3)
 
@@ -277,7 +234,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_eob_v2(self):
         self._test_get_eob(version=Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_eob_v3(self):
     #     self._test_get_eob(version=Versions.V3)
 
@@ -353,7 +310,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_eob_negative_v2(self):
         self._test_get_eob_negative(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_eob_negative_v3(self):
     #     self._test_get_eob_negative(Versions.V3)
 
@@ -374,7 +331,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_coverage_v2(self):
         self._test_get_coverage(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_coverage_v3(self):
     #     self._test_get_coverage(Versions.V3)
 
@@ -393,7 +350,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_coverage_negative_v2(self):
         self._test_get_coverage_negative(Versions.V2)
 
-    # TBD: Introduce v3 tests when ready
+    # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_coverage_negative_v3(self):
     #     self._test_get_coverage_negative(Versions.V3)
 

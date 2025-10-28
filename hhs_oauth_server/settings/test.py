@@ -6,9 +6,6 @@ del LOGGING['loggers']
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
-# 20251010 MCJ This variable seems to be unused.
-# REQUIRE_AUTHOIRZE_APP_FLAG = False
-
 LOGIN_RATE = '100/m'
 
 REQUEST_CALL_TIMEOUT = (5, 120)

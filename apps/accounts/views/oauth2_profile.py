@@ -52,17 +52,14 @@ def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
 
 
 def openidconnect_userinfo_v1(request):
-    # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
     return _openidconnect_userinfo(request, version=Versions.V1)
 
 
 def openidconnect_userinfo_v2(request):
-    # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
     return _openidconnect_userinfo(request, version=Versions.V2)
 
 
 def openidconnect_userinfo_v3(request):
-    # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
     return _openidconnect_userinfo(request, version=Versions.V3)
 
 

@@ -141,3 +141,46 @@ def __generate_auth_data() -> dict:
     auth_data = {"state": __generate_random_state(32)}
     auth_data.update(__generate_pkce_data())
     return auth_data
+
+
+def _ormap(fun, ls):
+    """True if `fun` returns true for any element of the list.
+
+    See https://stackoverflow.com/questions/35784074/does-python-have-andmap-ormap.
+
+    Args:
+        fun (any -> boolean): Function of one argument; takes any value and returns a boolean
+        ls (list): A list of elements of any type
+
+    Returns:
+        bool: True if `fun` returned true when applied to any element of the list.
+    """
+    return any(map(fun, ls))
+
+
+def _deepfind(obj, val: str):
+    """Looks for a value anywhere in a datastructure.
+
+    Args:
+        obj (iterable | any): The object we want to search
+        val (str): The string we want to search for.
+
+    Returns:
+        bool: true if the string is found as a subset of any string or iterable
+            within the data structure.
+    """
+    if isinstance(obj, str):
+        # If we are looking at a string, ask if the value we are looking for is
+        # equal to or a substring of the string in question.
+        return val in obj
+    elif isinstance(obj, list):
+        # If we are looking at a list, then we should return true if _deepfind on
+        # any of the elements of the list returns true.
+        return _ormap(lambda o: _deepfind(o, val), obj)
+    elif isinstance(obj, dict):
+        # If we have a k/v dictionary, then we return true if _deepfind on
+        # any of the values in the dict returns true.
+        return _ormap(lambda o: _deepfind(o, val), obj.values())
+    else:
+        # We return false in all other cases. This guarantees termination.
+        return False
