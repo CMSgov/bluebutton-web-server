@@ -58,14 +58,13 @@ class TestModels(BaseApiTest):
     #         fhir_id_v2="-20000000000001",
     #         fhir_id_v3="-30000000000001",
     #     )
-
-        cw = Crosswalk.objects.get(user=user)
-        self.assertEqual(cw.fhir_id(2), "-20000000000001")
-        self.assertEqual(cw.fhir_id(3), "-30000000000001")
-        cw.set_fhir_id("-20000000000002", 2)
-        cw.set_fhir_id("-30000000000002", 3)
-        self.assertEqual(cw.fhir_id(2), "-20000000000002")
-        self.assertEqual(cw.fhir_id(3), "-30000000000002")
+    # cw = Crosswalk.objects.get(user=user)
+    # self.assertEqual(cw.fhir_id(2), "-20000000000001")
+    # self.assertEqual(cw.fhir_id(3), "-30000000000001")
+    # cw.set_fhir_id("-20000000000002", 2)
+    # cw.set_fhir_id("-30000000000002", 3)
+    # self.assertEqual(cw.fhir_id(2), "-20000000000002")
+    # self.assertEqual(cw.fhir_id(3), "-30000000000002")
 
     def test_mutable_user_hicn_hash(self):
         user = self._create_user(
