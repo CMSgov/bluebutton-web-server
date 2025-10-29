@@ -1,0 +1,2 @@
+Font-Awesome 4.70
+upgraded from Font-Awesome 4.40

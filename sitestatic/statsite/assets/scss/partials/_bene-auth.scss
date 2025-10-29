@@ -1,0 +1,111 @@
+// Styles for the Beneficiary Authoization Screen
+// ----------------------------------------------
+
+// Variables
+$bene-auth-bg: $light-gray;
+$bene-auth-secondary-container-bg: $white;
+$bene-auth-secondary-container-border: 1px solid #D7D7D7;
+
+// Styles for the outer container
+.bene-auth-container {
+  background: $bene-auth-bg;
+  height: 100vh;
+  padding: 1rem;
+}
+
+// Set Up Flexbox Container for Alignment
+.bene-auth-outer-flex {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+// Guest App Info Container & Auth Info Combined Styles
+.guest-app-info,
+.auth-info {
+  background: $bene-auth-secondary-container-bg;
+  border: $bene-auth-secondary-container-border;
+  margin: 0.5rem 0;
+  width: 100%;
+  max-width: 800px;
+}
+
+// This container shows the medicare logo and the connected app logo/information
+.guest-app-info {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem 0;
+  // Flex container for the logos and icon
+  .logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    // Collapse Icons on Mobile
+    @media #{$small-phone} {
+      flex-direction: column;
+    }
+    // Connection icon
+    svg {
+      margin: 0 1rem 0 .5rem;
+      transition: transform 180ms ease;
+      stroke: $color-gray-light;
+      // Change margins on mobile
+      @media #{$small-phone} {
+        margin: 0 0 .5rem 0;
+        transform: rotate(90deg);
+      }
+    }
+  }
+  // Logo Styles
+  .medicare-logo,
+  .app-logo img {
+    width: 100%;
+    max-width: 150px;
+  }
+  // App Name Styles
+  .app-name {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  // Container for the app's privacy policy/terms of service
+  .app-policy-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // Style the policy links
+    div {
+      margin: 0 0.5rem;
+      a {
+        font-size: .8rem;
+      }
+    }
+    // Collapse links on a small phone screen
+    @media #{$small-phone} {
+      flex-direction: column;
+    }
+  }
+}
+
+// Message Container - this is where the actual content of the warning is
+.bene-auth-container .message {
+  padding: 1rem;
+  h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: 1rem;
+  }
+}
+
+// Auth Button Container
+.auth-button-container {
+  border-top: $bene-auth-secondary-container-border;
+  padding: 1rem;
+  .button {
+
+  }
+}

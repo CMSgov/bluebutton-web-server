@@ -1,0 +1,31 @@
+// Global Elements, Variables, and Mixins
+// --------------------------------------
+
+// CMS Design Color Variables
+// --------------------------
+
+$color-gray-light: #AEB0B5;
+
+// General Color Variables
+// -----------------------
+
+$light-gray: #f7f7f7;
+$black: #000000;
+$white: #ffffff;
+
+// Breakpoints
+// -----------
+
+$small-phone: "(min-width: 0px) and (max-width: 400px)";
+$phone: "(min-width: 0px) and (max-width: 639px)";
+$mobile-nav: "(min-width: 0px) and (max-width: 895px)";
+$tablet: "(min-width: 640px) and (max-width: 1023px)";
+$desktop: "(min-width: 1024px)";
+
+// General Global Styles
+// ---------------------
+
+body {
+  margin: 0;
+  padding: 0;
+}

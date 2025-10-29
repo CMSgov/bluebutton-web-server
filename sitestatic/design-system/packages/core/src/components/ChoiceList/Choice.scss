@@ -1,0 +1,343 @@
+@import '@cmsgov/design-system-support/src/settings/index';
+
+/*
+Fieldset
+
+Markup:
+<fieldset class="ds-c-fieldset">...</fieldset>
+*/
+.ds-c-fieldset {
+  border: 0;
+  // We apply the same margin as a label has, since in the context of a fieldset
+  // this would be a <legend>. See .ds-c-fieldset > .ds-c-label for more info.
+  margin: $spacer-3 0 0;
+  min-width: 0;
+  padding: 0;
+}
+
+/*
+Checkbox & Radio
+
+Checkboxes allow users to select one or more options from a visible list, whereas radio buttons allow a user to select only one option.
+
+@uswds https://standards.usa.gov/components/form-controls
+
+Markup:
+<fieldset class="ds-c-fieldset ds-u-margin-top--0">
+  <legend class="ds-c-label">Historical figures</legend>
+  <span class="ds-c-field__hint">Select all that apply</span>
+  <input class="ds-c-choice" id="truth-1" type="checkbox" name="historical-figures-1" value="truth" checked>
+  <label for="truth-1">Sojourner Truth</label>
+  <input class="ds-c-choice" id="douglass-1" type="checkbox" name="historical-figures-1" value="douglass">
+  <label for="douglass-1">Frederick Douglass</label>
+  <input class="ds-c-choice" id="washington-1" type="checkbox" name="historical-figures-1" value="washington">
+  <label for="washington-1">Booker T. Washington</label>
+  <input class="ds-c-choice" id="carver-1" type="checkbox" name="historical-figures-1" disabled>
+  <label for="carver-1">George Washington Carver</label>
+</fieldset>
+<fieldset class="ds-c-fieldset">
+  <legend class="ds-c-label">Select a historical figure</legend>
+  <input class="ds-c-choice" id="truth-3" type="radio" name="historical-figures-3" value="truth" checked>
+  <label for="truth-3">Sojourner Truth</label>
+  <input class="ds-c-choice" id="douglass-3" type="radio" name="historical-figures-3" value="douglass">
+  <label for="douglass-3">Frederick Douglass</label>
+  <input class="ds-c-choice" id="washington-3" type="radio" name="historical-figures-3" value="washington">
+  <label for="washington-3">Booker T. Washington</label>
+</fieldset>
+
+Style guide: components.choice
+*/
+
+/*
+Inverse theme
+
+Markup:
+<div class="ds-base ds-base--inverse ds-u-padding--2 ds-u-margin-top--2">
+  <fieldset class="ds-c-fieldset ds-u-margin-top--0">
+    <legend class="ds-c-label">Historical figures</legend>
+    <span class="ds-c-field__hint ds-c-field__hint--inverse">Select all that apply</span>
+    <input class="ds-c-choice ds-c-choice--inverse" id="truth-2" type="checkbox" name="historical-figures-2" value="truth" checked>
+    <label for="truth-2">Sojourner Truth</label>
+    <input class="ds-c-choice ds-c-choice--inverse" id="douglass-2" type="checkbox" name="historical-figures-2" value="douglass">
+    <label for="douglass-2">Frederick Douglass</label>
+    <input class="ds-c-choice ds-c-choice--inverse" id="washington-2" type="checkbox" name="historical-figures-2" value="washington">
+    <label for="washington-2">Booker T. Washington</label>
+    <input class="ds-c-choice ds-c-choice--inverse" id="carver-2" type="checkbox" name="historical-figures-2" disabled>
+    <label for="carver-2">George Washington Carver</label>
+  </fieldset>
+  <fieldset class="ds-c-fieldset">
+    <legend class="ds-c-label">Select a historical figure</legend>
+    <input class="ds-c-choice ds-c-choice--inverse" id="truth-4" type="radio" name="historical-figures-4" value="truth" checked>
+    <label for="truth-4">Sojourner Truth</label>
+    <input class="ds-c-choice ds-c-choice--inverse" id="douglass-4" type="radio" name="historical-figures-4" value="douglass">
+    <label for="douglass-4">Frederick Douglass</label>
+    <input class="ds-c-choice ds-c-choice--inverse" id="washington-4" type="radio" name="historical-figures-4" value="washington">
+    <label for="washington-4">Booker T. Washington</label>
+  </fieldset>
+</div>
+
+Style guide: components.choice.inversed
+*/
+
+// Hide the default browser checkbox/radio button since we'll
+// create our own custom version
+.ds-c-choice {
+  left: -999em;
+  opacity: 0;
+  position: absolute;
+}
+
+.ds-c-choice + label {
+  cursor: pointer;
+  display: block;
+  font-weight: $font-normal;
+  margin: $spacer-1 0;
+  max-width: $measure-base;
+  min-height: $choice-size;
+  padding-left: $choice-size + $spacer-1;
+  padding-top: $spacer-half;
+  position: relative;
+}
+
+// Create a custom checkbox/radio button
+.ds-c-choice + label::before {
+  background-color: $color-background;
+  border: $choice-border-width solid $choice-border-color;
+  box-sizing: border-box;
+  content: '\a0';
+  height: $choice-size;
+  left: 0;
+  line-height: $choice-size;
+  position: absolute;
+  text-indent: 0.15em;
+  top: 0;
+  width: $choice-size;
+}
+
+.ds-c-choice--inverse + label::before {
+  background-color: $color-background-inverse;
+  border-color: $choice-border-color-inverse;
+}
+
+// Display an outline
+.ds-c-choice:focus + label::before {
+  box-shadow: 0 0 0 2px $color-background, 0 0 2px 4px $color-focus;
+}
+
+.ds-c-choice--inverse:focus + label::before {
+  box-shadow: 0 0 0 2px $color-background-inverse,
+    0 0 2px 4px $color-focus-inverse;
+}
+
+// Display a checkmark
+.ds-c-choice:checked + label::before {
+  background-color: $choice-checked-background-color;
+  background-image: url('#{$image-path}/checkmark-white.svg');
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: $choice-size - $spacer-1;
+  border-color: $choice-checked-background-color;
+}
+
+// Fade the checkbox and label
+.ds-c-choice:disabled {
+  + label {
+    color: $color-muted;
+
+    &::before {
+      background-color: $color-gray-lighter;
+      border: 1px solid $color-gray-light;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.ds-c-choice--inverse:disabled {
+  + label {
+    color: $color-muted-inverse;
+
+    &::before {
+      background-color: rgba($color-muted-inverse, 0.15);
+      box-shadow: 0 0 0 1px $color-muted-inverse;
+    }
+  }
+}
+
+// Display a circular radio button
+.ds-c-choice[type='radio'] + label::before {
+  border-radius: 100%;
+}
+
+/*
+Right-to-Left
+
+Markup:
+<div class="ds-u-clearfix">
+  <div class="ds-u-padding--2 ds-u-text-align--right ds-u-border--2 ds-u-float--left">
+    <fieldset class="ds-c-fieldset ds-u-margin-top--0">
+      <legend class="ds-c-label">Right to left</legend>
+      <span class="ds-c-field__hint ds-u-margin-bottom--1">Select desired fruits</span>
+      <input class="ds-c-choice ds-c-choice--right" id="apple-1" type="checkbox" name="fruit-1" value="apple" checked>
+      <label for="apple-1">Apple</label>
+      <input class="ds-c-choice ds-c-choice--right" id="banana-1" type="checkbox" name="fruit-1" value="banana">
+      <label for="banana-1">Banana</label>
+      <input class="ds-c-choice ds-c-choice--right" id="fig-1" type="checkbox" name="fruit-1" value="fig">
+      <label for="fig-1">Fig</label>
+      <input class="ds-c-choice ds-c-choice--right" id="plum-1" type="checkbox" name="fruit-1" disabled>
+      <label for="plum-1">Plum</label>
+    </fieldset>
+  </div>
+  <div class="ds-u-padding--2 ds-u-text-align--right ds-u-float--left ds-u-margin-left--2 ds-base--inverse">
+    <fieldset class="ds-c-fieldset ds-u-margin-top--0">
+      <legend class="ds-c-label">Right to left</legend>
+      <span class="ds-c-field__hint ds-c-field__hint--inverse ds-u-margin-bottom--1">Select desired fruits</span>
+      <input class="ds-c-choice ds-c-choice--right ds-c-choice--inverse" id="apple-2" type="radio" name="fruit-2" value="apple" checked>
+      <label for="apple-2">Apple</label>
+      <input class="ds-c-choice ds-c-choice--right ds-c-choice--inverse" id="banana-2" type="radio" name="fruit-2" value="banana">
+      <label for="banana-2">Banana</label>
+      <input class="ds-c-choice ds-c-choice--right ds-c-choice--inverse" id="fig-2" type="radio" name="fruit-2" value="fig">
+      <label for="fig-2">Fig</label>
+    </fieldset>
+  </div>
+</div>
+
+Style guide: components.choice.rtl
+*/
+.ds-c-choice--right + label {
+  padding-left: 0;
+  padding-right: $choice-size + $spacer-1;
+
+  &::before {
+    left: auto;
+    right: 0;
+  }
+}
+
+/*
+Size variants
+
+Markup:
+<div class="ds-u-clearfix">
+  <div class="ds-u-padding--2 ds-u-border--2 ds-u-float--left">
+    <fieldset class="ds-c-fieldset ds-u-margin-top--0">
+      <legend class="ds-c-label">Size variants</legend>
+      <span class="ds-c-field__hint ds-u-margin-bottom--1">Select a size</span>
+      <input class="ds-c-choice" id="normal-1" type="checkbox" name="size-1" value="normal" checked>
+      <label for="normal-1">Normal</label>
+      <input class="ds-c-choice ds-c-choice--small" id="small-1" type="checkbox" name="size-1" value="small">
+      <label for="small-1">Small</label>
+    </fieldset>
+  </div>
+  <div class="ds-u-padding--2 ds-u-border--2 ds-u-float--left ds-u-margin-left--2">
+    <fieldset class="ds-c-fieldset ds-u-margin-top--0">
+      <legend class="ds-c-label">Size variants</legend>
+      <span class="ds-c-field__hint ds-u-margin-bottom--1">Select a size</span>
+      <input class="ds-c-choice" id="normal-2" type="radio" name="size-2" value="normal" checked>
+      <label for="normal-2">Normal</label>
+      <input class="ds-c-choice ds-c-choice--small" id="small-2" type="radio" name="size-2" value="small">
+      <label for="small-2">Small</label>
+    </fieldset>
+  </div>
+</div>
+
+Style guide: components.choice.size
+*/
+.ds-c-choice--small {
+  + label {
+    min-height: $choice-size-small;
+    padding-left: $choice-size-small + $spacer-1;
+    padding-top: 0;
+
+    &::before {
+      height: $choice-size-small;
+      top: 2px;
+      width: $choice-size-small;
+    }
+  }
+
+  &:checked + label::before {
+    background-size: $choice-size-small;
+  }
+
+  &.ds-c-choice--right + label {
+    padding-left: 0;
+    padding-right: $choice-size-small + $spacer-1;
+  }
+}
+
+/*
+`<ChoiceList>`
+
+@react-component ChoiceList
+
+Style guide: components.choice.choicelist
+*/
+
+/*
+`<Choice>`
+
+@react-component Choice
+
+Style guide: components.choice.react
+*/
+
+/*
+---
+
+## When to use
+
+**Checkboxes**
+
+- When a user can select any number of choices from a set list.
+- When a user needs to choose “yes” or “no” on only one option (use a stand-alone checkbox). For example, to toggle a setting on or off.
+- When users need to see all the available options at a glance.
+- When users should be able to select zero of the options.
+
+**Radio buttons**
+
+- When users need to select only one option out of a set of mutually exclusive choices.
+
+## When to consider alternatives
+
+- If there are too many options to display on a mobile screen. Consider a `select` menu if you don’t have enough space to list out all available options, and if the user can only select one of the options.
+- Never use radio buttons for optional questions, since once a radio button is selected from a list, it or another choice will remain selected.
+
+## Guidance
+
+- Don't rely on the visual difference between radio buttons and checkboxes. Make it clear with words when users can select one or multiple options.
+- Users should be able to tap on or click on either the text label or the checkbox to select or deselect an option.
+- In general, list choices vertically; horizontal listings can make it difficult to tell which label pertains to which choice. An exception is where you have binary choices with short labels, like 'Yes / No'. The convention here is for horizontal alignment.
+- Avoid using negative language in labels as they can be counterintuitive. For example, “I want to receive a promotional email” instead of “I don’t want to receive promotional email.”
+- Use caution if you decide to set a default value. Setting a default value can discourage users from making conscious decisions, seem pushy, or alienate users who don’t fit into your assumptions. In addition, you'll never know if the user explicitly chose that option or just didn't notice the question. If you're unsure, leave nothing selected by default.
+
+**[View the "Forms" guidelines for additional guidance and best practices.]({{root}}/guidelines/forms/)**
+
+## Accessibility
+
+- Surround a related set of choices with a `<fieldset>`. The `<legend>` provides context for the grouping. Do not use `fieldset` and `legend` for a single checkbox.
+- Some screen readers read the `legend` text for each `fieldset`, so it should be brief and descriptive.
+- Each input should have a semantic `id` attribute, and its corresponding `label` should have the same value in its `for` attribute.
+- The custom checkboxes and radio buttons here are accessible to screen readers because the default fields are moved off-screen.
+
+## Theming
+
+The following Sass variables can be overridden to theme choice fields:
+
+- `$choice-border-width`
+- `$choice-border-color`
+- `$choice-border-color-inverse`
+- `$choice-checked-background-color`
+
+## Related patterns
+
+- [Select menu]({{root}}/components/select)
+
+## Learn more
+
+- [Form Guidelines]({{root}}/guidelines/forms/)
+- [GOV.UK Checkbox/Radio buttons discussion](https://paper.dropbox.com/doc/Radio-buttons-oIwWoxwBKClt5IXvDbnpF)
+- ["We've updated the radios and checkboxes on GOV.UK"](https://designnotes.blog.gov.uk/2016/11/30/weve-updated-the-radios-and-checkboxes-on-gov-uk/)
+- [Four steps for choosing form elements on the Web (PDF)](http://www.formsthatwork.com/files/Articles/dropdown.pdf)
+
+Style guide: components.choice.guidance
+*/
