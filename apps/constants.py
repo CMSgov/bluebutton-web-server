@@ -3,17 +3,10 @@
 # e.g. A use of 'v1' should become Versions.V1.
 
 
-class VersionNotMatched(Exception):
-    """
-    A custom exception to be thrown when we do not match a version.
-    """
-    pass
-
-
 class Versions:
-    V1 = 1
-    V2 = 2
-    V3 = 3
+    V1 = 'v1'
+    V2 = 'v2'
+    V3 = 'v3'
 
     # If we use a default version anywhere, this is the current
     # default version for BB2
@@ -21,12 +14,9 @@ class Versions:
 
     # In some cases, we need to default to an API version.
     # For now, we are defaulting to v2.
-    NOT_AN_API_VERSION = 0
+    NOT_AN_API_VERSION = 'v0'
 
-    def as_str(version: int):
-        return f'v{version}'
-
-    def as_int(version: int) -> int:
+    def as_int(version: str) -> int:
         match version:
             case Versions.V1:
                 return 1
@@ -36,3 +26,13 @@ class Versions:
                 return 3
             case _:
                 raise VersionNotMatched(f"{version} is not a valid version constant")
+
+    def supported_versions() -> list[str]:
+        return [Versions.V1, Versions.V2, Versions.V3]
+
+
+class VersionNotMatched(Exception):
+    """
+    A custom exception to be thrown when we do not match a version.
+    """
+    pass

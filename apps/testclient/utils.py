@@ -1,33 +1,63 @@
 import base64
 import hashlib
-import random
+import secrets
 import string
 
 from collections import OrderedDict
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
+from apps.constants import Versions
 
 from ..dot_ext.models import Application
 
 
-def test_setup(include_client_secret=True, v2=False):
+def _start_url_with_http_or_https(host: str) -> str:
+    """Makes sure a URL starts with HTTPS
+
+    This is not comprehensive. It is a light refactoring of old code.
+    It tries to make sure that a host starts with HTTPS.
+
+    Args:
+        host: string
+    Returns:
+        host: string (with "https://")
+    """
+    if host.startswith("https://"):
+        # This is fine.
+        pass
+    elif host.startswith("http://"):
+        # This is also fine
+        pass
+    else:
+        host = f'https://{host}'
+
+    return host
+
+# Default the version to `v0` to cause errors in the event
+# of the parameter not being set correctly at the calling site.
+
+# 20251010 MCJ This was defaulted to V2. Now, I've defaulted it to V0.
+# Could this be why things are failing?
+
+
+def test_setup(include_client_secret=True, version=Versions.NOT_AN_API_VERSION):
     response = OrderedDict()
-    ver = 'v2' if v2 else 'v1'
-    response['api_ver'] = ver
+
+    response['api_ver'] = version
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
 
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
 
+    # TODO: MAGIC(URL)
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
 
-    if not (host.startswith("http://") or host.startswith("https://")):
-        host = "https://" + host
+    host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
+    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version)
 
     auth_data = __generate_auth_data()
     response['code_challenge_method'] = "S256"
@@ -35,12 +65,12 @@ def test_setup(include_client_secret=True, v2=False):
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
 
-    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, ver)
-    response['token_uri'] = '{}/{}/o/token/'.format(host, ver)
-    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, ver)
-    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, ver)
-    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, ver)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
+    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, version)
+    response['token_uri'] = '{}/{}/o/token/'.format(host, version)
+    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, version)
+    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, version)
+    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, version)
+    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version)
     return (response)
 
 
@@ -82,7 +112,7 @@ def __base64_url_encode(buffer):
 
 def __get_random_string(length) -> str:
     letters = string.ascii_letters + string.digits + string.punctuation
-    result = "".join(random.choice(letters) for i in range(length))
+    result = ''.join(secrets.choice(letters) for i in range(length))
     return result
 
 
