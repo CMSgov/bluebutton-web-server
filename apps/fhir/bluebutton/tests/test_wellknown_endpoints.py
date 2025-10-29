@@ -77,7 +77,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     # This makes sure URLs return 200s.
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_url_status_codes(self):
         with override_switch('v3_endpoints', active=True):
             for test in TESTS:
@@ -87,7 +87,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
 
     # This looks at the given set of URLs and makes sure that the version value encoded in the
     # reponses are correctly versioned. Note the handling of v1/v2.
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     def test_urls_appropriate(self):
         for test in TESTS:
@@ -111,7 +111,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 else:
                     self.fail('Failed to connect with a good status code.')
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     def test_smart_configuration_missing_fields_in_v3(self):
         for test in TESTS:
@@ -144,13 +144,16 @@ class BlueButtonTestEndpoints(BaseApiTest):
     #     }
     # ]
     # Make sure FHIR v3 extensions are correct when the metadata is fetched; the extensions object
-    # is commented above for reference. This would be a good use of jsonpath in our codebase...
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    # is commented above for reference.
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    # This overrides the switch and sets it to true, always.
+    # We should only run the test if we have v3 enabled.
     @override_switch('v3_endpoints', active=True)
     def test_fhir_metadata_extensions_have_v3(self):
         response = self.client.get(f'{BASEURL}/v3/fhir/metadata')
-        json = response.json()
         self.assertEqual(response.status_code, 200)
+        json = response.json()
         self.assertIn('v3', json['implementation']['url'])
         for obj in json['rest']:
             for ext in obj['security']['extension']:

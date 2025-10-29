@@ -109,7 +109,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         except requests.exceptions.SSLError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 # Checking target_env ensures the retry logic only happens on local
-                print(f"FHIR ID search request failed. Retrying... ({retries+1}/{max_retries})")
+                print(f"FHIR ID search request failed. Retrying... ({retries + 1}/{max_retries})")
                 retries += 1
             else:
                 raise e
