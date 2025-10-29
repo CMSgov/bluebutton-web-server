@@ -136,6 +136,8 @@ PASSWORD_HASH_ITERATIONS = int(env("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
 
+# 20251029 NOTE: Setting this to `False` may disable all
+# CSS styling in the application when working locally.
 DEBUG = env("DEBUG", False)
 
 # apps and middlewares
@@ -585,6 +587,12 @@ APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
     "To refresh Medicare data, end user must re-authenticate "
     "and consent to share their data."
     "If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov."
+)
+
+APPLICATION_NOT_AUTHENTICATED = (
+    "Application not authenticated. "
+    "To refresh Medicare data, end user must re-authenticate "
+    "and consent to share their data."
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
