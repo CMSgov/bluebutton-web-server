@@ -15,7 +15,7 @@ from waffle.decorators import waffle_switch
 
 from .utils import test_setup, get_client_secret, extract_page_nav
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
-from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
+from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2
 from apps.wellknown.views.openid import openid_configuration
 
 import apps.logging.request_logger as bb2logging
@@ -203,7 +203,7 @@ def test_metadata_v2(request):
 @never_cache
 @waffle_switch('enable_testclient')
 def test_metadata(request, v2=False):
-    json_response = _convert_to_json(fhir_conformance_v2(request) if v2 else fhir_conformance(request))
+    json_response = _convert_to_json(fhir_conformance_v2(request) if v2 else fhir_conformance_v1(request))
     return render(request, RESULTS_PAGE,
                   {"fhir_json_pretty": json.dumps(json_response, indent=3),
                    "response_type": "FHIR Metadata",

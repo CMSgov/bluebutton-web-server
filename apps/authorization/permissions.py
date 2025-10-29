@@ -1,5 +1,6 @@
 from django.conf import settings
 from rest_framework import (permissions, exceptions)
+from apps.constants import Versions, VersionNotMatched
 
 from .models import DataAccessGrant
 
@@ -33,7 +34,12 @@ class DataAccessGrantPermission(permissions.BasePermission):
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
         # BB2-4166-TODO: this is hardcoded to be version 2
-        return is_resource_for_patient(obj, request.crosswalk.fhir_id(2))
+        # TODO: The use of view.version is not always going to be right. There are several
+        # ways where we reference versions and this would need a spike ticket to understand properly.
+        if view.version in Versions.supported_versions():
+            return is_resource_for_patient(obj, request.crosswalk.fhir_id(view.version))
+        else:
+            raise VersionNotMatched()
 
 
 def is_resource_for_patient(obj, patient_id):

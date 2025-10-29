@@ -333,7 +333,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "date_created",
     )
     # BB2-4166-TODO: add support for v3
-    search_fields = ("user__username", "fhir_id_v2", "_user_id_hash", "_user_mbi_hash")
+    search_fields = ("user__username", "fhir_id_v2", "fhir_id_v3", "_user_id_hash", "_user_mbi_hash")
     readonly_fields = ("date_created",)
     raw_id_fields = ("user",)
 

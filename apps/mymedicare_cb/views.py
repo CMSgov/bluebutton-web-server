@@ -14,6 +14,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+from apps.constants import Versions
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -33,8 +34,6 @@ from .models import AnonUserState, get_and_update_user
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
-
-    version = request.session['version']
 
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
@@ -74,16 +73,17 @@ def authenticate(request):
     # Log successful authentication with beneficiary when we return back here.
     # BB2-4166-TODO: set both fhir_ids if we get both of them
     slsx_client.log_authn_success(request, {
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "crosswalk": {
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'crosswalk': {
                 "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                'user_mbi_hash': user.crosswalk.user_mbi_hash,
                 # BB2-4166-TODO: this needs to account for both fhir_ids if they are found
-                ("fhir_id_v3" if version == 3 else "fhir_id_v2"): user.crosswalk.fhir_id(version),
-                "user_id_type": user.crosswalk.user_id_type,
+                'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
+                'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
+                'user_id_type': user.crosswalk.user_id_type,
             },
         },
     })
@@ -104,12 +104,10 @@ def callback(request):
     next_uri = anon_user_state.next_uri
 
     # BB2-4166-TODO: refactor this to be generalized
-    if "/v3/o/authorize" in next_uri:
-        version = 3
-    elif "/v2/o/authorize" in next_uri:
-        version = 2
-    else:
-        version = 2
+    for supported_version in Versions.supported_versions():
+        if f"/v{supported_version}/o/authorize" in next_uri:
+            version = supported_version
+            break
 
     request.session['version'] = version
 

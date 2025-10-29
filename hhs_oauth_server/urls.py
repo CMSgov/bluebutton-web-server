@@ -4,11 +4,10 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from django.urls import include, path, re_path
 from django.contrib import admin
-from waffle.decorators import waffle_switch
 
-from apps.accounts.views.oauth2_profile import openidconnect_userinfo
-from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2, fhir_conformance_v3
-from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3, openid_configuration
+from apps.accounts.views.oauth2_profile import openidconnect_userinfo_v1, openidconnect_userinfo_v2, openidconnect_userinfo_v3
+from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
+from apps.wellknown.views.openid import smart_configuration, smart_configuration_v3
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 from .views import testobject
 
@@ -25,54 +24,8 @@ def robots_txt(request):
     )
 
 
-urlpatterns = [
+all_versions = [
     path("health/", include("apps.health.urls")),
-    re_path(r"^.well-known/", include("apps.wellknown.urls")),
-    path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
-    path("v1/accounts/", include("apps.accounts.urls")),
-    re_path(
-        r"^v1/connect/userinfo", openidconnect_userinfo, name="openid_connect_userinfo"
-    ),
-    path("v1/fhir/metadata", fhir_conformance, name="fhir_conformance_metadata"),
-    path("v1/fhir/", include("apps.fhir.bluebutton.urls")),
-    path("v1/o/", include("apps.dot_ext.urls")),
-    path("v1/o/", include("apps.authorization.urls")),
-    path("v2/accounts/", include("apps.accounts.v2.urls")),
-    re_path(
-        r"^v2/connect/userinfo",
-        openidconnect_userinfo,
-        name="openid_connect_userinfo_v2",
-    ),
-    path("v2/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
-    path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
-    path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
-    path(
-        "v3/fhir/.well-known/smart-configuration",
-        waffle_switch("v3_endpoints")(smart_configuration_v3),
-        name="smart_configuration_v3"
-    ),
-    path("v3/fhir/metadata", waffle_switch("v3_endpoints")(fhir_conformance_v3), name="fhir_conformance_metadata_v3"),
-    path("v3/fhir/", waffle_switch("v3_endpoints")(include("apps.fhir.bluebutton.v3.urls"))),
-    path("v2/o/", include("apps.dot_ext.v2.urls")),
-    path("v2/o/", include("apps.authorization.v2.urls")),
-    path("v3/o/", include("apps.dot_ext.v3.urls")),
-    path("v3/o/", include("apps.authorization.v3.urls")),
-    re_path(
-        r"^v3/connect/userinfo",
-        waffle_switch("v3_endpoints")(openidconnect_userinfo),
-        name="openid_connect_userinfo_v3",
-    ),
-    path(
-        "v1/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration"
-    ),
-    path(
-        "v2/connect/.well-known/openid-configuration", openid_configuration, name="openid-configuration-v2"
-    ),
-    path(
-        "v3/connect/.well-known/openid-configuration",
-        waffle_switch("v3_endpoints")(openid_configuration),
-        name="openid-configuration-v3"
-    ),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
@@ -81,6 +34,49 @@ urlpatterns = [
     path("robots.txt", robots_txt),
 ]
 
+urlpatterns_v1 = [
+    re_path(r"^.well-known/", include("apps.wellknown.urls")),
+    path("v1/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
+    path("v1/accounts/", include("apps.accounts.urls")),
+    re_path(
+        r"^v1/connect/userinfo", openidconnect_userinfo_v1, name="openid_connect_userinfo"
+    ),
+    path("v1/fhir/metadata", fhir_conformance_v1, name="fhir_conformance_metadata"),
+    path("v1/fhir/", include("apps.fhir.bluebutton.urls")),
+    path("v1/o/", include("apps.dot_ext.urls")),
+    path("v1/o/", include("apps.authorization.urls")),
+]
+
+urlpatterns_v2 = [
+    path("v2/accounts/", include("apps.accounts.v2.urls")),
+    re_path(
+        r"^v2/connect/userinfo",
+        openidconnect_userinfo_v2,
+        name="openid_connect_userinfo_v2",
+    ),
+    path("v2/fhir/.well-known/smart-configuration", smart_configuration, name="smart_configuration"),
+    path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
+    path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
+    path("v2/o/", include("apps.dot_ext.v2.urls")),
+    path("v2/o/", include("apps.authorization.v2.urls")),
+]
+
+urlpatterns_v3 = [
+    # path("v3/accounts/", include("apps.accounts.v3.urls")),
+    re_path(
+        r"^v3/connect/userinfo",
+        openidconnect_userinfo_v3,
+        name="openid_connect_userinfo_v3",
+    ),
+    path("v3/fhir/.well-known/smart-configuration", smart_configuration_v3, name="smart_configuration_v3"),
+    path("v3/fhir/metadata", fhir_conformance_v3, name="fhir_conformance_metadata_v3"),
+    path("v3/fhir/", include("apps.fhir.bluebutton.v3.urls")),
+    path("v3/o/", include("apps.dot_ext.v3.urls")),
+    path("v3/o/", include("apps.authorization.v3.urls")),
+
+]
+
+urlpatterns = all_versions + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
 
 # If running in local development, add the media and static urls:
 if settings.IS_MEDIA_URL_LOCAL is True:

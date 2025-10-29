@@ -3,6 +3,8 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from apps.test import BaseApiTest
+from waffle import switch_is_active
+from apps.constants import Versions
 
 
 ENCODED = settings.ENCODING
@@ -91,15 +93,26 @@ class TestUserSelfEndpoint(BaseApiTest):
             reverse('openid_connect_userinfo'), **auth_headers)
         self.assertEqual(response.status_code, 200)
         # Check if the content of the response corresponds to the expected json
-        expected_json = {
-            'sub': user.crosswalk.fhir_id(2),
-            'patient': user.crosswalk.fhir_id(2),
-            'name': "%s %s" % (user.first_name, user.last_name),
-            'given_name': user.first_name,
-            'family_name': user.last_name,
-            'email': user.email,
-            'iat': DjangoJSONEncoder().default(user.date_joined),
-        }
+        if switch_is_active('v3_endpoints'):
+            expected_json = {
+                'sub': user.crosswalk.fhir_id(Versions.V3),
+                'patient': user.crosswalk.fhir_id(Versions.V3),
+                'name': "%s %s" % (user.first_name, user.last_name),
+                'given_name': user.first_name,
+                'family_name': user.last_name,
+                'email': user.email,
+                'iat': DjangoJSONEncoder().default(user.date_joined),
+            }
+        else:
+            expected_json = {
+                'sub': user.crosswalk.fhir_id(Versions.V2),
+                'patient': user.crosswalk.fhir_id(Versions.V2),
+                'name': "%s %s" % (user.first_name, user.last_name),
+                'given_name': user.first_name,
+                'family_name': user.last_name,
+                'email': user.email,
+                'iat': DjangoJSONEncoder().default(user.date_joined),
+            }
         self.assertJSONEqual(response.content.decode(ENCODED), expected_json)
 
 

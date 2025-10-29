@@ -14,11 +14,13 @@ from pytz import timezone
 from django.conf import settings
 from django.contrib import messages
 from apps.fhir.server.settings import fhir_settings
+from waffle import switch_is_active
 
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
 from .models import Crosswalk, Fhir_Response
+from apps.constants import Versions
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -144,12 +146,15 @@ def generate_info_headers(request):
     # Return resource_owner or user
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
+    print(request.session['version'])
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
-        if crosswalk.fhir_id(2) is not None:
-            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id(2))
+        if switch_is_active('v3_endpoints') and crosswalk.fhir_id(Versions.V3) is not None:
+            result["BlueButton-BeneficiaryId"] = f"patientId: {str(crosswalk.fhir_id(Versions.V3))}"
+        elif crosswalk.fhir_id(Versions.V2) is not None:
+            result["BlueButton-BeneficiaryId"] = f"patientId: {crosswalk.fhir_id(Versions.V2)}"
         else:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
                 crosswalk.user_hicn_hash
@@ -710,9 +715,14 @@ def get_patient_by_id(id, request):
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
     # BB2-4166-TODO: this should allow v3
-    url = "{}/v2/fhir/Patient/{}?_format={}".format(
-        get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
-    )
+    if switch_is_active('v3_endpoints'):
+        url = "{}/v3/fhir/Patient/{}?_format={}".format(
+            get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
+        )
+    else:
+        url = "{}/v2/fhir/Patient/{}?_format={}".format(
+            get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
+        )
     s = requests.Session()
     req = requests.Request("GET", url, headers=headers)
     prepped = req.prepare()

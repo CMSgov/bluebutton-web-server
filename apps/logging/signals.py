@@ -18,6 +18,7 @@ from apps.fhir.bluebutton.signals import (
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.mymedicare_cb.signals import post_sls
+from apps.constants import Versions
 
 from .serializers import (
     Token,
@@ -47,6 +48,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "user_hicn_hash": None,
         "user_mbi_hash": None,
         # BB2-4166-TODO: this is hardcoded to be version 2, add v3
+        "fhir_id_v3": None,
         "fhir_id_v2": None,
         "user_id_type": None
     }
@@ -57,7 +59,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
             "user_mbi_hash": user.crosswalk.user_mbi_hash,
             # BB2-4166-TODO: this is hardcoded to be version 2, add v3
-            "fhir_id_v2": user.crosswalk.fhir_id(2),
+            "fhir_id_v2": user.crosswalk.fhir_id(Versions.V2),
+            "fhir_id_v3": user.crosswalk.fhir_id(Versions.V3),
             "user_id_type": user.crosswalk.user_id_type
         }
     except Exception:
