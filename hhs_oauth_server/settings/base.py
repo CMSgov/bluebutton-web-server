@@ -593,6 +593,12 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
     "and consent to share their data."
 )
 
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
+    "Data access grant cannot be found. "
+    "To refresh Medicare data, end user must re-authenticate "
+    "and consent to share their data."
+)
+
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),

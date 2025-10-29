@@ -7,6 +7,7 @@ from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from unittest import mock
+from http import HTTPStatus
 
 from apps.test import BaseApiTest
 from apps.authorization.models import (
@@ -67,51 +68,51 @@ class TestDataAccessPermissions(BaseApiTest):
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH_V1)
     def fhir_request_patient_readview_v1_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("patient_read_v1")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_read_v1")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH_V2)
     def fhir_request_patient_readview_v2_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("patient_read_v2")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_read_v2")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V1)
     def fhir_request_patient_searchview_v1_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("patient_search_v1")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_search_v1")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V2)
     def fhir_request_patient_searchview_v2_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("patient_search_v2")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_search_v2")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_READVIEW_PATH_V1)
     def fhir_request_coverage_readview_v1_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("coverage_read_v1")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_read_v1")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_READVIEW_PATH_V2)
     def fhir_request_coverage_readview_v2_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("coverage_read_v2")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_read_v2")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V1)
     def fhir_request_coverage_searchview_v1_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("coverage_search_v1")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_search_v1")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V2)
     def fhir_request_coverage_searchview_v2_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("coverage_search_v2")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_search_v2")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_READVIEW_PATH_V1)
     def fhir_request_eob_readview_v1_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("eob_read_in_pt_v1")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_read_in_pt_v1")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_READVIEW_PATH_V2)
     def fhir_request_eob_readview_v2_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("eob_read_in_pt_v2")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_read_in_pt_v2")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_SEARCHVIEW_PATH_V1)
     def fhir_request_eob_searchview_v1_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("eob_search_v1")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_search_v1")}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_SEARCHVIEW_PATH_V2)
     def fhir_request_eob_searchview_v2_success_mock(self, url, request):
-        return {"status_code": 200, "content": get_response_json("eob_search_v2")}
+        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_search_v2")}
 
     def setUp(self):
         # create read and write capabilities
@@ -308,7 +309,7 @@ class TestDataAccessPermissions(BaseApiTest):
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=200,
+            expected_response_code=HTTPStatus.OK,
         )
 
         # 5. Test access & refresh tokens exist
@@ -317,7 +318,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 6. Test that all FHIR calls are successful (response_code=200)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
+            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
         # 7. Delete /revoke data access grant
@@ -329,17 +330,18 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Note: refresh token exists still? But doesn't work per #9
         self.assertTrue(RefreshToken.objects.filter(token=ac["refresh_token"]).exists())
 
-        # 9. Test token refresh gets an invalid_grant response (response_code=400)
+        # 9. Test token refresh gets an invalid_grant response (response_code=404)
+        # 20251029 Updated from 400 to 404 in this case based on customer feedback.
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=400,
+            expected_response_code=HTTPStatus.NOT_FOUND,
             expected_response_error_mesg="invalid_grant",
         )
         # 10. Test that FHIR calls fail (response_code=401)
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
-            expected_response_code=401,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_detail_mesg="Authentication credentials were not provided.",
         )
 
@@ -380,7 +382,7 @@ class TestDataAccessPermissions(BaseApiTest):
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=200,
+            expected_response_code=HTTPStatus.OK,
         )
 
         # 4. Set application to in-active/disabled
@@ -390,7 +392,7 @@ class TestDataAccessPermissions(BaseApiTest):
         # 5. Test FHIR end point while app in-active/disabled (response_code=401)
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
-            expected_response_code=401,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
                 app.name
             ),
@@ -400,7 +402,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=401,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_error_mesg="invalid_client",
             expected_response_error_description_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
                 app.name
@@ -416,14 +418,14 @@ class TestDataAccessPermissions(BaseApiTest):
         app.save()
 
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
+            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
         # 9. Test app not expired token refresh (response_code=200)
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=200,
+            expected_response_code=HTTPStatus.OK,
         )
 
     def test_one_time_app_type(self):
@@ -460,14 +462,14 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=401,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_error_mesg="invalid_client",
             expected_response_error_description_mesg=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
         )
 
         # 3. Test that all calls are successful (response_code=200)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
+            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
     @mock.patch("apps.authorization.models.datetime", StubDate)
@@ -503,7 +505,7 @@ class TestDataAccessPermissions(BaseApiTest):
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=200,
+            expected_response_code=HTTPStatus.OK,
         )
 
         # 5. Test that all calls are successful (response_code=200)
@@ -532,10 +534,11 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 7. Test token refresh is disabled when data access expired (response_code=400)
+        # 20251029 Updated to a 401 based on user feedback.
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=400,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_error_mesg="invalid_grant",
             expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
@@ -543,7 +546,7 @@ class TestDataAccessPermissions(BaseApiTest):
         # 8. Test that all calls fail when data access expired (response_code=401)
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
-            expected_response_code=401,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_detail_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
@@ -585,12 +588,12 @@ class TestDataAccessPermissions(BaseApiTest):
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=200,
+            expected_response_code=HTTPStatus.OK,
         )
 
         # 14. Test that all calls are successful (response_code=200)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
+            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
     def test_data_access_grant_permissions_has_permission(self):
@@ -628,7 +631,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 5. Test that all FHIR calls are successful (response_code=200)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
+            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
         # 6. Delete /revoke data access grant
@@ -643,6 +646,6 @@ class TestDataAccessPermissions(BaseApiTest):
         # 9. Test that FHIR calls fail (403) with out DoesNotExist exception
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
-            expected_response_code=403,
+            expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_detail_mesg="You do not have permission to perform this action.",
         )

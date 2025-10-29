@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from http import HTTPStatus
 
 from apps.authorization.models import DataAccessGrant
 
@@ -106,14 +107,20 @@ def validate_app_is_active(request):
     if not app:
         app = get_application_from_data(request)
 
+    # revoked access and expired auth period to a 401 error
     if app and app.active:
         # Is this for a token refresh request?
         post_grant_type = request.POST.get("grant_type", None)
         if post_grant_type == "refresh_token":
-            # Check for application ONE_TIME type where token refresh is not allowed.
+
+            # A ONE_TIME token is not allowed to be refreshed.
+            # In that instance, we raise an error that explicitly
+            # indicates that the user must re-authenticate.
+            # This is a 401 NOT_AUTHORIZED error for the API consumer.
             if app.has_one_time_only_data_access():
                 raise InvalidClientError(
-                    description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
+                    description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+                    status_code=HTTPStatus.UNAUTHORIZED
                 )
 
             refresh_code = request.POST.get("refresh_token")
@@ -125,18 +132,26 @@ def validate_app_is_active(request):
                 )
 
                 if dag:
+                    # If we get a DAG, but it has expired, we pass back a message (again)
+                    # saying the end user must re-authenticate. Again, a 401.
                     if dag.has_expired():
                         raise InvalidGrantError(
-                            description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                            description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+                            status_code=HTTPStatus.UNAUTHORIZED
                         )
 
             except (DataAccessGrant.DoesNotExist, RefreshToken.DoesNotExist):
+                # In the event that we cannot find a DAG, we don't want to pass back too much information.
+                # We pass back a 404 (not found) and a message saying as much (and, again, encouraging
+                # reauthentication).
                 raise InvalidGrantError(
-                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+                    status_code=HTTPStatus.NOT_FOUND
                 )
     elif app and not app.active:
         raise InvalidClientError(
-            description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+            description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
+            status_code=HTTPStatus.UNAUTHORIZED
         )
 
     return app
