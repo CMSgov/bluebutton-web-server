@@ -1,19 +1,59 @@
 import base64
 import hashlib
-import random
+import secrets
 import string
 
 from collections import OrderedDict
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
+from apps.constants import Versions
 
 from ..dot_ext.models import Application
 
 
-def test_setup(include_client_secret=True, v2=False):
+def _start_url_with_http_or_https(host: str) -> str:
+    """Makes sure a URL starts with HTTPS
+
+    This is not comprehensive. It is a light refactoring of old code.
+    It tries to make sure that a host starts with HTTP or HTTPS.
+
+    Args:
+        host: string
+    Returns:
+        host: string (with "https://")
+    """
+    if host.startswith("https://"):
+        # This is fine.
+        pass
+    elif host.startswith("http://"):
+        # This is also fine
+        pass
+    else:
+        host = f'https://{host}'
+
+    return host
+
+
+def testclient_http_response_setup(include_client_secret: bool = True, version: str = Versions.NOT_AN_API_VERSION) -> OrderedDict:
+    """Prepare testclient response environment
+
+    When navigating through the testclient, we need to update the Django session
+    so that the authorization process can complete. This function builds a dictionary
+    that is used to extend the Django session. It is also used in several unit tests for
+    a similar purpose.
+
+    Args:
+        include_client_secret (bool) : What it says.
+        version (Version): Which version of the API are we navigating through.
+
+    Returns:
+        OrderedDict: A dictionary used to prepare/extend the Django session.
+    """
     response = OrderedDict()
-    ver = 'v2' if v2 else 'v1'
-    response['api_ver'] = ver
+
+    response['api_ver'] = version
+    version_as_string = Versions.as_str(version)
+
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
 
@@ -21,13 +61,11 @@ def test_setup(include_client_secret=True, v2=False):
         response['client_secret'] = oa2client.client_secret
 
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
-
-    if not (host.startswith("http://") or host.startswith("https://")):
-        host = "https://" + host
+    host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
+    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version_as_string)
 
     auth_data = __generate_auth_data()
     response['code_challenge_method'] = "S256"
@@ -35,13 +73,14 @@ def test_setup(include_client_secret=True, v2=False):
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
 
-    response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, ver)
-    response['token_uri'] = '{}/{}/o/token/'.format(host, ver)
-    response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, ver)
-    response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, ver)
-    response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, ver)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
-    return (response)
+    response['authorization_uri'] = f'{host}/{version_as_string}/o/authorize/'
+    response['token_uri'] = f'{host}/{version_as_string}/o/token/'
+    response['userinfo_uri'] = f'{host}/{version_as_string}/connect/userinfo'
+    response['patient_uri'] = f'{host}/{version_as_string}/fhir/Patient/'
+    response['eob_uri'] = f'{host}/{version_as_string}/fhir/ExplanationOfBenefit/'
+    response['coverage_uri'] = f'{host}/{version_as_string}/fhir/Coverage/'
+
+    return response
 
 
 def get_client_secret():
@@ -82,7 +121,7 @@ def __base64_url_encode(buffer):
 
 def __get_random_string(length) -> str:
     letters = string.ascii_letters + string.digits + string.punctuation
-    result = "".join(random.choice(letters) for i in range(length))
+    result = ''.join(secrets.choice(letters) for i in range(length))
     return result
 
 
@@ -102,3 +141,46 @@ def __generate_auth_data() -> dict:
     auth_data = {"state": __generate_random_state(32)}
     auth_data.update(__generate_pkce_data())
     return auth_data
+
+
+def _ormap(fun, ls):
+    """True if `fun` returns true for any element of the list.
+
+    See https://stackoverflow.com/questions/35784074/does-python-have-andmap-ormap.
+
+    Args:
+        fun (any -> boolean): Function of one argument; takes any value and returns a boolean
+        ls (list): A list of elements of any type
+
+    Returns:
+        bool: True if `fun` returned true when applied to any element of the list.
+    """
+    return any(map(fun, ls))
+
+
+def _deepfind(obj, val: str):
+    """Looks for a value anywhere in a datastructure.
+
+    Args:
+        obj (iterable | any): The object we want to search
+        val (str): The string we want to search for.
+
+    Returns:
+        bool: true if the string is found as a subset of any string or iterable
+            within the data structure.
+    """
+    if isinstance(obj, str):
+        # If we are looking at a string, ask if the value we are looking for is
+        # equal to or a substring of the string in question.
+        return val in obj
+    elif isinstance(obj, list):
+        # If we are looking at a list, then we should return true if _deepfind on
+        # any of the elements of the list returns true.
+        return _ormap(lambda o: _deepfind(o, val), obj)
+    elif isinstance(obj, dict):
+        # If we have a k/v dictionary, then we return true if _deepfind on
+        # any of the values in the dict returns true.
+        return _ormap(lambda o: _deepfind(o, val), obj.values())
+    else:
+        # We return false in all other cases. This guarantees termination.
+        return False

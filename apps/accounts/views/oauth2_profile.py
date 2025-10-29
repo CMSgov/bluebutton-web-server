@@ -9,8 +9,10 @@ from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
+from apps.constants import Versions
 
-def get_userinfo(user, version):
+
+def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
     """ OIDC-style userinfo
 
     Args:
@@ -41,15 +43,30 @@ def get_userinfo(user, version):
                      TokenHasProtectedCapability,
                      DataAccessGrantPermission])
 @protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
-def openidconnect_userinfo(request, **kwargs):
+def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
+    # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
+
     # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
     # a straight url that we need to get the version from the url (like we do in the fhir app)
-    return JsonResponse(get_userinfo(request.resource_owner, 2))
+    return JsonResponse(_get_userinfo(request.resource_owner, version))
 
 
-def get_fhir_id(user, version):
+def openidconnect_userinfo_v1(request):
+    return _openidconnect_userinfo(request, version=Versions.V1)
+
+
+def openidconnect_userinfo_v2(request):
+    return _openidconnect_userinfo(request, version=Versions.V2)
+
+
+def openidconnect_userinfo_v3(request):
+    return _openidconnect_userinfo(request, version=Versions.V3)
+
+
+def get_fhir_id(user, version=Versions.NOT_AN_API_VERSION):
     r = None
     if Crosswalk.objects.filter(user=user).exists():
         c = Crosswalk.objects.get(user=user)
-        r = c.fhir_id(version)
+        # fhir_id expects an integer (1, 2, 3, etc.)
+        r = c.fhir_id(Versions.as_int(version))
     return r

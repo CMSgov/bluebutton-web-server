@@ -9,6 +9,7 @@ class CapabilitiesScopes(BaseScopes):
     """
     A scope backend that uses ProtectedCapability model.
     """
+
     def get_all_scopes(self):
         """
         Returns a dict-like object that contains all the scopes
