@@ -18,6 +18,7 @@ from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation imp
     get_response_json,
 )
 
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
@@ -52,7 +53,7 @@ class TestDataAccessPermissions(BaseApiTest):
     """
     Setup mocks for back-end server FHIR end point responses.
     """
-    MOCK_FHIR_URL = "fhir.backend.bluebutton.hhsdevcloud.us"
+    MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME  # "fhir.backend.bluebutton.hhsdevcloud.us"
     MOCK_FHIR_PATIENT_READVIEW_PATH_V1 = r"/v1/fhir/Patient/[-]?\d+[/]?"
     MOCK_FHIR_PATIENT_READVIEW_PATH_V2 = r"/v2/fhir/Patient/[-]?\d+[/]?"
     MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V1 = r"/v1/fhir/Patient[/]?"
