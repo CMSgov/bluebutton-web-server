@@ -6,6 +6,7 @@ from django.db.models.functions import Trunc
 from django.utils.html import format_html
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.models import get_application_model
+from apps.constants import Versions
 
 from apps.accounts.models import UserProfile
 from apps.dot_ext.models import ArchivedToken
@@ -333,9 +334,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "date_created",
     )
     # BB2-4166-TODO: add support for v3
-    search_fields = ('user__username', 'fhir_id_v2', '_user_id_hash', '_user_mbi')
-    readonly_fields = ('date_created',)
-    raw_id_fields = ('user',)
+    search_fields = ("user__username", "fhir_id_v2", "fhir_id_v3", "_user_id_hash")
+    readonly_fields = ("date_created",)
+    raw_id_fields = ("user",)
 
     def get_queryset(self, request):
         qs = super(BeneficiaryDashboardAdmin, self).get_queryset(request)
@@ -363,8 +364,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     def get_identities(self, obj):
         # BB2-4166-TODO: add support for v3
         return format_html(
-            '<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
-                obj.fhir_id(2), obj.user_hicn_hash, obj.user_mbi
+            '<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
+                obj.fhir_id(Versions.V2), obj.fhir_id(Versions.V3), obj.user_hicn_hash, obj.user_mbi
             )
         )
 
