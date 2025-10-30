@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 db_index=True,
                 default=None,
                 max_length=80,
-                unique=True,
+                unique=False,
                 null=True  # Modifying field to prepare for deletion
             )
         ),
