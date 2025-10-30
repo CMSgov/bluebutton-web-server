@@ -336,7 +336,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=HTTPStatus.NOT_FOUND,
+            expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_grant",
         )
         # 10. Test that FHIR calls fail (response_code=401)
@@ -403,7 +403,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=HTTPStatus.UNAUTHORIZED,
+            expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_client",
             expected_response_error_description_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
                 app.name
@@ -459,11 +459,11 @@ class TestDataAccessPermissions(BaseApiTest):
             ).exists()
         )
 
-        # 2. Test token refresh is disabled for app (response_code=401)
+        # 2. Test token refresh is disabled for app (response_code=403)
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=HTTPStatus.UNAUTHORIZED,
+            expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_client",
             expected_response_error_description_mesg=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
         )
@@ -511,7 +511,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 5. Test that all calls are successful (response_code=200)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
+            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
         # 6. Mock a future date to test data access grant expiration.
@@ -539,7 +539,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=HTTPStatus.UNAUTHORIZED,
+            expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_grant",
             expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
