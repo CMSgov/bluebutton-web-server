@@ -573,9 +573,9 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 APPLICATION_TEMPORARILY_INACTIVE = (
     "This application, {}, is temporarily inactive."
-    " If you are the app maintainer, please contact the Blue Button 2.0 API team."
-    " If you are a Medicare Beneficiary and need assistance,"
-    " please contact the application's support team or call 1-800-MEDICARE (1-800-633-4227)"
+    " If you are the app maintainer, please contact the Blue Button API team."
+    " If you are a Medicare Beneficiary and need assistance, please contact"
+    " the support team for the application you are trying to access."
 )
 
 APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
