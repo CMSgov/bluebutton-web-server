@@ -6,6 +6,7 @@ from random import randint
 from apps.authorization.models import (
     DataAccessGrant,
 )
+from apps.constants import AccessType
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from unittest import mock
@@ -13,12 +14,6 @@ from unittest import mock
 
 class StubDate(datetime):
     pass
-
-
-class AccessTypes():
-    ONE_TIME = "ONE_TIME"
-    RESEARCH_STUDY = "RESEARCH_STUDY"
-    THIRTEEN_MONTH = "THIRTEEN_MONTH"
 
 
 # These tests cover `validate_app_is_active` in `utils.py`
@@ -31,17 +26,17 @@ class TestDataAccessPermissions(BaseApiTest):
     def test_one_time_access_unauthorized_to_refresh(self):
         refresh_responses = [
             {
-                "app_data_access_type": AccessTypes.ONE_TIME,
+                "app_data_access_type": AccessType.ONE_TIME,
                 "status_code": HTTPStatus.FORBIDDEN,
                 "expected_in": "User data access grant expired"
             },
             {
-                "app_data_access_type": AccessTypes.RESEARCH_STUDY,
+                "app_data_access_type": AccessType.RESEARCH_STUDY,
                 "status_code": HTTPStatus.OK,
                 "expected_in": " "
             },
             {
-                "app_data_access_type": AccessTypes.THIRTEEN_MONTH,
+                "app_data_access_type": AccessType.THIRTEEN_MONTH,
                 "status_code": HTTPStatus.OK,
                 "expected_in": " "
             }
@@ -80,7 +75,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_username=f"devuser_{suffix}",
             app_user_organization=f"org_{suffix}",
             mbi=self._generate_random_mbi(),
-            app_data_access_type=AccessTypes.THIRTEEN_MONTH,
+            app_data_access_type=AccessType.THIRTEEN_MONTH,
         )
 
         # Get the DAG, so we can delete it (revoke it)
@@ -109,7 +104,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_username=f"devuser_{suffix}",
             app_user_organization=f"org_{suffix}",
             mbi=self._generate_random_mbi(),
-            app_data_access_type=AccessTypes.THIRTEEN_MONTH,
+            app_data_access_type=AccessType.THIRTEEN_MONTH,
         )
 
         #    Mock future date 13 months and 2-days in future.
@@ -137,7 +132,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_username=f"devuser_{suffix}",
             app_user_organization=f"org_{suffix}",
             mbi=self._generate_random_mbi(),
-            app_data_access_type=AccessTypes.THIRTEEN_MONTH,
+            app_data_access_type=AccessType.THIRTEEN_MONTH,
         )
 
         app.active = False
