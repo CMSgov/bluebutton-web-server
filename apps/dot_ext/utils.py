@@ -120,7 +120,7 @@ def validate_app_is_active(request):
             if app.has_one_time_only_data_access():
                 raise InvalidClientError(
                     description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
-                    status_code=HTTPStatus.UNAUTHORIZED
+                    status_code=HTTPStatus.FORBIDDEN
                 )
 
             refresh_code = request.POST.get("refresh_token")
@@ -137,7 +137,7 @@ def validate_app_is_active(request):
                     if dag.has_expired():
                         raise InvalidGrantError(
                             description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
-                            status_code=HTTPStatus.UNAUTHORIZED
+                            status_code=HTTPStatus.FORBIDDEN
                         )
 
             except (DataAccessGrant.DoesNotExist, RefreshToken.DoesNotExist):
@@ -146,12 +146,12 @@ def validate_app_is_active(request):
                 # reauthentication).
                 raise InvalidGrantError(
                     description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
-                    status_code=HTTPStatus.NOT_FOUND
+                    status_code=HTTPStatus.FORBIDDEN
                 )
     elif app and not app.active:
         raise InvalidClientError(
             description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
-            status_code=HTTPStatus.UNAUTHORIZED
+            status_code=HTTPStatus.FORBIDDEN
         )
 
     return app
