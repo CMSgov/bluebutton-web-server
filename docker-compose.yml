@@ -1,9 +1,11 @@
 services:
   msls:
     build: ./dev-local
-    command: bash -c "python  app.py"
+    command: python app.py
     ports:
       - "8080:8080"
+    volumes:
+      - ./dev-local:/code
     profiles:
       - mocksls
   db:
