@@ -1,9 +1,11 @@
 import os
 from .base import *
 
-# removing security enforcement in development mode
-# 20251029 NOTE: Setting this variable to `False` will also disable/remove
-# CSS styling fromt he entire application when running locally.
+# 20251029 NOTE: Setting this to `False` may disable all
+# CSS styling in the application when working locally.
+# See:
+# * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
+# * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
 DEBUG = True
 SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 

@@ -28,17 +28,19 @@ class TestDataAccessPermissions(BaseApiTest):
             {
                 "app_data_access_type": AccessType.ONE_TIME,
                 "status_code": HTTPStatus.FORBIDDEN,
-                "expected_in": "User data access grant expired"
+                "expected_in": "not allowed to refresh tokens"
             },
             {
                 "app_data_access_type": AccessType.RESEARCH_STUDY,
                 "status_code": HTTPStatus.OK,
-                "expected_in": " "
+                # These will not generate an error message, so we
+                # use None here.
+                "expected_in": None
             },
             {
                 "app_data_access_type": AccessType.THIRTEEN_MONTH,
                 "status_code": HTTPStatus.OK,
-                "expected_in": " "
+                "expected_in": None
             }
         ]
         for test in refresh_responses:
@@ -59,7 +61,8 @@ class TestDataAccessPermissions(BaseApiTest):
             ac = self._assert_call_token_refresh_endpoint(
                 application=app,
                 refresh_token=ac["refresh_token"],
-                expected_response_code=test["status_code"]
+                expected_response_code=test["status_code"],
+                expected_in_err_mesg=test["expected_in"]
             )
 
     def test_not_found_on_dag_revocation(self):
@@ -87,7 +90,7 @@ class TestDataAccessPermissions(BaseApiTest):
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_in_err_mesg="Data access grant cannot be found"
+            expected_in_err_mesg="User access cannot be found"
         )
 
     @mock.patch("apps.authorization.models.datetime", StubDate)
@@ -117,7 +120,7 @@ class TestDataAccessPermissions(BaseApiTest):
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_in_err_mesg="User data access grant expired"
+            expected_in_err_mesg="User access has timed out"
         )
 
     def test_app_not_active(self):
@@ -152,16 +155,8 @@ class TestDataAccessPermissions(BaseApiTest):
         refresh_token=None,
         expected_response_code=None,
         expected_response_error_mesg=None,
-        expected_response_error_description_mesg=None,
         expected_in_err_mesg=None
     ):
-        """
-        This method calls the token refresh end point
-        for use in tests.
-
-        The asserts will check for the expected_response_code,
-        expected_response_error_mesg and expected_response_error_description_mesg to match.
-        """
         refresh_post_data = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
@@ -169,16 +164,15 @@ class TestDataAccessPermissions(BaseApiTest):
             "client_id": application.client_id,
             "client_secret": application.client_secret_plain,
         }
-        response = self.client.post("/v1/o/token/", data=refresh_post_data)
+        response = self.client.post("/v2/o/token/", data=refresh_post_data)
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, expected_response_code)
-        if expected_response_error_mesg is not None:
+
+        if expected_response_error_mesg:
             self.assertEqual(content["error"], expected_response_error_mesg)
-        if expected_response_error_description_mesg is not None:
-            self.assertEqual(
-                content["error_description"], expected_response_error_description_mesg
-            )
-        if expected_in_err_mesg is not None:
+
+        if expected_in_err_mesg:
             self.assertIn(expected_in_err_mesg, content["error_description"])
+
         return content

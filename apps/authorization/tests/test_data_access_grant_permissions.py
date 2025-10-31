@@ -306,7 +306,7 @@ class TestDataAccessPermissions(BaseApiTest):
         #     Assert expiration date has been set to None
         self.assertEqual(dag.expiration_date, None)
 
-        # 4. Test token refresh is enabled for app (response_code=200)
+        # 4. Test token refresh is enabled for app
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
@@ -317,7 +317,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
         self.assertTrue(RefreshToken.objects.filter(token=ac["refresh_token"]).exists())
 
-        # 6. Test that all FHIR calls are successful (response_code=200)
+        # 6. Test that all FHIR calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
@@ -331,15 +331,14 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Note: refresh token exists still? But doesn't work per #9
         self.assertTrue(RefreshToken.objects.filter(token=ac["refresh_token"]).exists())
 
-        # 9. Test token refresh gets an invalid_grant response (response_code=404)
-        # 20251029 Updated from 400 to 404 in this case based on customer feedback.
+        # 9. Test token refresh gets an invalid_grant response
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_grant",
         )
-        # 10. Test that FHIR calls fail (response_code=401)
+        # 10. Test that FHIR calls fail
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
@@ -374,12 +373,12 @@ class TestDataAccessPermissions(BaseApiTest):
             ).exists()
         )
 
-        # 2. Test that all calls are successful (response_code=200)
+        # 2. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=200
         )
 
-        # 3. Test token refresh is successful (response_code=200)
+        # 3. Test token refresh is successful
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
@@ -390,7 +389,7 @@ class TestDataAccessPermissions(BaseApiTest):
         app.active = False
         app.save()
 
-        # 5. Test FHIR end point while app in-active/disabled (response_code=401)
+        # 5. Test FHIR end point while app in-active/disabled
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
@@ -399,7 +398,7 @@ class TestDataAccessPermissions(BaseApiTest):
             ),
         )
 
-        # 6. Test token refresh after applciation in-active/disabled (response_code=401)
+        # 6. Test token refresh after applciation in-active/disabled
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
@@ -414,7 +413,7 @@ class TestDataAccessPermissions(BaseApiTest):
         app.active = True
         app.save()
 
-        # 8. Re-test with RESEARCH_STUDY active (response_code=200)
+        # 8. Re-test with RESEARCH_STUDY active
         app.data_access_type = "RESEARCH_STUDY"
         app.save()
 
@@ -422,7 +421,7 @@ class TestDataAccessPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
 
-        # 9. Test app not expired token refresh (response_code=200)
+        # 9. Test app not expired token refresh
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
@@ -459,7 +458,7 @@ class TestDataAccessPermissions(BaseApiTest):
             ).exists()
         )
 
-        # 2. Test token refresh is disabled for app (response_code=403)
+        # 2. Test token refresh is disabled for app
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
@@ -468,7 +467,7 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_error_description_mesg=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
         )
 
-        # 3. Test that all calls are successful (response_code=200)
+        # 3. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
@@ -502,14 +501,14 @@ class TestDataAccessPermissions(BaseApiTest):
         #     Assert expiration date has been set
         self.assertNotEqual(dag.expiration_date, None)
 
-        # 4. Test token refresh is enabled for app (response_code=200)
+        # 4. Test token refresh is enabled for app
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.OK,
         )
 
-        # 5. Test that all calls are successful (response_code=200)
+        # 5. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
@@ -534,8 +533,7 @@ class TestDataAccessPermissions(BaseApiTest):
             + relativedelta(months=+13, hours=-1),
         )
 
-        # 7. Test token refresh is disabled when data access expired (response_code=400)
-        # 20251029 Updated to a 401 based on user feedback.
+        # 7. Test token refresh is disabled when data access expired
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
@@ -544,7 +542,7 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
-        # 8. Test that all calls fail when data access expired (response_code=401)
+        # 8. Test that all calls fail when data access expired
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
@@ -585,14 +583,14 @@ class TestDataAccessPermissions(BaseApiTest):
             + relativedelta(months=+26, days=-2),
         )
 
-        # 13. Test token refresh is enabled for app (response_code=200)
+        # 13. Test token refresh is enabled for app
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.OK,
         )
 
-        # 14. Test that all calls are successful (response_code=200)
+        # 14. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
@@ -630,7 +628,7 @@ class TestDataAccessPermissions(BaseApiTest):
         # 4. Test access token exist
         self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
 
-        # 5. Test that all FHIR calls are successful (response_code=200)
+        # 5. Test that all FHIR calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
         )
@@ -644,7 +642,7 @@ class TestDataAccessPermissions(BaseApiTest):
         # 8. Test access token is restored.
         self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
 
-        # 9. Test that FHIR calls fail (403) with out DoesNotExist exception
+        # 9. Test that FHIR calls fail
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=HTTPStatus.FORBIDDEN,

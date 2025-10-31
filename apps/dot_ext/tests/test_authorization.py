@@ -950,7 +950,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         msg_expected = "invalid_client"
         response = c.post('/v1/o/introspect/', data=introspect_request_data, **auth_headers)
-        # asssert 401 and content json message
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content['error'], msg_expected)

@@ -139,6 +139,9 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
 
 # 20251029 NOTE: Setting this to `False` may disable all
 # CSS styling in the application when working locally.
+# See:
+# * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
+# * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
 DEBUG = env("DEBUG", False)
 
 # apps and middlewares
@@ -597,13 +600,13 @@ APPLICATION_NOT_AUTHENTICATED = (
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    "User data access grant expired. "
+    "User access has timed out. "
     "To refresh Medicare data, end user must re-authenticate "
     "and consent to share their data."
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
-    "Data access grant cannot be found. "
+    "User access cannot be found. "
     "To refresh Medicare data, end user must re-authenticate "
     "and consent to share their data."
 )
