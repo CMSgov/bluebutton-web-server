@@ -155,15 +155,12 @@ def get_grant_bene_counts(application=None):
     # Get total table count
     counts_returned["total"] = grant_queryset.count()
 
-    # BB2-4166-TODO: add the OR for v3 / Also remove clause excluding "" fhir_ids
     real_v2 = get_real_bene(version=Versions.V2)
-    real_v3 = get_real_bene(version=Versions.V3)
     synthetic_v2 = get_synthetic_bene(version=Versions.V2)
-    synthetic_v3 = get_synthetic_bene(version=Versions.V3)
 
     # Use OR to combine v2 and v3 logic
-    real_grant_queryset = grant_queryset.filter(real_v2 | real_v3).values("beneficiary")
-    synthetic_grant_queryset = grant_queryset.filter(synthetic_v2 | synthetic_v3).values("beneficiary")
+    real_grant_queryset = real_v2
+    synthetic_grant_queryset = synthetic_v2
 
     counts_returned["real"] = real_grant_queryset.count()
     counts_returned["synthetic"] = synthetic_grant_queryset.count()
