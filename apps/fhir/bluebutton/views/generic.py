@@ -179,6 +179,7 @@ class FhirDataView(APIView):
         if error is not None:
             raise error
 
+        # TODO: What is the purpose of this function? Does nothing
         self.validate_response(response)
 
         out_data = r.json()

@@ -18,7 +18,7 @@ def process_error_response(response: Fhir_Response) -> APIException:
     r: Response = response.backend_response
     if response.status_code >= 300:
         if response.status_code == 404:
-            err = NotFound('The requested resource does not exist')
+            err = NotFound('Not found.')
         else:
             msg = 'An error occurred contacting the upstream server'
             err = UpstreamServerException(msg)
