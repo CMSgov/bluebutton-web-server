@@ -33,7 +33,7 @@ def robots_txt(request):
 
 
 urlpatterns_unversioned = [
-    path("health/", include("apps.health.urls")),
+    path("health", include("apps.health.urls")),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
