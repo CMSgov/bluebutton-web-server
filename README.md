@@ -1,5 +1,4 @@
-Blue Button Web Server
-=====================================================
+# Blue Button Web Server
 
 [![Build Status](https://travis-ci.org/CMSgov/bluebutton-web-server.svg?branch=develop)](https://travis-ci.org/CMSGov/hhs_oauth_server)
 [![Coverage Status](https://coveralls.io/repos/github/CMSgov/bluebutton-web-server/badge.svg?branch=develop)](https://coveralls.io/github/CMSgov/bluebutton-web-server?branch=develop)
@@ -24,180 +23,9 @@ NOTE: Internal software engineers or other interested parties should follow the 
 
 The Centers for Medicare & Medicaid Services (CMS) is working to enable Medicare beneficiaries to securely share their health data with applications of their choice through standards-based APIs.
 
-## Core Team
+### Core Team
 
 A list of core team members responsible for the code and documentation in this repository can be found in [COMMUNITY.md](COMMUNITY.md).
-
-## Repository Structure
-
-<!--TREE START--><!--TREE END-->
-
-**Main directories:**
-- `apps/` - Django applications containing the core functionality
-- `hhs_oauth_server/` - Main Django project settings and configuration
-- `requirements/` - Python package requirements
-- `docker-compose/` - Docker development environment setup
-- `certstore/` - Certificate storage for x509 authentication (optional)
-
-**Documentation Index:**
-- `README.md` - This file, containing setup and usage instructions
-- `CONTRIBUTING.md` - Guidelines for contributing to the project
-- `COMMUNITY.md` - Community guidelines and code of conduct
-- `SECURITY.md` - Security and vulnerability disclosure policies
-- `LICENSE` - Apache 2.0 license
-
-# Development and Software Delivery Lifecycle
-
-The following guide is for members of the project team who have access to the repository as well as code contributors. The main difference between internal and external contributions is that external contributors will need to fork the project and will not be able to merge their own pull requests. For more information on contributing, see: [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## Setup
-
-These instructions provide a quick start for developers new to the project. Follow these steps on the command line.
-
-```bash
-# prepare your repository folder
-git clone https://github.com/CMSGov/bluebutton-web-server.git
-cd bluebutton-web-server
-
-# create the virtualenv
-python3 -m venv venv
-
-# Install any prerequisites  (C headers, etc. This is OS specific)
-# Ubuntu example
-sudo apt-get install python3-dev libxml2-dev libxslt1-dev
-
-# install the requirements
-pip install --upgrade pip==25.1.1
-pip install pip-tools
-pip install -r requirements/requirements.txt
-```
-
-Note that most settings can be overridden by environment variables. See custom environment variables section below. Please ensure to create and use your own keys and secrets. See https://docs.djangoproject.com/en/4.2/topics/settings/ for more information. Continue the installation by issuing the following commands:
-
-```bash
-python manage.py migrate
-python manage.py loaddata apps/accounts/fixtures/scopes.json
-python manage.py loaddata apps/accounts/fixtures/groups.json
-python manage.py createsuperuser
-python manage.py create_admin_groups
-python manage.py create_blue_button_scopes
-python manage.py create_test_user_and_application
-```
-
-The next step is optional: If your backend HAPI FHIR server is configured to require x509 certificates to access it then you need to obtain that keypair and place those files in certificate folder called `certstore`.
-
-```bash
-mkdir ../certstore
-(copy both x509 files, in PEM format, inside certstore)
-```
-
-If your backend FHIR server does not require certificate-based authorization then the previous step can be omitted.
-
-Making calls to a back-end FHIR server requires that you set a series of variables before running tests or the server itself.
-
-```bash
-#Run the development server
-python manage.py runserver
-```
-
-Note you can find the path to your Python3 binary by typing `which python3`.
-
-## Local Development
-
-### Docker Compose Setup
-
-Instructions for running the development environment via `docker-compose` can be found [here](./docker-compose/readme.md)
-
-### How to View the CSS/Styles Locally
-
-To keep our CSS organized and consolidated across our applications, we use a dedicated [Blue Button CSS Repo](https://github.com/CMSgov/bluebutton-css).
-
-In order to be able to see the styles locally for this project, you'll just need to clone the Blue Button CSS Repo at the root of this project. You may also need to set the DEBUG env var to True.
-
-From within `bluebutton-web-server`, run the following commands (Bash):
-
-```bash
-git clone git@github.com:CMSgov/bluebutton-css.git
-```
-
-*That should be all you need to get the styles working.* The instructions below will tell you how to work with or update the SCSS.
-
-To get started making changes to the styles:
-
-```bash
-cd bluebutton-css
-```
-
-You'll need to make sure you have NodeJS installed. [Click here to find out more about NodeJS](https://nodejs.org/en/). Once you have NodeJs installed, run:
-
-```bash
-npm i
-```
-
-Finally, make sure you have Gulp 4.0 installed:
-
-```bash
-npm i gulp@4
-```
-
-*To export the CSS once, run:*
-
-```bash
-gulp
-```
-
-*To watch the SCSS files for changes, run:*
-
-```bash
-gulp watch
-```
-
-### Running Tests
-
-Run the following:
-
-```bash
-python runtests.py
-```
-
-You can run individual applications tests or tests with in a specific area as well.
-
-The following are a few examples (drilling down to a single test):
-
-```bash
-python runtests.py apps.dot_ext.tests
-```
-
-```bash
-python runtests.py apps.dot_ext.tests.test_templates
-```
-
-```bash
-python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
-```
-
-Multiple arguments can be provided too:
-
-```bash
-python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login 
-```
-
-## Coding Style and Linters
-
-Each application has its own linting and testing guidelines. Lint and code tests are run on each commit, so linters and tests should be run locally before committing.
-
-## Branching Model
-
-This project follows standard GitHub flow practices:
-
-* Make changes in feature branches and merge to `main` frequently
-* Pull-requests are reviewed before merging
-* Tests should be written for changes introduced
-* Each change should be deployable to production
-
-## Contributing
-
-Thank you for considering contributing to an Open Source project of the US Government! For more information about our contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Community
 
@@ -211,17 +39,19 @@ We also recognize capacity building as a key part of involving a diverse open so
 
 Principles and guidelines for participating in our open source community are can be found in [COMMUNITY.md](COMMUNITY.md). Please read them before joining or starting a conversation in this repo or one of the channels listed below. All community members and participants are expected to adhere to the community guidelines and code of conduct when participating in community spaces including: code repositories, communication channels and venues, and events.
 
-## Feedback
+### Contributing
+
+Thank you for considering contributing to an Open Source project of the US Government! For more information about our contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### Feedback
 
 If you have ideas for how we can improve or add to our capacity building efforts and methods for welcoming people into our community, please let us know at **opensource@cms.hhs.gov**. If you would like to comment on the tool itself, please let us know by filing an **issue on our GitHub repository.**
 
-## Using this Project
+## Policies
 
 This project is free and open source software under the Apache2 license. You may add additional applications, authentication backends, and styles/themes are not subject to the Apache2 license.
 
 In other words, you or your organization are not in any way prevented from build closed source applications on top of this tool. Applications that you create can be licensed in any way that suits you business or organizational needs. Any 3rd party applications are subject to the license in which they are distributed by their respective authors.
-
-## Policies
 
 ### Open Source Policy
 
