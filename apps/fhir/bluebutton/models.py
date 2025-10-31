@@ -160,11 +160,7 @@ class Crosswalk(models.Model):
         if version in (1, 2):
             return str(self.fhir_id_v2)
         elif version == 3:
-            # TODO BB2-4166: This will want to change. In order to make
-            # BB2-4181 work, the V3 value needed to be found in the V2 column.
-            # 4166 should flip this to _v3, and we should be able to find
-            # values there when using (say) the test client.
-            return str(self.fhir_id_v2)
+            return str(self.fhir_id_v3)
 
         else:
             raise ValidationError(f"{version} is not a valid BFD version")

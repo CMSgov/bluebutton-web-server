@@ -2,6 +2,7 @@ import json
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.models import AccessToken
 from ..fhir.bluebutton.models import Crosswalk
+from apps.constants import Versions
 from .loggers import (clear_session_auth_flow_trace, update_session_auth_flow_trace_from_code,
                       set_session_auth_flow_trace_value)
 
@@ -32,7 +33,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
                 fhir_body = json.loads(body)
                 cw = Crosswalk.objects.get(user=token.user)
                 # BB2-4166-TODO: this is hardcoded to be version 2
-                fhir_body["patient"] = cw.fhir_id(2)
+                fhir_body["patient"] = cw.fhir_id(Versions.V2)
                 body = json.dumps(fhir_body)
 
         return uri, headers, body, status

@@ -6,6 +6,7 @@ from django.db.models.functions import Trunc
 from django.utils.html import format_html
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.models import get_application_model
+from apps.constants import Versions
 
 from apps.accounts.models import UserProfile
 from apps.dot_ext.models import ArchivedToken
@@ -332,10 +333,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "get_connected_applications",
         "date_created",
     )
-    # BB2-4166-TODO: add support for v3
-    search_fields = ('user__username', 'fhir_id_v2', '_user_id_hash', '_user_mbi')
-    readonly_fields = ('date_created',)
-    raw_id_fields = ('user',)
+    search_fields = ("user__username", "fhir_id_v2", "fhir_id_v3", "_user_id_hash")
+    readonly_fields = ("date_created",)
+    raw_id_fields = ("user",)
 
     def get_queryset(self, request):
         qs = super(BeneficiaryDashboardAdmin, self).get_queryset(request)
@@ -361,10 +361,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         ordering="MyIdentities",
     )
     def get_identities(self, obj):
-        # BB2-4166-TODO: add support for v3
         return format_html(
-            '<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
-                obj.fhir_id(2), obj.user_hicn_hash, obj.user_mbi
+            '<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
+                obj.fhir_id(Versions.V2), obj.fhir_id(Versions.V3), obj.user_hicn_hash, obj.user_mbi
             )
         )
 
@@ -418,8 +417,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         json_resp = None
 
         try:
-            # BB2-4166-TODO: this is hardcoded to be version 2
-            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
+            json_resp = get_patient_by_id(crosswalk.fhir_id(request.session['version']), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 
