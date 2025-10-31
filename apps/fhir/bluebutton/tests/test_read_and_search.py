@@ -6,6 +6,7 @@ from django.test import TestCase, RequestFactory
 from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock, urlmatch
+from http import HTTPStatus
 from oauth2_provider.models import get_access_token_model
 from urllib.parse import unquote
 from unittest.mock import patch
@@ -907,8 +908,31 @@ class BackendConnectionTest(BaseApiTest):
 
         non_token_fhir_id_v2 = '-20140000008326'
 
-        # Test profile/userinfo v3
         response = self.client.get(
             '/v2/fhir/Patient/' + non_token_fhir_id_v2, headers={'authorization': 'Bearer ' + access_token}
         )
-        print(response)
+
+        json_response = response.json()
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert json_response['detail'] == 'Not found.'
+
+    def test_read_on_fhir_id_that_does_not_exist(self):
+        """
+        Confirm that a 404 is thrown and we get a Not found message
+        when a patient read is attempted on a non-existent fhir_id
+        TODO: should we do this for v2 and v3?
+        """
+        access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
+
+        non_token_fhir_id_v2 = '-99140000008326'
+
+        response = self.client.get(
+            '/v2/fhir/Patient/' + non_token_fhir_id_v2, headers={'authorization': 'Bearer ' + access_token}
+        )
+
+        json_response = response.json()
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert json_response['detail'] == 'Not found.'
