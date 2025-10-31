@@ -12,7 +12,8 @@
 <div class="sandbox-gradient-bg">
 	<div class="gradient-content-container">
 		<h1>Sample API Call</h1>
-		<p>Below is a sample call for an application to allow a beneficiary to log in with their Medicare.gov account credentials and authorize access to their data.</p>
+		<p>Below is a sample call for an application to allow a beneficiary to log in with their Medicare.gov account
+			credentials and authorize access to their data.</p>
 
 		{% if api_ver is not None %}
 		<h2>API version: {{ api_ver }}</h2>
@@ -22,26 +23,40 @@
 		<div class="gradient-content-card">
 			<div class="content">
 				<h2>Authorization Link</h2>
-				<pre>{{authorization_url}}</pre>
+				<div class="bb-copy-container">
+					<pre id="auth-url">{{authorization_url}}</pre>
+					<button class="bb-copy-button" data-copy-target="auth-url" aria-label="Copy to clipboard">
+						<svg class="bb-copy-button__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+							viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							stroke-linecap="round" stroke-linejoin="round">
+							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+						</svg>
+						<span class="bb-copy-button__text">Copy</span>
+					</button>
+				</div>
 				<div class="ds-c-alert ds-c-alert--hide-icon ds-u-margin-top--2">
 					<div class="ds-c-alert__body">
 						<h3 class="ds-c-alert__heading">You'll need sample beneficiary credentials to log in</h3>
 						<p class="ds-c-alert__text ds-u-color--base">
-						The first user is <strong>BBUser00000</strong> with password <strong>PW00000!</strong> and these sample users continue all the way to <strong>10000</strong> with password <strong>PW10000!</strong> 
-						<br />
-						<i>Note: the ! at the end of the password is required</i>
+							The first user is <strong>BBUser00000</strong> with password <strong>PW00000!</strong> and
+							these sample users continue all the way to <strong>10000</strong> with password
+							<strong>PW10000!</strong>
+							<br />
+							<i>Note: the ! at the end of the password is required</i>
 						</p>
 					</div>
 				</div>
 			</div>
 			<div class="action-container">
-				<a href="{{authorization_url}}&lang=en" class="ds-c-button ds-c-button--solid">Authorize as a Beneficiary</a>
+				<a href="{{authorization_url}}&lang=en" class="ds-c-button ds-c-button--solid">Authorize as a
+					Beneficiary</a>
 				<br>
-				<a href="{{authorization_url}}&lang=es" class="ds-c-button ds-c-button--solid">Authorize as a Beneficiary (Spanish)</a>
+				<a href="{{authorization_url}}&lang=es" class="ds-c-button ds-c-button--solid">Authorize as a
+					Beneficiary (Spanish)</a>
 			</div>
 		</div>
 	</div>
 </div>
 
 {% endblock %}
-
