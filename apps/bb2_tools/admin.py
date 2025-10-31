@@ -333,7 +333,6 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "get_connected_applications",
         "date_created",
     )
-    # BB2-4166-TODO: add support for v3
     search_fields = ("user__username", "fhir_id_v2", "fhir_id_v3", "_user_id_hash")
     readonly_fields = ("date_created",)
     raw_id_fields = ("user",)
@@ -362,7 +361,6 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         ordering="MyIdentities",
     )
     def get_identities(self, obj):
-        # BB2-4166-TODO: add support for v3
         return format_html(
             '<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
                 obj.fhir_id(Versions.V2), obj.fhir_id(Versions.V3), obj.user_hicn_hash, obj.user_mbi

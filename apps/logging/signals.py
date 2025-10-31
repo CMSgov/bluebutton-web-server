@@ -46,7 +46,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     crosswalk_log = {
         "id": None,
         "user_hicn_hash": None,
-        # BB2-4166-TODO: this is hardcoded to be version 2, add v3
         "fhir_id_v3": None,
         "fhir_id_v2": None,
         "user_id_type": None
@@ -56,7 +55,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         crosswalk_log = {
             "id": user.crosswalk.id,
             "user_hicn_hash": user.crosswalk.user_hicn_hash,
-            # BB2-4166-TODO: this is hardcoded to be version 2, add v3
             "fhir_id_v2": user.crosswalk.fhir_id(Versions.V2),
             "fhir_id_v3": user.crosswalk.fhir_id(Versions.V3),
             "user_id_type": user.crosswalk.user_id_type

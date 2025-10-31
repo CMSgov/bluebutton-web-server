@@ -71,7 +71,6 @@ def authenticate(request):
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
 
     # Log successful authentication with beneficiary when we return back here.
-    # BB2-4166-TODO: set both fhir_ids if we get both of them
     slsx_client.log_authn_success(request, {
         'user': {
             'id': user.id,
@@ -80,7 +79,6 @@ def authenticate(request):
                 "id": user.crosswalk.id,
                 'user_hicn_hash': user.crosswalk.user_hicn_hash,
                 'user_mbi': user.crosswalk.user_mbi,
-                # BB2-4166-TODO: this needs to account for both fhir_ids if they are found
                 'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
                 'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
                 'user_id_type': user.crosswalk.user_id_type,
@@ -103,7 +101,6 @@ def callback(request):
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
-    # BB2-4166-TODO: refactor this to be generalized
     for supported_version in Versions.supported_versions():
         if f"/v{supported_version}/o/authorize" in next_uri:
             version = supported_version

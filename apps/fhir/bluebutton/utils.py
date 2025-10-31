@@ -146,9 +146,6 @@ def generate_info_headers(request):
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
     if crosswalk:
-        # we need to send the HicnHash or the fhir_id
-        # TODO: Can the hicnHash case ever be reached? Should refactor this!
-        # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
         if switch_is_active('v3_endpoints') and crosswalk.fhir_id(Versions.V3) is not None:
             result["BlueButton-BeneficiaryId"] = f"patientId: {str(crosswalk.fhir_id(Versions.V3))}"
         elif crosswalk.fhir_id(Versions.V2) is not None:
@@ -603,7 +600,7 @@ def get_response_text(fhir_response=None):
         return text_in
 
 
-def build_oauth_resource(request, format_type="json"):
+def build_oauth_resource(request, version, format_type="json"):
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
@@ -710,9 +707,6 @@ def get_patient_by_id(id, request):
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
-    # for now this will only work for v1/v2 patients, but we'll need to be able to
-    # determine if the user is V3 and use those endpoints later
-    # BB2-4166-TODO: this should allow v3
     version = request.session.get('version')
     if version in Versions.supported_versions():
         url = "{}/v{}/fhir/Patient/{}?_format={}".format(

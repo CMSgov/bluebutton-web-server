@@ -46,8 +46,6 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
 
-    # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
-    # a straight url that we need to get the version from the url (like we do in the fhir app)
     return JsonResponse(_get_userinfo(request.resource_owner, version))
 
 

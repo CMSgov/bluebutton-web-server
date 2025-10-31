@@ -33,9 +33,6 @@ class DataAccessGrantPermission(permissions.BasePermission):
         # Patient resources were taken care of above
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
-        # BB2-4166-TODO: this is hardcoded to be version 2
-        # TODO: The use of view.version is not always going to be right. There are several
-        # ways where we reference versions and this would need a spike ticket to understand properly.
         if view.version in Versions.supported_versions():
             return is_resource_for_patient(obj, request.crosswalk.fhir_id(view.version))
         else:

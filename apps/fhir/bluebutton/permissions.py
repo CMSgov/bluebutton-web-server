@@ -51,18 +51,15 @@ class ReadCrosswalkPermission(HasCrosswalk):
             if request.resource_type == "Coverage":
                 reference = obj["beneficiary"]["reference"]
                 reference_id = reference.split("/")[1]
-                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
             elif request.resource_type == "ExplanationOfBenefit":
                 reference = obj["patient"]["reference"]
                 reference_id = reference.split("/")[1]
-                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
             else:
                 reference_id = obj["id"]
-                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
 
@@ -76,7 +73,6 @@ class ReadCrosswalkPermission(HasCrosswalk):
 
 class SearchCrosswalkPermission(HasCrosswalk):
     def has_object_permission(self, request, view, obj):
-        # BB2-4166-TODO: this is hardcoded to be version 2
         if view.version in Versions.supported_versions():
             patient_id = request.crosswalk.fhir_id(view.version)
         else:
