@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from http import HTTPStatus
 
 from apps.authorization.models import DataAccessGrant
 
@@ -65,20 +66,20 @@ def get_application_from_meta(request):
     RETURN:
         application or None
     """
-    request_meta = getattr(request, "META", None)
+    request_meta = getattr(request, 'META', None)
     client_id, ac = None, None
     Application = get_application_model()
     app = None
     if request_meta:
-        auth_header = request_meta.get("HTTP_AUTHORIZATION", None)
+        auth_header = request_meta.get('HTTP_AUTHORIZATION', None)
         if not auth_header:
-            auth_header = request_meta.get("Authorization", None)
+            auth_header = request_meta.get('Authorization', None)
         if auth_header:
             if 'Bearer' in auth_header:
                 ac = AccessToken.objects.get(token=auth_header.split(' ')[1])
             else:
-                encoded_credentials = auth_header.split(' ')[1]  # Removes "Basic " to isolate credentials
-                decoded_credentials = b64decode(encoded_credentials).decode("utf-8").split(':')
+                encoded_credentials = auth_header.split(' ')[1]  # Removes 'Basic ' to isolate credentials
+                decoded_credentials = b64decode(encoded_credentials).decode('utf-8').split(':')
                 client_id = decoded_credentials[0]
     try:
         if client_id is not None:
@@ -87,7 +88,7 @@ def get_application_from_meta(request):
             app = Application.objects.get(id=ac.application_id)
     except Application.DoesNotExist:
         raise InvalidClientError(
-            description="Application does not exist"
+            description='Application does not exist'
         )
     return app
 
@@ -106,17 +107,23 @@ def validate_app_is_active(request):
     if not app:
         app = get_application_from_data(request)
 
+    # revoked access and expired auth period to a 401 error
     if app and app.active:
         # Is this for a token refresh request?
-        post_grant_type = request.POST.get("grant_type", None)
-        if post_grant_type == "refresh_token":
-            # Check for application ONE_TIME type where token refresh is not allowed.
+        post_grant_type = request.POST.get('grant_type', None)
+        if post_grant_type == 'refresh_token':
+
+            # A ONE_TIME token is not allowed to be refreshed.
+            # In that instance, we raise an error that explicitly
+            # indicates that the user must re-authenticate.
+            # This is a FORBIDDEN error for the API consumer.
             if app.has_one_time_only_data_access():
                 raise InvalidClientError(
-                    description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
+                    description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+                    status_code=HTTPStatus.FORBIDDEN
                 )
 
-            refresh_code = request.POST.get("refresh_token")
+            refresh_code = request.POST.get('refresh_token')
             try:
                 refresh_token = RefreshToken.objects.get(token=refresh_code)
                 dag = DataAccessGrant.objects.get(
@@ -125,18 +132,26 @@ def validate_app_is_active(request):
                 )
 
                 if dag:
+                    # If we get a DAG, but it has expired, we pass back a message (again)
+                    # saying the end user must re-authenticate. Again, a FORBIDDEN.
                     if dag.has_expired():
                         raise InvalidGrantError(
-                            description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                            description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+                            status_code=HTTPStatus.FORBIDDEN
                         )
 
             except (DataAccessGrant.DoesNotExist, RefreshToken.DoesNotExist):
+                # In the event that we cannot find a DAG, we don't want to pass back too much information.
+                # We pass back a FORBIDDEN and a message saying as much (and, again, encouraging
+                # reauthentication).
                 raise InvalidGrantError(
-                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+                    status_code=HTTPStatus.FORBIDDEN
                 )
     elif app and not app.active:
         raise InvalidClientError(
-            description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+            description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
+            status_code=HTTPStatus.FORBIDDEN
         )
 
     return app
@@ -154,15 +169,15 @@ def get_application_from_data(request):
     client_id, ac, rt, app = None, None, None, None
     Application = get_application_model()
 
-    if request.GET.get("client_id", None) is not None:
-        client_id = request.GET.get("client_id", None)
-    elif request.POST.get("client_id", None):
-        client_id = request.POST.get("client_id", None)
-    elif request.POST.get("token", None):
+    if request.GET.get('client_id', None) is not None:
+        client_id = request.GET.get('client_id', None)
+    elif request.POST.get('client_id', None):
+        client_id = request.POST.get('client_id', None)
+    elif request.POST.get('token', None):
         # introspect
-        ac = AccessToken.objects.get(token=request.POST.get("token", None))
-    elif request.POST.get("refresh_token"):
-        rt = RefreshToken.objects.get(token=request.POST.get("refresh_token", None))
+        ac = AccessToken.objects.get(token=request.POST.get('token', None))
+    elif request.POST.get('refresh_token'):
+        rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
     try:
 
         if client_id is not None:
@@ -174,7 +189,7 @@ def get_application_from_data(request):
 
     except Application.DoesNotExist:
         raise InvalidClientError(
-            description="Application does not exist"
+            description='Application does not exist'
         )
     return app
 
@@ -184,10 +199,10 @@ def json_response_from_oauth2_error(error):
     Given a oauthlib.oauth2.rfc6749.errors.* error this function
     returns a corresponding django.http.response.JsonResponse response
     """
-    ret_data = {"status_code": error.status_code, "error": error.error}
+    ret_data = {'status_code': error.status_code, 'error': error.error}
 
     # Add optional description
-    if getattr(error, "description", None):
-        ret_data["error_description"] = error.description
+    if getattr(error, 'description', None):
+        ret_data['error_description'] = error.description
 
     return JsonResponse(ret_data, status=error.status_code)
