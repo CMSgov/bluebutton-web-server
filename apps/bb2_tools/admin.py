@@ -417,8 +417,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         json_resp = None
 
         try:
-            # BB2-4166-TODO: this is hardcoded to be version 2
-            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
+            json_resp = get_patient_by_id(crosswalk.fhir_id(request.session['version']), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 

@@ -165,7 +165,6 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         'crosswalk': {
             'id': user.crosswalk.id,
             'user_hicn_hash': user.crosswalk.user_hicn_hash,
-            # BB2-4166-TODO: this needs to include both fhir versions
             'fhir_id_v2': versioned_fhir_ids.get(Versions.V2, None),
             'fhir_id_v3': versioned_fhir_ids.get(Versions.V3, None),
             'user_id_type': user.crosswalk.user_id_type,
