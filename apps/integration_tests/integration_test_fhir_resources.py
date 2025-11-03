@@ -166,7 +166,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_health_endpoint(self):
         client = APIClient()
         # no authenticate needed
-        response = client.get(self.live_server_url + "/health/")
+        response = client.get(self.live_server_url + "/health")
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         msg = None

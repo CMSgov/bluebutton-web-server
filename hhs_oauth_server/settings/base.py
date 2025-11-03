@@ -5,6 +5,7 @@ import socket
 import datetime
 from getenv import env
 from ..utils import bool_env, int_env
+from urllib.parse import urlparse
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
@@ -598,8 +599,11 @@ FHIR_CLIENT_CERTSTORE = env(
 )
 
 FHIR_SERVER = {
-    "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
-    "FHIR_URL_V3": env("FHIR_URL_V3", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
+    # Strip trailing '/' from all URLs. We expect hostnames/paths to *not* have a trailing slash
+    # throughout the codebase. Allowing a '/' through at the end here will create many situations where
+    # URLs have a "//" embedded within them, and may cause problems for tests and other substring matches.
+    "FHIR_URL": env("FHIR_URL", "https://INVALID_FHIR_URL.gov").rstrip("/"),
+    "FHIR_URL_V3": env("FHIR_URL_V3", "https://INVALID_FHIR_URL_V3.gov").rstrip("/"),
     "CERT_FILE": os.path.join(
         FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")
     ),
@@ -608,6 +612,14 @@ FHIR_SERVER = {
     ),
     "CLIENT_AUTH": True,
 }
+
+# The mock FHIR endpoint is a hostname used in many tests. It was previously a host
+# ending in "hhscloud.us," which in theory could now be domain squatted. We replace
+# this hostname with a valid hostname (or, a very clearly *invalid*/non-squattable hostname).
+# The hostname is ultimately used in a mock, and therefore does not strictly need to exist
+# or be correct. But, it does need to be consistent.
+MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
+
 
 FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
     "https://bluebutton.cms.gov/resources/identifier/mbi-hash"

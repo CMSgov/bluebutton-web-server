@@ -156,16 +156,21 @@ class Crosswalk(models.Model):
         ]
 
     def fhir_id(self, version: int = 2) -> str:
-        """Helper method to return fhir_id based on BFD version, prerred over direct access"""
+        """Helper method to return fhir_id based on BFD version, preferred over direct access"""
         if version in (1, 2):
             return str(self.fhir_id_v2)
         elif version == 3:
-            return str(self.fhir_id_v3)
+            # TODO BB2-4166: This will want to change. In order to make
+            # BB2-4181 work, the V3 value needed to be found in the V2 column.
+            # 4166 should flip this to _v3, and we should be able to find
+            # values there when using (say) the test client.
+            return str(self.fhir_id_v2)
+
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
 
     def set_fhir_id(self, value, version: int = 2) -> None:
-        """Helper method to set fhir_id based on BFD version, prerred over direct access"""
+        """Helper method to set fhir_id based on BFD version, preferred over direct access"""
         if value == "":
             raise ValidationError("fhir_id can not be an empty string")
         if version in (1, 2):
