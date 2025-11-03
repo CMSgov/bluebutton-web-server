@@ -912,7 +912,7 @@ class BackendConnectionTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             return {
-                'status_code': 404,
+                'status_code': HTTPStatus.NOT_FOUND,
                 'detail': 'Not found.'
             }
 
