@@ -23,6 +23,7 @@ from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
+from apps.constants import Versions
 from .audit_logger_schemas import (
     ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA,
     AUTHENTICATION_START_LOG_SCHEMA,
@@ -80,6 +81,8 @@ class TestAuditEventLoggers(BaseApiTest):
                 ['GET', '/v1/fhir/Patient'],
                 ['GET', r'\/v2\/fhir\/Patient\/\-\d+'],
                 ['GET', '/v2/fhir/Patient'],
+                ['GET', r'\/v3\/fhir\/Patient\/\-\d+'],
+                ['GET', '/v3/fhir/Patient'],
             ],
         )
         # Setup the RequestFactory
@@ -100,10 +103,13 @@ class TestAuditEventLoggers(BaseApiTest):
         return True
 
     def test_fhir_events_logging(self):
-        self._fhir_events_logging(1)
+        self._fhir_events_logging(Versions.V1)
 
     def test_fhir_events_logging_v2(self):
-        self._fhir_events_logging(2)
+        self._fhir_events_logging(Versions.V2)
+
+    def test_fhir_events_logging_v3(self):
+        self._fhir_events_logging(Versions.V3)
 
     def _fhir_events_logging(self, version=1):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)

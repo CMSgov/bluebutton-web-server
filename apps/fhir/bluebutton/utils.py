@@ -147,9 +147,9 @@ def generate_info_headers(request):
     crosswalk = get_crosswalk(user)
     if crosswalk:
         if switch_is_active('v3_endpoints') and crosswalk.fhir_id(Versions.V3) is not None:
-            result["BlueButton-BeneficiaryId"] = f"patientId: {str(crosswalk.fhir_id(Versions.V3))}"
+            result["BlueButton-BeneficiaryId"] = f"patientId:{str(crosswalk.fhir_id(Versions.V3))}"
         elif crosswalk.fhir_id(Versions.V2) is not None:
-            result["BlueButton-BeneficiaryId"] = f"patientId: {crosswalk.fhir_id(Versions.V2)}"
+            result["BlueButton-BeneficiaryId"] = f"patientId:{crosswalk.fhir_id(Versions.V2)}"
         else:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
                 crosswalk.user_hicn_hash

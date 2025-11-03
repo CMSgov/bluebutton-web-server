@@ -275,6 +275,7 @@ def get_pre_fetch_fhir_log_entry_schema(version):
             "type": {"pattern": "fhir_pre_fetch"},
             "uuid": {"type": "string"},
             "fhir_id_v2": {"pattern": "-20140000008325"},
+            "fhir_id_v3": {"pattern": ""},
             "includeAddressFields": {"pattern": "False"},
             "user": {"pattern": FHIR_PAT_ID_STR},
             "application": {
