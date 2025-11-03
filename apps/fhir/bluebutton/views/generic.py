@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
+from rest_framework.exceptions import NotFound
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -30,7 +31,8 @@ from ..signals import (
 )
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
-                     get_resourcerouter)
+                     get_resourcerouter,
+                     valid_caller_for_patient_read)
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -151,6 +153,13 @@ class FhirDataView(APIView):
 
         prepped = s.prepare_request(req)
 
+        if resource_type == 'Patient' and kwargs.get('resource_id') and prepped.headers.get('BlueButton-BeneficiaryId'):
+            # If it is a patient read request, confirm it is valid for the current user
+            # If not, throw a 404 before pinging BFD
+            if not valid_caller_for_patient_read(prepped.headers.get('BlueButton-BeneficiaryId'), kwargs.get('resource_id')):
+                error = NotFound('Not found.')
+                raise error
+
         if self.version == 1:
             api_ver_str = 'v1'
         elif self.version == 2:
@@ -179,7 +188,7 @@ class FhirDataView(APIView):
         if error is not None:
             raise error
 
-        # TODO: What is the purpose of this function? Does nothing
+        # TODO: What is the purpose of this function? Does nothing, should we remove?
         self.validate_response(response)
 
         out_data = r.json()
