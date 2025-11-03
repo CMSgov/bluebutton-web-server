@@ -142,31 +142,23 @@ for (var i = 0; i < accordions.length; i++) {
 	});
 }
 
-// Copy to Clipboard Functionality
-// -----------------------------
-const copyButtons = document.querySelectorAll('.bb-copy-button');
+// Copy button functionality
+document.querySelectorAll('.bb-copy-button').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const targetId = button.dataset.copyTarget;
+    const textToCopy = document.getElementById(targetId).textContent.trim();
 
-function handleCopy(event) {
-  const button = event.currentTarget;
-  const targetId = button.getAttribute('data-copy-target');
-  const textToCopy = document.getElementById(targetId).textContent.trim();
-  
-  navigator.clipboard.writeText(textToCopy).then(() => {
-    // Update button state
-    button.classList.add('copied');
-    button.setAttribute('aria-label', 'Copied!');
-    button.querySelector('.bb-copy-button__text').textContent = 'Copied!';
-    
-    // Reset after 2 seconds
-    setTimeout(() => {
-      button.classList.remove('copied');
-      button.setAttribute('aria-label', 'Copy to clipboard');
-      button.querySelector('.bb-copy-button__text').textContent = 'Copy';
-    }, 2000);
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      button.classList.add('copied');
+      button.setAttribute('aria-label', 'Copied!');
+      
+      setTimeout(() => {
+        button.classList.remove('copied');
+        button.setAttribute('aria-label', 'Copy to clipboard');
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
   });
-}
-
-// Add click handlers to copy buttons
-copyButtons.forEach(button => {
-  button.addEventListener('click', handleCopy);
 });

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load i18n %}
 
 <!-- Ignore Banner Code -->
@@ -26,13 +27,7 @@
 				<div class="bb-copy-container">
 					<pre id="auth-url">{{authorization_url}}</pre>
 					<button class="bb-copy-button" data-copy-target="auth-url" aria-label="Copy to clipboard">
-						<svg class="bb-copy-button__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-							viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-							stroke-linecap="round" stroke-linejoin="round">
-							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-							<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-						</svg>
-						<span class="bb-copy-button__text">Copy</span>
+						<img src="{% static 'img/copy-icon.svg' %}" alt="" />
 					</button>
 				</div>
 				<div class="ds-c-alert ds-c-alert--hide-icon ds-u-margin-top--2">
