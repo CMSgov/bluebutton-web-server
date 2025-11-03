@@ -123,7 +123,7 @@ def validate_app_is_active(request):
                     status_code=HTTPStatus.FORBIDDEN
                 )
 
-            refresh_code = request.POST.get('refresh_token')
+            refresh_code = request.POST.get('refresh_token', None)
             try:
                 refresh_token = RefreshToken.objects.get(token=refresh_code)
                 dag = DataAccessGrant.objects.get(
@@ -139,14 +139,18 @@ def validate_app_is_active(request):
                             description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
                             status_code=HTTPStatus.FORBIDDEN
                         )
-
-            except (DataAccessGrant.DoesNotExist, RefreshToken.DoesNotExist):
+            except DataAccessGrant.DoesNotExist:
                 # In the event that we cannot find a DAG, we don't want to pass back too much information.
                 # We pass back a FORBIDDEN and a message saying as much (and, again, encouraging
                 # reauthentication).
                 raise InvalidGrantError(
                     description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
                     status_code=HTTPStatus.FORBIDDEN
+                )
+            except RefreshToken.DoesNotExist:
+                raise InvalidGrantError(
+                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+                    status_code=HTTPStatus.BAD_REQUEST
                 )
     elif app and not app.active:
         raise InvalidClientError(
@@ -169,29 +173,59 @@ def get_application_from_data(request):
     client_id, ac, rt, app = None, None, None, None
     Application = get_application_model()
 
-    if request.GET.get('client_id', None) is not None:
+    # Try and get the application via `client_id`
+    # If the client id comes in via GET or POST, we can try and look
+    # up the application via the client_id. If we find it, return it.
+    # If not, we have a bad request, because a client_id was present,
+    # but malformed in some way.
+    if request.GET.get('client_id', None):
         client_id = request.GET.get('client_id', None)
     elif request.POST.get('client_id', None):
         client_id = request.POST.get('client_id', None)
-    elif request.POST.get('token', None):
-        # introspect
-        ac = AccessToken.objects.get(token=request.POST.get('token', None))
-    elif request.POST.get('refresh_token'):
-        rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
     try:
-
         if client_id is not None:
             app = Application.objects.get(client_id=client_id)
-        elif ac is not None:
-            app = Application.objects.get(id=ac.application_id)
-        elif rt is not None:
-            app = Application.objects.get(id=rt.application_id)
-
+            return app
     except Application.DoesNotExist:
         raise InvalidClientError(
-            description='Application does not exist'
+            description='Application does not exist (client_id)',
+            status_code=HTTPStatus.BAD_REQUEST
         )
-    return app
+
+    # Try via token
+    # If we manage to find an access token, but then not an application, we
+    # have a problem, and should return an error.
+    if request.POST.get('token', None):
+        ac = AccessToken.objects.get(token=request.POST.get('token', None))
+    try:
+        if ac is not None:
+            app = Application.objects.get(id=ac.application_id)
+            return app
+    except Application.DoesNotExist:
+        raise InvalidClientError(
+            description='Application does not exist (token)',
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+
+    # Try via refresh_token
+    # Finally, if we have a refresh token, but cannot find an app, that's not good.
+    if request.POST.get('refresh_token'):
+        rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
+    try:
+        if rt is not None:
+            app = Application.objects.get(id=rt.application_id)
+            return app
+    except Application.DoesNotExist:
+        raise InvalidClientError(
+            description='Application does not exist (refresh_token)',
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+
+    # If we get here, we should fail. We don't have an app.
+    raise InvalidClientError(
+        description='Application does not exist (at all)',
+        status_code=HTTPStatus.BAD_REQUEST
+    )
 
 
 def json_response_from_oauth2_error(error):

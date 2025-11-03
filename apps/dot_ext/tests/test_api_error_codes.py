@@ -149,6 +149,90 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_in_err_mesg="is temporarily inactive"
         )
 
+    # It seems like error reporting here is dependent on various aspects of the request.
+    # For instance, if the application client id and secret are not supplied at all
+    # and the refresh token is missing, we currently get "{"error": "invalid_request",
+    # "error_description": "Missing refresh token parameter."}", but if we instead supply an invalid
+    # client id, we get "{"status_code": 401, "error": "invalid_client", "error_description":
+    # "Application does not exist"}". Generally, we should experiment with different combinations of
+    # missing information to ensure that the error responses are sensible and reflective of at least
+    # one of the problems with the request, and that http codes returned are consistent and reasonable.
+
+    def test_malformed_requests(self):
+        remove_params = [
+            {
+                "param": "grant_type",
+                "url": "/v2/o/token/",
+                "expected_status_code": HTTPStatus.BAD_REQUEST,
+                "error_msg_contains": "unsupported_grant_type",
+            },
+            {
+                "param": "refresh_token",
+                "url": "/v2/o/token/",
+                "expected_status_code": HTTPStatus.BAD_REQUEST,
+                "error_msg_contains": "invalid_grant",
+            },
+            # The token endpoint does not check if URIs are present
+            # at this time. Therefore, we're expecting a 200 response.
+            {
+                "param": "redirect_uri",
+                "url": "/v2/o/token/",
+                "expected_status_code": HTTPStatus.OK,
+                "error_msg_contains": None,
+            },
+            {
+                "param": "client_id",
+                "url": "/v2/o/token/",
+                "expected_status_code": HTTPStatus.UNAUTHORIZED,
+                "error_msg_contains": "invalid_client",
+            },
+            {
+                "param": "client_secret",
+                "url": "/v2/o/token/",
+                "expected_status_code": HTTPStatus.UNAUTHORIZED,
+                "error_msg_contains": "invalid_client",
+            },
+        ]
+        # Given an app, but the app is not active, we should return UNAUTHORIZED.
+        suffix = randint(1000, 9999)
+        user, app, ac = self._create_user_app_token_grant(
+            first_name="First",
+            last_name=f"Last_{suffix}",
+            fhir_id_v2=f"-2014000000{suffix}",
+            fhir_id_v3=f"-3014000000{suffix}",
+            app_name=f"test_app_{suffix}",
+            app_username=f"devuser_{suffix}",
+            app_user_organization=f"org_{suffix}",
+            mbi=self._generate_random_mbi(),
+            app_data_access_type=AccessType.THIRTEEN_MONTH,
+        )
+
+        base_data = {
+            "grant_type": "refresh_token",
+            "refresh_token": ac["refresh_token"],
+            "redirect_uri": app.redirect_uris,
+            "client_id": app.client_id,
+            "client_secret": app.client_secret_plain,
+        }
+
+        for test in remove_params:
+            data = dict(base_data)
+            del data[test['param']]
+            self._assert_call_with_broken_data(
+                test['url'],
+                data,
+                test['expected_status_code'],
+                test['error_msg_contains'],
+            )
+
+    def _assert_call_with_broken_data(self, url, data, expected_status, error_contains=None):
+        response = self.client.post(url, data=data)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, expected_status)
+        if error_contains:
+            self.assertEqual(content["error"], error_contains)
+        return content
+
     def _assert_call_token_refresh_endpoint(
         self,
         application=None,

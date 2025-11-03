@@ -211,8 +211,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content)
 
-        # seems the status_code changed to HTTPStatus.FORBIDDEN for invalid_grant error
-        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(content.get('error', None), "invalid_grant")
 
         # ------ TEST #6: Beneficiary authorizes to share FULL demographic data again.. ------
