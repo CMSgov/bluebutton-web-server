@@ -45,6 +45,7 @@ from .audit_logger_schemas import (
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+FHIR_ID_V3 = settings.DEFAULT_SAMPLE_FHIR_ID_V3
 
 
 class HTTMockWithResponseHook(HTTMock):
@@ -112,7 +113,10 @@ class TestAuditEventLoggers(BaseApiTest):
         self._fhir_events_logging(Versions.V3)
 
     def _fhir_events_logging(self, version=1):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         AccessToken = get_access_token_model()
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
@@ -137,8 +141,10 @@ class TestAuditEventLoggers(BaseApiTest):
                 'content': patient_response,
             }
         reverse_url = 'bb_oauth_fhir_patient_search'
-        if version == 2:
+        if version == Versions.V2:
             reverse_url += '_v2'
+        elif version == Versions.V3:
+            reverse_url += '_v3'
 
         with HTTMock(catchall):
             self.client.get(

@@ -106,8 +106,6 @@ def callback(request):
             version = supported_version
             break
 
-    request.session['version'] = version
-
     user_not_found_error = None
     try:
         authenticate(request)
