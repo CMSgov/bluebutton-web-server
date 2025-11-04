@@ -720,6 +720,9 @@ def get_patient_by_id(id, request):
     return response.json()
 
 
+# TODO - tied to BB2-4193, remove these references to user_mbi_hash as part
+# of the ticket to remove the user_mbi_hash column from the crosswalk table
+# We can remove this entire function at that point
 def get_patient_by_mbi_hash(mbi_hash, request):
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
