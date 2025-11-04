@@ -380,10 +380,8 @@ class BackendConnectionTest(BaseApiTest):
         ))
 
     def test_search_request_not_found(self):
-        self._search_request_not_found(Versions.V1)
-
-    def test_search_request_not_found_v2(self):
-        self._search_request_not_found(Versions.V2)
+        for supported_version in Versions.supported_versions():
+            self._search_request_not_found(supported_version)
 
     def _search_request_not_found(self, version: int = 1):
         # create the user
@@ -502,22 +500,22 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 502)
 
     def test_search_request_failed_no_fhir_id_match(self):
-        self._search_request_failed_no_fhir_id_match(1)
+        for supported_version in Versions.supported_versions():
+            self._search_request_failed_no_fhir_id_match(supported_version)
 
     def test_search_request_failed_no_fhir_id_match_bfd400(self):
         # BB2-1965 for 400 or 500 BFD response compatibility.
-        self._search_request_failed_no_fhir_id_match(1, 400)
-
-    def test_search_request_failed_no_fhir_id_match_v2(self):
-        self._search_request_failed_no_fhir_id_match(2)
-
-    def test_search_request_failed_no_fhir_id_match_v2_bfd400(self):
-        # BB2-1965 for 400 or 500 BFD response compatibility.
-        self._search_request_failed_no_fhir_id_match(2, 400)
+        for supported_version in Versions.supported_versions():
+            self._search_request_failed_no_fhir_id_match(supported_version, 400)
 
     def _search_request_failed_no_fhir_id_match(self, version: int = 1, bfd_status_code=500):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Patient.read'
         ac.save()
@@ -530,7 +528,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'entry': [{
                         'resource': {
-                            'id': FHIR_ID_V2,
+                            'id': fhir_id,
                         },
                     }],
                 },
@@ -540,7 +538,7 @@ class BackendConnectionTest(BaseApiTest):
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
             self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
-            self.assertIn(f'_id={FHIR_ID_V2}', req.url)
+            self.assertIn(f'_id={fhir_id}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
@@ -557,14 +555,17 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 502)
 
     def test_search_parameters_request(self):
-        self._search_parameters_request(1)
-
-    def test_search_parameters_request_v2(self):
-        self._search_parameters_request(2)
+        for supported_version in Versions.supported_versions():
+            self._search_parameters_request(supported_version)
 
     def _search_parameters_request(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
@@ -579,7 +580,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'ExplanationOfBenefit',
                     'patient': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
@@ -649,14 +650,17 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 400)
 
     def test_read_request_failed_no_fhir_id(self):
-        self._read_request_failed_no_fhir_id(1)
-
-    def test_read_request_failed_no_fhir_id_v2(self):
-        self._read_request_failed_no_fhir_id(2)
+        for supported_version in Versions.supported_versions():
+            self._read_request_failed_no_fhir_id(supported_version)
 
     def _read_request_failed_no_fhir_id(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
 
         @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
         def fhir_request(url, req):
@@ -682,20 +686,23 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     read_update_delete_patient_urls[version],
-                    kwargs={'resource_id': FHIR_ID_V2}),
+                    kwargs={'resource_id': fhir_id}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 403)
 
     def test_read_request(self):
-        self._read_request()
-
-    def test_read_request_v2(self):
-        self._read_request(2)
+        for supported_version in Versions.supported_versions():
+            self._read_request(supported_version)
 
     def _read_request(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         expected_request = get_expected_read_request(version)
 
         @all_requests
@@ -706,12 +713,12 @@ class BackendConnectionTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                'content': {'resourceType': 'Patient', 'id': FHIR_ID_V2, 'extension': [{'url': 'https://bluebutton.cms.gov/resources/variables/race', 'valueCoding': {'system': 'https://bluebutton.cms.gov/resources/variables/race', 'code': '1', 'display': 'White'}}], 'identifier': [{'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': FHIR_ID_V2}, {'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash', 'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5'}], 'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}], 'gender': 'unknown', 'birthDate': '2014-06-01', 'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}]}  # noqa
+                'content': {'resourceType': 'Patient', 'id': fhir_id, 'extension': [{'url': 'https://bluebutton.cms.gov/resources/variables/race', 'valueCoding': {'system': 'https://bluebutton.cms.gov/resources/variables/race', 'code': '1', 'display': 'White'}}], 'identifier': [{'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': FHIR_ID_V2}, {'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash', 'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5'}], 'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}], 'gender': 'unknown', 'birthDate': '2014-06-01', 'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}]}  # noqa
             }
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(read_update_delete_patient_urls[version], kwargs={'resource_id': FHIR_ID_V2}),
+                reverse(read_update_delete_patient_urls[version], kwargs={'resource_id': fhir_id}),
                 {'hello': 'world'},
                 Authorization='Bearer %s' % (first_access_token)
             )
@@ -719,14 +726,17 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     def test_read_eob_request(self):
-        self._read_eob_request(1)
-
-    def test_read_eob_request_v2(self):
-        self._read_eob_request(2)
+        for supported_version in Versions.supported_versions():
+            self._read_eob_request(supported_version)
 
     def _read_eob_request(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -735,7 +745,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'ExplanationOfBenefit',
                     'patient': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
@@ -750,14 +760,17 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     def test_read_coverage_request(self):
-        self._read_coverage_request(1)
-
-    def test_read_coverage_request_v2(self):
-        self._read_coverage_request(2)
+        for supported_version in Versions.supported_versions():
+            self._read_coverage_request(supported_version)
 
     def _read_coverage_request(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -766,7 +779,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'Coverage',
                     'beneficiary': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
@@ -781,14 +794,17 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     def test_application_first_last_active(self):
-        self._application_first_last_active(1)
-
-    def test_application_first_last_active_v2(self):
-        self._application_first_last_active(2)
+        for supported_version in Versions.supported_versions():
+            self._application_first_last_active(supported_version)
 
     def _application_first_last_active(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
 
         access_token_obj = AccessToken.objects.get(token=first_access_token)
         application = access_token_obj.application
@@ -804,7 +820,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'Coverage',
                     'beneficiary': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
@@ -836,7 +852,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'Coverage',
                     'beneficiary': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
@@ -859,14 +875,17 @@ class BackendConnectionTest(BaseApiTest):
         self.assertNotEqual(application.last_active, prev_last_active)
 
     def test_permission_deny_fhir_request_on_disabled_app_org(self):
-        self._permission_deny_fhir_request_on_disabled_app_org(1)
-
-    def test_permission_deny_fhir_request_on_disabled_app_org_v2(self):
-        self._permission_deny_fhir_request_on_disabled_app_org(2)
+        for supported_version in Versions.supported_versions():
+            self._permission_deny_fhir_request_on_disabled_app_org(supported_version)
 
     def _permission_deny_fhir_request_on_disabled_app_org(self, version: int = 1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        if version == Versions.V3:
+            fhir_id = FHIR_ID_V3
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v3=FHIR_ID_V3)
+        else:
+            fhir_id = FHIR_ID_V2
+            first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
 
         access_token_obj = AccessToken.objects.get(token=first_access_token)
         application = access_token_obj.application
@@ -885,7 +904,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'Coverage',
                     'beneficiary': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
@@ -912,7 +931,7 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'Coverage',
                     'beneficiary': {
-                        'reference': f'stuff/{FHIR_ID_V2}',
+                        'reference': f'stuff/{fhir_id}',
                     },
                 },
             }
