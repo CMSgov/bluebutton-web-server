@@ -131,7 +131,7 @@ for (var i = 0; i < accordions.length; i++) {
 	accordions[i].addEventListener('click', accordionToggle);
 }
 
-// Toggle Accodrion on Enter Keypress (treated as click)
+// Toggle Accordion on Enter Keypress (treated as click)
 for (var i = 0; i < accordions.length; i++) {
 	accordions[i].addEventListener('keypress', function (e) {
 		var key = e.which || e.keyCode;
@@ -141,3 +141,24 @@ for (var i = 0; i < accordions.length; i++) {
     } 
 	});
 }
+
+// Copy button functionality
+document.querySelectorAll('.bb-copy-button').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const targetId = button.dataset.copyTarget;
+    const textToCopy = document.getElementById(targetId).textContent.trim();
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      button.classList.add('copied');
+      button.setAttribute('aria-label', 'Copied!');
+      
+      setTimeout(() => {
+        button.classList.remove('copied');
+        button.setAttribute('aria-label', 'Copy to clipboard');
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  });
+});
