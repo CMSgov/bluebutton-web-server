@@ -116,6 +116,7 @@ def check_grants():
         "grants": grant_count,
     }
 
+
 def get_real_bene(version=Versions.NOT_AN_API_VERSION):
     field = f"beneficiary__crosswalk__fhir_id_v{version}"
     return (
@@ -144,7 +145,7 @@ def get_grant_bene_counts(application=None):
     counts_returned = {}
 
     # Grant real/synth bene counts (includes granted to multiple apps)
-    start_time = datetime.now(datetime.timezone.utc)
+    start_time = datetime.utcnow().timestamp()
 
     # Setup base queryset
     grant_queryset = DataAccessGrant.objects
@@ -158,7 +159,6 @@ def get_grant_bene_counts(application=None):
     real_v2 = get_real_bene(version=Versions.V2)
     synthetic_v2 = get_synthetic_bene(version=Versions.V2)
 
-    # Use OR to combine v2 and v3 logic
     real_grant_queryset = real_v2
     synthetic_grant_queryset = synthetic_v2
 
@@ -191,13 +191,10 @@ def get_grant_bene_counts(application=None):
     counts_returned["archived_total"] = archived_queryset.count()
 
     real_v2 = get_real_bene(version=Versions.V2)
-    real_v3 = get_real_bene(version=Versions.V3)
     synthetic_v2 = get_synthetic_bene(version=Versions.V2)
-    synthetic_v3 = get_synthetic_bene(version=Versions.V3)
 
-    # Use OR to combine v2 and v3 logic
-    real_archived_queryset = grant_queryset.filter(real_v2 | real_v3).values("beneficiary")
-    synthetic_archived_queryset = grant_queryset.filter(synthetic_v2 | synthetic_v3).values("beneficiary")
+    real_archived_queryset = grant_queryset.filter(real_v2).values("beneficiary")
+    synthetic_archived_queryset = grant_queryset.filter(synthetic_v2).values("beneficiary")
 
     counts_returned["archived_real_deduped"] = real_archived_queryset.distinct().count()
     counts_returned[
@@ -241,6 +238,7 @@ def get_grant_bene_counts(application=None):
 
     return counts_returned
 
+
 def create_grant_queryset(user, version):
     fhir_id_field = f"crosswalk__fhir_id_v{version}"
     annotate_kwargs = {
@@ -266,27 +264,20 @@ def get_beneficiary_counts():
     # Init counts dict
     counts_returned = {}
 
-    start_time = datetime.now(datetime.timezone.utc)
-
-    # BB2-4166-TODO: add and OR for fhir_id_v3
-    queryset_v2 = create_grant_queryset(version=Versions.V2)
-    queryset_v3 = create_grant_queryset(version=Versions.V3)
-    queryset = queryset_v2.union(queryset_v3)
+    start_time = datetime.utcnow().timestamp()
+    queryset_v2 = create_grant_queryset(User, version=Versions.V2)
+    queryset = queryset_v2
 
     # Count should be equal to Crosswalk
     counts_returned["total"] = queryset.count()
 
     # Setup base Real queryset
-    # BB2-4166-TODO add the OR for v3
     real_queryset_v2 = queryset.filter(~Q(fhir_id_v2__startswith="-") & ~Q(fhir_id_v2=""))
-    real_queryset_v3 = queryset.filter(~Q(fhir_id_v3__startswith="-") & ~Q(fhir_id_v3=""))
-    real_queryset = real_queryset_v2.union(real_queryset_v3)
+    real_queryset = real_queryset_v2
 
     # Setup base synthetic queryset
-    # BB2-4166-TODO: you know why you're here
     synthetic_queryset_v2 = queryset.filter(Q(fhir_id_v2__startswith="-") & ~Q(fhir_id_v2=""))
-    synthetic_queryset_v3 = queryset.filter(Q(fhir_id_v3__startswith="-") & ~Q(fhir_id_v3=""))
-    synthetic_queryset = synthetic_queryset_v2.union(synthetic_queryset_v3)
+    synthetic_queryset = synthetic_queryset_v2
 
     # Real/synth counts. This should match counts using the Crosswalk table directly.
     counts_returned["real"] = real_queryset.count()
@@ -471,6 +462,7 @@ def get_beneficiary_counts():
 
     return counts_returned
 
+
 def real_grant_filter(grant_queryset, version):
     field = f"beneficiary__crosswalk__fhir_id_v{version}"
     return grant_queryset.filter(
@@ -479,6 +471,7 @@ def real_grant_filter(grant_queryset, version):
         & Q(**{f"{field}__isnull": False})
     ).values("beneficiary", "application")
 
+
 def synthetic_grant_filter(grant_queryset, version):
     field = f"beneficiary__crosswalk__fhir_id_v{version}"
     return grant_queryset.filter(
@@ -486,6 +479,7 @@ def synthetic_grant_filter(grant_queryset, version):
         & ~Q(**{field: ""})
         & Q(**{f"{field}__isnull": False})
     ).values("beneficiary", "application")
+
 
 def get_beneficiary_grant_app_pair_counts():
     """
@@ -504,13 +498,11 @@ def get_beneficiary_grant_app_pair_counts():
 
     # BB2-4166-TODO: currently only checking for v2
     real_grant_queryset_v2 = real_grant_filter(grant_queryset, version=Versions.V2)
-    real_grant_queryset_v3 = real_grant_filter(grant_queryset, version=Versions.V3)
-    real_grant_queryset = real_grant_queryset_v2.union(real_grant_queryset_v3)
+    real_grant_queryset = real_grant_queryset_v2
 
     # BB2-4166-TODO: currently only checking for v2
     synthetic_grant_queryset_v2 = synthetic_grant_filter(grant_queryset, version=Versions.V2)
-    synthetic_grant_queryset_v3 = synthetic_grant_filter(grant_queryset, version=Versions.V3)
-    synthetic_grant_queryset = synthetic_grant_queryset_v2.union(synthetic_grant_queryset_v3)
+    synthetic_grant_queryset = synthetic_grant_queryset_v2
 
     counts_returned["grant_total"] = grant_queryset.count()
     counts_returned["real_grant"] = real_grant_queryset.count()
@@ -521,14 +513,11 @@ def get_beneficiary_grant_app_pair_counts():
         "beneficiary", "application"
     )
 
-    # BB2-4166-TODO: this only checks v2! it should be |or| on v3 as well
     real_grant_archived_queryset_v2 = real_grant_filter(grant_archived_queryset, version=Versions.V2)
-    real_grant_archived_queryset_v3 = real_grant_filter(grant_archived_queryset, version=Versions.V3)
-    real_grant_archived_queryset = real_grant_archived_queryset_v2.union(real_grant_archived_queryset_v3)
+    real_grant_archived_queryset = real_grant_archived_queryset_v2
 
     synthetic_grant_archived_queryset_v2 = synthetic_grant_filter(grant_archived_queryset, version=Versions.V2)
-    synthetic_grant_archived_queryset_v3 = synthetic_grant_filter(grant_archived_queryset, version=Versions.V3)
-    synthetic_grant_archived_queryset = synthetic_grant_archived_queryset_v2.union(synthetic_grant_archived_queryset_v3)
+    synthetic_grant_archived_queryset = synthetic_grant_archived_queryset_v2
 
     # Get total table count
     counts_returned["grant_archived_total"] = grant_archived_queryset.count()
