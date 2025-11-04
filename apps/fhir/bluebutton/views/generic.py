@@ -3,6 +3,7 @@ import hashlib
 import voluptuous
 import logging
 
+from apps.constants import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -153,23 +154,25 @@ class FhirDataView(APIView):
 
         prepped = s.prepare_request(req)
 
-        if resource_type == 'Patient' and kwargs.get('resource_id') and prepped.headers.get('BlueButton-BeneficiaryId'):
+        resource_id = kwargs.get('resource_id')
+        beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
+
+        if resource_type == 'Patient' and resource_id and beneficiary_id:
             # If it is a patient read request, confirm it is valid for the current user
             # If not, throw a 404 before pinging BFD
-            if not valid_caller_for_patient_read(prepped.headers.get('BlueButton-BeneficiaryId'), kwargs.get('resource_id')):
+            if not valid_caller_for_patient_read(beneficiary_id, resource_id):
                 error = NotFound('Not found.')
                 raise error
 
-        if self.version == 1:
-            api_ver_str = 'v1'
-        elif self.version == 2:
-            api_ver_str = 'v2'
-        elif self.version == 3:
-            api_ver_str = 'v3'
-        # defaults to v3
-        else:
-            logger.debug('Unexpected version number %d, defaulting to v2' % self.version)
-            api_ver_str = 'v2'
+        match self.version:
+            case Versions.V1:
+                api_ver_str = 'v1'
+            case Versions.V2:
+                api_ver_str = 'v2'
+            case Versions.V3:
+                api_ver_str = 'v3'
+            case _:
+                raise VersionNotMatched(f"{self.version} is not a valid version constant")
 
         # Send signal
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)

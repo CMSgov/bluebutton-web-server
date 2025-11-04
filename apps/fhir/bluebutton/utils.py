@@ -758,5 +758,5 @@ def valid_caller_for_patient_read(beneficiary_id: str, patient_id: str) -> bool:
         bool: If the patient_id matches the beneficiary_id, then return True, else False
     """
     parts = beneficiary_id.split(':', 1)
-    beneficiary_comparison_id = parts[1] if len(parts) > 1 else None
+    beneficiary_comparison_id = parts[1] if len(parts) == 2 else None
     return beneficiary_comparison_id == patient_id
