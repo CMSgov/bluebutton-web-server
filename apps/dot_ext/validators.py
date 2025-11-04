@@ -7,6 +7,7 @@ from django.utils.encoding import force_str
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from os import path as ospath
+from django.core.validators import URLValidator
 
 
 class RedirectURIValidator(URIValidator):
@@ -34,6 +35,14 @@ def validate_uris(value):
     v = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
     for uri in value.split():
         v(uri)
+
+
+def validate_url(value: str):
+    """Validate that the value is a syntactically valid URL."""
+    if not value:
+        return
+    validator = URLValidator()
+    validator(value)
 
 
 # Validate that there are no HTML tags

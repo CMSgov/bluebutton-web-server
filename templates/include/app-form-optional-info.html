@@ -44,7 +44,7 @@
 				 
 			<!-- App Privacy Policy -->
 			<label for="id_policy_uri">Privacy Policy URL or URI</label>
-			<input type="text" name="policy_uri" maxlength="512" id="id_policy_uri" value="{{ application.policy_uri }}">
+			<input type="url" name="policy_uri" maxlength="512" id="id_policy_uri" value="{{ application.policy_uri }}">
 					  	 
 			<div class="help-block">
 			This can be a model privacy notice or other policy document.
@@ -52,7 +52,7 @@
 			
 			<!-- App Terms of Service -->
 			<label for="id_tos_uri">Terms of Service URL or URI</label>
-			<input type="text" name="tos_uri" maxlength="512" id="id_tos_uri" value="{{ application.tos_uri }}">
+			<input type="url" name="tos_uri" maxlength="512" id="id_tos_uri" value="{{ application.tos_uri }}">
 					  
 			<!-- App Support Email Address -->
 			<label for="id_support_email">Customer Support Email</label>
