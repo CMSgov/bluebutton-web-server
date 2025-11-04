@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from apps.constants import Versions
+from apps.constants import Versions, VersionNotMatched
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -34,6 +34,7 @@ from .models import AnonUserState, get_and_update_user
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
+    print("request.session['version']: ", request.session['version'])
 
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
@@ -76,7 +77,7 @@ def authenticate(request):
             'id': user.id,
             'username': user.username,
             'crosswalk': {
-                "id": user.crosswalk.id,
+                'id': user.crosswalk.id,
                 'user_hicn_hash': user.crosswalk.user_hicn_hash,
                 'user_mbi': user.crosswalk.user_mbi,
                 'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
@@ -101,10 +102,14 @@ def callback(request):
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
+    # We don't have a `version` coming back from auth. Therefore, we check
+    # the authorize URL to find what version pathway we are on.
     for supported_version in Versions.supported_versions():
         if f"/v{supported_version}/o/authorize" in next_uri:
             version = supported_version
             break
+    # Now that we pulled the session out of the URL, set it in the session for our next call.
+    request.session['version'] = version
 
     user_not_found_error = None
     try:
@@ -157,12 +162,16 @@ def callback(request):
     approval = Approval.objects.create(user=request.user)
 
     # Only go back to app authorization
-    if version == 3:
-        url_map_name = 'oauth2_provider_v3:authorize-instance-v3'
-    elif version == 2:
-        url_map_name = 'oauth2_provider_v2:authorize-instance-v2'
-    else:
-        url_map_name = 'oauth2_provider:authorize-instance'
+    match version:
+        case Versions.V1:
+            url_map_name = 'oauth2_provider:authorize-instance'
+        case Versions.V2:
+            url_map_name = 'oauth2_provider_v2:authorize-instance-v2'
+        case Versions.V3:
+            url_map_name = 'oauth2_provider_v3:authorize-instance-v3'
+        case _:
+            raise VersionNotMatched("Version not matched in callback")
+
     auth_uri = reverse(url_map_name, args=[approval.uuid])
 
     _, _, auth_path, _, _ = urlsplit(auth_uri)

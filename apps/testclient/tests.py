@@ -8,6 +8,7 @@ from django.conf import settings
 from apps.constants import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
+from hhs_oauth_server.settings.base import FHIR_SERVER
 
 
 class TestclientHelpers(TestCase):
@@ -271,15 +272,21 @@ class BlueButtonClientApiFhirTest(TestCase):
         response = self.client.get(uri)
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
-        # self.assertEqual(response_data["total"], 32)
-        # 20251022 MCJ
-        # For some reason, this no longer passes when asserted equal to 7.
-        # I do not know what data we test against, if it is consistent, etc.
-        # I have updated the test to `5`, and it passes. If the data is potentially variable/not in
-        # our control, then these unit tests will always be suspect (including offsets and pagination values).
-        # This seems to have been the case 7mo ago with the "total" test, above.
-        # self.assertEqual(len(response_data["entry"]), 7)
-        self.assertEqual(len(response_data["entry"]), 5)
+        # Depending on which environment we are testing against, we get different values back.
+        # This is because we have different *data* in those environments. Therefore, when we
+        # test against `sbx`, we get data from one BFD environment, and when we test against `test`,
+        # we get data from another BFD environment. Therefore, we need to set up different expectations
+        # for each environment.
+        if 'sbx' in FHIR_SERVER['FHIR_URL']:
+            expected_num = 12
+            expected_next_links = 1
+        elif 'test' in FHIR_SERVER['FHIR_URL']:
+            expected_num = 5
+            expected_next_links = 0
+        else:
+            expected_num = 5
+            expected_next_links = 0
+        self.assertEqual(len(response_data["entry"]), expected_num)
         previous_links = [
             data["url"]
             for data in response_data["link"]
@@ -292,7 +299,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             data["url"] for data in response_data["link"] if data["relation"] == "first"
         ]
         self.assertEqual(len(previous_links), 1)
-        self.assertEqual(len(next_links), 0)
+        self.assertEqual(len(next_links), expected_next_links)
         self.assertEqual(len(first_links), 1)
         self.assertIn("startIndex=13", previous_links[0])
         self.assertIn("startIndex=0", first_links[0])

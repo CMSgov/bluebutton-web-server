@@ -14,7 +14,6 @@ from pytz import timezone
 from django.conf import settings
 from django.contrib import messages
 from apps.fhir.server.settings import fhir_settings
-from waffle import switch_is_active
 
 from oauth2_provider.models import AccessToken
 
@@ -145,8 +144,11 @@ def generate_info_headers(request):
     # Return resource_owner or user
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
+    # TODO FIXME: We don't want to do an if/elif on the crosswalk, but instead we want
+    # to do a `match version` on the version that is in the request. From there, we'll set
+    # the patient ID.
     if crosswalk:
-        if switch_is_active('v3_endpoints') and crosswalk.fhir_id(Versions.V3) is not None:
+        if crosswalk.fhir_id(Versions.V3) is not None:
             result["BlueButton-BeneficiaryId"] = f"patientId:{str(crosswalk.fhir_id(Versions.V3))}"
         elif crosswalk.fhir_id(Versions.V2) is not None:
             result["BlueButton-BeneficiaryId"] = f"patientId:{crosswalk.fhir_id(Versions.V2)}"
