@@ -81,9 +81,6 @@ class FhirDataView(APIView):
             extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
 
-    def validate_response(self, response):
-        pass
-
     def initial(self, request, resource_type, *args, **kwargs):
         """
         Read from Remote FHIR Server
@@ -190,9 +187,6 @@ class FhirDataView(APIView):
 
         if error is not None:
             raise error
-
-        # TODO: What is the purpose of this function? Does nothing, should we remove?
-        self.validate_response(response)
 
         out_data = r.json()
 
