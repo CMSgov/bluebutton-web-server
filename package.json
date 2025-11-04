@@ -4,7 +4,7 @@
   "description": "The consolidate repo for all Blue Button CSS files",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "gulp": "gulp"
   },
   "repository": {
     "type": "git",
@@ -22,27 +22,12 @@
   "homepage": "https://github.com/CMSgov/bluebutton-css#readme",
   "devDependencies": {
     "gulp-clean-css": "^4.3.0",
-    "gulp-cli": "^3.0.0",
-    "gulp-minify": "^3.0.0",
-    "gulp-rename": "^2.0.0",
     "gulp-sass": "^5.1.0",
-    "gulp-sourcemaps": "^2.6.5",
-    "gulp-wait": "^0.0.2",
-    "pump": "^3.0.0"
+    "gulp-sourcemaps": "^2.6.5"
   },
   "dependencies": {
     "@cmsgov/design-system": "^4.0.4",
-    "ansi-regex": "^6.0.1",
     "gulp": "^5.0.0",
-    "node-gyp": "^10.0.0",
-    "node-sass": "^9.0.0"
-  },
-  "overrides": {
-    "node-sass": {
-      "cross-spawn": "^7.0.5"
-    },
-    "findup-sync": {
-      "micromatch" : "^4.0.8"
-    }
+    "sass": "^1.93.3"
   }
 }

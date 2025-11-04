@@ -28,20 +28,14 @@ You'll need to make sure you have NodeJS installed. [Click here to find out more
 npm i
 ```
 
-Finally, make sure you have Gulp 4.0 installed:
-
-```bash
-npm i gulp@4
-```
-
 *To export the CSS once, run:*
 
 ```bash
-gulp
+npm run gulp
 ```
 
 *To watch the SCSS files for changes, run:*
 
 ```bash
-gulp watch
+npm run gulp watch
 ```
