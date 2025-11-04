@@ -3,12 +3,14 @@ import hashlib
 import voluptuous
 import logging
 
+from apps.constants import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
+from rest_framework.exceptions import NotFound
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -30,7 +32,8 @@ from ..signals import (
 )
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
-                     get_resourcerouter)
+                     get_resourcerouter,
+                     valid_caller_for_patient_read)
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -77,9 +80,6 @@ class FhirDataView(APIView):
             getattr(self, "QUERY_SCHEMA", {}),
             extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
-
-    def validate_response(self, response):
-        pass
 
     def initial(self, request, resource_type, *args, **kwargs):
         """
@@ -151,16 +151,25 @@ class FhirDataView(APIView):
 
         prepped = s.prepare_request(req)
 
-        if self.version == 1:
-            api_ver_str = 'v1'
-        elif self.version == 2:
-            api_ver_str = 'v2'
-        elif self.version == 3:
-            api_ver_str = 'v3'
-        # defaults to v3
-        else:
-            logger.debug('Unexpected version number %d, defaulting to v2' % self.version)
-            api_ver_str = 'v2'
+        resource_id = kwargs.get('resource_id')
+        beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
+
+        if resource_type == 'Patient' and resource_id and beneficiary_id:
+            # If it is a patient read request, confirm it is valid for the current user
+            # If not, throw a 404 before pinging BFD
+            if not valid_caller_for_patient_read(beneficiary_id, resource_id):
+                error = NotFound('Not found.')
+                raise error
+
+        match self.version:
+            case Versions.V1:
+                api_ver_str = 'v1'
+            case Versions.V2:
+                api_ver_str = 'v2'
+            case Versions.V3:
+                api_ver_str = 'v3'
+            case _:
+                raise VersionNotMatched(f"{self.version} is not a valid version constant")
 
         # Send signal
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)
@@ -178,8 +187,6 @@ class FhirDataView(APIView):
 
         if error is not None:
             raise error
-
-        self.validate_response(response)
 
         out_data = r.json()
 
