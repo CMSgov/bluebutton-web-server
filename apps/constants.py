@@ -36,6 +36,6 @@ class Versions:
                 return 3
             case _:
                 raise VersionNotMatched(f"{version} is not a valid version constant")
-             
+
     def supported_versions() -> list[int]:
         return [Versions.V1, Versions.V2, Versions.V3]

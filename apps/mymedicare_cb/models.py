@@ -1,5 +1,4 @@
 import apps.logging.request_logger as logging
-import copy
 
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
@@ -18,6 +17,7 @@ from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
 MAX_HICN_HASH_LENGTH = 64
 MAX_MBI_LENGTH = 11
+
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
     # BB2-237 custom exception
@@ -63,14 +63,14 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     else:
         hicn_hash = slsx_client.hicn_hash
 
-    #request_copy = copy.deepcopy(request)
+    # request_copy = copy.deepcopy(request)
     versioned_fhir_ids = {}
     # Perform fhir_id lookup for all supported versions
     # If the lookup for the requested version fails, raise the exception
     # This is wrapped in the case that if the requested version fails, match_fhir_id
     # will still bubble up UpstreamServerException
     for supported_version in Versions.supported_versions():
-        #request_copy.session['version'] = supported_version
+        # request_copy.session['version'] = supported_version
         try:
             fhir_id, hash_lookup_type = match_fhir_id(
                 mbi=slsx_client.mbi,
