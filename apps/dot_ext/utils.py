@@ -133,11 +133,14 @@ def validate_app_is_active(request):
 
                 if dag:
                     # If we get a DAG, but it has expired, we pass back a message (again)
-                    # saying the end user must re-authenticate. Again, a FORBIDDEN.
+                    # saying the end user must re-authenticate.
                     if dag.has_expired():
+                        # https://www.rfc-editor.org/rfc/rfc6750#section-3.1
+                        # We will return a 401 (UNAUTHORIZED) because this is in keeping
+                        # with the OAuth RFC.
                         raise InvalidGrantError(
                             description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
-                            status_code=HTTPStatus.FORBIDDEN
+                            status_code=HTTPStatus.UNAUTHORIZED
                         )
             except DataAccessGrant.DoesNotExist:
                 # In the event that we cannot find a DAG, we don't want to pass back too much information.

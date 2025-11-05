@@ -588,7 +588,7 @@ APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
 APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
     "Your application is not allowed to refresh tokens. "
     "To refresh Medicare data, end user must re-authenticate "
-    "and consent to share their data."
+    "and consent to share their data. "
     "If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov."
 )
 
