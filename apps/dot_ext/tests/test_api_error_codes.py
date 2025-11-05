@@ -119,7 +119,7 @@ class TestDataAccessPermissions(BaseApiTest):
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=HTTPStatus.FORBIDDEN,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_in_err_mesg="User access has timed out"
         )
 

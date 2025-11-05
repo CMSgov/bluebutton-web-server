@@ -537,7 +537,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=HTTPStatus.FORBIDDEN,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_error_mesg="invalid_grant",
             expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
