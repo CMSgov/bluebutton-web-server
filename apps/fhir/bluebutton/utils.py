@@ -745,3 +745,20 @@ def get_patient_by_mbi_hash(mbi_hash, request):
 
     response.raise_for_status()
     return response.json()
+
+
+def valid_caller_for_patient_read(beneficiary_id: str, patient_id: str) -> bool:
+    """When making a read patient call, we only want to ping BFD if the patient_id
+    being passed matches the fhir_id (currently v2) associated with the current session
+
+    Args:
+        beneficiary_id (str): beneficiary_id that is associated with the current session/
+        Should have format 'patientId:00000000000000 coming in
+        patient_id (str): patient_id that is will be passed to BFD
+
+    Returns:
+        bool: If the patient_id matches the beneficiary_id, then return True, else False
+    """
+    parts = beneficiary_id.split(':', 1)
+    beneficiary_comparison_id = parts[1] if len(parts) == 2 else None
+    return beneficiary_comparison_id == patient_id

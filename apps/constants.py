@@ -39,3 +39,8 @@ class Versions:
 
     def supported_versions() -> list[int]:
         return [Versions.V1, Versions.V2, Versions.V3]
+
+class AccessType:
+    ONE_TIME = 'ONE_TIME'
+    RESEARCH_STUDY = 'RESEARCH_STUDY'
+    THIRTEEN_MONTH = 'THIRTEEN_MONTH'

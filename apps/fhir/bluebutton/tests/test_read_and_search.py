@@ -6,6 +6,7 @@ from django.test import TestCase, RequestFactory
 from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock, urlmatch
+from http import HTTPStatus
 from oauth2_provider.models import get_access_token_model
 from urllib.parse import unquote
 from unittest.mock import patch
@@ -952,3 +953,66 @@ class BackendConnectionTest(BaseApiTest):
         # set app user back to active - not to affect subsequent tests
         application.active = True
         application.save()
+
+    def test_read_on_different_fhir_id_than_associated_with_token(self):
+        """
+        Confirm that a 404 is thrown when we a Patient read request
+        is attempted for a different fhir_id than the fhir_id associated
+        with the current token.
+        Note: The 404 is being mocked, as in these scenarios, we no longer
+        ping BFD.
+        """
+        access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
+
+        non_token_fhir_id_v2 = '-20140000008326'
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': HTTPStatus.NOT_FOUND,
+                'detail': 'Not found.'
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                '/v2/fhir/Patient/' + non_token_fhir_id_v2,
+                Authorization='Bearer %s' % (access_token)
+            )
+
+        json_response = response.json()
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert json_response['detail'] == 'Not found.'
+
+    def test_read_on_fhir_id_that_does_not_exist(self):
+        """
+        Confirm that a 404 is thrown and we get a Not found message
+        when a patient read is attempted on a non-existent fhir_id.
+        Note: The 404 is being mocked, as in these scenarios, we no longer
+        ping BFD.
+        """
+        access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=access_token)
+        ac.scope = 'patient/Patient.read'
+        ac.save()
+
+        non_token_fhir_id_v2 = '-99140000008326'
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': HTTPStatus.NOT_FOUND,
+                'detail': 'Not found.'
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                '/v2/fhir/Patient/' + non_token_fhir_id_v2,
+                Authorization='Bearer %s' % (access_token)
+            )
+
+        json_response = response.json()
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert json_response['detail'] == 'Not found.'

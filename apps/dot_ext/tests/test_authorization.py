@@ -16,6 +16,7 @@ from waffle.testutils import override_switch
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
+from http import HTTPStatus
 
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
@@ -406,7 +407,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     def test_refresh_with_one_time_access_retrieve_app_using_refresh_token(self):
         redirect_uri = 'http://localhost'
@@ -876,8 +877,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         msg_expected = "invalid_client"
         response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
-        # assert 403 and content json is expected message
-        self.assertEqual(response.status_code, 401)
+        # assert FORBIDDEN and content json is expected message
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content['error'], msg_expected)
 
@@ -949,8 +950,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         msg_expected = "invalid_client"
         response = c.post('/v1/o/introspect/', data=introspect_request_data, **auth_headers)
-        # asssert 401 and content json message
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         content = json.loads(response.content.decode("utf-8"))
         self.assertEqual(content['error'], msg_expected)
 
