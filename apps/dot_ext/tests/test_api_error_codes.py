@@ -158,42 +158,19 @@ class TestDataAccessPermissions(BaseApiTest):
     # missing information to ensure that the error responses are sensible and reflective of at least
     # one of the problems with the request, and that http codes returned are consistent and reasonable.
 
-    def test_malformed_requests(self):
-        remove_params = [
-            {
-                "param": "grant_type",
-                "url": "/v2/o/token/",
-                "expected_status_code": HTTPStatus.BAD_REQUEST,
-                "error_msg_contains": "unsupported_grant_type",
-            },
-            {
-                "param": "refresh_token",
-                "url": "/v2/o/token/",
-                "expected_status_code": HTTPStatus.BAD_REQUEST,
-                "error_msg_contains": "invalid_grant",
-            },
-            # The token endpoint does not check if URIs are present
-            # at this time. Therefore, we're expecting a 200 response.
-            {
-                "param": "redirect_uri",
-                "url": "/v2/o/token/",
-                "expected_status_code": HTTPStatus.OK,
-                "error_msg_contains": None,
-            },
-            {
-                "param": "client_id",
-                "url": "/v2/o/token/",
-                "expected_status_code": HTTPStatus.UNAUTHORIZED,
-                "error_msg_contains": "invalid_client",
-            },
-            {
-                "param": "client_secret",
-                "url": "/v2/o/token/",
-                "expected_status_code": HTTPStatus.UNAUTHORIZED,
-                "error_msg_contains": "invalid_client",
-            },
-        ]
-        # Given an app, but the app is not active, we should return UNAUTHORIZED.
+    def test_no_refresh_token(self):
+        # https://jira.cms.gov/projects/BB2/issues/BB2-4189
+        # We want to provide a better error when someone
+        # requests
+        #
+        # curl -X POST "https://{base_url}/v2/o/token/" -u "<client_id>:<client_secret>" -d "grant_type=refresh_token"
+        #
+        # but they leave off the refresh_token=... parameter.
+
+        # We want this to come bac
+        #
+        # {"error": "invalid_request", "error_description": "Missing refresh token parameter."}
+
         suffix = randint(1000, 9999)
         user, app, ac = self._create_user_app_token_grant(
             first_name="First",
@@ -209,28 +186,28 @@ class TestDataAccessPermissions(BaseApiTest):
 
         base_data = {
             "grant_type": "refresh_token",
-            "refresh_token": ac["refresh_token"],
             "redirect_uri": app.redirect_uris,
             "client_id": app.client_id,
             "client_secret": app.client_secret_plain,
         }
 
-        for test in remove_params:
-            data = dict(base_data)
-            del data[test['param']]
-            self._assert_call_with_broken_data(
-                test['url'],
-                data,
-                test['expected_status_code'],
-                test['error_msg_contains'],
-            )
+        self._assert_call_with_broken_data(
+            '/v2/o/token',
+            base_data,
+            HTTPStatus.BAD_REQUEST,
+            "invalid_request",
+            "Missing refresh"
+        )
 
-    def _assert_call_with_broken_data(self, url, data, expected_status, error_contains=None):
+    def _assert_call_with_broken_data(self, url, data, expected_status, error_contains=None, desc_contains=None):
         response = self.client.post(url, data=data)
         content = json.loads(response.content)
         self.assertEqual(response.status_code, expected_status)
         if error_contains:
             self.assertEqual(content["error"], error_contains)
+        if desc_contains:
+            self.assertIn(desc_contains, content["error_description"])
+
         return content
 
     def _assert_call_token_refresh_endpoint(

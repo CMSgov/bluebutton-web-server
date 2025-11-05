@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
 
 from apps.authorization.models import DataAccessGrant
@@ -148,8 +148,8 @@ def validate_app_is_active(request):
                     status_code=HTTPStatus.FORBIDDEN
                 )
             except RefreshToken.DoesNotExist:
-                raise InvalidGrantError(
-                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+                raise InvalidRequestError(
+                    description="Missing refresh token parameter",
                     status_code=HTTPStatus.BAD_REQUEST
                 )
     elif app and not app.active:
