@@ -1,3 +1,3 @@
-[submodule "bluebutton-openapi-doc"]
-	path = bluebutton-openapi-doc
-	url = https://github.com/CMSgov/bluebutton-openapi-doc.git
+[submodule "bluebotton-css"]
+	path = bluebutton-css
+	url = https://https://github.com/CMSgov/bluebutton-css.git

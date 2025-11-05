@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load i18n %}
 
 <!-- Ignore Banner Code -->
@@ -11,54 +12,60 @@
 {% block Content %}
 
 <style>
-div.auto-scroll {
-	background-color: lightblue;
-	width: 100%;
-	height: 500px;
-	overflow: auto;
-}
+	div.auto-scroll {
+		background-color: lightblue;
+		width: 100%;
+		height: 500px;
+		overflow: auto;
+	}
 
-a:link {
-  color: black;
-  background-color: transparent;
-  text-decoration: underline;
-}
+	a:link {
+		color: black;
+		background-color: transparent;
+		text-decoration: underline;
+	}
 
-a:visited {
-  color: black;
-  background-color: transparent;
-  text-decoration: underline;
-}
+	a:visited {
+		color: black;
+		background-color: transparent;
+		text-decoration: underline;
+	}
 
-a:hover {
-  color: white;
-  background-color: transparent;
-  text-decoration: underline;
-}
+	a:hover {
+		color: white;
+		background-color: transparent;
+		text-decoration: underline;
+	}
 
-a:active {
-  color: orange;
-  background-color: transparent;
-  text-decoration: underline;
-}
+	a:active {
+		color: orange;
+		background-color: transparent;
+		text-decoration: underline;
+	}
 </style>
 
 <div class="sandbox-gradient-bg">
 	<div>
 		<h2>Response ({{ response_type }}), API version: {{ api_ver }}</h2>
 		{% if nav_list %}
-			<h2>Page: {{ page_loc }}</h2>
-			<div>
-				<h2>
-					{% for n in nav_list %}
-						<a href="{% url url_name %}?nav_link={{ n.nav_link }}">{{ n.relation }}</a>
-					{% endfor %}
-				</h2>
-			</div>
+		<h2>Page: {{ page_loc }}</h2>
+		<div>
+			<h2>
+				{% for n in nav_list %}
+				<a href="{% url url_name %}?nav_link={{ n.nav_link }}">{{ n.relation }}</a>
+				{% endfor %}
+			</h2>
+		</div>
 		{% endif %}
-		<div  class="auto-scroll">
-			<pre>{{ fhir_json_pretty }}</pre>
+		<div class="bb-copy-container">
+			<div class="auto-scroll">
+				<pre id="fhir-json">{{ fhir_json_pretty }}</pre>
+			</div>
+			<button class="bb-copy-button" data-copy-target="fhir-json" aria-label="Copy to clipboard">
+				<img src="{% static 'img/copy-icon.svg' %}" alt="Copy icon" />
+				<span>Copy to Clipboard</span>
+			</button>
 		</div>
 	</div>
-</div>    
+</div>
 {% endblock %}
