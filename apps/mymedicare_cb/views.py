@@ -104,10 +104,17 @@ def callback(request):
 
     # We don't have a `version` coming back from auth. Therefore, we check
     # the authorize URL to find what version pathway we are on.
+    version = Versions.NOT_AN_API_VERSION
     for supported_version in Versions.supported_versions():
+        print()
+        print("NEXT_URI", next_uri)
         if f"/v{supported_version}/o/authorize" in next_uri:
             version = supported_version
             break
+
+    if version == Versions.NOT_AN_API_VERSION:
+        raise VersionNotMatched("Version not matched in callback")
+
     # Now that we pulled the session out of the URL, set it in the session for our next call.
     request.session['version'] = version
 

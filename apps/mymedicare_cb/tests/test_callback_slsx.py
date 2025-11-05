@@ -220,7 +220,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri="http://www.testagency.gov?client_id=test&redirect_uri=test.com&response_type=token&state=test",
         )
 
         # mock fhir user info endpoint
@@ -267,7 +267,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn("client_id=test", response.url)
             self.assertIn("redirect_uri=test.com", response.url)
             self.assertIn("response_type=token", response.url)
-            self.assertIn("http://www.google.com/v2/o/authorize/", response.url)
+            self.assertIn("http://www.testingagency.gov/v2/o/authorize/", response.url)
             # assert login
             self.assertNotIn("_auth_user_id", self.client.session)
 

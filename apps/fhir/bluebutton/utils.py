@@ -147,12 +147,12 @@ def generate_info_headers(request):
     # TODO FIXME: We don't want to do an if/elif on the crosswalk, but instead we want
     # to do a `match version` on the version that is in the request. From there, we'll set
     # the patient ID.
+    version = request.session.get('version')
+
     if crosswalk:
-        if crosswalk.fhir_id(Versions.V3) is not None:
-            result["BlueButton-BeneficiaryId"] = f"patientId:{str(crosswalk.fhir_id(Versions.V3))}"
-        elif crosswalk.fhir_id(Versions.V2) is not None:
-            result["BlueButton-BeneficiaryId"] = f"patientId:{crosswalk.fhir_id(Versions.V2)}"
-        else:
+        if crosswalk.fhir_id(version) is not None:
+            result["BlueButton-BeneficiaryId"] = f"patientId:{str(crosswalk.fhir_id(version))}"
+        elif crosswalk.user_hicn_hash is not None:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
                 crosswalk.user_hicn_hash
             )

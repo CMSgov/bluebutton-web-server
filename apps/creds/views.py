@@ -69,7 +69,7 @@ class CredentialingRequestView(APIView):
 
     def _validate_expiration(self, creds_req):
         t_elapsed_since_created = (
-            datetime.datetime.now(datetime.timezone.utc) - creds_req.created_at
+            datetime.datetime.utcnow().timestamp() - creds_req.created_at
         )
         if t_elapsed_since_created.seconds > settings.CREDENTIALS_REQUEST_URL_TTL * 60:
             raise exceptions.PermissionDenied(
@@ -97,7 +97,7 @@ class CredentialingRequestView(APIView):
 
     def _update_creds_req_stats(self, creds_req: CredentialingReqest, updated: False):
         creds_req.visits_count = creds_req.visits_count + 1
-        creds_req.last_visit = datetime.datetime.now(datetime.timezone.utc)
+        creds_req.last_visit = datetime.datetime.utcnow().timestamp()
         if updated:
-            creds_req.updated_at = datetime.datetime.now(datetime.timezone.utc)
+            creds_req.updated_at = datetime.datetime.utcnow().timestamp()
         creds_req.save()
