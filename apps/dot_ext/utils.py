@@ -152,7 +152,7 @@ def validate_app_is_active(request):
                 )
             except RefreshToken.DoesNotExist:
                 raise InvalidRequestError(
-                    description="Missing refresh token parameter",
+                    description='Missing refresh token parameter',
                     status_code=HTTPStatus.BAD_REQUEST
                 )
     elif app and not app.active:

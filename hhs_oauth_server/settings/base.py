@@ -574,10 +574,10 @@ SESSION_COOKIE_SECURE = env("DJANGO_SECURE_SESSION", True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 APPLICATION_TEMPORARILY_INACTIVE = (
-    "This application, {}, is temporarily inactive."
-    " If you are the app maintainer, please contact the Blue Button API team."
-    " If you are a Medicare Beneficiary and need assistance, please contact"
-    " the support team for the application you are trying to access."
+    'This application, {}, is temporarily inactive.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
 )
 
 APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
@@ -586,28 +586,28 @@ APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
 )
 
 APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
-    "Your application is not allowed to refresh tokens. "
-    "To refresh Medicare data, end user must re-authenticate "
-    "and consent to share their data. "
-    "If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov."
+    'Your application is not allowed to refresh tokens. '
+    'To refresh Medicare data, end user must re-authenticate '
+    'and consent to share their data. '
+    'If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov.'
 )
 
 APPLICATION_NOT_AUTHENTICATED = (
-    "Application not authenticated. "
-    "To refresh Medicare data, end user must re-authenticate "
-    "and consent to share their data."
+    'Application not authenticated. '
+    'To refresh Medicare data, end user must re-authenticate '
+    'and consent to share their data.'
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    "User access has timed out. "
-    "To refresh Medicare data, end user must re-authenticate "
-    "and consent to share their data."
+    'User access has timed out. '
+    'To refresh Medicare data, end user must re-authenticate '
+    'and consent to share their data.'
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
-    "User access cannot be found. "
-    "To refresh Medicare data, end user must re-authenticate "
-    "and consent to share their data."
+    'User access cannot be found. '
+    'To refresh Medicare data, end user must re-authenticate '
+    'and consent to share their data.'
 )
 
 FHIR_CLIENT_CERTSTORE = env(

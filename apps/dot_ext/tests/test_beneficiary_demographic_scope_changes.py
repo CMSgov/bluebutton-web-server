@@ -212,7 +212,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertEqual(content.get('error', None), "invalid_request")
+        self.assertEqual(content.get('error', None), 'invalid_request')
 
         # ------ TEST #6: Beneficiary authorizes to share FULL demographic data again.. ------
         payload['share_demographic_scopes'] = True

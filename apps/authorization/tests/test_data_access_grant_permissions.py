@@ -69,51 +69,51 @@ class TestDataAccessPermissions(BaseApiTest):
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH_V1)
     def fhir_request_patient_readview_v1_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_read_v1")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('patient_read_v1')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH_V2)
     def fhir_request_patient_readview_v2_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_read_v2")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('patient_read_v2')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V1)
     def fhir_request_patient_searchview_v1_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_search_v1")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('patient_search_v1')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V2)
     def fhir_request_patient_searchview_v2_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("patient_search_v2")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('patient_search_v2')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_READVIEW_PATH_V1)
     def fhir_request_coverage_readview_v1_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_read_v1")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('coverage_read_v1')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_READVIEW_PATH_V2)
     def fhir_request_coverage_readview_v2_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_read_v2")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('coverage_read_v2')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V1)
     def fhir_request_coverage_searchview_v1_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_search_v1")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('coverage_search_v1')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V2)
     def fhir_request_coverage_searchview_v2_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("coverage_search_v2")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('coverage_search_v2')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_READVIEW_PATH_V1)
     def fhir_request_eob_readview_v1_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_read_in_pt_v1")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('eob_read_in_pt_v1')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_READVIEW_PATH_V2)
     def fhir_request_eob_readview_v2_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_read_in_pt_v2")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('eob_read_in_pt_v2')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_SEARCHVIEW_PATH_V1)
     def fhir_request_eob_searchview_v1_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_search_v1")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('eob_search_v1')}
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_SEARCHVIEW_PATH_V2)
     def fhir_request_eob_searchview_v2_success_mock(self, url, request):
-        return {"status_code": HTTPStatus.OK, "content": get_response_json("eob_search_v2")}
+        return {'status_code': HTTPStatus.OK, 'content': get_response_json('eob_search_v2')}
 
     def setUp(self):
         # create read and write capabilities
@@ -319,7 +319,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 6. Test that all FHIR calls are successful
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
+            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
         )
 
         # 7. Delete /revoke data access grant
@@ -418,7 +418,7 @@ class TestDataAccessPermissions(BaseApiTest):
         app.save()
 
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
+            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
         )
 
         # 9. Test app not expired token refresh
@@ -469,7 +469,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 3. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
+            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
         )
 
     @mock.patch("apps.authorization.models.datetime", StubDate)
@@ -510,7 +510,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 5. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
+            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
         )
 
         # 6. Mock a future date to test data access grant expiration.
@@ -592,7 +592,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 14. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
+            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
         )
 
     def test_data_access_grant_permissions_has_permission(self):
@@ -630,7 +630,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 5. Test that all FHIR calls are successful
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=HTTPStatus.OK
+            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
         )
 
         # 6. Delete /revoke data access grant
