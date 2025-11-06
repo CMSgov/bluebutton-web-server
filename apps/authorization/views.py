@@ -14,9 +14,10 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from oauth2_provider.views.base import OAuthLibMixin
 from oauth2_provider.views.generic import ClientProtectedResourceView
 
+from apps.constants import VersionNotMatched, Versions
 from apps.dot_ext.authentication import SLSAuthentication
 from .models import DataAccessGrant
-from ..dot_ext.utils import get_application_from_meta
+from ..dot_ext.utils import get_application_from_meta, get_api_version_number
 from ..fhir.bluebutton.models import Crosswalk
 
 
@@ -68,9 +69,21 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
     @staticmethod
     def post(request, *args, **kwargs):
         try:
+            path_info = request.__dict__.get('path_info')
+            version = get_api_version_number(path_info)
             patient_id = kwargs.pop('patient_id', None)
-            # BB2-4166-TODO: currently hardcoded for v2, might need to not be static
-            user = Crosswalk.objects.get(fhir_id_v2=patient_id).user
+
+            match version:
+                case Versions.V1:
+                    user = Crosswalk.objects.get(fhir_id_v2=patient_id).user
+                case Versions.V2:
+                    user = Crosswalk.objects.get(fhir_id_v2=patient_id).user
+                case Versions.V3:
+                    user = Crosswalk.objects.get(fhir_id_v3=patient_id).user
+                # TODO: Should we handle this below or raise it?
+                case _:
+                    raise VersionNotMatched(f"{version} is not a valid version constant")
+
             client = get_application_from_meta(request)
             DataAccessGrant.objects.get(beneficiary=user.id, application=client).delete()
         except Crosswalk.DoesNotExist:

@@ -7,6 +7,8 @@ from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
+import re
+from typing import Optional
 
 from apps.authorization.models import DataAccessGrant
 
@@ -252,3 +254,28 @@ def json_response_from_oauth2_error(error):
         ret_data['error_description'] = error.description
 
     return JsonResponse(ret_data, status=error.status_code)
+
+
+# BB2-4166 TODO: Write unit tests for this
+def get_api_version_number(url_path: str) -> Optional[str]:
+    """Utility function to extract what version of the API a URL is
+    If there are multiple occurrences of 'v{{VERSION}} in a url path,
+    only return the first one
+    EX. /v2/o/authorize will return v2.
+
+    Args:
+        url_path (str): The url being called that we want to extract the api version
+
+    Returns:
+        Optional[str]: Returns a string of v2
+    """
+    try:
+        if not isinstance(url_path, str):
+            return None
+
+        match = re.search(r'/v(\d+)', url_path, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+        return None
+    except Exception:
+        return None
