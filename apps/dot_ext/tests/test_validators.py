@@ -7,8 +7,7 @@ class ValidateURLTests(TestCase):
     def test_valid_urls(self):
         valid_urls = [
             "https://example.com",
-            "http://foo.bar/baz",
-            "ftp://files.example.org/resource",
+            "https://foo.bar/baz",
             "https://sub.domain.co.uk/path?query=1",
         ]
         for url in valid_urls:
@@ -23,7 +22,10 @@ class ValidateURLTests(TestCase):
             "example",
             "http://",
             "://example.com",
-            "www.example.com",
+            "javascript:alert(document.cookie)",
+            "javascript:alert(document.domain)",
+            "https://localhost",
+            "http://localhost",
             " ",
         ]
         for url in invalid_urls:
