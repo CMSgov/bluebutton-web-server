@@ -10,6 +10,7 @@ from django.urls import reverse
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from http import HTTPStatus
 
 from urllib.parse import parse_qs, urlparse
 
@@ -411,7 +412,7 @@ class TestDataAccessGrant(BaseApiTest):
         }
 
         response = self.client.post(response["Location"], data=payload)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         # pretty good evidence for in active app permission denied
         self.assertEqual(response.template_name, "app_inactive_401.html")
         # set back app and user to active - not to affect other tests

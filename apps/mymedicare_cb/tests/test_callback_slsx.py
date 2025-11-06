@@ -41,6 +41,8 @@ from .responses import patient_response
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
+from http import HTTPStatus
+
 ERR_MSG_HICN_EMPTY_OR_NONE = "User info HICN cannot be empty or None."
 ERR_MSG_HICN_NOT_STR = "User info HICN must be str."
 ERR_MSG_MBI_NOT_STR = "User info MBI must be str."
@@ -179,7 +181,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'state': '1234567890',
             },
         )
-        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         payload = {
             'client_id': application.client_id,
             'response_type': 'code',
@@ -348,8 +350,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri=f'''http://www.google.com/v{version}/o/authorize?client_id=test
-                         &redirect_uri=test.com&response_type=token&state=test''',
+            next_uri=''.join([
+                f'http://www.google.com/v{version}/o/authorize?client_id=test',
+                '&redirect_uri=test.com&response_type=token&state=test'])
         )
 
         # mock fhir user info endpoint

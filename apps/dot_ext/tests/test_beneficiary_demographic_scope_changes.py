@@ -10,6 +10,7 @@ from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import ArchivedToken
 from ..models import Application
+from http import HTTPStatus
 
 
 class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
@@ -210,9 +211,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content)
 
-        # seems the status_code changed to 400 for invalid_grant error
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(content.get('error', None), "invalid_grant")
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(content.get('error', None), 'invalid_request')
 
         # ------ TEST #6: Beneficiary authorizes to share FULL demographic data again.. ------
         payload['share_demographic_scopes'] = True

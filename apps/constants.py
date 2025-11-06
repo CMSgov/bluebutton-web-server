@@ -36,3 +36,9 @@ class Versions:
                 return 3
             case _:
                 raise VersionNotMatched(f"{version} is not a valid version constant")
+
+
+class AccessType:
+    ONE_TIME = 'ONE_TIME'
+    RESEARCH_STUDY = 'RESEARCH_STUDY'
+    THIRTEEN_MONTH = 'THIRTEEN_MONTH'

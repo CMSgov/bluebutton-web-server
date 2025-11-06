@@ -18,6 +18,7 @@ from apps.fhir.bluebutton.utils import (
     crosswalk_patient_id,
     get_resourcerouter,
     build_oauth_resource,
+    valid_caller_for_patient_read,
 )
 
 ENCODED = settings.ENCODING
@@ -68,6 +69,17 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         listing = [1, 2, 3]
         response = notNone(listing, "number")
         self.assertEqual(response, listing)
+
+    def test_valid_caller_for_patient_read(self):
+        result = valid_caller_for_patient_read('PatientId:-20140000008326', '-20140000008326')
+        assert result is True
+
+        result = valid_caller_for_patient_read('PatientId:-20140000008326', '-20140000008329')
+        assert result is False
+
+        # call with no colon in beneficiary_id to make sure
+        invalid_call = valid_caller_for_patient_read('PatientId-20140000008326', '-20140000008329')
+        assert invalid_call is False
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
