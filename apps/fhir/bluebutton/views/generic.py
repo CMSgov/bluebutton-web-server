@@ -154,8 +154,7 @@ class FhirDataView(APIView):
 
         resource_id = kwargs.get('resource_id')
         beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
-        print("resource_id: ", resource_id)
-        print("beneficiary_id: ", beneficiary_id)
+
         if resource_type == 'Patient' and resource_id and beneficiary_id:
             # If it is a patient read request, confirm it is valid for the current user
             # If not, throw a 404 before pinging BFD
@@ -191,7 +190,7 @@ class FhirDataView(APIView):
             raise error
 
         out_data = r.json()
-        print("out data: ", out_data)
+
         self.check_object_permissions(request, out_data)
 
         return out_data
