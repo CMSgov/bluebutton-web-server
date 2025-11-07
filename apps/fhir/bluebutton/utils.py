@@ -19,6 +19,7 @@ from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
 from .models import Crosswalk, Fhir_Response
+from apps.dot_ext.utils import get_api_version_number
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -144,10 +145,7 @@ def generate_info_headers(request):
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
 
-    print("REQUEST", request.__dict__)
-    print("SESSION", request.session.__dict__)
-
-    version = request.session.__dict__.get('version', Versions.NOT_AN_API_VERSION)
+    version = get_api_version_number(request.path)
 
     print("version IN generate_info_headers1004: ", version)
     if crosswalk:
@@ -413,26 +411,29 @@ def prepend_q(pass_params):
     return pass_params
 
 
-def dt_patient_reference(user):
+# TODO BB2-4166: This is only used in tests.
+def dt_patient_reference(user, version):
     """Get Patient Reference from Crosswalk for user"""
 
     if user:
-        patient = crosswalk_patient_id(user)
+        patient = crosswalk_patient_id(user, version)
         if patient:
             return {"reference": patient}
 
     return None
 
+# TODO BB2-4166: This is only used in tests.
 
-def crosswalk_patient_id(user):
+
+def crosswalk_patient_id(user, version):
     """Get patient/id from Crosswalk for user"""
 
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
         # TODO BB2-4166: Do we need to modify this as well?
-        if patient.fhir_id(2):
-            return patient.fhir_id(2)
+        if patient.fhir_id(version):
+            return patient.fhir_id(version)
 
     except Crosswalk.DoesNotExist:
         pass
@@ -707,7 +708,7 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
 def get_patient_by_id(id, request):
     """
     a helper adapted to just get patient given an id out of band of auth flow
-    or noraml data flow, use by tools such as BB2-Tools admin viewers
+    or normal data flow, use by tools such as BB2-Tools admin viewers
     """
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
@@ -718,9 +719,11 @@ def get_patient_by_id(id, request):
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
     # BB2-4166-TODO: this should allow v3
-    url = "{}/v2/fhir/Patient/{}?_format={}".format(
-        get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
-    )
+    version = request.session.get('version')
+    if version in Versions.supported_versions():
+        url = "{}/v{}/fhir/Patient/{}?_format={}".format(
+            get_resourcerouter().fhir_url, version, id, settings.FHIR_PARAM_FORMAT
+        )
     s = requests.Session()
     req = requests.Request("GET", url, headers=headers)
     prepped = req.prepare()

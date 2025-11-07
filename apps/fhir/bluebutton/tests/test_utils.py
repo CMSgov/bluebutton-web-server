@@ -235,51 +235,40 @@ class Patient_Resource_Test(BaseApiTest):
     def test_crosswalk_fhir_id(self):
         """ Get the Crosswalk FHIR_Id """
 
-        u = User.objects.create_user(username="billybob",
-                                     first_name="Billybob",
-                                     last_name="Button",
-                                     email='billybob@example.com',
-                                     password="foobar", )
-        UserProfile.objects.create(user=u,
-                                   user_type="DEV",
-                                   create_applications=True)
-
-        x = Crosswalk()
-        x.user = u
-        x.set_fhir_id("Patient/23456", 2)
-        x.user_hicn_hash = uuid.uuid4()
-        x.save()
-
-        result = crosswalk_patient_id(u)
-
-        self.assertEqual(x.fhir_id(2), result)
-
-        # Test the dt_reference for Patient
-
-        result = dt_patient_reference(u)
-
-        expect = {'reference': x.fhir_id(2)}
-
-        self.assertEqual(result, expect)
+        for version in [Versions.V2, Versions.V3]:
+            u = User.objects.create_user(username=f"billybob-{version}",
+                                         first_name="Billybob",
+                                         last_name="Button",
+                                         email=f'billybob-{version}@example.com',
+                                         password="foobar", )
+            UserProfile.objects.create(user=u,
+                                       user_type="DEV",
+                                       create_applications=True)
+            x = Crosswalk()
+            x.user = u
+            x.set_fhir_id("Patient/23456", version)
+            x.user_hicn_hash = uuid.uuid4()
+            x.save()
+            result = crosswalk_patient_id(u, version)
+            self.assertEqual(x.fhir_id(version), result)
+            # Test the dt_reference for Patient
+            result = dt_patient_reference(u, version)
+            expect = {'reference': x.fhir_id(version)}
+            self.assertEqual(result, expect)
 
     def test_crosswalk_not_fhir_id(self):
         """ Get no Crosswalk id """
-
-        u = User.objects.create_user(username="bobnobob",
-                                     first_name="bob",
-                                     last_name="Button",
-                                     email='billybob@example.com',
-                                     password="foobar", )
-
-        result = crosswalk_patient_id(u)
-
-        self.assertEqual(result, None)
-
-        # Test the dt_reference for Patient returning None
-
-        result = dt_patient_reference(u)
-
-        self.assertEqual(result, None)
+        for version in [Versions.V2, Versions.V3]:
+            u = User.objects.create_user(username=f"bobnobob-{version}",
+                                         first_name="bob",
+                                         last_name="Button",
+                                         email=f'billybob-{version}@example.com',
+                                         password="foobar", )
+            result = crosswalk_patient_id(u, version)
+            self.assertEqual(result, None)
+            # Test the dt_reference for Patient returning None
+            result = dt_patient_reference(u, version)
+            self.assertEqual(result, None)
 
 
 class Security_Metadata_test(BaseApiTest):
