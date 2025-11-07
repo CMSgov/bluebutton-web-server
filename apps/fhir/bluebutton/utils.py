@@ -126,7 +126,7 @@ def get_query_counter(request):
         return request._logging_pass
 
 
-def generate_info_headers(request):
+def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     """Returns a dict of headers to be sent to the backend"""
     result = {}
     # BB2-279 support BFD header "includeAddressFields" and always set to False
@@ -145,9 +145,10 @@ def generate_info_headers(request):
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
 
-    version = get_api_version_number(request.path)
+    if version == Versions.NOT_AN_API_VERSION:
+        version = get_api_version_number(request.path)
 
-    print("version IN generate_info_headers1004: ", version)
+    print("version IN generate_info_headers418: ", version)
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!

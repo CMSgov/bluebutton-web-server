@@ -25,7 +25,7 @@ def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_
         using the mbi identifier.
     """
     search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
-
+    print("SEARCH_BY_MBI")
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 
@@ -35,7 +35,7 @@ def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None, version=Vers
         using the hicn_hash identifier.
     """
     search_identifier = f"{settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
-
+    print("SEARCH_BY_HICN")
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 
@@ -57,7 +57,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
     if request:
         # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
-        headers = generate_info_headers(request)
+        headers = generate_info_headers(request, version)
         headers = set_default_header(request, headers)
         # may be part of the contract with BFD
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
@@ -140,6 +140,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         NotFound: If both searches did not match a fhir_id.
     """
     # Perform primary lookup using MBI
+    print("yet another version check: ", version)
     if mbi:
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request, version)
@@ -157,7 +158,8 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
     # Perform secondary lookup using HICN_HASH
     if hicn_hash:
         try:
-            fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
+            fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
+            print("hicn fhir_id check: ", fhir_id)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'H', str(err))
             # Don't return a 404 because retrying later will not fix this.

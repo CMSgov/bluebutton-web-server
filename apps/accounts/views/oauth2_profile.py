@@ -48,6 +48,7 @@ def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
 
     # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
     # a straight url that we need to get the version from the url (like we do in the fhir app)
+    print("_openidconnect_userinfo request: ", request.__dict__)
     return JsonResponse(_get_userinfo(request.resource_owner, version))
 
 

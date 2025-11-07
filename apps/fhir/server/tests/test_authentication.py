@@ -17,6 +17,7 @@ from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 class TestAuthentication(BaseApiTest):
     MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME
     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
+    MOCK_FHIR_PATH_VERSIONED = lambda v: f"/v{v}/fhir/Patient"  # noqa: E731
     MOCK_FHIR_HICN_QUERY = ".*hicnHash.*"
     MOCK_FHIR_MBI_QUERY = ".*us-mbi|.*"
     SUCCESS_KEY = 'success'
@@ -34,8 +35,8 @@ class TestAuthentication(BaseApiTest):
         self.request.session = self.client.session
 
     @classmethod
-    def create_fhir_mock(cls, hicn_response_key, mbi_response_key):
-        @urlmatch(netloc=cls.MOCK_FHIR_URL, path=cls.MOCK_FHIR_PATH, method='POST')
+    def create_fhir_mock(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
+        @urlmatch(netloc=cls.MOCK_FHIR_URL, path=cls.MOCK_FHIR_PATH_VERSIONED(version), method='POST')
         def mock_fhir_post(url, request):
             try:
                 body = request.body
@@ -61,7 +62,7 @@ class TestAuthentication(BaseApiTest):
         fhir_ids = [settings.DEFAULT_SAMPLE_FHIR_ID_V2, settings.DEFAULT_SAMPLE_FHIR_ID_V3]
         for version, versioned_fhir_id in zip(versions, fhir_ids):
             with self.subTest(version=version, versioned_fhir_id=versioned_fhir_id):
-                with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY)):
+                with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY, version)):
                     fhir_id, hash_lookup_type = match_fhir_id(
                         mbi=self.test_mbi,
                         hicn_hash=self.test_hicn_hash, request=self.request, version=version)
