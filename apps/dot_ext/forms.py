@@ -11,8 +11,9 @@ from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.models import Application, InternalApplicationLabels
-from apps.dot_ext.validators import validate_logo_image, validate_notags
+from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
 from django.contrib.auth.models import Group, User
+from django.forms.widgets import URLInput
 
 import apps.logging.request_logger as bb2logging
 
@@ -46,6 +47,27 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         required=False,
         max_length=1000,
         validators=[validate_notags],
+    )
+
+    policy_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
+
+    tos_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
+
+    website_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
     )
 
     def __init__(self, user, *args, **kwargs):
@@ -206,6 +228,27 @@ class CreateNewApplicationForm(forms.ModelForm):
         validators=[validate_notags],
     )
     organization_name = forms.CharField(required=True)
+
+    policy_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
+
+    tos_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
+
+    website_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
 
     class Meta:
         model = get_application_model()
