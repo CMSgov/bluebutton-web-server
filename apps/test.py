@@ -410,6 +410,10 @@ class BaseApiTest(TestCase):
             # Create unique hashes using FHIR_ID
             # BB2-4166-TODO: this is only checking v2, possible rewrite these helper functions to allow more
             # generalized fhir_id handling
+            # BB2-4166-NOTES:
+            # This is only used for test_data_access_grant, test_data_access_grant_permissions, test_api_error_codes.py
+            # Possibly would be contributing to failed unit tests, but for v3, we are planning to remove hicn_hash anyway
+            # We could think about checking the v3_endpoints waffle switch and then skipping hicn_hash usage and generation
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )

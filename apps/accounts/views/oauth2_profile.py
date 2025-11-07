@@ -46,8 +46,9 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
 
-    # BB2-4166-TODO: will the request have a version? do we get here from redirects or is this
-    # a straight url that we need to get the version from the url (like we do in the fhir app)
+    # BB2-4166-NOTES: Request does contain a version but it appears that it will
+    # need to be grabbed from a url within the request. '/v1/connect/userinfo' was returned
+    # during test_data_access_grant_permissions_has_permission
     print("_openidconnect_userinfo request: ", request.__dict__)
     return JsonResponse(_get_userinfo(request.resource_owner, version))
 

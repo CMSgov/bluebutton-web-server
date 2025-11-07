@@ -14,6 +14,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+from apps.constants import Versions
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -73,6 +74,8 @@ def authenticate(request):
 
     # Log successful authentication with beneficiary when we return back here.
     # BB2-4166-TODO: set both fhir_ids if we get both of them
+    # BB2-4166-NOTES: Might work to just set both fhir_id_v2 and fhir_id_v3 with
+    # the crosswalk.fhir_id(version) value
     slsx_client.log_authn_success(request, {
         'user': {
             'id': user.id,
@@ -103,13 +106,15 @@ def callback(request):
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
-    # BB2-4166-TODO: refactor this to be generalized
-    if "/v3/o/authorize" in next_uri:
-        version = 3
-    elif "/v2/o/authorize" in next_uri:
-        version = 2
-    else:
-        version = 2
+    # We don't have a `version` coming back from auth. Therefore, we check
+    # the authorize URL to find what version pathway we are on.
+    version = Versions.NOT_AN_API_VERSION
+    for supported_version in Versions.supported_versions():
+        print()
+        print("NEXT_URI", next_uri)
+        if f"/v{supported_version}/o/authorize" in next_uri:
+            version = supported_version
+            break
 
     request.session['version'] = version
 

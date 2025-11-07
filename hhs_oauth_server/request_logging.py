@@ -388,6 +388,8 @@ class RequestResponseLog(object):
             try:
                 # BB2-4166-TODO: this is hardcoded to be version 2
                 self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(2)
+                # BB2-4166-NOTES: This might work with a v3 field and crosswalk.fhir_id(Versions.v3)
+                # Aside from unit tests, this should not cause a ton of other issues with functionality
             except ObjectDoesNotExist:
                 pass
 
