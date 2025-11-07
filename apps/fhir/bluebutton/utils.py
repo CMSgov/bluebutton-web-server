@@ -143,12 +143,19 @@ def generate_info_headers(request):
     # Return resource_owner or user
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
+
+    print("REQUEST", request.__dict__)
+    print("SESSION", request.session.__dict__)
+
+    version = request.session.__dict__.get('version', Versions.NOT_AN_API_VERSION)
+
+    print("version IN generate_info_headers1004: ", version)
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
-        if crosswalk.fhir_id(2) is not None:
-            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id(2))
+        if crosswalk.fhir_id(version) is not None:
+            result["BlueButton-BeneficiaryId"] = "patientId:" + crosswalk.fhir_id(version)
         else:
             result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
                 crosswalk.user_hicn_hash
@@ -241,7 +248,7 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         cert = (auth_state["cert_file"], auth_state["key_file"])
     else:
         cert = ()
-
+    print("REQUEST in request_call: ", request.__dict__)
     header_info = generate_info_headers(request)
 
     header_info = set_default_header(request, header_info)
@@ -423,6 +430,7 @@ def crosswalk_patient_id(user):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
+        # TODO BB2-4166: Do we need to modify this as well?
         if patient.fhir_id(2):
             return patient.fhir_id(2)
 
@@ -703,6 +711,7 @@ def get_patient_by_id(id, request):
     """
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
+    print("IS IT IN get_patient_by_id???")
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"

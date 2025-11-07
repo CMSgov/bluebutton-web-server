@@ -32,7 +32,7 @@ class HasCrosswalk(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(
             # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
-            request.user and request.user.crosswalk and request.user.crosswalk.fhir_id(2)
+            request.user and request.user.crosswalk and (request.user.crosswalk.fhir_id(2) or request.user.crosswalk.fhir_id(3))
         )
 
 

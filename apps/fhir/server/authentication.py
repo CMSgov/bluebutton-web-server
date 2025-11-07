@@ -52,7 +52,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
-
+    print("VERSION IN search_fhir_id_by_identifier: ", version)
     # Add headers for FHIR backend logging, including auth_flow_dict
     if request:
         # Get auth flow session values.
