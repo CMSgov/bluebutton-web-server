@@ -619,8 +619,8 @@ FHIR_SERVER = {
     # Strip trailing '/' from all URLs. We expect hostnames/paths to *not* have a trailing slash
     # throughout the codebase. Allowing a '/' through at the end here will create many situations where
     # URLs have a "//" embedded within them, and may cause problems for tests and other substring matches.
-    "FHIR_URL": env("FHIR_URL", "https://INVALID_FHIR_URL.gov").rstrip("/"),
-    "FHIR_URL_V3": env("FHIR_URL_V3", "https://INVALID_FHIR_URL_V3.gov").rstrip("/"),
+    "FHIR_URL": env("FHIR_URL", "https://invalid_fhir_url.gov").rstrip("/"),
+    "FHIR_URL_V3": env("FHIR_URL_V3", "https://invalid_fhir_url_v3.gov").rstrip("/"),
     "CERT_FILE": os.path.join(
         FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")
     ),
