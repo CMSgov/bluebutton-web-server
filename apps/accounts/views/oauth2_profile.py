@@ -46,9 +46,6 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
 
-    # BB2-4166-NOTES: Request does contain a version but it appears that it will
-    # need to be grabbed from a url within the request. '/v1/connect/userinfo' was returned
-    # during test_data_access_grant_permissions_has_permission
     return JsonResponse(_get_userinfo(request.resource_owner, version))
 
 
