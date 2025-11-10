@@ -84,3 +84,5 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
 APPLICATION_TITLE = "Blue Button 2.0 TEST"
+
+APPLY_REMOVE_FHIR_ID = 'false'  # Ensure destructive migration does not run in dev environment
