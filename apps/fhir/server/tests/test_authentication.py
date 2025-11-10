@@ -153,7 +153,7 @@ class TestAuthentication(BaseApiTest):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
                     mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request)
+                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
 
     def test_match_fhir_id_duplicates_mbi(self):
         '''
