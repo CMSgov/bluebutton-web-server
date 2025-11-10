@@ -316,7 +316,7 @@ class ArchivedCrosswalk(models.Model):
         default=None,
         max_length=80,
         unique=False,
-        null=True  # Modifying field to prepare for deletion
+        null=True
     )
 
     @staticmethod
