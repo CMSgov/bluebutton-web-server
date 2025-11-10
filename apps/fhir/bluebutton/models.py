@@ -25,11 +25,11 @@ class RealCrosswalkManager(models.Manager):
             super()
             .get_queryset()
             .filter(
-                ~Q(fhir_id_v2__startswith="-")
-                & ~Q(fhir_id_v2="")
+                ~Q(fhir_id_v2__startswith='-')
+                & ~Q(fhir_id_v2='')
                 & ~Q(fhir_id_v2__isnull=True)
-                & ~Q(fhir_id_v3__startswith="-")
-                & ~Q(fhir_id_v3="")
+                & ~Q(fhir_id_v3__startswith='-')
+                & ~Q(fhir_id_v3='')
                 & ~Q(fhir_id_v3__isnull=True)
             )
         )
@@ -42,8 +42,8 @@ class SynthCrosswalkManager(models.Manager):
             super()
             .get_queryset()
             .filter(
-                Q(fhir_id_v2__startswith="-")
-                | Q(fhir_id_v3__startswith="-")
+                Q(fhir_id_v2__startswith='-')
+                | Q(fhir_id_v3__startswith='-')
             )
         )
 
@@ -56,13 +56,13 @@ def hash_id_value(hicn):
     """
     return binascii.hexlify(
         pbkdf2(hicn, get_user_id_salt(), settings.USER_ID_ITERATIONS)
-    ).decode("ascii")
+    ).decode('ascii')
 
 
 def hash_hicn(hicn):
     # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
-    if hicn == "":
-        raise BBFhirBluebuttonModelException("HICN cannot be the empty string")
+    if hicn == '':
+        raise BBFhirBluebuttonModelException('HICN cannot be the empty string')
 
     return hash_id_value(hicn)
 
@@ -97,7 +97,7 @@ class Crosswalk(models.Model):
         max_length=80,
         null=True,
         unique=True,
-        db_column="fhir_id_v2",
+        db_column='fhir_id_v2',
         db_index=True,
         validators=[MinLengthValidator(1)],
     )
@@ -105,47 +105,56 @@ class Crosswalk(models.Model):
         max_length=80,
         null=True,
         unique=True,
-        db_column="fhir_id_v3",
+        db_column='fhir_id_v3',
         db_index=True,
         validators=[MinLengthValidator(1)],
     )
     date_created = models.DateTimeField(auto_now_add=True)
     user_id_type = models.CharField(
         max_length=1,
-        verbose_name="Hash ID type last used for FHIR_ID lookup",
+        verbose_name='Hash ID type last used for FHIR_ID lookup',
         default=settings.USER_ID_TYPE_DEFAULT,
         choices=settings.USER_ID_TYPE_CHOICES,
     )
-    # TODO: Maybe rename this to _user_hicn_hash in future.
     _user_id_hash = models.CharField(
         max_length=64,
-        verbose_name="HASH of User HICN ID",
+        verbose_name='HASH of User HICN ID',
         unique=True,
         null=False,
         default=None,
-        db_column="user_id_hash",
+        db_column='user_id_hash',
         db_index=True,
     )
     _user_mbi_hash = models.CharField(
         max_length=64,
-        verbose_name="HASH of User MBI ID",
+        verbose_name='HASH of User MBI ID',
         unique=True,
         null=True,
         default=None,
-        db_column="user_mbi_hash",
+        db_column='user_mbi_hash',
         db_index=True,
     )
     _user_mbi = models.CharField(
         max_length=11,
-        verbose_name="Unhashed MBI",
+        verbose_name='Unhashed MBI',
         null=True,
         default=None,
-        db_column="user_mbi",
+        db_column='user_mbi',
         db_index=True,
     )
 
+    # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
+    _fhir_id = models.CharField(
+        db_column='fhir_id',
+        db_index=True,
+        default=None,
+        max_length=80,
+        unique=True,
+        null=True
+    )
+
     def __str__(self):
-        return "%s %s" % (self.user.first_name, self.user.last_name)
+        return '%s %s' % (self.user.first_name, self.user.last_name)
 
     class Meta:
         constraints = [
@@ -158,27 +167,43 @@ class Crosswalk(models.Model):
     def fhir_id(self, version: int = 2) -> str:
         """Helper method to return fhir_id based on BFD version, preferred over direct access"""
         if version in (1, 2):
-            return str(self.fhir_id_v2)
+            if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
+                # TODO - This is legacy code, to be removed before migration bluebutton 0010
+                # If fhir_id is empty, try to populate it from fhir_id_v2 to support old code
+                self._fhir_id = self.fhir_id_v2
+                self.save()
+                return str(self.fhir_id_v2)
+            # TODO - This is legacy code, to be removed before migration bluebutton 0010
+            # If fhir_id_v2 is empty, try to populate it from _fhir_id to support new code
+            if self._fhir_id is not None and self._fhir_id != '':
+                self.fhir_id_v2 = self._fhir_id
+                self.save()
+                return str(self._fhir_id)
+            return ''
         elif version == 3:
             # TODO BB2-4166: This will want to change. In order to make
             # BB2-4181 work, the V3 value needed to be found in the V2 column.
             # 4166 should flip this to _v3, and we should be able to find
             # values there when using (say) the test client.
-            return str(self.fhir_id_v2)
-
+            if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
+                return str(self.fhir_id_v2)
+            return ''
         else:
-            raise ValidationError(f"{version} is not a valid BFD version")
+            raise ValidationError(f'{version} is not a valid BFD version')
 
+    # THIS DOES NOT SAVE THE MODEL - CALLER MUST SAVE()
     def set_fhir_id(self, value, version: int = 2) -> None:
         """Helper method to set fhir_id based on BFD version, preferred over direct access"""
-        if value == "":
-            raise ValidationError("fhir_id can not be an empty string")
+        if value == '':
+            raise ValidationError('fhir_id can not be an empty string')
         if version in (1, 2):
             self.fhir_id_v2 = value
+            # TODO - This is legacy code, to be removed in the future
+            self._fhir_id = value
         elif version == 3:
             self.fhir_id_v3 = value
         else:
-            raise ValidationError(f"{version} is not a valid BFD version")
+            raise ValidationError(f'{version} is not a valid BFD version')
 
     @property
     def user_hicn_hash(self):
@@ -214,7 +239,7 @@ class ArchivedCrosswalk(models.Model):
     This model is used to keep an audit copy of a Crosswalk record's
     previous values when there are changes to the original.
 
-    This is performed via code in the `get_and_update_user()` function
+    This is performed via code in the 'get_and_update_user()' function
     in apps/mymedicare_cb/models.py
     Attributes:
         user: auth_user.id
@@ -235,62 +260,74 @@ class ArchivedCrosswalk(models.Model):
         null=False,
         unique=False,
         default=None,
-        db_column="username",
+        db_column='username',
         db_index=True,
     )
     fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
         unique=False,
-        db_column="fhir_id_v2",
+        db_column='fhir_id_v2',
         db_index=True,
     )
     fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
         unique=False,
-        db_column="fhir_id_v3",
+        db_column='fhir_id_v3',
         db_index=True,
     )
     user_id_type = models.CharField(
         max_length=1,
-        verbose_name="Hash ID type last used for FHIR_ID lookup",
+        verbose_name='Hash ID type last used for FHIR_ID lookup',
         default=settings.USER_ID_TYPE_DEFAULT,
         choices=settings.USER_ID_TYPE_CHOICES,
     )
     _user_id_hash = models.CharField(
         max_length=64,
-        verbose_name="HASH of User HICN ID",
+        verbose_name='HASH of User HICN ID',
         unique=False,
         null=False,
         default=None,
-        db_column="user_id_hash",
+        db_column='user_id_hash',
         db_index=True,
     )
     _user_mbi_hash = models.CharField(
         max_length=64,
-        verbose_name="HASH of User MBI ID",
+        verbose_name='HASH of User MBI ID',
         unique=False,
         null=True,
         default=None,
-        db_column="user_mbi_hash",
+        db_column='user_mbi_hash',
         db_index=True,
     )
     _user_mbi = models.CharField(
         max_length=11,
-        verbose_name="Unhashed MBI",
+        verbose_name='Unhashed MBI',
         null=True,
         default=None,
-        db_column="user_mbi",
+        db_column='user_mbi',
         db_index=True,
     )
     date_created = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
 
+    # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
+    _fhir_id = models.CharField(
+        db_column='fhir_id',
+        db_index=True,
+        default=None,
+        max_length=80,
+        unique=False,
+        null=True
+    )
+
     @staticmethod
     def create(crosswalk):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
+            # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
+            _fhir_id=crosswalk._fhir_id,
             fhir_id_v2=crosswalk.fhir_id(2),
             fhir_id_v3=crosswalk.fhir_id(3),
             user_id_type=crosswalk.user_id_type,
@@ -320,17 +357,17 @@ class Fhir_Response(Response):
             self.__dict__[k] = v
 
         extend_response = {
-            "_response": req_response,
-            "_text": "",
-            "_json": "{}",
-            "_xml": "</>",
-            "_status_code": "",
-            "_call_url": "",
-            "_cx": Crosswalk,
-            "_result": "",
-            "_owner": "",
-            "encoding": "utf-8",
-            "_content": "",
+            '_response': req_response,
+            '_text': '',
+            '_json': '{}',
+            '_xml': '</>',
+            '_status_code': '',
+            '_call_url': '',
+            '_cx': Crosswalk,
+            '_result': '',
+            '_owner': '',
+            'encoding': 'utf-8',
+            '_content': '',
         }
 
         # Add extra fields to Response Object
@@ -348,12 +385,12 @@ def get_crosswalk_bene_counts():
     start_time = datetime.utcnow().timestamp()
 
     # Get total table counts
-    counts_returned["total"] = Crosswalk.objects.count()
-    counts_returned["archived_total"] = ArchivedCrosswalk.objects.count()
+    counts_returned['total'] = Crosswalk.objects.count()
+    counts_returned['archived_total'] = ArchivedCrosswalk.objects.count()
 
-    counts_returned["synthetic"] = Crosswalk.synth_objects.count()
-    counts_returned["real"] = Crosswalk.real_objects.count()
+    counts_returned['synthetic'] = Crosswalk.synth_objects.count()
+    counts_returned['real'] = Crosswalk.real_objects.count()
 
-    counts_returned["elapsed"] = round(datetime.utcnow().timestamp() - start_time, 3)
+    counts_returned['elapsed'] = round(datetime.utcnow().timestamp() - start_time, 3)
 
     return counts_returned

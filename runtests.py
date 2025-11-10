@@ -73,7 +73,7 @@ if __name__ == '__main__':
     TestRunner = get_runner(settings)
 
     # Only capture output if report_file is specified and test flag is set
-    if args.report_file and args.test:
+    if args.report_file:
         captured_output = StringIO()
         sys.stderr = captured_output
     else:
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     else:
         failures = test_runner.run_tests(None)
 
-    if captured_output and failures and args.report_file and args.test:
+    if captured_output and failures and args.report_file:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(args.report_file, 'w') as report:
             report.write(f"Test Report Generated: {timestamp}\n")
