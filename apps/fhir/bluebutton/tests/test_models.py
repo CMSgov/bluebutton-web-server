@@ -184,7 +184,12 @@ class TestModels(BaseApiTest):
         ):
             hash_hicn("")
 
+    # TODO - This is legacy code, to be removed before migration bluebutton 0010
     def test_fhir_id_legacy(self):
+        """This test is for verifying the behavior surrounding the old _fhir_id column.
+
+        Remove it before removing the column from the database and model (migration 0010)
+        """
 
         user_old = self._create_user(
             "john",
