@@ -314,6 +314,4 @@ class Security_Metadata_test(BaseApiTest):
 
         expected = "<cors>true</cors>"
 
-        # print(result[16:33])
-
         self.assertEqual(result[16:33], expected)

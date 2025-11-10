@@ -148,8 +148,6 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     if version == Versions.NOT_AN_API_VERSION:
         version = get_api_version_number(request.path)
 
-    print("version IN generate_info_headers418: ", version)
-    print("crosswalk: ", crosswalk)
     if crosswalk:
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.
@@ -169,7 +167,6 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
         if AccessToken.objects.filter(
             token=get_access_token_from_request(request)
         ).exists():
-            print("USER EXISTS TOKEN EXISTS")
             at = AccessToken.objects.get(token=get_access_token_from_request(request))
             result["BlueButton-Application"] = str(at.application.name)
             result["BlueButton-ApplicationId"] = str(at.application.id)
@@ -178,7 +175,6 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
             result['BlueButton-DeveloperId'] = str(at.application.user.id)
             result['BlueButton-Developer'] = str(at.application.user)
         else:
-            print("USER EXISTS TOKEN NOEXIST")
             result["BlueButton-Application"] = ""
             result["BlueButton-ApplicationId"] = ""
             # BB2-2011 update logging w.r.t new fields application data_access_type
@@ -186,10 +182,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
             result["BlueButton-ApplicationEndDate"] = ""
             result["BlueButton-DeveloperId"] = ""
             result["BlueButton-Developer"] = ""
-    else:
-        print("NOUSER NOTOKEN")
 
-    print("RETURNING RESULT", result)
     return result
 
 
@@ -252,7 +245,7 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         cert = (auth_state["cert_file"], auth_state["key_file"])
     else:
         cert = ()
-    print("REQUEST in request_call: ", request.__dict__)
+
     header_info = generate_info_headers(request)
 
     header_info = set_default_header(request, header_info)

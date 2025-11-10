@@ -78,8 +78,6 @@ class TestAuthentication(BaseApiTest):
                         hicn_hash=self.test_hicn_hash,
                         request=self.request,
                         version=version)
-                    print(fhir_id, hash_lookup_type)
-                    print()
                     self.assertEqual(fhir_id, versioned_fhir_id)
                     self.assertEqual(hash_lookup_type, "M")
 

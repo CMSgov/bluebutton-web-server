@@ -25,9 +25,6 @@ def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_
         using the mbi identifier.
     """
     search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
-    print("SEARCH_BY_MBI: ", search_identifier)
-    print("SEARCH_BY_MBI REQUEST: ", request.__dict__)
-    print("SEARCH_BY_MBI VERSION: ", version)
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 
@@ -110,7 +107,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
         except requests.exceptions.SSLError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 # Checking target_env ensures the retry logic only happens on local
-                # print(f"FHIR ID search request failed. Retrying... ({retries + 1}/{max_retries})")
                 retries += 1
             else:
                 raise e

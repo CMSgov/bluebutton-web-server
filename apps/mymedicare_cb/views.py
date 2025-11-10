@@ -104,8 +104,6 @@ def callback(request):
     # the authorize URL to find what version pathway we are on.
     version = Versions.NOT_AN_API_VERSION
     for supported_version in Versions.supported_versions():
-        print()
-        print("NEXT_URI", next_uri)
         if f"/v{supported_version}/o/authorize" in next_uri:
             version = supported_version
             break
@@ -197,8 +195,6 @@ def mymedicare_login(request):
         except requests.exceptions.ConnectionError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 time.sleep(0.5)
-                # Checking target_env ensures the retry logic only happens on local
-                print(f"SLSx service health check during login failed. Retrying... ({retries + 1}/{max_retries})")
                 retries += 1
             else:
                 raise e

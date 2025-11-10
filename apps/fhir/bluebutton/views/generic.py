@@ -135,7 +135,7 @@ class FhirDataView(APIView):
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
         request.session.version = self.version
-        print("FhirDataView version: ", self.version)
+
         # Now make the call to the backend API
         req = Request('GET',
                       target_url,
@@ -185,7 +185,6 @@ class FhirDataView(APIView):
 
         # BB2-128
         error = process_error_response(response)
-        print("THE ERROR: ", error)
         if error is not None:
             raise error
 
