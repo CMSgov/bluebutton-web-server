@@ -1,3 +1,5 @@
+import re
+
 from oauth2_provider.validators import URIValidator
 from oauth2_provider.validators import urlsplit
 from oauth2_provider.settings import oauth2_settings
@@ -7,6 +9,11 @@ from django.utils.encoding import force_str
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from os import path as ospath
+
+URL_REGEX = re.compile(
+    r'^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.'
+    r'[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'
+)
 
 
 class RedirectURIValidator(URIValidator):
@@ -34,6 +41,15 @@ def validate_uris(value):
     v = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
     for uri in value.split():
         v(uri)
+
+
+def validate_url(value: str):
+    """Validate that the value is a syntactically valid URL."""
+    if not value:
+        return
+    value = value.strip()
+    if not URL_REGEX.match(value):
+        raise ValidationError("Enter a valid URL")
 
 
 # Validate that there are no HTML tags
