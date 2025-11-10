@@ -171,11 +171,13 @@ class Crosswalk(models.Model):
                 # TODO - This is legacy code, to be removed before migration bluebutton 0010
                 # If fhir_id is empty, try to populate it from fhir_id_v2 to support old code
                 self._fhir_id = self.fhir_id_v2
+                self.save()
                 return str(self.fhir_id_v2)
             # TODO - This is legacy code, to be removed before migration bluebutton 0010
             # If fhir_id_v2 is empty, try to populate it from _fhir_id to support new code
             if self._fhir_id is not None and self._fhir_id != '':
                 self.fhir_id_v2 = self._fhir_id
+                self.save()
                 return str(self._fhir_id)
             return ''
         elif version == 3:
