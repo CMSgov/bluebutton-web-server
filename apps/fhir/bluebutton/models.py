@@ -191,6 +191,7 @@ class Crosswalk(models.Model):
         else:
             raise ValidationError(f'{version} is not a valid BFD version')
 
+    # THIS DOES NOT SAVE THE MODEL - CALLER MUST SAVE()
     def set_fhir_id(self, value, version: int = 2) -> None:
         """Helper method to set fhir_id based on BFD version, preferred over direct access"""
         if value == '':
