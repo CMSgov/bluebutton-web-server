@@ -10,13 +10,21 @@ from ..authentication import match_fhir_id
 from apps.constants import Versions
 from .responses import responses
 
-from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
+
+
+def mock_fhir_url(version):
+    return MOCK_FHIR_ENDPOINT_HOSTNAME if version in [1, 2] else MOCK_FHIR_V3_ENDPOINT_HOSTNAME
+
+
+#     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
+def mock_fhir_path(version):
+    return f"/v{version}/fhir/Patient"
 
 
 class TestAuthentication(BaseApiTest):
-    MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME
-    MOCK_FHIR_PATH = "/v1/fhir/Patient/"
-    MOCK_FHIR_PATH_VERSIONED = lambda v: f"/v{v}/fhir/Patient"  # noqa: E731
+    MOCK_FHIR_URL = mock_fhir_url(Versions.NOT_AN_API_VERSION)
+    MOCK_FHIR_PATH_VERSIONED = mock_fhir_path(Versions.NOT_AN_API_VERSION)
     MOCK_FHIR_HICN_QUERY = ".*hicnHash.*"
     MOCK_FHIR_MBI_QUERY = ".*us-mbi|.*"
     SUCCESS_KEY = 'success'
@@ -33,50 +41,17 @@ class TestAuthentication(BaseApiTest):
         self.request = self.factory.get('http://localhost:8000/mymedicare/sls-callback')
         self.request.session = self.client.session
 
+    # The mock uses data from responses.py. We need to have mock data for a given MBI/FHIR ID
+    # for each version of the API we want to test this way. We can use the v2 test data for
+    # v3 because we're just asking "do you have a valid us-mbi query string?", and usnig that to then
+    # look up the mock response.
     @classmethod
     def create_fhir_mock(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
-        @urlmatch(netloc=cls.MOCK_FHIR_URL, path=cls.MOCK_FHIR_PATH_VERSIONED(version), method='POST')
+        @urlmatch(netloc=mock_fhir_url(version), path=mock_fhir_path(version), method='POST')
         def mock_fhir_post(url, request):
             try:
                 body = request.body
                 identifier = body.split('=', 1)[1]
-
-                if 'hicn-hash' in identifier:
-                    return responses[hicn_response_key]
-                elif 'us-mbi' in identifier:
-                    return responses[mbi_response_key]
-                else:
-                    raise Exception(f"Invalid identifier: {identifier}")
-            except json.JSONDecodeError as e:
-                raise Exception(f"Failed to parse json: {e.msg}")
-        return mock_fhir_post
-
-    @classmethod
-    def create_fhir_mock_v2(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
-        @urlmatch(netloc=cls.MOCK_FHIR_URL, path='/v2/fhir/Patient', method='POST')
-        def mock_fhir_post(url, request):
-            try:
-                body = request.body
-                identifier = body.split('=', 1)[1]
-
-                if 'hicn-hash' in identifier:
-                    return responses[hicn_response_key]
-                elif 'us-mbi' in identifier:
-                    return responses[mbi_response_key]
-                else:
-                    raise Exception(f"Invalid identifier: {identifier}")
-            except json.JSONDecodeError as e:
-                raise Exception(f"Failed to parse json: {e.msg}")
-        return mock_fhir_post
-
-    @classmethod
-    def create_fhir_mock_v3(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
-        @urlmatch(netloc=cls.MOCK_FHIR_URL, path='/v3/fhir/Patient', method='POST')
-        def mock_fhir_post(url, request):
-            try:
-                body = request.body
-                identifier = body.split('=', 1)[1]
-
                 if 'hicn-hash' in identifier:
                     return responses[hicn_response_key]
                 elif 'us-mbi' in identifier:
@@ -94,14 +69,17 @@ class TestAuthentication(BaseApiTest):
             Expecting: Match via MBI first / hash_lockup_type="M"
         '''
         versions = [Versions.V2, Versions.V3]
-        fhir_ids = ['-20000000002346', '-206068516']
-        mock_funcs = [self.create_fhir_mock_v2, self.create_fhir_mock_v3]
-        for version, versioned_fhir_id, mock_func in zip(versions, fhir_ids, mock_funcs):
+        versioned_fhir_ids = ['-20000000002346', '-20000000002346']
+        for version, versioned_fhir_id in zip(versions, versioned_fhir_ids):
             with self.subTest(version=version, versioned_fhir_id=versioned_fhir_id):
-                with HTTMock(mock_func(self.SUCCESS_KEY, self.SUCCESS_KEY, version)):
+                with HTTMock(TestAuthentication.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY, version)):
                     fhir_id, hash_lookup_type = match_fhir_id(
                         mbi=self.test_mbi,
-                        hicn_hash=self.test_hicn_hash, request=self.request, version=version)
+                        hicn_hash=self.test_hicn_hash,
+                        request=self.request,
+                        version=version)
+                    print(fhir_id, hash_lookup_type)
+                    print()
                     self.assertEqual(fhir_id, versioned_fhir_id)
                     self.assertEqual(hash_lookup_type, "M")
 

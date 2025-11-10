@@ -1,4 +1,3 @@
-# noqa
 import os
 import logging
 
@@ -170,6 +169,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
         if AccessToken.objects.filter(
             token=get_access_token_from_request(request)
         ).exists():
+            print("USER EXISTS TOKEN EXISTS")
             at = AccessToken.objects.get(token=get_access_token_from_request(request))
             result["BlueButton-Application"] = str(at.application.name)
             result["BlueButton-ApplicationId"] = str(at.application.id)
@@ -178,6 +178,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
             result['BlueButton-DeveloperId'] = str(at.application.user.id)
             result['BlueButton-Developer'] = str(at.application.user)
         else:
+            print("USER EXISTS TOKEN NOEXIST")
             result["BlueButton-Application"] = ""
             result["BlueButton-ApplicationId"] = ""
             # BB2-2011 update logging w.r.t new fields application data_access_type
@@ -185,7 +186,10 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
             result["BlueButton-ApplicationEndDate"] = ""
             result["BlueButton-DeveloperId"] = ""
             result["BlueButton-Developer"] = ""
+    else:
+        print("NOUSER NOTOKEN")
 
+    print("RETURNING RESULT", result)
     return result
 
 

@@ -37,7 +37,6 @@ def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None, version=Vers
         using the hicn_hash identifier.
     """
     search_identifier = f"{settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
-    print("SEARCH_BY_HICN")
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 
@@ -54,7 +53,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
-    print("VERSION IN search_fhir_id_by_identifier: ", version)
     # Add headers for FHIR backend logging, including auth_flow_dict
     if request:
         # Get auth flow session values.
@@ -112,7 +110,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
         except requests.exceptions.SSLError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 # Checking target_env ensures the retry logic only happens on local
-                print(f"FHIR ID search request failed. Retrying... ({retries + 1}/{max_retries})")
+                # print(f"FHIR ID search request failed. Retrying... ({retries + 1}/{max_retries})")
                 retries += 1
             else:
                 raise e
@@ -141,12 +139,9 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         NotFound: If both searches did not match a fhir_id.
     """
     # Perform primary lookup using MBI
-    print("yet another version check: ", version)
-    print("mbi val: ", mbi)
     if mbi:
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request, version)
-            print("fhir_id in MBI TRY: ", fhir_id)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
@@ -159,10 +154,10 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return fhir_id, 'M'
 
     # Perform secondary lookup using HICN_HASH
-    if hicn_hash:
+    # WE CANNOT DO A HICN HASH LOOKUP FOR V3
+    if version in [Versions.V1, Versions.V2] and hicn_hash:
         try:
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
-            print("hicn fhir_id check: ", fhir_id)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'H', str(err))
             # Don't return a 404 because retrying later will not fix this.
