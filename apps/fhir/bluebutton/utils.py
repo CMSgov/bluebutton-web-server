@@ -412,7 +412,7 @@ def prepend_q(pass_params):
     return pass_params
 
 
-# TODO BB2-4166: This is only used in tests.
+# BB2-4166-TODO - if tests are failing this could be related
 def dt_patient_reference(user, version):
     """Get Patient Reference from Crosswalk for user"""
 
@@ -423,8 +423,6 @@ def dt_patient_reference(user, version):
 
     return None
 
-# TODO BB2-4166: This is only used in tests.
-
 
 def crosswalk_patient_id(user, version):
     """Get patient/id from Crosswalk for user"""
@@ -432,7 +430,7 @@ def crosswalk_patient_id(user, version):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
-        # TODO BB2-4166: Do we need to modify this as well?
+        # BB2-4166-TODO - if tests are failing this could be related
         if patient.fhir_id(version):
             return patient.fhir_id(version)
 
@@ -713,18 +711,15 @@ def get_patient_by_id(id, request):
     """
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
-    print("IS IT IN get_patient_by_id???")
+
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
-    # BB2-4166-TODO: this should allow v3
-    version = request.session.get('version')
-    if version in Versions.supported_versions():
-        url = "{}/v{}/fhir/Patient/{}?_format={}".format(
-            get_resourcerouter().fhir_url, version, id, settings.FHIR_PARAM_FORMAT
-        )
+    url = "{}/v2/fhir/Patient/{}?_format={}".format(
+        get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
+    )
     s = requests.Session()
     req = requests.Request("GET", url, headers=headers)
     prepped = req.prepare()

@@ -361,7 +361,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     )
     def get_identities(self, obj):
         return format_html(
-            '<div><ul><li>FHIR_ID_V2:{}</li>li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
+            '<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
                 obj.fhir_id(2), obj.fhir_id(3), obj.user_hicn_hash, obj.user_mbi
             )
         )
@@ -414,9 +414,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         crosswalk = BeneficiaryDashboard.objects.get(pk=int(object_id))
 
         json_resp = None
-
         try:
-            json_resp = get_patient_by_id(crosswalk.fhir_id(request.session['version']), request)
+            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 

@@ -99,16 +99,12 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=slsx_client.user_id)
 
-        # fhir_id can not change for an existing user!
-        # 4166 TODO: Is the above comment still true? If so, we may have to change
-        # our logic below
-
         # Did the hicn change?
         if user.crosswalk.user_hicn_hash != slsx_client.hicn_hash:
             hicn_updated = True
 
         update_fhir_id = False
-        if user.crosswalk.fhir_id(2) is None or user.crosswalk.fhir_id(3) is None:
+        if user.crosswalk.fhir_id(Versions.V2) is None or user.crosswalk.fhir_id(Versions.V3) is None:
             update_fhir_id = True
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
