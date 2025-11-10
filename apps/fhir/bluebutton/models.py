@@ -168,13 +168,16 @@ class Crosswalk(models.Model):
         """Helper method to return fhir_id based on BFD version, preferred over direct access"""
         if version in (1, 2):
             if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
+                # TODO - This is legacy code, to be removed before migration bluebutton 0010
+                # If fhir_id is empty, try to populate it from fhir_id_v2 to support old code
+                self._fhir_id = self.fhir_id_v2
                 return str(self.fhir_id_v2)
             # TODO - This is legacy code, to be removed before migration bluebutton 0010
-            # If fhir_id_v2 is empty, try to populate it from _fhir_id
+            # If fhir_id_v2 is empty, try to populate it from _fhir_id to support new code
             if self._fhir_id is not None and self._fhir_id != '':
                 self.fhir_id_v2 = self._fhir_id
                 return str(self._fhir_id)
-            raise ValidationError(f'Could not retrieve fhir_id for version: {version}')
+            return ''
         elif version == 3:
             # TODO BB2-4166: This will want to change. In order to make
             # BB2-4181 work, the V3 value needed to be found in the V2 column.
@@ -182,7 +185,7 @@ class Crosswalk(models.Model):
             # values there when using (say) the test client.
             if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
                 return str(self.fhir_id_v2)
-            raise ValidationError(f'Could not retrieve fhir_id for version: {version}')
+            return ''
         else:
             raise ValidationError(f'{version} is not a valid BFD version')
 
