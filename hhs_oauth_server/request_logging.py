@@ -388,7 +388,6 @@ class RequestResponseLog(object):
         if user:
             self.log_msg["user"] = str(user)
             try:
-                # BB2-4166-TODO: this is hardcoded to be version 2
                 self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(Versions.V2)
                 self.log_msg["fhir_id_v3"] = user.crosswalk.fhir_id(Versions.V3)
             except ObjectDoesNotExist:
