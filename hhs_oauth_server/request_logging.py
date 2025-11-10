@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
+from apps.constants import Versions
 
 from apps.dot_ext.loggers import (
     SESSION_AUTH_FLOW_TRACE_KEYS,
@@ -156,6 +157,7 @@ class RequestResponseLog(object):
         # Log message update from a passed in object
         try:
             value = getattr(obj, obj_key, None)
+            # BB2-4166-TODO: the key could be "fhir_id" that we getattr on the object...
             # Added as the fhir_id column on crosswalk is now a method rather than a property
             if callable(value):
                 value = value()
@@ -387,9 +389,8 @@ class RequestResponseLog(object):
             self.log_msg["user"] = str(user)
             try:
                 # BB2-4166-TODO: this is hardcoded to be version 2
-                self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(2)
-                # BB2-4166-NOTES: This might work with a v3 field and crosswalk.fhir_id(Versions.v3)
-                # Aside from unit tests, this should not cause a ton of other issues with functionality
+                self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(Versions.V2)
+                self.log_msg["fhir_id_v3"] = user.crosswalk.fhir_id(Versions.V3)
             except ObjectDoesNotExist:
                 pass
 

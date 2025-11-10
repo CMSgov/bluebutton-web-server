@@ -161,7 +161,6 @@ class Crosswalk(models.Model):
             return self.fhir_id_v2
         elif version == 3:
             return self.fhir_id_v3
-
         else:
             raise ValidationError(f"{version} is not a valid BFD version")
 

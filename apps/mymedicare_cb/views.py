@@ -34,9 +34,6 @@ from .models import AnonUserState, get_and_update_user
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
-
-    version = request.session['version']
-
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
 
@@ -73,9 +70,6 @@ def authenticate(request):
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
 
     # Log successful authentication with beneficiary when we return back here.
-    # BB2-4166-TODO: set both fhir_ids if we get both of them
-    # BB2-4166-NOTES: Might work to just set both fhir_id_v2 and fhir_id_v3 with
-    # the crosswalk.fhir_id(version) value
     slsx_client.log_authn_success(request, {
         'user': {
             'id': user.id,
@@ -84,8 +78,8 @@ def authenticate(request):
                 'id': user.crosswalk.id,
                 'user_hicn_hash': user.crosswalk.user_hicn_hash,
                 'user_mbi': user.crosswalk.user_mbi,
-                # BB2-4166-TODO: this needs to account for both fhir_ids if they are found
-                ('fhir_id_v3' if version == 3 else 'fhir_id_v2'): user.crosswalk.fhir_id(version),
+                'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
+                'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
                 'user_id_type': user.crosswalk.user_id_type,
             },
         },

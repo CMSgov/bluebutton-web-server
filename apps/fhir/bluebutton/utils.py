@@ -1,3 +1,4 @@
+# noqa
 import os
 import logging
 
@@ -150,9 +151,8 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
 
     print("version IN generate_info_headers418: ", version)
     if crosswalk:
-        # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
-        # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
+        # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.
         if crosswalk.fhir_id(version) is not None:
             result["BlueButton-BeneficiaryId"] = "patientId:" + crosswalk.fhir_id(version)
         else:
@@ -743,7 +743,7 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
 
-    search_identifier = f"https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}"
+    search_identifier = f"https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}"  # noqa: E231
     payload = {"identifier": search_identifier}
     url = "{}/v2/fhir/Patient/_search".format(
         get_resourcerouter().fhir_url
