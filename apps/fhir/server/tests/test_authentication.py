@@ -9,7 +9,6 @@ from apps.test import BaseApiTest
 from ..authentication import match_fhir_id
 from apps.constants import Versions
 from .responses import responses
-from django.conf import settings
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
@@ -52,6 +51,42 @@ class TestAuthentication(BaseApiTest):
                 raise Exception(f"Failed to parse json: {e.msg}")
         return mock_fhir_post
 
+    @classmethod
+    def create_fhir_mock_v2(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
+        @urlmatch(netloc=cls.MOCK_FHIR_URL, path='/v2/fhir/Patient', method='POST')
+        def mock_fhir_post(url, request):
+            try:
+                body = request.body
+                identifier = body.split('=', 1)[1]
+
+                if 'hicn-hash' in identifier:
+                    return responses[hicn_response_key]
+                elif 'us-mbi' in identifier:
+                    return responses[mbi_response_key]
+                else:
+                    raise Exception(f"Invalid identifier: {identifier}")
+            except json.JSONDecodeError as e:
+                raise Exception(f"Failed to parse json: {e.msg}")
+        return mock_fhir_post
+
+    @classmethod
+    def create_fhir_mock_v3(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
+        @urlmatch(netloc=cls.MOCK_FHIR_URL, path='/v3/fhir/Patient', method='POST')
+        def mock_fhir_post(url, request):
+            try:
+                body = request.body
+                identifier = body.split('=', 1)[1]
+
+                if 'hicn-hash' in identifier:
+                    return responses[hicn_response_key]
+                elif 'us-mbi' in identifier:
+                    return responses[mbi_response_key]
+                else:
+                    raise Exception(f"Invalid identifier: {identifier}")
+            except json.JSONDecodeError as e:
+                raise Exception(f"Failed to parse json: {e.msg}")
+        return mock_fhir_post
+
     def test_match_fhir_id_success(self):
         '''
             Testing responses: HICN = success
@@ -59,10 +94,11 @@ class TestAuthentication(BaseApiTest):
             Expecting: Match via MBI first / hash_lockup_type="M"
         '''
         versions = [Versions.V2, Versions.V3]
-        fhir_ids = [settings.DEFAULT_SAMPLE_FHIR_ID_V2, settings.DEFAULT_SAMPLE_FHIR_ID_V3]
-        for version, versioned_fhir_id in zip(versions, fhir_ids):
+        fhir_ids = ['-20000000002346', '-206068516']
+        mock_funcs = [self.create_fhir_mock_v2, self.create_fhir_mock_v3]
+        for version, versioned_fhir_id, mock_func in zip(versions, fhir_ids, mock_funcs):
             with self.subTest(version=version, versioned_fhir_id=versioned_fhir_id):
-                with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY, version)):
+                with HTTMock(mock_func(self.SUCCESS_KEY, self.SUCCESS_KEY, version)):
                     fhir_id, hash_lookup_type = match_fhir_id(
                         mbi=self.test_mbi,
                         hicn_hash=self.test_hicn_hash, request=self.request, version=version)

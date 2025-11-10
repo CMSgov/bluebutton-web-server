@@ -150,6 +150,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
         version = get_api_version_number(request.path)
 
     print("version IN generate_info_headers418: ", version)
+    print("crosswalk: ", crosswalk)
     if crosswalk:
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.

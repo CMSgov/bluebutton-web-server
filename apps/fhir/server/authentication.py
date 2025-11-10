@@ -25,7 +25,9 @@ def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_
         using the mbi identifier.
     """
     search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
-    print("SEARCH_BY_MBI")
+    print("SEARCH_BY_MBI: ", search_identifier)
+    print("SEARCH_BY_MBI REQUEST: ", request.__dict__)
+    print("SEARCH_BY_MBI VERSION: ", version)
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 
@@ -140,9 +142,11 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
     """
     # Perform primary lookup using MBI
     print("yet another version check: ", version)
+    print("mbi val: ", mbi)
     if mbi:
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request, version)
+            print("fhir_id in MBI TRY: ", fhir_id)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
