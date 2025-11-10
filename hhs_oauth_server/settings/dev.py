@@ -37,5 +37,3 @@ TEMPLATES = [
 BLOCK_HTTP_REDIRECT_URIS = False
 
 APPLICATION_TITLE = "Blue Button 2.0 DEV"
-
-APPLY_REMOVE_FHIR_ID = 'false'  # Ensure destructive migration does not run in dev environment
