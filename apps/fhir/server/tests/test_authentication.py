@@ -84,9 +84,9 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: Match via HICN / hash_lockup_type="H"
         '''
-        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY, Versions.V2)):
+        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.NOT_FOUND_KEY, Versions.V2)):
             fhir_id, hash_lookup_type = match_fhir_id(
-                mbi=None,
+                mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash,
                 request=self.request,
                 version=Versions.V2
