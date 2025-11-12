@@ -385,7 +385,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
-        versions = [1, 2]
+        versions = [1, 2, 3]
         for version in versions:
             with self.subTest(version=version):
                 self._callback_exception_runner(version)
@@ -427,34 +427,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_fhir_id = cw.fhir_id(2)
-        cw.set_fhir_id("XXX", 2)
-        cw.save()
-
-        with HTTMock(
-            self.mock_response.slsx_token_mock,
-            self.mock_response.slsx_user_info_mock,
-            self.mock_response.slsx_health_ok_mock,
-            self.mock_response.slsx_signout_ok_mock,
-            self.fhir_patient_info_mock_v1,
-            self.fhir_patient_info_mock_v2,
-            self.fhir_patient_info_mock_v3,
-            catchall,
-        ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
-
-            # assert 500 exception
-            self.assertEqual(
-                response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            content = json.loads(response.content)
-            self.assertEqual(content["error"], "Found user's fhir_id did not match")
+        saved_fhir_id = cw.fhir_id(version)
 
         # Restore fhir_id
         cw = Crosswalk.objects.get(id=1)
-        cw.set_fhir_id(saved_fhir_id, 2)
+        cw.set_fhir_id(saved_fhir_id, version)
         cw.save()
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
