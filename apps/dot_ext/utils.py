@@ -257,7 +257,6 @@ def json_response_from_oauth2_error(error):
     return JsonResponse(ret_data, status=error.status_code)
 
 
-# BB2-4166 TODO: Write unit tests for this
 def get_api_version_number(url_path: str) -> Optional[int]:
     """Utility function to extract what version of the API a URL is
     If there are multiple occurrences of 'v{{VERSION}} in a url path,
@@ -276,6 +275,6 @@ def get_api_version_number(url_path: str) -> Optional[int]:
         if version in Versions.supported_versions():
             return version
         else:
-            raise VersionNotMatched(f"{version} extracted from {url_path}")
+            raise VersionNotMatched(f'{version} extracted from {url_path}')
 
     return Versions.NOT_AN_API_VERSION
