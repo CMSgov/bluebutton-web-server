@@ -37,7 +37,7 @@ from apps.logging.tests.audit_logger_schemas import (
 )
 from apps.test import BaseApiTest
 
-from .responses import patient_response_v1, patient_response_v2, patient_response_v3
+from .responses import patient_response
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
@@ -234,7 +234,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def fhir_patient_info_mock_v1(self, url, request):
         return {
             'status_code': status.HTTP_200_OK,
-            'content': patient_response_v1,
+            'content': patient_response,
         }
 
     # mock fhir user info endpoint
@@ -245,7 +245,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def fhir_patient_info_mock_v2(self, url, request):
         return {
             'status_code': status.HTTP_200_OK,
-            'content': patient_response_v2,
+            'content': patient_response,
         }
 
     # mock fhir user info endpoint
@@ -257,7 +257,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         print("fhir_patient_info_mock_v3")
         return {
             'status_code': status.HTTP_200_OK,
-            'content': patient_response_v3,
+            'content': patient_response,
         }
 
     def _test_callback_url_success(self, version):
@@ -617,7 +617,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         def fhir_patient_info_mock_v1(url, request):
             return {
                 "status_code": status.HTTP_200_OK,
-                "content": patient_response_v1,
+                "content": patient_response,
             }
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
@@ -627,7 +627,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         def fhir_patient_info_mock_v2(url, request):
             return {
                 "status_code": status.HTTP_200_OK,
-                "content": patient_response_v2,
+                "content": patient_response,
             }
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
@@ -637,7 +637,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         def fhir_patient_info_mock_v3(url, request):
             return {
                 "status_code": status.HTTP_200_OK,
-                "content": patient_response_v2,
+                "content": patient_response,
             }
 
         @all_requests
