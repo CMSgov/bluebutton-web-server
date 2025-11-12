@@ -103,12 +103,11 @@ def callback(request):
     # We don't have a `version` coming back from auth. Therefore, we check
     # the authorize URL to find what version pathway we are on.
     version = Versions.NOT_AN_API_VERSION
-    print("what is the next_uri here: ", next_uri)
+
     for supported_version in Versions.supported_versions():
         if f"/v{supported_version}/o/authorize" in next_uri:
             version = supported_version
             break
-    print("what is the version here: ", version)
     request.session['version'] = version
 
     user_not_found_error = None
@@ -168,6 +167,7 @@ def callback(request):
         url_map_name = 'oauth2_provider_v2:authorize-instance-v2'
     else:
         url_map_name = 'oauth2_provider:authorize-instance'
+
     auth_uri = reverse(url_map_name, args=[approval.uuid])
 
     _, _, auth_path, _, _ = urlsplit(auth_uri)

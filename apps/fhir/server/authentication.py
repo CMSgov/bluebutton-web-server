@@ -165,8 +165,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
                               'FOUND beneficiary via hicn_hash')
             return fhir_id, 'H'
 
-    log_match_fhir_id(request, fhir_id, hicn_hash, False, None,
-                      'FHIR ID NOT FOUND for both mbi and hicn_hash')
+    log_match_fhir_id(request, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
     raise exceptions.NotFound('The requested Beneficiary has no entry, however this may change')
 
 
