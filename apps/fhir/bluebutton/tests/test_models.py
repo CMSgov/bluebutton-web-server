@@ -183,3 +183,40 @@ class TestModels(BaseApiTest):
             BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"
         ):
             hash_hicn("")
+
+    # TODO - This is legacy code, to be removed before migration bluebutton 0010
+    def test_fhir_id_legacy(self):
+        """This test is for verifying the behavior surrounding the old _fhir_id column.
+
+        Remove it before removing the column from the database and model (migration 0010)
+        """
+
+        user_old = self._create_user(
+            "john",
+            "password",
+            first_name="John",
+            last_name="Smith",
+            email="john@smith.net",
+            fhir_id_v2="-20000000000002",
+            user_hicn_hash=self.test_hicn_hash,
+            user_mbi=None,
+        )
+        cw_old = Crosswalk.objects.get(user=user_old)
+        cw_old.fhir_id_v2 = None
+        cw_old._fhir_id = "-20000000000002"
+        cw_old.save()
+        self.assertEqual(cw_old.fhir_id(2), "-20000000000002")
+
+        user_new = self._create_user(
+            "john2",
+            "password",
+            first_name="John",
+            last_name="Smith",
+            email="john@smith.net",
+            fhir_id_v2="-20000000000002",
+            user_hicn_hash=self.test_hicn_hash,
+            user_mbi=None,
+        )
+        cw_new = Crosswalk.objects.get(user=user_new)
+        fhir_id = cw_new.fhir_id(2)
+        self.assertEqual(cw_new._fhir_id, fhir_id)

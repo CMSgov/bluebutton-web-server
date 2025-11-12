@@ -3,6 +3,9 @@
 from django.db import migrations, models
 from django.core.validators import MinLengthValidator
 
+# TODO - Migration is Unapplied
+# This migration needs to be run before deployment
+
 
 class Migration(migrations.Migration):
 
