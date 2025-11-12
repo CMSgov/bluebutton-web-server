@@ -59,6 +59,9 @@ class MockUrlSLSxResponses:
     # mock sls token endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
     def slsx_token_mock(self, url, request):
+        print()
+        print("slsx_token_mock url: ", url)
+        print("slsx_token_mock request: ", request.__dict__)
         return {"status_code": status.HTTP_200_OK,
                 "content": {"auth_token": "tqXFB/j2OR9Fx7aDowGasMZGqoWmwcihNzMdaW2gpEmV",
                             "role": "consumer",

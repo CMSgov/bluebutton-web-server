@@ -39,7 +39,7 @@ from apps.test import BaseApiTest
 
 from .responses import patient_response
 
-from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 from http import HTTPStatus
 
@@ -222,17 +222,29 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri='http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test',
         )
 
         # mock fhir user info endpoint
         @urlmatch(
-            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
+            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,
+            path=r'/v[12]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
             return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
+            }
+
+        # mock fhir user info endpoint
+        @urlmatch(
+            netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME,
+            path=r'/v3/fhir/Patient/',
+        )
+        def fhir_patient_info_mock_v3(url, request):
+            return {
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
             }
 
         @all_requests
@@ -245,6 +257,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             # need to fake an auth flow context to pass
@@ -260,10 +273,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 }
             )
             s.save()
+            print("callback_url: ", self.callback_url)
             response = self.client.get(
                 self.callback_url,
                 data={"req_token": "0000-test_req_token-0000", "relay": state},
             )
+            print("response", response.__dict__)
+
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             self.assertIn("client_id=test", response.url)
@@ -337,7 +353,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
-        versions = [1, 2]
+        versions = [1, 2, 3]
         for version in versions:
             with self.subTest(version=version):
                 self._callback_exception_runner(version)
