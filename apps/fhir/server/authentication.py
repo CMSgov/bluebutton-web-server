@@ -151,7 +151,8 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
 
     # Perform secondary lookup using HICN_HASH
     # WE CANNOT DO A HICN HASH LOOKUP FOR V3
-    if version in [Versions.V1, Versions.V2] and hicn_hash:
+    # if version in [Versions.V1, Versions.V2] and hicn_hash:
+    if hicn_hash:
         try:
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
         except UpstreamServerException as err:

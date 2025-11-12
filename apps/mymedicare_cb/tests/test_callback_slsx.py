@@ -630,6 +630,16 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 "content": patient_response_v2,
             }
 
+        # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
+        @urlmatch(
+            netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME, path="/v3/fhir/Patient/"
+        )
+        def fhir_patient_info_mock_v3(url, request):
+            return {
+                "status_code": status.HTTP_200_OK,
+                "content": patient_response_v2,
+            }
+
         @all_requests
         def catchall(url, request):
             raise Exception(url)
@@ -642,13 +652,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock_v1,
             fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
                 self.callback_url, data={"req_token": "test", "relay": state}
             )
             print()
-            print(response.__dict__)
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -699,7 +709,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
+            fhir_patient_info_mock_v1,
             fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -793,6 +805,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock_v1,
             fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -843,7 +856,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock_changed_hicn,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
+            fhir_patient_info_mock_v1,
             fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -939,7 +954,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock_changed_mbi,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
+            fhir_patient_info_mock_v1,
             fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -1019,7 +1036,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock_changed_hicn_mbi,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
+            fhir_patient_info_mock_v1,
             fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
