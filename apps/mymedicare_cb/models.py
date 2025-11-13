@@ -17,6 +17,7 @@ from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
 MAX_HICN_HASH_LENGTH = 64
 MAX_MBI_LENGTH = 11
+FHIR_ID_VERSIONS_TO_CHECK = [2, 3]
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -68,25 +69,27 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     # If the lookup for the requested version fails, raise the exception
     # This is wrapped in the case that if the requested version fails, match_fhir_id
     # will still bubble up UpstreamServerException
-    for supported_version in Versions.supported_versions():
+    for supported_version in FHIR_ID_VERSIONS_TO_CHECK:
         try:
             fhir_id, hash_lookup_type = match_fhir_id(
                 mbi=slsx_client.mbi,
                 hicn_hash=hicn_hash,
                 request=request,
                 version=supported_version,
-
             )
             versioned_fhir_ids[supported_version] = fhir_id
         except UpstreamServerException as e:
             if supported_version == version:
                 raise e
 
+    bfd_fhir_id_v2 = versioned_fhir_ids[Versions.V2]
+    bfd_fhir_id_v3 = versioned_fhir_ids[Versions.V3]
+
     log_dict = {
         'type': 'mymedicare_cb:get_and_update_user',
         'subject': slsx_client.user_id,
-        'fhir_id_v2': versioned_fhir_ids.get(Versions.V2, None),
-        'fhir_id_v3': versioned_fhir_ids.get(Versions.V3, None),
+        'fhir_id_v2': bfd_fhir_id_v2,
+        'fhir_id_v3': bfd_fhir_id_v3,
         'hicn_hash': slsx_client.hicn_hash,
         'hash_lookup_type': hash_lookup_type,
         'crosswalk': {},
@@ -104,7 +107,12 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
             hicn_updated = True
 
         update_fhir_id = False
-        if user.crosswalk.fhir_id(Versions.V2) == '' or user.crosswalk.fhir_id(Versions.V3) == '':
+        if (
+            user.crosswalk.fhir_id(Versions.V2) == ''
+            or user.crosswalk.fhir_id(Versions.V3) == ''
+            or user.crosswalk.fhir_id(Versions.V2) != bfd_fhir_id_v2
+            or user.crosswalk.fhir_id(Versions.V3) != bfd_fhir_id_v3
+        ):
             update_fhir_id = True
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
@@ -119,8 +127,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
                 'crosswalk_before': {
                     'id': user.crosswalk.id,
                     'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                    'fhir_id_v2': versioned_fhir_ids.get(Versions.V2, None),
-                    'fhir_id_v3': versioned_fhir_ids.get(Versions.V3, None),
+                    'fhir_id_v2': bfd_fhir_id_v2,
+                    'fhir_id_v3': bfd_fhir_id_v3,
                     'user_id_type': user.crosswalk.user_id_type,
                 },
             })
@@ -129,8 +137,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
                 # Archive to audit crosswalk changes
                 ArchivedCrosswalk.create(user.crosswalk)
                 if update_fhir_id:
-                    user.crosswalk.fhir_id_v2 = versioned_fhir_ids.get(Versions.V2)
-                    user.crosswalk.fhir_id_v3 = versioned_fhir_ids.get(Versions.V3)
+                    user.crosswalk.fhir_id_v2 = bfd_fhir_id_v2
+                    user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
                 user.crosswalk.user_id_type = hash_lookup_type
                 user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
@@ -147,8 +155,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
             'crosswalk': {
                 'id': user.crosswalk.id,
                 'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                'fhir_id_v2': versioned_fhir_ids.get(Versions.V2, None),
-                'fhir_id_v3': versioned_fhir_ids.get(Versions.V3, None),
+                'fhir_id_v2': bfd_fhir_id_v2,
+                'fhir_id_v3': bfd_fhir_id_v3,
                 'user_id_type': user.crosswalk.user_id_type,
             },
         })
@@ -160,8 +168,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
 
     user = create_beneficiary_record(
         slsx_client,
-        fhir_id_v2=versioned_fhir_ids.get(Versions.V2, None),
-        fhir_id_v3=versioned_fhir_ids.get(Versions.V3, None),
+        fhir_id_v2=bfd_fhir_id_v2,
+        fhir_id_v3=bfd_fhir_id_v3,
         user_id_type=hash_lookup_type,
         request=request
     )
@@ -175,8 +183,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         'crosswalk': {
             'id': user.crosswalk.id,
             'user_hicn_hash': user.crosswalk.user_hicn_hash,
-            'fhir_id_v2': versioned_fhir_ids.get(Versions.V2, None),
-            'fhir_id_v3': versioned_fhir_ids.get(Versions.V3, None),
+            'fhir_id_v2': bfd_fhir_id_v2,
+            'fhir_id_v3': bfd_fhir_id_v3,
             'user_id_type': user.crosswalk.user_id_type,
         },
     })

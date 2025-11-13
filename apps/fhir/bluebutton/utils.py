@@ -410,7 +410,6 @@ def prepend_q(pass_params):
     return pass_params
 
 
-# BB2-4166-TODO - if tests are failing this could be related
 def dt_patient_reference(user, version):
     """Get Patient Reference from Crosswalk for user"""
 
@@ -428,7 +427,6 @@ def crosswalk_patient_id(user, version):
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
-        # BB2-4166-TODO - if tests are failing this could be related
         if patient.fhir_id(version):
             return patient.fhir_id(version)
 

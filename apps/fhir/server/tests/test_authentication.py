@@ -6,9 +6,9 @@ from httmock import HTTMock, urlmatch
 from rest_framework import exceptions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.test import BaseApiTest
-from ..authentication import match_fhir_id
+from apps.fhir.server.authentication import match_fhir_id
 from apps.versions import Versions
-from .responses import responses
+from apps.fhir.server.tests.responses import responses
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
@@ -17,9 +17,8 @@ def mock_fhir_url(version):
     return MOCK_FHIR_ENDPOINT_HOSTNAME if version in [1, 2] else MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 
-#     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
 def mock_fhir_path(version):
-    return f"/v{version}/fhir/Patient"
+    return f'/v{version}/fhir/Patient'
 
 
 class TestAuthentication(BaseApiTest):
@@ -41,10 +40,7 @@ class TestAuthentication(BaseApiTest):
         self.request = self.factory.get('http://localhost:8000/mymedicare/sls-callback')
         self.request.session = self.client.session
 
-    # The mock uses data from responses.py. We need to have mock data for a given MBI/FHIR ID
-    # for each version of the API we want to test this way. We can use the v2 test data for
-    # v3 because we're just asking "do you have a valid us-mbi query string?", and usnig that to then
-    # look up the mock response.
+    # The mock uses data from responses.py
     @classmethod
     def create_fhir_mock(cls, hicn_response_key, mbi_response_key, version=Versions.NOT_AN_API_VERSION):
         @urlmatch(netloc=mock_fhir_url(version), path=mock_fhir_path(version), method='POST')
