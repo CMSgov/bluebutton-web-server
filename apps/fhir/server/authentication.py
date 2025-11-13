@@ -4,7 +4,7 @@ from django.conf import settings
 from rest_framework import exceptions
 from urllib.parse import quote
 
-from apps.constants import Versions
+from apps.versions import Versions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.signals import (
     pre_fetch,

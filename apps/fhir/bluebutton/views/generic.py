@@ -3,7 +3,7 @@ import hashlib
 import voluptuous
 import logging
 
-from apps.constants import VersionNotMatched, Versions
+from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist

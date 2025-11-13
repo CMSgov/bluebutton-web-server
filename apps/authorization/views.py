@@ -14,7 +14,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from oauth2_provider.views.base import OAuthLibMixin
 from oauth2_provider.views.generic import ClientProtectedResourceView
 
-from apps.constants import VersionNotMatched, Versions
+from apps.versions import VersionNotMatched, Versions
 from apps.dot_ext.authentication import SLSAuthentication
 from .models import DataAccessGrant
 from ..dot_ext.utils import get_application_from_meta, get_api_version_number_from_url

@@ -8,7 +8,7 @@ from oauth2_provider.models import AccessToken, RefreshToken, get_application_mo
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
 import re
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 
 from apps.authorization.models import DataAccessGrant
 

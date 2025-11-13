@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
-from apps.constants import Versions
+from apps.versions import Versions
 
 from apps.dot_ext.loggers import (
     SESSION_AUTH_FLOW_TRACE_KEYS,

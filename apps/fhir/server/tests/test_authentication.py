@@ -7,7 +7,7 @@ from rest_framework import exceptions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.test import BaseApiTest
 from ..authentication import match_fhir_id
-from apps.constants import Versions
+from apps.versions import Versions
 from .responses import responses
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME

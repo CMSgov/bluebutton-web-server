@@ -12,7 +12,7 @@ from rest_framework.exceptions import APIException
 from django.core.validators import MinLengthValidator
 from apps.accounts.models import get_user_id_salt
 
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 
 
 class BBFhirBluebuttonModelException(APIException):

@@ -6,7 +6,7 @@ from django.test import TestCase, RequestFactory
 from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.constants import Versions
+from apps.versions import Versions
 
 from apps.fhir.bluebutton.utils import (
     notNone,

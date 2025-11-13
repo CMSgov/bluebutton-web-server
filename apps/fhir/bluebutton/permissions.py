@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 from .constants import ALLOWED_RESOURCE_TYPES
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging
 

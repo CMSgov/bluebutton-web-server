@@ -1,4 +1,4 @@
-from apps.constants import Versions
+from apps.versions import Versions
 import apps.logging.request_logger as logging
 
 from django.db.models.signals import (

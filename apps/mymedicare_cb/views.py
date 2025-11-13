@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from apps.constants import Versions
+from apps.versions import Versions
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,

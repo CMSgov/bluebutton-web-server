@@ -5,7 +5,7 @@ from .utils import testclient_http_response_setup, _start_url_with_http_or_https
 from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
 

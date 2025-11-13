@@ -9,7 +9,7 @@ from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
-from apps.constants import Versions
+from apps.versions import Versions
 
 
 def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):

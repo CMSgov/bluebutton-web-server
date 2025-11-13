@@ -14,7 +14,7 @@ from pytz import timezone
 from django.conf import settings
 from django.contrib import messages
 from apps.fhir.server.settings import fhir_settings
-from apps.constants import Versions
+from apps.versions import Versions
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info

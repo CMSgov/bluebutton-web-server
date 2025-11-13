@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from apps.constants import VersionNotMatched
+from apps.versions import VersionNotMatched
 from ..utils import get_api_version_number_from_url
 
 SUPPORTED_VERSION_TEST_CASES = [

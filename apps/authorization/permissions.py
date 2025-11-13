@@ -1,6 +1,6 @@
 from django.conf import settings
 from rest_framework import (permissions, exceptions)
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 
 from .models import DataAccessGrant
 

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from apps.constants import Versions
+from apps.versions import Versions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 from apps.accounts.models import UserProfile
