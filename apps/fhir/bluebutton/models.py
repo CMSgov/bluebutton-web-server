@@ -166,7 +166,7 @@ class Crosswalk(models.Model):
             )
         ]
 
-    def fhir_id(self, version: int = Versions.NOT_AN_API_VERSION) -> str:
+    def fhir_id(self, version: int = Versions.V2) -> str:
         """Helper method to return fhir_id based on BFD version, preferred over direct access"""
         if version in [Versions.V1, Versions.V2]:
             if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
