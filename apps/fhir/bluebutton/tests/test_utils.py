@@ -235,7 +235,7 @@ class Patient_Resource_Test(BaseApiTest):
     def test_crosswalk_fhir_id(self):
         """ Get the Crosswalk FHIR_Id """
 
-        for version in [Versions.V2, Versions.V3]:
+        for version in Versions.latest_versions():
             u = User.objects.create_user(username=f"billybob-{version}",
                                          first_name="Billybob",
                                          last_name="Button",
@@ -258,7 +258,7 @@ class Patient_Resource_Test(BaseApiTest):
 
     def test_crosswalk_not_fhir_id(self):
         """ Get no Crosswalk id """
-        for version in [Versions.V2, Versions.V3]:
+        for version in Versions.latest_versions():
             u = User.objects.create_user(username=f"bobnobob-{version}",
                                          first_name="bob",
                                          last_name="Button",

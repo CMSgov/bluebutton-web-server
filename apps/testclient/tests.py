@@ -279,7 +279,9 @@ class BlueButtonClientApiFhirTest(TestCase):
         # our control, then these unit tests will always be suspect (including offsets and pagination values).
         # This seems to have been the case 7mo ago with the "total" test, above.
         # self.assertEqual(len(response_data["entry"]), 7)
-        self.assertEqual(len(response_data["entry"]), 5)
+        # From commit f6d4d7dcc91cea27288d4bc280cf0c395c60e6be, there was a change to 12 here.
+        # The changes in that commit are around the logging of fhir_id_v2/fhir_id_v3.
+        self.assertEqual(len(response_data["entry"]), 12)
         previous_links = [
             data["url"]
             for data in response_data["link"]
@@ -292,7 +294,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             data["url"] for data in response_data["link"] if data["relation"] == "first"
         ]
         self.assertEqual(len(previous_links), 1)
-        self.assertEqual(len(next_links), 0)
+        self.assertEqual(len(next_links), 1)
         self.assertEqual(len(first_links), 1)
         self.assertIn("startIndex=13", previous_links[0])
         self.assertIn("startIndex=0", first_links[0])

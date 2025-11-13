@@ -17,7 +17,6 @@ from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
 MAX_HICN_HASH_LENGTH = 64
 MAX_MBI_LENGTH = 11
-FHIR_ID_VERSIONS_TO_CHECK = [2, 3]
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -69,7 +68,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     # If the lookup for the requested version fails, raise the exception
     # This is wrapped in the case that if the requested version fails, match_fhir_id
     # will still bubble up UpstreamServerException
-    for supported_version in FHIR_ID_VERSIONS_TO_CHECK:
+    for supported_version in Versions.latest_versions():
         try:
             fhir_id, hash_lookup_type = match_fhir_id(
                 mbi=slsx_client.mbi,

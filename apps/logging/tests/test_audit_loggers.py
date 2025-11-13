@@ -295,7 +295,7 @@ class TestAuditEventLoggers(BaseApiTest):
             fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             log_entries = fhir_log_content.splitlines()
 
-            self.assertEqual(len(log_entries), 6)
+            self.assertEqual(len(log_entries), 4)
 
             # Validate fhir_auth_pre_fetch entry
             self.assertTrue(
