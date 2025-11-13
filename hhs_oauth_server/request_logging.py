@@ -157,6 +157,7 @@ class RequestResponseLog(object):
         # Log message update from a passed in object
         try:
             value = getattr(obj, obj_key, None)
+            # Added as the fhir_id column on crosswalk is now a method rather than a property
             if callable(value):
                 value = value()
             if value is not None:

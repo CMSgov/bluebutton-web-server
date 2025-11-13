@@ -302,15 +302,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             )
             s.save()
 
-            print()
-            print("callback_url: ", self.callback_url)
-            print("THIS IS BEFORE")
             response = self.client.get(
                 self.callback_url,
                 data={"req_token": "0000-test_req_token-0000", "relay": state},
             )
-            print("THIS IS AFTER THE GET")
-            print("response", response.__dict__)
 
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -658,7 +653,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             response = self.client.get(
                 self.callback_url, data={"req_token": "test", "relay": state}
             )
-            print()
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
