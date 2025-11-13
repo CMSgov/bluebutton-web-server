@@ -150,7 +150,9 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return fhir_id, 'M'
 
     # Perform secondary lookup using HICN_HASH
-    # WE CANNOT DO A HICN HASH LOOKUP FOR V3
+    # WE CANNOT DO A HICN HASH LOOKUP FOR V3, but there are tests that rely on a null MBI
+    # and populated hicn_hash, which now execute on v3 (due to updates in get_and_update_user)
+    # so we need to leave this conditional as is for now, until the test is modified and/or hicn_hash is removed
     # if version in [Versions.V1, Versions.V2] and hicn_hash:
     if hicn_hash:
         try:

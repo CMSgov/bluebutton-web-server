@@ -152,9 +152,9 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.
         if crosswalk.fhir_id(version) is not None:
-            result["BlueButton-BeneficiaryId"] = "patientId:" + crosswalk.fhir_id(version)
+            result['BlueButton-BeneficiaryId'] = 'patientId:' + crosswalk.fhir_id(version)
         else:
-            result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(
                 crosswalk.user_hicn_hash
             )
     else:
@@ -736,9 +736,9 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
 
-    search_identifier = f"https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}"  # noqa: E231
-    payload = {"identifier": search_identifier}
-    url = "{}/v2/fhir/Patient/_search".format(
+    search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
+    payload = {'identifier': search_identifier}
+    url = '{}/v2/fhir/Patient/_search'.format(
         get_resourcerouter().fhir_url
     )
 
