@@ -19,7 +19,7 @@ from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
 from .models import Crosswalk, Fhir_Response
-from apps.dot_ext.utils import get_api_version_number
+from apps.dot_ext.utils import get_api_version_number_from_url
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -146,7 +146,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     crosswalk = get_crosswalk(user)
 
     if version == Versions.NOT_AN_API_VERSION:
-        version = get_api_version_number(request.path)
+        version = get_api_version_number_from_url(request.path)
 
     if crosswalk:
         # TODO: Can the hicnHash case ever be reached? Should refactor this!

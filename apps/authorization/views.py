@@ -17,7 +17,7 @@ from oauth2_provider.views.generic import ClientProtectedResourceView
 from apps.constants import VersionNotMatched, Versions
 from apps.dot_ext.authentication import SLSAuthentication
 from .models import DataAccessGrant
-from ..dot_ext.utils import get_application_from_meta, get_api_version_number
+from ..dot_ext.utils import get_application_from_meta, get_api_version_number_from_url
 from ..fhir.bluebutton.models import Crosswalk
 
 
@@ -70,7 +70,7 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
     def post(request, *args, **kwargs):
         try:
             path_info = request.__dict__.get('path_info')
-            version = get_api_version_number(path_info)
+            version = get_api_version_number_from_url(path_info)
             patient_id = kwargs.pop('patient_id', None)
 
             match version:

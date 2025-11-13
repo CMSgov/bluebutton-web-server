@@ -8,7 +8,6 @@ from oauth2_provider.models import AccessToken, RefreshToken, get_application_mo
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
 import re
-from typing import Optional
 from apps.constants import Versions, VersionNotMatched
 
 from apps.authorization.models import DataAccessGrant
@@ -257,7 +256,7 @@ def json_response_from_oauth2_error(error):
     return JsonResponse(ret_data, status=error.status_code)
 
 
-def get_api_version_number(url_path: str) -> Optional[int]:
+def get_api_version_number_from_url(url_path: str) -> int:
     """Utility function to extract what version of the API a URL is
     If there are multiple occurrences of 'v{{VERSION}} in a url path,
     only return the first one
