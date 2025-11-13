@@ -702,7 +702,7 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
     return security
 
 
-def get_patient_by_id(id, request):
+def get_v2_patient_by_id(id, request):
     """
     a helper adapted to just get patient given an id out of band of auth flow
     or normal data flow, use by tools such as BB2-Tools admin viewers

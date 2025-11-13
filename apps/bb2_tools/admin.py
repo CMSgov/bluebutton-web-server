@@ -21,7 +21,7 @@ from apps.bb2_tools.models import (
     DummyAdminObject,
     UserStats,
 )
-from apps.fhir.bluebutton.utils import get_patient_by_id
+from apps.fhir.bluebutton.utils import get_v2_patient_by_id
 
 ADMIN_PREPEND = getattr(settings, "ADMIN_PREPEND_URL", "")
 BB2_TOOLS_PATH = (
@@ -415,7 +415,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
 
         json_resp = None
         try:
-            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
+            # DEPRECATE_V2: If we ever deprecate v2, this function and call need to be updated
+            json_resp = get_v2_patient_by_id(crosswalk.fhir_id(2), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 
