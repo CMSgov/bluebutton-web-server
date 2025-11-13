@@ -80,7 +80,6 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
                     user = Crosswalk.objects.get(fhir_id_v2=patient_id).user
                 case Versions.V3:
                     user = Crosswalk.objects.get(fhir_id_v3=patient_id).user
-                # TODO: Should we handle this below or raise it?
                 case _:
                     raise VersionNotMatched(f"{version} is not a valid version constant")
 
