@@ -104,7 +104,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
             hicn_updated = True
 
         update_fhir_id = False
-        if user.crosswalk.fhir_id(Versions.V2) is None or user.crosswalk.fhir_id(Versions.V3) is None:
+        if user.crosswalk.fhir_id(Versions.V2) == '' or user.crosswalk.fhir_id(Versions.V3) == '':
             update_fhir_id = True
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has

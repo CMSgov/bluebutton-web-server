@@ -33,7 +33,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
                 fhir_body = json.loads(body)
                 cw = Crosswalk.objects.get(user=token.user)
                 version = get_api_version_number_from_url(request.path)
-                fhir_body["patient"] = cw.fhir_id(version)
+                fhir_body['patient'] = cw.fhir_id(version)
                 body = json.dumps(fhir_body)
 
         return uri, headers, body, status
