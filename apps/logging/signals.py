@@ -1,3 +1,4 @@
+from apps.versions import Versions
 import apps.logging.request_logger as logging
 
 from django.db.models.signals import (
@@ -46,8 +47,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         'id': None,
         'user_hicn_hash': None,
         'user_mbi': None,
-        # BB2-4166-TODO: this is hardcoded to be version 2, add v3
         'fhir_id_v2': None,
+        'fhir_id_v3': None,
         'user_id_type': None
     }
 
@@ -56,8 +57,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
             'id': user.crosswalk.id,
             'user_hicn_hash': user.crosswalk.user_hicn_hash,
             'user_mbi': user.crosswalk.user_mbi,
-            # BB2-4166-TODO: this is hardcoded to be version 2, add v3
-            'fhir_id_v2': user.crosswalk.fhir_id(2),
+            'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
+            'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
             'user_id_type': user.crosswalk.user_id_type
         }
     except Exception:

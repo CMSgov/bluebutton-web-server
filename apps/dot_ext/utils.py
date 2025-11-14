@@ -7,6 +7,8 @@ from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
+import re
+from apps.versions import Versions, VersionNotMatched
 
 from apps.authorization.models import DataAccessGrant
 
@@ -252,3 +254,26 @@ def json_response_from_oauth2_error(error):
         ret_data['error_description'] = error.description
 
     return JsonResponse(ret_data, status=error.status_code)
+
+
+def get_api_version_number_from_url(url_path: str) -> int:
+    """Utility function to extract what version of the API a URL is
+    If there are multiple occurrences of 'v{{VERSION}} in a url path,
+    only return the first one
+    EX. /v2/o/authorize will return v2.
+
+    Args:
+        url_path (str): The url being called that we want to extract the api version
+
+    Returns:
+        Optional[str]: Returns a string of v2
+    """
+    match = re.search(r'/v(\d+)/', url_path, re.IGNORECASE)
+    if match:
+        version = int(match.group(1))
+        if version in Versions.supported_versions():
+            return version
+        else:
+            raise VersionNotMatched(f'{version} extracted from {url_path}')
+
+    return Versions.NOT_AN_API_VERSION

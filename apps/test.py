@@ -408,8 +408,8 @@ class BaseApiTest(TestCase):
             username = first_name + last_name + "@example.com"
 
             # Create unique hashes using FHIR_ID
-            # BB2-4166-TODO: this is only checking v2, possible rewrite these helper functions to allow more
-            # generalized fhir_id handling
+            # Eventually, we will be getting rid of the hicn hash. We can leave this v2 reference for now.
+            # This is "just" creating a unique value.
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )

@@ -3,7 +3,7 @@ import hashlib
 import voluptuous
 import logging
 
-from apps.constants import VersionNotMatched, Versions
+from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -134,6 +134,7 @@ class FhirDataView(APIView):
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
+        request.session.version = self.version
 
         # Now make the call to the backend API
         req = Request('GET',
@@ -184,7 +185,6 @@ class FhirDataView(APIView):
 
         # BB2-128
         error = process_error_response(response)
-
         if error is not None:
             raise error
 

@@ -37,6 +37,12 @@ class Versions:
             case _:
                 raise VersionNotMatched(f"{version} is not a valid version constant")
 
+    def supported_versions():
+        return [Versions.V1, Versions.V2, Versions.V3]
+
+    def latest_versions():
+        return [Versions.V2, Versions.V3]
+
 
 class AccessType:
     ONE_TIME = 'ONE_TIME'

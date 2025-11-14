@@ -13,7 +13,7 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         get_response_text,
                                         build_oauth_resource)
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging
 

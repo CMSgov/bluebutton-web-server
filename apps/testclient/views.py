@@ -27,7 +27,7 @@ from apps.wellknown.views.openid import openid_configuration_v1, openid_configur
 
 import apps.logging.request_logger as bb2logging
 
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 
 from apps.testclient.constants import (
     HOME_PAGE,

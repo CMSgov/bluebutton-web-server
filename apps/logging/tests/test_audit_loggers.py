@@ -41,7 +41,7 @@ from .audit_logger_schemas import (
     SLSX_USERINFO_LOG_SCHEMA,
 )
 
-from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
@@ -178,6 +178,9 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_callback_url_success_slsx_logger_v2(self):
         self._callback_url_success_slsx_logger(2)
 
+    def test_callback_url_success_slsx_logger_v3(self):
+        self._callback_url_success_slsx_logger(3)
+
     def _callback_url_success_slsx_logger(self, version=1):
         # copy and adapted for SLSx logger test
         state = generate_nonce()
@@ -189,9 +192,20 @@ class TestAuditEventLoggers(BaseApiTest):
         # mock fhir user info endpoint
         @urlmatch(
             netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,
-            path=r'/v[123]/fhir/Patient/',
+            path=r'/v[12]/fhir/Patient/',
         )
         def fhir_patient_info_mock(url, request):
+            return {
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
+            }
+
+        # mock fhir user info endpoint
+        @urlmatch(
+            netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME,
+            path=r'/v3/fhir/Patient/',
+        )
+        def fhir_patient_info_mock_v3(url, request):
             return {
                 'status_code': status.HTTP_200_OK,
                 'content': patient_response,
@@ -206,6 +220,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             s = self.client.session
@@ -279,7 +294,8 @@ class TestAuditEventLoggers(BaseApiTest):
 
             fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             log_entries = fhir_log_content.splitlines()
-            self.assertEqual(len(log_entries), 2)
+
+            self.assertEqual(len(log_entries), 4)
 
             # Validate fhir_auth_pre_fetch entry
             self.assertTrue(

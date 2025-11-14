@@ -6,7 +6,7 @@ from random import randint
 from apps.authorization.models import (
     DataAccessGrant,
 )
-from apps.constants import AccessType
+from apps.versions import AccessType
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from unittest import mock
