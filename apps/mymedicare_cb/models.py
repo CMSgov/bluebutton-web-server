@@ -81,8 +81,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
             if supported_version == version:
                 raise e
 
-    bfd_fhir_id_v2 = versioned_fhir_ids[Versions.V2]
-    bfd_fhir_id_v3 = versioned_fhir_ids[Versions.V3]
+    bfd_fhir_id_v2 = versioned_fhir_ids.get(Versions.V2, None)
+    bfd_fhir_id_v3 = versioned_fhir_ids.get(Versions.V3, None)
 
     log_dict = {
         'type': 'mymedicare_cb:get_and_update_user',
