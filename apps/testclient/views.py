@@ -54,8 +54,7 @@ def _get_oauth2_session_with_token(request: HttpRequest) -> OAuth2Session:
 FhirDataParams = namedtuple("FhirDataParams", "name,uri,version,patient")
 
 
-def _build_pagination_uri(params, request):
-    uri = None
+def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest) -> str:
     # This sets up the navigation URI (pagination) based on whether we are handling
     # a patient or a beneficiary. All of this logic is essentially to add one parameter,
     # name correctly, to the nav URI. It is version dependent (there is no pagination in V3).
@@ -72,7 +71,7 @@ def _build_pagination_uri(params, request):
             id = beneficiary
         else:
             # We should not be able to get here.
-            raise VersionNotMatched(f"Failed to set a patient id for version; given {params.version}")
+            raise VersionNotMatched(f"Failed to set a patient id for version; given {params.version}")  # noqa: E702
 
         # Extend the base URI with pagination information.
         uri = EndpointUrl.nav_uri(uri,
@@ -88,7 +87,7 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     if params.version in [Versions.V1, Versions.V2]:
-        pagination_uri = _build_pagination_uri(params, request)
+        pagination_uri = _build_pagination_uri(uri, params, request)
         if pagination_uri is not None:
             uri = pagination_uri
 
@@ -109,7 +108,7 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
         try:
             return json.loads(json_response.content)
         except JSONDecodeError:
-            return {'error': f'Could not decode JSON; status code {json_response.status_code}'}
+            return {'error': f'Could not decode JSON; status code {json_response.status_code}'}  # noqa: E702
     else:
         # Same as above.
         return {'error': json_response.status_code}
