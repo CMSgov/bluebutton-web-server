@@ -1,0 +1,72 @@
+services:
+  ####################
+  # Postgres database
+  # Pin to the version of Postgres that is 
+  # equivalent to production.
+  db:
+    image: postgres:16
+    env_file:
+      - .env.local
+    ports:
+      - "5432:5432"
+  ####################
+  # Blue Button
+  web:
+    image: bb-local:latest
+    command: /code/dev-local/start-local.sh
+    env_file:
+    # This may have relied on order of execution
+    # That is, .env was sourced last, possibly overriding other env vars. :/ 
+      - .env.local
+    volumes:
+      - ..:/code
+      - ~/.bb2/certstore:/certstore
+      - ./start-local.sh:/start-local.sh
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      - db
+    profiles:
+      - slsx
+    platform: linux/amd64
+  ####################
+  # Local MSLS server
+  # A small Flask app for testing.
+  msls:
+    image: msls-local:latest
+    command: python app.py
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./msls-local:/code
+    profiles:
+      - mocksls
+  # web_msls:
+  #   build: .
+  #   command: ./start-local.sh
+  #   env_file:
+  #     - .env.local
+  #   volumes:
+  #     - ..:/code
+  #     - ~/.bb2/certstore:/certstore
+  #   ports:
+  #     - "8000:8000"
+  #     - "5678:5678"
+  #   depends_on:
+  #     - db
+  #     - msls
+  #   profiles:
+  #     - mocksls
+  #   platform: linux/amd64
+  # unittests:
+  #   build: .
+  #   command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
+  #   env_file:
+  #     - docker-compose/unittests-env-vars.env
+  #   ports:
+  #     - "6789:6789"
+  #   volumes:
+  #     - .:/code
+  #   profiles:
+  #     - tests

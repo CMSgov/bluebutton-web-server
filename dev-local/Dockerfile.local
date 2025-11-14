@@ -1,0 +1,31 @@
+# FIXME: Update to most recent python.
+FROM python:3.11
+
+# FIXME: Uncertain implications
+ENV PYTHONUNBUFFERED=1
+ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+RUN apt-get update \
+    && apt-get install -y \
+        gettext
+
+# Set the local user for development
+# and mount the codebase at /code
+# Set this as the current/active path.
+RUN useradd -m -s /bin/bash DEV
+USER DEV
+ADD .. /code
+WORKDIR /code
+
+# FIXME: Is this how to use venvs 
+# reliably in a Dockerfile?
+RUN python -m venv /tmp/venv
+RUN . /tmp/venv/bin/activate
+ENV PATH="/tmp/venv/bin:${PATH}"
+RUN pip install --upgrade \
+    pip \
+    pip-tools \
+    setuptools
+RUN pip install -r requirements/requirements.dev.txt \
+    --no-index \
+    --find-links \
+    ./vendor/
