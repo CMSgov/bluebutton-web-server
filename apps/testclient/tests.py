@@ -8,6 +8,8 @@ from django.conf import settings
 from apps.constants import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
+from apps.testclient.views import FhirDataParams, _build_pagination_uri
+from django.http import HttpRequest
 
 
 class TestclientHelpers(TestCase):
@@ -54,6 +56,40 @@ class TestclientHelpers(TestCase):
         self.assertEqual(_start_url_with_http_or_https("httpsx://localhost:8000"), "https://httpsx://localhost:8000")
 
 
+class TestPaginationURIs(TestCase):
+    def test_build_pagination_no_id(self):
+        uri_base = "https://notaurl.gov"
+        params = FhirDataParams("explanation-of-benefit", "some-resource-uri", 2, None)
+        req = HttpRequest()
+        # Set up no GET properties.
+        setattr(req, "GET", {})
+        try:
+            _build_pagination_uri(uri_base, params, req)
+        except ValueError:
+            # Because no 'patient' or 'beneficiary' was found in the GET params,
+            # _build_pagination_uri will fail.
+            pass
+
+    def test_build_pagination_with_id(self):
+        uri_base = "https://notaurl.gov"
+        params = FhirDataParams("explanation-of-benefit", "some-resource-uri", 2, None)
+        req = HttpRequest()
+        for id_type in ['patient', 'beneficiary']:
+            with self.subTest(id_type=id_type):
+                # Set up pagination GET properties
+                setattr(req, "GET", {
+                    "_count": 42,
+                    f"{id_type}": "-123456",
+                })
+
+                result = _build_pagination_uri(uri_base, params, req)
+                self.assertIn(uri_base, result)
+                self.assertIn(f"{id_type}=-123456", result)
+                # We should have no navi elements
+                self.assertIn("_count", result)
+                self.assertIn("startIndex", result)
+
+
 class BlueButtonClientApiUserInfoTest(TestCase):
     """
     Test the BlueButton API UserInfo Endpoint
@@ -76,7 +112,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
                 self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V3
                 self.username = settings.DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f"Failed to set up tests with a valid version number; given {version}")
+                raise VersionNotMatched(f"Failed to set up tests with a valid version number; given {version}")  # noqa: E702
 
         # TODO V3: This may need to be parameterized based on the version number.
         self.another_patient = "20140000000001"
@@ -125,7 +161,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             case Versions.V3:
                 self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f"Failed to set a patient id for version; given {version}")
+                raise VersionNotMatched(f"Failed to set a patient id for version; given {version}")  # noqa: E702
 
         self.another_patient = "20140000000001"
 
