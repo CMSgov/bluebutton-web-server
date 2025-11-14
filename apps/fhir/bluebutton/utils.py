@@ -760,3 +760,66 @@ def valid_caller_for_patient_read(beneficiary_id: str, patient_id: str) -> bool:
     parts = beneficiary_id.split(':', 1)
     beneficiary_comparison_id = parts[1] if len(parts) == 2 else None
     return beneficiary_comparison_id == patient_id
+
+
+def retrieve_session_resource_id(beneficiary_id: str) -> str:
+    """When making a read patient call, we only want to ping BFD if the patient_id
+    being passed matches the fhir_id (currently v2) associated with the current session
+
+    Args:
+        beneficiary_id (str): beneficiary_id that is associated with the current session
+        Should have format 'patientId:00000000000000 coming in
+
+    Returns:
+        bool: If the patient_id matches the beneficiary_id, then return True, else False
+    """
+    parts = beneficiary_id.split(':', 1)
+    beneficiary_comparison_id = parts[1] if len(parts) == 2 else None
+    return beneficiary_comparison_id
+
+
+def parse_string(string_to_parse: str, split_char: str) -> str:
+    """_summary_
+
+    Args:
+        string_to_parse (str): _description_
+        split_char (str): _description_
+
+    Returns:
+        str: _description_
+    """
+    parts = string_to_parse.split(split_char, 1)
+    # TODO: what if its a query param and we have multiple ones?
+    parsed_string = parts[1] if len(parts) > 1 else None
+    return parsed_string
+
+
+def valid_query_parameter_passed(resource_type: str, resource_id: str, session_resource_id: str, query_param: str) -> bool:
+    """Validate that we have received a valid query parameter, and that the value in the parameter matches
+    the current active session
+
+    Args:
+        resource_type (str): resource type are we retrieving
+        resource_id (str): the id of that resource
+        session_resource_id (str): the id of the currently active session
+        query_param (str): the parameter passed in the API call
+
+    Returns:
+        bool: return True if it is a valid query parameter that is associated with the current active session
+        return False if not
+    """
+    # if the query param does not contain a =, then it is not valid (for our API, there are cases where a query param does
+    # not contain a =)
+    print("another query_param check: ", query_param, ('=' not in query_param))
+    print("resource_type: ", resource_type)
+    print("resource_id: ", resource_id)
+    print("session_resource_id: ", session_resource_id)
+    if '=' not in query_param:
+        return False
+
+    id_from_query_param = parse_string(query_param, '=')
+    print("id_from_query_param: ", id_from_query_param)
+    if id_from_query_param != session_resource_id:
+        return False
+
+    return True

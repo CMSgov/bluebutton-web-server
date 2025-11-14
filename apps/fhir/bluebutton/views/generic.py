@@ -120,7 +120,10 @@ class FhirDataView(APIView):
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
-
+        print("fetch_data request: ", request.__dict__)
+        print("fetch_data resource_type: ", resource_type)
+        print("fetch_data request: ", args)
+        print("fetch_data request: ", kwargs)
         target_url = self.build_url(resource_router,
                                     resource_type,
                                     *args, **kwargs)
@@ -129,6 +132,7 @@ class FhirDataView(APIView):
 
         try:
             get_parameters = {**self.filter_parameters(request), **self.build_parameters(request)}
+            print("get_parameters: ", get_parameters)
         except voluptuous.error.Invalid as e:
             raise exceptions.ParseError(detail=e.msg)
 
@@ -150,17 +154,28 @@ class FhirDataView(APIView):
                 req.headers["BlueButton-Application"] = quote(req.headers.get("BlueButton-Application"))
 
         prepped = s.prepare_request(req)
-
+        print("prepper: ", prepped.__dict__)
         resource_id = kwargs.get('resource_id')
         beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
+        query_param = prepped.headers.get('BlueButton-OriginalQuery')
 
+        # if query_param:
+        #     session_resource_id = parse_string(beneficiary_id, ':')
+        #     if not valid_query_parameter_passed(resource_type, resource_id, session_resource_id, query_param):
+        #         error = NotFound('Not found.')
+        #         raise error
+
+        print("resource_id: ", resource_id)
+        print("beneficiary_id: ", beneficiary_id)
+        print("resource_type: ", resource_type)
+        print("query_param: ", query_param)
         if resource_type == 'Patient' and resource_id and beneficiary_id:
             # If it is a patient read request, confirm it is valid for the current user
             # If not, throw a 404 before pinging BFD
             if not valid_caller_for_patient_read(beneficiary_id, resource_id):
                 error = NotFound('Not found.')
                 raise error
-
+        print("MADE IT HERE")
         match self.version:
             case Versions.V1:
                 api_ver_str = 'v1'
@@ -172,24 +187,30 @@ class FhirDataView(APIView):
                 raise VersionNotMatched(f"{self.version} is not a valid version constant")
 
         # Send signal
+        print("right before send_robust")
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)
+        print("right AFTER send_robust")
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
+        print("right AFTER send: ", r.json())
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)
+        print("right AFTER post_fetch send_robust")
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
-
+        print("right before process_error_response: ", response)
         # BB2-128
         error = process_error_response(response)
-
+        print("right AFTER process_error_response")
         if error is not None:
+            print("raise error: ", error)
             raise error
 
         out_data = r.json()
-
+        # print("out_data: ", out_data)
+        print("request: ", request.__dict__)
         self.check_object_permissions(request, out_data)
-
+        print("made it past check_object_permissions 1021")
         return out_data
