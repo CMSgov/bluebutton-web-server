@@ -29,12 +29,12 @@ def _start_url_with_http_or_https(host: str) -> str:
         # This is also fine
         pass
     else:
-        host = f'https://{host}'
+        host = f'https://{host}'  # noqa: E231
 
     return host
 
 
-def testclient_http_response_setup(include_client_secret: bool = True, version: str = Versions.NOT_AN_API_VERSION) -> OrderedDict:
+def testclient_http_response_setup(include_client_secret: bool = True, version: int = Versions.NOT_AN_API_VERSION) -> OrderedDict:
     """Prepare testclient response environment
 
     When navigating through the testclient, we need to update the Django session
@@ -52,7 +52,6 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     response = OrderedDict()
 
     response['api_ver'] = version
-    version_as_string = Versions.as_str(version)
 
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
@@ -65,7 +64,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
 
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
-    response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, version_as_string)
+    response['coverage_uri'] = '{}/v{}/fhir/Coverage/'.format(host, version)
 
     auth_data = __generate_auth_data()
     response['code_challenge_method'] = "S256"
@@ -73,12 +72,12 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
 
-    response['authorization_uri'] = f'{host}/{version_as_string}/o/authorize/'
-    response['token_uri'] = f'{host}/{version_as_string}/o/token/'
-    response['userinfo_uri'] = f'{host}/{version_as_string}/connect/userinfo'
-    response['patient_uri'] = f'{host}/{version_as_string}/fhir/Patient/'
-    response['eob_uri'] = f'{host}/{version_as_string}/fhir/ExplanationOfBenefit/'
-    response['coverage_uri'] = f'{host}/{version_as_string}/fhir/Coverage/'
+    response['authorization_uri'] = f'{host}/v{version}/o/authorize/'
+    response['token_uri'] = f'{host}/v{version}/o/token/'
+    response['userinfo_uri'] = f'{host}/v{version}/connect/userinfo'
+    response['patient_uri'] = f'{host}/v{version}/fhir/Patient/'
+    response['eob_uri'] = f'{host}/v{version}/fhir/ExplanationOfBenefit/'
+    response['coverage_uri'] = f'{host}/v{version}/fhir/Coverage/'
 
     return response
 
