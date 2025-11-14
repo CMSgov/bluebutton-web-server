@@ -157,9 +157,6 @@ else:
 EN_US = "en_us"
 ES_ES = "es_es"
 
-# API versions
-API_V2 = "v2"
-
 # v2 SMART APP scope constants
 X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
 COVERAGE_SCOPE = "patient/Coverage.rs"

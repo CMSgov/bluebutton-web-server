@@ -20,7 +20,7 @@ display_usage() {
     echo "Usage:"
     echo "------------------"
     echo
-    echo "Syntax: run_selenium_tests_remote.sh [-h|d|p] [SBX|PROD|TEST|<bb2 server url>]"
+    echo "Syntax: run_selenium_tests_remote.sh [-h|g|t|l] [SBX|PROD|TEST|<bb2 server url>]"
     echo
     echo "Options:"
     echo
@@ -62,7 +62,7 @@ export SELENIUM_GRID=false
 # Show test actions on std out : pytest -s
 PYTEST_SHOW_TRACE_OPT=''
 
-while getopts "hpgt" option; do
+while getopts "hglt" option; do
    case $option in
       h)
         display_usage;
