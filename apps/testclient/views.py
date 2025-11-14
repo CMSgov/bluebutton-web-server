@@ -58,27 +58,25 @@ def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest
     # This sets up the navigation URI (pagination) based on whether we are handling
     # a patient or a beneficiary. All of this logic is essentially to add one parameter,
     # name correctly, to the nav URI. It is version dependent (there is no pagination in V3).
-    nav_link = request.GET.get('nav_link', None)
-    if nav_link is not None:
-        # for now it's either EOB or Coverage, make this more generic later
-        patient = request.GET.get('patient')
-        beneficiary = request.GET.get('beneficiary')
-        if patient is not None:
-            id_type = 'patient'
-            id = patient
-        elif beneficiary is not None:
-            id_type = 'beneficiary'
-            id = beneficiary
-        else:
-            # We should not be able to get here.
-            raise VersionNotMatched(f"Failed to set a patient id for version; given {params.version}")  # noqa: E702
+    # for now it's either EOB or Coverage, make this more generic later
+    patient = request.GET.get('patient')
+    beneficiary = request.GET.get('beneficiary')
+    if patient is not None:
+        id_type = 'patient'
+        id = patient
+    elif beneficiary is not None:
+        id_type = 'beneficiary'
+        id = beneficiary
+    else:
+        # We should not be able to get here.
+        raise ValueError("Failed to set a patient id or beneficiary id on the pagination URI")  # noqa: E702
 
-        # Extend the base URI with pagination information.
-        uri = EndpointUrl.nav_uri(uri,
-                                  count=request.GET.get('_count', 10),
-                                  start_index=request.GET.get('startIndex', 0),
-                                  id_type=id_type,
-                                  id=id)
+    # Extend the base URI with pagination information.
+    uri = EndpointUrl.nav_uri(uri,
+                              count=request.GET.get('_count', 10),
+                              start_index=request.GET.get('startIndex', 0),
+                              id_type=id_type,
+                              id=id)
     return uri
 
 
@@ -86,10 +84,8 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     """Make a call to the FHIR backend and return the JSON data from the call"""
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
-    if params.version in [Versions.V1, Versions.V2]:
-        pagination_uri = _build_pagination_uri(uri, params, request)
-        if pagination_uri is not None:
-            uri = pagination_uri
+    if params.version in [Versions.V1, Versions.V2] and request.GET.get('nav_link', None):
+        uri = _build_pagination_uri(uri, params, request)
 
     oas = _get_oauth2_session_with_token(request)
     r = oas.get(uri)

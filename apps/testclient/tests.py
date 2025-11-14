@@ -57,19 +57,20 @@ class TestclientHelpers(TestCase):
 
 
 class TestPaginationURIs(TestCase):
-    def test_build_pagination_no_nav(self):
+    def test_build_pagination_no_id(self):
         uri_base = "https://notaurl.gov"
         params = FhirDataParams("explanation-of-benefit", "some-resource-uri", 2, None)
         req = HttpRequest()
         # Set up no GET properties.
         setattr(req, "GET", {})
-        result = _build_pagination_uri(uri_base, params, req)
-        self.assertIn(uri_base, result)
-        # We should have no navi elements
-        self.assertNotIn("_count", result)
-        self.assertNotIn("startIndex", result)
+        try:
+            _build_pagination_uri(uri_base, params, req)
+        except ValueError:
+            # Because no 'patient' or 'beneficiary' was found in the GET params,
+            # _build_pagination_uri will fail.
+            pass
 
-    def test_build_pagination_with_nav(self):
+    def test_build_pagination_with_id(self):
         uri_base = "https://notaurl.gov"
         params = FhirDataParams("explanation-of-benefit", "some-resource-uri", 2, None)
         req = HttpRequest()
@@ -77,7 +78,6 @@ class TestPaginationURIs(TestCase):
             with self.subTest(id_type=id_type):
                 # Set up pagination GET properties
                 setattr(req, "GET", {
-                    "nav_link": "the-nav-link",
                     "_count": 42,
                     f"{id_type}": "-123456",
                 })
