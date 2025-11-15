@@ -108,17 +108,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/loganbertram">
-                    <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
-                    <br />
-                    <sub><b>Logan Bertram</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/jimmyfagan">
                     <img src="https://avatars.githubusercontent.com/u/90421499?v=4" width="100;" alt="jimmyfagan"/>
                     <br />
                     <sub><b>jimmyfagan</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/loganbertram">
+                    <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
+                    <br />
+                    <sub><b>Logan Bertram</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -196,17 +196,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/micahtaylor">
-                    <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
-                    <br />
-                    <sub><b>Micah Taylor</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/clewellyn-nava">
                     <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
                     <br />
                     <sub><b>Connor Lewellyn</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/micahtaylor">
+                    <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
+                    <br />
+                    <sub><b>Micah Taylor</b></sub>
                 </a>
             </td>
             <td align="center">
