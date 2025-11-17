@@ -73,6 +73,7 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
             version = get_api_version_number_from_url(path_info)
             patient_id = kwargs.pop('patient_id', None)
 
+            # V1 is treated as the same as V2 since their pathways are very similar and use the same fhir_id_v2 despite the name
             match version:
                 case Versions.V1:
                     user = Crosswalk.objects.get(fhir_id_v2=patient_id).user
