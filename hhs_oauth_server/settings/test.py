@@ -2,13 +2,19 @@ from .dev import *
 import os
 
 del LOGGING['loggers']
+# TODO - Why are we doing this?
 
 SEND_SMS = False
+# TODO - Verify usage, unable to find in code search
+
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
 LOGIN_RATE = '100/m'
+# TODO - Verify usage, unable to find in code search
+
 
 REQUEST_CALL_TIMEOUT = (5, 120)
+# TODO - Verify usage, unable to find in code search, defined in base.py
 
 RUN_ONLINE_TESTS = False
 if os.getenv('RUN_ONLINE_TESTS', 'false') in ['true', 'True']:
