@@ -1,12 +1,20 @@
 # FIXME: Update to most recent python.
-FROM python:3.11
+FROM python:3.11-trixie
 
 # FIXME: Uncertain implications
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+
+# WARNING
+# This is installing the most recent version of Postgres tools.
+# We would rather install v16, to match the database, which matches Amazon.
 RUN apt-get update \
     && apt-get install -y \
-        gettext
+        curl \ 
+        gettext \
+        gnupg \
+        ca-certificates \
+        postgresql-client
 
 # Set the local user for development
 # and mount the codebase at /code

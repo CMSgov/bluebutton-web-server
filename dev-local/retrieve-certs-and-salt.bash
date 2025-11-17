@@ -170,7 +170,7 @@ set_salt () {
 
     # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
     export DJANGO_SLSX_VERIFY_SSL_INTERNAL="False"
-    # export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
+    export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
     
     echo "🆗 Retrieved salt values."
 }

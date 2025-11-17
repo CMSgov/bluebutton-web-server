@@ -60,7 +60,6 @@ fi
 echo "📊 Vernier start."
 echo
 
-echo "PROFILE: ${PROFILE}"
 docker compose \
     --profile "${PROFILE}" \
     -f docker-compose-local.yaml \
