@@ -67,7 +67,7 @@ Next, run the stack.
 To run the stack locally,
 
 ```
-make run ENV=local
+make run-local ENV=local
 ```
 
 This will launch the stack with no connection to live environments, and it will use the mocked MSLS tooling.
@@ -77,7 +77,7 @@ This will launch the stack with no connection to live environments, and it will 
 When launched with
 
 ```
-make run TARGET=test
+make run-local TARGET=test
 ```
 
 the tooling obtains and sources credentials for running against our `test` environment.
@@ -87,7 +87,7 @@ the tooling obtains and sources credentials for running against our `test` envir
 Similarly,
 
 ```
-make run TARGET=sbx
+make run-local TARGET=sbx
 ```
 
 runs against SBX. 
@@ -106,16 +106,21 @@ In a nutshell:
 
 ## future work
 
-Once this is in place, it is easy to script some additional tools. For example, a menu driven script to...
+Once this is in place, it is easy to script/add Makefile targets for some additional tools. For example, we could have a menu driven script to...
 
 1. load synthetic test data (akin to [this](https://github.com/GSA-TTS/FAC/blob/main/backend/util/load_public_dissem_data/manage_local_data.bash))
 1. create/remove admin users
 1. Test database dump/load
+1. Run Selenium tests
 1. ...
 
 can be easily added, and leveraged in future containerization/devops work.
 
 ## paths and variables
 
-This set of tools creates a new directory (`.bb2`) in the developers $HOME. This is treated as a kind of "BB2 config directory" by this local automation tooling. It uses this (new) directory for the simple reason that there are things we do not want floating around in the source tree, if we can avoid it.
+This set of tools creates a new directory (`.bb2`) in the developers $HOME. This is treated as a kind of "BB2 config directory" by this local automation tooling. It uses this (new) directory for the simple reason that there are things we do not want floating around in the source tree, if we can avoid it. Specifically, we do not want to download the certs for `test` and `sbx` into the git tree.
+
+## notes
+
+
 
