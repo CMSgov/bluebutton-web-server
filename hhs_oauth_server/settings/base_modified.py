@@ -19,11 +19,31 @@ from .themes import THEMES, THEME_SELECTED
 # ############################################################################
 
 # ============================================================================
-# Project Configuration & Base Paths
+# Application Configuration
 # ============================================================================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, "..")
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR, ("templates/"))],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django_settings_export.settings_export",
+                "hhs_oauth_server.hhs_oauth_server_context.active_apps",
+            ],
+            "builtins": [],
+        },
+    },
+]
 
 # ============================================================================
 # Security & Keys
@@ -133,28 +153,8 @@ MIDDLEWARE = [
 ROOT_URLCONF = "hhs_oauth_server.urls"
 
 # ============================================================================
-# Templates / Static Files
+# Static / Media Files
 # ============================================================================
-
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, ("templates/"))],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.template.context_processors.i18n",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-                "django_settings_export.settings_export",
-                "hhs_oauth_server.hhs_oauth_server_context.active_apps",
-            ],
-            "builtins": [],
-        },
-    },
-]
 
 WSGI_APPLICATION = "hhs_oauth_server.wsgi.application"
 
@@ -322,7 +322,7 @@ MESSAGE_TAGS = {
 }
 
 # ============================================================================
-# Authentication / Sessions
+# Authentication / Sessions / Login
 # ============================================================================
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
@@ -424,7 +424,7 @@ ADMIN_PREPEND_URL = env("DJANGO_ADMIN_PREPEND_URL", "")
 
 # ############################################################################
 # ############################################################################
-# THIRD-PARTY PACKAGE SETTINGS
+# PYTHON PACKAGE SETTINGS
 # ############################################################################
 # ############################################################################
 
@@ -456,7 +456,7 @@ AXES_USERNAME_FORM_FIELD = "username"
 CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
 
 # ============================================================================
-# django-waffle (Feature Flags)
+# django-waffle
 # ============================================================================
 
 WAFFLE_FLAG_MODEL = "core.Flag"
@@ -495,18 +495,10 @@ GRANT_TYPES = (
     (GRANT_IMPLICIT, _("Implicit")),
 )
 
-BENE_PERSONAL_INFO_SCOPES = [
-    "patient/Patient.read",
-    "patient/Patient.s",
-    "patient/Patient.r",
-    "patient/Patient.rs",
-    "profile",
-]
-
 
 # ############################################################################
 # ############################################################################
-# BLUE BUTTON CUSTOM SETTINGS
+# BLUE BUTTON SETTINGS
 # ############################################################################
 # ############################################################################
 
@@ -562,37 +554,6 @@ DEFAULT_DISCLOSURE_TEXT = """
 DISCLOSURE_TEXT = env("DJANGO_PRIVACY_POLICY_URI", DEFAULT_DISCLOSURE_TEXT)
 
 # ============================================================================
-# Settings Export (from django-settings-export)
-# ============================================================================
-
-SETTINGS_EXPORT = [
-    "DEBUG",
-    "ALLOWED_HOSTS",
-    "APPLICATION_TITLE",
-    "THEME",
-    "STATIC_URL",
-    "STATIC_ROOT",
-    "MEDIA_URL",
-    "MEDIA_ROOT",
-    "DEVELOPER_DOCS_URI",
-    "DEVELOPER_DOCS_TITLE",
-    "ORGANIZATION_TITLE",
-    "POLICY_URI",
-    "POLICY_TITLE",
-    "DISCLOSURE_TEXT",
-    "TOS_URI",
-    "TOS_TITLE",
-    "TAG_LINE_1",
-    "TAG_LINE_2",
-    "EXPLAINATION_LINE",
-    "EXTERNAL_AUTH_NAME",
-    "ALLOW_END_USER_EXTERNAL_AUTH",
-    "OPTIONAL_INSTALLED_APPS",
-    "INSTALLED_APPS",
-    "LANGUAGE_COOKIE_NAME"
-]
-
-# ============================================================================
 # Application Config
 # ============================================================================
 
@@ -611,7 +572,7 @@ EXTERNAL_LOGIN_TEMPLATE_NAME = "/v1/accounts/upstream-login"
 # TODO - Verify usage, unable to find in code search
 
 # ============================================================================
-# FHIR Server Integration
+# FHIR Config
 # ============================================================================
 
 FHIR_CLIENT_CERTSTORE = env(
@@ -639,16 +600,27 @@ MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
 FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
     "https://bluebutton.cms.gov/resources/identifier/mbi-hash"
 )
+# TODO - Move to constants
 
 FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
     "https://bluebutton.cms.gov/resources/identifier/hicn-hash"
 )
+# TODO - Move to constants
 
 FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI = (
     "http://hl7.org/fhir/sid/us-mbi"
 )
+# TODO - Move to constants
 
 FHIR_PARAM_FORMAT = "json"
+
+BENE_PERSONAL_INFO_SCOPES = [
+    "patient/Patient.read",
+    "patient/Patient.s",
+    "patient/Patient.r",
+    "patient/Patient.rs",
+    "profile",
+]
 
 # ============================================================================
 # Request Configuration
