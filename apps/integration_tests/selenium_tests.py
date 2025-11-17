@@ -1,9 +1,7 @@
 import os
 from .selenium_generic import SeleniumGenericTests
-from .selenium_cases import (
-    API_V2,
-    TESTS,
-)
+from .selenium_cases import TESTS
+from apps.constants import Versions
 
 
 USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
@@ -17,7 +15,7 @@ class TestBlueButtonAPI(SeleniumGenericTests):
     def test_auth_grant_pkce_fhir_calls_v2(self):
         step = [0]
         test_name = "auth_grant_pkce_fhir_calls"
-        api_ver = API_V2
+        api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
@@ -26,7 +24,7 @@ class TestBlueButtonAPI(SeleniumGenericTests):
     def test_auth_deny_fhir_calls_v2(self):
         step = [0]
         test_name = "auth_deny_fhir_calls"
-        api_ver = API_V2
+        api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
@@ -37,7 +35,7 @@ class TestBlueButtonAPI(SeleniumGenericTests):
             test_name = "auth_grant_w_no_demo_new_perm_screen"
         else:
             test_name = "auth_grant_w_no_demo"
-        api_ver = API_V2
+        api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
@@ -51,7 +49,7 @@ class TestBlueButtonAPI(SeleniumGenericTests):
     def test_authorize_lang_english_button(self):
         step = [0]
         test_name = "authorize_lang_english_button"
-        api_ver = API_V2
+        api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         if USE_NEW_PERM_SCREEN == "true":
             # the validation of expire date etc. only applicable to new perm screen
@@ -68,7 +66,7 @@ class TestBlueButtonAPI(SeleniumGenericTests):
     def test_v2_authorization_and_scopes(self):
         step = [0]
         test_name = "authorize_get_v2_scopes"
-        api_ver = API_V2
+        api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
 
         self._play(TESTS[test_name], step, api_ver=api_ver)
