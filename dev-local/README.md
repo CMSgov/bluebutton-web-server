@@ -120,7 +120,6 @@ can be easily added, and leveraged in future containerization/devops work.
 
 This set of tools creates a new directory (`.bb2`) in the developers $HOME. This is treated as a kind of "BB2 config directory" by this local automation tooling. It uses this (new) directory for the simple reason that there are things we do not want floating around in the source tree, if we can avoid it. Specifically, we do not want to download the certs for `test` and `sbx` into the git tree.
 
-## notes
 
 
 

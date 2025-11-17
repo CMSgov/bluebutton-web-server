@@ -10,14 +10,25 @@ services:
     ports:
       - "5432:5432"
   ####################
+  # Local MSLS server
+  # A small Flask app for testing.
+  msls:
+    image: msls-local:latest
+    command: python app.py
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../msls-local:/code
+    profiles:
+      - mocksls
+      - slsx
+  ####################
   # Blue Button
   web:
     image: bb-local:latest
-    command: /code/dev-local/start-local.sh
+    command: /start-local.sh
     env_file:
-    # This may have relied on order of execution
-    # That is, .env was sourced last, possibly overriding other env vars. :/ 
-      - .env.local
+      - .env.container
     volumes:
       - ..:/code
       - ~/.bb2/certstore:/certstore
@@ -27,21 +38,11 @@ services:
       - "5678:5678"
     depends_on:
       - db
+      - msls
     profiles:
       - slsx
     platform: linux/amd64
-  ####################
-  # Local MSLS server
-  # A small Flask app for testing.
-  msls:
-    image: msls-local:latest
-    command: python app.py
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./msls-local:/code
-    profiles:
-      - mocksls
+
   # web_msls:
   #   build: .
   #   command: ./start-local.sh
