@@ -660,8 +660,6 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            print("EXPECTED: ", expected_request['url'])
-            print("RETURNED: ", unquote(req.url))
             self.assertEqual(expected_request['url'], unquote(req.url))
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
