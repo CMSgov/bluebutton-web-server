@@ -18,7 +18,14 @@ A Mac, out-of-the-box, should "just work," as well as an Intel-based Linux host.
 
 You should already have a `.kion.yaml` in your home directory. If not, follow the [local desktop development](https://confluence.cms.gov/spaces/BB2/pages/484224999/Local+Desktop+Development) onboarding docs to set up Cloudtamer/`kion`.
 
-You need to add an alias for this tooling to work.
+You need to add an alias in the previously mentioned .kion.yaml for this tooling to work.
+Open .kion.yaml with something like:
+
+```
+code ~/.kion.yml 
+```
+
+Then add the alias as:
 
 ```
 favorites:
