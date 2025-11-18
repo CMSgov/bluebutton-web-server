@@ -2,7 +2,7 @@ all: build-local run-local
 
 build-local:
 	@echo "building mock sls image"
-	cd ../msls-local ; make all
+	cd ../msls-local ; make all ; cd ../dev-local
 	@echo "building local blue button image"
 	cd ../dev-local ; docker build \
     	--platform "linux/amd64" \

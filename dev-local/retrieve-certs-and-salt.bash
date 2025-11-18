@@ -83,7 +83,7 @@ retrieve_certs () {
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
             --query 'SecretString' \
             --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
-
+        
         if [ $? -ne 0 ]; then
             echo "⛔ Failed to retrieve cert. Exiting."
             return -3
@@ -103,10 +103,11 @@ retrieve_certs () {
         declare -a cert_files=($CERT $KEY)
         for FILE in "${cert_files[@]}"; 
         do
-            if [ -e "${BB2_CERTSTORE}/${FILE}" ]; then
+            if [ -s "${BB2_CERTSTORE}/${FILE}" ]; then
                 echo "  🆗 '$FILE' exists."
             else
                 echo "  ⛔ '$FILE' does not exist."
+                echo "  ⛔ Try exiting your 'kion' shell and re-authenticating."
                 return -5
             fi
         done

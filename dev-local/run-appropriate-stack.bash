@@ -7,6 +7,7 @@ set -a
 # exit on error.
 set -e
 
+
 ######################################################################
 # let's make sure we have a valid ENV var before proceeding
 check_valid_env
@@ -16,6 +17,9 @@ check_valid_env
 # these set the stage for all further environment manipulation for 
 # launching the app.
 source ./.env.local
+
+# add another check or two after we source the env file.
+check_env_after_source
 
 ######################################################################
 # let's make sure the .env.local sourced in correctly.

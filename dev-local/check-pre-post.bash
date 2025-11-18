@@ -18,9 +18,10 @@ check_valid_env () {
         echo "ENV must be set to 'local', 'test', or 'sbx'."
         echo "ENV is currently set to '${ENV}'."
         echo "Exiting."
-        exit -2
+        return -2
     fi 
 
+    echo "✅ check_valid_env"
 }
 
 check_env_preconditions () {
@@ -42,6 +43,12 @@ check_env_preconditions () {
         return -1
     fi
 
+    echo "✅ check_env_preconditions"
+
+}
+
+check_env_after_source () {
+
     if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
         echo "We need insecure transport when running locally."
         echo "OAUTHLIB_INSECURE_TRANSPORT was not set to true."
@@ -54,5 +61,6 @@ check_env_preconditions () {
         echo "Exiting."
         return -1
     fi
-}
 
+    echo "✅ check_env_after_source"
+}
