@@ -1,26 +1,24 @@
 all: build-local run-local
 
 build-local:
-	cd ../msls-local ; make all ; \
-	cd ../dev-local ; \
-	docker build \
+	@echo "building mock sls image"
+	cd ../msls-local ; make all
+	@echo "building local blue button image"
+	cd ../dev-local ; docker build \
     	--platform "linux/amd64" \
     	-t bb-local:latest \
-    	-f Dockerfile.local .. ; \
-	cd ..
-
-# https://stackoverflow.com/questions/2826029/passing-additional-variables-from-command-line-to-make
-
-# 		./check-env-preconditions.bash ; \
-# 		source ./.env.local ; \
-# 		./retrieve-certs.bash ; \
-# 		source retrieve-salt.bash ; \
-# 		./check-env-postconditions.bash ; \
-
-
+    	-f Dockerfile.local ..
+# TODO: Is this necessary in a local build? Probably not.
+#	@echo "building selenium ecr image"
+# 	cd ../dev-local ; docker build \
+#     	--platform "linux/amd64" \
+#     	-t selenium-ecr:latest \
+#     	-f Dockerfile.selenium-ecr ..
+	cd ../dev-local ; docker build \
+    	--platform "linux/amd64" \
+    	-t selenium-local:latest \
+    	-f Dockerfile.selenium-local ..
 run-local:
-# Environments in Makefiles are strange. Once we source, we have to run from the same line, basically.
-# Also, you have to outdent comments to make sure they aren't passed to the shell. :sigh:
 	@echo "Configuring for ${ENV}" ; \
 		./run-appropriate-stack.bash
 	
