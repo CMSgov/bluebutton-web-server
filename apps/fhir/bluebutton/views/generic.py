@@ -3,7 +3,6 @@ import hashlib
 import voluptuous
 import logging
 
-from apps.dot_ext.utils import get_api_version_number_from_url
 from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
@@ -167,10 +166,7 @@ class FhirDataView(APIView):
 
             # Handle the case where it is a patient search call, but neither _id or identifier were passed
             if '_id' not in get_parameters.keys() and 'identifier' not in get_parameters.keys():
-                path_info = request.path
-                version = get_api_version_number_from_url(path_info)
-                # depending on if 4166 is merged first, this will need to be updated
-                get_parameters['_id'] = request.crosswalk.fhir_id(version)
+                get_parameters['_id'] = request.crosswalk.fhir_id(self.version)
                 # Reset the request parameters and the prepped request after adding the missing, but required, _id param
                 req.params = get_parameters
                 prepped = s.prepare_request(req)
