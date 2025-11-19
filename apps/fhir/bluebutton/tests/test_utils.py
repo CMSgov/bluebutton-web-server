@@ -18,7 +18,6 @@ from apps.fhir.bluebutton.utils import (
     crosswalk_patient_id,
     get_resourcerouter,
     build_oauth_resource,
-    parse_string,
     valid_patient_read_or_search_call,
 )
 
@@ -70,16 +69,6 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         listing = [1, 2, 3]
         response = notNone(listing, "number")
         self.assertEqual(response, listing)
-
-    def test_parse_string(self):
-        result = parse_string('PatientId:-20140000008326', ':')
-        assert result == '-20140000008326'
-
-        result = parse_string('?_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-99000010256546', '_id=')
-        assert result == '-99000010256546'
-
-        result = parse_string('?_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-99000010256546', '_id==')
-        assert result is None
 
     def test_valid_patient_read_or_search_call_valid_read_calls(self):
         result = valid_patient_read_or_search_call('PatientId:-20140000008329', '-20140000008329', '')

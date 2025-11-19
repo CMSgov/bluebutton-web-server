@@ -11,6 +11,7 @@ from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
 from typing import Optional
+from urllib.parse import parse_qs
 
 from django.conf import settings
 from django.contrib import messages
@@ -746,19 +747,6 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     return response.json()
 
 
-def parse_string(string_to_parse: str, split_char: str) -> str:
-    """_summary_
-    Args:
-        string_to_parse (str): _description_
-        split_char (str): _description_
-    Returns:
-        str: _description_
-    """
-    parts = string_to_parse.split(split_char, 1)
-    parsed_string = parts[1] if len(parts) > 1 else None
-    return parsed_string
-
-
 def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional[str], query_param: str) -> bool:
     """Determine if a read or search Patient call is valid, based on what was passed for the resource_id (read call)
     or the query_parameter (search call)
@@ -772,16 +760,18 @@ def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional
     Returns:
         bool: Whether or not the call is valid
     """
-    beneficiary_id = parse_string(beneficiary_id, ':')
+    bene_split = beneficiary_id.split(':', 1)
+    beneficiary_id = bene_split[1] if len(bene_split) > 1 else None
     # Handles the case where it is a read call, but what is passed does not match the beneficiary_id
     # which is constructed using the patient id for the current session in generate_info_headers.
-    if resource_id and resource_id != beneficiary_id:
+    if resource_id and beneficiary_id and resource_id != beneficiary_id:
         return False
 
     # Handles the case where it is a search call, but what is passed does not match the beneficiary_id
     # so a 404 Not found will be thrown before reaching out to BFD
-    patient_id = parse_string(query_param, '_id=')
-    if patient_id and patient_id != beneficiary_id:
+    query_dict = parse_qs(query_param)
+    passed_identifier = query_dict.get('_id', [None])
+    if passed_identifier[0] and passed_identifier[0] != beneficiary_id:
         return False
 
     return True
