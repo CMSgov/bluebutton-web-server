@@ -14,34 +14,29 @@ services:
   # A small Flask app for testing.
   msls:
     image: msls-local:latest
-    command: python app.py
+    platform: linux/amd64
+    command: /code/start-local.sh
     ports:
       - "8080:8080"
     volumes:
       - ../msls-local:/code
-    profiles:
-      - mocksls
-      - slsx
   ####################
   # Blue Button
   web:
     image: bb-local:latest
-    command: /start-local.sh
+    platform: linux/amd64
+    command: /code/dev-local/start-local.sh
     env_file:
       - .env.container
     volumes:
       - ..:/code
       - ~/.bb2/certstore:/certstore
-      - ./start-local.sh:/start-local.sh
     ports:
       - "8000:8000"
       - "5678:5678"
     depends_on:
       - db
       - msls
-    profiles:
-      - slsx
-    platform: linux/amd64
 
   # web_msls:
   #   build: .

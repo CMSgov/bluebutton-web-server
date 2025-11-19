@@ -4,7 +4,7 @@ set -a
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
-    echo "🆗 running migrations"
+    echo "🔵 running migrations"
     python manage.py migrate
 
     # We will recrate this with every launch.
@@ -13,21 +13,29 @@ then
     # Only create the root user if it doesn't exist.
     result=$(echo "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)" | python manage.py shell)
     if [[ "$result" == "0" ]]; then
-        echo "🆗 creating ${} user."
         echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
+        echo "🆗 created ${SUPER_USER_NAME} user."
     else
         echo "🆗 ${SUPER_USER_NAME} already exists."
     fi
     
     python manage.py create_admin_groups
-    echo "🆗 loading scopes.json"
+    echo "🆗 create_admin_groups"
+    
     python manage.py loaddata scopes.json
+    echo "🆗 loaddata scopes.json"
     
     python manage.py create_blue_button_scopes
+    echo "🆗 create_blue_button_scopes"
+
     python manage.py create_test_user_and_application
+    echo "🆗 create_test_user_and_application"
+
     python manage.py create_user_identification_label_selection
-    echo "creating feature switches......"
+    echo "🆗 create_user_identification_label_selection"
+
     python manage.py create_test_feature_switches
+    echo "🆗 create_test_feature_switches"
 else
     echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
 fi

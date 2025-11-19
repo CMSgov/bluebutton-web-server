@@ -35,7 +35,13 @@ favorites:
     access_type: cli
 ```
 
-If you already have some aliases, you can just add this one to the list. The account number and cloud access role can be obtained from the Cloudtamer dashboard. The alias **must** be named `BB2-NON-PROD` for these tools to work.
+If you already have some aliases, you can just add this one to the list. The account number and cloud access role can be obtained from the Cloudtamer dashboard. This is not strictly necessary, as the tooling cannot automate a `kion` call *and* then continue, as `kion` opens a new shell. However, it is much easier (and, for this documentation, the preferred method) to invoke
+
+```
+kion f BB2-NON-PROD
+```
+
+than to navigate a menu structure. You may ultimately choose a shorter alias, e.g. `kion f bnp`.
 
 ## to start
 
@@ -61,23 +67,43 @@ The first step is to build the local containers. From the root of the tree, or f
 make build-local
 ```
 
-This should build the image `bb-local:latest`.
+This should build the container image for `bb-local:latest`, the Selenium image, and the MSLS image.
 
-Building the image is only necessary when the `requirements/requirements.txt` or `requirements/requirements.dev.txt` files change. Those requirements get baked into the image; changes to application code should be picked up via dynamic reload during normal development.
+Building the images is only necessary when the `requirements/requirements.txt` or `requirements/requirements.dev.txt` files change. Those requirements get baked into the image; changes to application code should be picked up via dynamic reload during normal development.
 
 ## running the local image
 
 Next, run the stack.
 
-### running locally / mocking MSLS
+### running the stack
 
-To run the stack locally,
+There are four possible ways to run the stack.
 
 ```
-make run-local ENV=local
+make run-local bfd=<bfd-option> auth=<auth-option>
 ```
 
-This will launch the stack with no connection to live environments, and it will use the mocked MSLS tooling.
+For example, to run against `test` with a live SLSX exchange:
+
+```
+make run-local bfd=test auth=live
+```
+
+Each combination has different implications. Only some make sense at this time (Nov '25):
+
+| bfd / auth | mock | live |
+| --- | --- | --- |
+| local | local unit tests | testing SLSX sequences |
+| test | ⛔ | Full-up against `test` | 
+| sbx | ⛔ | Full-up against `sbx` | 
+
+* `local/mock`: This makes sense for running unit tests; only local tests will run in this configuration.
+* `local/live`: Manual testing of SLSX sequences should be able to be performed with this combination (TBD)
+* `test/mock`: Not a valid condition; a mock authentication will not work with a live server.
+* `test/live`: Live SLSX exchanges with medicare.gov and calls against the `test` BFD environment.
+* `sbx/mock`: Not a valid condition.
+* `sbx/live`: Live SLSX exchanges and calls against the `sbx` BFD environment.
+
 
 ### running against `test`
 
