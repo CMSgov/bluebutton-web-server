@@ -153,7 +153,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     if crosswalk:
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.
-        if crosswalk.fhir_id(version) is not None:
+        if crosswalk.fhir_id(version) != '':
             result['BlueButton-BeneficiaryId'] = 'patientId:' + crosswalk.fhir_id(version)
         else:
             result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(
