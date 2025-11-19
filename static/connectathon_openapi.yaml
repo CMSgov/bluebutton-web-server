@@ -542,12 +542,6 @@ paths:
           required: false
           description: "The offset used for result pagination"
         - in: query
-          name: _has:Coverage
-          schema:
-            type: string
-          required: false
-          description: "Part D coverage type/year"
-        - in: query
           name: cursor
           schema:
             type: string
@@ -952,12 +946,6 @@ paths:
             type: string
           required: false
           description: "The offset used for result pagination"
-        - in: query
-          name: _has:Coverage
-          schema:
-            type: string
-          required: false
-          description: "Part D coverage type/year"
         - in: query
           name: cursor
           schema:
@@ -1435,8 +1423,8 @@ components:
                     type: reference
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
   
   
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -1511,8 +1499,8 @@ components:
                     type: reference
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
   
   
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -1651,8 +1639,8 @@ components:
                     type: token
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
   
   
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -1725,36 +1713,6 @@ components:
                   - name: startIndex
                     type: string
                     documentation: The offset used for result pagination
-                  - name: '_has:Coverage'
-                    type: token
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-  
-  
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-  
-                      the Part D contract value that will be used when determining
-                      eligibility.
-  
-  
-                      Example:
-                        - `_has:Coverage.extension=<Part D Contract ID Here>`
-                        - `_has:Coverage.extension=ABCD`
-                  - name: '_has:Coverage'
-                    type: token
-                    documentation: >-
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-  
-                      the reference year that will be applied when determining
-                      applicable Part D events.
-  
-  
-                      Example:
-                        - `_has:Coverage.rfrncyr=2023`
                   - name: cursor
                     type: string
                     documentation: >-
@@ -1914,8 +1872,8 @@ components:
                     type: reference
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
         
         
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -2060,8 +2018,8 @@ components:
                     type: token
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
         
         
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -2129,8 +2087,8 @@ components:
                     type: token
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
         
         
                       Fetch _Patient_ data using a FHIR _identifier_; an identifier
@@ -2162,36 +2120,6 @@ components:
                       Identifier, and all might represent the same resource:
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
-                  - name: '_has:Coverage.extension'
-                    type: token
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-        
-        
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-        
-                      the Part D contract value that will be used when determining
-                      eligibility.
-        
-        
-                      Example:
-                         - `_has:Coverage.extension=<Part D Contract ID Here>`
-                         - `_has:Coverage.extension=ABCD`
-                  - name: '_has:Coverage.rfrncyr'
-                    type: token
-                    documentation: >-
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-        
-                      the reference year that will be applied when determining
-                      applicable Part D events.
-        
-        
-                      Example:
-                         - `_has:Coverage.rfrncyr=2023`
                   - name: cursor
                     type: string
                     documentation: >-
@@ -2351,8 +2279,8 @@ components:
                     type: reference
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
                       
                       
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -2497,8 +2425,8 @@ components:
                     type: token
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
                       
                       
                       Fetch _Patient_ data using a FHIR _IdType_ identifier; an IdType
@@ -2566,8 +2494,8 @@ components:
                     type: token
                     documentation: >-
                       **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
+                      CHOOSE ONE OUT OF THE FOLLOWING TWO PARAMETERS AT A GIVEN TIME
+                      (_id, identifier)**
                       
                       
                       Fetch _Patient_ data using a FHIR _identifier_; an identifier
@@ -2599,36 +2527,6 @@ components:
                       Identifier, and all might represent the same resource:
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
-                  - name: '_has:Coverage.extension'
-                    type: token
-                    documentation: >-
-                      **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO
-                      CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME
-                      (_id, identifier, _has:Coverage.extension)**
-                      
-                      
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-                      
-                      the Part D contract value that will be used when determining
-                      eligibility.
-                      
-                      
-                      Example:
-                         - `_has:Coverage.extension=<Part D Contract ID Here>`
-                         - `_has:Coverage.extension=ABCD`
-                  - name: '_has:Coverage.rfrncyr'
-                    type: token
-                    documentation: >-
-                      When searching for a Patient's Part D events information, this
-                      resource identifies
-                      
-                      the reference year that will be applied when determining
-                      applicable Part D events.
-                      
-                      
-                      Example:
-                         - `_has:Coverage.rfrncyr=2023`
                   - name: cursor
                     type: string
                     documentation: >-

@@ -18,7 +18,7 @@ from apps.fhir.bluebutton.utils import (
     crosswalk_patient_id,
     get_resourcerouter,
     build_oauth_resource,
-    valid_caller_for_patient_read,
+    valid_patient_read_or_search_call,
 )
 
 ENCODED = settings.ENCODING
@@ -70,16 +70,48 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         response = notNone(listing, "number")
         self.assertEqual(response, listing)
 
-    def test_valid_caller_for_patient_read(self):
-        result = valid_caller_for_patient_read('PatientId:-20140000008326', '-20140000008326')
+    def test_valid_patient_read_or_search_call_valid_read_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', '-20140000008329', '')
         assert result is True
 
-        result = valid_caller_for_patient_read('PatientId:-20140000008326', '-20140000008329')
+        result = valid_patient_read_or_search_call('PatientId:-99140000008329', '-99140000008329', '')
+        assert result is True
+
+    def test_valid_patient_read_or_search_call_invalid_read_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', '-99140000008329', '')
         assert result is False
 
-        # call with no colon in beneficiary_id to make sure
-        invalid_call = valid_caller_for_patient_read('PatientId-20140000008326', '-20140000008329')
-        assert invalid_call is False
+        result = valid_patient_read_or_search_call('PatientId:-99140000008329', '-20140000008329', '')
+        assert result is False
+
+    def test_valid_patient_read_or_search_call_valid_search_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', None, '_id=-20140000008329')
+        assert result is True
+
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-99140000008329'
+        )
+        assert result is True
+
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_id=-99140000008329&_lastUpdated=lt2024-06-15&startIndex=0&cursor=0'
+        )
+        assert result is True
+
+    def test_valid_patient_read_or_search_call_invalid_search_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', None, '_id=-99140000008329')
+        assert result is False
+
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-20140000008329'
+        )
+        assert result is False
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):

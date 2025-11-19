@@ -10,6 +10,8 @@ import uuid
 from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
+from typing import Optional
+from urllib.parse import parse_qs
 
 from django.conf import settings
 from django.contrib import messages
@@ -745,18 +747,31 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     return response.json()
 
 
-def valid_caller_for_patient_read(beneficiary_id: str, patient_id: str) -> bool:
-    """When making a read patient call, we only want to ping BFD if the patient_id
-    being passed matches the fhir_id (currently v2) associated with the current session
+def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional[str], query_param: str) -> bool:
+    """Determine if a read or search Patient call is valid, based on what was passed for the resource_id (read call)
+    or the query_parameter (search call)
 
     Args:
-        beneficiary_id (str): beneficiary_id that is associated with the current session/
-        Should have format 'patientId:00000000000000 coming in
-        patient_id (str): patient_id that is will be passed to BFD
+        beneficiary_id (str): This comes from the BlueButton-OriginalQuery attribute of the headers for the API call.
+        Has the format, patientId:{{patientId}}, where patientId comes from the bluebutton_crosswalk table
+        resource_id (Optional[str]): This will only be populated for read calls, and it is the id being passed to BFD
+        query_param (str): String for the query parameter being passed for search calls. For read calls this is a blank string
 
     Returns:
-        bool: If the patient_id matches the beneficiary_id, then return True, else False
+        bool: Whether or not the call is valid
     """
-    parts = beneficiary_id.split(':', 1)
-    beneficiary_comparison_id = parts[1] if len(parts) == 2 else None
-    return beneficiary_comparison_id == patient_id
+    bene_split = beneficiary_id.split(':', 1)
+    beneficiary_id = bene_split[1] if len(bene_split) > 1 else None
+    # Handles the case where it is a read call, but what is passed does not match the beneficiary_id
+    # which is constructed using the patient id for the current session in generate_info_headers.
+    if resource_id and beneficiary_id and resource_id != beneficiary_id:
+        return False
+
+    # Handles the case where it is a search call, but what is passed does not match the beneficiary_id
+    # so a 404 Not found will be thrown before reaching out to BFD
+    query_dict = parse_qs(query_param)
+    passed_identifier = query_dict.get('_id', [None])
+    if passed_identifier[0] and passed_identifier[0] != beneficiary_id:
+        return False
+
+    return True
