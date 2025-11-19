@@ -26,7 +26,7 @@ AccessToken = get_access_token_model()
 def get_expected_read_request(version: int):
     return {
         'method': 'GET',
-        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{FHIR_ID_V2}/?_format=json',
+        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{FHIR_ID_V2}/?_format=json&_id={FHIR_ID_V2}',
         'headers': {
             # 'User-Agent': 'python-requests/2.20.0',
             'Accept-Encoding': 'gzip, deflate',

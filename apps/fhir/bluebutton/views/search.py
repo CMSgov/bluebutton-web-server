@@ -83,6 +83,11 @@ class SearchView(FhirDataView):
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
     required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
+    QUERY_SCHEMA = {
+        **SearchView.QUERY_SCHEMA,
+        '_id': str,
+        'identifier': str
+    }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -91,7 +96,6 @@ class SearchViewPatient(SearchView):
     def build_parameters(self, request, *args, **kwargs):
         return {
             '_format': 'application/json+fhir',
-            '_id': request.crosswalk.fhir_id(self.version)
         }
 
 
