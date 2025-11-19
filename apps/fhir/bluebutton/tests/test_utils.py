@@ -95,6 +95,13 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         )
         assert result is True
 
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_id=-99140000008329&_lastUpdated=lt2024-06-15&startIndex=0&cursor=0'
+        )
+        assert result is True
+
     def test_valid_patient_read_or_search_call_invalid_search_calls(self):
         result = valid_patient_read_or_search_call('PatientId:-20140000008329', None, '_id=-99140000008329')
         assert result is False
