@@ -16,6 +16,8 @@ A Mac, out-of-the-box, should "just work," as well as an Intel-based Linux host.
 
 ### configuring `kion`
 
+*To run the tools, you must be in a `kion` shell. What follows is a way to set up an alias that makes running the correct configuration easier.*
+
 You should already have a `.kion.yaml` in your home directory. If not, follow the [local desktop development](https://confluence.cms.gov/spaces/BB2/pages/484224999/Local+Desktop+Development) onboarding docs to set up Cloudtamer/`kion`.
 
 You need to add an alias in the previously mentioned .kion.yaml for this tooling to work.

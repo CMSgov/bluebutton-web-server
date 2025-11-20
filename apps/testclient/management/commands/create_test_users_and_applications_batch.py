@@ -49,6 +49,8 @@ def create_group(name="BlueButton"):
     return g
 
 # To avoid naming collisions when running this command more than once
+
+
 def get_first_available_number(firstname):
     try:
         latest = User.objects.filter(
@@ -58,6 +60,7 @@ def get_first_available_number(firstname):
     # pull the number out of the name
     begin = ''.join(x for x in latest.first_name if x.isdigit())
     return int(begin) + 1
+
 
 def create_dev_users_apps_and_bene_crosswalks(
         group,
@@ -171,7 +174,7 @@ def create_dev_users_apps_and_bene_crosswalks(
             app_index += 1
             app_name = "app{}_{}".format(i, u)
             redirect_uri = "{}/testclient_{}/callback".format(settings.HOSTNAME_URL, app_name)
-            if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
+            if not (redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
                 redirect_uri = "https://" + redirect_uri
             # 2% inactive, 5% opt out demo scopes
             # 10% public/implicit 90% confidential/authorization-code
@@ -278,7 +281,7 @@ def create_test_access_refresh_archived_objects(
 
     for i in range(refresh_count):
         rt = RefreshToken.objects.create(user=user, application=application,
-                                     token=uuid.uuid4().hex)
+                                         token=uuid.uuid4().hex)
         rt.created = at.created
         rt.save()
         print("<<< " + user.username + " refresh token " + str(i) + " generated")
@@ -286,13 +289,13 @@ def create_test_access_refresh_archived_objects(
     # archived token: created, updated, archived_at datetime fields
     for i in range(archived_token_count):
         ot = ArchivedToken.objects.create(user=user,
-                                      application=application,
-                                      token=uuid.uuid4().hex,
-                                      expires=expires.replace(tzinfo=pytz.utc),
-                                      created=at.created,
-                                      updated=at.created,
-                                      archived_at=at.created,
-                                      scope=scope)
+                                          application=application,
+                                          token=uuid.uuid4().hex,
+                                          expires=expires.replace(tzinfo=pytz.utc),
+                                          created=at.created,
+                                          updated=at.created,
+                                          archived_at=at.created,
+                                          scope=scope)
 
         date_archived = ot.created + timedelta(days=10)
         ot.archived_at = date_archived.replace(tzinfo=pytz.utc)
@@ -301,14 +304,17 @@ def create_test_access_refresh_archived_objects(
 
     past_date = timezone.now() - timedelta(days=2)
     for i in range(archived_grant_count):
-        adag = ArchivedDataAccessGrant.objects.create(beneficiary=user,
-                                      application=application,
-                                      expiration_date=past_date,
-                                      created_at=past_date - timedelta(days=2),
-                                      archived_at=past_date)
-        past_date = past_date - timedelta(days=2)
-        adag.save()
-        print("<<< " + user.username + "archived grant " + str(i) + " generated")
+        try:
+            adag = ArchivedDataAccessGrant.objects.create(beneficiary=user,
+                                                          application=application,
+                                                          expiration_date=past_date,
+                                                          created_at=past_date - timedelta(days=2),
+                                                          archived_at=past_date)
+            past_date = past_date - timedelta(days=2)
+            adag.save()
+            print("<<< " + user.username + "archived grant " + str(i) + " generated")
+        except Exception as e:
+            print(f"Skipped creating grant number {i} due to DB conflict: {e}")
 
 
 class Command(BaseCommand):

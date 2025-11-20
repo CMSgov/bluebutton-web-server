@@ -34,7 +34,7 @@ class Command(BaseCommand):
         for switch in WAFFLE_FEATURE_SWITCHES:
             try:
                 Switch.objects.get(name=switch[0])
-                self._log("Feature switch already exists: %s" % (str(switch)))
+                # self._log("Feature switch already exists: %s" % (str(switch)))
             except Switch.DoesNotExist:
                 Switch.objects.create(name=switch[0], active=switch[1], note=switch[2])
                 self._log("Feature switch created: %s" % (str(switch)))
@@ -46,7 +46,7 @@ class Command(BaseCommand):
 
             try:
                 flag_obj = Flag.objects.get(name=flag[0])
-                self._log("Feature flag already exists: %s" % (str(flag_obj)))
+                # self._log("Feature flag already exists: %s" % (str(flag_obj)))
             except Flag.DoesNotExist:
                 flag_obj = Flag.objects.create(name=flag[0])
                 self._log("Feature flag created: %s" % (str(flag[0])))

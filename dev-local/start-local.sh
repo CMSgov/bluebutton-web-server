@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
+set -e
 set -a
+
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
@@ -18,6 +20,9 @@ then
     else
         echo "🆗 ${SUPER_USER_NAME} already exists."
     fi
+
+    python manage.py create_test_feature_switches
+    echo "🆗 create_test_feature_switches"
     
     python manage.py create_admin_groups
     echo "🆗 create_admin_groups"
@@ -29,22 +34,14 @@ then
     echo "🆗 create_blue_button_scopes"
 
     python manage.py create_test_user_and_application
+
     echo "🆗 create_test_user_and_application"
 
     python manage.py create_user_identification_label_selection
     echo "🆗 create_user_identification_label_selection"
 
-    python manage.py create_test_feature_switches
-    echo "🆗 create_test_feature_switches"
 else
     echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
-fi
-
-if [ ! -d 'bluebutton-css' ]
-then
-    git clone https://github.com/CMSgov/bluebutton-css.git
-else
-    echo 'CSS already installed.'
 fi
 
 if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ]

@@ -234,9 +234,10 @@ set_salt () {
         DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
         DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
         DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
-
+        
         DJANGO_SLSX_CLIENT_ID=bb2api
         DJANGO_SLSX_CLIENT_SECRET="xxxxx"
+        DJANGO_PASSWORD_HASH_ITERATIONS="200000"
 
         DJANGO_SLSX_VERIFY_SSL_INTERNAL="False"
 

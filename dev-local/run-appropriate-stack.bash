@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 source ./utility-functions.bash
+source ./fetch-and-update-css.bash
 
 # this says to "export all variables."
 set -a
@@ -8,6 +9,8 @@ set -e
 
 # bfd = local | test | sbx
 # auth = mock | live
+
+fetch_and_update_css
 
 # let's make sure we have a valid ENV var before proceeding
 check_valid_env
@@ -48,9 +51,15 @@ fi
 
 cleanup_docker_stack
 
-echo "📊 Vernier start."
-echo
-
-docker compose \
+if [[ "${daemon}" == "1" ]]; then
+    docker compose \
     -f docker-compose-local.yaml \
-    up
+    up \
+    --detach
+else
+    echo "📊 Tailing logs."
+    echo
+    docker compose \
+        -f docker-compose-local.yaml \
+        up
+fi
