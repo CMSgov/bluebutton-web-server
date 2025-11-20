@@ -90,17 +90,35 @@ def create_application(user, group, app, redirect):
         redirect_uri = "https://" + redirect_uri
 
     a = Application.objects.create(name=app_name,
-                                redirect_uris=redirect_uri,
+                                redirect_uris=redirect_uri + " " + "http://localhost/custom/smart_stu2_2/redirect",
                                 user=user,
                                 data_access_type="THIRTEEN_MONTH",
                                 client_type="confidential",
+                                client_id="client_id_of_built_in_testapp",
+                                client_secret="client_secret_of_built_in_testapp",
+                                client_secret_plain="client_secret_of_built_in_testapp",
                                 authorization_grant_type="authorization-code")
 
-    titles = ["My Medicare and supplemental coverage information.",
-              "My Medicare claim information.",
-              "My general patient and demographic information.",
-              "Profile information including name and email."
+    titles = [
+                "My general patient and demographic information.",
+                "Profile information including name and email.",
+                "My Medicare claim information.",
+                "My Medicare and supplemental coverage information.",
+                "Token Management",
+                "Token Introspect",
+                "Openid profile permissions.",
+                "Read my general patient and demographic information.",
+                "Search my general patient and demographic information.",
+                "Read and search my general patient and demographic information.",
+                "Read my Medicare claim information.",
+                "Search my Medicare claim information.",
+                "Read and search my Medicare claim information.",
+                "Read my Medicare and supplemental coverage information.",
+                "Search my Medicare and supplemental coverage information.",
+                "Read and search my Medicare and supplemental coverage information.",
+                "Patient launch context."
               ]
+
 
     for t in titles:
         c = ProtectedCapability.objects.get(title=t)
