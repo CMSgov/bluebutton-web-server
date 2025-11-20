@@ -39,13 +39,13 @@ DEFAULT_DEV_COUNT = 150
 DEFAULT_MAX_APPS_PER_DEV = 5
 
 
-def create_group(name="BlueButton"):
+def create_group(name='BlueButton'):
 
     g, created = Group.objects.get_or_create(name=name)
     if created:
-        print("%s group created" % (name))
+        print('%s group created' % (name))
     else:
-        print("%s group pre-existing. Create skipped." % (name))
+        print('%s group pre-existing. Create skipped.' % (name))
     return g
 
 # To avoid naming collisions when running this command more than once
@@ -84,10 +84,10 @@ def create_dev_users_apps_and_bene_crosswalks(
     count = 0
     file_cnt = 0
     synthetic_bene_cnt = 0
-    begin_number = get_first_available_number("bene")
+    begin_number = get_first_available_number('bene')
 
     for f in files:
-        print("file={}".format(f))
+        print('file={}'.format(f))
         bene_rif = open('./synthetic-data/{}'.format(f), 'r')
         while True:
             if count == bene_count:
@@ -102,8 +102,8 @@ def create_dev_users_apps_and_bene_crosswalks(
                 fhir_id = flds[1]
                 mbi = flds[14]
                 hicn = flds[18]
-                fn = "bene{}".format(count + begin_number)
-                ln = "user{}".format(count + begin_number)
+                fn = 'bene{}'.format(count + begin_number)
+                ln = 'user{}'.format(count + begin_number)
 
                 # skip fred
                 if fhir_id != '-20140000008325':
@@ -129,7 +129,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                         bene_pk_list.append(u.pk)
                         synthetic_bene_cnt += 1
                         count += 1
-                        print(".", end="", flush=True)
+                        print('.', end='', flush=True)
                         time.sleep(.05)
                     except ValidationError:
                         # If there is something wrong during 'create_beneficiary_record'
@@ -137,26 +137,26 @@ def create_dev_users_apps_and_bene_crosswalks(
                         continue
         bene_rif.close()
         file_cnt += 1
-        print("RIF file processed = {}, synthetic bene generated = {}".format(file_cnt, synthetic_bene_cnt))
+        print('RIF file processed = {}, synthetic bene generated = {}'.format(file_cnt, synthetic_bene_cnt))
         if file_cnt >= 1:
             break
 
     # create dev users according dev-count parameter, default to 100
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
     app_index = 0
-    begin_number = get_first_available_number("DevUserFN")
+    begin_number = get_first_available_number('DevUserFN')
     for i in range(dev_count):
-        dev_u_fn = "DevUserFN{}".format(i + begin_number)
-        dev_u_ln = "DevUserLN{}".format(i + begin_number)
-        u = User.objects.create_user(username="{}.{}".format(dev_u_fn, dev_u_ln),
+        dev_u_fn = 'DevUserFN{}'.format(i + begin_number)
+        dev_u_ln = 'DevUserLN{}'.format(i + begin_number)
+        u = User.objects.create_user(username='{}.{}'.format(dev_u_fn, dev_u_ln),
                                      first_name=dev_u_fn,
                                      last_name=dev_u_ln,
                                      email='{}.{}@example.com'.format(dev_u_fn, dev_u_ln),
-                                     password="THEP@ssw0rd{}".format(i),)
+                                     password='THEP@ssw0rd{}'.format(i),)
         UserProfile.objects.create(user=u,
-                                   user_type="DEV",
+                                   user_type='DEV',
                                    create_applications=True,
-                                   organization_name=u.username + "ACME Inc.",
+                                   organization_name=u.username + 'ACME Inc.',
                                    password_reset_question_1='1',
                                    password_reset_answer_1='blue',
                                    password_reset_question_2='2',
@@ -166,22 +166,22 @@ def create_dev_users_apps_and_bene_crosswalks(
         u.groups.add(group)
         # apps per DEV user
         app_cnt = randint(1, app_max) if app_max > 0 else 0
-        print(">>>>generating apps for user={}".format(u.username))
+        print('>>>>generating apps for user={}'.format(u.username))
         for i in range(app_cnt):
             app_index += 1
-            app_name = "app{}_{}".format(i, u)
-            redirect_uri = "{}/testclient_{}/callback".format(settings.HOSTNAME_URL, app_name)
-            if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
-                redirect_uri = "https://" + redirect_uri
+            app_name = 'app{}_{}'.format(i, u)
+            redirect_uri = '{}/testclient_{}/callback'.format(settings.HOSTNAME_URL, app_name)
+            if not(redirect_uri.startswith('http://') or redirect_uri.startswith('https://')):
+                redirect_uri = 'https://' + redirect_uri
             # 2% inactive, 5% opt out demo scopes
             # 10% public/implicit 90% confidential/authorization-code
 
-            cl_type = "confidential"
-            auth_grant_type = "authorization-code"
+            cl_type = 'confidential'
+            auth_grant_type = 'authorization-code'
 
             if app_index % 10 == 0:
-                cl_type = "public"
-                auth_grant_type = "implicit"
+                cl_type = 'public'
+                auth_grant_type = 'implicit'
 
             a = Application.objects.create(name=app_name,
                                            redirect_uris=redirect_uri,
@@ -196,16 +196,16 @@ def create_dev_users_apps_and_bene_crosswalks(
             u.save()
             a.save()
             titles = [
-                "My Medicare and supplemental coverage information.",
-                "My Medicare claim information.",
-                "My general patient and demographic information.",
-                "Profile information including name and email."
+                'My Medicare and supplemental coverage information.',
+                'My Medicare claim information.',
+                'My general patient and demographic information.',
+                'Profile information including name and email.'
             ]
 
             for t in titles:
                 c = ProtectedCapability.objects.get(title=t)
                 a.scope.add(c)
-        print("<<<<<generated apps for user={}".format(u.username))
+        print('<<<<<generated apps for user={}'.format(u.username))
 
     # go through benes: each bene sign up to 1, 2, 3 apps
     # most 70% 1 app, 25% 2 apps, 5% 3 apps
@@ -274,14 +274,14 @@ def create_test_access_refresh_archived_objects(
                                     scope=scope)
     at.created = date_created.replace(tzinfo=pytz.utc)
     at.save()
-    print("<<< access token created for " + user.username + "/" + application.name)
+    print('<<< access token created for ' + user.username + '/' + application.name)
 
     for i in range(refresh_count):
         rt = RefreshToken.objects.create(user=user, application=application,
                                      token=uuid.uuid4().hex)
         rt.created = at.created
         rt.save()
-        print("<<< " + user.username + " refresh token " + str(i) + " generated")
+        print('<<< ' + user.username + ' refresh token ' + str(i) + ' generated')
 
     # archived token: created, updated, archived_at datetime fields
     for i in range(archived_token_count):
@@ -297,7 +297,7 @@ def create_test_access_refresh_archived_objects(
         date_archived = ot.created + timedelta(days=10)
         ot.archived_at = date_archived.replace(tzinfo=pytz.utc)
         ot.save()
-        print("<<< " + user.username + " archived token " + str(i) + " generated")
+        print('<<< ' + user.username + ' archived token ' + str(i) + ' generated')
 
     past_date = timezone.now() - timedelta(days=2)
     for i in range(archived_grant_count):
@@ -308,7 +308,7 @@ def create_test_access_refresh_archived_objects(
                                       archived_at=past_date)
         past_date = past_date - timedelta(days=2)
         adag.save()
-        print("<<< " + user.username + "archived grant " + str(i) + " generated")
+        print('<<< ' + user.username + 'archived grant ' + str(i) + ' generated')
 
 
 class Command(BaseCommand):
@@ -317,30 +317,30 @@ class Command(BaseCommand):
             'synthetic data and crosswalk for each bene.')
 
     def add_arguments(self, parser):
-        parser.add_argument("-b", "--bene-count", default=DEFAULT_BENE_COUNT,
-                            help="Total number of bene to be created. "
-                            "If none, defaults to {}.".format(DEFAULT_BENE_COUNT))
-        parser.add_argument("-d", "--dev-count", default=DEFAULT_DEV_COUNT,
-                            help="Total number of devs to be created. "
-                            "If none, defaults to {}.". format(DEFAULT_DEV_COUNT))
-        parser.add_argument("-a", "--app-max", default=DEFAULT_MAX_APPS_PER_DEV,
-                            help="Maximum number of apps per dev. "
-                            "If none, defaults to {}.".format(DEFAULT_MAX_APPS_PER_DEV))
-        parser.add_argument("-r", "--refresh-tokens", default=1,
-                            help="Refresh tokens per bene user. If none, defaults to 1.")
-        parser.add_argument("-t", "--archived-tokens", default=1,
-                            help="Archived tokens per bene user. If none, defaults to 1.")
-        parser.add_argument("-g", "--archived-access-grants", default=0,
-                            help="Archived access grants per user/app combination. "
-                            "If none, defaults to 0.")
+        parser.add_argument('-b', '--bene-count', default=DEFAULT_BENE_COUNT,
+                            help='Total number of bene to be created. '
+                            'If none, defaults to {}.'.format(DEFAULT_BENE_COUNT))
+        parser.add_argument('-d', '--dev-count', default=DEFAULT_DEV_COUNT,
+                            help='Total number of devs to be created. '
+                            'If none, defaults to {}.'. format(DEFAULT_DEV_COUNT))
+        parser.add_argument('-a', '--app-max', default=DEFAULT_MAX_APPS_PER_DEV,
+                            help='Maximum number of apps per dev. '
+                            'If none, defaults to {}.'.format(DEFAULT_MAX_APPS_PER_DEV))
+        parser.add_argument('-r', '--refresh-tokens', default=1,
+                            help='Refresh tokens per bene user. If none, defaults to 1.')
+        parser.add_argument('-t', '--archived-tokens', default=1,
+                            help='Archived tokens per bene user. If none, defaults to 1.')
+        parser.add_argument('-g', '--archived-access-grants', default=0,
+                            help='Archived access grants per user/app combination. '
+                            'If none, defaults to 0.')
 
     def handle(self, *args, **options):
-        bene_count = int(options["bene_count"])
-        dev_count = int(options["dev_count"])
-        app_max = int(options["app_max"])
-        refresh_tokens = int(options["refresh_tokens"])
-        archived_tokens = int(options["archived_tokens"])
-        archived_grants = int(options["archived_access_grants"])
+        bene_count = int(options['bene_count'])
+        dev_count = int(options['dev_count'])
+        app_max = int(options['app_max'])
+        refresh_tokens = int(options['refresh_tokens'])
+        archived_tokens = int(options['archived_tokens'])
+        archived_grants = int(options['archived_access_grants'])
         g = create_group()
         create_dev_users_apps_and_bene_crosswalks(
             g,
