@@ -3,7 +3,7 @@ import hashlib
 import voluptuous
 import logging
 
-from apps.constants import VersionNotMatched, Versions
+from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -134,6 +134,7 @@ class FhirDataView(APIView):
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
+        request.session.version = self.version
 
         # Now make the call to the backend API
         req = Request('GET',
@@ -165,8 +166,7 @@ class FhirDataView(APIView):
 
             # Handle the case where it is a patient search call, but neither _id or identifier were passed
             if '_id' not in get_parameters.keys() and 'identifier' not in get_parameters.keys():
-                # depending on if 4166 is merged first, this will need to be updated
-                get_parameters['_id'] = request.crosswalk.fhir_id(2)
+                get_parameters['_id'] = request.crosswalk.fhir_id(self.version)
                 # Reset the request parameters and the prepped request after adding the missing, but required, _id param
                 req.params = get_parameters
                 prepped = s.prepare_request(req)
@@ -194,7 +194,6 @@ class FhirDataView(APIView):
 
         # BB2-128
         error = process_error_response(response)
-
         if error is not None:
             raise error
 

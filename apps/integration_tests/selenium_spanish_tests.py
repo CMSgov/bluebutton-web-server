@@ -1,6 +1,6 @@
 from .selenium_generic import SeleniumGenericTests
 from .selenium_cases import SPANISH_TESTS
-from apps.constants import Versions
+from apps.versions import Versions
 
 USE_NEW_PERM_SCREEN = "true"
 
