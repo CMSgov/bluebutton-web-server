@@ -19,10 +19,25 @@ check_valid_env () {
     #####
     # ERR
     else
-        echo "'bfd' must be set to 'local', 'test', or 'sbx'."
-        echo "'bfd' is currently set to '${bfd}'."
+        echo "⛔ 'bfd' must be set to 'local', 'test', or 'sbx'."
+        echo "⛔ 'bfd' is currently set to '${bfd}'."
         echo "Exiting."
         return -2
+    fi 
+
+
+    if [[ "${bfd}" == "local" && "${auth}" == "live" ]]; then
+        echo "⚠️ ${bfd}/${auth} may work for SLSX testing, but not for BFD calls."
+    fi 
+
+    if [[ "${bfd}" == "test" && "${auth}" == "mock" ]]; then
+        echo "⛔ ${bfd}/${auth} is not a valid combination. Exiting."
+        return -3
+    fi 
+
+    if [[ "${bfd}" == "sbx" && "${auth}" == "mock" ]]; then
+        echo "⛔ ${bfd}/${auth} is not a valid combination. Exiting."
+        return -4
     fi 
 
     echo "✅ check_valid_env"
@@ -96,16 +111,20 @@ set_bfd_urls () {
     if [[ "${bfd}" == "local" ]]; then
         echo "⚠️  No FHIR URLs set for local testing."
         echo "   There are no mock BFD endpoints for local testing at this time."
+        export LOCAL_TESTING_TARGET="local"
     #####
     # TEST
     elif [[ "${bfd}" == "test" ]]; then
         export FHIR_URL="${FHIR_URL_TEST}"
         export FHIR_URL_V3="${FHIR_URL_V3_TEST}"
+        export LOCAL_TESTING_TARGET="test"
     #####
     # SBX
     elif [[ "${bfd}" == "sbx" ]]; then
         export FHIR_URL="${FHIR_URL_SBX}"
         export FHIR_URL_V3="${FHIR_URL_V3_SBX}"
+        # FIXME: Do we use "impl" or "sbx"? ...
+        export LOCAL_TESTING_TARGET="impl"
     fi
 
     echo "✅ set_bfd_urls"
@@ -143,6 +162,10 @@ set_auth_profile () {
 export CERT_AND_SALT="YES"
 
 retrieve_certs () {
+    echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
+
+    unset CERT_SUFFIX
+
     if [[ "${bfd}" == "local" ]]; then
         echo "🆗 Running locally. Not retrieving certs."
         echo "🆗 Running locally. Not retrieving salt."
@@ -173,10 +196,12 @@ retrieve_certs () {
         KEY="ca.key.nocrypt.pem"
 
         # Remove them first
+        echo "  Removing ${BB2_CERTSTORE}/$CERT"
         rm -f "${BB2_CERTSTORE}/$CERT"
+        echo "  Removing ${BB2_CERTSTORE}/$KEY"
         rm -f "${BB2_CERTSTORE}/$KEY"
 
-        echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
+        echo "  Fetching ${BB2_CERTSTORE}/$CERT"
         aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
             --query 'SecretString' \
@@ -187,6 +212,7 @@ retrieve_certs () {
             return -3
         fi
 
+        echo "  Fetching ${BB2_CERTSTORE}/$KEY"
         aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key${CERT_SUFFIX} \
             --query 'SecretString' \

@@ -8,6 +8,10 @@ The containerized local build should provide a local development experience that
 
 These tools assume you are a developer working on the project, and have access to the VPN and other systems.
 
+## TL;DR
+
+
+
 ## pre-requisites
 
 It is assumed you have a *NIX-like shell, and have the ability to run GNU Make or a reasonable fascimilie thereof. 
@@ -16,7 +20,7 @@ A Mac, out-of-the-box, should "just work," as well as an Intel-based Linux host.
 
 ### configuring `kion`
 
-*To run the tools, you must be in a `kion` shell. What follows is a way to set up an alias that makes running the correct configuration easier.*
+*To run the tools, you must be in a `kion` shell. What follows is a way to set up an alias that makes running the correct configuration easier. You can also run `kion stak` or `kion s` and navigate the menus to achieve a similar result.*
 
 You should already have a `.kion.yaml` in your home directory. If not, follow the [local desktop development](https://confluence.cms.gov/spaces/BB2/pages/484224999/Local+Desktop+Development) onboarding docs to set up Cloudtamer/`kion`.
 
@@ -31,7 +35,7 @@ Then add the alias as:
 
 ```
 favorites:
-  - name: BB2-NON-PROD
+  - name: bbnp
     account: <account-number>
     cloud_access_role: <cloud-access-role>
     access_type: cli
@@ -40,10 +44,10 @@ favorites:
 If you already have some aliases, you can just add this one to the list. The account number and cloud access role can be obtained from the Cloudtamer dashboard. This is not strictly necessary, as the tooling cannot automate a `kion` call *and* then continue, as `kion` opens a new shell. However, it is much easier (and, for this documentation, the preferred method) to invoke
 
 ```
-kion f BB2-NON-PROD
+kion f bbnp
 ```
 
-than to navigate a menu structure. You may ultimately choose a shorter alias, e.g. `kion f bnp`.
+than to navigate a menu structure. You may ultimately choose a shorter alias, e.g. `kion f bbnp`.
 
 ## to start
 
@@ -93,26 +97,36 @@ make run-local bfd=test auth=live
 
 Each combination has different implications. Only some make sense at this time (Nov '25):
 
-| bfd / auth | mock | live |
+|  | auth=mock | auth=live |
 | --- | --- | --- |
-| local | local unit tests | testing SLSX sequences |
-| test | ⛔ | Full-up against `test` | 
-| sbx | ⛔ | Full-up against `sbx` | 
+| **bfd=local** | local unit tests | testing SLSX sequences |
+| **bfd=test** | ⛔ | Full-up against `test` | 
+| **bfd=sbx** | ⛔ | Full-up against `sbx` | 
 
 * `local/mock`: This makes sense for running unit tests; only local tests will run in this configuration.
-* `local/live`: Manual testing of SLSX sequences should be able to be performed with this combination (TBD)
-* `test/mock`: Not a valid condition; a mock authentication will not work with a live server.
+* `local/live`: Manual testing of SLSX sequences should be able to be performed with this combination. No BFD/FHIR URLs are set, though, which may break things.
+* `test/mock`: *Not a valid condition*; a mock authentication will not work with a live server.
 * `test/live`: Live SLSX exchanges with medicare.gov and calls against the `test` BFD environment.
-* `sbx/mock`: Not a valid condition.
+* `sbx/mock`: *Not a valid condition*.
 * `sbx/live`: Live SLSX exchanges and calls against the `sbx` BFD environment.
 
+
+### running daemonized
+
+You cann add `daemon=1` to any of the above commands, and the stack will run in the background.
+
+For example:
+
+```
+make run-local bfd=test auth=live daemon=1
+```
 
 ### running against `test`
 
 When launched with
 
 ```
-make run-local TARGET=test
+make run-local bfd=test auth=live
 ```
 
 the tooling obtains and sources credentials for running against our `test` environment.
@@ -122,7 +136,7 @@ the tooling obtains and sources credentials for running against our `test` envir
 Similarly,
 
 ```
-make run-local TARGET=sbx
+make run-local bfd=sbx auth=live
 ```
 
 runs against SBX. 
@@ -135,9 +149,9 @@ runs against SBX.
 
 In a nutshell:
 
-1. Run `kion f BB2-NON-PROD` to authenticate/obtain AWS credentials.
+1. Run `kion f bbnp` to authenticate/obtain AWS credentials.
 1. Obtain certificates for the remote environment (if you selected `test` or `sbx`)
-1. `docker compose --profile mock-sls up` for `local`, `docker compose --profile slsx up` for live envs.
+1. Pass appropriate env vars through to the app, based on choices.
 
 ## future work
 

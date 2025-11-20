@@ -1,7 +1,5 @@
-# FIXME: Update to most recent python.
 FROM python:3.11-trixie
 
-# FIXME: Uncertain implications
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
 
@@ -24,8 +22,6 @@ USER DEV
 ADD .. /code
 WORKDIR /code
 
-# FIXME: Is this how to use venvs 
-# reliably in a Dockerfile?
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
