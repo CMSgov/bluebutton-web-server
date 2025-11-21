@@ -610,6 +610,13 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
     'and consent to share their data.'
 )
 
+APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
+    'This application, {}, does not yet have access to v3 endpoints.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
+)
+
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),

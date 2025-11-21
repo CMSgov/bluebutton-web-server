@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from time import strftime
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
@@ -15,7 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauth2_provider.exceptions import OAuthToolkitError
-from oauth2_provider.views.base import app_authorized, get_access_token_model
+from oauth2_provider.views.base import app_authorized
+from oauth2_provider.models import get_refresh_token_model, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -30,6 +32,7 @@ from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
+from apps.versions import Versions
 
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
@@ -43,6 +46,7 @@ from ..loggers import (
 )
 from ..models import Approval
 from ..utils import (
+    get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
     json_response_from_oauth2_error,
@@ -75,8 +79,50 @@ def require_post_state_decorator(view_func):
     return _wrapped
 
 
+def check_v3_endpoint_access(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        # 4250-TODO how do we not call this so many times?
+        path_info = request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
+        if version != Versions.V3:
+            return view_func(request, *args, **kwargs)
+
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+        req_meta = request.META
+        url_query = parse_qs(req_meta.get('QUERY_STRING'))
+        client_id = url_query.get('client_id', [None])
+        try:
+            if client_id[0]:
+                application = get_application_model().objects.get(client_id=client_id[0])
+            else:
+                url_query = parse_qs(request._body.decode('utf-8'))
+                refresh_token_from_request = url_query.get('refresh_token', [None])
+                refresh_token = get_refresh_token_model().objects.get(token=refresh_token_from_request[0])
+                application = get_application_model().objects.get(id=refresh_token.application_id)
+
+            application_user = get_user_model().objects.get(id=application.user_id)
+
+            if flag.id is not None and flag.is_active_for_user(application_user):
+                return view_func(request, *args, **kwargs)
+            else:
+                return JsonResponse(
+                    {'status_code': 403, 'message': settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)},
+                    status=403,
+                )
+        except ObjectDoesNotExist:
+            # 4250-TODO Do we need this?
+            return JsonResponse(
+                {'status_code': 500, 'message': 'Error retrieving data'},
+                status=500,
+            )
+
+    return _wrapped
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 @method_decorator(require_post_state_decorator, name="dispatch")
+@method_decorator(check_v3_endpoint_access, name="dispatch")
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -407,6 +453,7 @@ class ApprovalView(AuthorizationView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(check_v3_endpoint_access, name="dispatch")
 class TokenView(DotTokenView):
 
     def validate_token_endpoint_request_body(self, request):
