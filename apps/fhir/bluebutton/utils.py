@@ -10,15 +10,18 @@ import uuid
 from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
+from typing import Optional
+from urllib.parse import parse_qs
 
 from django.conf import settings
 from django.contrib import messages
 from apps.fhir.server.settings import fhir_settings
-from apps.constants import Versions
+from apps.versions import Versions
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
 from .models import Crosswalk, Fhir_Response
+from apps.dot_ext.utils import get_api_version_number_from_url
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -125,7 +128,7 @@ def get_query_counter(request):
         return request._logging_pass
 
 
-def generate_info_headers(request):
+def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     """Returns a dict of headers to be sent to the backend"""
     result = {}
     # BB2-279 support BFD header "includeAddressFields" and always set to False
@@ -143,14 +146,17 @@ def generate_info_headers(request):
     # Return resource_owner or user
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
+
+    if version == Versions.NOT_AN_API_VERSION:
+        version = get_api_version_number_from_url(request.path)
+
     if crosswalk:
-        # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
-        # BB2-4166-TODO: generalize this to include and check for v3 if a v3 request is happening
-        if crosswalk.fhir_id(2) is not None:
-            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id(2))
+        # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.
+        if crosswalk.fhir_id(version) != '':
+            result['BlueButton-BeneficiaryId'] = 'patientId:' + crosswalk.fhir_id(version)
         else:
-            result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(
                 crosswalk.user_hicn_hash
             )
     else:
@@ -406,25 +412,25 @@ def prepend_q(pass_params):
     return pass_params
 
 
-def dt_patient_reference(user):
+def dt_patient_reference(user, version):
     """Get Patient Reference from Crosswalk for user"""
 
     if user:
-        patient = crosswalk_patient_id(user)
+        patient = crosswalk_patient_id(user, version)
         if patient:
             return {"reference": patient}
 
     return None
 
 
-def crosswalk_patient_id(user):
+def crosswalk_patient_id(user, version):
     """Get patient/id from Crosswalk for user"""
 
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
-        if patient.fhir_id(2):
-            return patient.fhir_id(2)
+        if patient.fhir_id(version):
+            return patient.fhir_id(version)
 
     except Crosswalk.DoesNotExist:
         pass
@@ -696,19 +702,19 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
     return security
 
 
-def get_patient_by_id(id, request):
+def get_v2_patient_by_id(id, request):
     """
     a helper adapted to just get patient given an id out of band of auth flow
-    or noraml data flow, use by tools such as BB2-Tools admin viewers
+    or normal data flow, use by tools such as BB2-Tools admin viewers
     """
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
+
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
-    # BB2-4166-TODO: this should allow v3
     url = "{}/v2/fhir/Patient/{}?_format={}".format(
         get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
     )
@@ -730,9 +736,9 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
 
-    search_identifier = f"https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}"
-    payload = {"identifier": search_identifier}
-    url = "{}/v2/fhir/Patient/_search".format(
+    search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
+    payload = {'identifier': search_identifier}
+    url = '{}/v2/fhir/Patient/_search'.format(
         get_resourcerouter().fhir_url
     )
 
@@ -745,18 +751,31 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     return response.json()
 
 
-def valid_caller_for_patient_read(beneficiary_id: str, patient_id: str) -> bool:
-    """When making a read patient call, we only want to ping BFD if the patient_id
-    being passed matches the fhir_id (currently v2) associated with the current session
+def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional[str], query_param: str) -> bool:
+    """Determine if a read or search Patient call is valid, based on what was passed for the resource_id (read call)
+    or the query_parameter (search call)
 
     Args:
-        beneficiary_id (str): beneficiary_id that is associated with the current session/
-        Should have format 'patientId:00000000000000 coming in
-        patient_id (str): patient_id that is will be passed to BFD
+        beneficiary_id (str): This comes from the BlueButton-OriginalQuery attribute of the headers for the API call.
+        Has the format, patientId:{{patientId}}, where patientId comes from the bluebutton_crosswalk table
+        resource_id (Optional[str]): This will only be populated for read calls, and it is the id being passed to BFD
+        query_param (str): String for the query parameter being passed for search calls. For read calls this is a blank string
 
     Returns:
-        bool: If the patient_id matches the beneficiary_id, then return True, else False
+        bool: Whether or not the call is valid
     """
-    parts = beneficiary_id.split(':', 1)
-    beneficiary_comparison_id = parts[1] if len(parts) == 2 else None
-    return beneficiary_comparison_id == patient_id
+    bene_split = beneficiary_id.split(':', 1)
+    beneficiary_id = bene_split[1] if len(bene_split) > 1 else None
+    # Handles the case where it is a read call, but what is passed does not match the beneficiary_id
+    # which is constructed using the patient id for the current session in generate_info_headers.
+    if resource_id and beneficiary_id and resource_id != beneficiary_id:
+        return False
+
+    # Handles the case where it is a search call, but what is passed does not match the beneficiary_id
+    # so a 404 Not found will be thrown before reaching out to BFD
+    query_dict = parse_qs(query_param)
+    passed_identifier = query_dict.get('_id', [None])
+    if passed_identifier[0] and passed_identifier[0] != beneficiary_id:
+        return False
+
+    return True

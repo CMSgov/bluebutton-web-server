@@ -6,7 +6,7 @@ import string
 from collections import OrderedDict
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
-from apps.constants import Versions
+from apps.versions import Versions
 
 from ..dot_ext.models import Application
 

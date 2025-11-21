@@ -129,11 +129,6 @@
                             "documentation": "The offset used for result pagination"
                         },
                         {
-                            "name": "_has:Coverage",
-                            "type": "token",
-                            "documentation": "Part D coverage type"
-                        },
-                        {
                             "name": "cursor",
                             "type": "string",
                             "documentation": "The cursor used for result pagination"
