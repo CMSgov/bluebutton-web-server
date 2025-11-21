@@ -96,6 +96,7 @@ class FhirDataView(APIView):
         if "HTTP_AUTHORIZATION" in req_meta:
             access_token = req_meta["HTTP_AUTHORIZATION"].split(" ")[1]
             try:
+                # TODO-4250 is this a place we need a flag check as well?
                 at = AccessToken.objects.get(token=access_token)
                 log_message = {
                     "name": "FHIR Endpoint AT Logging",

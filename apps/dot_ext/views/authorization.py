@@ -4,10 +4,12 @@ from datetime import datetime, timedelta
 from functools import wraps
 from time import strftime
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
@@ -20,7 +22,7 @@ from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
-from waffle import switch_is_active
+from waffle import switch_is_active, get_waffle_flag_model
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
@@ -102,6 +104,19 @@ class AuthorizationView(DotAuthorizationView):
     def _check_for_required_params(self, request):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
+        flag = get_waffle_flag_model().get("v3_early_adopter")
+        req_meta = request.META
+        url_query = parse_qs(req_meta.get('QUERY_STRING'))
+        client_id = url_query.get('client_id', [None])
+        try:
+            app = get_application_model().objects.get(client_id=client_id[0])
+            application_user = get_user_model().objects.get(id=app.user_id)
+            if flag.id is not None and flag.is_active_for_user(application_user):
+                print("flag is active for this user")
+            else:
+                print("flag is not active for this user")
+        except ObjectDoesNotExist:
+            print("object not found")
 
         if switch_is_active('require_pkce'):
             if not request.GET.get('code_challenge', None):
