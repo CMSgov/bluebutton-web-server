@@ -150,19 +150,6 @@ class AuthorizationView(DotAuthorizationView):
     def _check_for_required_params(self, request):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
-        flag = get_waffle_flag_model().get("v3_early_adopter")
-        req_meta = request.META
-        url_query = parse_qs(req_meta.get('QUERY_STRING'))
-        client_id = url_query.get('client_id', [None])
-        try:
-            app = get_application_model().objects.get(client_id=client_id[0])
-            application_user = get_user_model().objects.get(id=app.user_id)
-            if flag.id is not None and flag.is_active_for_user(application_user):
-                print("flag is active for this user")
-            else:
-                print("flag is not active for this user")
-        except ObjectDoesNotExist:
-            print("object not found")
 
         if switch_is_active('require_pkce'):
             if not request.GET.get('code_challenge', None):
@@ -177,6 +164,8 @@ class AuthorizationView(DotAuthorizationView):
                 error_message = "State parameter should have a minimum of 16 characters"
                 return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
+        # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
+        # so it will not be modified as part of BB2-4250
         if switch_is_active('v3_endpoints') and v3:
             if 'scope' not in request.GET:
                 missing_params.append("scope")
@@ -452,8 +441,8 @@ class ApprovalView(AuthorizationView):
         return result
 
 
+# @method_decorator(check_v3_endpoint_access, name="dispatch")
 @method_decorator(csrf_exempt, name="dispatch")
-@method_decorator(check_v3_endpoint_access, name="dispatch")
 class TokenView(DotTokenView):
 
     def validate_token_endpoint_request_body(self, request):

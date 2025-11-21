@@ -186,6 +186,8 @@ class SearchViewExplanationOfBenefit(SearchView):
 
         query_schema = getattr(self, "QUERY_SCHEMA", {})
 
+        # BB2-4250: Does not seem that this code will execute given the new permission class
+        # so leaving it as is
         if waffle.switch_is_active('v3_endpoints'):
             query_schema['_tag'] = self.validate_tag()
             # _tag if presents, is a string value
