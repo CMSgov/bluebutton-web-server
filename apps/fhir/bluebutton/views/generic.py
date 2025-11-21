@@ -3,7 +3,7 @@ import hashlib
 import voluptuous
 import logging
 
-from apps.constants import VersionNotMatched, Versions
+from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,7 +33,7 @@ from ..signals import (
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter,
-                     valid_caller_for_patient_read)
+                     valid_patient_read_or_search_call)
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -134,6 +134,7 @@ class FhirDataView(APIView):
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
+        request.session.version = self.version
 
         # Now make the call to the backend API
         req = Request('GET',
@@ -151,15 +152,24 @@ class FhirDataView(APIView):
 
         prepped = s.prepare_request(req)
 
-        resource_id = kwargs.get('resource_id')
-        beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
+        if resource_type == 'Patient':
+            query_param = prepped.headers.get('BlueButton-OriginalQuery')
+            resource_id = kwargs.get('resource_id')
+            beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 
-        if resource_type == 'Patient' and resource_id and beneficiary_id:
-            # If it is a patient read request, confirm it is valid for the current user
-            # If not, throw a 404 before pinging BFD
-            if not valid_caller_for_patient_read(beneficiary_id, resource_id):
+            # For patient read and search calls, we need to ensure that what is being passed, either in
+            # query parameters for search calls, or in the resource_id for read calls, is valid for the
+            # current session (matching the beneficiary_id). If not, raise a 404 Not found before calling BFD.
+            if not valid_patient_read_or_search_call(beneficiary_id, resource_id, query_param):
                 error = NotFound('Not found.')
                 raise error
+
+            # Handle the case where it is a patient search call, but neither _id or identifier were passed
+            if '_id' not in get_parameters.keys() and 'identifier' not in get_parameters.keys():
+                get_parameters['_id'] = request.crosswalk.fhir_id(self.version)
+                # Reset the request parameters and the prepped request after adding the missing, but required, _id param
+                req.params = get_parameters
+                prepped = s.prepare_request(req)
 
         match self.version:
             case Versions.V1:
@@ -184,7 +194,6 @@ class FhirDataView(APIView):
 
         # BB2-128
         error = process_error_response(response)
-
         if error is not None:
             raise error
 

@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 import apps.logging.request_logger as bb2logging
 import logging
-from apps.constants import Versions
+from apps.versions import Versions
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 

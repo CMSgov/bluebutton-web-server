@@ -669,6 +669,7 @@ FHIR_SERVER = {
 # The hostname is ultimately used in a mock, and therefore does not strictly need to exist
 # or be correct. But, it does need to be consistent.
 MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
+MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL_V3"]).hostname
 
 
 FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (

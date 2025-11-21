@@ -5,7 +5,7 @@ from .utils import testclient_http_response_setup, _start_url_with_http_or_https
 from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
@@ -331,7 +331,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         ]
 
         if os.getenv("LOCAL_TESTING_TARGET", None) in ["impl"]:
-            self.assertEqual(len(previous_links), 1)
+            self.assertEqual(len(previous_links), 1)  # noqa: E999
             self.assertEqual(len(next_links), 1)
             self.assertEqual(len(first_links), 1)
             self.assertIn("startIndex=13", previous_links[0])
