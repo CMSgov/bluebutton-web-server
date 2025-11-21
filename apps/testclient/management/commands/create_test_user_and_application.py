@@ -28,8 +28,6 @@ def create_group(name="BlueButton"):
         print("%s group pre-existing. Create skipped." % (name))
     return g
 
-# usr would be a string if it is anything
-
 
 def create_user(the_group):
     username = "rogersf"

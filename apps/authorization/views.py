@@ -32,7 +32,6 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'logo_uri', 'tos_uri', 'policy_uri', 'contacts')
 
     def get_contacts(self, obj):
-        # print(obj)
         application = Application.objects.get(id=obj.id)
         return application.support_email or ""
 

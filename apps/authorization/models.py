@@ -93,13 +93,10 @@ def update_grants(*args, **kwargs):
     tokens = AccessToken.objects.all()
     for token in tokens:
         if token.is_valid():
-            try:
-                DataAccessGrant.objects.get_or_create(
-                    beneficiary=token.user,
-                    application=token.application,
-                )
-            except Exception as e:
-                print(f"update_grants: {e}")
+            DataAccessGrant.objects.get_or_create(
+                beneficiary=token.user,
+                application=token.application,
+            )
 
 
 def check_grants():

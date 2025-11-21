@@ -315,7 +315,6 @@ set_salt () {
 # function will try and stop ALL docker containers.
 cleanup_docker_stack () {
     DOCKER_PS=$(docker ps -q)
-    echo $DOCKER_PS
 
     TAKE_IT_DOWN="NO"
     for id in $DOCKER_PS; do

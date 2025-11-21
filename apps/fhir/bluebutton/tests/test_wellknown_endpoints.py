@@ -150,7 +150,6 @@ class BlueButtonTestEndpoints(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     def test_fhir_metadata_extensions_have_v3(self):
         the_url = f'{BASEURL}/v3/fhir/metadata'
-        print(the_url)
         response = self.client.get(the_url)
         self.assertEqual(response.status_code, 200)
         json = response.json()
