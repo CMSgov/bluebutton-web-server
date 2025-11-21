@@ -38,7 +38,7 @@ retrieve_certs
 
 set_salt
 
-echo "🚀 Launching the stack for '${ENV}'."
+echo "🚀 Launching the stack for '${bfd}/${auth}'."
 
 if [[ "${bfd}" == "local" ]]; then
     echo "🥶 FHIR_URLs are not set when running locally."

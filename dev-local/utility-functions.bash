@@ -162,7 +162,6 @@ set_auth_profile () {
 export CERT_AND_SALT="YES"
 
 retrieve_certs () {
-    echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
 
     unset CERT_SUFFIX
 
@@ -183,7 +182,9 @@ retrieve_certs () {
         export PROFILE="slsx"
     fi
 
+
     if [[ "${CERT_AND_SALT}" == "YES" ]]; then
+        echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
         # We will (rudely) create a .bb2 directory in the user's homedir.
         # Let's call that BB2_CONFIG_DIR
         export BB2_CONFIG_DIR="${HOME}/.bb2"

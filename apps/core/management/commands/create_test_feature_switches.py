@@ -62,7 +62,7 @@ class Command(BaseCommand):
                                 flag_obj.save()
                                 self._log("User {} added to feature flag: {}".format(u, flag))
                             except Exception as e:
-                                print(e)
+                                # print(e)
                                 self._log("Exception when adding user {} to feature flag: {}".format(u, flag))
                         except User.DoesNotExist:
                             # assuming test users exist before creating flags associated with them

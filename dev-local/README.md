@@ -10,6 +10,21 @@ These tools assume you are a developer working on the project, and have access t
 
 ## TL;DR
 
+```
+make build-local
+```
+
+And then
+
+```
+make run-local bfd=test auth=live daemon=1
+```
+
+or maybe
+
+```
+make run-local bfd=sbx auth=live
+```
 
 
 ## pre-requisites

@@ -147,11 +147,11 @@ class BlueButtonTestEndpoints(BaseApiTest):
     # is commented above for reference.
 
     @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
-    # This overrides the switch and sets it to true, always.
-    # We should only run the test if we have v3 enabled.
     @override_switch('v3_endpoints', active=True)
     def test_fhir_metadata_extensions_have_v3(self):
-        response = self.client.get(f'{BASEURL}/v3/fhir/metadata')
+        the_url = f'{BASEURL}/v3/fhir/metadata'
+        print(the_url)
+        response = self.client.get(the_url)
         self.assertEqual(response.status_code, 200)
         json = response.json()
         self.assertIn('v3', json['implementation']['url'])
