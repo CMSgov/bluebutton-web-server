@@ -11,5 +11,7 @@ selenium
 pytest 
 Flask 
 Flask-WTF
+typing_extensions>=4.6.0
 setuptools_scm<7,>=3.2
 setuptools>=40.8.0
+tqdm
