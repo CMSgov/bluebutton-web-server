@@ -52,4 +52,9 @@ urlpatterns = [
         waffle_switch("v3_endpoints")(SearchViewExplanationOfBenefit.as_view(version=3)),
         name="bb_oauth_fhir_eob_search_v3",
     ),
+    # C4DIC
+    # Digital Insurance Card ReadView
+    re_path(
+        r'', waffle_switch
+    )
 ]
