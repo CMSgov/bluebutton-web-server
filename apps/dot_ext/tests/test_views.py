@@ -24,6 +24,8 @@ from .demographic_scopes_test_cases import (
     SCOPES_TO_URL_BASE_PATH,
 )
 
+import os
+
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 
@@ -576,16 +578,15 @@ class TestTokenView(BaseApiTest):
 
         # This assertion is incorrectly crafted - it actually requires a local server started
         # so that the fhir fetch data is called and hence generate cert file not found error.
-        # TODO: refactor test to not depend on a server up and running.
-
-        # Post Django 2.2:  An OSError exception is expected when trying to reach the
-        #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(
-            OSError, 'Could not find the TLS certificate file'
-        ):
-            response = self.client.get(
-                '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
-            )
+        # 20251120 This test is now gated on a variable; if the variable does not exist, or
+        # is not set, the test will run. This is the desired behavior.
+        if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
+            with self.assertRaisesRegexp(
+                OSError, 'Could not find the TLS certificate file'
+            ):
+                response = self.client.get(
+                    '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
+                )
 
         bob_tkn = self._create_test_token(bob, bob_application)
         self.assertTrue(
@@ -638,24 +639,26 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(
-            OSError, 'Could not find the TLS certificate file'
-        ):
-            response = self.client.get(
-                '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + bob_tkn.token}
-            )
+        if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
+            with self.assertRaisesRegexp(
+                OSError, 'Could not find the TLS certificate file'
+            ):
+                response = self.client.get(
+                    '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + bob_tkn.token}
+                )
 
         next_tkn = self._create_test_token(anna, anna_application)
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(
-            OSError, 'Could not find the TLS certificate file'
-        ):
-            response = self.client.get(
-                '/v1/fhir/Patient',
-                headers={'authorization': 'Bearer ' + next_tkn.token},
-            )
+        if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
+            with self.assertRaisesRegexp(
+                OSError, 'Could not find the TLS certificate file'
+            ):
+                response = self.client.get(
+                    '/v1/fhir/Patient',
+                    headers={'authorization': 'Bearer ' + next_tkn.token},
+                )
 
         # self.assertEqual(next_tkn.token, tkn.token)
         self.assertTrue(
