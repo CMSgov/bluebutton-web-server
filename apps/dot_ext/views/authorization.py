@@ -10,11 +10,12 @@ from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
+from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.views.base import app_authorized
 from oauth2_provider.models import get_refresh_token_model, get_access_token_model
@@ -79,50 +80,8 @@ def require_post_state_decorator(view_func):
     return _wrapped
 
 
-def check_v3_endpoint_access(view_func):
-    @wraps(view_func)
-    def _wrapped(request, *args, **kwargs):
-        # 4250-TODO how do we not call this so many times?
-        path_info = request.__dict__.get('path_info')
-        version = get_api_version_number_from_url(path_info)
-        if version != Versions.V3:
-            return view_func(request, *args, **kwargs)
-
-        flag = get_waffle_flag_model().get('v3_early_adopter')
-        req_meta = request.META
-        url_query = parse_qs(req_meta.get('QUERY_STRING'))
-        client_id = url_query.get('client_id', [None])
-        try:
-            if client_id[0]:
-                application = get_application_model().objects.get(client_id=client_id[0])
-            else:
-                url_query = parse_qs(request._body.decode('utf-8'))
-                refresh_token_from_request = url_query.get('refresh_token', [None])
-                refresh_token = get_refresh_token_model().objects.get(token=refresh_token_from_request[0])
-                application = get_application_model().objects.get(id=refresh_token.application_id)
-
-            application_user = get_user_model().objects.get(id=application.user_id)
-
-            if flag.id is not None and flag.is_active_for_user(application_user):
-                return view_func(request, *args, **kwargs)
-            else:
-                return JsonResponse(
-                    {'status_code': 403, 'message': settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)},
-                    status=403,
-                )
-        except ObjectDoesNotExist:
-            # 4250-TODO Do we need this?
-            return JsonResponse(
-                {'status_code': 500, 'message': 'Error retrieving data'},
-                status=500,
-            )
-
-    return _wrapped
-
-
 @method_decorator(csrf_exempt, name="dispatch")
 @method_decorator(require_post_state_decorator, name="dispatch")
-@method_decorator(check_v3_endpoint_access, name="dispatch")
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -274,6 +233,27 @@ class AuthorizationView(DotAuthorizationView):
         kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
 
+    def validate_v3_authorization_request(self):
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+        req_meta = self.request.META
+        url_query = parse_qs(req_meta.get('QUERY_STRING'))
+        client_id = url_query.get('client_id', [None])
+        try:
+            application = get_application_model().objects.get(client_id=client_id[0])
+            application_user = get_user_model().objects.get(id=application.user_id)
+            if flag.id is not None and flag.is_active_for_user(application_user):
+                return
+            else:
+                raise AccessDeniedTokenCustomError(
+                    description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                )
+        except ObjectDoesNotExist:
+            # 4250-TODO Do we need this?
+            return JsonResponse(
+                {'status_code': 500, 'message': 'Error retrieving data'},
+                status=500,
+            )
+
     def form_valid(self, form):
         client_id = form.cleaned_data["client_id"]
         application = get_application_model().objects.get(client_id=client_id)
@@ -312,6 +292,12 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
+            path_info = self.request.__dict__.get('path_info')
+            version = get_api_version_number_from_url(path_info)
+            # If it is not version 3, we don't need to check anything, just return
+            if version == Versions.V3:
+                self.validate_v3_authorization_request()
+
             if not scopes:
                 # Since the create_authorization_response will re-inject scopes even when none are
                 # valid, we want to pre-emptively treat this as an error case
@@ -441,7 +427,6 @@ class ApprovalView(AuthorizationView):
         return result
 
 
-# @method_decorator(check_v3_endpoint_access, name="dispatch")
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
 
@@ -461,13 +446,47 @@ class TokenView(DotTokenView):
                 description=f"Invalid parameters in request: {invalid_parameters}"
             )
 
+    def validate_v3_token_call(self, request) -> None:
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+        req_meta = request.META
+        url_query = parse_qs(req_meta.get('QUERY_STRING'))
+        try:
+            url_query = parse_qs(request._body.decode('utf-8'))
+            refresh_token_from_request = url_query.get('refresh_token', [None])
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_from_request[0])
+            application = get_application_model().objects.get(id=refresh_token.application_id)
+            application_user = get_user_model().objects.get(id=application.user_id)
+
+            if flag.id is not None and flag.is_active_for_user(application_user):
+                return
+            else:
+                raise PermissionDenied(
+                    settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                )
+        except ObjectDoesNotExist:
+            # 4250-TODO Do we need this?
+            return JsonResponse(
+                {'status_code': 500, 'message': 'Error retrieving data'},
+                status=500,
+            )
+
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
+        path_info = self.request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
+        # If it is not version 3, we don't need to check anything, just return
         try:
+            if version == Versions.V3:
+                self.validate_v3_token_call(request)
             self.validate_token_endpoint_request_body(request)
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
+        except PermissionDenied as e:
+            return JsonResponse(
+                {'status_code': 403, 'message': str(e)},
+                status=403,
+            )
 
         url, headers, body, status = self.create_token_response(request)
 

@@ -113,9 +113,6 @@ class ApplicationActivePermission(permissions.BasePermission):
 
 class V3EarlyAdopterPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        print("IN HAS_PERMISSION OF V3EarlyAdopterPermission")
-        print("V3EarlyAdopterPermission request: ", request.__dict__)
-        print("V3EarlyAdopterPermission view: ", view.__dict__)
         # if it is not version 3, we do not need to check the waffle switch or flag
         if view.version < Versions.V3:
             return True
