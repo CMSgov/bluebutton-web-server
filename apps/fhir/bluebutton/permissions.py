@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
-from .constants import ALLOWED_RESOURCE_TYPES
+from apps.fhir.bluebutton.constants import ALLOWED_RESOURCE_TYPES
 from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging

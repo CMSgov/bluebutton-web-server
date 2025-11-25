@@ -2,7 +2,7 @@ from rest_framework import permissions
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from ..permissions import (ReadCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
+from apps.fhir.bluebutton.permissions import (ReadCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
 from apps.fhir.bluebutton.views.generic import FhirDataView
 
 
