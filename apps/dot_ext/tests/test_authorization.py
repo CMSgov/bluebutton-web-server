@@ -1038,6 +1038,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # when the validate_v3_authorization_request of AuthorizationView function is called
         # when the v3_early_adopter flag is not active for an application_user
         # set up a fake request
+        # TODO: When we enable v3 endpoints for all applications, remove this test
         query_params = urlencode({'client_id': 'FAKE_CLIENT_ID'})
         request = HttpRequest()
         request.META['QUERY_STRING'] = query_params
@@ -1081,9 +1082,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         mock_get_application_model,
         mock_get_user_model
     ):
-        # Unit test to show that we will raise an PermissionDenied
+        # BB2-4250Unit test to show that we will raise an PermissionDenied
         # when the validate_v3_token_call of TokenView function is called
         # when the v3_early_adopter flag is not active for an application_user
+        # TODO: When we enable v3 endpoints for all applications, remove this test
         token_value = 'FAKE_REFRESH_TOKEN'
         body = urlencode({'refresh_token': token_value}).encode('utf-8')
         request = HttpRequest()

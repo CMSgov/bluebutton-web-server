@@ -768,42 +768,48 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     @override_switch('v3_endpoints', active=True)
     def test_patient_read_endpoint_v3_403(self):
         '''
-        test patient read and search v2
+        test patient read v3 throwing a 403 when an app is not in the flag
+        TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V3, False, None)
 
     @override_switch('v3_endpoints', active=True)
     def test_coverage_read_endpoint_v3_403(self):
         '''
-        test patient read and search v2
+        test coverage read v3 throwing a 403 when an app is not in the flag
+        TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', False, None)
 
     @override_switch('v3_endpoints', active=True)
     def test_eob_read_endpoint_v3_403(self):
         '''
-        test patient read and search v2
+        test eob read v3 throwing a 403 when an app is not in the flag
+        TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, 'outpatient--9999999999999', False, None)
 
     @override_switch('v3_endpoints', active=True)
     def test_patient_search_endpoint_v3_403(self):
         '''
-        test patient read and search v2
+        test patient search v3 throwing a 403 when an app is not in the flag
+        TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
 
     @override_switch('v3_endpoints', active=True)
     def test_coverage_search_endpoint_v3_403(self):
         '''
-        test patient read and search v2
+        test coverage search v3 throwing a 403 when an app is not in the flag
+        TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
 
     @override_switch('v3_endpoints', active=True)
     def test_eob_search_endpoint_v3_403(self):
         '''
-        test patient read and search v2
+        test eob search v3 throwing a 403 when an app is not in the flag
+        TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, 'patient=')
 

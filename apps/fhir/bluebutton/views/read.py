@@ -37,7 +37,6 @@ class ReadView(FhirDataView):
         return super().initial(request, self.resource_type, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        # 4250-TODO: Do we check for the flag here as well? Implement the same thing in search? In case of refresh token?
         return super().get(request, self.resource_type, *args, **kwargs)
 
     def build_parameters(self, *args, **kwargs):
