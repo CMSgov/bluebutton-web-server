@@ -11,6 +11,39 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from .themes import THEMES, THEME_SELECTED
 
+# SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
+# We want the launch to generally be quiet, and only tell us things
+# that worked, or announce genuine errors.
+# We currently have around 6 warnings on URL endpoints.
+#
+# https://stackoverflow.com/questions/41449814/django-url-warning-urls-w002
+# We can either use APPEND_SLASH or SILENCE_SYSTEM_CHECKS to quiet some warnings
+# around trailing slashes in URLs. There is no risk/danger/problem with having
+# them---Django is just opinionated.
+#
+# By using the SILENCE_SYSTEM_CHECKS, we just suppress warnings like
+#
+# ?: (urls.W002) Your URL pattern '/bfd/?$' has a route beginning with a '/'.
+# Remove this slash as it is unnecessary. If this pattern is targeted in an
+# include(), ensure the include() pattern has a trailing '/'.
+SILENCED_SYSTEM_CHECKS = ['urls.W002']
+#
+# If we use APPEND_SLASH, it also suppresses the warnings, but it also
+# changes Django's behavior. For example,
+#
+# localhost:8000/admin
+#
+# no longer works. You MUST then use
+#
+# localhost:8000/admin/
+#
+# Because this changes behavior, we should either
+#
+# 1. Update our URL pattern rules, or
+# 2. Suppress the warnings, as they do not represent a security issue
+#
+# But should not change app behavior unless we test that thoroughly.
+# APPEND_SLASH = False
 
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
