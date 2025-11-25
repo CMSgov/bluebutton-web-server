@@ -2,10 +2,12 @@ import json
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from http import HTTPStatus
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
+from apps.core.models import Flag
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
 from .common_utils import validate_json_schema
@@ -36,6 +38,9 @@ SAMPLE_A_888_HICN_HASH = '3637b48c050b8d7a3aa29cd012a535c0ab0e52fe18ddcf1863266b
 FHIR_RES_TYPE_EOB = "ExplanationOfBenefit"
 FHIR_RES_TYPE_PATIENT = "Patient"
 FHIR_RES_TYPE_COVERAGE = "Coverage"
+V3_403_DETAIL = 'This application, John_Doe_test, does not yet have access to v3 endpoints. ' \
+                'If you are the app maintainer, please contact the Blue Button API team. If you are a Medicare Beneficiary ' \
+                'and need assistance, please contact the support team for the application you are trying to access.'
 
 
 def dump_content(json_str, file_name):
@@ -759,3 +764,59 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # This now returns 400 after BB2-2063 work.
         # for both v1 and v2
         self.assertEqual(response.status_code, 400)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_patient_read_endpoint_v3_403(self):
+        '''
+        test patient read and search v2
+        '''
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V3, False, None)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_coverage_read_endpoint_v3_403(self):
+        '''
+        test patient read and search v2
+        '''
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', False, None)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_eob_read_endpoint_v3_403(self):
+        '''
+        test patient read and search v2
+        '''
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, 'outpatient--9999999999999', False, None)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_patient_search_endpoint_v3_403(self):
+        '''
+        test patient read and search v2
+        '''
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_coverage_search_endpoint_v3_403(self):
+        '''
+        test patient read and search v2
+        '''
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_eob_search_endpoint_v3_403(self):
+        '''
+        test patient read and search v2
+        '''
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, 'patient=')
+
+    def _call_v3_endpoint_to_assert_403(self, resource_type: str, resource_value: str, search: bool, search_param: str):
+        client = APIClient()
+
+        # Authenticate
+        self._setup_apiclient(client)
+        Flag.objects.create(name='v3_early_adopter', everyone=None)
+        if search:
+            endpoint_url = "{}/v3/fhir/{}/?{}{}".format(self.live_server_url, resource_type, search_param, resource_value)
+        else:
+            endpoint_url = "{}/v3/fhir/{}/{}".format(self.live_server_url, resource_type, resource_value)
+        response = client.get(endpoint_url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(response.json()['detail'], V3_403_DETAIL)

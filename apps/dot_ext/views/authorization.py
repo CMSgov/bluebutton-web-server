@@ -448,8 +448,7 @@ class TokenView(DotTokenView):
 
     def validate_v3_token_call(self, request) -> None:
         flag = get_waffle_flag_model().get('v3_early_adopter')
-        req_meta = request.META
-        url_query = parse_qs(req_meta.get('QUERY_STRING'))
+
         try:
             url_query = parse_qs(request._body.decode('utf-8'))
             refresh_token_from_request = url_query.get('refresh_token', [None])

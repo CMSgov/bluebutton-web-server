@@ -11,7 +11,8 @@ from oauth2_provider.models import get_access_token_model, get_refresh_token_mod
 from django.http import HttpRequest
 from django.urls import reverse
 from django.test import Client
-from waffle.testutils import override_switch
+from apps.core.models import Flag
+from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
@@ -1020,3 +1021,66 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         c = Client()
         response = c.post(token_path, data=token_request_data)
         self.assertEqual(response.status_code, 200)
+
+    @override_switch('v3_endpoints', active=True)
+    @override_flag('v3_early_adopter', active=True)
+    def test_v3_token_endpoint_with_early_adopter_flag_enabled(self):
+        self._execute_token_endpoint('/v3/o/token/')
+
+    @override_switch('v3_endpoints', active=True)
+    # @override_flag('v3_early_adopter', active=False)
+    def test_v3_token_endpoint_with_early_adopter_flag_disabled(self):
+        self._execute_token_endpoint_for_flag_test('/v3/o/token/')
+
+    # @override_switch('v3_endpoints', active=True)
+    # @override_flag('v3_early_adopter', active=True)
+    # def test_v3_token_endpoint_without_trailling_slash(self):
+    #     self._execute_token_endpoint('/v3/o/token')
+
+    def _execute_token_endpoint_for_flag_test(self, token_path):
+        Flag.objects.create(name='v3_early_adopter', everyone=None)
+        redirect_uri = 'http://localhost'
+        # create a user
+        user = self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        print("USER ID: ", user.id)
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri,
+            user_id=user.id)
+        application.scope.add(capability_a, capability_b)
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            "state": "0123456789abcdef",
+            'refresh_token': 'asdfj23h4q98wuafidj'
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.client.logout()
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
+        }
+        c = Client()
+        print("token path: ", token_path)
+        response = c.post(token_path, data=token_request_data)
+        self.assertEqual(response.status_code, 403)
