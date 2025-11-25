@@ -1,12 +1,12 @@
 from waffle.models import AbstractUserFlag
-from django.db import models
+# from django.db import models
 
 
 class Flag(AbstractUserFlag):
     """ Custom version of waffle feature Flag model """
     """ This makes future extensions nicer """
     # Added as part of BB2-4250 testing
-    objects = models.Manager()
+    # objects = models.Manager()
 
     def is_active_for_user(self, user):
         # use app_user which is the owner of the current app

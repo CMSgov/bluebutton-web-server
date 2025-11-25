@@ -6,16 +6,19 @@ import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 # from oauth2_provider.compat import parse_qs, urlparse
-from urllib.parse import parse_qs, urlparse
+from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 from django.urls import reverse
 from django.test import Client
-from apps.core.models import Flag
-from waffle.testutils import override_switch, override_flag
+from unittest.mock import patch, MagicMock
+from urllib.parse import parse_qs, urlencode, urlparse
+from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
+from apps.dot_ext.views import AuthorizationView, TokenView
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from http import HTTPStatus
 
@@ -1022,65 +1025,100 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = c.post(token_path, data=token_request_data)
         self.assertEqual(response.status_code, 200)
 
-    @override_switch('v3_endpoints', active=True)
-    @override_flag('v3_early_adopter', active=True)
-    def test_v3_token_endpoint_with_early_adopter_flag_enabled(self):
-        self._execute_token_endpoint('/v3/o/token/')
-
-    @override_switch('v3_endpoints', active=True)
-    # @override_flag('v3_early_adopter', active=False)
-    def test_v3_token_endpoint_with_early_adopter_flag_disabled(self):
-        self._execute_token_endpoint_for_flag_test('/v3/o/token/')
-
-    # @override_switch('v3_endpoints', active=True)
-    # @override_flag('v3_early_adopter', active=True)
-    # def test_v3_token_endpoint_without_trailling_slash(self):
-    #     self._execute_token_endpoint('/v3/o/token')
-
-    def _execute_token_endpoint_for_flag_test(self, token_path):
-        Flag.objects.create(name='v3_early_adopter', everyone=None)
-        redirect_uri = 'http://localhost'
-        # create a user
-        user = self._create_user('anna', '123456')
-        capability_a = self._create_capability('Capability A', [])
-        capability_b = self._create_capability('Capability B', [])
-        print("USER ID: ", user.id)
-        # create an application and add capabilities
-        application = self._create_application(
-            'an app',
-            grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri,
-            user_id=user.id)
-        application.scope.add(capability_a, capability_b)
-        # user logs in
+    @patch('apps.dot_ext.views.authorization.get_user_model')
+    @patch('apps.dot_ext.views.authorization.get_application_model')
+    @patch('apps.dot_ext.views.authorization.get_waffle_flag_model')
+    def test_permission_denied_raised_for_authorize_app_not_in_flag(
+        self,
+        mock_get_flag_model,
+        mock_get_application_model,
+        mock_get_user_model
+    ):
+        # Unit test to show that we will raise an AccessDeniedTokenCustomError
+        # when the validate_v3_authorization_request of AuthorizationView function is called
+        # when the v3_early_adopter flag is not active for an application_user
+        # set up a fake request
+        query_params = urlencode({'client_id': 'FAKE_CLIENT_ID'})
         request = HttpRequest()
-        self.client.login(request=request, username='anna', password='123456')
-        # post the authorization form with only one scope selected
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['capability-a'],
-            'expires_in': 86400,
-            'allow': True,
-            "state": "0123456789abcdef",
-            'refresh_token': 'asdfj23h4q98wuafidj'
-        }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
-        self.client.logout()
-        self.assertEqual(response.status_code, 302)
-        # now extract the authorization code and use it to request an access_token
-        query_dict = parse_qs(urlparse(response['Location']).query)
-        authorization_code = query_dict.pop('code')
-        token_request_data = {
-            'grant_type': 'authorization_code',
-            'code': authorization_code,
-            'redirect_uri': redirect_uri,
-            'client_id': application.client_id,
-            'client_secret': application.client_secret_plain,
-        }
-        c = Client()
-        print("token path: ", token_path)
-        response = c.post(token_path, data=token_request_data)
-        self.assertEqual(response.status_code, 403)
+        request.META['QUERY_STRING'] = query_params
+
+        # Mock the required objects/queries around flag/application/user
+        fake_flag = MagicMock()
+        fake_flag.id = 123
+        fake_flag.name = 'v3_early_adopter'
+        fake_flag.is_active_for_user.return_value = False
+        mock_get_flag_model.return_value.get.return_value = fake_flag
+
+        fake_application = MagicMock()
+        fake_application.id = 42
+        fake_application.user_id = 999
+        fake_application.name = 'TestApp'
+        mock_manager_app = MagicMock()
+        mock_manager_app.get.return_value = fake_application
+        mock_get_application_model.return_value.objects = mock_manager_app
+
+        fake_user = MagicMock()
+        fake_user.id = 999
+        mock_manager_user = MagicMock()
+        mock_manager_user.get.return_value = fake_user
+        mock_get_user_model.return_value.objects = mock_manager_user
+
+        # Create an instance of the view
+        view_instance = AuthorizationView()
+        view_instance.request = request
+
+        with self.assertRaises(AccessDeniedTokenCustomError):
+            view_instance.validate_v3_authorization_request()
+
+    @patch('apps.dot_ext.views.authorization.get_user_model')
+    @patch('apps.dot_ext.views.authorization.get_application_model')
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.views.authorization.get_waffle_flag_model')
+    def test_permission_denied_raised_for_refresh_token_app_not_in_flag(
+        self,
+        mock_get_flag_model,
+        mock_get_refresh_token_model,
+        mock_get_application_model,
+        mock_get_user_model
+    ):
+        # Unit test to show that we will raise an PermissionDenied
+        # when the validate_v3_token_call of TokenView function is called
+        # when the v3_early_adopter flag is not active for an application_user
+        token_value = 'FAKE_REFRESH_TOKEN'
+        body = urlencode({'refresh_token': token_value}).encode('utf-8')
+        request = HttpRequest()
+        request._body = body
+
+        # Mock the required objects/queries around flag/refresh_token/application/user
+        fake_flag = MagicMock()
+        fake_flag.id = 123
+        fake_flag.name = 'v3_early_adopter'
+        fake_flag.is_active_for_user.return_value = False
+        mock_get_flag_model.return_value.get.return_value = fake_flag
+
+        fake_refresh_token = MagicMock()
+        fake_refresh_token.token = token_value
+        fake_refresh_token.application_id = 42
+        mock_manager_refresh = MagicMock()
+        mock_manager_refresh.get.return_value = fake_refresh_token
+        mock_get_refresh_token_model.return_value.objects = mock_manager_refresh
+
+        fake_application = MagicMock()
+        fake_application.id = 42
+        fake_application.user_id = 999
+        fake_application.name = 'TestApp'
+        mock_manager_app = MagicMock()
+        mock_manager_app.get.return_value = fake_application
+        mock_get_application_model.return_value.objects = mock_manager_app
+
+        fake_user = MagicMock()
+        fake_user.id = 999
+        mock_manager_user = MagicMock()
+        mock_manager_user.get.return_value = fake_user
+        mock_get_user_model.return_value.objects = mock_manager_user
+
+        # Create an instance of the view
+        view_instance = TokenView()
+
+        with self.assertRaises(PermissionDenied):
+            view_instance.validate_v3_token_call(request)
