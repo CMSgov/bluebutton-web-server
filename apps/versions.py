@@ -23,10 +23,12 @@ class Versions:
     # For now, we are defaulting to v2.
     NOT_AN_API_VERSION = 0
 
-    def as_str(self, version: int):
+    @staticmethod
+    def as_str(version: int):
         return f'v{version}'
 
-    def as_int(self, version: int) -> int:
+    @staticmethod
+    def as_int(version: int) -> int:
         match version:
             case Versions.V1:
                 return 1
@@ -37,10 +39,12 @@ class Versions:
             case _:
                 raise VersionNotMatched(f"{version} is not a valid version constant")
 
-    def supported_versions(self):
+    @staticmethod
+    def supported_versions():
         return [Versions.V1, Versions.V2, Versions.V3]
 
-    def latest_versions(self):
+    @staticmethod
+    def latest_versions():
         return [Versions.V2, Versions.V3]
 
 
