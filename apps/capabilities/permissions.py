@@ -16,7 +16,7 @@ class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
 
 class TokenHasProtectedCapability(permissions.BasePermission):
 
-    def has_permission(self, request, view):
+    def has_permission(self, request, view) -> bool:  # type: ignore
         token = request.auth
         access_token_query_param = request.GET.get("access_token", None)
 

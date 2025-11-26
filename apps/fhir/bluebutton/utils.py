@@ -323,7 +323,8 @@ def notNone(value=None, default=None):
 
 def FhirServerAuth() -> dict:
     """Helper class to modify cert paths if client_auth is true
-    TODO - this can probably be refactored or removed, rolled into the FHIRServerSettings class
+    TODO - this can probably be refactored or removed, rolled into the FHIRServerSettings class, all it does is a conditional
+           settings check
 
     Returns:
         dict: A dictionary with the following:

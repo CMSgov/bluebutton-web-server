@@ -59,7 +59,7 @@ class PatientViewSet(FhirDataView, viewsets.ViewSet):
         return [p() for p in perm_classes]
 
     def list(self, request, *args, **kwargs):
-        '''Equivalent to get() in FhirDataView'''
+        '''Equivalent to get()/search in FhirDataView'''
         out = self.fetch_data(request, self.resource_type, *args, **kwargs)
         return Response(out)
 

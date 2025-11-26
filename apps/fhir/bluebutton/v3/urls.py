@@ -54,6 +54,7 @@ urlpatterns = [
     ),
     # C4DIC
     # Digital Insurance Card ViewSet
+    # TODO - Change the URI for this endpoint when we finalize
     re_path(
         r'DigitalInsuranceCard[/]?',
         waffle_switch('v3_endpoints')(DigitalInsuranceCardViewSet.as_view({'get': 'list'}, version=3)),

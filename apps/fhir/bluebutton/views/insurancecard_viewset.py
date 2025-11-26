@@ -67,5 +67,4 @@ class DigitalInsuranceCardViewSet(FhirDataView, viewsets.ViewSet):
                 fhir_url = fhir_settings.fhir_url_v3
             else:
                 fhir_url = fhir_settings.fhir_url
-
-            return f"{fhir_url}/v{self.version}/fhir/{resource_type}/"
+            return f"{fhir_url}/v{self.version}/fhir/Patient/{resource_id}/$generate-insurance-card"

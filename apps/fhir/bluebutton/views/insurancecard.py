@@ -48,13 +48,13 @@ class DigitalInsuranceCardSearchView(FhirDataView):
             '_format': 'application/json+fhir'
         }
 
-    def build_url(self, fhir_settings, resource_type, resource_id, **kwargs):  # type: ignore
+    def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
         if fhir_settings.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
-            return '{}{}/{}/'.format(fhir_settings.fhir_url, resource_type, resource_id)
+            return f"{fhir_settings.fhir_url}{resource_type}/"
         else:
-            if self.version == 3 and fhir_settings.fhir_url_v3:
+            if self.version == 3 and getattr(fhir_settings, 'fhir_url_v3', None):
                 fhir_url = fhir_settings.fhir_url_v3
             else:
                 fhir_url = fhir_settings.fhir_url
-            return f'{fhir_url}/v{self.version}/fhir/{resource_type}/{resource_id}/'
+            return f"{fhir_url}/v{self.version}/fhir/Patient/{resource_id}/$generate-insurance-card"

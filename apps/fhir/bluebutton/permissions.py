@@ -72,7 +72,7 @@ class ReadCrosswalkPermission(HasCrosswalk):
 
 
 class SearchCrosswalkPermission(HasCrosswalk):
-    def has_object_permission(self, request, view, obj):  # type: ignore
+    def has_object_permission(self, request, view, obj) -> bool:  # type: ignore
         if view.version in Versions.supported_versions():
             patient_id = request.crosswalk.fhir_id(view.version)
         else:

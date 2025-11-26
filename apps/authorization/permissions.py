@@ -9,7 +9,7 @@ class DataAccessGrantPermission(permissions.BasePermission):
     """
     Permission check for a Grant related to the token used.
     """
-    def has_permission(self, request, view):
+    def has_permission(self, request, view) -> bool:  # type: ignore
         dag = None
         try:
             dag = DataAccessGrant.objects.get(

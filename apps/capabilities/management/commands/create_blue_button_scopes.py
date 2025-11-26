@@ -260,6 +260,20 @@ def create_coverage_read_search_capability(group,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 
+def create_insurance_card_capability(group, fhir_prefix, title="Digital Insurance Card access."):
+    c = None
+    description = "Digital Insurance Card"
+    # TODO - this is not a real FHIR resource or scope, decision on how we want ot handle this
+    smart_scope_string = "patient/DigitalInsuranceCard.read"
+    pr = []
+    pr.append(["GET", "%sDigitalInsuranceCard[/]?$" % fhir_prefix])
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(pr, indent=4))
+    return c
 
 def create_launch_capability(group, fhir_prefix, title="Patient launch context."):
 
@@ -296,5 +310,6 @@ class Command(BaseCommand):
         create_coverage_read_capability(g, fhir_prefix)
         create_coverage_search_capability(g, fhir_prefix)
         create_coverage_read_search_capability(g, fhir_prefix)
+        create_insurance_card_capability(g, fhir_prefix)
         create_launch_capability(g, fhir_prefix)
         create_openid_capability(g)
