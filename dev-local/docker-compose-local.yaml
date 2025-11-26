@@ -1,0 +1,39 @@
+services:
+  ####################
+  # Postgres database
+  # Pin to the version of Postgres that is 
+  # equivalent to production.
+  db:
+    image: postgres:16
+    env_file:
+      - .env.local
+    ports:
+      - "5432:5432"
+  ####################
+  # Local MSLS server
+  # A small Flask app for testing.
+  msls:
+    image: msls-local:latest
+    platform: linux/amd64
+    command: /code/start-local.sh
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../msls-local:/code
+  ####################
+  # Blue Button
+  web:
+    image: bb-local:latest
+    platform: linux/amd64
+    command: /code/dev-local/start-local.sh
+    env_file:
+      - .env.container
+    volumes:
+      - ..:/code
+      - ~/.bb2/certstore:/certstore
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      - db
+      - msls

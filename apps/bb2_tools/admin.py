@@ -21,7 +21,7 @@ from apps.bb2_tools.models import (
     DummyAdminObject,
     UserStats,
 )
-from apps.fhir.bluebutton.utils import get_patient_by_id
+from apps.fhir.bluebutton.utils import get_v2_patient_by_id
 
 ADMIN_PREPEND = getattr(settings, "ADMIN_PREPEND_URL", "")
 BB2_TOOLS_PATH = (
@@ -332,8 +332,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         "get_connected_applications",
         "date_created",
     )
-    # BB2-4166-TODO: add support for v3
-    search_fields = ('user__username', 'fhir_id_v2', '_user_id_hash', '_user_mbi')
+    search_fields = ('user__username', 'fhir_id_v2', 'fhir_id_v3', '_user_id_hash', '_user_mbi')
     readonly_fields = ('date_created',)
     raw_id_fields = ('user',)
 
@@ -361,10 +360,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         ordering="MyIdentities",
     )
     def get_identities(self, obj):
-        # BB2-4166-TODO: add support for v3
         return format_html(
-            '<div><ul><li>FHIR_ID_V2:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
-                obj.fhir_id(2), obj.user_hicn_hash, obj.user_mbi
+            '<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
+                obj.fhir_id(2), obj.fhir_id(3), obj.user_hicn_hash, obj.user_mbi
             )
         )
 
@@ -416,10 +414,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         crosswalk = BeneficiaryDashboard.objects.get(pk=int(object_id))
 
         json_resp = None
-
         try:
-            # BB2-4166-TODO: this is hardcoded to be version 2
-            json_resp = get_patient_by_id(crosswalk.fhir_id(2), request)
+            # DEPRECATE_V2: If we ever deprecate v2, this function and call need to be updated
+            json_resp = get_v2_patient_by_id(crosswalk.fhir_id(2), request)
         except Exception as e:
             json_resp = {"backend_error": str(e)}
 

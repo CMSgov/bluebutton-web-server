@@ -4,6 +4,7 @@ from django.conf import settings
 from rest_framework import exceptions
 from urllib.parse import quote
 
+from apps.versions import Versions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
@@ -18,27 +19,25 @@ from ..bluebutton.utils import (FhirServerAuth,
 from .loggers import log_match_fhir_id
 
 
-def search_fhir_id_by_identifier_mbi(mbi, request=None):
+def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_API_VERSION):
     """
         Search the backend FHIR server's patient resource
         using the mbi identifier.
     """
     search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
+    return search_fhir_id_by_identifier(search_identifier, request, version)
 
-    return search_fhir_id_by_identifier(search_identifier, request)
 
-
-def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None):
+def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION):
     """
         Search the backend FHIR server's patient resource
         using the hicn_hash identifier.
     """
     search_identifier = f"{settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
+    return search_fhir_id_by_identifier(search_identifier, request, version)
 
-    return search_fhir_id_by_identifier(search_identifier, request)
 
-
-def search_fhir_id_by_identifier(search_identifier, request=None):
+def search_fhir_id_by_identifier(search_identifier, request=None, version=Versions.NOT_AN_API_VERSION):
     """
         Search the backend FHIR server's patient resource
         using the specified identifier.
@@ -51,12 +50,11 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth(None)
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
-
     # Add headers for FHIR backend logging, including auth_flow_dict
     if request:
         # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
-        headers = generate_info_headers(request)
+        headers = generate_info_headers(request, version)
         headers = set_default_header(request, headers)
         # may be part of the contract with BFD
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
@@ -77,9 +75,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers = None
 
     # Build URL based on BFD version
-    # BB2-4166-TODO: generalize versionining of fhir server url
     resource_router = get_resourcerouter()
-    ver = "v{}".format(request.session.get('version', 1))
+    ver = f'v{version}'
+
     fhir_url = resource_router.fhir_url
     if ver == 'v3' and resource_router.fhir_url_v3:
         fhir_url = resource_router.fhir_url_v3
@@ -109,13 +107,12 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         except requests.exceptions.SSLError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 # Checking target_env ensures the retry logic only happens on local
-                print(f"FHIR ID search request failed. Retrying... ({retries + 1}/{max_retries})")
                 retries += 1
             else:
                 raise e
 
 
-def match_fhir_id(mbi, hicn_hash, request=None):
+def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION):
     """Matches a patient identifier via the backend FHIR server using an MBI or HICN hash.
         - Perform primary lookup using mbi.
         - If there is an mbi lookup issue, raise exception.
@@ -126,6 +123,7 @@ def match_fhir_id(mbi, hicn_hash, request=None):
       Args:
         mbi (string): the mbi of the user
         hicn_hash (string): the hashed hicn of the user
+        version (int): Current API version for this call
         request (HttpRequest, optional): the Django request
 
       Returns:
@@ -139,7 +137,7 @@ def match_fhir_id(mbi, hicn_hash, request=None):
     # Perform primary lookup using MBI
     if mbi:
         try:
-            fhir_id = search_fhir_id_by_identifier_mbi(mbi, request)
+            fhir_id = search_fhir_id_by_identifier_mbi(mbi, request, version)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
@@ -152,9 +150,13 @@ def match_fhir_id(mbi, hicn_hash, request=None):
             return fhir_id, 'M'
 
     # Perform secondary lookup using HICN_HASH
+    # WE CANNOT DO A HICN HASH LOOKUP FOR V3, but there are tests that rely on a null MBI
+    # and populated hicn_hash, which now execute on v3 (due to updates in get_and_update_user)
+    # so we need to leave this conditional as is for now, until the test is modified and/or hicn_hash is removed
+    # if version in [Versions.V1, Versions.V2] and hicn_hash:
     if hicn_hash:
         try:
-            fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
+            fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'H', str(err))
             # Don't return a 404 because retrying later will not fix this.
@@ -166,8 +168,7 @@ def match_fhir_id(mbi, hicn_hash, request=None):
                               'FOUND beneficiary via hicn_hash')
             return fhir_id, 'H'
 
-    log_match_fhir_id(request, fhir_id, hicn_hash, False, None,
-                      'FHIR ID NOT FOUND for both mbi and hicn_hash')
+    log_match_fhir_id(request, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
     raise exceptions.NotFound('The requested Beneficiary has no entry, however this may change')
 
 
