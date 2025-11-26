@@ -28,8 +28,8 @@ class DigitalInsuranceCardViewSet(FhirDataView, viewsets.ViewSet):
     version = 1
     resource_type = 'Bundle'
 
-    required_coverage_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
-    required_patient_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
+    required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
+    required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
 
     permission_classes = [
         permissions.IsAuthenticated,
@@ -48,7 +48,7 @@ class DigitalInsuranceCardViewSet(FhirDataView, viewsets.ViewSet):
         return super().initial(request, self.resource_type, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
-        """Equivalent to get() in FhirDataView"""
+        '''Equivalent to get() in FhirDataView'''
         out = self.fetch_data(request, self.resource_type, *args, **kwargs)
         return Response(out)
 

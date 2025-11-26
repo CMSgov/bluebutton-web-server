@@ -27,8 +27,8 @@ class DigitalInsuranceCardSearchView(FhirDataView):
         HasDigitalInsuranceCardScope,
     ]
 
-    required_coverage_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
-    required_patient_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
+    required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
+    required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
 
     def __init__(self, version=1):
         super().__init__(version)

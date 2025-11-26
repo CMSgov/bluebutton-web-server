@@ -59,6 +59,7 @@ class PatientViewSet(FhirDataView, viewsets.ViewSet):
         return [p() for p in perm_classes]
 
     def list(self, request, *args, **kwargs):
+        '''Equivalent to get() in FhirDataView'''
         out = self.fetch_data(request, self.resource_type, *args, **kwargs)
         return Response(out)
 
@@ -70,12 +71,9 @@ class PatientViewSet(FhirDataView, viewsets.ViewSet):
         return {'_format': 'application/json+fhir'}
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
-        # Similar to the previous SearchView / ReadView implementations
         if fhir_settings.fhir_url.endswith('v1/fhir/'):
-            if resource_id:
-                return f"{fhir_settings.fhir_url}{resource_type}/{resource_id}/"
-            else:
-                return f"{fhir_settings.fhir_url}{resource_type}/"
+            # only if called by tests
+            return '{}{}/{}/'.format(fhir_settings.fhir_url, resource_type, resource_id)
         else:
             if self.version == 3 and getattr(fhir_settings, 'fhir_url_v3', None):
                 fhir_url = fhir_settings.fhir_url_v3
