@@ -38,8 +38,6 @@ class PatientViewSet(ResourceViewSet):
         viewsets: django-rest-framework ViewSet base class
     """
 
-    resource_type = 'Patient'
-
     # TODO - I don't love the separation here, could be indicative that we don't want to move to resource based ViewSets, or that
     # we need a better base class, or these differences should be defined in PatientViewSet.
     REGEX_LASTUPDATED_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
@@ -74,6 +72,7 @@ class PatientViewSet(ResourceViewSet):
     required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
 
     def __init__(self, version, **kwargs):
+        self.resource_type = 'Patient'
         super().__init__(version)
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
