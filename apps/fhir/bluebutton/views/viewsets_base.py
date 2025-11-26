@@ -68,6 +68,12 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
         schema = Schema(self.get_query_schema(), extra=REMOVE_EXTRA)
         return schema(params)
 
-    # TODO - investigate if this is needed, or if we can assume application/json+fhir everywhere
+    # TODO - investigate a better way to structure this
     def build_parameters(self, request):
-        return {'_format': 'application/json'}
+        if getattr(self, 'action', None) != 'list':
+            return {
+                '_format': 'application/json+fhir',
+            }
+        return {
+            '_format': 'application/json+fhir',
+        }

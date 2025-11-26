@@ -31,6 +31,8 @@ class EndpointUrl:
     coverage = "coverage"
     nav = "nav"
 
+    # TODO - theses are all format=json, not format=application/json+fhir, is this good?
+    @staticmethod
     def fmt(name: str, uri: str, version: int, patient: str = BAD_PATIENT_ID):
         version_as_string = Versions.as_str(version)
         match name:
@@ -52,6 +54,7 @@ class EndpointUrl:
         # never occur, and therefore we want something to break.
         raise EndpointFormatException(f'Could not format URI name[{name}] uri[{uri}] version[{version_as_string}]')
 
+    @staticmethod
     def nav_uri(uri, count, start_index, id_type=None, id=None):
         return f'{uri}&_count={count}&startIndex={start_index}&{id_type}={id}'
 
