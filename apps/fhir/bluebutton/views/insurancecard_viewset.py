@@ -1,6 +1,4 @@
 from rest_framework import viewsets, permissions
-from rest_framework.response import Response
-
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
@@ -46,17 +44,6 @@ class DigitalInsuranceCardViewSet(FhirDataView, viewsets.ViewSet):
 
     def initial(self, request, *args, **kwargs):
         return super().initial(request, self.resource_type, *args, **kwargs)
-
-    def list(self, request, *args, **kwargs):
-        '''Equivalent to get() in FhirDataView'''
-        out = self.fetch_data(request, self.resource_type, *args, **kwargs)
-        return Response(out)
-
-    def build_parameters(self, request):
-        patient_id = request.query_params.get('patient', None)
-        if not patient_id:
-            patient_id = request.user.crosswalk.fhir_id
-        return {'_format': 'application/json+fhir'}
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
         if fhir_settings.fhir_url.endswith('v1/fhir/'):

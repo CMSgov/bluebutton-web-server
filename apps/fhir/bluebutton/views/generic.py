@@ -51,7 +51,8 @@ class FhirDataView(APIView):
         ApplicationActivePermission,
         HasCrosswalk,
         ResourcePermission,
-        DataAccessGrantPermission]
+        DataAccessGrantPermission
+    ]
 
     def __init__(self, version=1):
         self.version = version

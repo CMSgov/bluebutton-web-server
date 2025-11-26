@@ -1,7 +1,4 @@
-from rest_framework import viewsets, permissions
-from rest_framework.response import Response
-
-from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.bluebutton.views.viewsets_base import ResourceViewSet
 from apps.fhir.bluebutton.views.search import HasSearchScope, SearchView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
@@ -11,9 +8,10 @@ from apps.fhir.bluebutton.permissions import (
     ResourcePermission,
     ApplicationActivePermission,
 )
+from rest_framework import permissions
 
 
-class PatientViewSet(FhirDataView, viewsets.ViewSet):
+class PatientViewSet(ResourceViewSet):
     """Patient django-rest-framework ViewSet experiment
 
     Args:
@@ -24,51 +22,31 @@ class PatientViewSet(FhirDataView, viewsets.ViewSet):
     version = 1
     resource_type = 'Patient'
 
-    QUERY_TRANSFORMS = getattr(SearchView, 'QUERY_TRANSFORMS', {})
-    QUERY_SCHEMA = {**getattr(SearchView, 'QUERY_SCHEMA', {}), '_id': str, 'identifier': str}
+    # TODO - I don't love the separation here, could be indicative that we don't want to move to resource based ViewSets, or that
+    # we need a better base class, or these differences should be defined in PatientViewSet.
+    SEARCH_QUERY_TRANSFORMS = getattr(SearchView, 'QUERY_TRANSFORMS', {})
+    SEARCH_QUERY_SCHEMA = {**getattr(SearchView, 'QUERY_SCHEMA', {}), '_id': str, 'identifier': str}
+
+    SEARCH_PERMISSION_CLASSES = (
+        permissions.IsAuthenticated,
+        ApplicationActivePermission,
+        ResourcePermission,
+        SearchCrosswalkPermission,
+        DataAccessGrantPermission,
+        TokenHasProtectedCapability,
+        HasSearchScope,
+    )
+
+    READ_PERMISSION_CLASSES = (
+        permissions.IsAuthenticated,
+        ApplicationActivePermission,
+        ResourcePermission,
+        ReadCrosswalkPermission,
+        DataAccessGrantPermission,
+        TokenHasProtectedCapability,
+    )
 
     required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
-
-    def __init__(self, version=1, **kwargs):
-        super().__init__(version)
-
-    def initial(self, request, *args, **kwargs):
-        return super().initial(request, self.resource_type, *args, **kwargs)
-
-    def get_permissions(self):
-        action = getattr(self, 'action', None)
-        if action == 'list':
-            perm_classes = [
-                permissions.IsAuthenticated,
-                ApplicationActivePermission,
-                ResourcePermission,
-                SearchCrosswalkPermission,
-                DataAccessGrantPermission,
-                TokenHasProtectedCapability,
-                HasSearchScope,
-            ]
-        else:
-            perm_classes = [
-                permissions.IsAuthenticated,
-                ApplicationActivePermission,
-                ResourcePermission,
-                ReadCrosswalkPermission,
-                DataAccessGrantPermission,
-                TokenHasProtectedCapability,
-            ]
-        return [p() for p in perm_classes]
-
-    def list(self, request, *args, **kwargs):
-        '''Equivalent to get()/search in FhirDataView'''
-        out = self.fetch_data(request, self.resource_type, *args, **kwargs)
-        return Response(out)
-
-    def retrieve(self, request, resource_id=None, *args, **kwargs):
-        out = self.fetch_data(request, self.resource_type, resource_id=resource_id, *args, **kwargs)
-        return Response(out)
-
-    def build_parameters(self, request):
-        return {'_format': 'application/json+fhir'}
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
         if fhir_settings.fhir_url.endswith('v1/fhir/'):

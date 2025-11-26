@@ -41,11 +41,8 @@ class DigitalInsuranceCardSearchView(FhirDataView):
         return request.user.is_authenticated and hasattr(request.user, 'crosswalk')
 
     def build_parameters(self, request):
-        patient_id = request.query_params.get('patient', None)
-        if not patient_id:
-            patient_id = request.user.crosswalk.fhir_id
         return {
-            '_format': 'application/json+fhir'
+            '_format': 'application/json'
         }
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
