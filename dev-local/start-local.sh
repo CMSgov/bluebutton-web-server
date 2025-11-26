@@ -7,11 +7,21 @@ set -a
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
     echo "🔵 running migrations"
+
+    # FIXME: Why is this necessary? What is going on that these do not seem to exist when I 
+    # stand up a stack from `master`, but when I do a version update, these columns are
+    # now necessary/present for our migrations to run. It speaks to something odd.
+    columns=("post_logout_redirect_uris" "hash_client_secret" "allowed_origins")
+    for col in ${columns[@]}; do 
+        echo "💽 Adding column ${col} to dot_ext_application"
+        psql "${DATABASES_CUSTOM}" \
+            -c "ALTER TABLE \"dot_ext_application\" ADD COLUMN IF NOT EXISTS \"${col}\" text NULL;"
+    done
+
+    python manage.py showmigrations
+    
     python manage.py migrate
-
-    # We will recrate this with every launch.
-    # echo "TRUNCATE authorization_archiveddataaccessgrant;" | psql "${DATABASES_CUSTOM}"
-
+    
     # Only create the root user if it doesn't exist.
     result=$(echo "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)" | python manage.py shell)
     if [[ "$result" == "0" ]]; then

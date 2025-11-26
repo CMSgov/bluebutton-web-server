@@ -1,4 +1,4 @@
-FROM python:3.11-trixie
+FROM python:3.14-trixie
 
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
@@ -29,7 +29,21 @@ RUN pip install --upgrade \
     pip \
     pip-tools \
     setuptools
-RUN pip install -r requirements/requirements.dev.txt \
-    --no-index \
-    --find-links \
-    ./vendor/
+
+# Something odd with the permissions. 
+# Also, this makes sure we don't write the output of this process
+# into the tree while developing and testing locally. 
+# We should use a dedicated build container for that.
+USER root
+RUN mkdir /build-requirements ; chown DEV:DEV /build-requirements 
+USER DEV
+RUN cp -R requirements /build-requirements
+WORKDIR /build-requirements
+RUN	rm -f requirements/requirements.txt && rm -f requirements/requirements.dev.txt
+RUN	pip-compile --strip-extras --generate-hashes --output-file requirements/requirements.txt requirements/requirements.in \
+	&& pip-compile --strip-extras --generate-hashes --output-file requirements/requirements.dev.txt requirements/requirements.dev.in
+RUN	pip download -r requirements/requirements.dev.txt --dest vendor --platform manylinux2014_x86_64 --no-deps
+# Removed --no-index because of https://github.com/pypa/pip/issues/12050
+RUN	pip install -r requirements/requirements.dev.txt --find-links ./vendor/
+# Make sure we end back up in the root of the codebase!
+WORKDIR /code

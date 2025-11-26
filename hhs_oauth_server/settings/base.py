@@ -211,7 +211,6 @@ INSTALLED_APPS = [
     "apps.bb2_tools",
     # 3rd Party ---------------------
     "corsheaders",
-    "bootstrap5",
     "waffle",
     # DOT must be installed after apps.dot_ext in order to override templates
     "oauth2_provider",
@@ -246,7 +245,8 @@ AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
 AXES_FAILURE_LIMIT = 5
 AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
-AXES_ONLY_USER_FAILURES = True
+# 20251126 Deprecated.
+# AXES_ONLY_USER_FAILURES = True
 AXES_USERNAME_FORM_FIELD = "username"
 
 # Used for testing for optional apps in templates without causing a crash

@@ -1,5 +1,16 @@
 all: build-local run-local
 
+buildenv:
+	cd ../dev-local ; docker build \
+		--platform "linux/amd64" \
+		-t buildenv:latest \
+		-f Dockerfile.buildenv ..
+
+run-buildenv:
+	cd ../dev-local ; docker run --platform linux/amd64 -v ${PWD}/..:/code -it buildenv:latest
+
+# --progress=plain
+# if you want to see the build process in a less-fancy way.
 build-local:
 	@echo "building mock sls image"
 	cd ../msls-local ; make all ; cd ../dev-local

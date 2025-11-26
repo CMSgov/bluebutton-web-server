@@ -1,0 +1,8 @@
+FROM python:3.14-trixie
+
+WORKDIR /code
+RUN pip install pip-tools ; pip install --upgrade pip
+
+COPY .. /code
+
+CMD [ "/bin/bash" ]

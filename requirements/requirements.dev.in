@@ -2,7 +2,7 @@
 # test and development
 # coverage
 # python-coveralls
-flake8 == 6.0.*
+flake8==7.3.0
 django-debug-toolbar
 h11 >= 0.16.0
 httmock
@@ -11,5 +11,7 @@ selenium
 pytest 
 Flask 
 Flask-WTF
-setuptools_scm<7,>=3.2
-setuptools>=40.8.0
+setuptools_scm==9.2.2
+# setuptools must be pinned, or we get 
+# warnings in the build.
+setuptools==80.9.0
