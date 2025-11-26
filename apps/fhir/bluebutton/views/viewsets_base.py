@@ -35,7 +35,7 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
         out = self.fetch_data(request, self.resource_type, *args, **kwargs)
         return Response(out)
 
-    def retrieve(self, request, resource_id=None, *args, **kwargs):
+    def retrieve(self, request, resource_id, *args, **kwargs):
         out = self.fetch_data(request, self.resource_type, resource_id=resource_id, *args, **kwargs)
         return Response(out)
 
@@ -70,4 +70,4 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
 
     # TODO - investigate if this is needed, or if we can assume application/json+fhir everywhere
     def build_parameters(self, request):
-        return {'_format': 'application/json+fhir'}
+        return {'_format': 'application/json'}

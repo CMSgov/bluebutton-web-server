@@ -55,6 +55,8 @@ urlpatterns = [
     # C4DIC
     # Digital Insurance Card ViewSet
     # TODO - Change the URI for this endpoint when we finalize
+    # TODO - We are sending this to list even though it is a retrieve BECAUSE we're not asking for a resource id by the
+    # application, which means we're kinda breaking REST principles here.
     re_path(
         r'DigitalInsuranceCard[/]?',
         waffle_switch('v3_endpoints')(DigitalInsuranceCardViewSet.as_view({'get': 'list'}, version=3)),

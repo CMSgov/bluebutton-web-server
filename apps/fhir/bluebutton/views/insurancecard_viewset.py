@@ -1,5 +1,6 @@
-from rest_framework import viewsets, permissions
-from apps.fhir.bluebutton.views.generic import FhirDataView
+from rest_framework import permissions
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.views.viewsets_base import ResourceViewSet
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.permissions import (
@@ -15,7 +16,7 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
         return True
 
 
-class DigitalInsuranceCardViewSet(FhirDataView, viewsets.ViewSet):
+class DigitalInsuranceCardViewSet(ResourceViewSet):
     """Digital Insurance Card (bundle) django-rest-framework ViewSet experiment
 
     Args:
@@ -50,8 +51,10 @@ class DigitalInsuranceCardViewSet(FhirDataView, viewsets.ViewSet):
             # only if called by tests
             return f"{fhir_settings.fhir_url}{resource_type}/"
         else:
+            # TODO - is this preferred (explicit), or should we keep using the implicit model APIS that Django creates?
+            fhir_id = Crosswalk.objects.get(user=self.request.user).fhir_id(self.version)
             if self.version == 3 and getattr(fhir_settings, 'fhir_url_v3', None):
                 fhir_url = fhir_settings.fhir_url_v3
             else:
                 fhir_url = fhir_settings.fhir_url
-            return f"{fhir_url}/v{self.version}/fhir/Patient/{resource_id}/$generate-insurance-card"
+            return f"{fhir_url}/v{self.version}/fhir/Patient/{fhir_id}/$generate-insurance-card"
