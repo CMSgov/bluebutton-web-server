@@ -221,20 +221,15 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     call_url = target server URL and search parameters to be sent
     crosswalk = Crosswalk record. The crosswalk is keyed off Request.user
     timeout allows a timeout in seconds to be set.
-
-    FhirServer is joined to Crosswalk.
-    FhirServerAuth and FhirServerVerify receive crosswalk and lookup
-       values in the linked fhir_server model.
-
     """
 
     logger_perf = bb2logging.getLogger(bb2logging.PERFORMANCE_LOGGER, request)
 
     # Updated to receive crosswalk (Crosswalk entry for user)
     # call FhirServer_Auth(crosswalk) to get authentication
-    auth_state = FhirServerAuth(crosswalk)
+    auth_state = FhirServerAuth()
 
-    verify_state = FhirServerVerify(crosswalk)
+    verify_state = fhir_settings.verify_server
     if auth_state["client_auth"]:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
@@ -326,16 +321,21 @@ def notNone(value=None, default=None):
         return value
 
 
-def FhirServerAuth(crosswalk=None):
-    # Get default clientauth settings from base.py
-    # Receive a crosswalk.id or None
-    # Return a dict
+def FhirServerAuth() -> dict:
+    """Helper class to modify cert paths if client_auth is true
+    TODO - this can probably be refactored or removed, rolled into the FHIRServerSettings class
+
+    Returns:
+        dict: A dictionary with the following:
+            - client_auth (bool): if client authentication is required
+            - cert_file (str): path to cert file
+            - key_file (str): path to key file
+    """
 
     auth_settings = {}
-    resource_router = get_resourcerouter()
-    auth_settings["client_auth"] = resource_router.client_auth
-    auth_settings["cert_file"] = resource_router.cert_file
-    auth_settings["key_file"] = resource_router.key_file
+    auth_settings["client_auth"] = fhir_settings.client_auth
+    auth_settings["cert_file"] = fhir_settings.cert_file
+    auth_settings["key_file"] = fhir_settings.key_file
 
     if auth_settings["client_auth"]:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
@@ -349,12 +349,6 @@ def FhirServerAuth(crosswalk=None):
         auth_settings["key_file"] = key_file_path
 
     return auth_settings
-
-
-def FhirServerVerify(crosswalk=None):
-    # Get default Server Verify Setting
-    # Return True or False (Default)
-    return get_resourcerouter().verify_server
 
 
 def mask_with_this_url(request, host_path="", in_text="", find_url=""):
@@ -453,10 +447,6 @@ def get_crosswalk(user):
         pass
 
     return None
-
-
-def get_resourcerouter(crosswalk=None):
-    return fhir_settings
 
 
 def handle_http_error(e):
@@ -605,7 +595,7 @@ def get_response_text(fhir_response=None):
         return text_in
 
 
-def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_type="json"):
+def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_type="json") -> dict | str:
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
@@ -707,7 +697,7 @@ def get_v2_patient_by_id(id, request):
     a helper adapted to just get patient given an id out of band of auth flow
     or normal data flow, use by tools such as BB2-Tools admin viewers
     """
-    auth_settings = FhirServerAuth(None)
+    auth_settings = FhirServerAuth()
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
 
     headers = generate_info_headers(request)
@@ -715,9 +705,7 @@ def get_v2_patient_by_id(id, request):
     headers["includeIdentifiers"] = "true"
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
-    url = "{}/v2/fhir/Patient/{}?_format={}".format(
-        get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
-    )
+    url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/{id}?_format={settings.FHIR_PARAM_FORMAT}'
     s = requests.Session()
     req = requests.Request("GET", url, headers=headers)
     prepped = req.prepare()
@@ -730,7 +718,7 @@ def get_v2_patient_by_id(id, request):
 # of the ticket to remove the user_mbi_hash column from the crosswalk table
 # We can remove this entire function at that point
 def get_patient_by_mbi_hash(mbi_hash, request):
-    auth_settings = FhirServerAuth(None)
+    auth_settings = FhirServerAuth()
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
@@ -738,9 +726,7 @@ def get_patient_by_mbi_hash(mbi_hash, request):
 
     search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
     payload = {'identifier': search_identifier}
-    url = '{}/v2/fhir/Patient/_search'.format(
-        get_resourcerouter().fhir_url
-    )
+    url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 
     s = requests.Session()
     req = requests.Request("POST", url, headers=headers, data=payload)

@@ -4,28 +4,27 @@ from django.contrib import admin
 from apps.fhir.bluebutton.views.read import (
     ReadViewCoverage,
     ReadViewExplanationOfBenefit,
-    ReadViewPatient,
 )
 from apps.fhir.bluebutton.views.search import (
     SearchViewCoverage,
     SearchViewExplanationOfBenefit,
-    SearchViewPatient,
 )
+from apps.fhir.bluebutton.views.patient_viewset import PatientViewSet
 
 admin.autodiscover()
 
 urlpatterns = [
     # Patient ReadView
     re_path(
-        r"Patient/(?P<resource_id>[^/]+)",
-        ReadViewPatient.as_view(version=2),
-        name="bb_oauth_fhir_patient_read_or_update_or_delete_v2",
+        r'Patient/(?P<resource_id>[^/]+)',
+        PatientViewSet.as_view({'get': 'retrieve'}, version=2),
+        name='bb_oauth_fhir_patient_read_or_update_or_delete_v2',
     ),
     # Patient SearchView
     re_path(
-        r"Patient[/]?",
-        SearchViewPatient.as_view(version=2),
-        name="bb_oauth_fhir_patient_search_v2",
+        r'Patient[/]?',
+        PatientViewSet.as_view({'get': 'list'}, version=2),
+        name='bb_oauth_fhir_patient_search_v2',
     ),
     # Coverage ReadView
     re_path(

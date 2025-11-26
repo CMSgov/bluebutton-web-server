@@ -35,37 +35,37 @@ class ReadView(FhirDataView):
 
     def build_parameters(self, *args, **kwargs):
         return {
-            "_format": "json"
+            '_format': 'json'
         }
 
-    def build_url(self, resource_router, resource_type, resource_id, **kwargs):
-        if resource_router.fhir_url.endswith('v1/fhir/'):
+    def build_url(self, fhir_settings, resource_type, resource_id, **kwargs):  # type: ignore
+        if fhir_settings.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
-            return "{}{}/{}/".format(resource_router.fhir_url, resource_type, resource_id)
+            return '{}{}/{}/'.format(fhir_settings.fhir_url, resource_type, resource_id)
         else:
-            if self.version == 3 and resource_router.fhir_url_v3:
-                fhir_url = resource_router.fhir_url_v3
+            if self.version == 3 and fhir_settings.fhir_url_v3:
+                fhir_url = fhir_settings.fhir_url_v3
             else:
-                fhir_url = resource_router.fhir_url
-            return f"{fhir_url}/v{self.version}/fhir/{resource_type}/{resource_id}/"
+                fhir_url = fhir_settings.fhir_url
+            return f'{fhir_url}/v{self.version}/fhir/{resource_type}/{resource_id}/'
 
 
 class ReadViewPatient(ReadView):
     # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
-        self.resource_type = "Patient"
+        self.resource_type = 'Patient'
 
 
 class ReadViewCoverage(ReadView):
     # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
-        self.resource_type = "Coverage"
+        self.resource_type = 'Coverage'
 
 
 class ReadViewExplanationOfBenefit(ReadView):
     # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
-        self.resource_type = "ExplanationOfBenefit"
+        self.resource_type = 'ExplanationOfBenefit'
