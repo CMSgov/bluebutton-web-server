@@ -24,7 +24,6 @@ class DigitalInsuranceCardViewSet(ResourceViewSet):
         viewsets: django-rest-framework ViewSet base class
     """
 
-    version = 1
     resource_type = 'Bundle'
 
     required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
@@ -40,7 +39,7 @@ class DigitalInsuranceCardViewSet(ResourceViewSet):
         HasDigitalInsuranceCardScope,
     ]
 
-    def __init__(self, version=1, **kwargs):
+    def __init__(self, version, **kwargs):
         super().__init__(version)
 
     def initial(self, request, *args, **kwargs):

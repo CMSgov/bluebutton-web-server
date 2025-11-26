@@ -13,12 +13,11 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
         viewsets: django-rest-framework ViewSet base class
     """
 
-    resource_type = None
-
     SEARCH_PERMISSION_CLASSES = (permissions.IsAuthenticated,)
     READ_PERMISSION_CLASSES = (permissions.IsAuthenticated,)
 
     def initial(self, request, *args, **kwargs):
+        self.resource_type = None
         return super().initial(request, self.resource_type, *args, **kwargs)
 
     def get_permissions(self):
@@ -31,26 +30,26 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
             permission_classes = (permissions.IsAuthenticated,)
         return [permission_class() for permission_class in permission_classes]
 
-    def list(self, request, *args, **kwargs):
+    def search(self, request, *args, **kwargs):
         out = self.fetch_data(request, self.resource_type, *args, **kwargs)
         return Response(out)
 
-    def retrieve(self, request, resource_id, *args, **kwargs):
+    def read(self, request, resource_id, *args, **kwargs):
         out = self.fetch_data(request, self.resource_type, resource_id=resource_id, *args, **kwargs)
         return Response(out)
 
     # A lot of this is copied (haphazardly) from generic, and the names and handling of the schema could be cleaned up
-    def get_query_schema(self):
-        if getattr(self, 'action', None) == 'list':
-            return getattr(self, 'SEARCH_QUERY_SCHEMA', getattr(self, 'QUERY_SCHEMA', {}))
+    def get_query_schema(self) -> dict:
+        if getattr(self, 'action', None) == 'search':
+            return getattr(self, 'SEARCH_QUERY_SCHEMA', getattr(self, 'READ_QUERY_TRANSFORMS', {}))
         return {}
 
-    def get_query_transforms(self):
-        if getattr(self, 'action', None) == 'list':
-            return getattr(self, 'SEARCH_QUERY_TRANSFORMS', getattr(self, 'QUERY_TRANSFORMS', {}))
-        return getattr(self, 'QUERY_TRANSFORMS', {})
+    def get_query_transforms(self) -> dict:
+        if getattr(self, 'action', None) == 'search':
+            return getattr(self, 'SEARCH_QUERY_TRANSFORMS', getattr(self, 'READ_QUERY_TRANSFORMS', {}))
+        return {}
 
-    def map_parameters(self, params):
+    def map_parameters(self, params) -> dict:
         transforms = self.get_query_transforms()
         for key, correct in transforms.items():
             val = params.pop(key, None)
@@ -58,8 +57,8 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
                 params[correct] = val
         return params
 
-    def filter_parameters(self, request):
-        if getattr(self, 'action', None) != 'list':
+    def filter_parameters(self, request) -> dict:
+        if getattr(self, 'action', None) != 'search':
             return {}
 
         params = self.map_parameters(request.query_params.dict())

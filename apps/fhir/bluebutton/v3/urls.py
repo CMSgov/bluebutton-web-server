@@ -19,13 +19,13 @@ urlpatterns = [
     # Patient ReadView
     re_path(
         r'Patient/(?P<resource_id>[^/]+)',
-        waffle_switch('v3_endpoints')(PatientViewSet.as_view({'get': 'retrieve'}, version=3)),
+        waffle_switch('v3_endpoints')(PatientViewSet.as_view({'get': 'read'}, version=3)),
         name='bb_oauth_fhir_patient_read_or_update_or_delete_v3',
     ),
     # Patient SearchView
     re_path(
         r'Patient[/]?',
-        waffle_switch('v3_endpoints')(PatientViewSet.as_view({'get': 'list'}, version=3)),
+        waffle_switch('v3_endpoints')(PatientViewSet.as_view({'get': 'search'}, version=3)),
         name='bb_oauth_fhir_patient_search_v3',
     ),
     # Coverage ReadView

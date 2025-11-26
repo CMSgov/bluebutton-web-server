@@ -17,13 +17,13 @@ urlpatterns = [
     # Patient ReadView
     re_path(
         r'Patient/(?P<resource_id>[^/]+)',
-        PatientViewSet.as_view({'get': 'retrieve'}, version=2),
+        PatientViewSet.as_view({'get': 'read'}, version=2),
         name='bb_oauth_fhir_patient_read_or_update_or_delete_v2',
     ),
     # Patient SearchView
     re_path(
         r'Patient[/]?',
-        PatientViewSet.as_view({'get': 'list'}, version=2),
+        PatientViewSet.as_view({'get': 'search'}, version=2),
         name='bb_oauth_fhir_patient_search_v2',
     ),
     # Coverage ReadView
