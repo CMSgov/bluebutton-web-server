@@ -72,8 +72,8 @@ class PatientViewSet(ResourceViewSet):
     required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
 
     def __init__(self, version, **kwargs):
-        self.resource_type = 'Patient'
         super().__init__(version)
+        self.resource_type = 'Patient'
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
         if fhir_settings.fhir_url.endswith('v1/fhir/'):

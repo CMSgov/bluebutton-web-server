@@ -16,8 +16,11 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
     SEARCH_PERMISSION_CLASSES = (permissions.IsAuthenticated,)
     READ_PERMISSION_CLASSES = (permissions.IsAuthenticated,)
 
-    def initial(self, request, *args, **kwargs):
+    def __init__(self, version=1):
         self.resource_type = None
+        super().__init__(version)
+
+    def initial(self, request, *args, **kwargs):
         return super().initial(request, self.resource_type, *args, **kwargs)
 
     def get_permissions(self):
