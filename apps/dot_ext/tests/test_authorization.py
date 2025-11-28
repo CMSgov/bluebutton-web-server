@@ -12,6 +12,9 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.test import Client
 from waffle.testutils import override_switch
+from apps.fhir.bluebutton.models import Crosswalk
+from django.contrib.auth.models import User
+from waffle import switch_is_active
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
@@ -271,7 +274,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret_plain,
         }
         c = Client()
-        response = c.post('/v1/o/token/', data=token_request_data)
+        if switch_is_active('v3_endpoints'):
+            response = c.post('/v3/o/token/', data=token_request_data)
+        else:
+            response = c.post('/v2/o/token/', data=token_request_data)
         self.assertEqual(response.status_code, 200)
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
@@ -286,6 +292,14 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(response.json()['access_token'], tkn)
+        user = User.objects.get(username='anna')
+        crosswalk = Crosswalk.objects.get(user=user)
+        print(f'what is in crosswalk {crosswalk.fhir_id_v3}')
+        # Verify both fhir_id_v2 and fhir_id_v3 are populated
+        self.assertIsNotNone(crosswalk.fhir_id_v2)
+        self.assertIsNotNone(crosswalk.fhir_id_v3)
+        self.assertTrue(len(crosswalk.fhir_id_v2) > 0)
+        self.assertTrue(len(crosswalk.fhir_id_v3) > 0)
 
     def test_refresh_with_expired_token(self):
         redirect_uri = 'http://localhost'
