@@ -448,6 +448,13 @@ class TokenView(DotTokenView):
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
 
+                # Get the crosswalk for the user from token.user like
+                # try:
+                    # crosswalk = Crosswalk.objects.get(user=token.user)
+                # except Crosswalk.DoesNotExist:
+                    # crosswalk = None
+                # This gets us the mbi and other info we need from the crosswalk
+                # Probably some kind of handling for if there is no mbi needs to happen here too
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
 

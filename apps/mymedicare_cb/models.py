@@ -28,8 +28,45 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     # BB2-237 custom exception
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
+# def _get_and_update_user(mbi, user_id, hicn_hash, request):
+#     """
+#     Base function to get and update user from either authorize or refresh flows.
+#     """
 
-def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
+#     version = request.session['version']
+#     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
+
+#     # Match a patient identifier via the backend FHIR server
+#     if version == Versions.V3:
+#         hicn_hash = None
+
+#     versioned_fhir_ids = {}
+#     # Perform fhir_id lookup for all supported versions
+#     # If the lookup for the requested version fails, raise the exception
+#     # This is wrapped in the case that if the requested version fails, match_fhir_id
+#     # will still bubble up UpstreamServerException
+#     for supported_version in Versions.latest_versions():
+#         try:
+#             fhir_id, hash_lookup_type = match_fhir_id(
+#                 mbi=mbi,
+#                 hicn_hash=hicn_hash,
+#                 request=request,
+#                 version=supported_version,
+#             )
+#             versioned_fhir_ids[supported_version] = fhir_id
+#         except UpstreamServerException as e:
+#             if supported_version == version:
+#                 raise e
+
+#     bfd_fhir_id_v2 = versioned_fhir_ids.get(Versions.V2, None)
+#     bfd_fhir_id_v3 = versioned_fhir_ids.get(Versions.V3, None)
+
+
+# def get_and_update_from_refresh(mbi, user_id, hicn_hash, request):
+#     version = request.session['version']
+#     pass
+
+def get_and_update_user_from_authorize(slsx_client: OAuth2ConfigSLSx, request):
     """
     Find or create the user associated
     with the identity information from the ID provider.
