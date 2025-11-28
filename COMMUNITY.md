@@ -166,17 +166,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/sharonfruit">
-                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
-                    <br />
-                    <sub><b>Sharon Su</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/JamesDemeryNava">
                     <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
                     <br />
                     <sub><b>James Demery</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/sharonfruit">
+                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
+                    <br />
+                    <sub><b>Sharon Su</b></sub>
                 </a>
             </td>
 		</tr>
