@@ -5,13 +5,36 @@ from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission,
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 
-from rest_framework import permissions
+from rest_framework import permissions  # pyright: ignore[reportMissingImports]
+
+
+def _is_not_empty(s: set):
+    if len(s) > 0:
+        return True
+    else:
+        return False
 
 
 class HasDigitalInsuranceCardScope(permissions.BasePermission):
+
+    required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
+    required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
+
     def has_permission(self, request, view) -> bool:  # type: ignore
-        # TODO - implement scope checking logic
-        return True
+        # Is this an authorized request? If not, exit.
+        if request.get('auth', None) is None:
+            return False
+
+        # If we're authenticated, then we can check the scopes from the token.
+        token_scopes = request.auth.scope
+        # Two things need to be true:
+        #  1. At least one of the scopes in the token needs to be one of the above coverage scopes.
+        #  2. At leaset one of the scopes in the token needs to be one of the above read scopes.
+        coverage_set = set(HasDigitalInsuranceCardScope.required_coverage_search_scopes)
+        patient_set = set(HasDigitalInsuranceCardScope.required_patient_read_scopes)
+        token_set = set(token_scopes)
+        return (_is_not_empty(coverage_set.intersection(token_set))
+                and _is_not_empty(patient_set.intersection(token_set)))
 
 
 class DigitalInsuranceCardSearchView(FhirDataView):
@@ -27,9 +50,11 @@ class DigitalInsuranceCardSearchView(FhirDataView):
         HasDigitalInsuranceCardScope,
     ]
 
-    required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
-    required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
+    # FIXME: Are these required here? Or, can I put them in the permission class?
+    # required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
+    # required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
 
+    # TODO/FIXME: What are the version=1? doing? Check/look into.
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = 'Bundle'
