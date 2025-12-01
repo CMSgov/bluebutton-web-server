@@ -106,3 +106,8 @@ class ApplicationActivePermission(permissions.BasePermission):
             )
 
         return True
+
+
+class AlwaysDeny(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return False

@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from voluptuous import Schema, REMOVE_EXTRA
 
+from apps.fhir.bluebutton.permissions import AlwaysDeny
 from apps.fhir.bluebutton.views.generic import FhirDataView
 
 
@@ -25,12 +26,14 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
 
     def get_permissions(self):
         action = getattr(self, 'action', None)
-        if action == 'list':
+        if action == 'search':
             permission_classes = getattr(self, 'SEARCH_PERMISSION_CLASSES', self.SEARCH_PERMISSION_CLASSES)
-        elif action == 'retrieve':
+        elif action == 'read':
             permission_classes = getattr(self, 'READ_PERMISSION_CLASSES', self.READ_PERMISSION_CLASSES)
         else:
-            permission_classes = (permissions.IsAuthenticated,)
+            # If it's not a read or search call, make the permissions_classes list contain a single class,
+            # permissions.AlwaysDeny, as if it is not a search or read call, we should not proceed.
+            permission_classes = (AlwaysDeny,)
         return [permission_class() for permission_class in permission_classes]
 
     def search(self, request, *args, **kwargs):
@@ -71,8 +74,9 @@ class ResourceViewSet(FhirDataView, viewsets.ViewSet):
         return schema(params)
 
     # TODO - investigate a better way to structure this
+    # TODO - seems like we could be adding parameters that don't need to be added
     def build_parameters(self, request):
-        if getattr(self, 'action', None) != 'list':
+        if getattr(self, 'action', None) != 'search':
             return {
                 '_format': 'application/json+fhir',
             }

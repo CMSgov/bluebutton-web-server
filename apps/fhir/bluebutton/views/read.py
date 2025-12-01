@@ -35,7 +35,8 @@ class ReadView(FhirDataView):
 
     def build_parameters(self, *args, **kwargs):
         return {
-            '_format': 'json'
+            '_format': 'application/fhir+json'
+            # '_format': 'json'
         }
 
     def build_url(self, fhir_settings, resource_type, resource_id, **kwargs):  # type: ignore
