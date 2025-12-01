@@ -80,35 +80,6 @@ def create_user(group, usr):
     return u
 
 
-# def create_application(user, group, app, redirect):
-#     app_name = "TestApp" if app is None else app
-#     Application.objects.filter(name=app_name).delete()
-#     redirect_uri = "{}{}".format(settings.HOSTNAME_URL, settings.TESTCLIENT_REDIRECT_URI)
-
-#     if redirect:
-#         redirect_uri = redirect
-
-#     if not (redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
-#         redirect_uri = "https://" + redirect_uri
-
-#     a = Application.objects.create(name=app_name,
-#                                    redirect_uris=redirect_uri,
-#                                    user=user,
-#                                    data_access_type="THIRTEEN_MONTH",
-#                                    client_type="confidential",
-#                                    authorization_grant_type="authorization-code")
-
-#     titles = ["My Medicare and supplemental coverage information.",
-#               "My Medicare claim information.",
-#               "My general patient and demographic information.",
-#               "Profile information including name and email."
-#               ]
-
-#     for t in titles:
-#         c = ProtectedCapability.objects.get(title=t)
-#         a.scope.add(c)
-#     return a
-
 def create_application(user):
     app_name = "TestApp"
     if Application.objects.filter(name=app_name).exists():
@@ -151,7 +122,7 @@ def create_test_token(user, application):
 
     if AccessToken.objects.filter(token="sample-token-string").exists():
         t = AccessToken.objects.get(token="sample-token-string")
-    else:
+
         t = AccessToken.objects.create(user=user, application=application,
                                        token="sample-token-string",
                                        expires=expires,
