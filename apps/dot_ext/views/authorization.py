@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauth2_provider.exceptions import OAuthToolkitError
+from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
@@ -27,6 +28,7 @@ from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.mymedicare_cb.models import get_and_update_from_refresh
 import apps.logging.request_logger as bb2logging
 
 from ..signals import beneficiary_authorized_application
@@ -455,6 +457,16 @@ class TokenView(DotTokenView):
                     # crosswalk = None
                 # This gets us the mbi and other info we need from the crosswalk
                 # Probably some kind of handling for if there is no mbi needs to happen here too
+                try:
+                    print(f'token.user: {token.user}')
+                    crosswalk = Crosswalk.objects.get(user=token.user)
+                    print(f'Found crosswalk for user: {crosswalk}')
+                    body['user_mbi'] = crosswalk.user_mbi
+                    body['user_id'] = crosswalk.user_id
+                    body['hicn_hash'] = crosswalk.user_hicn_hash
+                    get_and_update_from_refresh(crosswalk.user_mbi, crosswalk.user_id, crosswalk.user_hicn_hash, request)
+                except Crosswalk.DoesNotExist:
+                    crosswalk = None
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
 
