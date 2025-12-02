@@ -114,19 +114,18 @@ def create_test_token(user, application):
 
     now = timezone.now()
     expires = now + timedelta(days=1)
+    token_value = "sample-token-string"
 
     scopes = application.scope.all()
     scope = []
     for s in scopes:
         scope.append(s.slug)
 
-    if AccessToken.objects.filter(token="sample-token-string").exists():
-        t = AccessToken.objects.get(token="sample-token-string")
-
-        t = AccessToken.objects.create(user=user, application=application,
-                                       token="sample-token-string",
-                                       expires=expires,
-                                       scope=' '.join(scope))
+    AccessToken.objects.filter(token=token_value).delete()
+    t = AccessToken.objects.create(user=user, application=application,
+                                   token=token_value,
+                                   expires=expires,
+                                   scope=' '.join(scope))
     return t
 
 
