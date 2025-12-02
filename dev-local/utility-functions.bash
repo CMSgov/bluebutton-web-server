@@ -24,22 +24,7 @@ check_valid_env () {
         echo "Exiting."
         return -2
     fi 
-
-
-    if [[ "${bfd}" == "local" && "${auth}" == "live" ]]; then
-        echo "⚠️ ${bfd}/${auth} may work for SLSX testing, but not for BFD calls."
-    fi 
-
-    if [[ "${bfd}" == "test" && "${auth}" == "mock" ]]; then
-        echo "⛔ ${bfd}/${auth} is not a valid combination. Exiting."
-        return -3
-    fi 
-
-    if [[ "${bfd}" == "sbx" && "${auth}" == "mock" ]]; then
-        echo "⛔ ${bfd}/${auth} is not a valid combination. Exiting."
-        return -4
-    fi 
-
+    
     echo "✅ check_valid_env"
 }
 

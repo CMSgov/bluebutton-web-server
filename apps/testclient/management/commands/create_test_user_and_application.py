@@ -12,15 +12,10 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 from django.conf import settings
 from apps.authorization.models import update_grants
-from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
-
-# Imports for quieting things during startup.
-from waffle.models import Switch
-
-from uuid import uuid4
 
 
 def create_group(name="BlueButton"):
+
     g, created = Group.objects.get_or_create(name=name)
     if created:
         print("%s group created" % (name))
@@ -29,29 +24,41 @@ def create_group(name="BlueButton"):
     return g
 
 
-def create_user(the_group):
-    username = "rogersf"
+def create_user(group, usr):
+    u_name = "fred"
     first_name = "Fred"
-    last_name = "Rogers"
-    email = "mrrogers@landofmakebelieve.gov"
-    password = uuid4()
+    last_name = "Flinstone"
+    email = "fred@example.com"
+    password = "foobarfoobarfoobar"
     user_type = "BEN"
 
-    # We will do this over-and-over.
-    # If we don't already exist, then create the user.
-    if User.objects.filter(username=username).exists():
-        print(f"👟 {username} already exists. Skipping test user creation.")
-        return User.objects.get(username=username)
+    if usr is not None:
+        u_name = usr
+        first_name = "{}{}".format(usr, "First")
+        last_name = "{}{}".format(usr, "Last")
+        email = "{}.{}@example.com".format(first_name, last_name)
+        user_type = "DEV"
 
-    # If the user didn't exist, it is our first time through.
-    # Create the user.
-    user_obj = User.objects.create(username=username,
-                                   first_name=first_name,
-                                   last_name=last_name,
-                                   email=email,
-                                   password=password,)
-    user_obj.set_unusable_password()
-    UserProfile.objects.create(user=user_obj,
+    if User.objects.filter(username=u_name).exists():
+        User.objects.filter(username=u_name).delete()
+
+    u = None
+
+    if usr is not None:
+        u = User.objects.create_user(username=u_name,
+                                     first_name=first_name,
+                                     last_name=last_name,
+                                     email=email)
+        u.set_unusable_password()
+    else:
+        # create a sample user 'fred' for dev local that has a usable password
+        u = User.objects.create_user(username=u_name,
+                                     first_name=first_name,
+                                     last_name=last_name,
+                                     email=email,
+                                     password=password,)
+
+    UserProfile.objects.create(user=u,
                                user_type=user_type,
                                create_applications=True,
                                password_reset_question_1='1',
@@ -60,17 +67,17 @@ def create_user(the_group):
                                password_reset_answer_2='Frank',
                                password_reset_question_3='3',
                                password_reset_answer_3='Bentley')
-    user_obj.groups.add(the_group)
 
-    # CROSSWALK
-    # Removing any existing crosswalks for this artificial user.
-    # Why? Just in case.
-    user_id_hash = "ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536"
-    Crosswalk.objects.filter(_user_id_hash=user_id_hash).delete()
-    Crosswalk.objects.get_or_create(user=user_obj,
-                                    fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2,
-                                    _user_id_hash=user_id_hash)
-    return user_obj
+    u.groups.add(group)
+
+    if usr is None:
+        if not Crosswalk.objects.filter(_user_id_hash="ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536").exists():
+            c, g_o_c = Crosswalk.objects.get_or_create(user=u,
+                                                       fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2,
+                                                       _user_id_hash="ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536")
+        else:
+            print("Skipping crosswalk creation; already exists.")
+    return u
 
 
 def create_application(user):
@@ -103,59 +110,47 @@ def create_application(user):
     return the_app
 
 
-def create_test_token(the_user, the_app):
+def create_test_token(user, application):
 
-    # Set expiration one day from now.
     now = timezone.now()
     expires = now + timedelta(days=1)
+    token_value = "sample-token-string"
 
-    scopes = the_app.scope.all()
+    scopes = application.scope.all()
     scope = []
     for s in scopes:
         scope.append(s.slug)
 
-    # We have to have a tokent with token="sample-token-string", because we
-    # rely on it existing for unit tests. Which are actually integration tests.
-    if AccessToken.objects.filter(token="sample-token-string").exists():
-        t = AccessToken.objects.get(token="sample-token-string")
-        t.expires = expires
-        t.save()
-    else:
-        AccessToken.objects.create(user=the_user,
-                                   application=the_app,
-                                   # This needs to be "sample-token-string", because
-                                   # we have tests that rely on it.
-                                   token="sample-token-string",
+    AccessToken.objects.filter(token=token_value).delete()
+    t = AccessToken.objects.create(user=user, application=application,
+                                   token=token_value,
                                    expires=expires,
-                                   scope=' '.join(scope),)
-
-
-def get_switch(name):
-    try:
-        sw = Switch.objects.get(name=name)
-        return sw.active
-    except Exception as e:
-        print(f"Could not get switch {name}: {e}")
-
-
-def set_switch(name, b):
-    sw, _ = Switch.objects.get_or_create(name=name)
-    sw.active = b
-    sw.save()
+                                   scope=' '.join(scope))
+    return t
 
 
 class Command(BaseCommand):
     help = 'Create a test user and application for the test client'
 
+    def add_arguments(self, parser):
+        parser.add_argument("-u", "--user", help="Name of the user to be created (unique).")
+        parser.add_argument("-a", "--app", help="Name of the application to be created (unique).")
+        parser.add_argument("-r", "--redirect", help="Redirect url of the application.")
+
     def handle(self, *args, **options):
+        usr = options["user"]
+        app = options["app"]
+        redirect = options["redirect"]
 
-        set_switch('outreach_email', False)
-
-        the_group = create_group()
-        the_user = create_user(the_group)
-        the_app = create_application(the_user)
-        create_test_token(the_user, the_app)
-        update_grants()
-
-        # Restore switch to whatever it was.
-        set_switch('outreach_email', True)
+        g = create_group()
+        u = create_user(g, usr)
+        a = create_application(u)  # a = create_application(u, g, app, redirect)
+        t = None
+        if usr is None and app is None:
+            t = create_test_token(u, a)
+            update_grants()
+        print("Name:", a.name)
+        print("client_id:", a.client_id)
+        print("client_secret:", a.client_secret)
+        print("access_token:", t.token if t else "None")
+        print("redirect_uri:", a.redirect_uris)
