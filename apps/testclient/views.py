@@ -539,6 +539,20 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
                    })
 
 
+def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
+    if _link_session_or_version_is_bad(request.session, version):
+        return _link_session_or_version_is_bad(request.session, version)
+
+    c4dic_info = _get_fhir_data_as_json(request, FhirDataParams(
+        EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']))
+
+    return render(request, RESULTS_PAGE,
+                  {'fhir_json_pretty': json.dumps(c4dic_info, indent=3),
+                   'response_type': 'Bundle',
+                   'api_ver': version
+                   })
+
+
 ############################################################
 # VERSION 1
 ############################################################
@@ -739,3 +753,9 @@ def test_patient_v3(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_userinfo_v3(request: HttpRequest):
     return _test_userinfo(request, version=Versions.V3)
+
+
+@never_cache
+@waffle_switch('enable_testclient')
+def test_digital_insurance_card_v3(request: HttpRequest):
+    return _test_digital_insurance_card(request, version=Versions.V3)

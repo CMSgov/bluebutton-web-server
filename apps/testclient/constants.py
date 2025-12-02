@@ -29,6 +29,7 @@ class EndpointUrl:
     patient = "patient"
     explanation_of_benefit = "eob"
     coverage = "coverage"
+    digital_insurance_card = "digital_insurance_card"
     nav = "nav"
 
     # TODO - theses are all format=json, not format=application/fhir+json, is this good?
@@ -47,6 +48,9 @@ class EndpointUrl:
                 return f'{uri}/{version_as_string}/fhir/ExplanationOfBenefit/?_format=application/fhir+json'
             case EndpointUrl.coverage:
                 return f'{uri}/{version_as_string}/fhir/Coverage/?_format=application/fhir+json'
+            case EndpointUrl.digital_insurance_card:
+                # return f'{uri}/{version_as_string}/fhir/DigitalInsuranceCard/?_format=application/fhir+json'
+                return f"{uri}/{version_as_string}/fhir/Patient/{patient}/$generate-insurance-card"
             case _:
                 logger.error(f'Could not match name in EndpointUrl: {name}')
 
