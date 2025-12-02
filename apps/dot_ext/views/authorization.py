@@ -481,9 +481,12 @@ class TokenView(DotTokenView):
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
-        except PermissionDenied as e:
+        except PermissionDenied:
+            log.exception('Permission denied during token endpoint processing.')
+            # This error will not match other errors thrown by this waffle_flag as Github raised
+            # a security concern about it, but only here.
             return JsonResponse(
-                {'status_code': 403, 'message': str(e)},
+                {'status_code': 403, 'message': 'You do not have permission to perform this action.'},
                 status=403,
             )
 
