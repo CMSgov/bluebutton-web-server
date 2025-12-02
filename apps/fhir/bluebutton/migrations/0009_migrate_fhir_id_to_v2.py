@@ -14,8 +14,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.RunPython(migrate_fhir_id_to_v2, reverse_migrate_v2_to_fhir_id),
-        migrations.AddConstraint(  # After migration happens, add constraint that a fhir_id must be present
+        migrations.AddConstraint(  # After migrate_fhir_id_to_v2 is run, add constraint that a fhir_id_v2 or v3 must be present
             model_name='crosswalk',
             constraint=models.CheckConstraint(
                 check=models.Q(fhir_id_v2__isnull=False) | models.Q(fhir_id_v3__isnull=False),
