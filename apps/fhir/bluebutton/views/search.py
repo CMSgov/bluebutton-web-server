@@ -165,7 +165,7 @@ class SearchViewExplanationOfBenefit(SearchView):
 
     def build_parameters(self, request, *args, **kwargs):
         return {
-            '_format': 'application/json+fhir',
+            '_format': 'application/fhir+json',
             'patient': request.crosswalk.fhir_id(self.version),
         }
 
