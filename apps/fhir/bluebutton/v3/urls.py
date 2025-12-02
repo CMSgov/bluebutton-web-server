@@ -11,7 +11,7 @@ from apps.fhir.bluebutton.views.search import (
     SearchViewExplanationOfBenefit,
 )
 from apps.fhir.bluebutton.views.patient_viewset import PatientViewSet
-from apps.fhir.bluebutton.views.insurancecard_viewset import DigitalInsuranceCardViewSet
+from apps.fhir.bluebutton.views.insurancecard import DigitalInsuranceCardView
 
 admin.autodiscover()
 
@@ -59,7 +59,7 @@ urlpatterns = [
     # application, which means we're kinda breaking REST principles here.
     re_path(
         r'DigitalInsuranceCard[/]?',
-        waffle_switch('v3_endpoints')(DigitalInsuranceCardViewSet.as_view({'get': 'list'}, version=3)),
+        waffle_switch('v3_endpoints')(DigitalInsuranceCardView.as_view(version=3)),
         name='bb_oauth_fhir_dic_read',
     ),
 ]
