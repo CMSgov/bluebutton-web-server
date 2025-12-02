@@ -26,7 +26,7 @@ AccessToken = get_access_token_model()
 def get_expected_read_request(version: int):
     return {
         'method': 'GET',
-        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{FHIR_ID_V2}/?_format=application/json+fhir&_id={FHIR_ID_V2}',
+        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{FHIR_ID_V2}/?_format=application/fhir+json&_id={FHIR_ID_V2}',
         'headers': {
             # 'User-Agent': 'python-requests/2.20.0',
             'Accept-Encoding': 'gzip, deflate',
@@ -284,7 +284,7 @@ class BackendConnectionTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertIn('_count=5', req.url)
             self.assertNotIn('hello', req.url)
@@ -362,7 +362,7 @@ class BackendConnectionTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
@@ -444,7 +444,7 @@ class BackendConnectionTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
@@ -499,7 +499,7 @@ class BackendConnectionTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
@@ -532,7 +532,7 @@ class BackendConnectionTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
 
             return {
                 'status_code': 200,
