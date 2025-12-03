@@ -51,6 +51,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
 
     @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     @override_switch('v3_endpoints', active=True)
+    @override_flag('v3_early_adopter', active=False)
     def test_userinfo_returns_403(self):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)

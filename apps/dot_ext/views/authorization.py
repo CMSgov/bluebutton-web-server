@@ -91,6 +91,8 @@ class AuthorizationView(DotAuthorizationView):
     # TODO: rename this so that it isn't the same as self.version (works but confusing)
     # this needs to be here for urls.py as_view(version) calls, but don't use it
     version = 0
+    # Variable to help reduce the amount of times validate_v3_authorization_request is called
+    validate_v3_call = True
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
@@ -149,6 +151,11 @@ class AuthorizationView(DotAuthorizationView):
         initially create an AuthFlowUuid object for authorization
         flow tracing in logs.
         """
+        path_info = self.request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
+        # If it is not version 3, we don't need to check anything, just return
+        if version == Versions.V3 and self.validate_v3_call:
+            self.validate_v3_authorization_request()
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
@@ -241,7 +248,11 @@ class AuthorizationView(DotAuthorizationView):
         try:
             application = get_application_model().objects.get(client_id=client_id[0])
             application_user = get_user_model().objects.get(id=application.user_id)
-            if flag.id is not None and flag.is_active_for_user(application_user):
+
+            if flag.id is None or flag.is_active_for_user(application_user):
+                # Update the class variable to ensure subsequent calls to dispatch don't call this function
+                # more times than is needed
+                self.validate_v3_call = False
                 return
             else:
                 raise AccessDeniedTokenCustomError(
@@ -292,11 +303,6 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
-            path_info = self.request.__dict__.get('path_info')
-            version = get_api_version_number_from_url(path_info)
-            # If it is not version 3, we don't need to check anything, just return
-            if version == Versions.V3:
-                self.validate_v3_authorization_request()
 
             if not scopes:
                 # Since the create_authorization_response will re-inject scopes even when none are
@@ -456,7 +462,7 @@ class TokenView(DotTokenView):
             application = get_application_model().objects.get(id=refresh_token.application_id)
             application_user = get_user_model().objects.get(id=application.user_id)
 
-            if flag.id is not None and flag.is_active_for_user(application_user):
+            if flag.id is None or flag.is_active_for_user(application_user):
                 return
             else:
                 raise PermissionDenied(

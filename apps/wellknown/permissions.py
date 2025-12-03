@@ -28,7 +28,7 @@ class V3EarlyAdopterWellKnownPermission(permissions.BasePermission):
         application_user = get_user_model().objects.get(id=application.user_id)
         flag = get_waffle_flag_model().get('v3_early_adopter')
 
-        if flag.id is not None and flag.is_active_for_user(application_user):
+        if flag.id is None or flag.is_active_for_user(application_user):
             return True
         else:
             raise PermissionDenied(
