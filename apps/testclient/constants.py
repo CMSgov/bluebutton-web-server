@@ -49,8 +49,9 @@ class EndpointUrl:
             case EndpointUrl.coverage:
                 return f'{uri}/{version_as_string}/fhir/Coverage/?_format=application/fhir+json'
             case EndpointUrl.digital_insurance_card:
-                # return f'{uri}/{version_as_string}/fhir/DigitalInsuranceCard/?_format=application/fhir+json'
-                return f"{uri}/{version_as_string}/fhir/Patient/{patient}/$generate-insurance-card"
+                return f'{uri}/{version_as_string}/fhir/DigitalInsuranceCard/?_format=application/fhir+json'
+                # return f"{uri}/{version_as_string}/fhir/Patient/{patient}/$generate-insurance-card"
+                # ?_format=application/fhir+json
             case _:
                 logger.error(f'Could not match name in EndpointUrl: {name}')
 

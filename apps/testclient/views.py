@@ -87,8 +87,8 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     if params.version in [Versions.V1, Versions.V2] and request.GET.get('nav_link', None):
         uri = _build_pagination_uri(uri, params, request)
 
-    oas = _get_oauth2_session_with_token(request)
-    r = oas.get(uri)
+    oath_session = _get_oauth2_session_with_token(request)
+    r = oath_session.get(uri)
 
     try:
         result_json = r.json()

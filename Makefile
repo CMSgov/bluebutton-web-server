@@ -21,3 +21,7 @@ build-local:
 
 run-local:
 	cd dev-local ; make run-local ; cd ..
+
+exec-web:
+	cd dev-local ; make exec-web ; cd ..
+	

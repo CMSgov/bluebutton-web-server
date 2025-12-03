@@ -17,6 +17,12 @@ from apps.fhir.bluebutton.views.insurancecard import DigitalInsuranceCardView
 admin.autodiscover()
 
 urlpatterns = [
+    # IF WE DECIDE TO MIRROR BFD
+    # re_path(
+    #     r"Patient/(?P<resource_id>/$generate_insurance_card[^/]+)",
+    #     waffle_switch('v3_endpoints')(DigitalInsuranceCardView.as_view(version=3)),
+    #     name='bb_oauth_fhir_dic_read',
+    # ),
     # Patient ReadView
     re_path(
         r"Patient/(?P<resource_id>[^/]+)",

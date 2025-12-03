@@ -40,6 +40,7 @@ class ReadView(FhirDataView):
         }
 
     def build_url(self, fhir_settings, resource_type, resource_id, **kwargs):  # type: ignore
+        print("THIS IS THE BUILD_URL IN READ.PY")
         if fhir_settings.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
             return '{}{}/{}/'.format(fhir_settings.fhir_url, resource_type, resource_id)

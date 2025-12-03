@@ -4,6 +4,7 @@ from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission,
                                               ApplicationActivePermission)
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
+from django.http import JsonResponse
 
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
 
@@ -79,11 +80,30 @@ class DigitalInsuranceCardView(FhirDataView):
         print("GET OF INSURANCE CARD")
         print("request: ", request.__dict__)
         print("self.resource_type: ", self.resource_type)
-        return super().get(request, self.resource_type, *args, **kwargs)
-        # return JsonResponse(status=200, data={"ok": "go"})
+        # return super().get(request, self.resource_type, *args, **kwargs)
+        return JsonResponse(status=200, data={"ok": "go"})
 
     # How do the has_permission herre and the has_permission in the permission classes
     # play together? If they pass, can this fail? Visa-versa?
+    # def has_permission(self, request, view) -> bool:  # type: ignore
+    #     required_scopes = getattr(view, 'required_scopes', None)
+    #     if required_scopes is None:
+    #         return True
+
+    #     if hasattr(request, 'auth') and request.auth is not None:
+    #         token_scopes = request.auth.scope
+    #         return any(scope in token_scopes for scope in required_scopes)
+    #     return False
+
+    def has_permission(self, request, view):
+        # TODO: Why is this not being called?
+        # A print statement where this comment is does not appear when unit tests are run.
+        # But, the permission classes run. Where/when does has_permission get called?
+        # required_scopes = getattr(view, 'required_scopes', None)
+        # if required_scopes is None:
+        #     return False
+        # return request.user.is_authenticated and hasattr(request.user, 'crosswalk')
+        return True
 
     def build_parameters(self, request):
         return {
@@ -91,6 +111,7 @@ class DigitalInsuranceCardView(FhirDataView):
         }
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
+        print("BUILD_URL IN DIGITALINSURANCECARD")
         if fhir_settings.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
             return f"{fhir_settings.fhir_url}{resource_type}/"
