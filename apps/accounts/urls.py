@@ -15,7 +15,7 @@ from .views.login import LoginView, PasswordChangeView
 
 urlpatterns = [
     path("api/profile", my_profile, name="my_profile"),
-    path("logout", waffle_switch("login")(LogoutView.as_view()), name="logout"),
+    path("logout", waffle_switch("logout")(LogoutView.as_view()), name="logout"),
     path(
         "create",
         waffle_switch("signup")(create_account),
