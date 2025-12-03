@@ -15,7 +15,6 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, RefreshToken
-from tqdm import tqdm
 
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
@@ -96,7 +95,9 @@ def create_dev_users_apps_and_bene_crosswalks(
     synthetic_bene_cnt = 0
     begin_number = get_first_available_number('bene')
     if auto_generate:
-        for i in tqdm(range(bene_count)):
+        for i in range(bene_count):
+            if i % 10000 == 0:
+                print("we have made it through: ", i, " fake beneficiaries")
             id = str(i).zfill(10)
             fn = f'FN{id}'
             ln = f'LN{id}'
@@ -173,7 +174,7 @@ def create_dev_users_apps_and_bene_crosswalks(
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
     app_index = 0
     begin_number = get_first_available_number('DevUserFN')
-    for i in tqdm(range(dev_count)):
+    for i in range(dev_count):
         dev_u_fn = 'DevUserFN{}'.format(i + begin_number)
         dev_u_ln = 'DevUserLN{}'.format(i + begin_number)
         u = User.objects.create_user(username='{}.{}'.format(dev_u_fn, dev_u_ln),
