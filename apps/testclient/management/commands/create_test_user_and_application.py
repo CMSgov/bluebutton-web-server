@@ -30,11 +30,11 @@ def create_group(name="BlueButton"):
 
 
 def create_user(the_group):
-    username = "rogersf"
-    first_name = "Fred"
-    last_name = "Rogers"
-    email = "mrrogers@landofmakebelieve.gov"
-    password = uuid4()
+    username = 'fred'
+    first_name = 'Fred'
+    last_name = 'Flinstone'
+    email = 'fred@example.com'
+    password = 'foobarfoobarfoobar'
     user_type = "BEN"
 
     # We will do this over-and-over.
