@@ -3,10 +3,13 @@ from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission,
                                               ResourcePermission,
                                               ApplicationActivePermission)
 from apps.authorization.permissions import DataAccessGrantPermission
-from apps.capabilities.permissions import TokenHasProtectedCapability
+# FIXME: removed for local testing
+# from apps.capabilities.permissions import TokenHasProtectedCapability
 from django.http import JsonResponse
 
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
+
+from apps.versions import noisy_has_permission
 
 
 def _is_not_empty(s: set) -> bool:
@@ -56,12 +59,12 @@ class DigitalInsuranceCardView(FhirDataView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ApplicationActivePermission,
-        ResourcePermission,
-        SearchCrosswalkPermission,
-        DataAccessGrantPermission,
-        TokenHasProtectedCapability,
-        HasDigitalInsuranceCardScope,
+        noisy_has_permission(ApplicationActivePermission),
+        noisy_has_permission(ResourcePermission),
+        noisy_has_permission(SearchCrosswalkPermission),
+        noisy_has_permission(DataAccessGrantPermission),
+        # noisy_has_permission(TokenHasProtectedCapability),
+        noisy_has_permission(HasDigitalInsuranceCardScope),
     ]
 
     # FIXME: Are these required here? Or, can I put them in the permission class?
@@ -103,11 +106,13 @@ class DigitalInsuranceCardView(FhirDataView):
         # if required_scopes is None:
         #     return False
         # return request.user.is_authenticated and hasattr(request.user, 'crosswalk')
+        print("HAS_PERMISSION IN DIGITALINSURANCECARD")
         return True
 
     def build_parameters(self, request):
+        print("BUILD_PARAMETERS IN DIGITALINSURANCECARD")
         return {
-            '_format': 'application/json'
+            '_format': 'application/fhir+json'
         }
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
