@@ -7,7 +7,7 @@ from time import strftime
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -154,7 +154,11 @@ class AuthorizationView(DotAuthorizationView):
         version = get_api_version_number_from_url(path_info)
         # If it is not version 3, we don't need to check anything, just return
         if version == Versions.V3:
-            self.validate_v3_authorization_request()
+            try:
+                self.validate_v3_authorization_request()
+            except AccessDeniedTokenCustomError as e:
+                return HttpResponseForbidden(e)
+
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
@@ -258,7 +262,7 @@ class AuthorizationView(DotAuthorizationView):
                 )
         except ObjectDoesNotExist:
             raise AccessDeniedTokenCustomError(
-                description='You do not have permission to perform this action.'
+                description='Unable to verify permission.'
             )
 
     def form_valid(self, form):
@@ -466,7 +470,7 @@ class TokenView(DotTokenView):
                 )
         except ObjectDoesNotExist:
             return JsonResponse(
-                {'status_code': 403, 'message': 'You do not have permission to perform this action.'},
+                {'status_code': 403, 'message': 'Unable to verify permission.'},
                 status=403,
             )
 
