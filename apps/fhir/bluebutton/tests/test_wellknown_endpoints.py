@@ -3,10 +3,9 @@ from apps.test import BaseApiTest
 from collections import namedtuple as NT
 from django.conf import settings
 from django.test.client import Client
-from httmock import all_requests, HTTMock
 from oauth2_provider.models import get_access_token_model
 from unittest import skipIf
-from waffle.testutils import override_switch
+from waffle.testutils import override_switch, override_flag
 
 # Introduced in bb2-4184
 # Rudimentary tests to make sure endpoints exist and are returning
@@ -52,29 +51,30 @@ class BlueButtonTestEndpoints(BaseApiTest):
 
     @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     @override_switch('v3_endpoints', active=True)
+    @override_flag('v3_early_adopter', active=False)
+    def test_userinfo_returns_403(self):
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.save()
+
+        response = self.client.get(
+            f'{BASEURL}/v3/connect/userinfo',
+            Authorization='Bearer %s' % (first_access_token))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['detail'], settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format('John_Smith_test'))
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @override_switch('v3_endpoints', active=True)
+    @override_flag('v3_early_adopter', active=True)
     def test_userinfo_returns_200(self):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 
-        @all_requests
-        def catchall(url, req):
-            return {'status_code': 200,
-                    'content': {
-                        'sub': FHIR_ID_V2,
-                        'name': ' ',
-                        'given_name': '',
-                        'family_name': '',
-                        'email': '',
-                        'iat': '2025-10-14T18:01:01.660Z',
-                        'patient': FHIR_ID_V2
-                    }}
-
-        with HTTMock(catchall):
-            response = self.client.get(
-                f'{BASEURL}/v3/connect/userinfo',
-                Authorization='Bearer %s' % (first_access_token))
-            self.assertEqual(response.status_code, 200)
+        response = self.client.get(
+            f'{BASEURL}/v3/connect/userinfo',
+            Authorization='Bearer %s' % (first_access_token))
+        self.assertEqual(response.status_code, 200)
 
     # This makes sure URLs return 200s.
     @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")

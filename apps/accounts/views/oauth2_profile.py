@@ -10,6 +10,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 from apps.versions import Versions
+from apps.wellknown.permissions import V3EarlyAdopterWellKnownPermission
 
 
 def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
@@ -41,7 +42,8 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
 @authentication_classes([OAuth2Authentication])
 @permission_classes([ApplicationActivePermission,
                      TokenHasProtectedCapability,
-                     DataAccessGrantPermission])
+                     DataAccessGrantPermission,
+                     V3EarlyAdopterWellKnownPermission])
 @protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.
