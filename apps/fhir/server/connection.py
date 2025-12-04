@@ -1,14 +1,7 @@
 from apps.fhir.bluebutton.utils import (
-    FhirServerAuth,
     generate_info_headers,
     set_default_header,
 )
-
-
-# return certs
-def certs(crosswalk=None):
-    auth_state = FhirServerAuth(crosswalk)
-    return (auth_state.get('cert_file', None), auth_state.get('key_file', None))
 
 
 def headers(request, url=None):

@@ -8,17 +8,14 @@ build-local:
     	--platform "linux/amd64" \
     	-t bb-local:latest \
     	-f Dockerfile.local ..
-# TODO: Is this necessary in a local build? Probably not.
-#	@echo "building selenium ecr image"
-# 	cd ../dev-local ; docker build \
-#     	--platform "linux/amd64" \
-#     	-t selenium-ecr:latest \
-#     	-f Dockerfile.selenium-ecr ..
 	cd ../dev-local ; docker build \
     	--platform "linux/amd64" \
     	-t selenium-local:latest \
     	-f Dockerfile.selenium-local ..
+
 run-local:
 	@echo "Configuring for ${ENV}" ; \
 		./run-appropriate-stack.bash
-	
+
+exec-web:
+	docker exec -it `docker ps -aqf "name=.*web.*"` /bin/bash

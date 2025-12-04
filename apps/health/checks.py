@@ -5,8 +5,8 @@ import subprocess
 from django.db import connection
 from waffle import switch_is_active
 
-from apps.fhir.bluebutton.utils import get_resourcerouter
-from apps.fhir.server import connection as backend_connection
+from apps.fhir.server.settings import fhir_settings
+from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 import apps.logging.request_logger as bb2logging
@@ -29,11 +29,12 @@ def splunk_services(v2=False):
 
 
 def bfd_fhir_dataserver(v2=False):
-    resource_router = get_resourcerouter()
-    target_url = "{}{}".format(resource_router.fhir_url, "/v2/fhir/metadata" if v2 else "/v1/fhir/metadata")
+    fhir_server_auth = FhirServerAuth()
+
+    target_url = "{}{}".format(fhir_settings.fhir_url, "/v2/fhir/metadata" if v2 else "/v1/fhir/metadata")
     r = requests.get(target_url,
                      params={"_format": "json"},
-                     cert=backend_connection.certs(),
+                     cert=(fhir_server_auth['cert_file'], fhir_server_auth['key_file']),
                      verify=False,
                      timeout=5)
     try:

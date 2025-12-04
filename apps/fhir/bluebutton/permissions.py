@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
-from .constants import ALLOWED_RESOURCE_TYPES
+from apps.fhir.bluebutton.constants import ALLOWED_RESOURCE_TYPES
 from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging
@@ -72,7 +72,7 @@ class ReadCrosswalkPermission(HasCrosswalk):
 
 
 class SearchCrosswalkPermission(HasCrosswalk):
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view, obj) -> bool:  # type: ignore
         if view.version in Versions.supported_versions():
             patient_id = request.crosswalk.fhir_id(view.version)
         else:
@@ -106,3 +106,8 @@ class ApplicationActivePermission(permissions.BasePermission):
             )
 
         return True
+
+
+class AlwaysDeny(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return False

@@ -74,6 +74,12 @@ class BaseApiTest(TestCase):
         """
         fhir_id_v2 = fhir_id_v2 or settings.DEFAULT_SAMPLE_FHIR_ID_V2
         fhir_id_v3 = fhir_id_v3 or settings.DEFAULT_SAMPLE_FHIR_ID_V3
+
+        # Some of our tests might create users more than once in the DB.
+        # Just return them if they exist.
+        if User.objects.filter(username=username).exists():
+            return User.objects.get(username=username)
+
         user = User.objects.create_user(username, password=password, **extra_fields)
         self._create_crosswalk(
             user=user,
@@ -490,6 +496,7 @@ class BaseApiTest(TestCase):
         self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None
     ):
         passwd = "123456"
+
         user = self._create_user(
             first_name,
             passwd,
@@ -499,7 +506,7 @@ class BaseApiTest(TestCase):
             fhir_id_v3=fhir_id_v3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi=mbi if mbi is not None else self.test_mbi,
-            email="%s@%s.net" % (first_name, last_name),
+            email="%s@%s.notanagency.gov" % (first_name, last_name),
         )
 
         # create a oauth2 application and add capabilities

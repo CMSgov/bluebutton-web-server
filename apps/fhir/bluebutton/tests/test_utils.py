@@ -7,6 +7,8 @@ from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
+from apps.fhir.server.settings import fhir_settings
+
 
 from apps.fhir.bluebutton.utils import (
     notNone,
@@ -16,7 +18,6 @@ from apps.fhir.bluebutton.utils import (
     prepend_q,
     dt_patient_reference,
     crosswalk_patient_id,
-    get_resourcerouter,
     build_oauth_resource,
     valid_patient_read_or_search_call,
 )
@@ -123,13 +124,12 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
         """ Test 1: pass nothing"""
 
-        resource_router = get_resourcerouter()
         expected = {}
-        expected['client_auth'] = resource_router.client_auth
+        expected['client_auth'] = fhir_settings.client_auth
         expected['cert_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             resource_router.cert_file)
+                                             fhir_settings.cert_file)
         expected['key_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                            resource_router.key_file)
+                                            fhir_settings.key_file)
 
         response = FhirServerAuth()
 
