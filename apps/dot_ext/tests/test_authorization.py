@@ -8,7 +8,6 @@ from dateutil.relativedelta import relativedelta
 # from oauth2_provider.compat import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
-from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 from django.urls import reverse
 from django.test import Client
@@ -1122,5 +1121,5 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # Create an instance of the view
         view_instance = TokenView()
 
-        with self.assertRaises(PermissionDenied):
+        with self.assertRaises(AccessDeniedTokenCustomError):
             view_instance.validate_v3_token_call(request)

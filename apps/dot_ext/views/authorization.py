@@ -482,9 +482,10 @@ class TokenView(DotTokenView):
         version = get_api_version_number_from_url(path_info)
         url_query = parse_qs(request._body.decode('utf-8'))
         grant_type = url_query.get('grant_type', [None])
-        # If it is not version 3, we don't need to check anything, just return
-        # We only want to execute this on refresh_token grant types, not authorization_code
         try:
+            # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
+            # just continue with standard validation.
+            # Also, we only want to execute this on refresh_token grant types, not authorization_code
             if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
                 self.validate_v3_token_call(request)
             self.validate_token_endpoint_request_body(request)
