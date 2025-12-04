@@ -18,13 +18,13 @@ def migrate_fhir_id_to_v2(apps=None, schema_editor=None) -> None:
 
     apps_mod = apps if apps is not None else global_apps
     Crosswalk = apps_mod.get_model('bluebutton', 'Crosswalk')
-    for crosswalk in Crosswalk.objects.all():
+    for crosswalk in Crosswalk.objects.iterator(chunk_size=1000):
         if getattr(crosswalk, '_fhir_id', None):
             crosswalk.fhir_id_v2 = getattr(crosswalk, '_fhir_id') # type: ignore[attr-defined]
             crosswalk.save()
 
     ArchivedCrosswalk = apps_mod.get_model('bluebutton', 'ArchivedCrosswalk')
-    for archived in ArchivedCrosswalk.objects.all():
+    for archived in ArchivedCrosswalk.objects.iterator(chunk_size=1000):
         if getattr(archived, '_fhir_id', None):
             archived.fhir_id_v2 = getattr(archived, '_fhir_id') # type: ignore[attr-defined]
             archived.save()
@@ -35,13 +35,13 @@ def reverse_migrate_v2_to_fhir_id(apps=None, schema_editor=None) -> None:
 
     apps_mod = apps if apps is not None else global_apps
     Crosswalk = apps_mod.get_model('bluebutton', 'Crosswalk')
-    for crosswalk in Crosswalk.objects.all():
+    for crosswalk in Crosswalk.objects.iterator(chunk_size=1000):
         if getattr(crosswalk, 'fhir_id_v2', None):
             crosswalk._fhir_id = getattr(crosswalk, 'fhir_id_v2') # type: ignore[attr-defined]
             crosswalk.save()
 
     ArchivedCrosswalk = apps_mod.get_model('bluebutton', 'ArchivedCrosswalk')
-    for archived in ArchivedCrosswalk.objects.all():
+    for archived in ArchivedCrosswalk.objects.iterator(chunk_size=1000):
         if getattr(archived, 'fhir_id_v2', None):
             archived._fhir_id = getattr(archived, 'fhir_id_v2') # type: ignore[attr-defined]
             archived.save()
