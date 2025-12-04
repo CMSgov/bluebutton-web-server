@@ -92,7 +92,6 @@ class AuthorizationView(DotAuthorizationView):
     # this needs to be here for urls.py as_view(version) calls, but don't use it
     version = 0
     # Variable to help reduce the amount of times validate_v3_authorization_request is called
-    validate_v3_call = True
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
@@ -154,7 +153,7 @@ class AuthorizationView(DotAuthorizationView):
         path_info = self.request.__dict__.get('path_info')
         version = get_api_version_number_from_url(path_info)
         # If it is not version 3, we don't need to check anything, just return
-        if version == Versions.V3 and self.validate_v3_call:
+        if version == Versions.V3:
             self.validate_v3_authorization_request()
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
@@ -252,17 +251,14 @@ class AuthorizationView(DotAuthorizationView):
             if flag.id is None or flag.is_active_for_user(application_user):
                 # Update the class variable to ensure subsequent calls to dispatch don't call this function
                 # more times than is needed
-                self.validate_v3_call = False
                 return
             else:
                 raise AccessDeniedTokenCustomError(
                     description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            # 4250-TODO Do we need this?
-            return JsonResponse(
-                {'status_code': 500, 'message': 'Error retrieving data'},
-                status=500,
+            raise AccessDeniedTokenCustomError(
+                description='You do not have permission to perform this action.'
             )
 
     def form_valid(self, form):
@@ -469,10 +465,9 @@ class TokenView(DotTokenView):
                     settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            # 4250-TODO Do we need this?
             return JsonResponse(
-                {'status_code': 500, 'message': 'Error retrieving data'},
-                status=500,
+                {'status_code': 403, 'message': 'You do not have permission to perform this action.'},
+                status=403,
             )
 
     @method_decorator(sensitive_post_parameters("password"))
