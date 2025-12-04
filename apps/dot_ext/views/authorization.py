@@ -7,10 +7,10 @@ from time import strftime
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
@@ -157,7 +157,10 @@ class AuthorizationView(DotAuthorizationView):
             try:
                 self.validate_v3_authorization_request()
             except AccessDeniedTokenCustomError as e:
-                return HttpResponseForbidden(e)
+                return JsonResponse(
+                    {'status_code': 403, 'message': str(e)},
+                    status=403,
+                )
 
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
@@ -465,13 +468,12 @@ class TokenView(DotTokenView):
             if flag.id is None or flag.is_active_for_user(application_user):
                 return
             else:
-                raise PermissionDenied(
-                    settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                raise AccessDeniedTokenCustomError(
+                    description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            return JsonResponse(
-                {'status_code': 403, 'message': 'Unable to verify permission.'},
-                status=403,
+            raise AccessDeniedTokenCustomError(
+                description='Unable to verify permission.'
             )
 
     @method_decorator(sensitive_post_parameters("password"))
@@ -486,12 +488,9 @@ class TokenView(DotTokenView):
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
-        except PermissionDenied:
-            log.exception('Permission denied during token endpoint processing.')
-            # This error will not match other errors thrown by this waffle_flag as Github raised
-            # a security concern about it, but only here.
+        except AccessDeniedTokenCustomError as e:
             return JsonResponse(
-                {'status_code': 403, 'message': 'You do not have permission to perform this action.'},
+                {'status_code': 403, 'message': str(e)},
                 status=403,
             )
 
