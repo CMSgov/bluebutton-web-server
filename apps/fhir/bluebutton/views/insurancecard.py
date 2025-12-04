@@ -5,24 +5,21 @@ from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission,
 from apps.authorization.permissions import DataAccessGrantPermission
 # FIXME: removed for local testing
 # from apps.capabilities.permissions import TokenHasProtectedCapability
-from django.http import JsonResponse
+# from django.http import JsonResponse
+from apps.fhir.bluebutton.models import Crosswalk
 
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
 
 from apps.versions import noisy_has_permission
 
 
-def _is_not_empty(s: set) -> bool:
-    if len(s) > 0:
-        return True
-    else:
-        return False
-
-
 class HasDigitalInsuranceCardScope(permissions.BasePermission):
 
     required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
     required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
+
+    def _is_not_empty(s: set) -> bool:
+        return len(s) > 0
 
     def has_permission(self, request, view) -> bool:  # type: ignore
         print("HasDigitalInsuranceCardScope has_permission")
@@ -50,8 +47,8 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
         print("PS", patient_set)
         print("TS", token_set)
 
-        return (_is_not_empty(coverage_set.intersection(token_set))
-                and _is_not_empty(patient_set.intersection(token_set)))
+        return (HasDigitalInsuranceCardScope._is_not_empty(coverage_set.intersection(token_set))
+                and HasDigitalInsuranceCardScope._is_not_empty(patient_set.intersection(token_set)))
 
 
 class DigitalInsuranceCardView(FhirDataView):
@@ -83,8 +80,8 @@ class DigitalInsuranceCardView(FhirDataView):
         print("GET OF INSURANCE CARD")
         print("request: ", request.__dict__)
         print("self.resource_type: ", self.resource_type)
-        # return super().get(request, self.resource_type, *args, **kwargs)
-        return JsonResponse(status=200, data={"ok": "go"})
+        return super().get(request, self.resource_type, *args, **kwargs)
+        # return JsonResponse(status=200, data={"consternation": "vorciferous"})
 
     # How do the has_permission herre and the has_permission in the permission classes
     # play together? If they pass, can this fail? Visa-versa?
@@ -116,13 +113,14 @@ class DigitalInsuranceCardView(FhirDataView):
         }
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
-        print("BUILD_URL IN DIGITALINSURANCECARD")
         if fhir_settings.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
             return f"{fhir_settings.fhir_url}{resource_type}/"
         else:
+            # TODO - is this preferred (explicit), or should we keep using the implicit model APIS that Django creates?
+            fhir_id = Crosswalk.objects.get(user=self.request.user).fhir_id(self.version)
             if self.version == 3 and getattr(fhir_settings, 'fhir_url_v3', None):
                 fhir_url = fhir_settings.fhir_url_v3
             else:
                 fhir_url = fhir_settings.fhir_url
-            return f"{fhir_url}/v{self.version}/fhir/Patient/{resource_id}/$generate-insurance-card"
+            return f"{fhir_url}/v{self.version}/fhir/Patient/{fhir_id}/$generate-insurance-card"
