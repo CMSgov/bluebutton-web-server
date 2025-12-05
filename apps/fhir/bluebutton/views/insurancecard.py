@@ -3,9 +3,6 @@ from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission,
                                               ResourcePermission,
                                               ApplicationActivePermission)
 from apps.authorization.permissions import DataAccessGrantPermission
-# FIXME: removed for local testing
-# from apps.capabilities.permissions import TokenHasProtectedCapability
-# from django.http import JsonResponse
 from apps.fhir.bluebutton.models import Crosswalk
 
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
@@ -51,8 +48,11 @@ class DigitalInsuranceCardView(FhirDataView):
         ResourcePermission,
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
-        # TODO: Still need to fix this
-        # TokenHasProtectedCapability,
+        # 20251205: We are bypassing ProtectedCapabilities at this time because
+        # the existing capability model has no notion of multiple capabilities for a single
+        # endpoint. In the case of C4DIC, the permission check HasDigitalInsuranceCardScope
+        # handles the set checks that are required for this particular API call.
+        # TokenHasProtectedCapability
         HasDigitalInsuranceCardScope,
     ]
 
