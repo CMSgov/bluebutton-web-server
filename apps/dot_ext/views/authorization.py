@@ -427,7 +427,9 @@ class TokenView(DotTokenView):
             access_token = body.get("access_token")
 
             dag_expiry = ""
+            print(f'body before adding extra fields: {body}')
             if access_token is not None:
+                print(f'Access token issued: {access_token}')
                 token = get_access_token_model().objects.get(
                     token=access_token)
                 app_authorized.send(
@@ -460,11 +462,19 @@ class TokenView(DotTokenView):
                 try:
                     print(f'token.user: {token.user}')
                     crosswalk = Crosswalk.objects.get(user=token.user)
-                    print(f'Found crosswalk for user: {crosswalk}')
+                    print(f'Found crosswalk for user: {crosswalk.user_mbi}')
                     body['user_mbi'] = crosswalk.user_mbi
-                    body['user_id'] = crosswalk.user_id
+                    # Use the beneficiary username here (not the numeric PK)
+                    # because downstream functions expect a username string.
+                    body['user_id'] = crosswalk.user.username
+                    print(f'the user_id being set in token response body: {body["user_id"]}')
                     body['hicn_hash'] = crosswalk.user_hicn_hash
-                    get_and_update_from_refresh(crosswalk.user_mbi, crosswalk.user_id, crosswalk.user_hicn_hash, request)
+                    get_and_update_from_refresh(
+                        crosswalk.user_mbi,
+                        crosswalk.user.username,
+                        crosswalk.user_hicn_hash,
+                        request,
+                    )
                 except Crosswalk.DoesNotExist:
                     crosswalk = None
                 body['access_grant_expiration'] = dag_expiry

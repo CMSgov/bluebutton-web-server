@@ -58,36 +58,51 @@ class EndpointUrl:
 
 class ResponseErrors:
     def MissingTokenError(self, msg):
-        return JsonResponse({
-            'error': f'Failed to get token from {msg}',
-            'code': 'MissingTokenError',
-            'help': 'Try authorizing again'},
-            500)
+        return JsonResponse(
+            {
+                'error': f'Failed to get token from {msg}',
+                'code': 'MissingTokenError',
+                'help': 'Try authorizing again',
+            },
+            status=500,
+        )
 
     def InvalidClient(self, msg):
-        return JsonResponse({
-            'error': f'Failed to get token from {msg}',
-            'code': 'InvalidClient',
-            'help': 'Try authorizing again'},
-            500)
+        return JsonResponse(
+            {
+                'error': f'Failed to get token from {msg}',
+                'code': 'InvalidClient',
+                'help': 'Try authorizing again',
+            },
+            status=500,
+        )
 
     def MissingPatientError(self):
-        return JsonResponse({
-            'error': 'No patient found in token; only synthetic benficiares can be used.',
-            'code': 'MissingPatientError',
-            'help': 'Try authorizing again'},
-            500)
+        return JsonResponse(
+            {
+                'error': 'No patient found in token; only synthetic benficiares can be used.',
+                'code': 'MissingPatientError',
+                'help': 'Try authorizing again',
+            },
+            status=500,
+        )
 
     def NonSyntheticTokenError(self, msg):
-        return JsonResponse({
-            'error': f'Failed token is for a non-synthetic patient_id = {msg}',
-            'code': 'NonSyntheticTokenError',
-            'help': 'Try authorizing again.'
-        }, 403)
+        return JsonResponse(
+            {
+                'error': f'Failed token is for a non-synthetic patient_id = {msg}',
+                'code': 'NonSyntheticTokenError',
+                'help': 'Try authorizing again.',
+            },
+            status=403,
+        )
 
     def MissingCallbackVersionContext(self, msg):
-        return JsonResponse({
-            'error': 'Missing API version in callback session',
-            'code': 'MissingCallbackVersion',
-            'help': 'Try authorizing again'
-        }, 500)
+        return JsonResponse(
+            {
+                'error': 'Missing API version in callback session',
+                'code': 'MissingCallbackVersion',
+                'help': 'Try authorizing again',
+            },
+            status=500,
+        )
