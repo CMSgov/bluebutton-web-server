@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from django.apps import apps as global_apps
 from django.core.management.base import BaseCommand
-from django.db.migrations.recorder import MigrationRecorder
-from django.db.utils import OperationalError
 
 
 def migrate_fhir_id_to_v2(apps=None, schema_editor=None) -> None:
@@ -18,13 +16,13 @@ def migrate_fhir_id_to_v2(apps=None, schema_editor=None) -> None:
 
     apps_mod = apps if apps is not None else global_apps
     Crosswalk = apps_mod.get_model('bluebutton', 'Crosswalk')
-    for crosswalk in Crosswalk.objects.all():
+    for crosswalk in Crosswalk.objects.iterator(chunk_size=1000):
         if getattr(crosswalk, '_fhir_id', None):
             crosswalk.fhir_id_v2 = getattr(crosswalk, '_fhir_id') # type: ignore[attr-defined]
             crosswalk.save()
 
     ArchivedCrosswalk = apps_mod.get_model('bluebutton', 'ArchivedCrosswalk')
-    for archived in ArchivedCrosswalk.objects.all():
+    for archived in ArchivedCrosswalk.objects.iterator(chunk_size=1000):
         if getattr(archived, '_fhir_id', None):
             archived.fhir_id_v2 = getattr(archived, '_fhir_id') # type: ignore[attr-defined]
             archived.save()
@@ -35,13 +33,13 @@ def reverse_migrate_v2_to_fhir_id(apps=None, schema_editor=None) -> None:
 
     apps_mod = apps if apps is not None else global_apps
     Crosswalk = apps_mod.get_model('bluebutton', 'Crosswalk')
-    for crosswalk in Crosswalk.objects.all():
+    for crosswalk in Crosswalk.objects.iterator(chunk_size=1000):
         if getattr(crosswalk, 'fhir_id_v2', None):
             crosswalk._fhir_id = getattr(crosswalk, 'fhir_id_v2') # type: ignore[attr-defined]
             crosswalk.save()
 
     ArchivedCrosswalk = apps_mod.get_model('bluebutton', 'ArchivedCrosswalk')
-    for archived in ArchivedCrosswalk.objects.all():
+    for archived in ArchivedCrosswalk.objects.iterator(chunk_size=1000):
         if getattr(archived, 'fhir_id_v2', None):
             archived._fhir_id = getattr(archived, 'fhir_id_v2') # type: ignore[attr-defined]
             archived.save()
@@ -60,12 +58,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Prevent running if migration 0010 is applied or 0080 is not applied
-        recorder = MigrationRecorder(connection=None)
-        if recorder.Migration.objects.filter(app='bluebutton', name__startswith='0010').exists() or not recorder.Migration.objects.filter(app='bluebutton', name__startswith='0008').exists():
-            raise RuntimeError(
-                'Cannot run migrate_fhir_id_to_v2: bluebutton-0010 is applied OR bluebutton-0008 is not applied.'
-            )
         
         if options.get('reverse'):
             print('Running reverse_migrate_v2_to_fhir_id...')
