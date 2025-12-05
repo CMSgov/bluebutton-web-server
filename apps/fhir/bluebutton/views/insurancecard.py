@@ -56,10 +56,6 @@ class DigitalInsuranceCardView(FhirDataView):
         HasDigitalInsuranceCardScope,
     ]
 
-    # FIXME: Are these required here? Or, can I put them in the permission class?
-    # required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
-    # required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
-
     # TODO/FIXME: What are the version=1? doing? Check/look into.
     def __init__(self, version=1):
         super().__init__(version)
