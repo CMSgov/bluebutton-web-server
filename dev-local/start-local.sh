@@ -44,36 +44,26 @@ else
     echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
 fi
 
-if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ]
+if [ "${TEST}" ];
 then
-    if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]
+    echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach..."
+    python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client runtests.py ${TEST}
+    exit
+fi
+
+if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ];
+then
+    if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ];
     then
-        if [ "${BB2_SERVER_STD2FILE}" = "YES" ]
-        then
-            echo "Start bluebutton server with remote debugging and wait attach..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1
-        else
-            echo "Start bluebutton server with remote debugging and wait attach..."
-            # NOTE: The "--noreload" option can be added below to disable if needed
-            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
-        fi
+        echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach..."
+        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
     else
-        if [ "${BB2_SERVER_STD2FILE}" = "YES" ]
-        then
-            echo "Start bluebutton server with remote debugging..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1
-        else
-            echo "Start bluebutton server with remote debugging..."
-            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000
-        fi
+        echo "🐛 Start bluebutton server with debugging, no waiting"
+        # NOTE: The "--noreload" option can be added below to disable if needed
+        python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 ${TEST}
     fi
 else
-    if [ "${BB2_SERVER_STD2FILE}" = "YES" ]
-    then
-        echo "Start bluebutton server ..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-        python3 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1
-    else
-        echo "Start bluebutton server ..."
+        echo "🔵 Start bluebutton server"
+        # NOTE: The "--noreload" option can be added below to disable if needed
         python3 manage.py runserver 0.0.0.0:8000
-    fi
 fi

@@ -2,19 +2,6 @@
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.
 
-def noisy_has_permission(original_class):
-    orig_has_perm = original_class.has_permission
-
-    def has_permission(self, request, view):
-        class_obj = self.__class__
-        class_name = class_obj.__name__
-        print(f" --> has_permission: {class_name} <--")
-        return orig_has_perm(self, request, view)
-
-    original_class.has_permission = has_permission
-    return original_class
-
-
 class VersionNotMatched(Exception):
     """
     A custom exception to be thrown when we do not match a version.

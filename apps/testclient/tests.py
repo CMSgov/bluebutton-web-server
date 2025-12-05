@@ -10,6 +10,7 @@ from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
 from django.http import HttpRequest
+from waffle.testutils import override_switch
 
 import os
 
@@ -129,15 +130,21 @@ class BlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         jr = response.json()
-        self.assertEqual(jr["patient"], self.patient)
+        print()
+        print(jr)
+        if version in [Versions.V1, Versions.V2]:
+            # FIXME: Is it true that V3 UserInfo does not have a patient ID
+            # that comes back under the key 'patient'?
+            self.assertEqual(jr["patient"], self.patient)
         self.assertEqual(jr["sub"], self.username)
+        self.assertFalse(True)
 
     def test_get_userinfo_v2(self):
         self._test_get_userinfo(Versions.V2)
 
-    # TODO BB-4208: Introduce v3 tests when ready
-    # def test_get_userinfo_v3(self):
-    #     self._test_get_userinfo(Versions.V3)
+    @override_switch('v3_endpoints', active=True)
+    def test_get_userinfo_v3(self):
+        self._test_get_userinfo(Versions.V3)
 
 
 @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
@@ -370,6 +377,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["coverage_uri"],
             self.patient,
         )
+
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Coverage")
@@ -377,6 +385,10 @@ class BlueButtonClientApiFhirTest(TestCase):
 
     def test_get_coverage_v2(self):
         self._test_get_coverage(Versions.V2)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_get_coverage_v3(self):
+        self._test_get_coverage(Versions.V3)
 
     # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_coverage_v3(self):
@@ -391,6 +403,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["coverage_uri"],
             self.another_patient,
         )
+
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 403)
 
@@ -400,6 +413,22 @@ class BlueButtonClientApiFhirTest(TestCase):
     # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_coverage_negative_v3(self):
     #     self._test_get_coverage_negative(Versions.V3)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_get_digital_insurance_card(self):
+        """
+        Test DigitalInsuranceCard for CARIN C4DIC data from BFD
+        """
+        self.versionedSetUp(Versions.V3)
+        uri = "%s" % (
+            self.testclient_setup["digital_insurance_card_uri"],
+        )
+        print()
+        print(uri)
+        response = self.client.get(uri)
+        print(response.__dict__)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bundle")
 
 
 @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")

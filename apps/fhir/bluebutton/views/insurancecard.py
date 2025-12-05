@@ -10,8 +10,6 @@ from apps.fhir.bluebutton.models import Crosswalk
 
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
 
-from apps.versions import noisy_has_permission
-
 
 class HasDigitalInsuranceCardScope(permissions.BasePermission):
 
@@ -22,8 +20,6 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
         return len(s) > 0
 
     def has_permission(self, request, view) -> bool:  # type: ignore
-        print("HasDigitalInsuranceCardScope has_permission")
-
         # Is this an authorized request? If not, exit.
         if not hasattr(request, 'auth'):
             return False
@@ -42,11 +38,6 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
         patient_set = set(HasDigitalInsuranceCardScope.required_patient_read_scopes)
         token_set = set(token_scopes)
 
-        print()
-        print("CS", coverage_set)
-        print("PS", patient_set)
-        print("TS", token_set)
-
         return (HasDigitalInsuranceCardScope._is_not_empty(coverage_set.intersection(token_set))
                 and HasDigitalInsuranceCardScope._is_not_empty(patient_set.intersection(token_set)))
 
@@ -56,12 +47,13 @@ class DigitalInsuranceCardView(FhirDataView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        noisy_has_permission(ApplicationActivePermission),
-        noisy_has_permission(ResourcePermission),
-        noisy_has_permission(SearchCrosswalkPermission),
-        noisy_has_permission(DataAccessGrantPermission),
-        # noisy_has_permission(TokenHasProtectedCapability),
-        noisy_has_permission(HasDigitalInsuranceCardScope),
+        ApplicationActivePermission,
+        ResourcePermission,
+        SearchCrosswalkPermission,
+        DataAccessGrantPermission,
+        # TODO: Still need to fix this
+        # TokenHasProtectedCapability,
+        HasDigitalInsuranceCardScope,
     ]
 
     # FIXME: Are these required here? Or, can I put them in the permission class?
@@ -77,37 +69,13 @@ class DigitalInsuranceCardView(FhirDataView):
         return super().initial(request, self.resource_type, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        print("GET OF INSURANCE CARD")
-        print("request: ", request.__dict__)
-        print("self.resource_type: ", self.resource_type)
         return super().get(request, self.resource_type, *args, **kwargs)
         # return JsonResponse(status=200, data={"consternation": "vorciferous"})
 
-    # How do the has_permission herre and the has_permission in the permission classes
-    # play together? If they pass, can this fail? Visa-versa?
-    # def has_permission(self, request, view) -> bool:  # type: ignore
-    #     required_scopes = getattr(view, 'required_scopes', None)
-    #     if required_scopes is None:
-    #         return True
-
-    #     if hasattr(request, 'auth') and request.auth is not None:
-    #         token_scopes = request.auth.scope
-    #         return any(scope in token_scopes for scope in required_scopes)
-    #     return False
-
-    def has_permission(self, request, view):
-        # TODO: Why is this not being called?
-        # A print statement where this comment is does not appear when unit tests are run.
-        # But, the permission classes run. Where/when does has_permission get called?
-        # required_scopes = getattr(view, 'required_scopes', None)
-        # if required_scopes is None:
-        #     return False
-        # return request.user.is_authenticated and hasattr(request.user, 'crosswalk')
-        print("HAS_PERMISSION IN DIGITALINSURANCECARD")
-        return True
+    def get_full_path(self):
+        return f"/{DigitalInsuranceCardView.version}/fhir/DigitalInsuranceCard"
 
     def build_parameters(self, request):
-        print("BUILD_PARAMETERS IN DIGITALINSURANCECARD")
         return {
             '_format': 'application/fhir+json'
         }

@@ -70,7 +70,7 @@ class DigitalInsuranceCardViewSet(ResourceViewSet):
         return super().initial(request, self.resource_type, *args, **kwargs)
 
     def list(self, request, resource_id, *args, **kwargs):
-        return Response({"ok": "go"})
+        return Response({"ok": "go this is the viewset"})
 
     def build_url(self, fhir_settings, resource_type, resource_id=None, *args, **kwargs):
         if fhir_settings.fhir_url.endswith('v1/fhir/'):

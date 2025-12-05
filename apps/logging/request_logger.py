@@ -28,7 +28,6 @@ AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER = "audit.authflow.uuid.cleanup"
 AUDIT_CREDS_REQUEST_LOGGER = "audit.creds.request"
 AUDIT_APPLICATION_TYPE_CHANGE = "audit.application.type.change"
 PERFORMANCE_LOGGER = 'performance'
-DEBUG_GENERAL = "debug.general_logger"
 
 LOGGER_NAMES = [
     AUDIT_BASIC_LOGGER,

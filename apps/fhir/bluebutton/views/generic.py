@@ -124,7 +124,6 @@ class FhirDataView(APIView):
         return Response(out_data)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
-        print("FHIRDATAVIEW FETCH_DATA")
         target_url = self.build_url(fhir_settings,
                                     resource_type,
                                     *args, **kwargs)
