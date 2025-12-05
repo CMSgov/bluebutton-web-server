@@ -14,6 +14,8 @@ from django.test import Client
 from unittest.mock import patch, MagicMock
 from urllib.parse import parse_qs, urlencode, urlparse
 from waffle.testutils import override_switch
+# from apps.fhir.bluebutton.models import Crosswalk
+# from django.contrib.auth.models import User
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
@@ -238,6 +240,14 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
+        # user = User.objects.get(username='anna')
+        # crosswalk = Crosswalk.objects.get(user=user)
+        # print(f'what is in crosswalk initially: {crosswalk}')
+        # # Verify both fhir_id_v2 and fhir_id_v3 are populated
+        # self.assertIsNotNone(crosswalk.fhir_id_v2)
+        # self.assertIsNotNone(crosswalk.fhir_id_v3)
+        # self.assertTrue(len(crosswalk.fhir_id_v2) > 0)
+        # self.assertTrue(len(crosswalk.fhir_id_v3) > 0)
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
         # create an application and add capabilities
@@ -274,7 +284,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret_plain,
         }
         c = Client()
-        response = c.post('/v1/o/token/', data=token_request_data)
+        response = c.post('/v2/o/token/', data=token_request_data)
         self.assertEqual(response.status_code, 200)
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
@@ -289,6 +299,30 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(response.json()['access_token'], tkn)
+        # # Capture rotated refresh token (server may rotate refresh tokens)
+        # new_refresh = response.json().get('refresh_token')
+        # if new_refresh:
+        #     refresh_request_data['refresh_token'] = new_refresh
+        # user = User.objects.get(username='anna')
+        # crosswalk = Crosswalk.objects.get(user=user)
+        # print(f'what is in crosswalk {crosswalk}')
+        # # Verify both fhir_id_v2 and fhir_id_v3 are populated
+        # self.assertIsNotNone(crosswalk.fhir_id_v2)
+        # self.assertIsNotNone(crosswalk.fhir_id_v3)
+        # self.assertTrue(len(crosswalk.fhir_id_v2) > 0)
+        # self.assertTrue(len(crosswalk.fhir_id_v3) > 0)
+        # # Changing the fhir ids to test that they get updated on refresh
+        # crosswalk.fhir_id_v2 = 'old_fhir_id_v2'
+        # crosswalk.fhir_id_v3 = 'old_fhir_id_v3'
+        # crosswalk.save()
+        # response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
+        # print(f'Refresh response: {response.json()}')
+        # self.assertEqual(response.status_code, 200)
+        # self.assertNotEqual(response.json()['access_token'], tkn)
+        # crosswalk.refresh_from_db()
+        # # Verify both fhir_id_v2 and fhir_id_v3 are updated
+        # self.assertNotEqual(crosswalk.fhir_id_v2, 'old_fhir_id_v2')
+        # self.assertNotEqual(crosswalk.fhir_id_v3, 'old_fhir_id_v3')
 
     def test_refresh_with_expired_token(self):
         redirect_uri = 'http://localhost'

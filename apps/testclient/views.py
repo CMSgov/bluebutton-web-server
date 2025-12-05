@@ -201,7 +201,7 @@ def callback(request: HttpRequest):
             token_uri += reverse('oauth2_provider_v3:token-v3')
         case _:
             logger.error(f"Failed to get valid API version back from authorizing agent. Given: [{version}]")
-            return ResponseErrors.MissingCallbackVersionContext(version)
+            return ResponseErrors().MissingCallbackVersionContext(version)
 
     oas = _get_oauth2_session_with_redirect(request)
     try:
@@ -218,19 +218,19 @@ def callback(request: HttpRequest):
     except MissingTokenError:
         token_uri = request.session['token_uri']
         logger.error(f'MissingToken: failed to get token from {token_uri}')
-        return ResponseErrors.MissingTokenError(token_uri)
+        return ResponseErrors().MissingTokenError(token_uri)
     except InvalidClientIdError as err:
         token_uri = request.session['token_uri']
         logger.error(f'InvalidClient: failed to get token from {token_uri}')
         logger.error(str(err))
-        return ResponseErrors.InvalidClient(token_uri)
+        return ResponseErrors().InvalidClient(token_uri)
 
     # If we cannot find a patient id in the tokent, return an error.
     # If we find a non-synthetic id, return an error.
     # Otherwise, continue.
     patient_id = token.get('patient', None)
     if patient_id is None:
-        return ResponseErrors.MissingPatientError()
+        return ResponseErrors().MissingPatientError()
     elif not _is_synthetic_patient_id(patient_id):
         # If we made it here, lets make sure we have a synthetic patient ID.
         # If we do not, then we need to clear the token and send back an error to the client.
@@ -238,7 +238,7 @@ def callback(request: HttpRequest):
         logger.error(logmsg)
         if 'token' in request.session:
             del request.session['token']
-        return ResponseErrors.NonSyntheticTokenError(patient_id)
+        return ResponseErrors().NonSyntheticTokenError(patient_id)
 
     # We are guaranteed at this point that the patient_id is not None, and it is a synthetic user id.
     request.session['token'] = token

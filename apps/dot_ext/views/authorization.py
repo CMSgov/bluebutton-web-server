@@ -17,8 +17,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.exceptions import OAuthToolkitError
-from oauth2_provider.views.base import app_authorized
-from oauth2_provider.models import get_refresh_token_model, get_access_token_model
+from apps.fhir.bluebutton.models import Crosswalk
+from oauth2_provider.views.base import app_authorized, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -32,6 +32,7 @@ from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.mymedicare_cb.models import get_and_update_from_refresh
 import apps.logging.request_logger as bb2logging
 from apps.versions import Versions
 
@@ -505,7 +506,9 @@ class TokenView(DotTokenView):
             access_token = body.get("access_token")
 
             dag_expiry = ""
+            print(f'body before adding extra fields: {body}')
             if access_token is not None:
+                print(f'Access token issued: {access_token}')
                 token = get_access_token_model().objects.get(
                     token=access_token)
                 app_authorized.send(
@@ -528,6 +531,31 @@ class TokenView(DotTokenView):
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
 
+                # Get the crosswalk for the user from token.user like
+                # try:
+                    # crosswalk = Crosswalk.objects.get(user=token.user)
+                # except Crosswalk.DoesNotExist:
+                    # crosswalk = None
+                # This gets us the mbi and other info we need from the crosswalk
+                # Probably some kind of handling for if there is no mbi needs to happen here too
+                try:
+                    print(f'token.user: {token.user}')
+                    crosswalk = Crosswalk.objects.get(user=token.user)
+                    print(f'Found crosswalk for user: {crosswalk.user_mbi}')
+                    body['user_mbi'] = crosswalk.user_mbi
+                    # Use the beneficiary username here (not the numeric PK)
+                    # because downstream functions expect a username string.
+                    body['user_id'] = crosswalk.user.username
+                    print(f'the user_id being set in token response body: {body["user_id"]}')
+                    body['hicn_hash'] = crosswalk.user_hicn_hash
+                    get_and_update_from_refresh(
+                        crosswalk.user_mbi,
+                        crosswalk.user.username,
+                        crosswalk.user_hicn_hash,
+                        request,
+                    )
+                except Crosswalk.DoesNotExist:
+                    crosswalk = None
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
 

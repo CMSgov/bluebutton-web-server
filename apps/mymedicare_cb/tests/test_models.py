@@ -7,7 +7,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
-from ..models import create_beneficiary_record, get_and_update_user
+from ..models import create_beneficiary_record, get_and_update_user_from_initial_auth
 from unittest.mock import patch, Mock
 
 # Create the mock request
@@ -360,7 +360,7 @@ class BeneficiaryLoginTest(TestCase):
         slsx_client.mbi = slsx_mbi
         slsx_client.hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
 
-        user, crosswalk_type = get_and_update_user(slsx_client, mock_request)
+        user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
 
         user.refresh_from_db()
         crosswalk.refresh_from_db()
@@ -390,7 +390,7 @@ class BeneficiaryLoginTest(TestCase):
         slsx_client.mbi = slsx_mbi
         slsx_client.hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
 
-        user, crosswalk_type = get_and_update_user(slsx_client, mock_request)
+        user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
 
         user.refresh_from_db()
         crosswalk.refresh_from_db()

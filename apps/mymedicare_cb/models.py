@@ -11,6 +11,8 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
+from rest_framework.exceptions import NotFound
+from apps.dot_ext.utils import get_api_version_number_from_url
 
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
@@ -29,49 +31,31 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
+def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_client=None):
     """
-    Find or create the user associated
-    with the identity information from the ID provider.
-
-    Args:
-        slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below:
-            subject = ID provider's sub or username
-            mbi = MBI from SLSx
-            hicn_hash = Previously hashed hicn
-            first_name
-            last_name
-            email
-            request = request from caller to pass along for logging info.
-    Returns:
-        The user that was existing or newly created
-        crosswalk_type =  Type of crosswalk activity:
-            'R' = Returned existing crosswalk record
-            'C' = Created new crosswalk record
-    Raises:
-        KeyError: If an expected key is missing from user_info.
-        KeyError: If response from fhir server is malformed.
-        AssertionError: If a user is matched but not all identifiers match.
+    Base function to get and update user from either authorize or refresh flows.
     """
 
-    version = request.session['version']
+    try:
+        version = request.session['version']
+    except KeyError:
+        path_info = request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
-    # Match a patient identifier via the backend FHIR server
+    # Always attempt to get fresh FHIR ids from the backend for supported versions
+    # so that FHIR ids are refreshed on every token/refresh operation. If the
+    # backend reports a problem (UpstreamServerException) for the requested
+    # version, bubble that error. If the backend simply returns no match
+    # (NotFound), treat that as no FHIR id available and continue.
     if version == Versions.V3:
         hicn_hash = None
-    else:
-        hicn_hash = slsx_client.hicn_hash
 
     versioned_fhir_ids = {}
-    # Perform fhir_id lookup for all supported versions
-    # If the lookup for the requested version fails, raise the exception
-    # This is wrapped in the case that if the requested version fails, match_fhir_id
-    # will still bubble up UpstreamServerException
     for supported_version in Versions.latest_versions():
         try:
             fhir_id, hash_lookup_type = match_fhir_id(
-                mbi=slsx_client.mbi,
+                mbi=mbi,
                 hicn_hash=hicn_hash,
                 request=request,
                 version=supported_version,
@@ -80,29 +64,32 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         except UpstreamServerException as e:
             if supported_version == version:
                 raise e
+            # otherwise continue without raising; no fhir id for this version
+        except NotFound:
+            # No matching beneficiary in backend for this identifier/version
+            versioned_fhir_ids[supported_version] = None
 
     bfd_fhir_id_v2 = versioned_fhir_ids.get(Versions.V2, None)
     bfd_fhir_id_v3 = versioned_fhir_ids.get(Versions.V3, None)
 
     log_dict = {
-        'type': 'mymedicare_cb:get_and_update_user',
-        'subject': slsx_client.user_id,
+        'type': f'mymedicare_cb:get_and_update_user_{auth_type}',
+        'subject': user_id,
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
-        'hicn_hash': slsx_client.hicn_hash,
+        'hicn_hash': hicn_hash,
         'hash_lookup_type': hash_lookup_type,
         'crosswalk': {},
         'crosswalk_before': {},
     }
 
-    # Init for hicn crosswalk updates.
     hicn_updated = False
     try:
-        # Does an existing user and crosswalk exist for SLSx username?
-        user = User.objects.get(username=slsx_client.user_id)
+        # Does an existing user and crosswalk exist for this username?
+        user = User.objects.get(username=user_id)
 
         # Did the hicn change?
-        if user.crosswalk.user_hicn_hash != slsx_client.hicn_hash:
+        if user.crosswalk.user_hicn_hash != hicn_hash:
             hicn_updated = True
 
         update_fhir_id = False
@@ -116,8 +103,8 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
         if (
-            (user.crosswalk.user_mbi is None and slsx_client.mbi is not None)
-            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != slsx_client.mbi)
+            (user.crosswalk.user_mbi is None and mbi is not None)
+            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
             or (user.crosswalk.user_id_type != hash_lookup_type or hicn_updated)
             or update_fhir_id
         ):
@@ -140,8 +127,13 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
                 user.crosswalk.user_id_type = hash_lookup_type
-                user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
-                user.crosswalk.user_mbi = slsx_client.mbi
+                # Only update the HICN hash if we actually have a value.
+                # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
+                # so writing None into the non-nullable DB column would cause
+                # an integrity error. Only assign when non-None.
+                if hicn_hash is not None:
+                    user.crosswalk.user_hicn_hash = hicn_hash
+                user.crosswalk.user_mbi = mbi
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
@@ -161,17 +153,32 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
         })
         logger.info(log_dict)
 
+        print(f'Found existing user: {user.username}')
         return user, 'R'
     except User.DoesNotExist:
-        pass
+        # If we don't have an slsx_client, this is likely a refresh flow.
+        # Do NOT attempt to create a beneficiary record here — creation requires
+        # data from an SLSx client and is only valid during initial auth.
+        if slsx_client is None:
+            log_dict.update({
+                'status': 'FAIL',
+                'user_id': user_id,
+                'mesg': 'User not found on refresh; not creating new beneficiary record',
+            })
+            logger.info(log_dict)
+            return None, 'NF'
 
-    user = create_beneficiary_record(
-        slsx_client,
-        fhir_id_v2=bfd_fhir_id_v2,
-        fhir_id_v3=bfd_fhir_id_v3,
-        user_id_type=hash_lookup_type,
-        request=request
-    )
+        # This should only happen if no user exists which would mean this is an initial auth
+        # In this case, slsx_client would be provided
+        # Always pass the discovered fhir_id_v3 when available so the created crosswalk
+        # will populate `fhir_id_v3` even if the session/API version was v2.
+        user = create_beneficiary_record(
+            slsx_client,
+            fhir_id_v2=bfd_fhir_id_v2,
+            fhir_id_v3=bfd_fhir_id_v3,
+            user_id_type=hash_lookup_type,
+            request=request
+        )
 
     log_dict.update({
         'status': 'OK',
@@ -190,6 +197,27 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request):
     logger.info(log_dict)
 
     return user, 'C'
+
+
+def get_and_update_from_refresh(mbi, user_id, hicn_hash, request):
+    return _get_and_update_user(
+        mbi,
+        user_id,
+        hicn_hash,
+        request,
+        'refresh'
+    )
+
+
+def get_and_update_user_from_initial_auth(slsx_client: OAuth2ConfigSLSx, request):
+    return _get_and_update_user(
+        slsx_client.mbi,
+        slsx_client.user_id,
+        slsx_client.hicn_hash,
+        request,
+        'initial_auth',
+        slsx_client=slsx_client
+    )
 
 
 def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
