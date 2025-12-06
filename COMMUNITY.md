@@ -115,17 +115,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/loganbertram">
-                    <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
-                    <br />
-                    <sub><b>Logan Bertram</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/ajshred">
                     <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
                     <br />
                     <sub><b>Adrian Jones</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/loganbertram">
+                    <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
+                    <br />
+                    <sub><b>Logan Bertram</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -159,17 +159,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/bwang-icf">
-                    <img src="https://avatars.githubusercontent.com/u/178809349?v=4" width="100;" alt="bwang-icf"/>
-                    <br />
-                    <sub><b>bwang-icf</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/JamesDemeryNava">
                     <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
                     <br />
                     <sub><b>James Demery</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/bwang-icf">
+                    <img src="https://avatars.githubusercontent.com/u/178809349?v=4" width="100;" alt="bwang-icf"/>
+                    <br />
+                    <sub><b>bwang-icf</b></sub>
                 </a>
             </td>
             <td align="center">
