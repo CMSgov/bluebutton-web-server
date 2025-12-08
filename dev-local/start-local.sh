@@ -44,9 +44,9 @@ else
     echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
 fi
 
-if [ "${TEST}" ];
+if [ "${TEST}" != "" ];
 then
-    echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach..."
+    echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach for a single test..."
     python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client runtests.py ${TEST}
     exit
 fi
@@ -59,11 +59,9 @@ then
         python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
     else
         echo "🐛 Start bluebutton server with debugging, no waiting"
-        # NOTE: The "--noreload" option can be added below to disable if needed
         python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 ${TEST}
     fi
 else
         echo "🔵 Start bluebutton server"
-        # NOTE: The "--noreload" option can be added below to disable if needed
         python3 manage.py runserver 0.0.0.0:8000
 fi
