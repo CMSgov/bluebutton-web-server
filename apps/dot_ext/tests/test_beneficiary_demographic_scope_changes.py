@@ -313,19 +313,25 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(response.status_code, 302)
 
         # Verify token counts expected.
-        self.assertEqual(AccessToken.objects.count(), 0)
-        self.assertEqual(RefreshToken.objects.count(), 0)
-        self.assertEqual(ArchivedToken.objects.count(), 5)
+        self.assertEqual(AccessToken.objects.count(), 1)
+        self.assertEqual(RefreshToken.objects.count(), 1)
+        self.assertEqual(ArchivedToken.objects.count(), 4)
 
         # Verify grant counts expected.
-        self.assertEqual(DataAccessGrant.objects.count(), 0)
-        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 3)
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
         # Assert access to userinfo end point?
+        # after BB2-4270, this will now work as the DAG/tokens are now not deleted
+        # when the allow parameter is false
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_9.token)
         response = client.get("/v1/connect/userinfo")
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(content.get('detail', None), "Authentication credentials were not provided.")
+        self.assertEqual(response.status_code, 200)
+
+        # BB2-4270: Remove prior active tokens so tests below are not looking for multiple active tokens
+        # which is an impossible state
+        AccessToken.objects.filter(token=token_9).delete()
+        RefreshToken.objects.filter(token=refresh_token_9).delete()
 
         # ------ TEST #10: Beneficiary shares FULL and application REQUIRES. Then APPLICATION changes to NOT required ------
         payload['share_demographic_scopes'] = True
@@ -347,7 +353,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
 
         # Verify grant counts expected.
         self.assertEqual(DataAccessGrant.objects.count(), 1)
-        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 3)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
         # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_10.token)
@@ -369,7 +375,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
 
         # Verify grant counts expected.
         self.assertEqual(DataAccessGrant.objects.count(), 1)
-        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 4)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 3)
 
         # Perform partial authorization request, with out application getting an access token.
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
@@ -382,7 +388,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
 
         # Verify grant counts expected.
         self.assertEqual(DataAccessGrant.objects.count(), 1)
-        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 5)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 4)
 
         # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_10.token)

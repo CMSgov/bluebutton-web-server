@@ -318,8 +318,7 @@ class AuthorizationView(DotAuthorizationView):
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
-
-            if allow is False or not scopes:
+            if not scopes:
                 (data_access_grant_delete_cnt,
                  access_token_delete_cnt,
                  refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
