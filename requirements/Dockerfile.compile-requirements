@@ -2,25 +2,18 @@ FROM python:3.14-trixie
 
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+ENV PYTHON_VERSION=3.14
 
 # WARNING
 # This is installing the most recent version of Postgres tools.
 # We would rather install v16, to match the database, which matches Amazon.
 RUN apt-get update \
     && apt-get install -y \
-        curl \ 
         gettext \
-        gnupg \
-        ca-certificates \
-        postgresql-client
+        gnupg
 
-# Set the local user for development
-# and mount the codebase at /code
-# Set this as the current/active path.
-RUN useradd -m -s /bin/bash DEV
-USER DEV
-ADD .. /code
-WORKDIR /code
+ADD . /requirements
+WORKDIR /requirements
 
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
@@ -29,6 +22,5 @@ RUN pip install --upgrade \
     pip \
     pip-tools \
     setuptools
-RUN pip install -r requirements/requirements.dev.txt
-    # --find-links \
-    # ./vendor/
+RUN python -m pip install --upgrade pip
+CMD /requirements/generate.bash

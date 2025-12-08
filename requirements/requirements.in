@@ -1,52 +1,44 @@
-# base packages
-django == 4.2.26
+attrs
+beautifulsoup4 == 4.12.2
+boto3
+# botocore >= 1.42.4
+certifi
+configparser
+cryptography >= 44.0.1
+dj-database-url
+django == 4.2.27
+django-axes
 django-bootstrap-v5
 django-cors-headers
+django-filter
+django-getenv
 django-localflavor
+django-oauth-toolkit
+django-ses
 django-settings-export
+django-storages
+django-waffle
 djangorestframework
 djangorestframework-csv
-django-filter
-django-axes
-
-# support
-beautifulsoup4 == 4.12.2
-soupsieve == 2.4.1
-
-django-waffle
-django-storages
-django-getenv
-python-dotenv
-jsonschema
-importlib-resources
-pkgutil-resolve-name
-requests
-urllib3
-requests_oauthlib
-pytz
-configparser
-dj-database-url
-pyjwt
-newrelic
-psycopg2-binary
-sqlparse >= 0.5.0
-Pillow >= 10.3.0
-boto3
-voluptuous
-pyyaml
-py
-attrs
-pyrsistent
-typing_extensions
 importlib-metadata
-certifi
-
-# notifications
-django-ses
-
-# security and identity system
-oauthlib
-## python-openid
-django-oauth-toolkit
-cryptography >= 44.0.1
+importlib-resources
+jsonschema
 jwcrypto
+newrelic
+oauthlib
+Pillow >= 10.3.0
+pkgutil-resolve-name
+psycopg2-binary
+py
+pyjwt
+pyrsistent
+python-dotenv
+pytz
+pyyaml
+requests
+requests_oauthlib
+soupsieve >= 2.4.1
+sqlparse >= 0.5.4
+typing_extensions
+urllib3 >= 2.6.0
+voluptuous

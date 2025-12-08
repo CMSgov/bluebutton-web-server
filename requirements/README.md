@@ -1,3 +1,24 @@
+## vendoring rqeuirements (2025-12-08)
+
+```
+make build
+make generate
+```
+
+This will build a container in which we can run `pip-compile`, and then run `pip-compile` in that container.
+
+### why?
+
+We need to run `pip-compile` in a consistent environment, against a given version of `python` and `pip`. This lets us control that by controlling the version of Python in the container (for example). 
+
+This leaves the outputs in the tree (`requirements.txt` and `requirements.dev.txt`), which are then used in the CI/CD build process (as well as `make build-local` when working locally).
+
+### why?
+
+We are no longer going to use the `vendor` directory. The `*.txt` files are versioned/SHA1'd, and therefore are "locked" to the version of the libraries we want to use. (And, downloads are checked against their SHAs.) Therefore, having the vendored artifacts is not necessary for build.
+
+# prior documentation (pre 2025-12-08)
+
 ## Vendoring Python requirements
 
 This process allows us to download requirements for the application and store them in the `vendor` directory so that they may be installed during the build process without requiring access to the internet to do so.

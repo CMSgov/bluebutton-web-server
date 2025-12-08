@@ -246,7 +246,8 @@ AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
 AXES_FAILURE_LIMIT = 5
 AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
-AXES_ONLY_USER_FAILURES = True
+# 2025-12-08 AXES_ONLY_USER_FAILURES is deprecated
+# AXES_ONLY_USER_FAILURES = True
 AXES_USERNAME_FORM_FIELD = "username"
 
 # Used for testing for optional apps in templates without causing a crash
