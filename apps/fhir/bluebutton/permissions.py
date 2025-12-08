@@ -2,8 +2,11 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from oauth2_provider.views.base import get_access_token_model
+from oauth2_provider.models import get_application_model
 from rest_framework import permissions, exceptions
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from waffle import get_waffle_flag_model
 from apps.fhir.bluebutton.constants import ALLOWED_RESOURCE_TYPES
 from apps.versions import Versions, VersionNotMatched
 
@@ -108,6 +111,20 @@ class ApplicationActivePermission(permissions.BasePermission):
         return True
 
 
-class AlwaysDeny(permissions.BasePermission):
+class V3EarlyAdopterPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        return False
+        # if it is not version 3, we do not need to check the waffle switch or flag
+        if view.version < Versions.V3:
+            return True
+
+        token = get_access_token_model().objects.get(token=request._auth)
+        application = get_application_model().objects.get(id=token.application_id)
+        application_user = get_user_model().objects.get(id=application.user_id)
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+
+        if flag.id is None or flag.is_active_for_user(application_user):
+            return True
+        else:
+            raise PermissionDenied(
+                settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+            )

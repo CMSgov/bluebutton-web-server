@@ -16,7 +16,12 @@ from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
+from ..permissions import (
+    SearchCrosswalkPermission,
+    ResourcePermission,
+    ApplicationActivePermission,
+    V3EarlyAdopterPermission
+)
 
 
 class HasSearchScope(permissions.BasePermission):
@@ -42,7 +47,8 @@ class SearchView(FhirDataView):
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
         TokenHasProtectedCapability,
-        HasSearchScope
+        HasSearchScope,
+        V3EarlyAdopterPermission,
     ]
 
     # Regex to match a valid _lastUpdated value that can begin with lt, le, gt and ge operators
@@ -180,6 +186,8 @@ class SearchViewExplanationOfBenefit(SearchView):
 
         query_schema = getattr(self, 'QUERY_SCHEMA', {})
 
+        # BB2-4250: Does not seem that this code will execute given the new permission class
+        # so leaving it as is
         if waffle.switch_is_active('v3_endpoints'):
             query_schema['_tag'] = self.validate_tag()
             # _tag if presents, is a string value

@@ -2,7 +2,12 @@ from rest_framework import permissions
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from apps.fhir.bluebutton.permissions import (ReadCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
+from ..permissions import (
+    ReadCrosswalkPermission,
+    ResourcePermission,
+    ApplicationActivePermission,
+    V3EarlyAdopterPermission
+)
 from apps.fhir.bluebutton.views.generic import FhirDataView
 
 
@@ -21,6 +26,7 @@ class ReadView(FhirDataView):
         ReadCrosswalkPermission,
         DataAccessGrantPermission,
         TokenHasProtectedCapability,
+        V3EarlyAdopterPermission,
     ]
 
     def __init__(self, version=1):

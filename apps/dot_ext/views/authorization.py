@@ -4,23 +4,28 @@ from datetime import datetime, timedelta
 from functools import wraps
 from time import strftime
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
+from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.exceptions import OAuthToolkitError
-from oauth2_provider.views.base import app_authorized, get_access_token_model
+from oauth2_provider.views.base import app_authorized
+from oauth2_provider.models import get_refresh_token_model, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
-from waffle import switch_is_active
+from waffle import switch_is_active, get_waffle_flag_model
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
@@ -28,6 +33,7 @@ from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
+from apps.versions import Versions
 
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
@@ -41,6 +47,7 @@ from ..loggers import (
 )
 from ..models import Approval
 from ..utils import (
+    get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
     json_response_from_oauth2_error,
@@ -84,6 +91,7 @@ class AuthorizationView(DotAuthorizationView):
     # TODO: rename this so that it isn't the same as self.version (works but confusing)
     # this needs to be here for urls.py as_view(version) calls, but don't use it
     version = 0
+    # Variable to help reduce the amount of times validate_v3_authorization_request is called
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
@@ -116,6 +124,8 @@ class AuthorizationView(DotAuthorizationView):
                 error_message = "State parameter should have a minimum of 16 characters"
                 return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
+        # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
+        # so it will not be modified as part of BB2-4250
         if switch_is_active('v3_endpoints') and v3:
             if 'scope' not in request.GET:
                 missing_params.append("scope")
@@ -140,6 +150,18 @@ class AuthorizationView(DotAuthorizationView):
         initially create an AuthFlowUuid object for authorization
         flow tracing in logs.
         """
+        path_info = self.request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
+        # If it is not version 3, we don't need to check anything, just return
+        if version == Versions.V3:
+            try:
+                self.validate_v3_authorization_request()
+            except AccessDeniedTokenCustomError as e:
+                return JsonResponse(
+                    {'status_code': 403, 'message': str(e)},
+                    status=403,
+                )
+
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
@@ -224,6 +246,28 @@ class AuthorizationView(DotAuthorizationView):
         kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
 
+    def validate_v3_authorization_request(self):
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+        req_meta = self.request.META
+        url_query = parse_qs(req_meta.get('QUERY_STRING'))
+        client_id = url_query.get('client_id', [None])
+        try:
+            application = get_application_model().objects.get(client_id=client_id[0])
+            application_user = get_user_model().objects.get(id=application.user_id)
+
+            if flag.id is None or flag.is_active_for_user(application_user):
+                # Update the class variable to ensure subsequent calls to dispatch don't call this function
+                # more times than is needed
+                return
+            else:
+                raise AccessDeniedTokenCustomError(
+                    description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                )
+        except ObjectDoesNotExist:
+            raise AccessDeniedTokenCustomError(
+                description='Unable to verify permission.'
+            )
+
     def form_valid(self, form):
         client_id = form.cleaned_data["client_id"]
         application = get_application_model().objects.get(client_id=client_id)
@@ -262,6 +306,7 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
+
             if not scopes:
                 # Since the create_authorization_response will re-inject scopes even when none are
                 # valid, we want to pre-emptively treat this as an error case
@@ -412,13 +457,48 @@ class TokenView(DotTokenView):
                 description=f"Invalid parameters in request: {invalid_parameters}"
             )
 
+    def validate_v3_token_call(self, request) -> None:
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+
+        try:
+            url_query = parse_qs(request._body.decode('utf-8'))
+            refresh_token_from_request = url_query.get('refresh_token', [None])
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_from_request[0])
+            application = get_application_model().objects.get(id=refresh_token.application_id)
+            application_user = get_user_model().objects.get(id=application.user_id)
+
+            if flag.id is None or flag.is_active_for_user(application_user):
+                return
+            else:
+                raise AccessDeniedTokenCustomError(
+                    description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                )
+        except ObjectDoesNotExist:
+            raise AccessDeniedTokenCustomError(
+                description='Unable to verify permission.'
+            )
+
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
+        path_info = self.request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
+        url_query = parse_qs(request._body.decode('utf-8'))
+        grant_type = url_query.get('grant_type', [None])
         try:
+            # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
+            # just continue with standard validation.
+            # Also, we only want to execute this on refresh_token grant types, not authorization_code
+            if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
+                self.validate_v3_token_call(request)
             self.validate_token_endpoint_request_body(request)
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
+        except AccessDeniedTokenCustomError as e:
+            return JsonResponse(
+                {'status_code': 403, 'message': str(e)},
+                status=403,
+            )
 
         url, headers, body, status = self.create_token_response(request)
 

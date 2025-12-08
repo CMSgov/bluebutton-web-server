@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from django.apps import apps as global_apps
 from django.core.management.base import BaseCommand
-from django.db.migrations.recorder import MigrationRecorder
-from django.db.utils import OperationalError
 
 
 def migrate_fhir_id_to_v2(apps=None, schema_editor=None) -> None:
@@ -60,12 +58,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Prevent running if migration 0010 is applied or 0080 is not applied
-        recorder = MigrationRecorder(connection=None)
-        if recorder.Migration.objects.filter(app='bluebutton', name__startswith='0010').exists() or not recorder.Migration.objects.filter(app='bluebutton', name__startswith='0008').exists():
-            raise RuntimeError(
-                'Cannot run migrate_fhir_id_to_v2: bluebutton-0010 is applied OR bluebutton-0008 is not applied.'
-            )
         
         if options.get('reverse'):
             print('Running reverse_migrate_v2_to_fhir_id...')
