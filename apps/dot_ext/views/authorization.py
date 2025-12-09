@@ -30,6 +30,7 @@ from oauth2_provider.models import get_application_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from urllib.parse import urlparse, parse_qs
+import uuid
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
@@ -394,7 +395,20 @@ class ApprovalView(AuthorizationView):
         self.version = version
         super().__init__(version=version)
 
+    def is_valid_uuid(self, value: str) -> bool:
+        try:
+            uuid.UUID(str(value))
+            return True
+        except ValueError:
+            return False
+
     def dispatch(self, request, uuid, *args, **kwargs):
+        # BB2-4326: If we do not receive a valid uuid in the authorize call, throw a 404
+        if not self.is_valid_uuid(uuid):
+            return JsonResponse(
+                {'status_code': 404, 'message': 'Not found.'},
+                status=404,
+            )
 
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
