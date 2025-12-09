@@ -32,7 +32,6 @@ class EndpointUrl:
     digital_insurance_card = "digital_insurance_card"
     nav = "nav"
 
-    # TODO - theses are all format=json, not format=application/fhir+json, is this good?
     @staticmethod
     def fmt(name: str, uri: str, version: int, patient: str = BAD_PATIENT_ID):
         version_as_string = Versions.as_str(version)
@@ -50,8 +49,6 @@ class EndpointUrl:
                 return f'{uri}/{version_as_string}/fhir/Coverage/?_format=application/fhir+json'
             case EndpointUrl.digital_insurance_card:
                 return f'{uri}/{version_as_string}/fhir/DigitalInsuranceCard/?_format=application/fhir+json'
-                # return f"{uri}/{version_as_string}/fhir/Patient/{patient}/$generate-insurance-card"
-                # ?_format=application/fhir+json
             case _:
                 logger.error(f'Could not match name in EndpointUrl: {name}')
 

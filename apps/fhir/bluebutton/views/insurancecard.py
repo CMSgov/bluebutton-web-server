@@ -4,6 +4,7 @@ from apps.fhir.bluebutton.permissions import (SearchCrosswalkPermission,
                                               ApplicationActivePermission)
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.versions import Versions
 
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
 
@@ -13,6 +14,7 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
     required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
     required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
 
+    @staticmethod
     def _is_not_empty(s: set) -> bool:
         return len(s) > 0
 
@@ -56,8 +58,7 @@ class DigitalInsuranceCardView(FhirDataView):
         HasDigitalInsuranceCardScope,
     ]
 
-    # TODO/FIXME: What are the version=1? doing? Check/look into.
-    def __init__(self, version=1):
+    def __init__(self, version=Versions.V3):
         super().__init__(version)
         self.resource_type = 'Bundle'
 
@@ -66,7 +67,6 @@ class DigitalInsuranceCardView(FhirDataView):
 
     def get(self, request, *args, **kwargs):
         return super().get(request, self.resource_type, *args, **kwargs)
-        # return JsonResponse(status=200, data={"consternation": "vorciferous"})
 
     def get_full_path(self):
         return f"/{DigitalInsuranceCardView.version}/fhir/DigitalInsuranceCard"
