@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.test import Client
 from unittest.mock import patch, MagicMock
 from urllib.parse import parse_qs, urlencode, urlparse
+import uuid
 from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
@@ -1123,3 +1124,37 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         with self.assertRaises(AccessDeniedTokenCustomError):
             view_instance.validate_v3_token_call(request)
+
+    def test_invalid_uuid_authorize_call(self):
+        """BB2-4326: Ensure a 404 is thrown if a non-UUID is passed to an authorize endpoint
+        """
+        auth_uri_v1 = reverse("oauth2_provider:authorize-instance", args=['jolokia'])
+        auth_uri_v2 = reverse("oauth2_provider_v2:authorize-instance-v2", args=['jolokia'])
+        auth_uri_v3 = reverse("oauth2_provider_v3:authorize-instance-v3", args=['jolokia'])
+
+        response_v1 = self.client.get(auth_uri_v1)
+        response_v2 = self.client.get(auth_uri_v2)
+        response_v3 = self.client.get(auth_uri_v3)
+
+        assert response_v1.status_code == HTTPStatus.NOT_FOUND
+        assert response_v2.status_code == HTTPStatus.NOT_FOUND
+        assert response_v3.status_code == HTTPStatus.NOT_FOUND
+
+    @override_switch('v3_endpoints', active=True)
+    def test_valid_uuid_authorize_call(self):
+        """BB2-4326: Ensure a 302 is thrown if a valid UUID is passed to an authorize endpoint
+        """
+        auth_uri_v1 = reverse("oauth2_provider:authorize-instance", args=[uuid.uuid4()])
+        auth_uri_v2 = reverse("oauth2_provider_v2:authorize-instance-v2", args=[uuid.uuid4()])
+        auth_uri_v3 = reverse("oauth2_provider_v3:authorize-instance-v3", args=[uuid.uuid4()])
+
+        response_v1 = self.client.get(auth_uri_v1)
+        response_v2 = self.client.get(auth_uri_v2)
+        response_v3 = self.client.get(auth_uri_v3)
+
+        assert response_v1.status_code == HTTPStatus.FOUND
+        assert response_v2.status_code == HTTPStatus.FOUND
+        # The behavior is different for v3, as we check v3 authorize calls to see if the application is in
+        # the v3_early_adopter flag (part of BB2-4250). Because all of the mocks are not included in this test
+        # such that the authorize call will return a 302 for v3, v3 in this test throws a 403
+        assert response_v3.status_code == HTTPStatus.FORBIDDEN
