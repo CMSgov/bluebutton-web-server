@@ -52,6 +52,7 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
         hicn_hash = None
 
     versioned_fhir_ids = {}
+    hash_lookup_type = None
     for supported_version in Versions.latest_versions():
         try:
             fhir_id, hash_lookup_type = match_fhir_id(
@@ -102,11 +103,15 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
             update_fhir_id = True
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
+        # Possibly will need to add checking user.crosswalk.user_id_type != hash_lookup_type or hicn_updated
+        # again if this is not sufficient to cover all cases
         if (
-            (user.crosswalk.user_mbi is None and mbi is not None)
-            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-            or (user.crosswalk.user_id_type != hash_lookup_type or hicn_updated)
-            or update_fhir_id
+            update_fhir_id
+            and (
+                (user.crosswalk.user_mbi is None and mbi is not None)
+                or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
+                or hicn_updated
+            )
         ):
             # Log crosswalk before state
             log_dict.update({
@@ -126,14 +131,17 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
                     user.crosswalk.fhir_id_v2 = bfd_fhir_id_v2
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
-                user.crosswalk.user_id_type = hash_lookup_type
+                # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
+                if hash_lookup_type is not None:
+                    user.crosswalk.user_id_type = hash_lookup_type
                 # Only update the HICN hash if we actually have a value.
                 # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
                 # so writing None into the non-nullable DB column would cause
                 # an integrity error. Only assign when non-None.
                 if hicn_hash is not None:
                     user.crosswalk.user_hicn_hash = hicn_hash
-                user.crosswalk.user_mbi = mbi
+                if mbi is not None:
+                    user.crosswalk.user_mbi = mbi
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
@@ -153,7 +161,6 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
         })
         logger.info(log_dict)
 
-        print(f'Found existing user: {user.username}')
         return user, 'R'
     except User.DoesNotExist:
         # If we don't have an slsx_client, this is likely a refresh flow.

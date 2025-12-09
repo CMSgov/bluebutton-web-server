@@ -264,7 +264,7 @@ class TestDataAccessPermissions(BaseApiTest):
             "client_id": application.client_id,
             "client_secret": application.client_secret_plain,
         }
-        response = self.client.post("/v1/o/token/", data=refresh_post_data)
+        response = self.client.post("/v2/o/token/", data=refresh_post_data)
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, expected_response_code)

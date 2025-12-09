@@ -425,7 +425,9 @@ class TokenView(DotTokenView):
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
+            grant_type = request.POST.get("grant_type")
 
+            print(f'grant_type: {grant_type}')
             dag_expiry = ""
             print(f'body before adding extra fields: {body}')
             if access_token is not None:
@@ -459,24 +461,19 @@ class TokenView(DotTokenView):
                     # crosswalk = None
                 # This gets us the mbi and other info we need from the crosswalk
                 # Probably some kind of handling for if there is no mbi needs to happen here too
-                try:
-                    print(f'token.user: {token.user}')
-                    crosswalk = Crosswalk.objects.get(user=token.user)
-                    print(f'Found crosswalk for user: {crosswalk.user_mbi}')
-                    body['user_mbi'] = crosswalk.user_mbi
-                    # Use the beneficiary username here (not the numeric PK)
-                    # because downstream functions expect a username string.
-                    body['user_id'] = crosswalk.user.username
-                    print(f'the user_id being set in token response body: {body["user_id"]}')
-                    body['hicn_hash'] = crosswalk.user_hicn_hash
-                    get_and_update_from_refresh(
-                        crosswalk.user_mbi,
-                        crosswalk.user.username,
-                        crosswalk.user_hicn_hash,
-                        request,
-                    )
-                except Crosswalk.DoesNotExist:
-                    crosswalk = None
+                if grant_type == 'refresh_token':
+                    try:
+                        print(f'token.user: {token.user}')
+                        crosswalk = Crosswalk.objects.get(user=token.user)
+                        print(f'Found crosswalk for user: {crosswalk.user_mbi}')
+                        get_and_update_from_refresh(
+                            crosswalk.user_mbi,
+                            crosswalk.user.username,
+                            crosswalk.user_hicn_hash,
+                            request,
+                        )
+                    except Crosswalk.DoesNotExist:
+                        crosswalk = None
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
 
