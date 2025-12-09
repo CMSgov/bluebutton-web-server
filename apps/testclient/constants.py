@@ -29,8 +29,10 @@ class EndpointUrl:
     patient = "patient"
     explanation_of_benefit = "eob"
     coverage = "coverage"
+    digital_insurance_card = "digital_insurance_card"
     nav = "nav"
 
+    @staticmethod
     def fmt(name: str, uri: str, version: int, patient: str = BAD_PATIENT_ID):
         version_as_string = Versions.as_str(version)
         match name:
@@ -40,11 +42,13 @@ class EndpointUrl:
                 if patient is None or patient == BAD_PATIENT_ID:
                     logger.error('EndpointUrl format called with invalid patient id')
                     raise EndpointFormatException('EndpointUrl format called with invalid patient id')
-                return f'{uri}/{version_as_string}/fhir/Patient/{patient}?_format=json'
+                return f'{uri}/{version_as_string}/fhir/Patient/{patient}?_format=application/fhir+json'
             case EndpointUrl.explanation_of_benefit:
-                return f'{uri}/{version_as_string}/fhir/ExplanationOfBenefit/?_format=json'
+                return f'{uri}/{version_as_string}/fhir/ExplanationOfBenefit/?_format=application/fhir+json'
             case EndpointUrl.coverage:
-                return f'{uri}/{version_as_string}/fhir/Coverage/?_format=json'
+                return f'{uri}/{version_as_string}/fhir/Coverage/?_format=application/fhir+json'
+            case EndpointUrl.digital_insurance_card:
+                return f'{uri}/{version_as_string}/fhir/DigitalInsuranceCard/?_format=application/fhir+json'
             case _:
                 logger.error(f'Could not match name in EndpointUrl: {name}')
 
@@ -52,6 +56,7 @@ class EndpointUrl:
         # never occur, and therefore we want something to break.
         raise EndpointFormatException(f'Could not format URI name[{name}] uri[{uri}] version[{version_as_string}]')
 
+    @staticmethod
     def nav_uri(uri, count, start_index, id_type=None, id=None):
         return f'{uri}&_count={count}&startIndex={start_index}&{id_type}={id}'
 

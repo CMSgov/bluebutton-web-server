@@ -416,9 +416,11 @@ class ApprovalView(AuthorizationView):
             approval = Approval.objects.get(uuid=uuid)
             if approval.expired:
                 raise Approval.DoesNotExist
-            if approval.application\
-                    and approval.application.client_id != request.GET.get('client_id', None)\
-                    and approval.application.client_id != request.POST.get('client_id', None):
+            if (
+                approval.application
+                and approval.application.client_id != request.GET.get('client_id', None)
+                and approval.application.client_id != request.POST.get('client_id', None)
+            ):
                 raise Approval.DoesNotExist
             request.user = approval.user
         except Approval.DoesNotExist:
