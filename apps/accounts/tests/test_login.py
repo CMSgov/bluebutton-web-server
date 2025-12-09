@@ -78,6 +78,7 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
 
+    @override_switch('logout', active=True)
     @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
     def test_logout(self):
@@ -87,6 +88,15 @@ class LoginTestCase(TestCase):
         response = self.client.get(reverse('logout'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
+
+    @override_switch('logout', active=False)
+    @override_switch('login', active=True)
+    def test_logout_switch_off(self):
+        """
+        Logout endpoint disabled when logout switch is off
+        """
+        response = self.client.get(reverse('logout'), follow=True)
+        self.assertEqual(response.status_code, 404)
 
     @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)

@@ -9,6 +9,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("enable_testclient", True, "This enables the test client."),
     ("expire_grant_endpoint", True, "This enables the /v<1/2>/o/expire_authenticated_user/<patient_id>/ endpoint."),
     ("login", True, "This enables login related URLs and code. See apps/accounts/urls.py file for more info."),
+    ("logout", True, "This enables logout related URLs and code. See apps/accounts/urls.py file for more info."),
     ("outreach_email", True, "This enables developer outreach emails. Not active in prod."),
     ("require_pkce", True, "This enforces the presence of the PKCE parameters code_challenge and code_challenge_method when authorizing"),
     ("require_state", True, "This enforces the presence of the state parameter when authorizing"),
