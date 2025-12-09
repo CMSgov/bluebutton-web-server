@@ -107,11 +107,9 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
         # again if this is not sufficient to cover all cases
         if (
             update_fhir_id
-            and (
-                (user.crosswalk.user_mbi is None and mbi is not None)
-                or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-                or hicn_updated
-            )
+            or (user.crosswalk.user_mbi is None and mbi is not None)
+            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
+            or hicn_updated
         ):
             # Log crosswalk before state
             log_dict.update({

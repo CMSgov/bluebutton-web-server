@@ -18,7 +18,7 @@ from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
-from oauth2_provider.views.base import app_authorized, get_access_token_model
+from oauth2_provider.views.base import app_authorized
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -26,7 +26,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from waffle import switch_is_active, get_waffle_flag_model
-from oauth2_provider.models import get_application_model
+from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from urllib.parse import urlparse, parse_qs
@@ -518,11 +518,8 @@ class TokenView(DotTokenView):
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
-            grant_type = request.POST.get("grant_type")
 
-            print(f'grant_type: {grant_type}')
             dag_expiry = ""
-            print(f'body before adding extra fields: {body}')
             if access_token is not None:
                 print(f'Access token issued: {access_token}')
                 token = get_access_token_model().objects.get(
@@ -547,14 +544,10 @@ class TokenView(DotTokenView):
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
 
-                # Get the crosswalk for the user from token.user like
-                # try:
-                    # crosswalk = Crosswalk.objects.get(user=token.user)
-                # except Crosswalk.DoesNotExist:
-                    # crosswalk = None
+                # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                # Probably some kind of handling for if there is no mbi needs to happen here too
-                if grant_type == 'refresh_token':
+                # TODO: Should we throw an error if mbi is null and it's v3? Will we always have an mbi in that situation?
+                if grant_type[0] == 'refresh_token':
                     try:
                         print(f'token.user: {token.user}')
                         crosswalk = Crosswalk.objects.get(user=token.user)
@@ -567,6 +560,7 @@ class TokenView(DotTokenView):
                         )
                     except Crosswalk.DoesNotExist:
                         crosswalk = None
+
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
 
