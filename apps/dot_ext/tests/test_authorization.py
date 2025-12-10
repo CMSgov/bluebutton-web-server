@@ -319,8 +319,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
                 content_type='application/x-www-form-urlencoded'
             )
 
-        # retrieve crosswalk again to see if it was properly updated
-        crosswalk = Crosswalk.objects.get(user=user)
+        # refresh crosswalk to see if it was properly updated
+        crosswalk.refresh_from_db()
 
         self.assertEqual(crosswalk.fhir_id_v2, '-20140000008325')
         self.assertEqual(crosswalk.fhir_id_v3, '-30250000008325')
