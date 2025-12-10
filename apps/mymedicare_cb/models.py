@@ -33,7 +33,35 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
 
 def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_client=None):
     """
-    Base function to get and update user from either authorize or refresh flows.
+    Find or create the user associated
+    with the identity information from the ID provider.
+    Args:
+        mbi = corresponds to user_mbi column of the bluebutton_crosswalk table, used to populate or update that column
+              during auth flow if SLS has a different value than the database
+        user_id = corresponds to username column of the auth_user table. Used to try and retrieve the auth_user record.
+                  If the user does not exist (first auth), a new one is created.
+        hicn_hash = corresponds to user_id_hash column of the bluebutton_crosswalk table. Used in v2 flows but not v3
+                    though it can't be nulled out in bluebutton_crosswalk or an IntegrityError is raised.
+        request = request from caller to pass along for logging info.
+        auth_type = This value is either refresh or initial_auth. Used for logging
+        slsx_client = OAuth2ConfigSLSx encapsulates all slsx exchanges and user info values as listed below
+                      though as part of BB2-4294, we are now passing those values as parameters to account
+                      for refresh token flow:
+            subject = ID provider's sub or username
+            mbi = MBI from SLSx
+            hicn_hash = Previously hashed hicn
+            first_name
+            last_name
+            email
+    Returns:
+        The user that was existing or newly created
+        crosswalk_type =  Type of crosswalk activity:
+            'R' = Returned existing crosswalk record
+            'C' = Created new crosswalk record
+    Raises:
+        KeyError: If an expected key is missing from user_info.
+        KeyError: If response from fhir server is malformed.
+        AssertionError: If a user is matched but not all identifiers match.
     """
 
     try:
@@ -43,13 +71,14 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
         version = get_api_version_number_from_url(path_info)
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
+    if version == Versions.V3:
+        hicn_hash = None
+
     # Always attempt to get fresh FHIR ids from the backend for supported versions
     # so that FHIR ids are refreshed on every token/refresh operation. If the
     # backend reports a problem (UpstreamServerException) for the requested
     # version, bubble that error. If the backend simply returns no match
     # (NotFound), treat that as no FHIR id available and continue.
-    if version == Versions.V3:
-        hicn_hash = None
 
     versioned_fhir_ids = {}
     hash_lookup_type = None

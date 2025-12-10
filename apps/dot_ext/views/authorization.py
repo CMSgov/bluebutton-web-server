@@ -522,7 +522,6 @@ class TokenView(DotTokenView):
 
             dag_expiry = ""
             if access_token is not None:
-                print(f'Access token issued: {access_token}')
                 token = get_access_token_model().objects.get(
                     token=access_token)
                 app_authorized.send(
