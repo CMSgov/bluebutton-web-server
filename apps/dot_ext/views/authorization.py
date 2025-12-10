@@ -546,7 +546,6 @@ class TokenView(DotTokenView):
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                # TODO: Should we throw an error if mbi is null and it's v3? Will we always have an mbi in that situation?
                 if grant_type[0] == 'refresh_token':
                     try:
                         crosswalk = Crosswalk.objects.get(user=token.user)
@@ -557,9 +556,11 @@ class TokenView(DotTokenView):
                             request,
                         )
                     except Crosswalk.DoesNotExist:
-                        # TODO: Should we raise an error in this case? If refresh token is happening and there is no
-                        # corresponding crosswalk record, that's a bad data state
-                        crosswalk = None
+                        log.debug('Unable to find crosswalk record during a token refresh')
+                        return JsonResponse(
+                            {'status_code': 404, 'message': 'Not found.'},
+                            status=404,
+                        )
 
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)

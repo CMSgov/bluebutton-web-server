@@ -130,10 +130,9 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
             or user.crosswalk.fhir_id(Versions.V3) != bfd_fhir_id_v3
         ):
             update_fhir_id = True
+
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
-        # Possibly will need to add checking user.crosswalk.user_id_type != hash_lookup_type or hicn_updated
-        # again if this is not sufficient to cover all cases
         if (
             update_fhir_id
             or (user.crosswalk.user_mbi is None and mbi is not None)
@@ -190,7 +189,7 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
 
         return user, 'R'
     except User.DoesNotExist:
-        # If we don't have an slsx_client, this is likely a refresh flow.
+        # If we don't have an slsx_client, this is the refresh flow.
         # Do NOT attempt to create a beneficiary record here — creation requires
         # data from an SLSx client and is only valid during initial auth.
         if slsx_client is None:
