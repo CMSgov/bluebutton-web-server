@@ -1159,6 +1159,101 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         with self.assertRaises(AccessDeniedTokenCustomError):
             view_instance.validate_v3_token_call(request)
 
+    def test_cancel_button_clicked_flow_thirteen_month_data_access_type(self):
+        '''
+        BB2-4270:
+        Ensure that when the cancel button is clicked on the authorization page (sets allow = False)
+        That we do not delete the associated data_access_grant, access_token, and refresh_token
+        '''
+        redirect_uri = 'http://localhost'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_patient = self._create_capability('patient/Patient.rs', [])
+        capability_profile = self._create_capability('profile', [])
+        capability_eob = self._create_capability('patient/ExplanationOfBenefit.rs', [])
+        capability_coverage = self._create_capability('profile', [])
+
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+
+        application.scope.add(capability_patient, capability_profile, capability_eob, capability_coverage)
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            # 'scope': ['patient/Patient.rs', 'profile', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs'],
+            'scope': ['patient/Patient.rs profile patient/Coverage.rs patient/ExplanationOfBenefit.rs'],
+            'expires_in': 86400,
+            'allow': False,
+            "state": "0123456789abcdef",
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.assertEqual(response.status_code, 302)
+
+        query_dict = parse_qs(urlparse(response['Location']).query)
+
+        assert query_dict.get('error')[0] == 'access_denied'
+        # Ensure that the function that deletes data_access_grant and tokens was not called
+        # even though the allow parameter is false
+        with patch('apps.dot_ext.utils.remove_application_user_pair_tokens_data_access') as mock_remove_dag_and_tokens:
+            assert not mock_remove_dag_and_tokens.called
+
+    def test_cancel_button_clicked_flow_one_time_data_access_type(self):
+        '''
+        BB2-4270:
+        Ensure that when the cancel button is clicked on the authorization page (sets allow = False)
+        That we do not delete the associated data_access_grant, access_token, and refresh_token
+        '''
+        redirect_uri = 'http://localhost'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_patient = self._create_capability('patient/Patient.rs', [])
+        capability_profile = self._create_capability('profile', [])
+        capability_eob = self._create_capability('patient/ExplanationOfBenefit.rs', [])
+        capability_coverage = self._create_capability('profile', [])
+
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            data_access_type='ONE_TIME',
+            redirect_uris=redirect_uri)
+
+        application.scope.add(capability_patient, capability_profile, capability_eob, capability_coverage)
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            # 'scope': ['patient/Patient.rs', 'profile', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs'],
+            'scope': ['profile patient/Coverage.rs patient/ExplanationOfBenefit.rs'],
+            'expires_in': 86400,
+            'allow': False,
+            "state": "0123456789abcdef",
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.assertEqual(response.status_code, 302)
+
+        query_dict = parse_qs(urlparse(response['Location']).query)
+
+        assert query_dict.get('error')[0] == 'access_denied'
+        # Ensure that the function that deletes data_access_grant and tokens was not called
+        # even though the allow parameter is false
+        with patch('apps.dot_ext.utils.remove_application_user_pair_tokens_data_access') as mock_remove_dag_and_tokens:
+            assert not mock_remove_dag_and_tokens.called
+
     def test_invalid_uuid_authorize_call(self):
         """BB2-4326: Ensure a 404 is thrown if a non-UUID is passed to an authorize endpoint
         """

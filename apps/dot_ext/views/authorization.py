@@ -320,8 +320,7 @@ class AuthorizationView(DotAuthorizationView):
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
-
-            if allow is False or not scopes:
+            if not scopes:
                 (data_access_grant_delete_cnt,
                  access_token_delete_cnt,
                  refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
@@ -418,9 +417,11 @@ class ApprovalView(AuthorizationView):
             approval = Approval.objects.get(uuid=uuid)
             if approval.expired:
                 raise Approval.DoesNotExist
-            if approval.application\
-                    and approval.application.client_id != request.GET.get('client_id', None)\
-                    and approval.application.client_id != request.POST.get('client_id', None):
+            if (
+                approval.application
+                and approval.application.client_id != request.GET.get('client_id', None)
+                and approval.application.client_id != request.POST.get('client_id', None)
+            ):
                 raise Approval.DoesNotExist
             request.user = approval.user
         except Approval.DoesNotExist:

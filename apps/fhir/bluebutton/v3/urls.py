@@ -12,11 +12,11 @@ from apps.fhir.bluebutton.views.search import (
     SearchViewExplanationOfBenefit,
     SearchViewPatient,
 )
+from apps.fhir.bluebutton.views.insurancecard import DigitalInsuranceCardView
 
 admin.autodiscover()
 
 urlpatterns = [
-    # Patient ReadView
     re_path(
         r"Patient/(?P<resource_id>[^/]+)",
         waffle_switch("v3_endpoints")(ReadViewPatient.as_view(version=3)),
@@ -51,5 +51,12 @@ urlpatterns = [
         r"ExplanationOfBenefit[/]?",
         waffle_switch("v3_endpoints")(SearchViewExplanationOfBenefit.as_view(version=3)),
         name="bb_oauth_fhir_eob_search_v3",
+    ),
+    # C4DIC
+    # Digital Insurance Card View
+    re_path(
+        r'DigitalInsuranceCard[/]?',
+        waffle_switch('v3_endpoints')(DigitalInsuranceCardView.as_view(version=3)),
+        name='bb_oauth_fhir_dic_read',
     ),
 ]

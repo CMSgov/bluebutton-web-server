@@ -13,9 +13,9 @@ from apps.fhir.bluebutton.signals import (
 from apps.fhir.bluebutton.utils import (generate_info_headers,
                                         set_default_header)
 
-from ..bluebutton.exceptions import UpstreamServerException
-from ..bluebutton.utils import (FhirServerAuth,
-                                get_resourcerouter)
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.utils import FhirServerAuth
+from apps.fhir.server.settings import fhir_settings
 from .loggers import log_match_fhir_id
 
 
@@ -48,7 +48,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
             UpstreamServerException: For backend response issues.
     """
     # Get certs from FHIR server settings
-    auth_settings = FhirServerAuth(None)
+    auth_settings = FhirServerAuth()
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
     # Add headers for FHIR backend logging, including auth_flow_dict
     if request:
@@ -75,12 +75,11 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
         headers = None
 
     # Build URL based on BFD version
-    resource_router = get_resourcerouter()
     ver = f'v{version}'
 
-    fhir_url = resource_router.fhir_url
-    if ver == 'v3' and resource_router.fhir_url_v3:
-        fhir_url = resource_router.fhir_url_v3
+    fhir_url = fhir_settings.fhir_url
+    if ver == 'v3' and fhir_settings.fhir_url_v3:
+        fhir_url = fhir_settings.fhir_url_v3
     url = f"{fhir_url}/{ver}/fhir/Patient/_search"
 
     max_retries = 3

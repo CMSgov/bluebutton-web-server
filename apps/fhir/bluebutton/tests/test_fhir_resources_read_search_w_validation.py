@@ -224,7 +224,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         def catchall_w_tag_qparam(url, req):
             # this is called in case EOB search with good tag
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             # parameters encoded in prepared request's body
             self.assertTrue(('_tag=Adjudicated' in req.url) or ('_tag=PartiallyAdjudicated' in req.url))
 
@@ -236,7 +236,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
 
             return {
                 'status_code': 200,
@@ -280,7 +280,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
-            self.assertIn('_format=application%2Fjson%2Bfhir', req.url)
+            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
 
             return {
                 'status_code': 200,
