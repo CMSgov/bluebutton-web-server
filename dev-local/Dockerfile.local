@@ -1,7 +1,8 @@
-FROM python:3.14-trixie
+FROM python:3.11-trixie
 
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+ENV PYTHON_VERSION=3.11
 
 # WARNING
 # This is installing the most recent version of Postgres tools.
@@ -29,6 +30,18 @@ RUN pip install --upgrade \
     pip \
     pip-tools \
     setuptools
-RUN pip install -r requirements/requirements.dev.txt
-    # --find-links \
-    # ./vendor/
+    
+# https://pip.pypa.io/en/stable/topics/secure-installs/
+# https://www.b-list.org/weblog/2023/dec/07/pip-install-safely/
+#
+#     --only-binary :all:
+# 
+# does not work for some of our packages. Not all are available as .whl, and
+# some are .tar.gz. We can *prefer* binary, but can't force it.
+#
+# We will iterate towards --only-binary.
+RUN pip install \
+    --require-hashes \
+    --no-deps \
+    --prefer-binary \
+    -r requirements/requirements.dev.txt
