@@ -1264,19 +1264,10 @@ components:
           tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
           scopes:
             profile: User profile
-            patient/Patient.read: Read and search patient
-            patient/Coverage.read: Read and search patient coverage
-            patient/ExplanationOfBenefit.read: Read and search patient explanation of benefit
             openid: Openid profile
             launch/patient: Patient launch context
-            patient/Patient.r: Read patient
-            patient/Patient.s: Search patient
             patient/Patient.rs: Read and search patient
-            patient/Coverage.r: Read patient coverage
-            patient/Coverage.s: Search patient coverage
             patient/Coverage.rs: Read and search patient coverage
-            patient/ExplanationOfBenefit.r: Read patient explanation of benefit
-            patient/ExplanationOfBenefit.s: Search patient explanation of benefit
             patient/ExplanationOfBenefit.rs: Read and search patient explanation of benefit
 
   schemas:
