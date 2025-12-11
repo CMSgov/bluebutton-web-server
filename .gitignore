@@ -96,6 +96,3 @@ docker-compose/tmp/
 # dev tools dir for placing scripts you don't want checked in
 dev-tools/
 test_report.txt
-
-# Snyk Security Extension - AI Rules (auto-generated)
-.github/instructions/snyk_rules.instructions.md
