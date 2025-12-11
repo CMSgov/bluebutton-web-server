@@ -13,7 +13,3 @@ generate: clean build
 clean:
 	@echo Removing old requirements files
 	rm -f requirements.dev.txt requirements.txt
-
-reset:
-	cp requirements-orig.txt requirements.txt
-	cp requirements.dev-orig.txt requirements.dev.txt
