@@ -1,8 +1,8 @@
-FROM python:3.14-trixie
+FROM python:3.11-trixie
 
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
-ENV PYTHON_VERSION=3.14
+ENV PYTHON_VERSION=3.11
 
 # WARNING
 # This is installing the most recent version of Postgres tools.
@@ -23,4 +23,4 @@ RUN pip install --upgrade \
     pip-tools \
     setuptools
 RUN python -m pip install --upgrade pip
-CMD /requirements/generate.bash
+CMD ["/requirements/generate.bash"]
