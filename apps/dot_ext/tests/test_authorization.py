@@ -15,9 +15,12 @@ from unittest.mock import patch, MagicMock
 from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
+from apps.fhir.bluebutton.models import Crosswalk
 
+from apps.mymedicare_cb.tests.test_models import search_fhir_id_by_identifier_side_effect
 from apps.test import BaseApiTest
-from ..models import Application, ArchivedToken
+from apps.versions import Versions
+from apps.dot_ext.models import Application, ArchivedToken
 from apps.dot_ext.views import AuthorizationView, TokenView
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from http import HTTPStatus
@@ -238,7 +241,9 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
     def test_refresh_token(self):
         redirect_uri = 'http://localhost'
         # create a user
-        self._create_user('anna', '123456')
+        user = self._create_user('anna', '123456')
+        crosswalk = Crosswalk.objects.get(user=user)
+
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
         # create an application and add capabilities
@@ -275,7 +280,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret_plain,
         }
         c = Client()
-        response = c.post('/v1/o/token/', data=token_request_data)
+        response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
         self.assertEqual(response.status_code, 200)
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
@@ -287,7 +292,29 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
         }
-        response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
+        body = urlencode(refresh_request_data)
+
+        # BB2-4294: Null out fhir_id_v2, then run a refresh token call, make sure fhir_id_v2 is then populated
+        # Update fhir_id_v3 to a random value to make sure it is updated
+        crosswalk.fhir_id_v2 = None
+        crosswalk.fhir_id_v3 = 'randomvalue'
+        crosswalk.save()
+
+        with patch(
+            'apps.fhir.server.authentication.search_fhir_id_by_identifier',
+            side_effect=search_fhir_id_by_identifier_side_effect
+        ):
+            response = self.client.post(
+                reverse('oauth2_provider:token'),
+                data=body,
+                content_type='application/x-www-form-urlencoded'
+            )
+
+        # refresh crosswalk to see if it was properly updated
+        crosswalk.refresh_from_db()
+
+        self.assertEqual(crosswalk.fhir_id_v2, '-20140000008325')
+        self.assertEqual(crosswalk.fhir_id_v3, '-30250000008325')
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(response.json()['access_token'], tkn)
 

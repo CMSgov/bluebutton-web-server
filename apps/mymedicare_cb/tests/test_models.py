@@ -7,14 +7,31 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
-from ..models import create_beneficiary_record, get_and_update_user
+from apps.mymedicare_cb.models import (
+    create_beneficiary_record,
+    get_and_update_user_from_initial_auth,
+    get_and_update_from_refresh
+)
 from unittest.mock import patch, Mock
+
+from apps.versions import Versions
 
 # Create the mock request
 mock_request = Mock(spec=HttpRequest)
 
 # Initialize session as a dictionary
 mock_request.session = {'version': 2}
+
+
+def search_fhir_id_by_identifier_side_effect(search_identifier, request, version) -> str:
+    # Would try to retrieve these values via os envvars, but not sure what those look like in the jenkins pipeline
+    if version == Versions.V1:
+        return '-20140000008325'
+    elif version == Versions.V2:
+        return '-20140000008325'
+    elif version == Versions.V3:
+        return '-30250000008325'
+    return '-20140000008325'
 
 
 class BeneficiaryLoginTest(TestCase):
@@ -360,7 +377,7 @@ class BeneficiaryLoginTest(TestCase):
         slsx_client.mbi = slsx_mbi
         slsx_client.hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
 
-        user, crosswalk_type = get_and_update_user(slsx_client, mock_request)
+        user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
 
         user.refresh_from_db()
         crosswalk.refresh_from_db()
@@ -390,9 +407,69 @@ class BeneficiaryLoginTest(TestCase):
         slsx_client.mbi = slsx_mbi
         slsx_client.hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
 
-        user, crosswalk_type = get_and_update_user(slsx_client, mock_request)
+        user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
 
         user.refresh_from_db()
         crosswalk.refresh_from_db()
         self.assertEqual(user.crosswalk.user_mbi, slsx_mbi)
         mock_archive.assert_called_once()
+
+    @patch('apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect)
+    @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
+    def test_get_and_update_from_refresh_fhir_id_v3_previously_null(self, mock_archive, mock_match_fhir) -> None:
+        """Test that the get_and_update_from_refresh executes fields correctly,
+        specifically in this test, fhir_id_v3
+        """
+        user_hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+        user_mbi = '1S00EU7JH00'
+        fhir_id_v2 = '-20140000008325'
+        username = '00112233-4455-6677-8899-aabbccddeeff'
+
+        fake_user = User.objects.create_user(
+            username=username,
+            email='fu@bar.bar'
+        )
+
+        crosswalk = Crosswalk.objects.create(
+            user=fake_user,
+            fhir_id_v2=fhir_id_v2,
+            user_hicn_hash=user_hicn_hash,
+            user_mbi=user_mbi,
+            user_id_type='M'
+        )
+        # Confirm fhir_id_v3 is None before calling the function
+        assert crosswalk.fhir_id_v3 is None
+
+        user, crosswalk_type = get_and_update_from_refresh(user_mbi, username, user_hicn_hash, mock_request)
+
+        assert user.crosswalk.fhir_id_v3 == '-30250000008325'
+
+    @patch('apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect)
+    @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
+    def test_get_and_update_from_refresh_fhir_id_v2_previously_null(self, mock_archive, mock_match_fhir) -> None:
+        """Test that the get_and_update_from_refresh executes fields correctly,
+        specifically in this test, fhir_id_v2
+        """
+        user_hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+        user_mbi = '1S00EU7JH00'
+        fhir_id_v3 = '-30250000008325'
+        username = '00112233-4455-6677-8899-aabbccddeeff'
+
+        fake_user = User.objects.create_user(
+            username=username,
+            email='fu@bar.bar'
+        )
+
+        crosswalk = Crosswalk.objects.create(
+            user=fake_user,
+            fhir_id_v3=fhir_id_v3,
+            user_hicn_hash=user_hicn_hash,
+            user_mbi=user_mbi,
+            user_id_type='M'
+        )
+        # Confirm fhir_id_v3 is None before calling the function
+        assert crosswalk.fhir_id_v2 is None
+
+        user, crosswalk_type = get_and_update_from_refresh(user_mbi, username, user_hicn_hash, mock_request)
+
+        assert user.crosswalk.fhir_id_v2 == '-20140000008325'

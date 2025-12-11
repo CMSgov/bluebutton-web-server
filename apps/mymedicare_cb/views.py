@@ -27,7 +27,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from .authorization import (OAuth2ConfigSLSx,
                             MedicareCallbackExceptionType,
                             BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException)
-from .models import AnonUserState, get_and_update_user
+from .models import AnonUserState, get_and_update_user_from_initial_auth
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
@@ -64,7 +64,7 @@ def authenticate(request):
     slsx_client.log_event(request, {})
 
     # Find or create the user associated with the identity information from SLS.
-    user, crosswalk_action = get_and_update_user(slsx_client, request)
+    user, crosswalk_action = get_and_update_user_from_initial_auth(slsx_client, request)
 
     # Set crosswalk_action and get auth flow session values.
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)

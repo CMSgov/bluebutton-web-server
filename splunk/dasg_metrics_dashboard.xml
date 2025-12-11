@@ -43,7 +43,7 @@
   </search>
   <search id="baseSearch1b">
     <!-- BASE search 1b. RETURNING Beneficiaries who have re-authorized -->
-    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | dedup message.fhir_id message.auth_client_id message.auth_uuid | fields time message.auth_uuid message.fhir_id message.auth_app_name message.mesg mesg message.user_hicn_hash message.auth_pkce_method message.status</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:__get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | dedup message.fhir_id message.auth_client_id message.auth_uuid | fields time message.auth_uuid message.fhir_id message.auth_app_name message.mesg mesg message.user_hicn_hash message.auth_pkce_method message.status</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
