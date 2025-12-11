@@ -21,9 +21,6 @@ build-local:
 
 run-local:
 	cd dev-local ; make run-local ; cd ..
-
-build-requirements:
-	cd requirements ; make build ; cd ..
-
+	
 make generate-requirements:
 	cd requirements ; make generate ; cd ..
