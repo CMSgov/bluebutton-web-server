@@ -6,13 +6,6 @@ set -a
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
-
-    # columns=("token_checksum")
-    # for col in ${columns[@]}; do 
-    #     echo "💽 Adding column ${col} to oauth2_provider_accesstoken"
-    #     psql "${DATABASES_CUSTOM}" \
-    #         -c "ALTER TABLE \"oauth2_provider_accesstoken\" ADD COLUMN IF NOT EXISTS \"${col}\" text NULL;"
-    # done
     
     echo "🔵 running makemigrations"
     python manage.py makemigrations
