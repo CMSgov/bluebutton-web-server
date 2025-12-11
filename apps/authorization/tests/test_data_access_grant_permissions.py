@@ -18,6 +18,7 @@ from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation imp
     get_response_json,
 )
 
+from apps.versions import Versions
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 AccessToken = get_access_token_model()
@@ -265,7 +266,7 @@ class TestDataAccessPermissions(BaseApiTest):
             "client_id": application.client_id,
             "client_secret": application.client_secret_plain,
         }
-        response = self.client.post("/v2/o/token/", data=refresh_post_data)
+        response = self.client.post(f'/v{Versions.V2}/o/token/', data=refresh_post_data)
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, expected_response_code)

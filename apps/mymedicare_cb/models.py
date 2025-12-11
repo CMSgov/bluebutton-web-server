@@ -31,7 +31,7 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_client=None):
+def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_client=None):
     """
     Find or create the user associated
     with the identity information from the ID provider.
@@ -233,7 +233,7 @@ def _get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clien
 
 
 def get_and_update_from_refresh(mbi, user_id, hicn_hash, request):
-    return _get_and_update_user(
+    return __get_and_update_user(
         mbi,
         user_id,
         hicn_hash,
@@ -243,7 +243,7 @@ def get_and_update_from_refresh(mbi, user_id, hicn_hash, request):
 
 
 def get_and_update_user_from_initial_auth(slsx_client: OAuth2ConfigSLSx, request):
-    return _get_and_update_user(
+    return __get_and_update_user(
         slsx_client.mbi,
         slsx_client.user_id,
         slsx_client.hicn_hash,

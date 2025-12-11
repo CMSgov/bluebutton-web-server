@@ -17,6 +17,7 @@ import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
 
+from apps.mymedicare_cb.tests.test_models import search_fhir_id_by_identifier_side_effect
 from apps.test import BaseApiTest
 from apps.versions import Versions
 from apps.dot_ext.models import Application, ArchivedToken
@@ -237,16 +238,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
 
-    def search_fhir_id_by_identifier_side_effect(self, search_identifier, request, version) -> str:
-        # Would try to retrieve these values via os envvars, but not sure what those look like in the jenkins pipeline
-        if version == Versions.V1:
-            return '-20140000008325'
-        elif version == Versions.V2:
-            return '-20140000008325'
-        elif version == Versions.V3:
-            return '-30250000008325'
-        return '-20140000008325'
-
     def test_refresh_token(self):
         redirect_uri = 'http://localhost'
         # create a user
@@ -289,7 +280,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret_plain,
         }
         c = Client()
-        response = c.post('/v2/o/token/', data=token_request_data)
+        response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
         self.assertEqual(response.status_code, 200)
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
@@ -311,7 +302,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         with patch(
             'apps.fhir.server.authentication.search_fhir_id_by_identifier',
-            side_effect=self.search_fhir_id_by_identifier_side_effect
+            side_effect=search_fhir_id_by_identifier_side_effect
         ):
             response = self.client.post(
                 reverse('oauth2_provider:token'),

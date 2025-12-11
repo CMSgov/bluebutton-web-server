@@ -23,20 +23,21 @@ mock_request = Mock(spec=HttpRequest)
 mock_request.session = {'version': 2}
 
 
+def search_fhir_id_by_identifier_side_effect(search_identifier, request, version) -> str:
+    # Would try to retrieve these values via os envvars, but not sure what those look like in the jenkins pipeline
+    if version == Versions.V1:
+        return '-20140000008325'
+    elif version == Versions.V2:
+        return '-20140000008325'
+    elif version == Versions.V3:
+        return '-30250000008325'
+    return '-20140000008325'
+
+
 class BeneficiaryLoginTest(TestCase):
 
     def setUp(self):
         Group.objects.create(name='BlueButton')
-
-    def search_fhir_id_by_identifier_side_effect(search_identifier, request, version) -> str:
-        # Would try to retrieve these values via os envvars, but not sure what those look like in the jenkins pipeline
-        if version == Versions.V1:
-            return '-20140000008325'
-        elif version == Versions.V2:
-            return '-20140000008325'
-        elif version == Versions.V3:
-            return '-30250000008325'
-        return '-20140000008325'
 
     def test_create_beneficiary_record_full(self):
         args = {
