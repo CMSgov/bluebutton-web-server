@@ -1,26 +1,42 @@
 import jsonschema
 import re
+import os
 from functools import wraps
 from datetime import datetime
-import os
 from jsonschema import validate
 
 
 def screenshot_on_exception(func):
+    """A decorator for getting a screenshot when an exception occurs in a selenium test
+
+    Args:
+        func (function): default param for decorator
+
+    Raises:
+        outer_exception: the exception thrown by the decorated function
+    Returns:
+        _type_: N/A
+    """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
         except Exception as outer_exception:
-            # If an exception occurs, get a screenshot
             webdriver = getattr(self, 'driver')
-            if webdriver:
+            # Make sure there is a webdriver and we are not in an AWS environment
+            if webdriver and os.getenv('TARGET_ENV') == 'dev':
                 try:
-                    os.makedirs('screenshots', exist_ok=True)
+                    test_folder = os.path.join('screenshots', func.__name__)
+                    os.makedirs(test_folder, exist_ok=True)
+
+                    # Delete oldest screenshot if 3 exist already, keep it unclutterred
+                    screenshots = sorted([png for png in os.listdir(test_folder)])
+                    if len(screenshots) >= 3:
+                        os.remove(os.path.join(test_folder, screenshots[0]))
+
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = f'screenshots/{self.__class__.__name__}_{func.__name__}_{timestamp}.png'
+                    filename = os.path.join(test_folder, f'{timestamp}.png')
                     webdriver.save_screenshot(filename)
-                    print(f"Screenshot saved: {filename}")
                 except Exception as screenshot_error:
                     print(f"Failed to capture screenshot: {screenshot_error}")
             raise outer_exception

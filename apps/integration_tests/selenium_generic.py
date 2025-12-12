@@ -263,16 +263,3 @@ class SeleniumGenericTests:
                         self.actions[action](*s.get("params", []), **kwargs)
                 else:
                     raise ValueError("Invalid test case, expect dict with action...")
-
-    def screenshot_failure(self, func):
-        """
-        A decorator to take screenshot upon test failure
-        """
-        def wrapper(self, *args, **kwargs):
-            try:
-                func(self, *args, **kwargs)
-            except Exception as e:
-                print(e)
-                now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-                self.driver.get_screenshot_as_file('screenshot-%s.png' % now)
-        return wrapper
