@@ -145,16 +145,6 @@ class Crosswalk(models.Model):
         db_index=True,
     )
 
-    # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
-    _fhir_id = models.CharField(
-        db_column='fhir_id',
-        db_index=True,
-        default=None,
-        max_length=80,
-        unique=True,
-        null=True
-    )
-
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
@@ -170,17 +160,7 @@ class Crosswalk(models.Model):
         """Helper method to return fhir_id based on BFD version, preferred over direct access"""
         if version in [Versions.V1, Versions.V2]:
             if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
-                # TODO - This is legacy code, to be removed before migration bluebutton 0010
-                # If fhir_id is empty, try to populate it from fhir_id_v2 to support old code
-                self._fhir_id = self.fhir_id_v2
-                self.save()
                 return self.fhir_id_v2
-            # TODO - This is legacy code, to be removed before migration bluebutton 0010
-            # If fhir_id_v2 is empty, try to populate it from _fhir_id to support new code
-            if self._fhir_id is not None and self._fhir_id != '':
-                self.fhir_id_v2 = self._fhir_id
-                self.save()
-                return self._fhir_id
             return ''
         elif version == Versions.V3:
             if self.fhir_id_v3 is not None and self.fhir_id_v3 != '':
@@ -196,8 +176,6 @@ class Crosswalk(models.Model):
             raise ValidationError('fhir_id can not be an empty string')
         if version in (1, 2):
             self.fhir_id_v2 = value
-            # TODO - This is legacy code, to be removed in the future
-            self._fhir_id = value
         elif version == 3:
             self.fhir_id_v3 = value
         else:
@@ -310,22 +288,10 @@ class ArchivedCrosswalk(models.Model):
     date_created = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
 
-    # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
-    _fhir_id = models.CharField(
-        db_column='fhir_id',
-        db_index=True,
-        default=None,
-        max_length=80,
-        unique=False,
-        null=True
-    )
-
     @staticmethod
     def create(crosswalk):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
-            # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
-            _fhir_id=crosswalk._fhir_id,
             fhir_id_v2=crosswalk.fhir_id(2),
             fhir_id_v3=crosswalk.fhir_id(3),
             user_id_type=crosswalk.user_id_type,
