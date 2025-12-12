@@ -3,10 +3,8 @@ import json
 from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
-from rest_framework import exceptions
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.test import BaseApiTest
-from apps.fhir.server.authentication import match_fhir_id
+from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType, MatchFhirIdLookupType
 from apps.versions import Versions
 from apps.fhir.server.tests.responses import responses
 
@@ -62,46 +60,46 @@ class TestAuthentication(BaseApiTest):
         '''
             Testing responses: HICN = success
                                MBI = success
-            Expecting: Match via MBI first / hash_lockup_type="M"
+            Expecting: Match via MBI first / hash_lockup_type=MatchFhirIdLookupType.MBI
         '''
         with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY, Versions.V2)):
-            fhir_id, hash_lookup_type = match_fhir_id(
+            match_fhir_id_result = match_fhir_id(
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash,
                 request=self.request,
                 version=Versions.V2
             )
-            self.assertEqual(fhir_id, '-20000000002346')
-            self.assertEqual(hash_lookup_type, 'M')
+            self.assertEqual(match_fhir_id_result.fhir_id, '-20000000002346')
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
 
     def test_match_fhir_id_hicn_success(self):
         '''
             Testing responses: HICN = success
                                MBI = not_found
-            Expecting: Match via HICN / hash_lockup_type="H"
+            Expecting: Match via HICN / hash_lockup_type=MatchFhirIdLookupType.HICN_HASH
         '''
         with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.NOT_FOUND_KEY, Versions.V2)):
-            fhir_id, hash_lookup_type = match_fhir_id(
+            match_fhir_id_result = match_fhir_id(
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash,
                 request=self.request,
                 version=Versions.V2
             )
-            self.assertEqual(fhir_id, "-20000000002346")
-            self.assertEqual(hash_lookup_type, "H")
+            self.assertEqual(match_fhir_id_result.fhir_id, "-20000000002346")
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.HICN_HASH)
 
     def test_match_fhir_id_mbi_success(self):
         '''
             Testing responses: HICN = not_found
                                MBI = success
-            Expecting: Match via MBI / hash_lockup_type="M"
+            Expecting: Match via MBI / hash_lockup_type=MatchFhirIdLookupType.MBI
         '''
         with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.SUCCESS_KEY, Versions.V2)):
-            fhir_id, hash_lookup_type = match_fhir_id(
+            match_fhir_id_result = match_fhir_id(
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
-            self.assertEqual(fhir_id, "-20000000002346")
-            self.assertEqual(hash_lookup_type, "M")
+            self.assertEqual(match_fhir_id_result.fhir_id, "-20000000002346")
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
 
     def test_match_fhir_id_not_found(self):
         '''
@@ -110,10 +108,14 @@ class TestAuthentication(BaseApiTest):
             Expecting: NotFound exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.NOT_FOUND_KEY, Versions.V2)):
-            with self.assertRaises(exceptions.NotFound):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.error, 'The requested Beneficiary has no entry, however this may change')
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.NOT_FOUND)
 
     def test_match_fhir_id_server_hicn_error(self):
         '''
@@ -122,10 +124,13 @@ class TestAuthentication(BaseApiTest):
             Expecting: HTTPError exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.ERROR_KEY, self.NOT_FOUND_KEY, Versions.V2)):
-            with self.assertRaises(UpstreamServerException):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_server_mbi_error(self):
         '''
@@ -134,10 +139,13 @@ class TestAuthentication(BaseApiTest):
             Expecting: HTTPError exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.ERROR_KEY, Versions.V2)):
-            with self.assertRaises(UpstreamServerException):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_duplicates_hicn(self):
         '''
@@ -145,11 +153,15 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: UpstreamServerException exception raised
         '''
-        with HTTMock(self.create_fhir_mock(self.DUPLICATES_KEY, self.NOT_FOUND_KEY, Versions.V2)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+        with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.ERROR_KEY, Versions.V2)):
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertIn('None for url', match_fhir_id_result.error)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_duplicates_mbi(self):
         '''
@@ -158,10 +170,14 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.DUPLICATES_KEY, Versions.V2)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertIn("Duplicate", match_fhir_id_result.error)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_duplicates_both(self):
         '''
@@ -170,10 +186,14 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.DUPLICATES_KEY, self.DUPLICATES_KEY, Versions.V2)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertIn("Duplicate", match_fhir_id_result.error)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_malformed_hicn(self):
         '''
@@ -182,10 +202,14 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.MALFORMED_KEY, self.NOT_FOUND_KEY, Versions.V2)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected in Patient search:*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertIn('Unexpected in Patient search', match_fhir_id_result.error)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_malformed_mbi(self):
         '''
@@ -194,7 +218,11 @@ class TestAuthentication(BaseApiTest):
             Expecting: UpstreamServerException exception raised
         '''
         with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.MALFORMED_KEY, Versions.V2)):
-            with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected in Patient search:*"):
-                fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi,
-                    hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            match_fhir_id_result = match_fhir_id(
+                mbi=self.test_mbi,
+                hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
+            self.assertIsNone(match_fhir_id_result.fhir_id)
+            self.assertIsNone(match_fhir_id_result.lookup_type)
+            self.assertFalse(match_fhir_id_result.success)
+            self.assertIn('Unexpected in Patient search', match_fhir_id_result.error)
+            self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
