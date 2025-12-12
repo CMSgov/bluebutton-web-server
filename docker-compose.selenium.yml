@@ -6,14 +6,13 @@ services:
     command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
     ports:
       - "8910:8910"
-      - "6789:6789"
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
       - .:/code
     depends_on:
       bb2slsx:
-        condition: service_started
+        condition: service_healthy
       chrome:
         condition: service_started
 
@@ -68,10 +67,10 @@ services:
       - "5678:5678"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://bb2slsx:8000"]
-      interval: 60s
+      interval: 10s
       retries: 5
       start_period: 20s
-      timeout: 20s
+      timeout: 10s
     depends_on:
       msls:
         condition: service_started
