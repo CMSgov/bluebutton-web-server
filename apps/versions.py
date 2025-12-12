@@ -2,7 +2,6 @@
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.
 
-
 class VersionNotMatched(Exception):
     """
     A custom exception to be thrown when we do not match a version.
@@ -23,9 +22,11 @@ class Versions:
     # For now, we are defaulting to v2.
     NOT_AN_API_VERSION = 0
 
+    @staticmethod
     def as_str(version: int):
         return f'v{version}'
 
+    @staticmethod
     def as_int(version: int) -> int:
         match version:
             case Versions.V1:
@@ -37,9 +38,11 @@ class Versions:
             case _:
                 raise VersionNotMatched(f"{version} is not a valid version constant")
 
+    @staticmethod
     def supported_versions():
         return [Versions.V1, Versions.V2, Versions.V3]
 
+    @staticmethod
     def latest_versions():
         return [Versions.V2, Versions.V3]
 
