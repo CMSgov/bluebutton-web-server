@@ -24,3 +24,6 @@ run-local:
 	
 make generate-requirements:
 	cd requirements ; make generate ; cd ..
+
+exec-web:
+	cd dev-local ; make exec-web ; cd ..

@@ -12,8 +12,10 @@ build-local:
     	--platform "linux/amd64" \
     	-t selenium-local:latest \
     	-f Dockerfile.selenium-local ..
-		
+
 run-local:
 	@echo "Configuring for ${ENV}" ; \
 		./run-appropriate-stack.bash
-	
+
+exec-web:
+	docker exec -it `docker ps -aqf "name=.*web.*"` /bin/bash
