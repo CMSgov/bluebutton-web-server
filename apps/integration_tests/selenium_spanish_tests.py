@@ -1,6 +1,8 @@
 from .selenium_generic import SeleniumGenericTests
 from .selenium_cases import SPANISH_TESTS
 from apps.versions import Versions
+from apps.integration_tests.common_utils import screenshot_on_exception
+
 
 USE_NEW_PERM_SCREEN = "true"
 
@@ -15,6 +17,7 @@ class TestPermissionScreenSpanish(SeleniumGenericTests):
     Test Spanish permission screen flow through the built in testclient by
     leveraging selenium web driver (chrome is used)
     '''
+    @screenshot_on_exception
     def test_toggle_language_and_date_format(self):
         step = [0]
         test_name = "toggle_language"
@@ -32,6 +35,7 @@ class TestPermissionScreenSpanish(SeleniumGenericTests):
     testclient using the Selenium web driver (Chrome)
     inject lang=es before direct to login url
     '''
+    @screenshot_on_exception
     def test_authorize_lang_param(self):
         step = [0]
         test_name = "authorize_lang_param"
@@ -49,6 +53,7 @@ class TestPermissionScreenSpanish(SeleniumGenericTests):
     testclient using the Selenium web driver (Chrome)
     direct to login url with lang=es by click on "Authorize as beneficiary (Spanish)" button
     '''
+    @screenshot_on_exception
     def test_authorize_lang_spanish_button(self):
         step = [0]
         test_name = "authorize_lang_spanish_button"

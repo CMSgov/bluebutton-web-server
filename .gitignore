@@ -57,6 +57,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+screenshots/*
 
 # Database
 *.db
