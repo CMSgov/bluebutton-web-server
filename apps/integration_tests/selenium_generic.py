@@ -3,6 +3,7 @@ import time
 import re
 
 from datetime import datetime, timedelta
+from typing import override
 from dateutil.relativedelta import relativedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -37,6 +38,7 @@ class SeleniumGenericTests:
     '''
     driver_ready = False
 
+    @override
     def setup_method(self, method):
         # a bit waiting for selenium services ready for sure
         if not SeleniumGenericTests.driver_ready:
@@ -46,6 +48,7 @@ class SeleniumGenericTests:
         else:
             print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.environment = os.getenv('TARGET_ENV', '')
         self.on_remote_ci = os.getenv('ON_REMOTE_CI', 'false')
         self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', "chrome")
         self.selenium_grid = os.getenv('SELENIUM_GRID', "false")
@@ -100,6 +103,7 @@ class SeleniumGenericTests:
             Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param
         }
 
+    @override
     def teardown_method(self, method):
         self.driver.quit()
 
@@ -257,3 +261,16 @@ class SeleniumGenericTests:
                         self.actions[action](*s.get("params", []), **kwargs)
                 else:
                     raise ValueError("Invalid test case, expect dict with action...")
+
+    def screenshot_failure(self, func):
+        """
+        A decorator to take screenshot upon test failure
+        """
+        def wrapper(self, *args, **kwargs):
+            try:
+                func(self, *args, **kwargs)
+            except Exception as e:
+                print(e)
+                now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                self.driver.get_screenshot_as_file('screenshot-%s.png' % now)
+        return wrapper

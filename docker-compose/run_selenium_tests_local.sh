@@ -11,8 +11,8 @@
 # SETTINGS:  You may need to customize these for your local setup.
 
 export CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
-export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
-
+export DJANGO_FHIR_CERTSTORE="/certstore"
+export TARGET_ENV="dev"
 # BB2 service end point default
 export HOSTNAME_URL="http://bb2slsx:8000"
 
@@ -41,6 +41,7 @@ display_usage() {
     echo "-h     Print this Help."
     echo "-g     Selenium grid used - hub on port 4444."
     echo "-t     Show test case actions on std out."
+    echo "-d     Enable debugpy debugging (port 6789)."
     echo
 }
 
@@ -75,19 +76,19 @@ set -e -u -o pipefail
 export USE_MSLSX=true
 export USE_NEW_PERM_SCREEN=true
 export SERVICE_NAME="selenium-tests"
-export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
+export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export BB2_SERVER_STD2FILE=""
 # selenium grid
 export SELENIUM_GRID=false
 # Show test actions on std out : pytest -s
 PYTEST_SHOW_TRACE_OPT=''
-
-# this seems been overridden by set_msls below - comment out for removal
-# set_slsx
+# Debug mode
+DEBUG_MODE=false
+DEBUG_CMD=''
 
 # Parse command line option
-while getopts "hgt" option; do
+while getopts "hgtd" option; do
    case $option in
       h)
          display_usage
@@ -96,19 +97,24 @@ while getopts "hgt" option; do
         export SELENIUM_GRID=true;;
       t)
         export PYTEST_SHOW_TRACE_OPT='-s';;
+      d)
+        DEBUG_MODE=true;;
      \?)
          display_usage
          exit;;
    esac
 done
 
-eval last_arg=\$$#
+# Shift to get non-option arguments
+shift $((OPTIND-1))
+
+eval last_arg=\${1:-}
 
 # the default is to use mock login - e.g. for account mgmt tests and logging integration tests
 set_msls
 
 # Parse command line option
-if [ $# -eq 0 ]
+if [ -z "$last_arg" ]
 then
   echo "Use Mock SLS for identity service."
 else
@@ -149,6 +155,7 @@ fi
 echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
 echo "HOSTNAME_URL: " ${HOSTNAME_URL}
 echo "Selenium grid=" ${SELENIUM_GRID}
+echo "Debug mode=" ${DEBUG_MODE}
 
 # Set SYSTEM
 SYSTEM=$(uname -s)
@@ -224,7 +231,13 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
-docker compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
+# Set debug command if debug mode is enabled
+if [ "$DEBUG_MODE" = true ]; then
+    DEBUG_CMD="python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client -m "
+    echo_msg "DEBUG MODE ENABLED - Debugger will wait for client on port 6789"
+fi
+
+docker compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} ${DEBUG_CMD}pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg
