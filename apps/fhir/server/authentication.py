@@ -3,7 +3,6 @@ import os
 from django.conf import settings
 from urllib.parse import quote
 from typing import NamedTuple, Optional
-from enum import Enum
 
 from apps.versions import Versions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
@@ -112,26 +111,52 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
                 raise e
 
 
-class LookupType(Enum):
-    """Enum for FHIR ID lookup method"""
+class MatchFhirIdLookupType():
+    """Constants for FHIR ID lookup method"""
     MBI = 'M'
     HICN_HASH = 'H'
+
+
+class MatchFhirIdErrorType():
+    """Constants for error types in MatchFhirIdResult"""
+    UPSTREAM = 'upstream'
+    NOT_FOUND = 'not_found'
 
 
 class MatchFhirIdResult(NamedTuple):
     """Result of attempting to match a FHIR ID"""
     success: bool
     fhir_id: Optional[str] = None
-    lookup_type: Optional[LookupType] = None
+    lookup_type: Optional[MatchFhirIdLookupType] = None
     error: Optional[str] = None
-    error_type: Optional[str] = None  # 'upstream', 'not_found', etc.
+    error_type: Optional[MatchFhirIdErrorType] = None  # 'upstream', 'not_found', etc.
 
 
 def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION) -> MatchFhirIdResult:
     """Matches a patient identifier via the backend FHIR server using an MBI or HICN hash.
+        - Perform primary lookup using mbi.
+        - If there is an mbi lookup issue, raise exception.
+        - Perform secondary lookup using HICN_HASH
+        - If there is a hicn_hash lookup issue, raise exception.
+        - A NotFound exception is raised, if no match was found.
 
-    Returns:
-        MatchFhirIdResult with success flag and either fhir_id/lookup_type or error details
+      Args:
+        mbi (string): the mbi of the user
+        hicn_hash (string): the hashed hicn of the user
+        version (int): Current API version for this call
+        request (HttpRequest, optional): the Django request
+
+      Returns:
+        MatchFhirIdResult: A NamedTuple with the following fields:
+            success (bool): True if a match was found, False otherwise
+            fhir_id (Optional[str]): The matched FHIR ID, if found
+            lookup_type (Optional[LookupType]): The type of lookup used to find the FHIR ID
+            error (Optional[str]): Error message if the match was not successful
+            error_type (Optional[str]): Type of error if the match was not successful
+
+      Raises:
+        UpstreamServerException: If hicn_hash or mbi search found duplicates.
+        NotFound: If both searches did not match a fhir_id.
     """
     # Perform primary lookup using MBI
     if mbi:
@@ -139,22 +164,28 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request, version)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
+            # Don't return a 404 because retrying later will not fix this.
             return MatchFhirIdResult(
                 success=False,
                 error=str(err.detail),
-                error_type=UpstreamServerException
+                error_type=MatchFhirIdErrorType.UPSTREAM
             )
 
         if fhir_id:
+            # Found beneficiary!
             log_match_fhir_id(request, fhir_id, hicn_hash, True, 'M',
                               'FOUND beneficiary via user_mbi')
             return MatchFhirIdResult(
                 success=True,
                 fhir_id=fhir_id,
-                lookup_type=LookupType.MBI
+                lookup_type=MatchFhirIdLookupType.MBI
             )
 
     # Perform secondary lookup using HICN_HASH
+    # WE CANNOT DO A HICN HASH LOOKUP FOR V3, but there are tests that rely on a null MBI
+    # and populated hicn_hash, which now execute on v3 (due to updates in get_and_update_user)
+    # so we need to leave this conditional as is for now, until the test is modified and/or hicn_hash is removed
+    # if version in [Versions.V1, Versions.V2] and hicn_hash:
     if hicn_hash:
         try:
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
@@ -163,7 +194,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return MatchFhirIdResult(
                 success=False,
                 error=str(err.detail),
-                error_type=UpstreamServerException
+                error_type=MatchFhirIdErrorType.UPSTREAM
             )
 
         if fhir_id:
@@ -172,14 +203,14 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return MatchFhirIdResult(
                 success=True,
                 fhir_id=fhir_id,
-                lookup_type=LookupType.HICN_HASH
+                lookup_type=str(MatchFhirIdLookupType.HICN_HASH)
             )
 
     log_match_fhir_id(request, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
     return MatchFhirIdResult(
         success=False,
         error='The requested Beneficiary has no entry, however this may change',
-        error_type='not_found'
+        error_type=MatchFhirIdErrorType.NOT_FOUND
     )
 
 
