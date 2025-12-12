@@ -6,6 +6,10 @@ set -a
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
+    
+    echo "🔵 running makemigrations"
+    python manage.py makemigrations
+
     echo "🔵 running migrations"
     python manage.py migrate
 
@@ -20,6 +24,7 @@ then
     else
         echo "🆗 ${SUPER_USER_NAME} already exists."
     fi
+
 
     python manage.py create_test_feature_switches
     echo "🆗 create_test_feature_switches"
