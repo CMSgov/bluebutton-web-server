@@ -6,13 +6,14 @@ services:
     command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
     ports:
       - "8910:8910"
+      - "6789:6789"
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
       - .:/code
     depends_on:
       bb2slsx:
-        condition: service_healthy
+        condition: service_started
       chrome:
         condition: service_started
 
@@ -24,7 +25,9 @@ services:
       - "5900:5900"
 
   msls:
-    build: ./dev-local
+    build:
+      context: ./msls-local
+      dockerfile: Dockerfile.msls
     command: bash -c "python -m debugpy --listen 0.0.0.0:7890 app.py"
     ports:
       - "8080:8080"

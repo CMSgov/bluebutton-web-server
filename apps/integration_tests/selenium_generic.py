@@ -35,6 +35,8 @@ class SeleniumGenericTests:
     '''
     A base selenium tests to be extended by
     other selenium tests covering functional areas
+
+    This is run via pytest, so setup_method and teardown_method are called implicitly
     '''
     driver_ready = False
 

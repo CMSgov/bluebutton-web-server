@@ -6,11 +6,11 @@ import os
 from jsonschema import validate
 
 
-def screenshot_on_exception(f):
-    @wraps(f)
-    def take_screenshot_on_failure(self, *args, **kwargs):
+def screenshot_on_exception(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
         try:
-            return f(self, *args, **kwargs)
+            return func(self, *args, **kwargs)
         except Exception as outer_exception:
             # If an exception occurs, get a screenshot
             webdriver = getattr(self, 'driver')
@@ -18,13 +18,13 @@ def screenshot_on_exception(f):
                 try:
                     os.makedirs('screenshots', exist_ok=True)
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = f'screenshots/{self.__class__.__name__}_{f.__name__}_{timestamp}.png'
+                    filename = f'screenshots/{self.__class__.__name__}_{func.__name__}_{timestamp}.png'
                     webdriver.save_screenshot(filename)
                     print(f"Screenshot saved: {filename}")
                 except Exception as screenshot_error:
                     print(f"Failed to capture screenshot: {screenshot_error}")
             raise outer_exception
-    return take_screenshot_on_failure
+    return wrapper
 
 
 def validate_json_schema(schema, content):
