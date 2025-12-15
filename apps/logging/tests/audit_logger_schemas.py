@@ -372,7 +372,7 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
     'title': 'MyMedicareCbGetUpdateBeneLogSchema',
     'type': 'object',
     'properties': {
-        'type': {'type': 'string', 'pattern': '^mymedicare_cb:get_and_update_user$'},
+        'type': {'type': 'string', 'pattern': '^mymedicare_cb:get_and_update_user_(initial_auth|refresh)$'},
         'status': {'type': 'string', 'pattern': '^OK$'},
         'subject': {
             'type': 'string',

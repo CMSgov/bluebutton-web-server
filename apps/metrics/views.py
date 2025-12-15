@@ -172,9 +172,9 @@ class AppMetricsSerializer(ModelSerializer):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
 
         real_cnt = Crosswalk.real_objects.filter(
-            user__in=[item['user'] for item in distinct]).values('user', '_fhir_id').count()
+            user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
         synth_cnt = Crosswalk.synth_objects.filter(
-            user__in=[item['user'] for item in distinct]).values('user', '_fhir_id').count()
+            user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
 
         return ({'real': real_cnt, 'synthetic': synth_cnt})
 
