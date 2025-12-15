@@ -215,7 +215,7 @@ class ArchivedCrosswalk(models.Model):
     This model is used to keep an audit copy of a Crosswalk record's
     previous values when there are changes to the original.
 
-    This is performed via code in the 'get_and_update_user()' function
+    This is performed via code in the '__get_and_update_user()' function
     in apps/mymedicare_cb/models.py
     Attributes:
         user: auth_user.id
