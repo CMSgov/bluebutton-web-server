@@ -26,11 +26,15 @@ WORKDIR /code
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install --upgrade \
-    pip \
-    pip-tools \
-    setuptools
-    
+RUN pip install --upgrade pip pip-tools setuptools
+
+# THE NOW
+RUN pip install \
+    -r requirements/requirements.dev.txt \
+    --no-index \
+    --find-links /code/vendor/
+
+# NEXT STEPS
 # https://pip.pypa.io/en/stable/topics/secure-installs/
 # https://www.b-list.org/weblog/2023/dec/07/pip-install-safely/
 #
@@ -40,8 +44,9 @@ RUN pip install --upgrade \
 # some are .tar.gz. We can *prefer* binary, but can't force it.
 #
 # We will iterate towards --only-binary.
-RUN pip install \
-    --require-hashes \
-    --no-deps \
-    --prefer-binary \
-    -r requirements/requirements.dev.txt
+# RUN pip install \
+#     --require-hashes \
+#     --no-deps \
+#     --prefer-binary \
+#     -r requirements/requirements.dev.txt
+

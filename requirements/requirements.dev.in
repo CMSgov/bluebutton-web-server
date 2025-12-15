@@ -11,4 +11,4 @@ selenium == 4.16.0
 setuptools-scm == 6.4.2 # was setuptools_scm<7,>=3.2
 # Not sure why we don't pin this harder.
 # Leaving setuptools alone.
-setuptools >= 40.8.0
+setuptools == 80.9.0

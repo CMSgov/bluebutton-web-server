@@ -250,7 +250,6 @@ django==4.2.27 \
     #   django-localflavor
     #   django-oauth-toolkit
     #   django-ses
-    #   django-settings-export
     #   django-storages
     #   djangorestframework
 django-axes==5.41.1 \
@@ -291,9 +290,6 @@ django-ses==3.5.0 \
     --hash=sha256:3522fe531155eb06bb015b3b36324c059194450633b33f9bd5bc9d1328822fe2 \
     --hash=sha256:dc1644f50608fbf3a64f085a371c61d56d68eba3c5efa69651f13dc3ba05049d
     # via -r /requirements/requirements.in
-django-settings-export==1.2.1 \
-    --hash=sha256:fceeae49fc597f654c1217415d8e049fc81c930b7154f5d8f28c432db738ff79
-    # via -r /requirements/requirements.in
 django-storages==1.13.2 \
     --hash=sha256:31dc5a992520be571908c4c40d55d292660ece3a55b8141462b4e719aa38eab3 \
     --hash=sha256:cbadd15c909ceb7247d4ffc503f12a9bec36999df8d0bef7c31e57177d512688
@@ -308,8 +304,9 @@ djangorestframework==3.15.2 \
     # via
     #   -r /requirements/requirements.in
     #   djangorestframework-csv
-djangorestframework-csv==2.1.1 \
-    --hash=sha256:aa0ee4c894fe319c68e042b05c61dace43a9fb6e6872e1abe1724ca7ea4d15f7
+djangorestframework-csv==3.0.0 \
+    --hash=sha256:46b39864f68cf42e7357a8be6109a85d484be52d6d8720bfac5e62163ec1a300 \
+    --hash=sha256:d6b2ee9a5fc62f98f6f4af241928836e2a2efab384d33def8ec722f9301602bf
     # via -r /requirements/requirements.in
 idna==3.7 \
     --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
@@ -645,7 +642,6 @@ six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
     #   -r /requirements/requirements.in
-    #   djangorestframework-csv
     #   python-dateutil
 soupsieve==2.4.1 \
     --hash=sha256:1c1bfee6819544a3447586c889157365a27e10d88cde3ad3da0cf0ddf646feb8 \
@@ -666,9 +662,6 @@ typing-extensions==4.5.0 \
     #   -r /requirements/requirements.in
     #   dj-database-url
     #   jwcrypto
-unicodecsv==0.14.1 \
-    --hash=sha256:018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc
-    # via djangorestframework-csv
 urllib3==1.26.19 \
     --hash=sha256:37a0344459b199fce0e80b0d3569837ec6b6937435c5244e7fd73fa6006830f3 \
     --hash=sha256:3e3d753a8618b86d7de333b4223005f68720bcd6a7d2bcb9fbd2229ec7c1e429
