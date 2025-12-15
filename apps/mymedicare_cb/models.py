@@ -82,7 +82,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     versioned_fhir_ids = {}
     for supported_version in Versions.latest_versions():
         match_fhir_id_result = match_fhir_id(
-            mbi=slsx_client.mbi,
+            mbi=mbi,
             hicn_hash=hicn_hash,
             request=request,
             version=supported_version,
