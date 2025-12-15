@@ -11,7 +11,6 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
-from rest_framework.exceptions import NotFound
 from apps.dot_ext.utils import get_api_version_number_from_url
 
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
@@ -81,7 +80,6 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     # (NotFound), treat that as no FHIR id available and continue.
 
     versioned_fhir_ids = {}
-    hash_lookup_type = None
     for supported_version in Versions.latest_versions():
         match_fhir_id_result = match_fhir_id(
             mbi=slsx_client.mbi,
