@@ -323,8 +323,6 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
             user=user,
             user_hicn_hash=slsx_client.hicn_hash,
             user_mbi=slsx_client.mbi,
-            # TODO - remove this before removing fhir_id field from Crosswalk
-            _fhir_id=fhir_id_v2,
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             user_id_type=user_id_type,
