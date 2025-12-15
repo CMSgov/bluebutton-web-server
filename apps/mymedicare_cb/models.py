@@ -166,8 +166,8 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 # Update crosswalk per changes
                 # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
                 user.crosswalk.user_id_type = match_fhir_id_result.lookup_type
-                user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
-                user.crosswalk.user_mbi = slsx_client.mbi
+                user.crosswalk.user_hicn_hash = hicn_hash
+                user.crosswalk.user_mbi = mbi
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
