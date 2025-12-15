@@ -111,13 +111,13 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
                 raise e
 
 
-class MatchFhirIdLookupType():
+class MatchFhirIdLookupType:
     """Constants for FHIR ID lookup method"""
     MBI = 'M'
     HICN_HASH = 'H'
 
 
-class MatchFhirIdErrorType():
+class MatchFhirIdErrorType:
     """Constants for error types in MatchFhirIdResult"""
     UPSTREAM = 'upstream'
     NOT_FOUND = 'not_found'

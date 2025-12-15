@@ -10,7 +10,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
-from apps.fhir.server.authentication import match_fhir_id
+from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType
 from apps.dot_ext.utils import get_api_version_number_from_url
 
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
@@ -89,15 +89,14 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         )
 
         # If we found a fhir_id for this version, store it
-        print(f'match_fhir_id_result : {match_fhir_id_result}')
         if match_fhir_id_result.success:
             versioned_fhir_ids[supported_version] = match_fhir_id_result.fhir_id
         else:
             # If there is not a fhir_id found for the requested version, then we want to raise an exception
-            if match_fhir_id_result.error_type == 'upstream':
+            if match_fhir_id_result.error_type == MatchFhirIdErrorType.UPSTREAM:
                 if supported_version == version:
                     raise UpstreamServerException(match_fhir_id_result.error)
-            elif match_fhir_id_result.error_type == 'not_found':
+            elif match_fhir_id_result.error_type == MatchFhirIdErrorType.NOT_FOUND:
                 # Intuitively, this should be the main thing we'd care about and seems wrong
                 # However, we previously were just only checking for upstream errors
                 # It would be more preferable to actually raise a NotFound error here
@@ -115,7 +114,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         'subject': user_id,
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
-        'hicn_hash': slsx_client.hicn_hash,
+        'hicn_hash': hicn_hash,
         'hash_lookup_type': match_fhir_id_result.lookup_type,
         'crosswalk': {},
         'crosswalk_before': {},
@@ -142,8 +141,8 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
         if (
-            (user.crosswalk.user_mbi is None and slsx_client.mbi is not None)
-            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != slsx_client.mbi)
+            (user.crosswalk.user_mbi is None and mbi is not None)
+            or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
             or (user.crosswalk.user_id_type != match_fhir_id_result.lookup_type or hicn_updated)
             or update_fhir_id
         ):
@@ -165,6 +164,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                     user.crosswalk.fhir_id_v2 = bfd_fhir_id_v2
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
+                # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
                 user.crosswalk.user_id_type = match_fhir_id_result.lookup_type
                 user.crosswalk.user_hicn_hash = slsx_client.hicn_hash
                 user.crosswalk.user_mbi = slsx_client.mbi
@@ -189,6 +189,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
 
         return user, 'R'
     except User.DoesNotExist:
+        # If we don't have an slsx_client, this is the refresh flow.
         pass
 
     user = create_beneficiary_record(
