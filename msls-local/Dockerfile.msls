@@ -1,4 +1,4 @@
-FROM python:3.14-trixie
+FROM python:3.11-trixie
 
 ENV PYTHONUNBUFFERED=1
 

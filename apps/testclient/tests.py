@@ -129,13 +129,15 @@ class BlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         jr = response.json()
-        self.assertEqual(jr["patient"], self.patient)
+        if version in Versions.supported_versions():
+            self.assertEqual(jr["patient"], self.patient)
         self.assertEqual(jr["sub"], self.username)
 
     def test_get_userinfo_v2(self):
         self._test_get_userinfo(Versions.V2)
 
     # TODO BB-4208: Introduce v3 tests when ready
+    # @override_switch('v3_endpoints', active=True)
     # def test_get_userinfo_v3(self):
     #     self._test_get_userinfo(Versions.V3)
 
@@ -370,6 +372,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["coverage_uri"],
             self.patient,
         )
+
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Coverage")
@@ -379,6 +382,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         self._test_get_coverage(Versions.V2)
 
     # TODO BB-4208: Introduce v3 tests when ready
+    # @override_switch('v3_endpoints', active=True)
     # def test_get_coverage_v3(self):
     #     self._test_get_coverage(Versions.V3)
 
@@ -391,6 +395,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["coverage_uri"],
             self.another_patient,
         )
+
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 403)
 
@@ -400,6 +405,19 @@ class BlueButtonClientApiFhirTest(TestCase):
     # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_coverage_negative_v3(self):
     #     self._test_get_coverage_negative(Versions.V3)
+
+    # @override_switch('v3_endpoints', active=True)
+    # def test_get_digital_insurance_card(self):
+    #     """
+    #     Test DigitalInsuranceCard for CARIN C4DIC data from BFD
+    #     """
+    #     self.versionedSetUp(Versions.V3)
+    #     uri = "%s" % (
+    #         self.testclient_setup["digital_insurance_card_uri"],
+    #     )
+    #     response = self.client.get(uri)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertContains(response, "Bundle")
 
 
 @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")

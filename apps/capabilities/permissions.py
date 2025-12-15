@@ -16,7 +16,7 @@ class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
 
 class TokenHasProtectedCapability(permissions.BasePermission):
 
-    def has_permission(self, request, view):
+    def has_permission(self, request, view) -> bool:  # type: ignore
         token = request.auth
         access_token_query_param = request.GET.get("access_token", None)
 
@@ -51,6 +51,7 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                         return True
                     if re.fullmatch(path, request.path) is not None:
                         return True
+
             return False
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
