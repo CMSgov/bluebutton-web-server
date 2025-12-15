@@ -8,7 +8,10 @@ build:
 generate: clean build
 	docker run \
 		-v ./generate.bash:/requirements/generate.bash \
-		-v .:/output -t bb-requirements:latest 
+		-v ../vendor:/vendor \
+		-v .:/output \
+		-t bb-requirements:latest
+		
 
 clean:
 	@echo Removing old requirements files
