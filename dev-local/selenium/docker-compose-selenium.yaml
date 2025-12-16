@@ -2,19 +2,16 @@ services:
   ####################
   # Local Selenium Server
   selenium-tests:
-    build:
-      dockerfile: selenium/Dockerfile.selenium
+    image: selenium-local:latest
     command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
     ports:
       - "8910:8910"
       - "6789:6789"
     env_file:
-      - selenium/.env.selenium
+      - .env.selenium
     volumes:
       - ../..:/code
     depends_on:
-      web:
-        condition: service_healthy
       chrome:
         condition: service_started
     networks:

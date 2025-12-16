@@ -18,6 +18,10 @@ run-local:
 exec-web:
 	docker exec -it `docker ps -aqf "name=.*web.*"` /bin/bash
 
-selenium-local:
+run-selenium:
 	@echo "Running Selenium: Local"
-	cd selenium && make all && make run-local auth=$(AUTH)
+	cd selenium && make run-local
+
+build-selenium:
+	@echo "Running Selenium: Local"
+	cd selenium && make build-local

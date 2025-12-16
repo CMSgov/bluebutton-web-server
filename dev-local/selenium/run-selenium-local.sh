@@ -5,24 +5,26 @@ cd ..
 source ./utility-functions.bash
 set -e -u -o pipefail
 
-AUTH=${1:-mock}
-
-echo "Checking if dev-local services are running..."
+echo "Checking if Blue Button is running..."
 
 # Check if web service is running
+# TODO: Possible to start them intelligently? Attempts were made, but it always tried to /recreate/ web, which would fail to set
+# env variables correctly
 if ! docker ps --format '{{.Names}}' | grep -q "dev-local.*web"; then
-    echo "Development environment is not running"
-	echo "Attempting to start dev environment..."
-    make run-local auth=$AUTH bfd=sbx daemon=1
+    echo "Blue Button is not running."
+	echo "Please start Blue Button before running selenium tests."
+	echo "Exiting..."
+	exit 1
 fi
 
-echo "Dev-local services are running. Starting selenium tests..."
+echo "Blue Button is running. Starting selenium tests..."
 
+echo $(pwd)
 # Capture exit code and always cleanup
-docker-compose -f docker-compose-local.yaml -f selenium/docker-compose-selenium.yaml run --rm selenium-tests
+docker-compose -f selenium/docker-compose-selenium.yaml run --rm selenium-tests
 EXIT_CODE=$?
 
-docker-compose -f docker-compose-local.yaml -f selenium/docker-compose-selenium.yaml down
+docker-compose -f selenium/docker-compose-selenium.yaml down
 
 exit $EXIT_CODE
 

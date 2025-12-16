@@ -4,12 +4,15 @@
 all: build-local
 
 build-local:
-	@echo "Building selenium image"
-	cd .. && docker-compose -f docker-compose-local.yaml -f selenium/docker-compose-selenium.yaml build
+	@echo "Building Selenium Image"
+	docker build \
+		--platform "linux/amd64" \
+		-t selenium-local:latest \
+		-f Dockerfile.selenium .
 
 run-local:
 	@echo "Running Selenium: Local"
-	./run-selenium-local.sh $(AUTH)
+	./run-selenium-local.sh
 
 run-remote:
 	@echo "Running Selenium: Remote"
