@@ -6,7 +6,7 @@
 		{% load i18n %}
 
 		<title>
-			{% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+			{% block title %} {{export_settings.APPLICATION_TITLE}} {% endblock %}
 		</title>
 
 		{% block head %}
@@ -76,11 +76,11 @@
       }
 
     function toggleLanguage() {
-        var lang = getCookie("{{settings.LANGUAGE_COOKIE_NAME}}");
+        var lang = getCookie("{{export_settings.LANGUAGE_COOKIE_NAME}}");
         if(lang == 'en' || lang == null) {
-            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'es')
+            setCookie("{{export_settings.LANGUAGE_COOKIE_NAME}}", 'es')
         } else {
-            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'en')
+            setCookie("{{export_settings.LANGUAGE_COOKIE_NAME}}", 'en')
         }
         window.location.reload();
     }
