@@ -167,6 +167,10 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
                 if match_fhir_id_result.lookup_type is not None:
                     user.crosswalk.user_id_type = match_fhir_id_result.lookup_type
+                # Only update the HICN hash if we actually have a value.
+                # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
+                # so writing None into the non-nullable DB column would cause
+                # an integrity error. Only assign when non-None.
                 if hicn_hash is not None:
                     user.crosswalk.user_hicn_hash = hicn_hash
                 if mbi is not None:
@@ -193,7 +197,21 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         return user, 'R'
     except User.DoesNotExist:
         # If we don't have an slsx_client, this is the refresh flow.
-        pass
+        # Do NOT attempt to create a beneficiary record here — creation requires
+        # data from an SLSx client and is only valid during initial auth.
+        if slsx_client is None:
+            log_dict.update({
+                'status': 'FAIL',
+                'user_id': user_id,
+                'mesg': 'User not found on refresh; not creating new beneficiary record',
+            })
+            logger.info(log_dict)
+            return None, 'NF'
+
+        # This should only happen if no user exists which would mean this is an initial auth
+        # In this case, slsx_client would be provided
+        # Always pass the discovered fhir_id_v3 when available so the created crosswalk
+        # will populate `fhir_id_v3` even if the session/API version was v2.
 
     user = create_beneficiary_record(
         slsx_client,
