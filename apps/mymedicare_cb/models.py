@@ -143,7 +143,8 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         if (
             (user.crosswalk.user_mbi is None and mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-            or (user.crosswalk.user_id_type != match_fhir_id_result.lookup_type or hicn_updated)
+            or user.crosswalk.user_id_type != match_fhir_id_result.lookup_type 
+            or hicn_updated
             or update_fhir_id
         ):
             # Log crosswalk before state
