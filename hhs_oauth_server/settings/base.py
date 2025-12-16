@@ -299,7 +299,6 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # REMOVE SETTINGSEXPORT "django_settings_export.settings_export",
                 'hhs_oauth_server.settings.context_processors.export_settings',
                 "hhs_oauth_server.hhs_oauth_server_context.active_apps",
             ],
@@ -574,36 +573,6 @@ HOSTNAME_URL = env("HOSTNAME_URL", "http://localhost:8000")
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = "utf-8"
-
-# include settings values in SETTING_EXPORT to use values in Templates.
-# eg. {{ settings.APPLICATION_TITLE }}
-# REMOVE SETTINGSEXPORT
-# SETTINGS_EXPORT = [
-#     "DEBUG",
-#     "ALLOWED_HOSTS",
-#     "APPLICATION_TITLE",
-#     "THEME",
-#     "STATIC_URL",
-#     "STATIC_ROOT",
-#     "MEDIA_URL",
-#     "MEDIA_ROOT",
-#     "DEVELOPER_DOCS_URI",
-#     "DEVELOPER_DOCS_TITLE",
-#     "ORGANIZATION_TITLE",
-#     "POLICY_URI",
-#     "POLICY_TITLE",
-#     "DISCLOSURE_TEXT",
-#     "TOS_URI",
-#     "TOS_TITLE",
-#     "TAG_LINE_1",
-#     "TAG_LINE_2",
-#     "EXPLAINATION_LINE",
-#     "EXTERNAL_AUTH_NAME",
-#     "ALLOW_END_USER_EXTERNAL_AUTH",
-#     "OPTIONAL_INSTALLED_APPS",
-#     "INSTALLED_APPS",
-#     "LANGUAGE_COOKIE_NAME"
-# ]
 
 SESSION_COOKIE_AGE = 5400
 SESSION_COOKIE_SECURE = env("DJANGO_SECURE_SESSION", True)

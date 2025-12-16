@@ -18,7 +18,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # REMOVE SETTINGSEXPORT 'django_settings_export.settings_export',
                 'hhs_oauth_server.settings.context_processors.export_settings',
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
