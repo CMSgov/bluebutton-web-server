@@ -1,0 +1,35 @@
+services:
+  ####################
+  # Local Selenium Server
+  selenium-tests:
+    build:
+      dockerfile: selenium/Dockerfile.selenium
+    command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
+    ports:
+      - "8910:8910"
+      - "6789:6789"
+    env_file:
+      - selenium/.env.selenium
+    volumes:
+      - ../..:/code
+    depends_on:
+      web:
+        condition: service_healthy
+      chrome:
+        condition: service_started
+    networks:
+      - dev-local_default  
+  ####################
+  # Chrome for Selenium Remote
+  chrome:
+    image: selenium/standalone-chromium
+    hostname: chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"
+    networks:
+      - dev-local_default
+
+networks:
+  dev-local_default:
+    external: true

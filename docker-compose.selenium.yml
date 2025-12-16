@@ -6,6 +6,7 @@ services:
     command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
     ports:
       - "8910:8910"
+      - "6789:6789"
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
