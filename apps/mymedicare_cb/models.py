@@ -143,7 +143,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         if (
             (user.crosswalk.user_mbi is None and mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-            or user.crosswalk.user_id_type != match_fhir_id_result.lookup_type 
+            or user.crosswalk.user_id_type != match_fhir_id_result.lookup_type
             or hicn_updated
             or update_fhir_id
         ):
@@ -214,13 +214,13 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # Always pass the discovered fhir_id_v3 when available so the created crosswalk
         # will populate `fhir_id_v3` even if the session/API version was v2.
 
-    user = create_beneficiary_record(
-        slsx_client,
-        fhir_id_v2=bfd_fhir_id_v2,
-        fhir_id_v3=bfd_fhir_id_v3,
-        user_id_type=match_fhir_id_result.lookup_type,
-        request=request
-    )
+        user = create_beneficiary_record(
+            slsx_client,
+            fhir_id_v2=bfd_fhir_id_v2,
+            fhir_id_v3=bfd_fhir_id_v3,
+            user_id_type=match_fhir_id_result.lookup_type,
+            request=request
+        )
 
     log_dict.update({
         'status': 'OK',
