@@ -1,8 +1,8 @@
 import requests
 import os
 from django.conf import settings
-from rest_framework import exceptions
 from urllib.parse import quote
+from typing import NamedTuple, Optional
 
 from apps.versions import Versions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
@@ -111,7 +111,28 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
                 raise e
 
 
-def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION):
+class MatchFhirIdLookupType:
+    """Constants for FHIR ID lookup method"""
+    MBI = 'M'
+    HICN_HASH = 'H'
+
+
+class MatchFhirIdErrorType:
+    """Constants for error types in MatchFhirIdResult"""
+    UPSTREAM = 'upstream'
+    NOT_FOUND = 'not_found'
+
+
+class MatchFhirIdResult(NamedTuple):
+    """Result of attempting to match a FHIR ID"""
+    success: bool
+    fhir_id: Optional[str] = None
+    lookup_type: Optional[MatchFhirIdLookupType] = None
+    error: Optional[str] = None
+    error_type: Optional[MatchFhirIdErrorType] = None  # 'upstream', 'not_found', etc.
+
+
+def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION) -> MatchFhirIdResult:
     """Matches a patient identifier via the backend FHIR server using an MBI or HICN hash.
         - Perform primary lookup using mbi.
         - If there is an mbi lookup issue, raise exception.
@@ -126,8 +147,12 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         request (HttpRequest, optional): the Django request
 
       Returns:
-        fhir_id = Matched patient identifier.
-        hash_lookup_type = The type used for the successful lookup (M or H).
+        MatchFhirIdResult: A NamedTuple with the following fields:
+            success (bool): True if a match was found, False otherwise
+            fhir_id (Optional[str]): The matched FHIR ID, if found
+            lookup_type (Optional[LookupType]): The type of lookup used to find the FHIR ID
+            error (Optional[str]): Error message if the match was not successful
+            error_type (Optional[str]): Type of error if the match was not successful
 
       Raises:
         UpstreamServerException: If hicn_hash or mbi search found duplicates.
@@ -140,13 +165,21 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
-            raise UpstreamServerException(err.detail)
+            return MatchFhirIdResult(
+                success=False,
+                error=str(err.detail),
+                error_type=MatchFhirIdErrorType.UPSTREAM
+            )
 
         if fhir_id:
             # Found beneficiary!
             log_match_fhir_id(request, fhir_id, hicn_hash, True, 'M',
                               'FOUND beneficiary via user_mbi')
-            return fhir_id, 'M'
+            return MatchFhirIdResult(
+                success=True,
+                fhir_id=fhir_id,
+                lookup_type=MatchFhirIdLookupType.MBI
+            )
 
     # Perform secondary lookup using HICN_HASH
     # WE CANNOT DO A HICN HASH LOOKUP FOR V3, but there are tests that rely on a null MBI
@@ -158,17 +191,27 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, hicn_hash, False, 'H', str(err))
-            # Don't return a 404 because retrying later will not fix this.
-            raise UpstreamServerException(err.detail)
+            return MatchFhirIdResult(
+                success=False,
+                error=str(err.detail),
+                error_type=MatchFhirIdErrorType.UPSTREAM
+            )
 
         if fhir_id:
-            # Found beneficiary!
             log_match_fhir_id(request, fhir_id, hicn_hash, True, 'H',
                               'FOUND beneficiary via hicn_hash')
-            return fhir_id, 'H'
+            return MatchFhirIdResult(
+                success=True,
+                fhir_id=fhir_id,
+                lookup_type=str(MatchFhirIdLookupType.HICN_HASH)
+            )
 
     log_match_fhir_id(request, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
-    raise exceptions.NotFound('The requested Beneficiary has no entry, however this may change')
+    return MatchFhirIdResult(
+        success=False,
+        error='The requested Beneficiary has no entry, however this may change',
+        error_type=MatchFhirIdErrorType.NOT_FOUND
+    )
 
 
 def _validate_patient_search_result(bundle_of_patients):
