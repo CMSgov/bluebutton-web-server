@@ -23,6 +23,7 @@ from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
+from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
@@ -166,6 +167,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'client_id': application.client_id,
                 'redirect_uri': 'http://test.com',
                 'response_type': 'code',
+                'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+                'state': '01234567890123456789'
             },
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
