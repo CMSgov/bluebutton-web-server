@@ -10,8 +10,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
-from apps.fhir.server.authentication import match_fhir_id
-from rest_framework.exceptions import NotFound
+from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType
 from apps.dot_ext.utils import get_api_version_number_from_url
 
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
@@ -81,24 +80,32 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     # (NotFound), treat that as no FHIR id available and continue.
 
     versioned_fhir_ids = {}
-    hash_lookup_type = None
     for supported_version in Versions.latest_versions():
-        try:
-            fhir_id, hash_lookup_type = match_fhir_id(
-                mbi=mbi,
-                hicn_hash=hicn_hash,
-                request=request,
-                version=supported_version,
-            )
-            versioned_fhir_ids[supported_version] = fhir_id
-        except UpstreamServerException as e:
-            if supported_version == version:
-                raise e
-            # otherwise continue without raising; no fhir id for this version
-        except NotFound:
-            # No matching beneficiary in backend for this identifier/version
-            versioned_fhir_ids[supported_version] = None
+        match_fhir_id_result = match_fhir_id(
+            mbi=mbi,
+            hicn_hash=hicn_hash,
+            request=request,
+            version=supported_version,
+        )
 
+        # If we found a fhir_id for this version, store it
+        if match_fhir_id_result.success:
+            versioned_fhir_ids[supported_version] = match_fhir_id_result.fhir_id
+        else:
+            # If there is not a fhir_id found for the requested version, then we want to raise an exception
+            if match_fhir_id_result.error_type == MatchFhirIdErrorType.UPSTREAM:
+                if supported_version == version:
+                    raise UpstreamServerException(match_fhir_id_result.error)
+            elif match_fhir_id_result.error_type == MatchFhirIdErrorType.NOT_FOUND:
+                # Intuitively, this should be the main thing we'd care about and seems wrong
+                # However, we previously were just only checking for upstream errors
+                # It would be more preferable to actually raise a NotFound error here
+                # but there are other unit tests that appear to fail and expect that this would fail silently
+                # A future ticket should address this
+                pass
+
+    # The get is maybe now redundant since match_fhir_id will return None if not found
+    # but I don't think this hurts to do
     bfd_fhir_id_v2 = versioned_fhir_ids.get(Versions.V2, None)
     bfd_fhir_id_v3 = versioned_fhir_ids.get(Versions.V3, None)
 
@@ -108,7 +115,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
         'hicn_hash': hicn_hash,
-        'hash_lookup_type': hash_lookup_type,
+        'hash_lookup_type': match_fhir_id_result.lookup_type,
         'crosswalk': {},
         'crosswalk_before': {},
     }
@@ -134,10 +141,11 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # Update Crosswalk if the user_mbi is null, but we have an mbi value from SLSx or
         # if the saved user_mbi value is different than what SLSx has
         if (
-            update_fhir_id
-            or (user.crosswalk.user_mbi is None and mbi is not None)
+            (user.crosswalk.user_mbi is None and mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
+            or user.crosswalk.user_id_type != match_fhir_id_result.lookup_type
             or hicn_updated
+            or update_fhir_id
         ):
             # Log crosswalk before state
             log_dict.update({
@@ -158,8 +166,8 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
                 # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
-                if hash_lookup_type is not None:
-                    user.crosswalk.user_id_type = hash_lookup_type
+                if match_fhir_id_result.lookup_type is not None:
+                    user.crosswalk.user_id_type = match_fhir_id_result.lookup_type
                 # Only update the HICN hash if we actually have a value.
                 # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
                 # so writing None into the non-nullable DB column would cause
@@ -205,11 +213,12 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # In this case, slsx_client would be provided
         # Always pass the discovered fhir_id_v3 when available so the created crosswalk
         # will populate `fhir_id_v3` even if the session/API version was v2.
+
         user = create_beneficiary_record(
             slsx_client,
             fhir_id_v2=bfd_fhir_id_v2,
             fhir_id_v3=bfd_fhir_id_v3,
-            user_id_type=hash_lookup_type,
+            user_id_type=match_fhir_id_result.lookup_type,
             request=request
         )
 
@@ -341,8 +350,8 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
             'crosswalk': {
                 'id': cw.id,
                 'user_hicn_hash': cw.user_hicn_hash,
-                'fhir_id_v2': cw.fhir_id(2),
-                'fhir_id_v3': cw.fhir_id(3),
+                'fhir_id_v2': cw.fhir_id(Versions.V2),
+                'fhir_id_v3': cw.fhir_id(Versions.V3),
                 'user_id_type': cw.user_id_type,
             },
         })

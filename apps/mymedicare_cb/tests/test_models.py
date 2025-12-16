@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
-
+from apps.fhir.server.authentication import MatchFhirIdResult, MatchFhirIdLookupType
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
@@ -49,7 +49,7 @@ class BeneficiaryLoginTest(TestCase):
             'fhir_id_v3': '-20000000002346',
             'first_name': 'Hello',
             'last_name': 'World',
-            'email': 'fu@bar.bar',
+            'email': 'oscar@sesamestreet.gov',
         }
         slsx_client = OAuth2ConfigSLSx(args)
 
@@ -85,7 +85,7 @@ class BeneficiaryLoginTest(TestCase):
             'fhir_id_v3': '0000001',
             'first_name': 'Hello',
             'last_name': 'World',
-            'email': 'fu@bar.bar',
+            'email': 'oscar@sesamestreet.gov',
         }
         slsx_client = OAuth2ConfigSLSx(args)
         bene = create_beneficiary_record(slsx_client, fhir_id_v3=args['fhir_id_v3'])
@@ -106,7 +106,7 @@ class BeneficiaryLoginTest(TestCase):
             'fhir_id_v2': '000001',
             'first_name': 'Hello',
             'last_name': 'World',
-            'email': 'fu@bar.bar',
+            'email': 'oscar@sesamestreet.gov',
         }
         slsx_client = OAuth2ConfigSLSx(args)
         bene = create_beneficiary_record(slsx_client, fhir_id_v2=args['fhir_id_v2'])
@@ -129,7 +129,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'username can not be None or empty string',
@@ -142,7 +142,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'username can not be None',
@@ -155,7 +155,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'user_hicn_hash can not be None',
@@ -169,7 +169,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'incorrect user HICN hash format',
@@ -184,7 +184,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'incorrect user MBI format',
@@ -198,7 +198,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'incorrect user MBI format',
@@ -211,7 +211,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'fhir_id_v2 can not be an empty string',
@@ -224,7 +224,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'fhir_id_v3 can not be an empty string',
@@ -236,7 +236,7 @@ class BeneficiaryLoginTest(TestCase):
                     'user_id_type': 'H',
                     'first_name': 'Hello',
                     'last_name': 'World',
-                    'email': 'fu@bar.bar',
+                    'email': 'oscar@sesamestreet.gov',
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'a crosswalk must contain at least one valid fhir_id',
@@ -354,13 +354,16 @@ class BeneficiaryLoginTest(TestCase):
                                           fhir_id_v2=arg1.get('fhir_id_v2', None),
                                           fhir_id_v3=arg1.get('fhir_id_v3', None))
 
-    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=('-20000000002346', 'M'))
+    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
+                                                                    success=True,
+                                                                    fhir_id='-20000000002346',
+                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
     def test_user_mbi_updated_from_null(self, mock_archive, mock_match_fhir) -> None:
         """Test that user_mbi gets updated when previously null"""
         fake_user = User.objects.create_user(
             username='00112233-4455-6677-8899-aabbccddeeff',
-            email='fu@bar.bar'
+            email='oscar@sesamestreet.gov'
         )
         slsx_mbi = '1S00EU7JH82'
 
@@ -384,13 +387,16 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(user.crosswalk.user_mbi, slsx_mbi)
         mock_archive.assert_called_once()
 
-    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=('-20000000002346', 'M'))
+    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
+                                                                    success=True,
+                                                                    fhir_id='-20000000002346',
+                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
     def test_user_mbi_updated_from_different_value(self, mock_archive, mock_match_fhir) -> None:
         """Test that user_mbi gets updated when previously a different value"""
         fake_user = User.objects.create_user(
             username='00112233-4455-6677-8899-aabbccddeeff',
-            email='fu@bar.bar'
+            email='oscar@sesamestreet.gov'
         )
         slsx_mbi = '1S00EU7JH82'
 
