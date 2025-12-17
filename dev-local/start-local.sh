@@ -6,7 +6,11 @@ set -a
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
+    echo "🔵 setting up metabase"
+    source /code/dev-local/init-metabase.bash
+
     echo "🔵 running migrations"
+    python manage.py makemigrations
     python manage.py migrate
 
     # We will recrate this with every launch.

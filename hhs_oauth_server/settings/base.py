@@ -209,6 +209,7 @@ INSTALLED_APPS = [
     "apps.mymedicare_cb",
     "apps.authorization",
     "apps.bb2_tools",
+    "apps.metrics",
     # 3rd Party ---------------------
     "corsheaders",
     "bootstrap5",

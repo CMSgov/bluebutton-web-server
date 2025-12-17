@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import json
 import uuid
+import re
 
 import apps.logging.request_logger as logging
 
@@ -10,6 +11,8 @@ from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
 from apps.versions import Versions
+
+from apps.metrics.models import EventCounter, add_salt
 
 from apps.dot_ext.loggers import (
     SESSION_AUTH_FLOW_TRACE_KEYS,
@@ -383,6 +386,15 @@ class RequestResponseLog(object):
         self._log_msg_update_from_object(self.request, "request_method", "method")
         self._log_msg_update_from_object(self.request, "request_scheme", "scheme")
 
+        # EVENTCOUNTING An example of how we can salt part of a value
+        # and still get some plaintext value out of the (safe) content
+        # we're putting in the DB.
+        the_path = getattr(self.request, "path")
+        m = re.match('(.*/Patient)/(.*)', the_path)
+        if m:
+            the_path = f'{m.group(1)}/{add_salt(m.group(2))}'
+        EventCounter.log("bb2.request.path", the_path)
+
         """
         --- Logging items from get_user_from_request() ---
         """
@@ -390,8 +402,15 @@ class RequestResponseLog(object):
         if user:
             self.log_msg["user"] = str(user)
             try:
-                self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(Versions.V2)
-                self.log_msg["fhir_id_v3"] = user.crosswalk.fhir_id(Versions.V3)
+                uv2 = user.crosswalk.fhir_id(Versions.V2)
+                uv3 = user.crosswalk.fhir_id(Versions.V3)
+                self.log_msg["fhir_id_v2"] = uv2
+                self.log_msg["fhir_id_v3"] = uv3
+                # EVENTCOUNTING An example of how we can salt an entire value,
+                # allowing for uniqueness counting, but eliminating the possibility
+                # of extracting the orignal value from what we log.
+                EventCounter.log("bb2.user_v2", uv2, salted=True)
+                EventCounter.log("bb2.user_v3", uv3, salted=True)
             except ObjectDoesNotExist:
                 pass
 
@@ -414,6 +433,11 @@ class RequestResponseLog(object):
                     at, "access_token_id", "id"
                 )
 
+                # EVENTCOUNTING Here is an example of us logging the application.
+                # We'll do that *over and over*, but that's OK. We'll ultimately apply a
+                # uniqueness constraint to the final analysis/condensation.
+                EventCounter.log("bb2.application", getattr(at.application, "app_name", None))
+
                 self._log_msg_update_from_object(at.application, "app_name", "name")
                 self._log_msg_update_from_object(at.application, "app_id", "id")
                 self._log_msg_update_from_object(
@@ -435,6 +459,10 @@ class RequestResponseLog(object):
         --- Logging items from response ---
         """
         self.log_msg["response_code"] = getattr(self.response, "status_code", 0)
+
+        # EVENTCOUNTING All the response codes from the upstream server...
+        EventCounter.log("bfd.response", self.log_msg["response_code"])
+
         if self.log_msg["response_code"] in (300, 301, 302, 307):
             self.log_msg["location"] = self.response.get("Location", "?")
         elif getattr(self.response, "content", False):
