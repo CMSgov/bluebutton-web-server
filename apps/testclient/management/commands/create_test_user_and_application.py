@@ -80,7 +80,7 @@ def create_application(user):
     # If the app doesn't exist, create the test app.
 
     Application.objects.filter(name=app_name).delete()
-    redirect_uri = f'{settings.HOSTNAME_URL}{settings.TESTCLIENT_REDIRECT_URI} https://oauth.pstmn.io/v1/callback'
+    redirect_uri = f'{settings.HOSTNAME_URL}{settings.TESTCLIENT_REDIRECT_URI} {constants.TEST_APP_POSTMAN_CALLBACK}'
 
     the_app = Application.objects.create(name=app_name,
                                          client_id=client_id,

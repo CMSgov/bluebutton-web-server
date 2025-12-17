@@ -17,6 +17,7 @@ BAD_PATIENT_ID = 'INTERNAL_BAD_PATIENT_ID'
 # Default TestApp Values
 TEST_APP_CLIENT_ID = 'test-client-id'
 TEST_APP_CLIENT_SECRET = 'test-client-secret'
+TEST_APP_POSTMAN_CALLBACK = 'https://oauth.pstmn.io/v1/callback'
 
 
 class EndpointFormatException(Exception):
