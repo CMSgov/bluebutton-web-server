@@ -11,7 +11,6 @@ echo_msg "Selenium grid=" ${SELENIUM_GRID}
 # echo_msg "Debug mode=" ${DEBUG_MODE}
 echo_msg "Permission Screen=" ${USE_NEW_PERM_SCREEN}
 
-# HOSTNAME_URL=$(/sbin/ip route|awk '/default/ { print $3 }')
 
 set_slsx () {
 		export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"

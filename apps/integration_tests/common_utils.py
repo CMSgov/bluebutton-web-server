@@ -29,8 +29,8 @@ def screenshot_on_exception(func):
             if webdriver and os.getenv('TARGET_ENV') == 'dev':
                 try:
                     print(f"{'='*80}")
-                    print(f"Current URL: {webdriver.current_url}")
-                    print(f"Page Title: {webdriver.title}")
+                    print(f'Current URL: {webdriver.current_url}')
+                    print(f'Page Title: {webdriver.title}')
 
                     test_folder = os.path.join('dev-local/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
@@ -46,21 +46,21 @@ def screenshot_on_exception(func):
                         html_file.write(webdriver.page_source)
 
                 except Exception as save_error:
-                    print(f"Failed to capture test failure: {save_error}")
+                    print(f'Failed to capture test failure: {save_error}')
             raise outer_exception
     return wrapper
 
 
-def log_step(message, level="INFO"):
+def log_step(message, level='INFO'):
     """Log a step with consistent formatting"""
     prefix = {
-        "INFO": "ℹ",
-        "SUCCESS": "✓",
-        "ERROR": "✗",
-        "WARNING": "⚠"
-    }.get(level, "•")
+        'INFO': 'ℹ',
+        'SUCCESS': '✅',
+        'ERROR': '❌',
+        'WARNING': '⚠️'
+    }.get(level, '•')
 
-    print(f"{prefix} {message}")
+    print(f'{prefix} {message}')
 
 
 def check_element_state(driver, by, by_expr, state):
@@ -70,7 +70,7 @@ def check_element_state(driver, by, by_expr, state):
         driver (webdriver): selenium webdriver instance
         by (By): locator strategy
         by_expr (str): by expression
-        state (_type_): state at time of failure
+        state (str): state at time of failure
 
     Returns:
         N/A
@@ -82,22 +82,22 @@ def check_element_state(driver, by, by_expr, state):
         enabled = elem.is_enabled()
 
         print(f"    🔍 Element state {state}: {by}='{by_expr}'")
-        print(f"       Exists: {exists} | Visible: {visible} | Enabled: {enabled}")
+        print(f'       Exists: {exists} | Visible: {visible} | Enabled: {enabled}')
 
         if not visible:
-            print(f"       Size: {elem.size}")
-            print(f"       Location: {elem.location}")
+            print(f'       Size: {elem.size}')
+            print(f'       Location: {elem.location}')
             print(f"       CSS display: {elem.value_of_css_property('display')}")
             print(f"       CSS visibility: {elem.value_of_css_property('visibility')}")
         if exists and not visible:
-            print("    ⚠️  Element EXISTS but is NOT VISIBLE")
+            print('    ⚠️  Element EXISTS but is NOT VISIBLE')
         elif exists and visible and not enabled:
-            print("    ⚠️  Element EXISTS and VISIBLE but NOT ENABLED")
+            print('    ⚠️  Element EXISTS and VISIBLE but NOT ENABLED')
     except NoSuchElementException:
         print(f"    ⚠️  Element NOT FOUND in DOM: {by}='{by_expr}'")
         return (False, False, False, None)
     except Exception as e:
-        print(f"    ❌ Error checking element: {e}")
+        print(f'    ❌ Error checking element: {e}')
         return (False, False, False, None)
 
 
