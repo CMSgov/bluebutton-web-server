@@ -45,5 +45,5 @@ echo_msg ${DJANGO_MEDICARE_SLSX_LOGIN_URI}
 # 		echo_msg "DEBUG MODE ENABLED - Debugger will wait for client on port 6789"
 # fi
 
-${DEBUG_CMD}pytest -s ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py ${PYTEST_SHOW_TRACE_OPT}
+${DEBUG_CMD}pytest -s --tb=line ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py ${PYTEST_SHOW_TRACE_OPT}
 # bash "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} ${DEBUG_CMD}pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
