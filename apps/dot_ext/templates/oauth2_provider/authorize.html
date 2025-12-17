@@ -14,12 +14,12 @@
     <div class="row">
     <h1 class="text">Do you want to share your personal health information?</h1>                
     <p>
-        You have signed in with <strong>{{settings.EXTERNAL_AUTH_NAME}}</strong>
+        You have signed in with <strong>{{export_settings.EXTERNAL_AUTH_NAME}}</strong>
  to approve sharing your personally identifiable health information (including Protected Health Information as understood under the
         <a data-content="&lt;p class=&#34;lead&#34;&gt;What is Protected Health Information (PHI)?&lt;/p&gt; &lt;p&gt;The Health Insurance Portability and Accountability Act of 1996 (HIPAA) protects most “individually identifiable health information” held or transmitted by a healthcare providers or its business associates, whether electronically, on paper, or in speech. HIPAA calls this information Protected Health Information (PHI).&lt;/p&gt;
         &lt;p&gt;Medical records, laboratory reports, and hospital bills, which are part of electronic health records, contain Protected Health Information because they would contain a patient’s name and/or other identifying information (e.g. address, birth date, social security number) associated with the health information in them.&lt;/p&gt;
         " data-toggle="popover" data-html="true" data-container="body">HIPAA law</a>)
-        maintained by <strong>{{settings.ORGANIZATION_TITLE }}</strong>
+        maintained by <strong>{{export_settings.ORGANIZATION_TITLE }}</strong>
         with a third party, the
         <strong>{{ application.name }}</strong> via their research application.
     </p>
@@ -28,7 +28,7 @@
 
     <ul>
         <li>the person whose personally identifiable health information would be shared (<strong>{{user.first_name}} {{user.last_name}}</strong>)</li>
-        <li>the organization that maintains the information (<strong>{{settings.ORGANIZATION_TITLE }}</strong>)</li>
+        <li>the organization that maintains the information (<strong>{{export_settings.ORGANIZATION_TITLE }}</strong>)</li>
         <li>the third party that would receive the information (<strong>{{ application.name }}</strong>)</li>
         <li>for how long any new information would be shared</li>
         <li>the type of information that would be shared</li>
@@ -36,11 +36,11 @@
 
     <p>You will then have the opportunity to review what you confirmed before you would approve sharing your personally identifiable health information.</p>
 
-    <p>Once you approve sharing your personally identifiable health information, you, not <strong>{{settings.ORGANIZATION_TITLE }}</strong>,
+    <p>Once you approve sharing your personally identifiable health information, you, not <strong>{{export_settings.ORGANIZATION_TITLE }}</strong>,
     will be responsible for any risks resulting from sharing this information with the <strong>{{ application.name }}</strong>.</p>
 
     <p>Whether you choose to share or not to share your personally identifiable health information with the <strong>{{ application.name }}</strong> will
-    have no effect on the medical care, benefits, or services that you will receive from <strong>{{settings.ORGANIZATION_TITLE }}</strong>.</p>
+    have no effect on the medical care, benefits, or services that you will receive from <strong>{{export_settings.ORGANIZATION_TITLE }}</strong>.</p>
     </div>
     <div class="row">
         <div class="text">

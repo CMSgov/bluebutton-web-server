@@ -2,12 +2,12 @@
 {% load i18n %}
 {% load static %}
 {% load waffle_tags %}
-{% block title %}{{ settings.APPLICATION_TITLE }}{% endblock %}
+{% block title %}{{ export_settings.APPLICATION_TITLE }}{% endblock %}
 {% block pretitle %}{% endblock %}
 {% block extra_head %}
 {% endblock %}
 
-{% block pagename %} {{ settings.APPLICATION_TITLE }} {% endblock %}
+{% block pagename %} {{ export_settings.APPLICATION_TITLE }} {% endblock %}
 
 {% block bannerBadge %}
   <span class="ds-c-badge ds-u-text-transform--uppercase">Sandbox</span>
@@ -21,8 +21,9 @@
   A developer-friendly, standards-based API that enables Medicare beneficiaries to connect their claims data to applications, services and research programs they trust. 		
 {% endblock %}
 
+
 {% block bannerCallToActionButtons %}
-{% if 'apps.testclient' in settings.INSTALLED_APPS %}
+{% if 'apps.testclient' in export_settings.INSTALLED_APPS %}
 {% switch "show_testclient_link" %}
 <a class="cta-button ds-u-margin-y--1" href="{% url 'accounts_create_account' %}" aria-label="Create an Account" target="_self">
   Create an Account
