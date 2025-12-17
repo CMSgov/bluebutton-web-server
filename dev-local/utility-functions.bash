@@ -251,7 +251,7 @@ retrieve_certs () {
 # variables for secure communication with auth servers 
 # (or helps set up the mock).
 set_salt () {
-    if [ "${bfd}" = "local" ]; then
+    if [ "${auth}" = "mock" ]; then
         echo "🆗 Running locally. Not retrieving salt."
         export DJANGO_USER_ID_SALT="6E6F747468657265616C706570706572"
         export DJANGO_USER_ID_ITERATIONS="2"
@@ -331,4 +331,10 @@ cleanup_docker_stack () {
             docker stop $id
         done
     fi
+}
+
+########################################
+# Echo function that includes script name on each line for console log readability
+echo_msg () {
+		echo "$(basename $0): $*"
 }
