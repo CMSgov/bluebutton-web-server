@@ -11,8 +11,6 @@ WAFFLE_FEATURE_SWITCHES = (
     ("login", True, "This enables login related URLs and code. See apps/accounts/urls.py file for more info."),
     ("logout", True, "This enables logout related URLs and code. See apps/accounts/urls.py file for more info."),
     ("outreach_email", True, "This enables developer outreach emails. Not active in prod."),
-    ("require_pkce", True, "This enforces the presence of the PKCE parameters code_challenge and code_challenge_method when authorizing"),
-    ("require_state", True, "This enforces the presence of the state parameter when authorizing"),
     ("require-scopes", True, "Thie enables enforcement of permission checking of scopes."),
     ("show_django_message_sdk", True, "This controls whether or not the 'what's new' message is shown in developer sandbox home."),
     ("show_testclient_link", True, "This controls the display of the test client link from the main page."),
