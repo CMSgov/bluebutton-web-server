@@ -20,6 +20,7 @@ from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
+from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 
@@ -312,7 +313,7 @@ class BaseApiTest(TestCase):
             "response_type": "code",
             "redirect_uri": application.redirect_uris,
             "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
+            "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.get("/v1/o/authorize", data=payload)
 
@@ -326,7 +327,7 @@ class BaseApiTest(TestCase):
             "allow": True,
             "state": "0123456789abcdef",
             "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
+            "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response["Location"], data=payload)
         self.assertEqual(response.status_code, 302)

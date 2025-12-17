@@ -113,18 +113,16 @@ class AuthorizationView(DotAuthorizationView):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
 
-        if switch_is_active('require_pkce'):
-            if not request.GET.get('code_challenge', None):
-                missing_params.append("code_challenge")
-            if not request.GET.get('code_challenge_method', None):
-                missing_params.append("code_challenge_method")
+        if not request.GET.get('code_challenge', None):
+            missing_params.append("code_challenge")
+        if not request.GET.get('code_challenge_method', None):
+            missing_params.append("code_challenge_method")
 
-        if switch_is_active('require_state'):
-            if not request.GET.get('state', None):
-                missing_params.append("state")
-            elif len(request.GET.get('state', None)) < 16:
-                error_message = "State parameter should have a minimum of 16 characters"
-                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
+        if not request.GET.get('state', None):
+            missing_params.append("state")
+        elif len(request.GET.get('state', None)) < 16:
+            error_message = "State parameter should have a minimum of 16 characters"
+            return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
         # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
         # so it will not be modified as part of BB2-4250
