@@ -20,7 +20,7 @@
       </svg>
       <!-- Logo Text -->
       <div class="site-title">
-        {{ settings.APPLICATION_TITLE }}
+        {{ export_settings.APPLICATION_TITLE }}
       </div>
     </a>
     <!-- Desktop navigation -->
@@ -28,7 +28,7 @@
         <a href="https://bluebutton.cms.gov/developers/" style="outline-color: transparent; background-color: transparent">Documentation</a>
         <a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api" style="outline-color: transparent; background-color: transparent">Support</a>
         {% switch "show_testclient_link" %}
-            {% if 'apps.testclient' in settings.INSTALLED_APPS %}
+            {% if 'apps.testclient' in export_settings.INSTALLED_APPS %}
                 {% switch "enable_swaggerui" %}
                     <a href="/docs/openapi" target='_blank' rel="noopener noreferrer" style="outline-color: transparent; background-color: transparent">API Reference</a>
                 {% endswitch %}
@@ -67,7 +67,7 @@
       </svg>
       <!-- Logo Text -->
       <div class="site-title">
-        {{ settings.APPLICATION_TITLE }}
+        {{ export_settings.APPLICATION_TITLE }}
       </div>
     </a>
     <!-- Mobile Nav Trigger Button -->

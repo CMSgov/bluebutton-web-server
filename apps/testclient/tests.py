@@ -5,11 +5,13 @@ from .utils import testclient_http_response_setup, _start_url_with_http_or_https
 from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
-from apps.constants import Versions, VersionNotMatched
+from apps.versions import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
 from django.http import HttpRequest
+
+import os
 
 
 class TestclientHelpers(TestCase):
@@ -91,12 +93,12 @@ class TestPaginationURIs(TestCase):
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
+    fixtures = ['scopes.json']
     """
     Test the BlueButton API UserInfo Endpoint
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
         self.testclient_setup = testclient_http_response_setup(version=version)
         self.token = "sample-token-string"
@@ -127,13 +129,15 @@ class BlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         jr = response.json()
-        self.assertEqual(jr["patient"], self.patient)
+        if version in Versions.supported_versions():
+            self.assertEqual(jr["patient"], self.patient)
         self.assertEqual(jr["sub"], self.username)
 
     def test_get_userinfo_v2(self):
         self._test_get_userinfo(Versions.V2)
 
     # TODO BB-4208: Introduce v3 tests when ready
+    # @override_switch('v3_endpoints', active=True)
     # def test_get_userinfo_v3(self):
     #     self._test_get_userinfo(Versions.V3)
 
@@ -307,15 +311,15 @@ class BlueButtonClientApiFhirTest(TestCase):
         response = self.client.get(uri)
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
-        # self.assertEqual(response_data["total"], 32)
-        # 20251022 MCJ
-        # For some reason, this no longer passes when asserted equal to 7.
-        # I do not know what data we test against, if it is consistent, etc.
-        # I have updated the test to `5`, and it passes. If the data is potentially variable/not in
-        # our control, then these unit tests will always be suspect (including offsets and pagination values).
-        # This seems to have been the case 7mo ago with the "total" test, above.
-        # self.assertEqual(len(response_data["entry"]), 7)
-        self.assertEqual(len(response_data["entry"]), 5)
+
+        # Different environments have different data in them.
+        # If we are testing against sandbox, we expect fewer responses.
+
+        if os.getenv("LOCAL_TESTING_TARGET", None) in ["impl"]:
+            self.assertEqual(len(response_data["entry"]), 12)
+        else:
+            self.assertEqual(len(response_data["entry"]), 5)
+
         previous_links = [
             data["url"]
             for data in response_data["link"]
@@ -327,11 +331,20 @@ class BlueButtonClientApiFhirTest(TestCase):
         first_links = [
             data["url"] for data in response_data["link"] if data["relation"] == "first"
         ]
-        self.assertEqual(len(previous_links), 1)
-        self.assertEqual(len(next_links), 0)
-        self.assertEqual(len(first_links), 1)
-        self.assertIn("startIndex=13", previous_links[0])
-        self.assertIn("startIndex=0", first_links[0])
+
+        if os.getenv("LOCAL_TESTING_TARGET", None) in ["impl"]:
+            self.assertEqual(len(previous_links), 1)  # noqa: E999
+            self.assertEqual(len(next_links), 1)
+            self.assertEqual(len(first_links), 1)
+            self.assertIn("startIndex=13", previous_links[0])
+            self.assertIn("startIndex=0", first_links[0])
+        else:
+            self.assertEqual(len(previous_links), 1)
+            self.assertEqual(len(next_links), 0)
+            self.assertEqual(len(first_links), 1)
+            self.assertIn("startIndex=13", previous_links[0])
+            self.assertIn("startIndex=0", first_links[0])
+
         self.assertContains(response, "ExplanationOfBenefit")
 
     def _test_get_eob_negative(self, version=Versions.NOT_AN_API_VERSION):
@@ -359,6 +372,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["coverage_uri"],
             self.patient,
         )
+
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Coverage")
@@ -368,6 +382,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         self._test_get_coverage(Versions.V2)
 
     # TODO BB-4208: Introduce v3 tests when ready
+    # @override_switch('v3_endpoints', active=True)
     # def test_get_coverage_v3(self):
     #     self._test_get_coverage(Versions.V3)
 
@@ -380,6 +395,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup["coverage_uri"],
             self.another_patient,
         )
+
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 403)
 
@@ -389,6 +405,19 @@ class BlueButtonClientApiFhirTest(TestCase):
     # TODO BB-4208: Introduce v3 tests when ready
     # def test_get_coverage_negative_v3(self):
     #     self._test_get_coverage_negative(Versions.V3)
+
+    # @override_switch('v3_endpoints', active=True)
+    # def test_get_digital_insurance_card(self):
+    #     """
+    #     Test DigitalInsuranceCard for CARIN C4DIC data from BFD
+    #     """
+    #     self.versionedSetUp(Versions.V3)
+    #     uri = "%s" % (
+    #         self.testclient_setup["digital_insurance_card_uri"],
+    #     )
+    #     response = self.client.get(uri)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertContains(response, "Bundle")
 
 
 @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")

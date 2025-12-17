@@ -23,6 +23,7 @@ from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
+from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
@@ -39,7 +40,7 @@ from apps.test import BaseApiTest
 
 from .responses import patient_response
 
-from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
+from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 from http import HTTPStatus
 
@@ -166,6 +167,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'client_id': application.client_id,
                 'redirect_uri': 'http://test.com',
                 'response_type': 'code',
+                'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+                'state': '01234567890123456789'
             },
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -217,23 +221,61 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
-    def test_callback_url_success(self):
+    def test_callback_url_success_v1(self):
+        self._test_callback_url_success(1)
+
+    def test_callback_url_success_v2(self):
+        self._test_callback_url_success(2)
+
+    def test_callback_url_success_v3(self):
+        self._test_callback_url_success(3)
+
+    # mock fhir user info endpoint
+    @urlmatch(
+        netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,
+        path=r'/v1/fhir/Patient/',
+    )
+    def fhir_patient_info_mock_v1(self, url, request):
+        return {
+            'status_code': status.HTTP_200_OK,
+            'content': patient_response,
+        }
+
+    # mock fhir user info endpoint
+    @urlmatch(
+        netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,
+        path=r'/v2/fhir/Patient/',
+    )
+    def fhir_patient_info_mock_v2(self, url, request):
+        return {
+            'status_code': status.HTTP_200_OK,
+            'content': patient_response,
+        }
+
+    # mock fhir user info endpoint
+    @urlmatch(
+        netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME,
+        path=r'/v3/fhir/Patient/',
+    )
+    def fhir_patient_info_mock_v3(self, url, request):
+        print("fhir_patient_info_mock_v3")
+        return {
+            'status_code': status.HTTP_200_OK,
+            'content': patient_response,
+        }
+
+    def _test_callback_url_success(self, version):
         # create a state
         state = generate_nonce()
+        # We ALWAYS version our next_uri, and therefore
+        # this test should include a versioned next_uri for authenticity.
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri=(
+                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'  # noqa: E231
+                '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
+            )
         )
-
-        # mock fhir user info endpoint
-        @urlmatch(
-            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
-        )
-        def fhir_patient_info_mock(url, request):
-            return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
-            }
 
         @all_requests
         def catchall(url, request):
@@ -244,7 +286,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             # need to fake an auth flow context to pass
@@ -257,26 +301,29 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     "auth_app_id": "2",
                     "auth_app_name": "TestApp-001",
                     "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop",
+                    "version": version,
                 }
             )
             s.save()
+
             response = self.client.get(
                 self.callback_url,
                 data={"req_token": "0000-test_req_token-0000", "relay": state},
             )
+
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             self.assertIn("client_id=test", response.url)
             self.assertIn("redirect_uri=test.com", response.url)
             self.assertIn("response_type=token", response.url)
-            self.assertIn("http://www.google.com/v2/o/authorize/", response.url)
+            self.assertIn(f"http://www.doesnotexist.gov/v{version}/o/authorize/", response.url)  # noqa: E231
             # assert login
             self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
-        AnonUserState.objects.create(state=state, next_uri="http://www.google.com")
+        AnonUserState.objects.create(state=state, next_uri="http://www.doesnotexist.gov")  # noqa: E231
 
         @all_requests
         def catchall(url, request):
@@ -337,7 +384,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
-        versions = [1, 2]
+        versions = [1, 2, 3]
         for version in versions:
             with self.subTest(version=version):
                 self._callback_exception_runner(version)
@@ -351,20 +398,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         AnonUserState.objects.create(
             state=state,
             next_uri=''.join([
-                f'http://www.google.com/v{version}/o/authorize?client_id=test',
+                f'http://www.doesnotexist.gov/v{version}/o/authorize?client_id=test',
                 '&redirect_uri=test.com&response_type=token&state=test'])
         )
-
-        # mock fhir user info endpoint
-        # currently, we use v2 fhir endpoint even if the request coming in is v1 authorize (because we treat them the same)
-        @urlmatch(
-            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path=f'/v{version if version == 3 else 2}/fhir/Patient/'
-        )
-        def fhir_patient_info_mock(url, request):
-            return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
-            }
 
         @all_requests
         def catchall(url, request):
@@ -375,7 +411,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.mock_response.slsx_token_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
+            catchall,
             catchall,
         ):
             response = self.client.get(
@@ -386,32 +426,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_fhir_id = cw.fhir_id(2)
-        cw.set_fhir_id("XXX", 2)
-        cw.save()
-
-        with HTTMock(
-            self.mock_response.slsx_token_mock,
-            self.mock_response.slsx_user_info_mock,
-            self.mock_response.slsx_health_ok_mock,
-            self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
-            catchall,
-        ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
-
-            # assert 500 exception
-            self.assertEqual(
-                response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-            content = json.loads(response.content)
-            self.assertEqual(content["error"], "Found user's fhir_id did not match")
+        saved_fhir_id = cw.fhir_id(version)
 
         # Restore fhir_id
         cw = Crosswalk.objects.get(id=1)
-        cw.set_fhir_id(saved_fhir_id, 2)
+        cw.set_fhir_id(saved_fhir_id, version)
         cw.save()
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
@@ -420,7 +439,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_no_username_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             with self.assertRaises(BBMyMedicareSLSxUserinfoException):
@@ -434,7 +455,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_empty_hicn_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -454,7 +477,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_invalid_mbi_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -470,7 +495,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             with self.assertRaises(HTTPError):
@@ -484,7 +511,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_http_error_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             with self.assertRaises(HTTPError):
@@ -498,7 +527,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_fail_mock,
-            fhir_patient_info_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
             catchall,
         ):
             with self.assertRaises(HTTPError):
@@ -512,7 +543,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_fail2_mock,
-            fhir_patient_info_mock,
             catchall,
         ):
             with self.assertRaises(BBMyMedicareSLSxSignoutException):
@@ -573,14 +603,37 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test",
+            next_uri=(
+                'http://www.doesnotexist.gov?next=/v{version}/o/authorize'
+                '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
+            )
         )
+
+        # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
+        @urlmatch(
+            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v1/fhir/Patient/"
+        )
+        def fhir_patient_info_mock_v1(url, request):
+            return {
+                "status_code": status.HTTP_200_OK,
+                "content": patient_response,
+            }
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
         @urlmatch(
             netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
         )
-        def fhir_patient_info_mock(url, request):
+        def fhir_patient_info_mock_v2(url, request):
+            return {
+                "status_code": status.HTTP_200_OK,
+                "content": patient_response,
+            }
+
+        # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
+        @urlmatch(
+            netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME, path="/v3/fhir/Patient/"
+        )
+        def fhir_patient_info_mock_v3(url, request):
             return {
                 "status_code": status.HTTP_200_OK,
                 "content": patient_response,
@@ -596,7 +649,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_empty_mbi_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            fhir_patient_info_mock_v1,
+            fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -652,7 +707,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            fhir_patient_info_mock_v1,
+            fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -744,7 +801,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            fhir_patient_info_mock_v1,
+            fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -795,7 +854,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock_changed_hicn,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            fhir_patient_info_mock_v1,
+            fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -891,7 +952,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock_changed_mbi,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            fhir_patient_info_mock_v1,
+            fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -971,7 +1034,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.mock_response.slsx_user_info_mock_changed_hicn_mbi,
             self.mock_response.slsx_health_ok_mock,
             self.mock_response.slsx_signout_ok_mock,
-            fhir_patient_info_mock,
+            fhir_patient_info_mock_v1,
+            fhir_patient_info_mock_v2,
+            fhir_patient_info_mock_v3,
             catchall,
         ):
             response = self.client.get(
@@ -1078,7 +1143,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+            next_uri="http://www.doesnotexist.gov?client_id=test&redirect_uri=test.com&response_type=token&state=test")
 
         @all_requests
         def catchall(url, request):

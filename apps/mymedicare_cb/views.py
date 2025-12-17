@@ -14,6 +14,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+from apps.versions import Versions
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -26,16 +27,13 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from .authorization import (OAuth2ConfigSLSx,
                             MedicareCallbackExceptionType,
                             BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException)
-from .models import AnonUserState, get_and_update_user
+from .models import AnonUserState, get_and_update_user_from_initial_auth
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
-
-    version = request.session['version']
-
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
 
@@ -66,13 +64,12 @@ def authenticate(request):
     slsx_client.log_event(request, {})
 
     # Find or create the user associated with the identity information from SLS.
-    user, crosswalk_action = get_and_update_user(slsx_client, request)
+    user, crosswalk_action = get_and_update_user_from_initial_auth(slsx_client, request)
 
     # Set crosswalk_action and get auth flow session values.
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
 
     # Log successful authentication with beneficiary when we return back here.
-    # BB2-4166-TODO: set both fhir_ids if we get both of them
     slsx_client.log_authn_success(request, {
         'user': {
             'id': user.id,
@@ -81,8 +78,8 @@ def authenticate(request):
                 'id': user.crosswalk.id,
                 'user_hicn_hash': user.crosswalk.user_hicn_hash,
                 'user_mbi': user.crosswalk.user_mbi,
-                # BB2-4166-TODO: this needs to account for both fhir_ids if they are found
-                ('fhir_id_v3' if version == 3 else 'fhir_id_v2'): user.crosswalk.fhir_id(version),
+                'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
+                'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
                 'user_id_type': user.crosswalk.user_id_type,
             },
         },
@@ -103,14 +100,14 @@ def callback(request):
         return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
-    # BB2-4166-TODO: refactor this to be generalized
-    if "/v3/o/authorize" in next_uri:
-        version = 3
-    elif "/v2/o/authorize" in next_uri:
-        version = 2
-    else:
-        version = 2
+    # We don't have a `version` coming back from auth. Therefore, we check
+    # the authorize URL to find what version pathway we are on.
+    version = Versions.NOT_AN_API_VERSION
 
+    for supported_version in Versions.supported_versions():
+        if f"/v{supported_version}/o/authorize" in next_uri:
+            version = supported_version
+            break
     request.session['version'] = version
 
     user_not_found_error = None
@@ -170,6 +167,7 @@ def callback(request):
         url_map_name = 'oauth2_provider_v2:authorize-instance-v2'
     else:
         url_map_name = 'oauth2_provider:authorize-instance'
+
     auth_uri = reverse(url_map_name, args=[approval.uuid])
 
     _, _, auth_path, _, _ = urlsplit(auth_uri)
@@ -198,8 +196,6 @@ def mymedicare_login(request):
         except requests.exceptions.ConnectionError as e:
             if retries < max_retries and (env is None or env == 'DEV'):
                 time.sleep(0.5)
-                # Checking target_env ensures the retry logic only happens on local
-                print(f"SLSx service health check during login failed. Retrying... ({retries + 1}/{max_retries})")
                 retries += 1
             else:
                 raise e

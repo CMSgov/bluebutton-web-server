@@ -2,9 +2,13 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from oauth2_provider.views.base import get_access_token_model
+from oauth2_provider.models import get_application_model
 from rest_framework import permissions, exceptions
-from rest_framework.exceptions import AuthenticationFailed
-from .constants import ALLOWED_RESOURCE_TYPES
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from waffle import get_waffle_flag_model
+from apps.fhir.bluebutton.constants import ALLOWED_RESOURCE_TYPES
+from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging
 
@@ -30,10 +34,11 @@ class ResourcePermission(permissions.BasePermission):
 
 class HasCrosswalk(permissions.BasePermission):
     def has_permission(self, request, view):
-        return bool(
-            # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
-            request.user and request.user.crosswalk and request.user.crosswalk.fhir_id(2)
-        )
+        if view.version in Versions.supported_versions():
+            return request.user and request.user.crosswalk and request.user.crosswalk.fhir_id(view.version)
+        else:
+            # this should not happen where we'd get an unsupported version
+            raise VersionNotMatched("Version not matched in has_permission")
 
 
 class ReadCrosswalkPermission(HasCrosswalk):
@@ -41,24 +46,24 @@ class ReadCrosswalkPermission(HasCrosswalk):
         # Now check that the user has permission to access the data
         # Patient resources were taken care of above # TODO - verify this
         # Return 404 on error to avoid notifying unauthorized user the object exists
-
+        if view.version in Versions.supported_versions():
+            fhir_id = request.crosswalk.fhir_id(view.version)
+        else:
+            raise VersionNotMatched("Version not matched in has_object_permission in ReadCrosswalkPermission")
         try:
             if request.resource_type == "Coverage":
                 reference = obj["beneficiary"]["reference"]
                 reference_id = reference.split("/")[1]
-                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
-                if reference_id != request.crosswalk.fhir_id(2):
+                if reference_id != fhir_id:
                     raise exceptions.NotFound()
             elif request.resource_type == "ExplanationOfBenefit":
                 reference = obj["patient"]["reference"]
                 reference_id = reference.split("/")[1]
-                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
-                if reference_id != request.crosswalk.fhir_id(2):
+                if reference_id != fhir_id:
                     raise exceptions.NotFound()
             else:
                 reference_id = obj["id"]
-                # BB2-4166-TODO : this needs to use version to determine fhir_id, probably in request
-                if reference_id != request.crosswalk.fhir_id(2):
+                if reference_id != fhir_id:
                     raise exceptions.NotFound()
 
         except exceptions.NotFound:
@@ -70,10 +75,11 @@ class ReadCrosswalkPermission(HasCrosswalk):
 
 
 class SearchCrosswalkPermission(HasCrosswalk):
-    def has_object_permission(self, request, view, obj):
-        # BB2-4166-TODO: this is hardcoded to be version 2
-        patient_id = request.crosswalk.fhir_id(2)
-
+    def has_object_permission(self, request, view, obj) -> bool:  # type: ignore
+        if view.version in Versions.supported_versions():
+            patient_id = request.crosswalk.fhir_id(view.version)
+        else:
+            raise VersionNotMatched("Version not matched in has_object_permission in SearchCrosswalkPermission")
         if "patient" in request.GET and request.GET["patient"] != patient_id:
             return False
 
@@ -103,3 +109,22 @@ class ApplicationActivePermission(permissions.BasePermission):
             )
 
         return True
+
+
+class V3EarlyAdopterPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # if it is not version 3, we do not need to check the waffle switch or flag
+        if view.version < Versions.V3:
+            return True
+
+        token = get_access_token_model().objects.get(token=request._auth)
+        application = get_application_model().objects.get(id=token.application_id)
+        application_user = get_user_model().objects.get(id=application.user_id)
+        flag = get_waffle_flag_model().get('v3_early_adopter')
+
+        if flag.id is None or flag.is_active_for_user(application_user):
+            return True
+        else:
+            raise PermissionDenied(
+                settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+            )

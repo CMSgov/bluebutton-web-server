@@ -13,11 +13,12 @@ from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
 )
-from waffle.testutils import override_switch
+from waffle.testutils import override_switch, override_flag
 from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation import (
     get_response_json,
 )
 
+from apps.versions import Versions
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 AccessToken = get_access_token_model()
@@ -145,6 +146,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self.client = Client()
 
     @override_switch('v3_endpoints', active=True)
+    @override_flag('v3_early_adopter', active=True)
     def _assert_call_all_fhir_endpoints(
         self,
         access_token=None,
@@ -264,7 +266,7 @@ class TestDataAccessPermissions(BaseApiTest):
             "client_id": application.client_id,
             "client_secret": application.client_secret_plain,
         }
-        response = self.client.post("/v1/o/token/", data=refresh_post_data)
+        response = self.client.post(f'/v{Versions.V2}/o/token/', data=refresh_post_data)
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, expected_response_code)

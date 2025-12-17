@@ -20,6 +20,7 @@ from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
+from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 
@@ -74,6 +75,12 @@ class BaseApiTest(TestCase):
         """
         fhir_id_v2 = fhir_id_v2 or settings.DEFAULT_SAMPLE_FHIR_ID_V2
         fhir_id_v3 = fhir_id_v3 or settings.DEFAULT_SAMPLE_FHIR_ID_V3
+
+        # Some of our tests might create users more than once in the DB.
+        # Just return them if they exist.
+        if User.objects.filter(username=username).exists():
+            return User.objects.get(username=username)
+
         user = User.objects.create_user(username, password=password, **extra_fields)
         self._create_crosswalk(
             user=user,
@@ -306,7 +313,7 @@ class BaseApiTest(TestCase):
             "response_type": "code",
             "redirect_uri": application.redirect_uris,
             "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
+            "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.get("/v1/o/authorize", data=payload)
 
@@ -320,7 +327,7 @@ class BaseApiTest(TestCase):
             "allow": True,
             "state": "0123456789abcdef",
             "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
+            "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response["Location"], data=payload)
         self.assertEqual(response.status_code, 302)
@@ -408,8 +415,8 @@ class BaseApiTest(TestCase):
             username = first_name + last_name + "@example.com"
 
             # Create unique hashes using FHIR_ID
-            # BB2-4166-TODO: this is only checking v2, possible rewrite these helper functions to allow more
-            # generalized fhir_id handling
+            # Eventually, we will be getting rid of the hicn hash. We can leave this v2 reference for now.
+            # This is "just" creating a unique value.
             hicn_hash = re.sub(
                 "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
             )
@@ -490,6 +497,7 @@ class BaseApiTest(TestCase):
         self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None
     ):
         passwd = "123456"
+
         user = self._create_user(
             first_name,
             passwd,
@@ -499,7 +507,7 @@ class BaseApiTest(TestCase):
             fhir_id_v3=fhir_id_v3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi=mbi if mbi is not None else self.test_mbi,
-            email="%s@%s.net" % (first_name, last_name),
+            email="%s@%s.notanagency.gov" % (first_name, last_name),
         )
 
         # create a oauth2 application and add capabilities

@@ -10,10 +10,10 @@ from urllib.parse import urlparse
 from apps.fhir.bluebutton import constants
 from apps.fhir.bluebutton.utils import (request_call,
                                         prepend_q,
-                                        get_resourcerouter,
                                         get_response_text,
                                         build_oauth_resource)
-from apps.constants import Versions, VersionNotMatched
+from apps.fhir.server.settings import fhir_settings
+from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging
 
@@ -72,15 +72,14 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
     :return:
     """
     crosswalk = None
-    resource_router = get_resourcerouter()
 
     match version:
         case Versions.V1:
-            fhir_url = resource_router.fhir_url
+            fhir_url = fhir_settings.fhir_url
         case Versions.V2:
-            fhir_url = resource_router.fhir_url
+            fhir_url = fhir_settings.fhir_url
         case Versions.V3:
-            fhir_url = resource_router.fhir_url_v3
+            fhir_url = fhir_settings.fhir_url_v3
         case _:
             raise VersionNotMatched('Could not match API version in _fhir_conformance')
 

@@ -16,11 +16,16 @@ from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from ..permissions import (SearchCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
+from ..permissions import (
+    SearchCrosswalkPermission,
+    ResourcePermission,
+    ApplicationActivePermission,
+    V3EarlyAdopterPermission
+)
 
 
 class HasSearchScope(permissions.BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request, view) -> bool:  # type: ignore
         required_scopes = getattr(view, 'required_scopes', None)
         if required_scopes is None:
             return True
@@ -42,7 +47,8 @@ class SearchView(FhirDataView):
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
         TokenHasProtectedCapability,
-        HasSearchScope
+        HasSearchScope,
+        V3EarlyAdopterPermission,
     ]
 
     # Regex to match a valid _lastUpdated value that can begin with lt, le, gt and ge operators
@@ -54,7 +60,7 @@ class SearchView(FhirDataView):
 
     QUERY_SCHEMA = {
         'startIndex': Coerce(int),
-        Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
+        Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),  # type: ignore
         '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg='the _lastUpdated operator is not valid')]
     }
 
@@ -68,31 +74,34 @@ class SearchView(FhirDataView):
     def get(self, request, *args, **kwargs):
         return super().get(request, self.resource_type, *args, **kwargs)
 
-    def build_url(self, resource_router, resource_type, *args, **kwargs):
-        if resource_router.fhir_url.endswith('v1/fhir/'):
+    def build_url(self, fhir_settings, resource_type, *args, **kwargs):
+        if fhir_settings.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
-            return "{}{}/".format(resource_router.fhir_url, resource_type)
+            return '{}{}/'.format(fhir_settings.fhir_url, resource_type)
         else:
-            if self.version == 3 and resource_router.fhir_url_v3:
-                fhir_url = resource_router.fhir_url_v3
+            if self.version == 3 and fhir_settings.fhir_url_v3:
+                fhir_url = fhir_settings.fhir_url_v3
             else:
-                fhir_url = resource_router.fhir_url
-            return f"{fhir_url}/v{self.version}/fhir/{resource_type}/"
+                fhir_url = fhir_settings.fhir_url
+            return f'{fhir_url}/v{self.version}/fhir/{resource_type}/'
 
 
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
     required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
+    QUERY_SCHEMA = {
+        **SearchView.QUERY_SCHEMA,
+        '_id': str,
+        'identifier': str
+    }
 
     def __init__(self, version=1):
         super().__init__(version)
-        self.resource_type = "Patient"
+        self.resource_type = 'Patient'
 
     def build_parameters(self, request, *args, **kwargs):
         return {
-            '_format': 'application/json+fhir',
-            # BB2-4166-TODO : this needs to use self.version to determine fhir_id
-            '_id': request.crosswalk.fhir_id(2)
+            '_format': 'application/fhir+json',
         }
 
 
@@ -102,13 +111,12 @@ class SearchViewCoverage(SearchView):
 
     def __init__(self, version=1):
         super().__init__(version)
-        self.resource_type = "Coverage"
+        self.resource_type = 'Coverage'
 
     def build_parameters(self, request, *args, **kwargs):
         return {
-            '_format': 'application/json+fhir',
-            # BB2-4166-TODO : this needs to use self.version to determine fhir_id
-            'beneficiary': 'Patient/' + request.crosswalk.fhir_id(2)
+            '_format': 'application/fhir+json',
+            'beneficiary': 'Patient/' + request.crosswalk.fhir_id(self.version)
         }
 
 
@@ -117,7 +125,7 @@ class SearchViewExplanationOfBenefit(SearchView):
     def validate_tag(self):
         def validator(value):
             for v in value:
-                if not (v in ["Adjudicated", "PartiallyAdjudicated"]):
+                if not (v in ['Adjudicated', 'PartiallyAdjudicated']):
                     msg = f"Invalid _tag value (='{v}'), 'PartiallyAdjudicated' or 'Adjudicated' expected."
                     raise Invalid(msg)
             return value
@@ -127,23 +135,23 @@ class SearchViewExplanationOfBenefit(SearchView):
     required_scopes = ['patient/ExplanationOfBenefit.read', 'patient/ExplanationOfBenefit.rs', 'patient/ExplanationOfBenefit.s']
 
     # Regex to match a valid type value
-    REGEX_TYPE_VALUE = r"(carrier)|" + \
-        r"(pde)|" + \
-        r"(dme)|" + \
-        r"(hha)|" + \
-        r"(hospice)|" + \
-        r"(inpatient)|" + \
-        r"(outpatient)|" + \
-        r"(snf)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)"
+    REGEX_TYPE_VALUE = r'(carrier)|' + \
+        r'(pde)|' + \
+        r'(dme)|' + \
+        r'(hha)|' + \
+        r'(hospice)|' + \
+        r'(inpatient)|' + \
+        r'(outpatient)|' + \
+        r'(snf)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|' + \
+        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)'
 
     # Regex to match a list of comma separated type values with IGNORECASE
     REGEX_TYPE_VALUES_LIST = r'(?i)^((' + REGEX_TYPE_VALUE + r')\s*,*\s*)+$'
@@ -153,19 +161,18 @@ class SearchViewExplanationOfBenefit(SearchView):
 
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
-                    'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
-                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")],
+                    'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
+                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
                     }
 
     def __init__(self, version=1):
         super().__init__(version)
-        self.resource_type = "ExplanationOfBenefit"
+        self.resource_type = 'ExplanationOfBenefit'
 
     def build_parameters(self, request, *args, **kwargs):
         return {
-            '_format': 'application/json+fhir',
-            # BB2-4166-TODO : this needs to use version to determine fhir_id
-            'patient': request.crosswalk.fhir_id(2),
+            '_format': 'application/fhir+json',
+            'patient': request.crosswalk.fhir_id(self.version),
         }
 
     def filter_parameters(self, request):
@@ -177,8 +184,10 @@ class SearchViewExplanationOfBenefit(SearchView):
         if service_dates:
             params['service-date'] = service_dates
 
-        query_schema = getattr(self, "QUERY_SCHEMA", {})
+        query_schema = getattr(self, 'QUERY_SCHEMA', {})
 
+        # BB2-4250: Does not seem that this code will execute given the new permission class
+        # so leaving it as is
         if waffle.switch_is_active('v3_endpoints'):
             query_schema['_tag'] = self.validate_tag()
             # _tag if presents, is a string value

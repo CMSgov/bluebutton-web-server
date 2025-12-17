@@ -11,6 +11,39 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from .themes import THEMES, THEME_SELECTED
 
+# SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
+# We want the launch to generally be quiet, and only tell us things
+# that worked, or announce genuine errors.
+# We currently have around 6 warnings on URL endpoints.
+#
+# https://stackoverflow.com/questions/41449814/django-url-warning-urls-w002
+# We can either use APPEND_SLASH or SILENCE_SYSTEM_CHECKS to quiet some warnings
+# around trailing slashes in URLs. There is no risk/danger/problem with having
+# them---Django is just opinionated.
+#
+# By using the SILENCE_SYSTEM_CHECKS, we just suppress warnings like
+#
+# ?: (urls.W002) Your URL pattern '/bfd/?$' has a route beginning with a '/'.
+# Remove this slash as it is unnecessary. If this pattern is targeted in an
+# include(), ensure the include() pattern has a trailing '/'.
+SILENCED_SYSTEM_CHECKS = ['urls.W002']
+#
+# If we use APPEND_SLASH, it also suppresses the warnings, but it also
+# changes Django's behavior. For example,
+#
+# localhost:8000/admin
+#
+# no longer works. You MUST then use
+#
+# localhost:8000/admin/
+#
+# Because this changes behavior, we should either
+#
+# 1. Update our URL pattern rules, or
+# 2. Suppress the warnings, as they do not represent a security issue
+#
+# But should not change app behavior unless we test that thoroughly.
+# APPEND_SLASH = False
 
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -213,7 +246,8 @@ AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
 AXES_FAILURE_LIMIT = 5
 AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
-AXES_ONLY_USER_FAILURES = True
+# 2025-12-08 AXES_ONLY_USER_FAILURES is deprecated
+# AXES_ONLY_USER_FAILURES = True
 AXES_USERNAME_FORM_FIELD = "username"
 
 # Used for testing for optional apps in templates without causing a crash
@@ -265,7 +299,7 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "django_settings_export.settings_export",
+                'hhs_oauth_server.settings.context_processors.export_settings',
                 "hhs_oauth_server.hhs_oauth_server_context.active_apps",
             ],
             "builtins": [],
@@ -540,35 +574,6 @@ HOSTNAME_URL = env("HOSTNAME_URL", "http://localhost:8000")
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = "utf-8"
 
-# include settings values in SETTING_EXPORT to use values in Templates.
-# eg. {{ settings.APPLICATION_TITLE }}
-SETTINGS_EXPORT = [
-    "DEBUG",
-    "ALLOWED_HOSTS",
-    "APPLICATION_TITLE",
-    "THEME",
-    "STATIC_URL",
-    "STATIC_ROOT",
-    "MEDIA_URL",
-    "MEDIA_ROOT",
-    "DEVELOPER_DOCS_URI",
-    "DEVELOPER_DOCS_TITLE",
-    "ORGANIZATION_TITLE",
-    "POLICY_URI",
-    "POLICY_TITLE",
-    "DISCLOSURE_TEXT",
-    "TOS_URI",
-    "TOS_TITLE",
-    "TAG_LINE_1",
-    "TAG_LINE_2",
-    "EXPLAINATION_LINE",
-    "EXTERNAL_AUTH_NAME",
-    "ALLOW_END_USER_EXTERNAL_AUTH",
-    "OPTIONAL_INSTALLED_APPS",
-    "INSTALLED_APPS",
-    "LANGUAGE_COOKIE_NAME"
-]
-
 SESSION_COOKIE_AGE = 5400
 SESSION_COOKIE_SECURE = env("DJANGO_SECURE_SESSION", True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -610,6 +615,13 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
     'and consent to share their data.'
 )
 
+APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
+    'This application, {}, does not yet have access to v3 endpoints.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
+)
+
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
@@ -636,6 +648,7 @@ FHIR_SERVER = {
 # The hostname is ultimately used in a mock, and therefore does not strictly need to exist
 # or be correct. But, it does need to be consistent.
 MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
+MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL_V3"]).hostname
 
 
 FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (

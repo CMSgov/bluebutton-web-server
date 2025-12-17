@@ -15,3 +15,15 @@ reqs-install:
 
 reqs-install-dev:
 	pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+
+build-local:
+	cd dev-local ; make build-local ; cd ..
+
+run-local:
+	cd dev-local ; make run-local ; cd ..
+	
+make generate-requirements:
+	cd requirements ; make generate ; cd ..
+
+exec-web:
+	cd dev-local ; make exec-web ; cd ..

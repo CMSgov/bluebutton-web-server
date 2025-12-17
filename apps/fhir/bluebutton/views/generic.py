@@ -3,7 +3,7 @@ import hashlib
 import voluptuous
 import logging
 
-from apps.constants import VersionNotMatched, Versions
+from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,19 +21,20 @@ from apps.authorization.permissions import DataAccessGrantPermission
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
+from apps.fhir.server.settings import fhir_settings
 from apps.fhir.server import connection as backend_connection
-
-from ..authentication import OAuth2ResourceOwner
-from ..exceptions import process_error_response
-from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
-from ..signals import (
+from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
+from apps.fhir.bluebutton.exceptions import process_error_response
+from apps.fhir.bluebutton.permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
+from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
-from ..utils import (build_fhir_response,
-                     FhirServerVerify,
-                     get_resourcerouter,
-                     valid_caller_for_patient_read)
+from apps.fhir.bluebutton.utils import (
+    FhirServerAuth,
+    build_fhir_response,
+    valid_patient_read_or_search_call
+)
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -50,7 +51,8 @@ class FhirDataView(APIView):
         ApplicationActivePermission,
         HasCrosswalk,
         ResourcePermission,
-        DataAccessGrantPermission]
+        DataAccessGrantPermission
+    ]
 
     def __init__(self, version=1):
         self.version = version
@@ -63,8 +65,11 @@ class FhirDataView(APIView):
     def build_parameters(self, request):
         raise NotImplementedError()
 
+    def build_url(self, resource_router, resource_type, resource_id, **kwargs):
+        raise NotImplementedError()
+
     def map_parameters(self, params):
-        transforms = getattr(self, "QUERY_TRANSFORMS", {})
+        transforms = getattr(self, 'QUERY_TRANSFORMS', {})
         for key, correct in transforms.items():
             val = params.pop(key, None)
             if val is not None:
@@ -77,7 +82,7 @@ class FhirDataView(APIView):
         params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
 
         schema = voluptuous.Schema(
-            getattr(self, "QUERY_SCHEMA", {}),
+            getattr(self, 'QUERY_SCHEMA', {}),
             extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
 
@@ -88,21 +93,21 @@ class FhirDataView(APIView):
         # curl -X GET http://127.0.0.1:8000/fhir/Patient/1234
         """
 
-        logger.debug("resource_type: %s" % resource_type)
-        logger.debug("Interaction: read")
-        logger.debug("Request.path: %s" % request.path)
+        logger.debug('resource_type: %s' % resource_type)
+        logger.debug('Interaction: read')
+        logger.debug('Request.path: %s' % request.path)
         req_meta = request.META
 
-        if "HTTP_AUTHORIZATION" in req_meta:
-            access_token = req_meta["HTTP_AUTHORIZATION"].split(" ")[1]
+        if 'HTTP_AUTHORIZATION' in req_meta:
+            access_token = req_meta['HTTP_AUTHORIZATION'].split(' ')[1]
             try:
                 at = AccessToken.objects.get(token=access_token)
                 log_message = {
-                    "name": "FHIR Endpoint AT Logging",
-                    "access_token_id": at.id,
-                    "access_token_application_id": at.application.id,
-                    "access_token_hash": {hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()},
-                    "access_token_username": at.user.username,
+                    'name': 'FHIR Endpoint AT Logging',
+                    'access_token_id': at.id,
+                    'access_token_application_id': at.application.id,
+                    'access_token_hash': {hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()},
+                    'access_token_username': at.user.username,
                 }
                 logger.info(log_message)
             except ObjectDoesNotExist:
@@ -119,9 +124,7 @@ class FhirDataView(APIView):
         return Response(out_data)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
-        resource_router = get_resourcerouter(request.crosswalk)
-
-        target_url = self.build_url(resource_router,
+        target_url = self.build_url(fhir_settings,
                                     resource_type,
                                     *args, **kwargs)
 
@@ -134,6 +137,7 @@ class FhirDataView(APIView):
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
+        request.session.version = self.version
 
         # Now make the call to the backend API
         req = Request('GET',
@@ -143,23 +147,32 @@ class FhirDataView(APIView):
         s = Session()
 
         # BB2-1544 request header url encode if header value (app name) contains char (>256)
-        if req.headers.get("BlueButton-Application") is not None:
+        if req.headers.get('BlueButton-Application') is not None:
             try:
-                req.headers.get("BlueButton-Application").encode("latin1")
+                req.headers.get('BlueButton-Application').encode('latin1')
             except UnicodeEncodeError:
-                req.headers["BlueButton-Application"] = quote(req.headers.get("BlueButton-Application"))
+                req.headers['BlueButton-Application'] = quote(req.headers.get('BlueButton-Application'))
 
         prepped = s.prepare_request(req)
 
-        resource_id = kwargs.get('resource_id')
-        beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
+        if resource_type == 'Patient':
+            query_param = prepped.headers.get('BlueButton-OriginalQuery')
+            resource_id = kwargs.get('resource_id')
+            beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 
-        if resource_type == 'Patient' and resource_id and beneficiary_id:
-            # If it is a patient read request, confirm it is valid for the current user
-            # If not, throw a 404 before pinging BFD
-            if not valid_caller_for_patient_read(beneficiary_id, resource_id):
+            # For patient read and search calls, we need to ensure that what is being passed, either in
+            # query parameters for search calls, or in the resource_id for read calls, is valid for the
+            # current session (matching the beneficiary_id). If not, raise a 404 Not found before calling BFD.
+            if not valid_patient_read_or_search_call(beneficiary_id, resource_id, query_param):
                 error = NotFound('Not found.')
                 raise error
+
+            # Handle the case where it is a patient search call, but neither _id or identifier were passed
+            if '_id' not in get_parameters.keys() and 'identifier' not in get_parameters.keys():
+                get_parameters['_id'] = request.crosswalk.fhir_id(self.version)
+                # Reset the request parameters and the prepped request after adding the missing, but required, _id param
+                req.params = get_parameters
+                prepped = s.prepare_request(req)
 
         match self.version:
             case Versions.V1:
@@ -169,22 +182,23 @@ class FhirDataView(APIView):
             case Versions.V3:
                 api_ver_str = 'v3'
             case _:
-                raise VersionNotMatched(f"{self.version} is not a valid version constant")
+                raise VersionNotMatched(f'{self.version} is not a valid version constant')
 
         # Send signal
+        fhir_server_auth = FhirServerAuth()
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)
         r = s.send(
             prepped,
-            cert=backend_connection.certs(crosswalk=request.crosswalk),
-            timeout=resource_router.wait_time,
-            verify=FhirServerVerify(crosswalk=request.crosswalk))
+            cert=(fhir_server_auth['cert_file'], fhir_server_auth['key_file']),
+            timeout=fhir_settings.wait_time,
+            verify=fhir_settings.verify_server
+        )
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128
         error = process_error_response(response)
-
         if error is not None:
             raise error
 

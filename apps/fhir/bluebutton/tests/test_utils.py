@@ -6,7 +6,9 @@ from django.test import TestCase, RequestFactory
 from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.constants import Versions
+from apps.versions import Versions
+from apps.fhir.server.settings import fhir_settings
+
 
 from apps.fhir.bluebutton.utils import (
     notNone,
@@ -16,9 +18,8 @@ from apps.fhir.bluebutton.utils import (
     prepend_q,
     dt_patient_reference,
     crosswalk_patient_id,
-    get_resourcerouter,
     build_oauth_resource,
-    valid_caller_for_patient_read,
+    valid_patient_read_or_search_call,
 )
 
 ENCODED = settings.ENCODING
@@ -70,16 +71,48 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         response = notNone(listing, "number")
         self.assertEqual(response, listing)
 
-    def test_valid_caller_for_patient_read(self):
-        result = valid_caller_for_patient_read('PatientId:-20140000008326', '-20140000008326')
+    def test_valid_patient_read_or_search_call_valid_read_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', '-20140000008329', '')
         assert result is True
 
-        result = valid_caller_for_patient_read('PatientId:-20140000008326', '-20140000008329')
+        result = valid_patient_read_or_search_call('PatientId:-99140000008329', '-99140000008329', '')
+        assert result is True
+
+    def test_valid_patient_read_or_search_call_invalid_read_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', '-99140000008329', '')
         assert result is False
 
-        # call with no colon in beneficiary_id to make sure
-        invalid_call = valid_caller_for_patient_read('PatientId-20140000008326', '-20140000008329')
-        assert invalid_call is False
+        result = valid_patient_read_or_search_call('PatientId:-99140000008329', '-20140000008329', '')
+        assert result is False
+
+    def test_valid_patient_read_or_search_call_valid_search_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', None, '_id=-20140000008329')
+        assert result is True
+
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-99140000008329'
+        )
+        assert result is True
+
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_id=-99140000008329&_lastUpdated=lt2024-06-15&startIndex=0&cursor=0'
+        )
+        assert result is True
+
+    def test_valid_patient_read_or_search_call_invalid_search_calls(self):
+        result = valid_patient_read_or_search_call('PatientId:-20140000008329', None, '_id=-99140000008329')
+        assert result is False
+
+        result = valid_patient_read_or_search_call(
+            'PatientId:-99140000008329',
+            None,
+            '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-20140000008329'
+        )
+        assert result is False
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
@@ -91,13 +124,12 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
         """ Test 1: pass nothing"""
 
-        resource_router = get_resourcerouter()
         expected = {}
-        expected['client_auth'] = resource_router.client_auth
+        expected['client_auth'] = fhir_settings.client_auth
         expected['cert_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             resource_router.cert_file)
+                                             fhir_settings.cert_file)
         expected['key_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                            resource_router.key_file)
+                                            fhir_settings.key_file)
 
         response = FhirServerAuth()
 
@@ -235,51 +267,40 @@ class Patient_Resource_Test(BaseApiTest):
     def test_crosswalk_fhir_id(self):
         """ Get the Crosswalk FHIR_Id """
 
-        u = User.objects.create_user(username="billybob",
-                                     first_name="Billybob",
-                                     last_name="Button",
-                                     email='billybob@example.com',
-                                     password="foobar", )
-        UserProfile.objects.create(user=u,
-                                   user_type="DEV",
-                                   create_applications=True)
-
-        x = Crosswalk()
-        x.user = u
-        x.set_fhir_id("Patient/23456", 2)
-        x.user_hicn_hash = uuid.uuid4()
-        x.save()
-
-        result = crosswalk_patient_id(u)
-
-        self.assertEqual(x.fhir_id(2), result)
-
-        # Test the dt_reference for Patient
-
-        result = dt_patient_reference(u)
-
-        expect = {'reference': x.fhir_id(2)}
-
-        self.assertEqual(result, expect)
+        for version in Versions.latest_versions():
+            u = User.objects.create_user(username=f"billybob-{version}",
+                                         first_name="Billybob",
+                                         last_name="Button",
+                                         email=f'billybob-{version}@example.com',
+                                         password="foobar", )
+            UserProfile.objects.create(user=u,
+                                       user_type="DEV",
+                                       create_applications=True)
+            x = Crosswalk()
+            x.user = u
+            x.set_fhir_id("Patient/23456", version)
+            x.user_hicn_hash = uuid.uuid4()
+            x.save()
+            result = crosswalk_patient_id(u, version)
+            self.assertEqual(x.fhir_id(version), result)
+            # Test the dt_reference for Patient
+            result = dt_patient_reference(u, version)
+            expect = {'reference': x.fhir_id(version)}
+            self.assertEqual(result, expect)
 
     def test_crosswalk_not_fhir_id(self):
         """ Get no Crosswalk id """
-
-        u = User.objects.create_user(username="bobnobob",
-                                     first_name="bob",
-                                     last_name="Button",
-                                     email='billybob@example.com',
-                                     password="foobar", )
-
-        result = crosswalk_patient_id(u)
-
-        self.assertEqual(result, None)
-
-        # Test the dt_reference for Patient returning None
-
-        result = dt_patient_reference(u)
-
-        self.assertEqual(result, None)
+        for version in Versions.latest_versions():
+            u = User.objects.create_user(username=f"bobnobob-{version}",
+                                         first_name="bob",
+                                         last_name="Button",
+                                         email=f'billybob-{version}@example.com',
+                                         password="foobar", )
+            result = crosswalk_patient_id(u, version)
+            self.assertEqual(result, None)
+            # Test the dt_reference for Patient returning None
+            result = dt_patient_reference(u, version)
+            self.assertEqual(result, None)
 
 
 class Security_Metadata_test(BaseApiTest):
@@ -324,7 +345,5 @@ class Security_Metadata_test(BaseApiTest):
         result = build_oauth_resource(request, Versions.V1, "xml")
 
         expected = "<cors>true</cors>"
-
-        # print(result[16:33])
 
         self.assertEqual(result[16:33], expected)

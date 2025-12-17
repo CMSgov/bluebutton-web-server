@@ -42,29 +42,23 @@ class TestModels(BaseApiTest):
         cw = Crosswalk.objects.get(user=user)
         self.assertEqual(cw.user_mbi, None)
 
-    # TODO BB2-4166: This was commented out as part of
-    # BB2-4181, but after the work of 4166 is done, this test should
-    # pass. However, in 4181, we are storing _v3 values in _v2 (at the model level), and
-    # therefore the logic of this test does not work in 4181's branch.
-    # Once 4166 is fully implemented, uncomment this test, and it should pass and
-    # navigating the test client using the v3 pathway should work.
-    # def test_mutable_fhir_id(self):
-    #     user = self._create_user(
-    #         "john",
-    #         "password",
-    #         first_name="John",
-    #         last_name="Smith",
-    #         email="john@smith.net",
-    #         fhir_id_v2="-20000000000001",
-    #         fhir_id_v3="-30000000000001",
-    #     )
-    # cw = Crosswalk.objects.get(user=user)
-    # self.assertEqual(cw.fhir_id(2), "-20000000000001")
-    # self.assertEqual(cw.fhir_id(3), "-30000000000001")
-    # cw.set_fhir_id("-20000000000002", 2)
-    # cw.set_fhir_id("-30000000000002", 3)
-    # self.assertEqual(cw.fhir_id(2), "-20000000000002")
-    # self.assertEqual(cw.fhir_id(3), "-30000000000002")
+    def test_mutable_fhir_id(self):
+        user = self._create_user(
+            "john",
+            "password",
+            first_name="John",
+            last_name="Smith",
+            email="john@smith.net",
+            fhir_id_v2="-20000000000001",
+            fhir_id_v3="-30000000000001",
+        )
+        cw = Crosswalk.objects.get(user=user)
+        self.assertEqual(cw.fhir_id(2), "-20000000000001")
+        self.assertEqual(cw.fhir_id(3), "-30000000000001")
+        cw.set_fhir_id("-20000000000002", 2)
+        cw.set_fhir_id("-30000000000002", 3)
+        self.assertEqual(cw.fhir_id(2), "-20000000000002")
+        self.assertEqual(cw.fhir_id(3), "-30000000000002")
 
     def test_mutable_user_hicn_hash(self):
         user = self._create_user(
@@ -183,40 +177,3 @@ class TestModels(BaseApiTest):
             BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"
         ):
             hash_hicn("")
-
-    # TODO - This is legacy code, to be removed before migration bluebutton 0010
-    def test_fhir_id_legacy(self):
-        """This test is for verifying the behavior surrounding the old _fhir_id column.
-
-        Remove it before removing the column from the database and model (migration 0010)
-        """
-
-        user_old = self._create_user(
-            "john",
-            "password",
-            first_name="John",
-            last_name="Smith",
-            email="john@smith.net",
-            fhir_id_v2="-20000000000002",
-            user_hicn_hash=self.test_hicn_hash,
-            user_mbi=None,
-        )
-        cw_old = Crosswalk.objects.get(user=user_old)
-        cw_old.fhir_id_v2 = None
-        cw_old._fhir_id = "-20000000000002"
-        cw_old.save()
-        self.assertEqual(cw_old.fhir_id(2), "-20000000000002")
-
-        user_new = self._create_user(
-            "john2",
-            "password",
-            first_name="John",
-            last_name="Smith",
-            email="john@smith.net",
-            fhir_id_v2="-20000000000002",
-            user_hicn_hash=self.test_hicn_hash,
-            user_mbi=None,
-        )
-        cw_new = Crosswalk.objects.get(user=user_new)
-        fhir_id = cw_new.fhir_id(2)
-        self.assertEqual(cw_new._fhir_id, fhir_id)

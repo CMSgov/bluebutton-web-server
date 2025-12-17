@@ -6,7 +6,7 @@ import string
 from collections import OrderedDict
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
-from apps.constants import Versions
+from apps.versions import Versions
 
 from ..dot_ext.models import Application
 
@@ -78,6 +78,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     response['patient_uri'] = f'{host}/v{version}/fhir/Patient/'
     response['eob_uri'] = f'{host}/v{version}/fhir/ExplanationOfBenefit/'
     response['coverage_uri'] = f'{host}/v{version}/fhir/Coverage/'
+    response['digital_insurance_card_uri'] = f'{host}/v{version}/fhir/DigitalInsuranceCard/'
 
     return response
 

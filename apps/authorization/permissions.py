@@ -1,5 +1,6 @@
 from django.conf import settings
 from rest_framework import (permissions, exceptions)
+from apps.versions import Versions, VersionNotMatched
 
 from .models import DataAccessGrant
 
@@ -8,7 +9,8 @@ class DataAccessGrantPermission(permissions.BasePermission):
     """
     Permission check for a Grant related to the token used.
     """
-    def has_permission(self, request, view):
+
+    def has_permission(self, request, view) -> bool:  # type: ignore
         dag = None
         try:
             dag = DataAccessGrant.objects.get(
@@ -32,8 +34,15 @@ class DataAccessGrantPermission(permissions.BasePermission):
         # Patient resources were taken care of above
         # Return 404 on error to avoid notifying unauthorized user the object exists
 
-        # BB2-4166-TODO: this is hardcoded to be version 2
-        return is_resource_for_patient(obj, request.crosswalk.fhir_id(2))
+        if view.version in Versions.supported_versions():
+            # If we're handling a digital insurance card, it is *not* an actual
+            # FHIR resource, but something of a conglomeration. We have to handle
+            # it specially here. We're going to gate it to v3 as well.
+            if view.version == Versions.V3 and 'DigitalInsuranceCard' in request.path:
+                return True
+            return is_resource_for_patient(obj, request.crosswalk.fhir_id(view.version))
+        else:
+            raise VersionNotMatched()
 
 
 def is_resource_for_patient(obj, patient_id):

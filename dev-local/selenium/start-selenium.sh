@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Run tests from dev-local so my brain stops hurting with paths
+
+source /code/dev-local/utility-functions.bash
+
+echo_msg "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
+echo_msg "TARGET ENV: " ${TARGET_ENV}
+echo_msg "HOSTNAME_URL: " ${HOSTNAME_URL}
+echo_msg "Selenium grid=" ${SELENIUM_GRID}
+# echo_msg "Debug mode=" ${DEBUG_MODE}
+echo_msg "Permission Screen=" ${USE_NEW_PERM_SCREEN}
+
+
+set_slsx () {
+		export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
+		export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+		export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+		export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+		export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+		export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+}
+
+set_msls () {
+		export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
+		export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
+		export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
+		export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
+		export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
+		export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
+}
+
+if [ "$USE_MSLSX" = true ]; then
+    set_msls
+else
+    set_slsx
+fi
+
+echo_msg ${DJANGO_MEDICARE_SLSX_LOGIN_URI}
+
+# If debug mode requested, set debug command
+# if [ "$DEBUG_MODE" = true ]; then
+# 		DEBUG_CMD="python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client -m "
+# 		echo_msg "DEBUG MODE ENABLED - Debugger will wait for client on port 6789"
+# fi
+
+${DEBUG_CMD}pytest -s --tb=line ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py ${PYTEST_SHOW_TRACE_OPT}
+# bash "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} ${DEBUG_CMD}pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"

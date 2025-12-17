@@ -12,6 +12,8 @@ from rest_framework.exceptions import APIException
 from django.core.validators import MinLengthValidator
 from apps.accounts.models import get_user_id_salt
 
+from apps.versions import Versions, VersionNotMatched
+
 
 class BBFhirBluebuttonModelException(APIException):
     # BB2-237 custom exception
@@ -143,16 +145,6 @@ class Crosswalk(models.Model):
         db_index=True,
     )
 
-    # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
-    _fhir_id = models.CharField(
-        db_column='fhir_id',
-        db_index=True,
-        default=None,
-        max_length=80,
-        unique=True,
-        null=True
-    )
-
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
@@ -164,29 +156,15 @@ class Crosswalk(models.Model):
             )
         ]
 
-    def fhir_id(self, version: int = 2) -> str:
+    def fhir_id(self, version: int = Versions.V2) -> str:
         """Helper method to return fhir_id based on BFD version, preferred over direct access"""
-        if version in (1, 2):
+        if version in [Versions.V1, Versions.V2]:
             if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
-                # TODO - This is legacy code, to be removed before migration bluebutton 0010
-                # If fhir_id is empty, try to populate it from fhir_id_v2 to support old code
-                self._fhir_id = self.fhir_id_v2
-                self.save()
-                return str(self.fhir_id_v2)
-            # TODO - This is legacy code, to be removed before migration bluebutton 0010
-            # If fhir_id_v2 is empty, try to populate it from _fhir_id to support new code
-            if self._fhir_id is not None and self._fhir_id != '':
-                self.fhir_id_v2 = self._fhir_id
-                self.save()
-                return str(self._fhir_id)
+                return self.fhir_id_v2
             return ''
-        elif version == 3:
-            # TODO BB2-4166: This will want to change. In order to make
-            # BB2-4181 work, the V3 value needed to be found in the V2 column.
-            # 4166 should flip this to _v3, and we should be able to find
-            # values there when using (say) the test client.
-            if self.fhir_id_v2 is not None and self.fhir_id_v2 != '':
-                return str(self.fhir_id_v2)
+        elif version == Versions.V3:
+            if self.fhir_id_v3 is not None and self.fhir_id_v3 != '':
+                return self.fhir_id_v3
             return ''
         else:
             raise ValidationError(f'{version} is not a valid BFD version')
@@ -198,12 +176,10 @@ class Crosswalk(models.Model):
             raise ValidationError('fhir_id can not be an empty string')
         if version in (1, 2):
             self.fhir_id_v2 = value
-            # TODO - This is legacy code, to be removed in the future
-            self._fhir_id = value
         elif version == 3:
             self.fhir_id_v3 = value
         else:
-            raise ValidationError(f'{version} is not a valid BFD version')
+            raise VersionNotMatched(f'{version} is not a valid BFD version')
 
     @property
     def user_hicn_hash(self):
@@ -239,7 +215,7 @@ class ArchivedCrosswalk(models.Model):
     This model is used to keep an audit copy of a Crosswalk record's
     previous values when there are changes to the original.
 
-    This is performed via code in the 'get_and_update_user()' function
+    This is performed via code in the '__get_and_update_user()' function
     in apps/mymedicare_cb/models.py
     Attributes:
         user: auth_user.id
@@ -312,22 +288,10 @@ class ArchivedCrosswalk(models.Model):
     date_created = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
 
-    # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
-    _fhir_id = models.CharField(
-        db_column='fhir_id',
-        db_index=True,
-        default=None,
-        max_length=80,
-        unique=False,
-        null=True
-    )
-
     @staticmethod
     def create(crosswalk):
         acw = ArchivedCrosswalk.objects.create(
             username=crosswalk.user.username,
-            # TODO - This field is a legacy field, to be removed before migration bluebutton 0010
-            _fhir_id=crosswalk._fhir_id,
             fhir_id_v2=crosswalk.fhir_id(2),
             fhir_id_v3=crosswalk.fhir_id(3),
             user_id_type=crosswalk.user_id_type,
