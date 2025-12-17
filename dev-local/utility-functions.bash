@@ -25,21 +25,6 @@ check_valid_env () {
         return -2
     fi 
 
-
-    if [[ "${bfd}" == "local" && "${auth}" == "live" ]]; then
-        echo "⚠️ ${bfd}/${auth} may work for SLSX testing, but not for BFD calls."
-    fi 
-
-    if [[ "${bfd}" == "test" && "${auth}" == "mock" ]]; then
-        echo "⛔ ${bfd}/${auth} is not a valid combination. Exiting."
-        return -3
-    fi 
-
-    if [[ "${bfd}" == "sbx" && "${auth}" == "mock" ]]; then
-        echo "⛔ ${bfd}/${auth} is not a valid combination. Exiting."
-        return -4
-    fi 
-
     echo "✅ check_valid_env"
 }
 
@@ -251,7 +236,7 @@ retrieve_certs () {
 # variables for secure communication with auth servers 
 # (or helps set up the mock).
 set_salt () {
-    if [ "${bfd}" = "local" ]; then
+    if [ "${auth}" = "mock" ]; then
         echo "🆗 Running locally. Not retrieving salt."
         export DJANGO_USER_ID_SALT="6E6F747468657265616C706570706572"
         export DJANGO_USER_ID_ITERATIONS="2"
@@ -331,4 +316,10 @@ cleanup_docker_stack () {
             docker stop $id
         done
     fi
+}
+
+########################################
+# Echo function that includes script name on each line for console log readability
+echo_msg () {
+		echo "$(basename $0): $*"
 }

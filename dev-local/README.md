@@ -168,6 +168,18 @@ In a nutshell:
 1. Obtain certificates for the remote environment (if you selected `test` or `sbx`)
 1. Pass appropriate env vars through to the app, based on choices.
 
+### selenium tests
+
+At the moment, you can run local selenium tests in the make ecosystem. You need to have a stack running, and when you run make run-selenium from dev-local, you need to make sure you pass in the auth value that your local stack is running.
+```
+make run-local bfd=sbx auth=live
+```
+means you need to run the following
+```
+make run-selenium auth=live
+```
+or it will run the wrong sequences.
+
 ## future work
 
 Once this is in place, it is easy to script/add Makefile targets for some additional tools. For example, we could have a menu driven script to...
