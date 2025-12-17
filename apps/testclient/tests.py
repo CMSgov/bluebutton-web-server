@@ -93,12 +93,12 @@ class TestPaginationURIs(TestCase):
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
+    fixtures = ['scopes.json']
     """
     Test the BlueButton API UserInfo Endpoint
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
         self.testclient_setup = testclient_http_response_setup(version=version)
         self.token = "sample-token-string"
