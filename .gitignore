@@ -57,6 +57,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+dev-local/selenium/dump/*
 
 # Database
 *.db
