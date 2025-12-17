@@ -6,7 +6,7 @@ import logging
 from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, BadRequest
 from oauth2_provider.models import AccessToken
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
@@ -33,7 +33,8 @@ from apps.fhir.bluebutton.signals import (
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_fhir_response,
-    valid_patient_read_or_search_call
+    valid_patient_read_or_search_call,
+    validate_query_parameters
 )
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -154,9 +155,19 @@ class FhirDataView(APIView):
                 req.headers['BlueButton-Application'] = quote(req.headers.get('BlueButton-Application'))
 
         prepped = s.prepare_request(req)
+        query_param = prepped.headers.get('BlueButton-OriginalQuery')
+
+        if query_param:
+            accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
+            validation_result = validate_query_parameters(accepted_query_parameters, query_param)
+            if not validation_result.valid:
+                error = BadRequest(
+                    f'Bad request, invalid query parameters were passed: {validation_result.invalid_params}'
+                )
+                raise error
 
         if resource_type == 'Patient':
-            query_param = prepped.headers.get('BlueButton-OriginalQuery')
+
             resource_id = kwargs.get('resource_id')
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 

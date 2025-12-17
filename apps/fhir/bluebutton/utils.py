@@ -10,7 +10,7 @@ import uuid
 from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
-from typing import Optional
+from typing import Any, Dict, List, NamedTuple, Optional
 from urllib.parse import parse_qs
 
 from django.conf import settings
@@ -24,6 +24,11 @@ from .models import Crosswalk, Fhir_Response
 from apps.dot_ext.utils import get_api_version_number_from_url
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+
+class ValidateSearchParams(NamedTuple):
+    invalid_params: List[str]
+    valid: bool
 
 
 def get_user_from_request(request):
@@ -766,3 +771,29 @@ def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional
         return False
 
     return True
+
+
+def validate_query_parameters(accepted_query_params: Dict[str, Any], api_query_params: str) -> ValidateSearchParams:
+    """Determine if search parameters for a given call are valid or not.
+    If they are not valid, return a list of the invalid parameters
+
+    Args:
+        accepted_query_parameters (Dict[str, Any]): The query params that are accepted for a given resource search
+        api_query_params (str): The query params passed for a given API call
+
+    Returns:
+        ValidateSearchParams: A NamedTuple with the following fields:
+            valid: Whether or not the search params are valid
+            invalid_params: If not valid, the list of params that are not valid (for error output)
+    """
+    query_dict = parse_qs(api_query_params)
+    valid = True
+    invalid_params = []
+    for key in query_dict.keys():
+        if key not in accepted_query_params.keys():
+            valid = False
+            invalid_params.append(key)
+    return ValidateSearchParams(
+        valid=valid,
+        invalid_params=invalid_params
+    )

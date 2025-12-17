@@ -108,6 +108,10 @@ class SearchViewPatient(SearchView):
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
     required_scopes = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
+    QUERY_SCHEMA = {
+        **SearchView.QUERY_SCHEMA,
+        'beneficiary': str
+    }
 
     def __init__(self, version=1):
         super().__init__(version)
