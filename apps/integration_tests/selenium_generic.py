@@ -2,8 +2,12 @@ import os
 import time
 import re
 
-from apps.integration_tests.common_utils import \
-    extract_href_from_html, extract_last_part_of_url, log_step, check_element_state
+from apps.integration_tests.common_utils import (
+    extract_href_from_html,
+    extract_last_part_of_url,
+    log_step,
+    check_element_state
+)
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from selenium import webdriver
