@@ -16,6 +16,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 
 from apps.mymedicare_cb.tests.test_models import search_fhir_id_by_identifier_side_effect
 from apps.test import BaseApiTest
@@ -61,7 +62,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': redirect_uri,
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
@@ -74,7 +75,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'allow': True,
             "state": "0123456789abcdef",
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response['Location'], data=payload)
 
@@ -158,7 +159,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': redirect_uri,
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
@@ -171,7 +172,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'allow': True,
             "state": "0123456789abcdef",
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response['Location'], data=payload)
 
