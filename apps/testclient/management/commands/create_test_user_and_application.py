@@ -75,15 +75,21 @@ def create_user(the_group):
 
 def create_application(user):
     app_name = "TestApp"
+    client_id = "testclientid"
+    client_secret = "testclientsecret"
+    client_secret_plain = "testclientsecretplain"
     if Application.objects.filter(name=app_name).exists():
         return Application.objects.get(name=app_name)
 
     # If the app doesn't exist, create the test app.
 
     Application.objects.filter(name=app_name).delete()
-    redirect_uri = "{}{}".format(settings.HOSTNAME_URL, settings.TESTCLIENT_REDIRECT_URI)
+    redirect_uri = f'{settings.HOSTNAME_URL}{settings.TESTCLIENT_REDIRECT_URI} https://oauth.pstmn.io/v1/callback'
 
     the_app = Application.objects.create(name=app_name,
+                                         client_id=client_id,
+                                         client_secret=client_secret,
+                                         client_secret_plain=client_secret_plain,
                                          redirect_uris=redirect_uri,
                                          user=user,
                                          data_access_type="THIRTEEN_MONTH",
