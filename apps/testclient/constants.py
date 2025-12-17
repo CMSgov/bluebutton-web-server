@@ -14,6 +14,11 @@ RESULTS_PAGE = 'results.html'
 BAD_PATIENT_ID = 'INTERNAL_BAD_PATIENT_ID'
 
 
+# Default TestApp Values
+TEST_APP_CLIENT_ID = 'test-client-id'
+TEST_APP_CLIENT_SECRET = 'test-client-secret'
+
+
 class EndpointFormatException(Exception):
     """Exception for endpoint formatting errors.
 
