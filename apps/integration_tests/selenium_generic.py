@@ -155,20 +155,11 @@ class SeleniumGenericTests():
 
         except TimeoutException:
             log_step("TIMEOUT waiting for clickable element", "ERROR")
-            print(f"    Waited {timeout_sec} seconds for: {by}='{by_expr}'")
-
-            # Check element state after timeout
-            exists, visible, enabled, elem = check_element_state(self.driver, by, by_expr, "after timeout")
-
-            if exists and not visible:
-                print("    ⚠️  Element EXISTS but is NOT VISIBLE")
-            elif exists and visible and not enabled:
-                print("    ⚠️  Element EXISTS and VISIBLE but NOT ENABLED")
-            elif not exists:
-                print("    ⚠️  Element does NOT EXIST in DOM")
+            check_element_state(self.driver, by, by_expr, "after timeout")
             raise
         except Exception as e:
             log_step(f"Unexpected error in _find_and_click: {type(e).__name__}", "ERROR")
+            check_element_state(self.driver, by, by_expr, "exception")
             raise
 
     def _testclient_home(self, **kwargs):
@@ -201,15 +192,11 @@ class SeleniumGenericTests():
             print(f"    Waited {timeout_sec} seconds for: {by}='{by_expr}'")
 
             # Check element state after timeout
-            exists, visible, enabled, elem = check_element_state(self.driver, by, by_expr, "after timeout")
-
-            if exists and not visible:
-                print("    ⚠️  Element EXISTS but is NOT VISIBLE")
-            elif not exists:
-                print("    ⚠️  Element does NOT EXIST in DOM")
+            check_element_state(self.driver, by, by_expr, "after timeout")
             raise
         except Exception as e:
             log_step(f"Unexpected error in _find_and_sendkey: {type(e).__name__}", "ERROR")
+            check_element_state(self.driver, by, by_expr, "exception")
             raise
 
     def _click_get_sample_token_pkce(self, **kwargs):
@@ -228,9 +215,11 @@ class SeleniumGenericTests():
             return elem
         except TimeoutException:
             log_step("TIMEOUT waiting for element", "ERROR")
+            check_element_state(self.driver, by, by_expr, "after timeout")
             raise
         except Exception as e:
             log_step(f"Unexpected error: {type(e).__name__}", "ERROR")
+            check_element_state(self.driver, by, by_expr, "exception")
             raise
 
     def _load_page(self, url, **kwargs):

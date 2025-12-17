@@ -73,23 +73,26 @@ def check_element_state(driver, by, by_expr, state):
         state (_type_): state at time of failure
 
     Returns:
-        tuple: (exists, is_visible, is_enabled, element)
+        N/A
     """
     try:
         elem = driver.find_element(by, by_expr)
         exists = True
-        is_visible = elem.is_displayed()
-        is_enabled = elem.is_enabled()
+        visible = elem.is_displayed()
+        enabled = elem.is_enabled()
 
         print(f"    🔍 Element state {state}: {by}='{by_expr}'")
-        print(f"       Exists: {exists} | Visible: {is_visible} | Enabled: {is_enabled}")
+        print(f"       Exists: {exists} | Visible: {visible} | Enabled: {enabled}")
 
-        if not is_visible:
+        if not visible:
             print(f"       Size: {elem.size}")
             print(f"       Location: {elem.location}")
             print(f"       CSS display: {elem.value_of_css_property('display')}")
             print(f"       CSS visibility: {elem.value_of_css_property('visibility')}")
-        return (exists, is_visible, is_enabled, elem)
+        if exists and not visible:
+            print("    ⚠️  Element EXISTS but is NOT VISIBLE")
+        elif exists and visible and not enabled:
+            print("    ⚠️  Element EXISTS and VISIBLE but NOT ENABLED")
     except NoSuchElementException:
         print(f"    ⚠️  Element NOT FOUND in DOM: {by}='{by_expr}'")
         return (False, False, False, None)
