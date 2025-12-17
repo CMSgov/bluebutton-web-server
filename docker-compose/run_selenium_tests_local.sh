@@ -153,6 +153,7 @@ else
 fi
 
 echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
+echo "TARGET ENV: " ${TARGET_ENV}
 echo "HOSTNAME_URL: " ${HOSTNAME_URL}
 echo "Selenium grid=" ${SELENIUM_GRID}
 echo "Debug mode=" ${DEBUG_MODE}
@@ -237,6 +238,7 @@ if [ "$DEBUG_MODE" = true ]; then
     echo_msg "DEBUG MODE ENABLED - Debugger will wait for client on port 6789"
 fi
 
+# docker compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 docker compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} SELENIUM_GRID=${SELENIUM_GRID} ${DEBUG_CMD}pytest ${PYTEST_SHOW_TRACE_OPT} ${TESTS_LIST}"
 
 #Stop containers after use

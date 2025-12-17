@@ -3,7 +3,8 @@ services:
   # Local Selenium Server
   selenium-tests:
     image: selenium-local:latest
-    command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
+    command: /code/dev-local/selenium/start-selenium.sh
+    network_mode: host
     ports:
       - "8910:8910"
       - "6789:6789"
@@ -14,8 +15,6 @@ services:
     depends_on:
       chrome:
         condition: service_started
-    networks:
-      - dev-local_default  
   ####################
   # Chrome for Selenium Remote
   chrome:
@@ -24,9 +23,3 @@ services:
     ports:
       - "4444:4444"
       - "5900:5900"
-    networks:
-      - dev-local_default
-
-networks:
-  dev-local_default:
-    external: true

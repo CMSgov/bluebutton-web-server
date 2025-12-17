@@ -2,12 +2,14 @@ import jsonschema
 import re
 import os
 from functools import wraps
-from datetime import datetime
 from jsonschema import validate
+from selenium.common.exceptions import NoSuchElementException
 
 
 def screenshot_on_exception(func):
-    """A decorator for getting a screenshot when an exception occurs in a selenium test
+    """
+    A decorator for getting a screenshot and html dump
+    when an exception occurs in a selenium test
 
     Args:
         func (function): default param for decorator
@@ -26,21 +28,74 @@ def screenshot_on_exception(func):
             # Make sure there is a webdriver and we are not in an AWS environment
             if webdriver and os.getenv('TARGET_ENV') == 'dev':
                 try:
-                    test_folder = os.path.join('screenshots', func.__name__)
+                    print(f"{'='*80}")
+                    print(f"Current URL: {webdriver.current_url}")
+                    print(f"Page Title: {webdriver.title}")
+
+                    test_folder = os.path.join('dev-local/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
 
-                    # Delete oldest screenshot if 3 exist already, keep it unclutterred
-                    screenshots = sorted([png for png in os.listdir(test_folder)])
-                    if len(screenshots) >= 3:
-                        os.remove(os.path.join(test_folder, screenshots[0]))
+                    # Remove all previous files so only the latest failure is kept
+                    for file in os.listdir(test_folder):
+                        os.remove(os.path.join(test_folder, file))
+                    screenshot_filename = os.path.join(test_folder, 'screenshot.png')
+                    webdriver.save_screenshot(screenshot_filename)
 
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = os.path.join(test_folder, f'{timestamp}.png')
-                    webdriver.save_screenshot(filename)
-                except Exception as screenshot_error:
-                    print(f"Failed to capture screenshot: {screenshot_error}")
+                    html_filename = os.path.join(test_folder, 'page.html')
+                    with open(html_filename, 'w', encoding='utf-8') as html_file:
+                        html_file.write(webdriver.page_source)
+
+                except Exception as save_error:
+                    print(f"Failed to capture test failure: {save_error}")
             raise outer_exception
     return wrapper
+
+
+def log_step(message, level="INFO"):
+    """Log a step with consistent formatting"""
+    prefix = {
+        "INFO": "ℹ",
+        "SUCCESS": "✓",
+        "ERROR": "✗",
+        "WARNING": "⚠"
+    }.get(level, "•")
+
+    print(f"{prefix} {message}")
+
+
+def check_element_state(driver, by, by_expr, state):
+    """Check and log the state of an HTML element
+
+    Args:
+        driver (webdriver): selenium webdriver instance
+        by (By): locator strategy
+        by_expr (str): by expression
+        state (_type_): state at time of failure
+
+    Returns:
+        tuple: (exists, is_visible, is_enabled, element)
+    """
+    try:
+        elem = driver.find_element(by, by_expr)
+        exists = True
+        is_visible = elem.is_displayed()
+        is_enabled = elem.is_enabled()
+
+        print(f"    🔍 Element state {state}: {by}='{by_expr}'")
+        print(f"       Exists: {exists} | Visible: {is_visible} | Enabled: {is_enabled}")
+
+        if not is_visible:
+            print(f"       Size: {elem.size}")
+            print(f"       Location: {elem.location}")
+            print(f"       CSS display: {elem.value_of_css_property('display')}")
+            print(f"       CSS visibility: {elem.value_of_css_property('visibility')}")
+        return (exists, is_visible, is_enabled, elem)
+    except NoSuchElementException:
+        print(f"    ⚠️  Element NOT FOUND in DOM: {by}='{by_expr}'")
+        return (False, False, False, None)
+    except Exception as e:
+        print(f"    ❌ Error checking element: {e}")
+        return (False, False, False, None)
 
 
 def validate_json_schema(schema, content):
