@@ -1,5 +1,5 @@
 <form version="1.1">
-  <label>BB2 DASG Metrics Dashboard v1 Fixes</label>
+  <label>BB2 DASG Metrics Dashboard</label>
   <description>Dashboard panels related to metrics for DASG reporting</description>
   <fieldset submitButton="false"></fieldset>
   <row>
