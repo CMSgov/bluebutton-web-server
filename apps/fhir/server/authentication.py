@@ -38,14 +38,19 @@ def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None, version=Vers
 
 
 def search_fhir_id_by_identifier(search_identifier, request=None, version=Versions.NOT_AN_API_VERSION):
-    """
-        Search the backend FHIR server's patient resource
-        using the specified identifier.
+    """Search the backend FHIR server's patient resource using the specified identifier.
 
-        Return:  fhir_id = matched ID (or None for no match).
+    Args:
+        search_identifier (str): the identifier to search for
+        request (_type_, optional): _description_. Defaults to None.
+        version (Version): version of BFD to check. Defaults to Versions.NOT_AN_API_VERSION.
 
-        Raises exception:
-            UpstreamServerException: For backend response issues.
+    Raises:
+        UpstreamServerException: For backend response issues.
+        e: exception to raise
+
+    Returns:
+        fhir_id (str): matched ID (or None for no match)
     """
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth()
