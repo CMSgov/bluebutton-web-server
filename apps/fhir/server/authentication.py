@@ -127,7 +127,7 @@ class MatchFhirIdResult(NamedTuple):
     """Result of attempting to match a FHIR ID"""
     success: bool
     fhir_id: Optional[str] = None
-    lookup_type: Optional[MatchFhirIdLookupType] = None
+    lookup_type: MatchFhirIdLookupType = MatchFhirIdLookupType.MBI
     error: Optional[str] = None
     error_type: Optional[MatchFhirIdErrorType] = None  # 'upstream', 'not_found', etc.
 
