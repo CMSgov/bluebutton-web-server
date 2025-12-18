@@ -130,11 +130,6 @@
                             "name": "startIndex",
                             "type": "string",
                             "documentation": "The offset used for result pagination"
-                        },
-                        {
-                            "name": "cursor",
-                            "type": "string",
-                            "documentation": "The cursor used for result pagination"
                         }
                     ]
                 }
