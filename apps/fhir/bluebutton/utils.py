@@ -790,7 +790,11 @@ def validate_query_parameters(accepted_query_params: Dict[str, Any], api_query_p
     valid = True
     invalid_params = []
     for key in query_dict.keys():
-        if key not in accepted_query_params.keys():
+        # Note: We do not invalidate for count, as that is a valid query parameter,
+        # that is transformed to _count before making the call to BFD. We do not manipulate the
+        # actual query parameter string to be _count instead of count though, so we do not fail
+        # a request if it includes count
+        if key not in accepted_query_params.keys() and key != 'count':
             valid = False
             invalid_params.append(key)
     return ValidateSearchParams(

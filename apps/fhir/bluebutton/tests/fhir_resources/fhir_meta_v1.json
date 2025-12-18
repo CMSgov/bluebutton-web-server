@@ -78,11 +78,6 @@
                             "documentation": "Include resources last updated in the given range"
                         },
                         {
-                            "name": "excludeSAMHSA",
-                            "type": "string",
-                            "documentation": "If true, exclude all SAMHSA-related resources"
-                        },
-                        {
                             "name": "service-date",
                             "type": "date",
                             "documentation": "Include resources that completed in the given range"
