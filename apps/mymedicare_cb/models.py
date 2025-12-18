@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, NotFound
 from apps.versions import Versions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
@@ -102,7 +102,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 # It would be more preferable to actually raise a NotFound error here
                 # but there are other unit tests that appear to fail and expect that this would fail silently
                 # A future ticket should address this
-                pass
+                raise NotFound
 
     # The get is maybe now redundant since match_fhir_id will return None if not found
     # but I don't think this hurts to do
