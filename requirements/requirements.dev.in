@@ -1,11 +1,12 @@
 -r requirements.in
-debugpy == 1.6.7 
+debugpy # == 1.6.7 
 django-debug-toolbar == 4.0.0
 flake8 == 6.0.0
 flask == 3.0.3
 flask-wtf == 1.2.1
 h11 == 0.16.0
 httmock == 1.4.0
+markupsafe == 3.0.3
 pytest == 8.2.0
 selenium == 4.16.0
 setuptools-scm == 6.4.2

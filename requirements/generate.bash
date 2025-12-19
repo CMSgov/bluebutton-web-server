@@ -7,6 +7,10 @@ echo Generating requriements.txt
 pip-compile --generate-hashes \
     --output-file=/output/requirements.txt \
     /requirements/requirements.in
+if [ "$?" -ne 0 ]; then
+    echo "pip-compile failed."
+    exit
+fi
 
 echo Starting requirements.txt download
 pip download -r /output/requirements.txt \
