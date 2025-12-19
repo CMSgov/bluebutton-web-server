@@ -7,9 +7,10 @@ from unittest import skipIf
 from django.conf import settings
 from apps.versions import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
-from apps.testclient.constants import EndpointUrl
+from apps.testclient.constants import EndpointUrl, ResponseErrors
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
 from django.http import HttpRequest
+import json
 
 import os
 
@@ -90,6 +91,21 @@ class TestPaginationURIs(TestCase):
                 # We should have no navi elements
                 self.assertIn("_count", result)
                 self.assertIn("startIndex", result)
+
+
+class TestResponseErrors(TestCase):
+    # These tests serve to make sure that the
+    # classmethods were defined correctly, no more.
+    def test_class_methods(self):
+        r1 = ResponseErrors.InvalidClient('tacos')
+        j1 = json.loads(r1.content)
+        self.assertIn('tacos', j1['error'])
+        self.assertEqual(j1['code'], 'InvalidClient')
+
+        r2 = ResponseErrors.MissingTokenError('macaroniandcheese')
+        j2 = json.loads(r2.content)
+        self.assertIn('macaroniandcheese', j2['error'])
+        self.assertEqual(j2['code'], 'MissingTokenError')
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
