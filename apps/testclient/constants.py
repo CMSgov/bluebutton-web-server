@@ -2,6 +2,7 @@ from django.http import JsonResponse
 import apps.logging.request_logger as bb2logging
 import logging
 from apps.versions import Versions
+from http import HTTPStatus
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -68,37 +69,47 @@ class EndpointUrl:
 
 
 class ResponseErrors:
-    def MissingTokenError(self, msg):
+    @classmethod
+    def MissingTokenError(cls, msg):
         return JsonResponse({
             'error': f'Failed to get token from {msg}',
             'code': 'MissingTokenError',
             'help': 'Try authorizing again'},
-            500)
+            # is 500, but should be a 400
+            status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    def InvalidClient(self, msg):
+    @classmethod
+    def InvalidClient(cls, msg):
         return JsonResponse({
             'error': f'Failed to get token from {msg}',
             'code': 'InvalidClient',
             'help': 'Try authorizing again'},
-            500)
+            # is 500, but should be a 403
+            status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    def MissingPatientError(self):
+    @classmethod
+    def MissingPatientError(cls):
         return JsonResponse({
             'error': 'No patient found in token; only synthetic benficiares can be used.',
             'code': 'MissingPatientError',
             'help': 'Try authorizing again'},
-            500)
+            # this was, and should be a 500
+            status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    def NonSyntheticTokenError(self, msg):
+    @classmethod
+    def NonSyntheticTokenError(cls):
         return JsonResponse({
-            'error': f'Failed token is for a non-synthetic patient_id = {msg}',
+            'error': 'Failed token is for a non-synthetic patient_id',
             'code': 'NonSyntheticTokenError',
             'help': 'Try authorizing again.'
-        }, 403)
+            # was, remains 403
+        }, status=HTTPStatus.BAD_REQUEST)
 
-    def MissingCallbackVersionContext(self, msg):
+    @classmethod
+    def MissingCallbackVersionContext(cls):
         return JsonResponse({
             'error': 'Missing API version in callback session',
             'code': 'MissingCallbackVersion',
             'help': 'Try authorizing again'
-        }, 500)
+            # was 500, should remain 500
+        }, status=HTTPStatus.INTERNAL_SERVER_ERROR)

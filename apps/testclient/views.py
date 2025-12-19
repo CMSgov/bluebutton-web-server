@@ -238,7 +238,7 @@ def callback(request: HttpRequest):
         logger.error(logmsg)
         if 'token' in request.session:
             del request.session['token']
-        return ResponseErrors.NonSyntheticTokenError(patient_id)
+        return ResponseErrors.NonSyntheticTokenError()
 
     # We are guaranteed at this point that the patient_id is not None, and it is a synthetic user id.
     request.session['token'] = token
