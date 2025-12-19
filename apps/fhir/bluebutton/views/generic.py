@@ -6,11 +6,11 @@ import logging
 from apps.versions import VersionNotMatched, Versions
 import apps.logging.request_logger as bb2logging
 
-from django.core.exceptions import ObjectDoesNotExist, BadRequest
+from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -162,10 +162,11 @@ class FhirDataView(APIView):
             accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
             validation_result = validate_query_parameters(accepted_query_parameters, query_param)
             if not validation_result.valid:
-                error = BadRequest(
-                    f'Bad request, invalid query parameters were passed: {validation_result.invalid_params}'
-                )
-                raise error
+                # We are raising a ValidationError here so that, even when DEBUG = False, a developer
+                # making the request can see what the invalid parameters were so they can fix the request
+                raise ValidationError({
+                    'error': f'Invalid parameters: {validation_result.invalid_params}'
+                })
 
         if resource_type == 'Patient':
 

@@ -682,3 +682,4 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             Authorization='Bearer %s' % (first_access_token)
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.json()['error'], 'Invalid parameters: [\'hello\']')
