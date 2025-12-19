@@ -97,9 +97,9 @@ class ResponseErrors:
             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     @classmethod
-    def NonSyntheticTokenError(cls, msg):
+    def NonSyntheticTokenError(cls):
         return JsonResponse({
-            'error': f'Failed token is for a non-synthetic patient_id = {msg}',
+            'error': 'Failed token is for a non-synthetic patient_id',
             'code': 'NonSyntheticTokenError',
             'help': 'Try authorizing again.'
             # was, remains 403

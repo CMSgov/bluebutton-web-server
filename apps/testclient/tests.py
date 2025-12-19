@@ -160,12 +160,12 @@ class BlueButtonClientApiUserInfoTest(TestCase):
 
 @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
 class BlueButtonClientApiFhirTest(TestCase):
+    fixtures = ['scopes.json']
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
         # TODO V3: The testclient response setup prepares URLs; the URLs we pass back
         # are not the same as those produced by EndpointUrl. We may want to centralized/
