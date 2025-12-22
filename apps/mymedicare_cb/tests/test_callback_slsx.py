@@ -358,8 +358,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
             with HTTMock(catchall):
                 sls_client.exchange_for_access_token("test_code", None)
-                self.assertEquals(sls_client.auth_token, "test_tkn")
-                self.assertEquals(
+                self.assertEqual(sls_client.auth_token, "test_tkn")
+                self.assertEqual(
                     sls_client.user_id, "00112233-4455-6677-8899-aabbccddeeff"
                 )
 

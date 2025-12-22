@@ -262,6 +262,7 @@ django==5.2 \
     #   -r /requirements/requirements.in
     #   dj-database-url
     #   django-axes
+    #   django-bootstrap5
     #   django-cors-headers
     #   django-filter
     #   django-localflavor
@@ -272,6 +273,10 @@ django==5.2 \
 django-axes==5.41.1 \
     --hash=sha256:38b89dc71104ace0498d08d7100a1af67688d151206e3c17d98f75bff1351c38 \
     --hash=sha256:aa43fe3a5763bea28d320b1d98e481c12e2dbc12f4dd851aaf7308e80629df9f
+    # via -r /requirements/requirements.in
+django-bootstrap5==25.3 \
+    --hash=sha256:3d381a5329a1439ac3237456c28cc8170c62b4c56ad3564d57876ffc3d4c5e78 \
+    --hash=sha256:cc36f1a19d3200c0f5628c703320edb5c4e39e19bf17607fadf58ddb11828912
     # via -r /requirements/requirements.in
 django-cors-headers==4.0.0 \
     --hash=sha256:a971cd4c75b29974068cc36b5c595698822f1e0edd5f1b32ea42ea37326ad4aa \

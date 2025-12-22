@@ -143,7 +143,7 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
         expected = "?" + pass_params
 
-        self.assertEquals(response, expected)
+        self.assertEqual(response, expected)
 
     def test_prepend_q_no(self):
         """ Check that ? is not added to front of parameters if required """
@@ -153,7 +153,7 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
         expected = pass_params
 
-        self.assertEquals(response, expected)
+        self.assertEqual(response, expected)
 
 
 class BlueButtonUtilRequestTest(TestCase):
