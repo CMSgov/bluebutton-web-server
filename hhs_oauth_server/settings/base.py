@@ -189,6 +189,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_csv",
     "django_filters",
+    "advanced_filters",
     # 1st Party (in-house) ----------
     "apps.accounts",
     "apps.capabilities",
