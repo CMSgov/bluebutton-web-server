@@ -896,7 +896,7 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_on_different_fhir_id_than_associated_with_token(self):
         """
         Confirm that a 404 is thrown when we a Patient read request
-        is attempted for a different fhir_id than the fhir_id associated
+        is attempted for a different fhir_id_v2 than the fhir_id_v2 associated
         with the current token.
         Note: The 404 is being mocked, as in these scenarios, we no longer
         ping BFD.
