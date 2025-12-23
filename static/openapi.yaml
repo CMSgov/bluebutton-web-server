@@ -577,12 +577,6 @@ paths:
           required: false
           description: "The offset used for result pagination"
         - in: query
-          name: cursor
-          schema:
-            type: string
-          required: false
-          description: "The cursor used for result pagination"
-        - in: query
           name: _id
           schema:
             type: string
@@ -760,12 +754,6 @@ paths:
               - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
               - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
               - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: excludeSAMHSA
-          schema:
-            type: string
-          required: false
-          description: "If true, exclude all SAMHSA-related resources"
         - in: query
           name: service-date
           schema:
@@ -1008,12 +996,6 @@ paths:
           required: false
           description: "The offset used for result pagination"
         - in: query
-          name: cursor
-          schema:
-            type: string
-          required: false
-          description: "The cursor used for result pagination"
-        - in: query
           name: _id
           schema:
             type: string
@@ -1193,12 +1175,6 @@ paths:
               - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
               - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
               - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: excludeSAMHSA
-          schema:
-            type: string
-          required: false
-          description: "If true, exclude all SAMHSA-related resources"
         - in: query
           name: service-date
           schema:
@@ -1676,21 +1652,6 @@ components:
                         - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
                         - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
                         - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
-                  - name: excludeSAMHSA
-                    type: string
-                    documentation: >-
-                      The _Substance Abuse and Mental Health Services Administration_
-                      (SAMHSA)
-
-                      is the agency within the U.S. Department of HHS that leads public
-                      health efforts to advance the behavioral health of the nation.
-
-                      Setting this flag to _true_, modifies the request to filter out
-                      all SAMSHA-related claims from the response.
-
-
-                      Examples:
-                        - `excludeSAMHSA=true`
                   - name: includeTaxNumbers
                     type: string
                     documentation: >-
@@ -1841,16 +1802,6 @@ components:
                   - name: startIndex
                     type: string
                     documentation: The offset used for result pagination
-                  - name: cursor
-                    type: string
-                    documentation: >-
-                      Provide a pagination cursor or numeric _offset_ for processing
-                      Patient's Part D events information.
-
-
-                      Examples:
-                        - `cursor=200` the first record is the 201st record
-                        - `cursor=1000` the first record is the 1001st record
             security:
               cors: true
               service:
@@ -2049,21 +2000,6 @@ components:
                         - `_lastUpdated=gt2023-01-02&_lastUpdated=lt2023-05-01` defines a range between two provided dates
                         - `_lastUpdated=gt2023-01-02` defines a range between the provided date and today
                         - `_lastUpdated=lt2023-05-01` defines a range from the earliest available records until the provided date
-                  - name: excludeSAMHSA
-                    type: string
-                    documentation: >-
-                      The _Substance Abuse and Mental Health Services Administration_
-                      (SAMHSA)
-
-                      is the agency within the U.S. Department of HHS that leads public
-                      health efforts to advance the behavioral health of the nation.
-
-                      Setting this flag to _true_, modifies the request to filter out
-                      all SAMSHA-related claims from the response.
-
-
-                      Examples:
-                         - `excludeSAMHSA=true`
                   - name: includeTaxNumbers
                     type: string
                     documentation: >-
@@ -2248,16 +2184,6 @@ components:
                       Identifier, and all might represent the same resource:
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
-                  - name: cursor
-                    type: string
-                    documentation: >-
-                      Provide a pagination cursor or numeric _offset_ for processing
-                      Patient's Part D events information.
-
-
-                      Examples:
-                         - `cursor=200` the first record is the 201st record
-                         - `cursor=1000` the first record is the 1001st record
             security:
               cors: true
               service:

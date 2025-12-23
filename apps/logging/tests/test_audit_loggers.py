@@ -137,7 +137,7 @@ class TestAuditEventLoggers(BaseApiTest):
         with HTTMock(catchall):
             self.client.get(
                 reverse(reverse_url),
-                {'count': 5, 'hello': 'world'},
+                {'count': 5},
                 Authorization='Bearer %s' % (first_access_token),
             )
 
