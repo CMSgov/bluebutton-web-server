@@ -158,7 +158,7 @@ class FhirDataView(APIView):
         query_param = prepped.headers.get('BlueButton-OriginalQuery')
         accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
 
-        if query_param:
+        if query_param and self.version == Versions.V3:
             accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
             validation_result = validate_query_parameters(accepted_query_parameters, query_param)
             if not validation_result.valid:

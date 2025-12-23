@@ -7,7 +7,6 @@ from apps.versions import Versions
 from httmock import all_requests, HTTMock
 from http import HTTPStatus
 from oauth2_provider.models import get_access_token_model
-from typing import List
 from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
@@ -29,6 +28,7 @@ C4BB_SYSTEM_TYPES = {
 
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 FHIR_ID_V3 = settings.DEFAULT_SAMPLE_FHIR_ID_V3
+BAD_PARAMS_ACCEPTABLE_VERSIONS = [Versions.V1, Versions.V2]
 
 read_update_delete_patient_urls = {
     1: 'bb_oauth_fhir_patient_read_or_update_or_delete',
@@ -644,27 +644,37 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
             self.assertEqual(response.status_code, expected_code)
 
-    def test_eob_bad_request_is_thrown_when_invalid_parameters_included(self) -> None:
-        bad_params = ['hello']
-        for version in Versions.supported_versions():
+    def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
+        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_eob_urls[version]
-            self._test_bad_request_is_thrown_when_invalid_parameters_included(url, bad_params)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
 
-    def test_coverage_bad_request_is_thrown_when_invalid_parameters_included(self) -> None:
-        bad_params = ['hello']
-        for version in Versions.supported_versions():
+    def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
+        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_coverage_urls[version]
-            self._test_bad_request_is_thrown_when_invalid_parameters_included(url, bad_params)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
 
-    def test_patient_bad_request_is_thrown_when_invalid_parameters_included(self) -> None:
-        bad_params = ['hello']
-        for version in Versions.supported_versions():
+    def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
+        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_patient_urls[version]
-            self._test_bad_request_is_thrown_when_invalid_parameters_included(url, bad_params)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
+
+    def test_eob_request_when_thrown_when_invalid_parameters_included_v3(self) -> None:
+        url = search_eob_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST)
+
+    def test_coverage_request_when_thrown_when_invalid_parameters_included_v3(self) -> None:
+        url = search_coverage_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST)
+
+    def test_patient_request_when_thrown_when_invalid_parameters_included_v3(self) -> None:
+        url = search_patient_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST)
 
     @override_switch('v3_endpoints', active=True)
-    def _test_bad_request_is_thrown_when_invalid_parameters_included(self, url: str, expected_bad_params: List[str]) -> None:
-        """Ensure that a 400 is thrown for each type of resource call when invalid parameters are included
+    def _test_request_when_invalid_parameters_included(self, url: str, version: int, expected_response_code: HTTPStatus) -> None:
+        """Ensure that a 400 is thrown for each type of resource call when invalid parameters are included for v3
+        And that it is a 200 response when it is v1 or v2
 
         Args:
             url (str): The url that will be called in the test
@@ -681,5 +691,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             {'hello': 'world'},
             Authorization='Bearer %s' % (first_access_token)
         )
-        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertEqual(response.json()['error'], 'Invalid parameters: [\'hello\']')
+        self.assertEqual(response.status_code, expected_response_code)
+        if version == Versions.V3:
+            self.assertEqual(response.json()['error'], 'Invalid parameters: [\'hello\']')
