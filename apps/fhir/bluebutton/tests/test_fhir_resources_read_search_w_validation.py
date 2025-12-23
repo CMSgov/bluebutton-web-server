@@ -8,6 +8,7 @@ from httmock import all_requests, HTTMock
 from http import HTTPStatus
 from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
+from unittest import skipIf
 
 from apps.test import BaseApiTest
 
@@ -644,16 +645,19 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
             self.assertEqual(response.status_code, expected_code)
 
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_eob_urls[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
 
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_coverage_urls[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
 
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_patient_urls[version]
