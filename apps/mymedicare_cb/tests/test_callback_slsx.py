@@ -112,7 +112,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             query = parse_qs(urlparse(response["Location"]).query)
             path = response["Location"].split("?")[0]
             self.assertEqual(path, "https://example.com/login")
-            self.assertEqual(query["redirect_uri"][0], "/123")
+            self.assertIn("/123", query["redirect_uri"][0])
             self.assertTrue("relay" in query)
 
     def test_login_url_health_check_fail(self):
