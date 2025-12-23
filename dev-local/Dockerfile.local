@@ -1,19 +1,23 @@
-FROM python:3.11-trixie
+FROM python:3.14-trixie
 
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
-ENV PYTHON_VERSION=3.11
+ENV PYTHON_VERSION=3.14
 
 # WARNING
 # This is installing the most recent version of Postgres tools.
 # We would rather install v16, to match the database, which matches Amazon.
 RUN apt-get update \
     && apt-get install -y \
+        build-essential \
+        ca-certificates \
         curl \ 
         gettext \
         gnupg \
-        ca-certificates \
-        postgresql-client
+        libffi-dev \
+        libssl-dev \
+        postgresql-client \
+        python3-dev
 
 # Set the local user for development
 # and mount the codebase at /code
@@ -28,11 +32,17 @@ RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip install --upgrade pip pip-tools setuptools
 
+# Trying to bring things through with vendor directory...
+# RUN pip install --no-deps cffi --find-links /code/vendor/
+# RUN pip install --no-deps markupsafe --find-links /code/vendor/
+# RUN pip install --no-deps newrelic --find-links /code/vendor/
+
 # THE NOW
-RUN pip install \
-    -r requirements/requirements.dev.txt \
-    --no-index \
-    --find-links /code/vendor/
+# RUN pip install \
+#     -r requirements/requirements.dev.txt \
+#     --no-index \
+#     --find-links /code/vendor/
+# RUN pip install wheel setuptools pip --upgrade
 
 # NEXT STEPS
 # https://pip.pypa.io/en/stable/topics/secure-installs/
@@ -44,9 +54,9 @@ RUN pip install \
 # some are .tar.gz. We can *prefer* binary, but can't force it.
 #
 # We will iterate towards --only-binary.
-# RUN pip install \
-#     --require-hashes \
-#     --no-deps \
-#     --prefer-binary \
-#     -r requirements/requirements.dev.txt
+RUN pip install \
+    --require-hashes \
+    --no-deps \
+    --prefer-binary \
+    -r requirements/requirements.dev.txt
 
