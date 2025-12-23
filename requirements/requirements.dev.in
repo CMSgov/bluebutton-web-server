@@ -1,5 +1,5 @@
 -r requirements.in
-debugpy # == 1.6.7 
+debugpy == 1.8.19 
 django-debug-toolbar == 4.0.0
 flake8 == 6.0.0
 flask == 3.0.3
