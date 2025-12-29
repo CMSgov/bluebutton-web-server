@@ -27,47 +27,62 @@ class Action(Enum):
     FIND_MSG_BY_CLASS = 15
 
 
-TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
-TESTCLIENT_RESOURCE_LABEL_FMT = "Response ({}), API version: {}"
 MESSAGE_NO_PERMISSION = "You do not have permission to perform this action."
 TESTCASE_BANNER_FMT = "** {} TEST: {}, API: {}, STEP: {}, {}"
 '''
 UI Widget text: texts on e.g. buttons, links, labels etc.
 '''
+
+# Beneficiary information
+BENE_TXT_USERNAME = 'BBUser09003'
+BENE_TXT_PASSWORD_SBX = 'PW09003!@'
+BENE_TXT_PASSWORD_PROD = 'PW09003!'
+BENE_TXT_PASSWORD = \
+    BENE_TXT_PASSWORD_PROD if HOSTNAME_URL.startswith(PROD_URL) else BENE_TXT_PASSWORD_SBX
+
 LNK_TXT_SIGNUP = "Signup"
-LNK_TXT_TESTCLIENT = "Test Client"
-LNK_TXT_GET_TOKEN = "Get a Sample Authorization Token"
-LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
-LNK_TXT_AUTH_AS_BENE_SPANISH = "Authorize as a Beneficiary (Spanish)"
-LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
 TAG_FOR_AUTHORIZE_LINK = "pre"
 # FHIR search result bundle pagination
-LNK_TXT_NAV_FIRST = "first"
-LNK_TXT_NAV_NEXT = "next"
-LNK_TXT_NAV_PREV = "previous"
-LNK_TXT_NAV_LAST = "last"
-LNK_TXT_NAV_SELF = "self"
+FHIR_LNK_TXT_NAV_FIRST = "first"
+FHIR_LNK_TXT_NAV_NEXT = "next"
+FHIR_LNK_TXT_NAV_PREV = "previous"
+FHIR_LNK_TXT_NAV_LAST = "last"
+FHIR_LNK_TXT_NAV_SELF = "self"
 # FHIR resources query page
-LNK_TXT_PATIENT = "Patient"
-LNK_TXT_EOB = "ExplanationOfBenefit"
-LNK_TXT_COVERAGE = "Coverage"
-LNK_TXT_PROFILE = "Profile"
-LNK_TXT_METADATA = "FHIR Metadata"
-LNK_TXT_OIDC_DISCOVERY = "OIDC Discovery"
+FHIR_LNK_TXT_PATIENT = "Patient"
+FHIR_LNK_TXT_EOB = "ExplanationOfBenefit"
+FHIR_LNK_TXT_COVERAGE = "Coverage"
+FHIR_LNK_TXT_PROFILE = "Profile"
+FHIR_LNK_TXT_METADATA = "FHIR Metadata"
+FHIR_LNK_TXT_OIDC_DISCOVERY = "OIDC Discovery"
 # Spanish-English toggle link
 LNK_TXT_SPANISH = "Cambiar a español"
 LNK_TXT_ENGLISH = "Change to English"
 # FHIR result page label H2
 LAB_FHIR_RESULTPAGE_H2 = "h2"
 CONTENT_FHIR_RESULTPAGE_PRE = "pre"
+FHIR_RESULT_BTN_COPY = 'bb-copy-button'
+
 # MSLSX login form
-TXT_FLD_SUB_MSLSX = "username"
-TXT_FLD_HICN_MSLSX = "hicn"
-TXT_FLD_MBI_MSLSX = "mbi"
-TXT_FLD_VAL_SUB_MSLSX = "rogersf"
-MSLSX_TXT_FLD_HICN_VAL = "1000044680"
-MSLSX_TXT_FLD_MBI_VAL = "2SW4N00AA00"
-MSLSX_CSS_BUTTON = "button"
+MSLSX_TXT_FLD_USERNAME = "username"
+MSLSX_TXT_FLD_HICN = "hicn"
+MSLSX_TXT_FLD_MBI = "mbi"
+MSLSX_TXT_FLD_USERNAME_VAL = BENE_TXT_USERNAME
+MSLSX_TXT_FLD_HICN_VAL = "00000000000"
+MSLSX_TXT_FLD_MBI_VAL = "1S00EU8DG39"
+MSLSX_BTN_SUBMIT = "button"
+
+# Home page
+HOME_LNK_TXT_TESTCLIENT = "Test Client"
+
+# TestClient
+TESTCLIENT_BTN_GET_TOKEN_V2 = "Get a Sample Authorization Token"
+TESTCLIENT_BTN_GET_TOKEN_V3 = "Get a Sample Authorization Token v3"
+TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH = "Authorize as a Beneficiary"
+TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH = "Authorize as a Beneficiary (Spanish)"
+TESTCLIENT_LNK_TXT_RESTART = "restart testclient"
+TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
+TESTCLIENT_RESOURCE_LABEL_FMT = "Response ({}), API version: {}"
 
 # email notification subjects
 USER_ACCT_ACTIVATION_EMAIL_SUBJ = "Subject: Verify Your Blue Button 2.0 Developer Sandbox Account"
@@ -137,8 +152,8 @@ APP_CSS_SELECTOR_DELETE_APP = ".cta-button:nth-child(2)"
 # SLSX login form
 SLSX_TXT_FLD_USERNAME = 'username'
 SLSX_TXT_FLD_PASSWORD = 'password'
-SLSX_TXT_FLD_USERNAME_VAL = "BBUser00001"
-SLSX_TXT_FLD_PASSWORD_VAL = "PW00001!"
+SLSX_TXT_FLD_USERNAME_VAL = BENE_TXT_USERNAME
+SLSX_TXT_FLD_PASSWORD_VAL = BENE_TXT_PASSWORD
 SLSX_CSS_BUTTON = "login-button"
 SLSX_CSS_CONTINUE_BUTTON = "button[type='submit']"
 SLSX_CSS_LOGIN_BUTTON = "//button[@type='submit' and (normalize-space(text())='Log in' or normalize-space(text())='Entrar')]"
@@ -179,19 +194,19 @@ WAIT_SECONDS = {
 CHECK_TESTCLIENT_START_PAGE = {
     "display": "Check it's on 'Test Client' start page",
     "action": Action.FIND,
-    "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN]
+    "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_GET_TOKEN_V2]
 }
 
 CLICK_TESTCLIENT = {
     "display": "Click link 'Test Client'",
     "action": Action.FIND_CLICK,
-    "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+    "params": [30, By.LINK_TEXT, HOME_LNK_TXT_TESTCLIENT]
 }
 
 CLICK_RESTART_TESTCLIENT = {
     "display": "Click link 'restart testclient'",
     "action": Action.FIND_CLICK,
-    "params": [30, By.LINK_TEXT, LNK_TXT_RESTART_TESTCLIENT]
+    "params": [30, By.LINK_TEXT, TESTCLIENT_LNK_TXT_RESTART]
 }
 
 LOAD_TESTCLIENT_HOME = {
@@ -247,22 +262,22 @@ SEQ_LOGIN_MSLSX = [
     {
         "display": "Input SUB(username)",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, TXT_FLD_SUB_MSLSX, TXT_FLD_VAL_SUB_MSLSX]
+        "params": [20, By.NAME, MSLSX_TXT_FLD_USERNAME, MSLSX_TXT_FLD_USERNAME_VAL]
     },
     {
         "display": "Input hicn",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, TXT_FLD_HICN_MSLSX, MSLSX_TXT_FLD_HICN_VAL]
+        "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
     },
     {
         "display": "Input mbi",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, TXT_FLD_MBI_MSLSX, MSLSX_TXT_FLD_MBI_VAL]
+        "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
     },
     {
         "display": "Click 'submit' on MSLSX login form",
         "action": Action.FIND_CLICK,
-        "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
+        "params": [20, By.CSS_SELECTOR, MSLSX_BTN_SUBMIT]
     },
 ]
 
@@ -327,7 +342,7 @@ SEQ_AUTHORIZE_START_SPANISH = [
     {
         "display": "Click link 'Authorize as a Beneficiary (Spanish)' - start authorization using medicare login in Spanish",
         "action": Action.FIND_CLICK,
-        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE_SPANISH]
+        "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH]
     },
 ]
 
@@ -340,7 +355,7 @@ SEQ_AUTHORIZE_RESTART = [
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
         "action": Action.FIND_CLICK,
-        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH]
     },
 ]
 
@@ -354,7 +369,7 @@ SEQ_AUTHORIZE_PKCE_START = [
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
         "action": Action.FIND_CLICK,
-        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH]
     },
 ]
 
@@ -372,7 +387,7 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
     {
         "display": "Call authorize endpoint with lang param - start authorization",
         "action": Action.COPY_LINK_AND_LOAD_WITH_PARAM,
-        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH]
     },
 ]
 
@@ -380,44 +395,44 @@ SEQ_QUERY_FHIR_RESOURCES = [
     {
         "display": "Click 'Patient' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_PATIENT]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PATIENT]
     },
     {
         "display": "Check Patient result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_PATIENT]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_PATIENT]
     },
     BROWSERBACK,
     {
         "display": "Click 'Coverage' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_COVERAGE]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_COVERAGE]
     },
     {
         "display": "Check Coverage result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_COVERAGE]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_COVERAGE]
     },
     {
         "display": "Check and click Coverage result page navigation links 'last'",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
     CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_EOB]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB]
     },
     {
         "display": "Check ExplanationOfBenefit result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_EOB]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_EOB]
     },
     {
         "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
     WAIT_SECONDS,
     CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
@@ -425,36 +440,36 @@ SEQ_QUERY_FHIR_RESOURCES = [
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_PROFILE]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PROFILE]
     },
     WAIT_SECONDS,
     {
         "display": "Check Profile result page title",
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
-                   "{} (OIDC Userinfo)".format(LNK_TXT_PROFILE)]
+                   "{} (OIDC Userinfo)".format(FHIR_LNK_TXT_PROFILE)]
     },
     BROWSERBACK,
     {
         "display": "Click 'FHIR Metadata' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_METADATA]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_METADATA]
     },
     {
         "display": "Check FHIR Metadata result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_METADATA]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
     },
     BROWSERBACK,
     {
         "display": "Click 'OIDC Discovery' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_OIDC_DISCOVERY]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
     {
         "display": "Check OIDC Discovery result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_OIDC_DISCOVERY]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
     BROWSERBACK,
 ]
@@ -463,7 +478,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     {
         "display": "Click 'Patient' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_PATIENT]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PATIENT]
     },
     {
         "display": "Check Patient result page content (<pre>) expect no permission message",
@@ -474,33 +489,33 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     {
         "display": "Click 'Coverage' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_COVERAGE]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_COVERAGE]
     },
     {
         "display": "Check Coverage result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_COVERAGE]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_COVERAGE]
     },
     {
         "display": "Check and click Coverage result page navigation links 'last'",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
     CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_EOB]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB]
     },
     {
         "display": "Check ExplanationOfBenefit result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_EOB]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_EOB]
     },
     {
         "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
     WAIT_SECONDS,
     CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
@@ -508,7 +523,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_PROFILE]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PROFILE]
     },
     WAIT_SECONDS,
     {
@@ -520,23 +535,23 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     {
         "display": "Click 'FHIR Metadata' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_METADATA]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_METADATA]
     },
     {
         "display": "Check FHIR Metadata result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_METADATA]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
     },
     BROWSERBACK,
     {
         "display": "Click 'OIDC Discovery' on FHIR resources page",
         "action": Action.FIND_CLICK,
-        "params": [20, By.LINK_TEXT, LNK_TXT_OIDC_DISCOVERY]
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
     {
         "display": "Check OIDC Discovery result page title",
         "action": Action.CHECK,
-        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_OIDC_DISCOVERY]
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
     BROWSERBACK,
 ]
@@ -571,6 +586,12 @@ SEQ_CHECK_SCOPES = [
 
 TESTS = {
     "auth_grant_pkce_fhir_calls": [
+        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES}
+    ],
+    "auth_grant_fhir_calls_v3": [
         {"sequence": SEQ_AUTHORIZE_PKCE_START},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,

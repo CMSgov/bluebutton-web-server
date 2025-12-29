@@ -23,6 +23,16 @@ class TestBlueButtonAPI(SeleniumGenericTests):
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
     @screenshot_on_exception
+    def test_auth_grant_fhir_calls_v3(self):
+        step = [0]
+        test_name = "auth_grant_fhir_calls_v3"
+        api_ver = Versions.V3
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    @screenshot_on_exception
     def test_auth_deny_fhir_calls_v2(self):
         step = [0]
         test_name = "auth_deny_fhir_calls"
