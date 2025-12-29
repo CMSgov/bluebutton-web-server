@@ -3,6 +3,7 @@ import json
 from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
+from apps.fhir.bluebutton.views.generic import ENFORCE_PARAM_VALIDATAION
 from apps.versions import Versions
 from httmock import all_requests, HTTMock
 from http import HTTPStatus
@@ -649,34 +650,52 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_eob_urls[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
     @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_coverage_urls[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
     @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = search_patient_urls[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
-    def test_eob_request_when_thrown_when_invalid_parameters_included_v3(self) -> None:
+    def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = search_eob_urls[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST)
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
 
-    def test_coverage_request_when_thrown_when_invalid_parameters_included_v3(self) -> None:
+    def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = search_coverage_urls[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST)
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
 
-    def test_patient_request_when_thrown_when_invalid_parameters_included_v3(self) -> None:
+    def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = search_patient_urls[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST)
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+
+    def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
+        url = search_eob_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
+
+    def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
+        url = search_coverage_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
+
+    def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
+        url = search_patient_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
     @override_switch('v3_endpoints', active=True)
-    def _test_request_when_invalid_parameters_included(self, url: str, version: int, expected_response_code: HTTPStatus) -> None:
+    def _test_request_when_invalid_parameters_included(
+        self,
+        url: str,
+        version: int,
+        expected_response_code: HTTPStatus,
+        prefer_header: str
+    ) -> None:
         """Ensure that a 400 is thrown for each type of resource call when invalid parameters are included for v3
         And that it is a 200 response when it is v1 or v2
 
@@ -693,8 +712,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         response = self.client.get(
             reverse(url),
             {'hello': 'world'},
-            Authorization='Bearer %s' % (first_access_token)
+            Authorization='Bearer %s' % (first_access_token),
+            HTTP_PREFER=prefer_header
         )
         self.assertEqual(response.status_code, expected_response_code)
-        if version == Versions.V3:
+        if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
             self.assertEqual(response.json()['error'], 'Invalid parameters: [\'hello\']')

@@ -38,6 +38,7 @@ from apps.fhir.bluebutton.utils import (
 )
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+ENFORCE_PARAM_VALIDATAION = 'handling=strict'
 
 
 class FhirDataView(APIView):
@@ -157,8 +158,13 @@ class FhirDataView(APIView):
         prepped = s.prepare_request(req)
         query_param = prepped.headers.get('BlueButton-OriginalQuery')
         accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
+        request_prefer_header = request.META.get('HTTP_PREFER')
 
-        if query_param and self.version == Versions.V3:
+        if (
+            request_prefer_header == ENFORCE_PARAM_VALIDATAION
+            and query_param
+            and self.version == Versions.V3
+        ):
             accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
             validation_result = validate_query_parameters(accepted_query_parameters, query_param)
             if not validation_result.valid:
