@@ -410,6 +410,32 @@ paths:
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v3
+  /v3/fhir/Patient/$generate-insurance-card:
+    get:
+      operationId: listDigitalInsuranceCard_v3
+      description: "Returns C4DIC FHIR resources as a FHIR Bundle"
+      summary: "CARIN Digital Insurance Card (C4DIC) FHIR resources as a FHIR Bundle"
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3DigitalInsuranceCardExample:
+                  $ref: '#/components/examples/V3DigitalInsuranceCardExample'
+          description: "ExplanationOfBenefit FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. Malformed request"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
 
 ########## V2 Endpoints ##########
   /v2/connect/.well-known/openid-configuration:
@@ -46787,6 +46813,272 @@ components:
                 usedMoney:
                   value: 1382.05
                   currency: USD
+
+    V3DigitalInsuranceCardExample:
+      value:
+        resourceType: Bundle
+        meta:
+          lastUpdated: '1970-01-01T00:00:00.000+00:00'
+        type: collection
+        entry:
+          - fullUrl: 'urn:uuid:071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3'
+            resource:
+              resourceType: Patient
+              id: 071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              meta:
+                lastUpdated: '2025-11-24T18:53:59.708+00:00'
+                profile:
+                  - >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient
+              extension:
+                - url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-sex'
+                  valueCode: '248153007'
+                - url: 'http://hl7.org/fhir/us/core/StructureDefinition/us-core-race'
+                  extension:
+                    - url: ombCategory
+                      valueCoding:
+                        system: 'urn:oid:2.16.840.1.113883.6.238'
+                        code: 2106-3
+                        display: White
+                    - url: text
+                      valueCode: White
+              name:
+                - family: Turcotte120
+                  given:
+                    - Alva958
+                    - 'N'
+              gender: male
+              birthDate: '1942-09-14'
+              communication:
+                - language:
+                    coding:
+                      - system: 'urn:ietf:bcp:47'
+                        code: unknown
+          - fullUrl: 'urn:uuid:697323ed-595f-4b62-9f3b-465e4ff23683'
+            resource:
+              resourceType: Organization
+              id: 697323ed-595f-4b62-9f3b-465e4ff23683
+              meta:
+                profile:
+                  - >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Organization
+              active: true
+              name: Centers for Medicare and Medicaid Services
+              contact:
+                - purpose:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/contactentity-type'
+                        code: PATINF
+                        display: Patient
+                  telecom:
+                    - system: phone
+                      value: 1-800-633-4227
+                    - system: phone
+                      value: 'TTY: 1-877-486-2048'
+                    - system: url
+                      value: www.medicare.gov
+          - fullUrl: 'urn:uuid:42833c4d-b9c9-456c-ad88-dbea8f7c8595'
+            resource:
+              resourceType: Coverage
+              id: 42833c4d-b9c9-456c-ad88-dbea8f7c8595
+              meta:
+                lastUpdated: '2025-11-24T18:53:59.708+00:00'
+                profile:
+                  - >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage
+              extension:
+                - url: >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-AdditionalCardInformation-extension
+                  valueAnnotation:
+                    text: >-
+                      You may be asked to show this card when you get health care
+                      services. Only give your personal Medicare information to health
+                      care providers, or people you trust who work with Medicare on your
+                      behalf. WARNING: Intentionally misusing this card may be
+                      considered fraud and/or other violation of federal law and is
+                      punishable by law.
+
+
+                      Es posible que le pidan que muestre esta tarjeta cuando reciba
+                      servicios de cuidado médico. Solamente dé su información personal
+                      de Medicare a los proveedores de salud, sus aseguradores o
+                      personas de su confianza que trabajan con Medicare en su nombre.
+                      ¡ADVERTENCIA! El mal uso intencional de esta tarjeta puede ser
+                      considerado como fraude y/u otra violación de la ley federal y es
+                      sancionada por la ley.
+                - url: >-
+                    https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+                  valueCoding:
+                    system: 'https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD'
+                    code: '0'
+              identifier:
+                - type:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
+                        code: MB
+                  system: 'http://hl7.org/fhir/sid/us-mbi'
+                  value: 1S00EU8FA06
+                  assigner:
+                    reference: Organization/697323ed-595f-4b62-9f3b-465e4ff23683
+              status: active
+              type:
+                coding:
+                  - system: 'https://nahdo.org/sopt'
+                    code: '1'
+                    display: MEDICARE
+              subscriber:
+                reference: Patient/071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              subscriberId: 1S00EU8FA06
+              beneficiary:
+                reference: Patient/071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              relationship:
+                coding:
+                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
+                    code: self
+                    display: Self
+              period:
+                start: '2018-08-29'
+              payor:
+                - reference: Organization/697323ed-595f-4b62-9f3b-465e4ff23683
+              class:
+                - type:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
+                        code: plan
+                  value: Part A
+          - fullUrl: 'urn:uuid:b9c6b4f6-8952-41e5-8d9b-d444aa331e0d'
+            resource:
+              resourceType: Coverage
+              id: b9c6b4f6-8952-41e5-8d9b-d444aa331e0d
+              meta:
+                lastUpdated: '2025-11-24T18:53:59.708+00:00'
+                profile:
+                  - >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage
+              extension:
+                - url: >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-AdditionalCardInformation-extension
+                  valueAnnotation:
+                    text: >-
+                      You may be asked to show this card when you get health care
+                      services. Only give your personal Medicare information to health
+                      care providers, or people you trust who work with Medicare on your
+                      behalf. WARNING: Intentionally misusing this card may be
+                      considered fraud and/or other violation of federal law and is
+                      punishable by law.
+
+
+                      Es posible que le pidan que muestre esta tarjeta cuando reciba
+                      servicios de cuidado médico. Solamente dé su información personal
+                      de Medicare a los proveedores de salud, sus aseguradores o
+                      personas de su confianza que trabajan con Medicare en su nombre.
+                      ¡ADVERTENCIA! El mal uso intencional de esta tarjeta puede ser
+                      considerado como fraude y/u otra violación de la ley federal y es
+                      sancionada por la ley.
+                - url: >-
+                    https://bluebutton.cms.gov/fhir/StructureDefinition/BENE-MDCR-ENTLMT-RSN-CD
+                  valueCoding:
+                    system: 'https://bluebutton.cms.gov/fhir/CodeSystem/BENE-MDCR-ENTLMT-RSN-CD'
+                    code: '0'
+              identifier:
+                - type:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
+                        code: MB
+                  system: 'http://hl7.org/fhir/sid/us-mbi'
+                  value: 1S00EU8FA06
+                  assigner:
+                    reference: Organization/697323ed-595f-4b62-9f3b-465e4ff23683
+              status: active
+              type:
+                coding:
+                  - system: 'https://nahdo.org/sopt'
+                    code: '121'
+                    display: MEDICARE FFS
+              subscriber:
+                reference: Patient/071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              subscriberId: 1S00EU8FA06
+              beneficiary:
+                reference: Patient/071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              relationship:
+                coding:
+                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
+                    code: self
+                    display: Self
+              period:
+                start: '2018-08-29'
+              payor:
+                - reference: Organization/697323ed-595f-4b62-9f3b-465e4ff23683
+              class:
+                - type:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
+                        code: plan
+                  value: Part B
+          - fullUrl: 'urn:uuid:3d2c5da2-640c-487d-a6cc-2d1bc6b17302'
+            resource:
+              resourceType: Coverage
+              id: 3d2c5da2-640c-487d-a6cc-2d1bc6b17302
+              meta:
+                lastUpdated: '2025-11-24T18:53:59.708+00:00'
+                profile:
+                  - >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage
+              extension:
+                - url: >-
+                    http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-AdditionalCardInformation-extension
+                  valueAnnotation:
+                    text: >-
+                      You may be asked to show this card when you get health care
+                      services. Only give your personal Medicare information to health
+                      care providers, or people you trust who work with Medicare on your
+                      behalf. WARNING: Intentionally misusing this card may be
+                      considered fraud and/or other violation of federal law and is
+                      punishable by law.
+
+
+                      Es posible que le pidan que muestre esta tarjeta cuando reciba
+                      servicios de cuidado médico. Solamente dé su información personal
+                      de Medicare a los proveedores de salud, sus aseguradores o
+                      personas de su confianza que trabajan con Medicare en su nombre.
+                      ¡ADVERTENCIA! El mal uso intencional de esta tarjeta puede ser
+                      considerado como fraude y/u otra violación de la ley federal y es
+                      sancionada por la ley.
+              identifier:
+                - type:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/v2-0203'
+                        code: MB
+                  system: 'http://hl7.org/fhir/sid/us-mbi'
+                  value: 1S00EU8FA06
+                  assigner:
+                    reference: Organization/697323ed-595f-4b62-9f3b-465e4ff23683
+              status: active
+              type:
+                coding:
+                  - system: 'https://nahdo.org/sopt'
+                    code: '14'
+                    display: Dual Eligibility Medicare/Medicaid Organization
+              subscriber:
+                reference: Patient/071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              subscriberId: 1S00EU8FA06
+              beneficiary:
+                reference: Patient/071fbac5-8d74-4e20-bd8c-c84b5ee1e2e3
+              relationship:
+                coding:
+                  - system: 'http://terminology.hl7.org/CodeSystem/subscriber-relationship'
+                    code: self
+                    display: Self
+              period:
+                start: '2020-09-14'
+              payor:
+                - reference: Organization/697323ed-595f-4b62-9f3b-465e4ff23683
+              class:
+                - type:
+                    coding:
+                      - system: 'http://terminology.hl7.org/CodeSystem/coverage-class'
+                        code: plan
+                  value: Dual Medicare/Medicaid
 
 
 servers:
