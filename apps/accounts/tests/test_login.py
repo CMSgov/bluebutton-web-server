@@ -86,10 +86,7 @@ class LoginTestCase(TestCase):
         """
         User can logout
         """
-        print()
-        print(reverse('logout'))
         response = self.client.post(reverse('logout'), follow=True)
-        print(response.__dict__)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(response, 'Login')
 
