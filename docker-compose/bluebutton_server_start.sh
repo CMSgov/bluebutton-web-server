@@ -34,7 +34,6 @@ then
     echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
     python manage.py create_admin_groups
     python manage.py loaddata scopes.json
-    python manage.py create_blue_button_scopes
     python manage.py create_test_user_and_application
     python manage.py create_user_identification_label_selection
     echo "creating feature switches......"

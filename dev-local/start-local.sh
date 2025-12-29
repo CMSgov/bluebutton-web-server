@@ -34,9 +34,6 @@ then
     
     python manage.py loaddata scopes.json
     echo "🆗 loaddata scopes.json"
-    
-    python manage.py create_blue_button_scopes
-    echo "🆗 create_blue_button_scopes"
 
     python manage.py create_test_user_and_application
 
