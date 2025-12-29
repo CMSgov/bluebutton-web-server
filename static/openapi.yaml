@@ -1286,10 +1286,8 @@ components:
       description: This API uses OAuth 2 with the implicit grant flow.
       flows:
         authorizationCode:
-          # authorizationUrl: https://sandbox.bluebutton.cms.gov/v2/o/authorize
-          # tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
-          authorizationUrl: http://localhost:8000/v2/o/authorize
-          tokenUrl: http://localhost:8000/v2/o/token/
+          authorizationUrl: https://sandbox.bluebutton.cms.gov/v2/o/authorize
+          tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
           scopes:
             profile: User profile
             openid: Openid profile
