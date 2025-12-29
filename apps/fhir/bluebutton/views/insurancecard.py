@@ -69,7 +69,7 @@ class DigitalInsuranceCardView(FhirDataView):
         return super().get(request, self.resource_type, *args, **kwargs)
 
     def get_full_path(self):
-        return f"/{DigitalInsuranceCardView.version}/fhir/DigitalInsuranceCard"
+        return f"/{DigitalInsuranceCardView.version}/fhir/Patient/$generate-insurance-card"
 
     def build_parameters(self, request):
         return {
