@@ -1,6 +1,5 @@
 import json
 import base64
-from time import strftime
 
 import pytz
 from datetime import datetime
@@ -610,8 +609,19 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
         tkn = response.json()
-        expiration_date_string = strftime('%Y-%m-%dT%H:%M:%SZ', expiration_date.timetuple())
-        self.assertEqual(tkn["access_grant_expiration"][:-4], expiration_date_string[:-4])
+        dag.refresh_from_db()
+        token_expiration = datetime.strptime(
+            tkn["access_grant_expiration"], "%Y-%m-%dT%H:%M:%SZ"
+        ).replace(tzinfo=pytz.UTC)
+        dag_expiration = dag.expiration_date
+        if dag_expiration.tzinfo is None:
+            dag_expiration = dag_expiration.replace(tzinfo=pytz.UTC)
+        else:
+            dag_expiration = dag_expiration.astimezone(pytz.UTC)
+        self.assertLessEqual(
+            abs((token_expiration - dag_expiration).total_seconds()),
+            60,
+        )
 
     def test_revoke_endpoint(self):
         redirect_uri = 'http://localhost'
