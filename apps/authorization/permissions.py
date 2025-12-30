@@ -38,7 +38,7 @@ class DataAccessGrantPermission(permissions.BasePermission):
             # If we're handling a digital insurance card, it is *not* an actual
             # FHIR resource, but something of a conglomeration. We have to handle
             # it specially here. We're going to gate it to v3 as well.
-            if view.version == Versions.V3 and 'DigitalInsuranceCard' in request.path:
+            if view.version == Versions.V3 and 'generate-insurance-card' in request.path:
                 return True
             return is_resource_for_patient(obj, request.crosswalk.fhir_id(view.version))
         else:

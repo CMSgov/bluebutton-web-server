@@ -57,7 +57,7 @@ class BaseApiTest(TestCase):
     ) -> User:
         """Helper method that creates a User instance with associated Crosswalk data
 
-        Creates a user, deletes existing Crosswalks with the same fhir_ids, recreates
+        Creates a user, deletes existing Crosswalks with the same fhir ids, recreates
         the Crosswalk with the provided data, and optionally creates a UserProfile if
         user_type is specified
 
