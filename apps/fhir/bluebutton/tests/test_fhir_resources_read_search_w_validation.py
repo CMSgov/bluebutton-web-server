@@ -676,14 +676,17 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         url = search_patient_urls[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
 
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = search_eob_urls[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = search_coverage_urls[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = search_patient_urls[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
