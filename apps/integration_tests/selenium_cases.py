@@ -447,7 +447,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "display": "Check Profile result page title",
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
-                   "{} (OIDC Userinfo)".format(FHIR_LNK_TXT_PROFILE)]
+                   f'{FHIR_LNK_TXT_PROFILE} (OIDC Userinfo)']
     },
     BROWSERBACK,
     {

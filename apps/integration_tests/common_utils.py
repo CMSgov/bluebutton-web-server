@@ -35,12 +35,11 @@ def screenshot_on_exception(func):
                     test_folder = os.path.join('dev-local/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
 
-                    # Remove all previous files so only the latest failure is kept
-                    for file in os.listdir(test_folder):
-                        os.remove(os.path.join(test_folder, file))
+                    # screenshot of failed page
                     screenshot_filename = os.path.join(test_folder, 'screenshot.png')
                     webdriver.save_screenshot(screenshot_filename)
 
+                    # html dump of failed page
                     html_filename = os.path.join(test_folder, 'page.html')
                     with open(html_filename, 'w', encoding='utf-8') as html_file:
                         html_file.write(webdriver.page_source)
@@ -54,7 +53,7 @@ def screenshot_on_exception(func):
 def log_step(message, level='INFO'):
     """Log a step with consistent formatting"""
     prefix = {
-        'INFO': 'ℹ',
+        'INFO': 'ℹ️',
         'SUCCESS': '✅',
         'ERROR': '❌',
         'WARNING': '⚠️'

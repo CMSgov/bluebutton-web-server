@@ -43,6 +43,10 @@ if ! docker ps --format '{{.Names}}' | grep -q "dev-local.*web"; then
 	exit 1
 fi
 
+echo_msg "Clearing selenium/dump screenshots and html..."
+
+rm -rf selenium/dump
+
 echo_msg "Blue Button is running. Starting selenium tests..."
 
 docker-compose -f selenium/docker-compose-selenium.yaml down --remove-orphans || true
