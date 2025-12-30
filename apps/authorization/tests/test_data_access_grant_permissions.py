@@ -229,11 +229,11 @@ class TestDataAccessPermissions(BaseApiTest):
             self.fhir_request_eob_searchview_v2_success_mock,
         ):
             for path in [
-                "/v1/fhir/Patient?patient=-20140000008325",
-                "/v1/fhir/Coverage?patient=-20140000008325",
+                "/v1/fhir/Patient?identifier=-20140000008325",
+                "/v1/fhir/Coverage?beneficiary=-20140000008325",
                 "/v1/fhir/Patient",
-                "/v2/fhir/Patient?patient=-20140000008325",
-                "/v2/fhir/Coverage?patient=-20140000008325",
+                "/v2/fhir/Patient?identifier=-20140000008325",
+                "/v2/fhir/Coverage?beneficiary=-20140000008325",
                 "/v2/fhir/Patient",
             ]:
                 response = self.client.get(

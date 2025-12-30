@@ -8,6 +8,13 @@ from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
 from apps.fhir.server.settings import fhir_settings
+from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
+from voluptuous import (
+    All,
+    Match,
+    Range,
+    Coerce,
+)
 
 
 from apps.fhir.bluebutton.utils import (
@@ -20,9 +27,48 @@ from apps.fhir.bluebutton.utils import (
     crosswalk_patient_id,
     build_oauth_resource,
     valid_patient_read_or_search_call,
+    validate_query_parameters,
 )
 
 ENCODED = settings.ENCODING
+ACCEPTED_PATIENT_QUERY_PARAMS = {
+    'startIndex': Coerce(int, msg=None),
+    '_count': All(
+        Coerce(int, msg=None),
+        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
+    ),
+    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
+    '_id': str,
+    'identifier': str
+}
+ACCEPTED_COVERAGE_QUERY_PARAMS = {
+    'startIndex': Coerce(int, msg=None),
+    '_count': All(
+        Coerce(int, msg=None),
+        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
+    ),
+    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
+    'beneficiary': str
+}
+ACCEPTED_EOB_QUERY_PARAMS = {
+    'startIndex': Coerce(int, msg=None),
+    '_count': All(
+        Coerce(int, msg=None),
+        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
+    ),
+    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
+    'type': Match('(?i)^(((carrier)|(pde)|(dme)|(hha)|(hospice)|(inpatient)|(outpatient)|(snf)|(https://bluebutton.cms.gov/'
+                  'resources/codesystem/eob-type\\|)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|carrier)|('
+                  'https://bluebutton.cms.gov/resources/codesystem/eob-type\\|pde)|(https://bluebutton.cms.gov/resources/co'
+                  'desystem/eob-type\\|dme)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|hha)|(https://blueb'
+                  'utton.cms.gov/resources/codesystem/eob-type\\|hospice)|(https://bluebutton.cms.gov/resources/codesystem/'
+                  'eob-type\\|inpatient)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|outpatient)|(https://b'
+                  'luebutton.cms.gov/resources/codesystem/eob-type\\|snf))\\s*,*\\s*)+$',
+                  msg='the type parameter value is not valid'),
+    'service-date': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the service-date operator is not valid')],
+    'patient': str,
+    '_tag': SearchViewExplanationOfBenefit.validate_tag
+}
 
 
 class BluebuttonUtilsSimpleTestCase(BaseApiTest):
@@ -113,6 +159,41 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
             '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-20140000008329'
         )
         assert result is False
+
+    def test_validate_query_parameters_valid_calls(self):
+        """Ensure validate_query_parameters returns the expected result with given parameters
+        """
+        patient_query_param = '_id=-425664833&count=5&_format=application/fhir+json'
+        result = validate_query_parameters(ACCEPTED_PATIENT_QUERY_PARAMS, patient_query_param)
+        assert result.valid
+        assert not result.invalid_params
+
+        coverage_query_param = 'beneficiary=-425664833&count=5&_format=application/fhir+json'
+        result = validate_query_parameters(ACCEPTED_COVERAGE_QUERY_PARAMS, coverage_query_param)
+        assert result.valid
+        assert not result.invalid_params
+
+        eob_query_param = 'patient=-425664833&count=5&_format=application/fhir+json'
+        result = validate_query_parameters(ACCEPTED_EOB_QUERY_PARAMS, eob_query_param)
+        assert result.valid
+        assert not result.invalid_params
+
+    def test_validate_query_parameters_invalid_calls(self):
+        """Ensure validate_query_parameters returns the expected result with given parameters
+        """
+        query_param = 'hello=world'
+
+        result = validate_query_parameters(ACCEPTED_PATIENT_QUERY_PARAMS, query_param)
+        assert not result.valid
+        assert 'hello' in result.invalid_params
+
+        result = validate_query_parameters(ACCEPTED_COVERAGE_QUERY_PARAMS, query_param)
+        assert not result.valid
+        assert 'hello' in result.invalid_params
+
+        result = validate_query_parameters(ACCEPTED_EOB_QUERY_PARAMS, query_param)
+        assert not result.valid
+        assert 'hello' in result.invalid_params
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
