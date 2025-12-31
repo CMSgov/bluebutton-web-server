@@ -4,6 +4,7 @@ from django.test.client import Client
 from django.urls import reverse
 from apps.accounts.models import UserProfile
 from waffle.testutils import override_switch
+from http import HTTPStatus
 
 
 class LoginTestCase(TestCase):
@@ -40,7 +41,7 @@ class LoginTestCase(TestCase):
         """
         form_data = {'username': 'fred', 'password': 'bedrocks'}
         response = self.client.post(self.url, form_data, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(response, 'Logout')
 
     @override_switch('login', active=False)
@@ -50,7 +51,7 @@ class LoginTestCase(TestCase):
         """
         form_data = {'username': 'fred', 'password': 'bedrocks'}
         response = self.client.post(self.url, form_data, follow=True)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
@@ -60,7 +61,7 @@ class LoginTestCase(TestCase):
         """
         form_data = {'username': 'Fred', 'password': 'bedrocks'}
         response = self.client.post(self.url, form_data, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(response, 'Logout')
 
     @override_switch('login', active=True)
@@ -75,7 +76,7 @@ class LoginTestCase(TestCase):
         """
         form_data = {'username': 'fred', 'password': 'dino'}
         response = self.client.post(self.url, form_data, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(response, 'Login')
 
     @override_switch('logout', active=True)
@@ -85,8 +86,8 @@ class LoginTestCase(TestCase):
         """
         User can logout
         """
-        response = self.client.get(reverse('logout'), follow=True)
-        self.assertEqual(response.status_code, 200)
+        response = self.client.post(reverse('logout'), follow=True)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(response, 'Login')
 
     @override_switch('logout', active=False)
@@ -96,7 +97,7 @@ class LoginTestCase(TestCase):
         Logout endpoint disabled when logout switch is off
         """
         response = self.client.get(reverse('logout'), follow=True)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
@@ -106,5 +107,5 @@ class LoginTestCase(TestCase):
         """
         form_data = {'username': 'fred@example.com', 'password': 'bedrocks'}
         response = self.client.post(self.url, form_data, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(response, 'Logout')

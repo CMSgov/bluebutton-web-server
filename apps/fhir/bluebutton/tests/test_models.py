@@ -9,7 +9,7 @@ class TestModels(BaseApiTest):
 
     def test_require_user_hicn_hash(self):
         # NOTE: The user_hicn_hash's DB field name is still user_id_hash in regex below.
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             IntegrityError, "[NOT NULL constraint|null value in column].*user_id_hash.*"
         ):
             self._create_user(
@@ -173,7 +173,7 @@ class TestModels(BaseApiTest):
         hash_hicn("1234567890A")
 
         # Test empty value
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"
         ):
             hash_hicn("")
