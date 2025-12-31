@@ -209,7 +209,7 @@ class CreateNewApplicationForm(forms.ModelForm):
     logo_image = forms.ImageField(
         label="Logo URI Image Upload",
         required=False,
-        help_text="Upload your logo image file here in JPEG (.jpg) format! "
+        help_text="Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! "
         "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
         "This will update the Logo URI after saving."
         % (

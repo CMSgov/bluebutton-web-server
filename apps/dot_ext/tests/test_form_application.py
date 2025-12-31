@@ -197,10 +197,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
         form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
+        self.assertEqual(form.errors.get('logo_image'), None)
         form = CustomAdminApplicationForm(data, files)
         form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
+        self.assertEqual(form.errors.get('logo_image'), None)
 
         # Test require_demographic_scopes value True
         data = {'require_demographic_scopes': True}
