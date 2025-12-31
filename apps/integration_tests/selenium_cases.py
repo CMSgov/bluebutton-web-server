@@ -33,10 +33,10 @@ TESTCASE_BANNER_FMT = "** {} TEST: {}, API: {}, STEP: {}, {}"
 UI Widget text: texts on e.g. buttons, links, labels etc.
 '''
 
-# Beneficiary information
-BENE_TXT_USERNAME = 'BBUser09003'
-BENE_TXT_PASSWORD_SBX = 'PW09003!@'
-BENE_TXT_PASSWORD_PROD = 'PW09003!'
+# Synthetic beneficiary login info
+BENE_TXT_USERNAME = 'BBUser09001'
+BENE_TXT_PASSWORD_SBX = 'PW09001!'
+BENE_TXT_PASSWORD_PROD = 'PW09001!'
 BENE_TXT_PASSWORD = \
     BENE_TXT_PASSWORD_PROD if HOSTNAME_URL.startswith(PROD_URL) else BENE_TXT_PASSWORD_SBX
 
@@ -55,6 +55,7 @@ FHIR_LNK_TXT_COVERAGE = "Coverage"
 FHIR_LNK_TXT_PROFILE = "Profile"
 FHIR_LNK_TXT_METADATA = "FHIR Metadata"
 FHIR_LNK_TXT_OIDC_DISCOVERY = "OIDC Discovery"
+FHIR_LNK_TXT_DIGITAL_INSURANCE_CARD = "Digital Insurance Card"
 # Spanish-English toggle link
 LNK_TXT_SPANISH = "Cambiar a español"
 LNK_TXT_ENGLISH = "Change to English"
@@ -71,6 +72,11 @@ MSLSX_TXT_FLD_USERNAME_VAL = BENE_TXT_USERNAME
 MSLSX_TXT_FLD_HICN_VAL = "00000000000"
 MSLSX_TXT_FLD_MBI_VAL = "1S00EU8DG39"
 MSLSX_BTN_SUBMIT = "button"
+
+# MSLSX login Fred
+MSLSX_TXT_FLD_FRED_USERNAME_VAL = 'rogersf'
+MSLSX_TXT_FLD_FRED_HICN_VAL = '1000044680'
+MSLSX_TXT_FLD_FRED_MBI_VAL = '2SW4N00AA00'
 
 # Home page
 HOME_LNK_TXT_TESTCLIENT = "Test Client"
@@ -161,12 +167,7 @@ SLSX_CSS_LOGIN_BUTTON = "//button[@type='submit' and (normalize-space(text())='L
 # Demographic info access grant form
 BTN_ID_GRANT_DEMO_ACCESS = "approve"
 BTN_ID_DENY_DEMO_ACCESS = "deny"
-if USE_NEW_PERM_SCREEN == "true":
-    # Below works for new auth screen
-    BTN_ID_RADIO_NOT_SHARE = "radio_1"
-else:
-    # Below works for old auth screen
-    BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
+BTN_ID_RADIO_NOT_SHARE = "radio_1" if USE_NEW_PERM_SCREEN == "true" else "label:nth-child(5)"
 
 # Supported Locale
 EN_US = "en_us"
@@ -188,7 +189,7 @@ BROWSERBACK = {
 WAIT_SECONDS = {
     "display": "Sleep seconds...",
     "action": Action.SLEEP,
-    "params": [3],
+    "params": [2],
 }
 
 CHECK_TESTCLIENT_START_PAGE = {
@@ -258,6 +259,14 @@ CALL_LOGIN = {
     "action": Action.LOGIN,
 }
 
+# Navigate back to TestClient home page, different between prod and test/sbx/local
+TESTCLIENT_HOME = [
+    WAIT_SECONDS,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    WAIT_SECONDS
+]
+
+# MSLSX login using BBUser09001
 SEQ_LOGIN_MSLSX = [
     {
         "display": "Input SUB(username)",
@@ -281,6 +290,30 @@ SEQ_LOGIN_MSLSX = [
     },
 ]
 
+# MSLSX login, but using the Fred super user (currently unused)
+SEQ_LOGIN_MSLSX_FRED = [
+    {
+        "display": "Input SUB(username)",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, MSLSX_TXT_FLD_USERNAME, MSLSX_TXT_FLD_FRED_USERNAME_VAL]
+    },
+    {
+        "display": "Input hicn",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_FRED_HICN_VAL]
+    },
+    {
+        "display": "Input mbi",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_FRED_MBI_VAL]
+    },
+    {
+        "display": "Click 'submit' on MSLSX login form",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.CSS_SELECTOR, MSLSX_BTN_SUBMIT]
+    },
+]
+
 LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
 if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
     LOGIN_WITH_MEDICARE_BUTTON_SETUP = [{
@@ -293,6 +326,7 @@ if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
         ],
     }]
 
+# SLSX login using BBUser09001
 SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
 
     {
@@ -325,7 +359,7 @@ SEQ_REACH_AUTHORIZE_BTN = [
         "action": Action.LOAD_PAGE,
         "params": [HOSTNAME_URL]
     },
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    TESTCLIENT_HOME,
     {
         "display": "Click link to get sample token v1/v2 with PKCE enabled",
         "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
@@ -379,7 +413,7 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
         "action": Action.LOAD_PAGE,
         "params": [HOSTNAME_URL]
     },
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    TESTCLIENT_HOME,
     {
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
@@ -391,7 +425,7 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
     },
 ]
 
-SEQ_QUERY_FHIR_RESOURCES = [
+SEQ_QUERY_FHIR_RESOURCES_V2 = [
     {
         "display": "Click 'Patient' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -402,7 +436,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_PATIENT]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'Coverage' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -418,7 +452,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -434,9 +468,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    WAIT_SECONDS,
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
-    WAIT_SECONDS,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -449,7 +481,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
                    f'{FHIR_LNK_TXT_PROFILE} (OIDC Userinfo)']
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'FHIR Metadata' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -460,7 +492,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'OIDC Discovery' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -471,7 +503,15 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
+]
+
+SEQ_QUERY_FHIR_RESOURCES_V3 = SEQ_QUERY_FHIR_RESOURCES_V2 + [
+    {
+        "display": "Click 'Digital Insurance Card' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PATIENT]
+    },
 ]
 
 SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
@@ -485,7 +525,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CONTAIN_TEXT,
         "params": [20, By.TAG_NAME, CONTENT_FHIR_RESULTPAGE_PRE, MESSAGE_NO_PERMISSION]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'Coverage' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -501,7 +541,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -517,9 +557,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    WAIT_SECONDS,
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
-    WAIT_SECONDS,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -531,7 +569,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CONTAIN_TEXT,
         "params": [20, By.TAG_NAME, CONTENT_FHIR_RESULTPAGE_PRE, MESSAGE_NO_PERMISSION]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'FHIR Metadata' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -542,7 +580,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
     {
         "display": "Click 'OIDC Discovery' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -553,7 +591,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
-    BROWSERBACK,
+    TESTCLIENT_HOME,
 ]
 
 SEQ_CHECK_SCOPES = [
@@ -585,17 +623,17 @@ SEQ_CHECK_SCOPES = [
 ]
 
 TESTS = {
-    "auth_grant_pkce_fhir_calls": [
+    "auth_grant_fhir_calls_v2": [
         {"sequence": SEQ_AUTHORIZE_PKCE_START},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
-        {"sequence": SEQ_QUERY_FHIR_RESOURCES}
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES_V2}
     ],
     "auth_grant_fhir_calls_v3": [
         {"sequence": SEQ_AUTHORIZE_PKCE_START},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
-        {"sequence": SEQ_QUERY_FHIR_RESOURCES}
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES_V3}
     ],
     "auth_deny_fhir_calls": [
         {"sequence": SEQ_AUTHORIZE_PKCE_START},
