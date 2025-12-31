@@ -425,7 +425,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     # @override_switch('v3_endpoints', active=True)
     # def test_get_digital_insurance_card(self):
     #     """
-    #     Test DigitalInsuranceCard for CARIN C4DIC data from BFD
+    #     Test Patient/$generate-insurance-card for CARIN C4DIC data from BFD
     #     """
     #     self.versionedSetUp(Versions.V3)
     #     uri = "%s" % (
