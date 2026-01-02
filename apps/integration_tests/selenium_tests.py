@@ -1,6 +1,6 @@
 import os
-from .selenium_generic import SeleniumGenericTests
-from .selenium_cases import TESTS
+from apps.integration_tests.selenium_generic import SeleniumGenericTests
+from apps.integration_tests.selenium_cases import TESTS
 from apps.integration_tests.common_utils import screenshot_on_exception
 from apps.versions import Versions
 

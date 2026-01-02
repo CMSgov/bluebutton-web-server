@@ -5,7 +5,6 @@ cd ..
 source ./utility-functions.bash
 set -a -e -u -o pipefail
 
-echo_msg "Checking if Blue Button is running..."
 
 export HOSTNAME_URL='http://localhost:8000'
 export USE_NEW_PERM_SCREEN='true'
@@ -15,7 +14,7 @@ export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export SELENIUM_GRID=true
 export PYTEST_SHOW_TRACE_OPT=''
 
-# TODO: Currently, you need to stand up your dev environment first and then when you call the selenium tests, you need to match what is running
+# Currently, you need to stand up your dev environment first and then when you call the selenium tests, you need to match what is running
 # otherwise selenium will try and use the wrong login sequence
 if [[ "${auth}" == "live" ]]; then
 	export USE_MSLSX=false
@@ -34,8 +33,7 @@ fi
 # fi
 
 # Check if web service is running
-# TODO: Possible to start them intelligently? Attempts were made, but it always tried to /recreate/ web, which would fail to set
-# env variables correctly
+echo_msg "Checking if Blue Button is running..."
 if ! docker ps --format '{{.Names}}' | grep -q "dev-local.*web"; then
     echo "Blue Button is not running."
 	echo "Please start Blue Button before running selenium tests."

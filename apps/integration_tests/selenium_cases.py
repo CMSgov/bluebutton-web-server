@@ -34,9 +34,9 @@ UI Widget text: texts on e.g. buttons, links, labels etc.
 '''
 
 # Synthetic beneficiary login info
-BENE_TXT_USERNAME = 'BBUser09001'
-BENE_TXT_PASSWORD_SBX = 'PW09001!'
-BENE_TXT_PASSWORD_PROD = 'PW09001!'
+BENE_TXT_USERNAME = 'BBUser09003'
+BENE_TXT_PASSWORD_SBX = 'PW09003!@'
+BENE_TXT_PASSWORD_PROD = 'PW09003!'
 BENE_TXT_PASSWORD = \
     BENE_TXT_PASSWORD_PROD if HOSTNAME_URL.startswith(PROD_URL) else BENE_TXT_PASSWORD_SBX
 
@@ -68,7 +68,7 @@ FHIR_RESULT_BTN_COPY = 'bb-copy-button'
 MSLSX_TXT_FLD_USERNAME = "username"
 MSLSX_TXT_FLD_HICN = "hicn"
 MSLSX_TXT_FLD_MBI = "mbi"
-MSLSX_TXT_FLD_USERNAME_VAL = BENE_TXT_USERNAME
+MSLSX_TXT_FLD_USERNAME_VAL = '0854b54d-5d3c-4d73-ab45-aa6f052ed31a'  # synthetic ID, cleared with SLS
 MSLSX_TXT_FLD_HICN_VAL = "00000000000"
 MSLSX_TXT_FLD_MBI_VAL = "1S00EU8DG39"
 MSLSX_BTN_SUBMIT = "button"
@@ -266,7 +266,7 @@ TESTCLIENT_HOME = [
     WAIT_SECONDS
 ]
 
-# MSLSX login using BBUser09001
+# MSLSX login using BBUser09003
 SEQ_LOGIN_MSLSX = [
     {
         "display": "Input SUB(username)",
@@ -326,7 +326,7 @@ if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
         ],
     }]
 
-# SLSX login using BBUser09001
+# SLSX login using BBUser09003
 SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
 
     {
