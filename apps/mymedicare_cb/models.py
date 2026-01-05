@@ -79,7 +79,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     # version, bubble that error. If the backend simply returns no match
     # (NotFound), treat that as no FHIR id available and continue.
 
-    versioned_fhir_ids = {}
+    versioned_match_fhir_id_results = {}
     for supported_version in Versions.latest_versions():
         loop_hicn_hash = hicn_hash
         if supported_version == Versions.V3:
@@ -91,12 +91,10 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
             request=request,
             version=supported_version,
         )
+        versioned_match_fhir_id_results[supported_version] = match_fhir_id_result
 
-        # If we found a fhir_id for this version, store it
-        if match_fhir_id_result.success:
-            versioned_fhir_ids[supported_version] = match_fhir_id_result.fhir_id
         # Only raise one of these errors if it occurred on the version of the authorize or refresh token request
-        elif version == supported_version:
+        if version == supported_version:
             # If there is not a fhir_id found for the requested version, then we want to raise an exception
             if match_fhir_id_result.error_type == MatchFhirIdErrorType.UPSTREAM:
                 raise UpstreamServerException(match_fhir_id_result.error)
@@ -110,8 +108,16 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
 
     # The get is maybe now redundant since match_fhir_id will return None if not found
     # but I don't think this hurts to do
-    bfd_fhir_id_v2 = versioned_fhir_ids.get(Versions.V2, None)
-    bfd_fhir_id_v3 = versioned_fhir_ids.get(Versions.V3, None)
+    bfd_fhir_id_v2 = versioned_match_fhir_id_results[Versions.V2].fhir_id
+    bfd_fhir_id_v3 = versioned_match_fhir_id_results[Versions.V3].fhir_id
+
+    # Because we still get v1 authorize and refresh token calls, we can't assume
+    # that the version for the request will be 2 or 3. If the call is not for v2 or v3
+    # we default to user_id coming from v2
+    if version in Versions.latest_versions():
+        version_user_id_lookup = versioned_match_fhir_id_results[version].lookup_type
+    else:
+        version_user_id_lookup = versioned_match_fhir_id_results[Versions.V2].lookup_type
 
     log_dict = {
         'type': f'mymedicare_cb:get_and_update_user_{auth_type}',
@@ -119,7 +125,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
         'hicn_hash': hicn_hash,
-        'hash_lookup_type': match_fhir_id_result.lookup_type,
+        'hash_lookup_type': version_user_id_lookup,
         'crosswalk': {},
         'crosswalk_before': {},
     }
@@ -147,7 +153,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         if (
             (user.crosswalk.user_mbi is None and mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-            or user.crosswalk.user_id_type != match_fhir_id_result.lookup_type
+            or user.crosswalk.user_id_type != version_user_id_lookup
             or hicn_updated
             or update_fhir_id
         ):
@@ -170,7 +176,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
                 # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
-                user.crosswalk.user_id_type = match_fhir_id_result.lookup_type
+                user.crosswalk.user_id_type = version_user_id_lookup
                 # Only update the HICN hash if we actually have a value.
                 # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
                 # so writing None into the non-nullable DB column would cause
@@ -221,7 +227,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
             slsx_client,
             fhir_id_v2=bfd_fhir_id_v2,
             fhir_id_v3=bfd_fhir_id_v3,
-            user_id_type=match_fhir_id_result.lookup_type,
+            user_id_type=version_user_id_lookup,
             request=request
         )
 

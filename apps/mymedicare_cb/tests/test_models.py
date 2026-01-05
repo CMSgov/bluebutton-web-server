@@ -355,7 +355,6 @@ class BeneficiaryLoginTest(TestCase):
                                           fhir_id_v3=arg1.get('fhir_id_v3', None))
 
     @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
-                                                                    success=True,
                                                                     fhir_id='-20000000002346',
                                                                     lookup_type=MatchFhirIdLookupType.MBI)))
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
@@ -388,7 +387,6 @@ class BeneficiaryLoginTest(TestCase):
         mock_archive.assert_called_once()
 
     @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
-                                                                    success=True,
                                                                     fhir_id='-20000000002346',
                                                                     lookup_type=MatchFhirIdLookupType.MBI)))
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
