@@ -80,10 +80,15 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     # (NotFound), treat that as no FHIR id available and continue.
 
     versioned_fhir_ids = {}
+    lookup_type = 'M'
     for supported_version in Versions.latest_versions():
+        loop_hicn_hash = hicn_hash
+        if supported_version == Versions.V3:
+            loop_hicn_hash = None
+
         match_fhir_id_result = match_fhir_id(
             mbi=mbi,
-            hicn_hash=hicn_hash,
+            hicn_hash=loop_hicn_hash,
             request=request,
             version=supported_version,
         )
@@ -91,11 +96,12 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # If we found a fhir_id for this version, store it
         if match_fhir_id_result.success:
             versioned_fhir_ids[supported_version] = match_fhir_id_result.fhir_id
-        else:
+            lookup_type = match_fhir_id_result.lookup_type
+        # Only raise one of these errors if it occurred on the version of the authorize or refresh token request
+        elif version == supported_version:
             # If there is not a fhir_id found for the requested version, then we want to raise an exception
             if match_fhir_id_result.error_type == MatchFhirIdErrorType.UPSTREAM:
-                if supported_version == version:
-                    raise UpstreamServerException(match_fhir_id_result.error)
+                raise UpstreamServerException(match_fhir_id_result.error)
             elif match_fhir_id_result.error_type == MatchFhirIdErrorType.NOT_FOUND:
                 # Intuitively, this should be the main thing we'd care about and seems wrong
                 # However, we previously were just only checking for upstream errors
@@ -115,7 +121,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
         'hicn_hash': hicn_hash,
-        'hash_lookup_type': match_fhir_id_result.lookup_type,
+        'hash_lookup_type': lookup_type,
         'crosswalk': {},
         'crosswalk_before': {},
     }
@@ -143,7 +149,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         if (
             (user.crosswalk.user_mbi is None and mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-            or user.crosswalk.user_id_type != match_fhir_id_result.lookup_type
+            or user.crosswalk.user_id_type != lookup_type
             or hicn_updated
             or update_fhir_id
         ):
@@ -166,8 +172,8 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
                 # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
-                if match_fhir_id_result.lookup_type is not None:
-                    user.crosswalk.user_id_type = match_fhir_id_result.lookup_type
+                if lookup_type is not None:
+                    user.crosswalk.user_id_type = lookup_type
                 # Only update the HICN hash if we actually have a value.
                 # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
                 # so writing None into the non-nullable DB column would cause
@@ -218,7 +224,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
             slsx_client,
             fhir_id_v2=bfd_fhir_id_v2,
             fhir_id_v3=bfd_fhir_id_v3,
-            user_id_type=match_fhir_id_result.lookup_type,
+            user_id_type=lookup_type,
             request=request
         )
 

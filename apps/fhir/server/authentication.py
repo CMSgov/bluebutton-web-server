@@ -132,7 +132,7 @@ class MatchFhirIdResult(NamedTuple):
     """Result of attempting to match a FHIR ID"""
     success: bool
     fhir_id: Optional[str] = None
-    lookup_type: Optional[MatchFhirIdLookupType] = None
+    lookup_type: MatchFhirIdLookupType = MatchFhirIdLookupType.MBI
     error: Optional[str] = None
     error_type: Optional[MatchFhirIdErrorType] = None  # 'upstream', 'not_found', etc.
 
@@ -173,7 +173,8 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return MatchFhirIdResult(
                 success=False,
                 error=str(err.detail),
-                error_type=MatchFhirIdErrorType.UPSTREAM
+                error_type=MatchFhirIdErrorType.UPSTREAM,
+                lookup_type=MatchFhirIdLookupType.MBI
             )
 
         if fhir_id:
@@ -191,7 +192,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
     # and populated hicn_hash, which now execute on v3 (due to updates in __get_and_update_user)
     # so we need to leave this conditional as is for now, until the test is modified and/or hicn_hash is removed
     # if version in [Versions.V1, Versions.V2] and hicn_hash:
-    if hicn_hash:
+    if hicn_hash and version != Versions.V3:
         try:
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
         except UpstreamServerException as err:
@@ -199,7 +200,8 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return MatchFhirIdResult(
                 success=False,
                 error=str(err.detail),
-                error_type=MatchFhirIdErrorType.UPSTREAM
+                error_type=MatchFhirIdErrorType.UPSTREAM,
+                lookup_type=MatchFhirIdLookupType.HICN_HASH
             )
 
         if fhir_id:
@@ -208,14 +210,15 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             return MatchFhirIdResult(
                 success=True,
                 fhir_id=fhir_id,
-                lookup_type=str(MatchFhirIdLookupType.HICN_HASH)
+                lookup_type=MatchFhirIdLookupType.HICN_HASH
             )
 
     log_match_fhir_id(request, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
     return MatchFhirIdResult(
         success=False,
         error='The requested Beneficiary has no entry, however this may change',
-        error_type=MatchFhirIdErrorType.NOT_FOUND
+        error_type=MatchFhirIdErrorType.NOT_FOUND,
+        lookup_type=MatchFhirIdLookupType.MBI
     )
 
 
