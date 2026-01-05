@@ -185,7 +185,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('logo_image'), None)
 
-        # Testing logo_image not JPEG type
+        # Testing logo_image not JPEG type, confirm it works as part of BB-4246 change
         file = BytesIO()
         image = Image.new('RGB', size=(50, 50), color='red')
         image.save(file, 'png')
@@ -258,6 +258,45 @@ class TestRegisterApplicationForm(BaseApiTest):
         # Test that passing_app_fields are OK/valid.
         form = CustomRegisterApplicationForm(user, passing_app_fields)
         self.assertTrue(form.is_valid())
+
+        # Testing logo_image with SVG type, confirm it does not work as part of BB-4246 change
+        file = BytesIO()
+        test_svg = b"""
+            <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+            <rect width="50" height="50" fill="red"/>
+            </svg>
+        """
+        file.write(test_svg)
+        file.seek(0)
+        image = InMemoryUploadedFile(
+            file, None, 'test.svg', 'image/svg+xml', len(file.getvalue()), None
+        )
+        data = {}
+        files = {'logo_image': image}
+        form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
+        form = CustomAdminApplicationForm(data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
+        # Ensure the file pixel limit error is thrown
+        file = BytesIO()
+        image = Image.new('RGB', size=(550, 550), color='red')
+        image.save(file, 'png')
+        file.seek(0)
+        image = InMemoryUploadedFile(
+            file, None, 'test.png', 'image/png', len(file.getvalue()), None
+        )
+        data = {}
+        files = {'logo_image': image}
+        form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+        form = CustomAdminApplicationForm(data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
 
     def test_create_applications_with_logo(self):
         """
