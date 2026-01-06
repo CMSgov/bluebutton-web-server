@@ -106,8 +106,6 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 # A future ticket should address this
                 raise NotFound
 
-    # The get is maybe now redundant since match_fhir_id will return None if not found
-    # but I don't think this hurts to do
     bfd_fhir_id_v2 = versioned_match_fhir_id_results[Versions.V2].fhir_id
     bfd_fhir_id_v3 = versioned_match_fhir_id_results[Versions.V3].fhir_id
 
