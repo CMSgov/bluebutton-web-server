@@ -359,7 +359,9 @@ SEQ_REACH_AUTHORIZE_BTN = [
         "action": Action.LOAD_PAGE,
         "params": [HOSTNAME_URL]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click link to get sample token v1/v2 with PKCE enabled",
         "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
@@ -413,7 +415,9 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
         "action": Action.LOAD_PAGE,
         "params": [HOSTNAME_URL]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
@@ -436,7 +440,9 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_PATIENT]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'Coverage' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -452,7 +458,9 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -468,7 +476,9 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -481,7 +491,9 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
                    f'{FHIR_LNK_TXT_PROFILE} (OIDC Userinfo)']
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'FHIR Metadata' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -492,7 +504,9 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'OIDC Discovery' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -503,7 +517,9 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
 ]
 
 SEQ_QUERY_FHIR_RESOURCES_V3 = SEQ_QUERY_FHIR_RESOURCES_V2 + [
@@ -525,7 +541,9 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CONTAIN_TEXT,
         "params": [20, By.TAG_NAME, CONTENT_FHIR_RESULTPAGE_PRE, MESSAGE_NO_PERMISSION]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'Coverage' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -541,7 +559,9 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -557,7 +577,9 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -569,7 +591,9 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CONTAIN_TEXT,
         "params": [20, By.TAG_NAME, CONTENT_FHIR_RESULTPAGE_PRE, MESSAGE_NO_PERMISSION]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'FHIR Metadata' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -580,7 +604,9 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'OIDC Discovery' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -591,7 +617,9 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.CHECK,
         "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
     },
-    TESTCLIENT_HOME,
+    {
+        'sequence': TESTCLIENT_HOME
+    },
 ]
 
 SEQ_CHECK_SCOPES = [

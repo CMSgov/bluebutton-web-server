@@ -2,7 +2,7 @@ FROM selenium/standalone-chromium
 
 USER root
 
-RUN apt-get update ; apt-get install -yq python3 python3-venv
+RUN apt-get update ; apt-get install -yq python3 python3-venv socat
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
 
 # switch to existing seluser from selenium docker

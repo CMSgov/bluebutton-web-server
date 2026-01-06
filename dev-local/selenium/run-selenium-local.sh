@@ -24,20 +24,19 @@ else
 	export USE_LOGIN_WITH_MEDICARE_BUTTON=false
 fi
 
-# TODO: Because we had to put selenium on the host network, I haven't figured out how to get debugging to work. I'm sure it's
-# possible, but I'm leaving it out for now with the concept in place
-# if [[ "${debug}" == "true" ]]; then
-# 	export DEBUG_MODE=true
-# else
-# 	export DEBUG_MODE=false
-# fi
+# Set debug mode
+if [[ "${debug}" == "true" ]]; then
+	export DEBUG_MODE=true
+else
+	export DEBUG_MODE=false
+fi
 
 # Check if web service is running
 echo_msg "Checking if Blue Button is running..."
 if ! docker ps --format '{{.Names}}' | grep -q "dev-local.*web"; then
-    echo "Blue Button is not running."
-	echo "Please start Blue Button before running selenium tests."
-	echo "Exiting..."
+    echo "\tBlue Button is not running."
+	echo "\tPlease start Blue Button before running selenium tests."
+	echo "\tExiting..."
 	exit 1
 fi
 
