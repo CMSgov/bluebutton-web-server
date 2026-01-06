@@ -688,13 +688,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Update json schema for what changed (mbi = None/Null).
         log_schema["properties"]["crosswalk"]["properties"].update(
             {
-                "user_id_type": {"pattern": "^M$"},
+                "user_id_type": {"pattern": "^H$"},
             }
         )
 
         log_schema["properties"].update(
             {
-                "hash_lookup_type": {"pattern": "^M$"},
+                "hash_lookup_type": {"pattern": "^H$"},
             }
         )
 
@@ -776,7 +776,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                             "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
                         },
                         "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
-                        "user_id_type": {"type": "string", "pattern": "^M$"},
+                        "user_id_type": {"type": "string", "pattern": "^H$"},
                     },
                 },
             }
