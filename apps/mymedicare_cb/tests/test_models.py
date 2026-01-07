@@ -10,7 +10,8 @@ from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import (
     create_beneficiary_record,
     get_and_update_user_from_initial_auth,
-    get_and_update_from_refresh
+    get_and_update_from_refresh,
+    _match_fhir_id_error_should_be_checked,
 )
 from unittest.mock import patch, Mock
 
@@ -477,3 +478,27 @@ class BeneficiaryLoginTest(TestCase):
         user, crosswalk_type = get_and_update_from_refresh(user_mbi, username, user_hicn_hash, mock_request)
 
         assert user.crosswalk.fhir_id_v2 == '-20140000008325'
+
+    def test_match_fhir_id_error_should_be_checked_v1_call_success(self) -> None:
+        result = _match_fhir_id_error_should_be_checked(Versions.V1, Versions.V2, '-20140000008325')
+        assert not result
+
+    def test_match_fhir_id_error_should_be_checked_v1_call_failure(self) -> None:
+        result = _match_fhir_id_error_should_be_checked(Versions.V1, Versions.V2, None)
+        assert result
+
+    def test_match_fhir_id_error_should_be_checked_v2_call(self) -> None:
+        result = _match_fhir_id_error_should_be_checked(Versions.V2, Versions.V2, '-20140000008325')
+        assert result
+
+    def test_match_fhir_id_error_should_be_checked_v3_call(self) -> None:
+        result = _match_fhir_id_error_should_be_checked(Versions.V3, Versions.V3, '-301400008325')
+        assert result
+
+    def test_match_fhir_id_error_should_be_checked_v2_call_none_fhir_id(self) -> None:
+        result = _match_fhir_id_error_should_be_checked(Versions.V2, Versions.V2, None)
+        assert result
+
+    def test_match_fhir_id_error_should_be_checked_v3_call_none_fhir_id(self) -> None:
+        result = _match_fhir_id_error_should_be_checked(Versions.V3, Versions.V3, None)
+        assert result

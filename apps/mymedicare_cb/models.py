@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from rest_framework import status
 from rest_framework.exceptions import APIException, NotFound
+from typing import Optional
 from apps.versions import Versions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
@@ -70,9 +71,6 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         version = get_api_version_number_from_url(path_info)
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
-    if version == Versions.V3:
-        hicn_hash = None
-
     # Always attempt to get fresh FHIR ids from the backend for supported versions
     # so that FHIR ids are refreshed on every token/refresh operation. If the
     # backend reports a problem (UpstreamServerException) for the requested
@@ -81,20 +79,16 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
 
     versioned_match_fhir_id_results = {}
     for supported_version in Versions.latest_versions():
-        loop_hicn_hash = hicn_hash
-        if supported_version == Versions.V3:
-            loop_hicn_hash = None
 
         match_fhir_id_result = match_fhir_id(
             mbi=mbi,
-            hicn_hash=loop_hicn_hash,
+            hicn_hash=hicn_hash,
             request=request,
             version=supported_version,
         )
         versioned_match_fhir_id_results[supported_version] = match_fhir_id_result
 
-        # Only raise one of these errors if it occurred on the version of the authorize or refresh token request
-        if version == supported_version:
+        if _match_fhir_id_error_should_be_checked(version, supported_version, match_fhir_id_result.fhir_id):
             # If there is not a fhir_id found for the requested version, then we want to raise an exception
             if match_fhir_id_result.error_type == MatchFhirIdErrorType.UPSTREAM:
                 raise UpstreamServerException(match_fhir_id_result.error)
@@ -113,9 +107,9 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     # that the version for the request will be 2 or 3. If the call is not for v2 or v3
     # we default to user_id coming from v2
     if version in Versions.latest_versions():
-        version_user_id_lookup = versioned_match_fhir_id_results[version].lookup_type
+        version_user_id_type = versioned_match_fhir_id_results[version].lookup_type
     else:
-        version_user_id_lookup = versioned_match_fhir_id_results[Versions.V2].lookup_type
+        version_user_id_type = versioned_match_fhir_id_results[Versions.V2].lookup_type
 
     log_dict = {
         'type': f'mymedicare_cb:get_and_update_user_{auth_type}',
@@ -123,7 +117,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
         'hicn_hash': hicn_hash,
-        'hash_lookup_type': version_user_id_lookup,
+        'hash_lookup_type': version_user_id_type,
         'crosswalk': {},
         'crosswalk_before': {},
     }
@@ -151,7 +145,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         if (
             (user.crosswalk.user_mbi is None and mbi is not None)
             or (user.crosswalk.user_mbi is not None and user.crosswalk.user_mbi != mbi)
-            or user.crosswalk.user_id_type != version_user_id_lookup
+            or user.crosswalk.user_id_type != version_user_id_type
             or hicn_updated
             or update_fhir_id
         ):
@@ -174,7 +168,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                     user.crosswalk.fhir_id_v3 = bfd_fhir_id_v3
                 # Update crosswalk per changes
                 # Only update user_id_type if we have a valid hash_lookup_type from FHIR match
-                user.crosswalk.user_id_type = version_user_id_lookup
+                user.crosswalk.user_id_type = version_user_id_type
                 # Only update the HICN hash if we actually have a value.
                 # Some flows (e.g. v3 lookups) intentionally set hicn_hash to None
                 # so writing None into the non-nullable DB column would cause
@@ -225,7 +219,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
             slsx_client,
             fhir_id_v2=bfd_fhir_id_v2,
             fhir_id_v3=bfd_fhir_id_v3,
-            user_id_type=version_user_id_lookup,
+            user_id_type=version_user_id_type,
             request=request
         )
 
@@ -267,6 +261,30 @@ def get_and_update_user_from_initial_auth(slsx_client: OAuth2ConfigSLSx, request
         'initial_auth',
         slsx_client=slsx_client
     )
+
+
+def _match_fhir_id_error_should_be_checked(
+        request_version: int,
+        match_fhir_id_version: int,
+        fhir_id: Optional[str],
+) -> bool:
+    """Determine if we check the errors returned by match_fhir_id.
+    We want to do that if the request_version/match_fhir_id version match,
+    or if request_version is 1, and match_fhir_id returned a null fhir_id for v2
+
+    Args:
+        request_version (int): Version of the actual request
+        match_fhir_id_version (int): Version that is passed to match_fhir_id
+        fhir_id (Optional[str]): fhir_id returned from match_fhir_id (can be None)
+
+    Returns:
+        bool
+    """
+    if request_version == Versions.V1 and match_fhir_id_version == Versions.V2 and fhir_id is None:
+        return True
+    if request_version == match_fhir_id_version:
+        return True
+    return False
 
 
 def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
