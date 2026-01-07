@@ -315,6 +315,7 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
         'auth_app_data_access_type': {'pattern': 'RESEARCH_STUDY'},
         'auth_client_id': {'type': 'null'},
         'auth_pkce_method': {'type': 'null'},
+        'bfd_version': {'type': 'integer', 'enum': [1, 2, 3]},
         'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
         'hicn_hash': {
             'type': 'string',
@@ -335,6 +336,7 @@ MATCH_FHIR_ID_LOG_SCHEMA = {
         'auth_app_data_access_type',
         'auth_client_id',
         'auth_pkce_method',
+        'bfd_version',
         'fhir_id_v2',
         'hicn_hash',
         'match_found',
