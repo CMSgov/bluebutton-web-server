@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from rest_framework import status
 from rest_framework.exceptions import APIException, NotFound
-from typing import Optional
 from apps.versions import Versions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
@@ -88,7 +87,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         )
         versioned_match_fhir_id_results[supported_version] = match_fhir_id_result
 
-        if _match_fhir_id_error_should_be_checked(version, supported_version, match_fhir_id_result.fhir_id):
+        if _match_fhir_id_error_should_be_checked(version, supported_version):
             # If there is not a fhir_id found for the requested version, then we want to raise an exception
             if match_fhir_id_result.error_type == MatchFhirIdErrorType.UPSTREAM:
                 raise UpstreamServerException(match_fhir_id_result.error)
@@ -266,7 +265,6 @@ def get_and_update_user_from_initial_auth(slsx_client: OAuth2ConfigSLSx, request
 def _match_fhir_id_error_should_be_checked(
         request_version: int,
         match_fhir_id_version: int,
-        fhir_id: Optional[str],
 ) -> bool:
     """Determine if we check the errors returned by match_fhir_id.
     We want to do that if the request_version/match_fhir_id version match,
@@ -275,12 +273,11 @@ def _match_fhir_id_error_should_be_checked(
     Args:
         request_version (int): Version of the actual request
         match_fhir_id_version (int): Version that is passed to match_fhir_id
-        fhir_id (Optional[str]): fhir_id returned from match_fhir_id (can be None)
 
     Returns:
         bool
     """
-    if request_version == Versions.V1 and match_fhir_id_version == Versions.V2 and fhir_id is None:
+    if request_version == Versions.V1 and match_fhir_id_version == Versions.V2:
         return True
     if request_version == match_fhir_id_version:
         return True
