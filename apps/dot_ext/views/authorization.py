@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -29,6 +30,7 @@ from waffle import switch_is_active, get_waffle_flag_model
 from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
+from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
 import uuid
 import html
@@ -555,6 +557,18 @@ class TokenView(DotTokenView):
                         )
                     except Crosswalk.DoesNotExist:
                         log.debug('Unable to find crosswalk record during a token refresh')
+                        return JsonResponse(
+                            {'status_code': 404, 'message': 'Not found.'},
+                            status=404,
+                        )
+                    except UpstreamServerException:
+                        log.debug('Failed to retrieve data from data source.')
+                        return JsonResponse(
+                            {'status_code': 500, 'message': 'Failed to retrieve data from data source."'},
+                            status=500,
+                        )
+                    except NotFound:
+                        log.debug('Unable to find patient data during a token refresh')
                         return JsonResponse(
                             {'status_code': 404, 'message': 'Not found.'},
                             status=404,
