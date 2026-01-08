@@ -212,7 +212,7 @@ CLICK_RESTART_TESTCLIENT = {
 CLICK_BUTTON_GET_SAMPLE_TOKEN_V1_V2 = {
     "display": "Click button to get sample v1/v2 authorization token",
     "action": Action.FIND_CLICK,
-    "params": [30, By.XPATH, TESTCLIENT_BTN_GET_TOKEN_V2]
+    "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_GET_TOKEN_V2]
 }
 
 CLICK_BUTTON_GET_SAMPLE_TOKEN_V3 = {
@@ -550,7 +550,86 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
     },
 ]
 
-SEQ_QUERY_FHIR_RESOURCES_V3 = SEQ_QUERY_FHIR_RESOURCES_V2 + [
+SEQ_QUERY_FHIR_RESOURCES_V3 = [
+    {
+        "display": "Click 'Patient' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PATIENT]
+    },
+    {
+        "display": "Check Patient result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_PATIENT]
+    },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
+    {
+        "display": "Click 'Coverage' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_COVERAGE]
+    },
+    {
+        "display": "Check Coverage result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_COVERAGE]
+    },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
+    {
+        "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB]
+    },
+    {
+        "display": "Check ExplanationOfBenefit result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_EOB]
+    },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
+    {
+        "display": "Click 'Profile' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PROFILE]
+    },
+    {
+        "display": "Check Profile result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
+                   f'{FHIR_LNK_TXT_PROFILE} (OIDC Userinfo)']
+    },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
+    {
+        "display": "Click 'FHIR Metadata' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_METADATA]
+    },
+    {
+        "display": "Check FHIR Metadata result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_METADATA]
+    },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
+    {
+        "display": "Click 'OIDC Discovery' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_OIDC_DISCOVERY]
+    },
+    {
+        "display": "Check OIDC Discovery result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_TXT_OIDC_DISCOVERY]
+    },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
     {
         "display": "Click 'Digital Insurance Card' on FHIR resources page",
         "action": Action.FIND_CLICK,

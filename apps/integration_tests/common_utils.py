@@ -1,6 +1,7 @@
 import jsonschema
 import re
 import os
+import traceback
 from functools import wraps
 from jsonschema import validate
 from selenium.common.exceptions import NoSuchElementException
@@ -44,6 +45,17 @@ def screenshot_on_exception(func):
                     with open(html_filename, 'w', encoding='utf-8') as html_file:
                         html_file.write(webdriver.page_source)
 
+                    # error stack trace
+                    error_filename = os.path.join(test_folder, 'error.txt')
+                    with open(error_filename, 'w', encoding='utf-8') as error_file:
+                        trace_text = ''.join(
+                            traceback.format_exception(
+                                type(outer_exception),
+                                outer_exception,
+                                outer_exception.__traceback__,
+                            )
+                        )
+                        error_file.write(trace_text)
                 except Exception as save_error:
                     print(f'Failed to capture test failure: {save_error}')
             raise outer_exception
