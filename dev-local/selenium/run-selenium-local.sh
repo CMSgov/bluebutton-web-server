@@ -16,7 +16,7 @@ export PYTEST_SHOW_TRACE_OPT=''
 
 # Currently, you need to stand up your dev environment first and then when you call the selenium tests, you need to match what is running
 # otherwise selenium will try and use the wrong login sequence
-if [[ '${auth}' == 'live' ]]; then
+if [[ "${auth}" == 'live' ]]; then
 	export USE_MSLSX=false
 	export USE_LOGIN_WITH_MEDICARE_BUTTON=true
 else
@@ -25,7 +25,7 @@ else
 fi
 
 # Set debug mode
-if [[ '${debug}' == 'true' ]]; then
+if [[ "${debug}" == 'true' ]]; then
 	export DEBUG_MODE=true
 else
 	export DEBUG_MODE=false
