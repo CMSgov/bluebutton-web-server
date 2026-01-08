@@ -3,9 +3,13 @@ import json
 from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
+from apps.fhir.bluebutton.views.generic import ENFORCE_PARAM_VALIDATAION
+from apps.versions import Versions
 from httmock import all_requests, HTTMock
+from http import HTTPStatus
 from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
+from unittest import skipIf
 
 from apps.test import BaseApiTest
 
@@ -25,6 +29,8 @@ C4BB_SYSTEM_TYPES = {
 }
 
 FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+FHIR_ID_V3 = settings.DEFAULT_SAMPLE_FHIR_ID_V3
+BAD_PARAMS_ACCEPTABLE_VERSIONS = [Versions.V1, Versions.V2]
 
 read_update_delete_patient_urls = {
     1: 'bb_oauth_fhir_patient_read_or_update_or_delete',
@@ -163,8 +169,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(read_update_delete_patient_urls[version],
-                        kwargs={'resource_id': '-20140000008325'}),
-                {'hello': 'world'},
+                        kwargs={'resource_id': FHIR_ID_V2}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -194,7 +199,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(search_patient_urls[version]),
-                {'count': 5, 'hello': 'world'},
+                {'count': 5},
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -636,8 +641,83 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(read_update_delete_patient_urls[version],
-                        kwargs={'resource_id': '-20140000008325'}),
-                {'hello': 'world'},
+                        kwargs={'resource_id': FHIR_ID_V2}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, expected_code)
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
+        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
+            url = search_eob_urls[version]
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
+        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
+            url = search_coverage_urls[version]
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
+        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
+            url = search_patient_urls[version]
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
+
+    def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
+        url = search_eob_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+
+    def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
+        url = search_coverage_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+
+    def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
+        url = search_patient_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
+        url = search_eob_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
+        url = search_coverage_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
+        url = search_patient_urls[Versions.V3]
+        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
+
+    @override_switch('v3_endpoints', active=True)
+    def _test_request_when_invalid_parameters_included(
+        self,
+        url: str,
+        version: int,
+        expected_response_code: HTTPStatus,
+        prefer_header: str
+    ) -> None:
+        """Ensure that a 400 is thrown for each type of resource call when invalid parameters are included for v3
+        And that it is a 200 response when it is v1 or v2
+
+        Args:
+            url (str): The url that will be called in the test
+            expected_bad_params (List[str]): The bad parameters that cause the 400 error to be thrown
+        """
+        # create the user
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2, fhir_id_v3=FHIR_ID_V3)
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+
+        response = self.client.get(
+            reverse(url),
+            {'hello': 'world'},
+            Authorization='Bearer %s' % (first_access_token),
+            HTTP_PREFER=prefer_header
+        )
+        self.assertEqual(response.status_code, expected_response_code)
+        if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
+            self.assertEqual(response.json()['error'], 'Invalid parameters: [\'hello\']')
