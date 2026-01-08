@@ -166,7 +166,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request, version)
         except UpstreamServerException as err:
-            log_match_fhir_id(request, None, hicn_hash, False, 'M', str(err))
+            log_match_fhir_id(request, version, None, hicn_hash, False, 'M', str(err))
             # Don't return a 404 because retrying later will not fix this.
             return MatchFhirIdResult(
                 error=str(err.detail),
@@ -176,7 +176,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
 
         if fhir_id:
             # Found beneficiary!
-            log_match_fhir_id(request, fhir_id, hicn_hash, True, 'M',
+            log_match_fhir_id(request, version, fhir_id, hicn_hash, True, 'M',
                               'FOUND beneficiary via user_mbi')
             return MatchFhirIdResult(
                 fhir_id=fhir_id,
@@ -192,7 +192,7 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         try:
             fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request, version)
         except UpstreamServerException as err:
-            log_match_fhir_id(request, None, hicn_hash, False, 'H', str(err))
+            log_match_fhir_id(request, version, None, hicn_hash, False, 'H', str(err))
             return MatchFhirIdResult(
                 error=str(err.detail),
                 error_type=MatchFhirIdErrorType.UPSTREAM,
@@ -200,14 +200,14 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
             )
 
         if fhir_id:
-            log_match_fhir_id(request, fhir_id, hicn_hash, True, 'H',
+            log_match_fhir_id(request, version, fhir_id, hicn_hash, True, 'H',
                               'FOUND beneficiary via hicn_hash')
             return MatchFhirIdResult(
                 fhir_id=fhir_id,
                 lookup_type=MatchFhirIdLookupType.HICN_HASH
             )
 
-    log_match_fhir_id(request, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
+    log_match_fhir_id(request, version, None, hicn_hash, False, None, 'FHIR ID NOT FOUND for both mbi and hicn_hash')
     return MatchFhirIdResult(
         error='The requested Beneficiary has no entry, however this may change',
         error_type=MatchFhirIdErrorType.NOT_FOUND,
