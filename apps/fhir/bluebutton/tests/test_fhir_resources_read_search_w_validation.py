@@ -169,7 +169,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(read_update_delete_patient_urls[version],
-                        kwargs={'resource_id': '-20140000008325'}),
+                        kwargs={'resource_id': FHIR_ID_V2}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -641,7 +641,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(read_update_delete_patient_urls[version],
-                        kwargs={'resource_id': '-20140000008325'}),
+                        kwargs={'resource_id': FHIR_ID_V2}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, expected_code)
