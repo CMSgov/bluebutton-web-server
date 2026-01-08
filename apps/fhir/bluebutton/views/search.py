@@ -108,6 +108,10 @@ class SearchViewPatient(SearchView):
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
     required_scopes = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
+    QUERY_SCHEMA = {
+        **SearchView.QUERY_SCHEMA,
+        'beneficiary': str
+    }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -163,6 +167,7 @@ class SearchViewExplanationOfBenefit(SearchView):
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
                     'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
                     'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
+                    'patient': str,
                     }
 
     def __init__(self, version=1):
