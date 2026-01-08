@@ -24,15 +24,16 @@ set_slsx () {
 }
 
 set_msls () {
-		export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
-		export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
-		export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
-		export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
-		export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
+		export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://localhost:8080/sso/authorize?client_id=bb2api"
+		export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://localhost:8080/health"
+		export DJANGO_SLSX_TOKEN_ENDPOINT="http://localhost:8080/sso/session"
+		export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://localhost:8080/sso/signout"
+		export DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
 }
 
 # Start socat proxy
 socat TCP-LISTEN:8000,fork,reuseaddr TCP:host.docker.internal:8000 &
+socat TCP-LISTEN:8080,fork,reuseaddr TCP:host.docker.internal:8080 &
 echo_msg "Started localhost:8000 proxy to host"
 
 if [ "$USE_MSLSX" = true ]; then
