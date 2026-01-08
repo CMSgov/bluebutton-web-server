@@ -112,8 +112,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertEqual(match_fhir_id_result.error, 'The requested Beneficiary has no entry, however this may change')
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.NOT_FOUND)
 
@@ -128,8 +127,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.HICN_HASH)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_server_mbi_error(self):
@@ -143,8 +141,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
     def test_match_fhir_id_duplicates_hicn(self):
@@ -158,8 +155,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertIn('None for url', match_fhir_id_result.error)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
@@ -174,8 +170,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertIn("Duplicate", match_fhir_id_result.error)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
@@ -190,8 +185,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertIn("Duplicate", match_fhir_id_result.error)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
@@ -206,8 +200,7 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.HICN_HASH)
             self.assertIn('Unexpected in Patient search', match_fhir_id_result.error)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
 
@@ -222,7 +215,6 @@ class TestAuthentication(BaseApiTest):
                 mbi=self.test_mbi,
                 hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2)
             self.assertIsNone(match_fhir_id_result.fhir_id)
-            self.assertIsNone(match_fhir_id_result.lookup_type)
-            self.assertFalse(match_fhir_id_result.success)
+            self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertIn('Unexpected in Patient search', match_fhir_id_result.error)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
