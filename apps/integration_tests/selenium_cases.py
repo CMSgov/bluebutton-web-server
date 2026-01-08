@@ -19,12 +19,11 @@ class Action(Enum):
     BACK = 7
     LOGIN = 8
     CONTAIN_TEXT = 9
-    GET_SAMPLE_TOKEN_PKCE_START = 10
-    SLEEP = 11
-    VALIDATE_EMAIL_NOTIFICATION = 12
-    CHECK_DATE_FORMAT = 13
-    COPY_LINK_AND_LOAD_WITH_PARAM = 14
-    FIND_MSG_BY_CLASS = 15
+    SLEEP = 10
+    VALIDATE_EMAIL_NOTIFICATION = 11
+    CHECK_DATE_FORMAT = 12
+    COPY_LINK_AND_LOAD_WITH_PARAM = 13
+    FIND_MSG_BY_CLASS = 14
 
 
 MESSAGE_NO_PERMISSION = "You do not have permission to perform this action."
@@ -83,7 +82,7 @@ HOME_LNK_TXT_TESTCLIENT = "Test Client"
 
 # TestClient
 TESTCLIENT_BTN_GET_TOKEN_V2 = "Get a Sample Authorization Token"
-TESTCLIENT_BTN_GET_TOKEN_V3 = "Get a Sample Authorization Token v3"
+TESTCLIENT_BTN_GET_TOKEN_V3 = "Get a Sample Authorization Token (v3)"
 TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH = "Authorize as a Beneficiary"
 TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH = "Authorize as a Beneficiary (Spanish)"
 TESTCLIENT_LNK_TXT_RESTART = "restart testclient"
@@ -198,7 +197,7 @@ CHECK_TESTCLIENT_START_PAGE = {
     "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_GET_TOKEN_V2]
 }
 
-CLICK_TESTCLIENT = {
+CLICK_TESTCLIENT_LINK = {
     "display": "Click link 'Test Client'",
     "action": Action.FIND_CLICK,
     "params": [30, By.LINK_TEXT, HOME_LNK_TXT_TESTCLIENT]
@@ -208,6 +207,18 @@ CLICK_RESTART_TESTCLIENT = {
     "display": "Click link 'restart testclient'",
     "action": Action.FIND_CLICK,
     "params": [30, By.LINK_TEXT, TESTCLIENT_LNK_TXT_RESTART]
+}
+
+CLICK_BUTTON_GET_SAMPLE_TOKEN_V1_V2 = {
+    "display": "Click button to get sample v1/v2 authorization token",
+    "action": Action.FIND_CLICK,
+    "params": [30, By.XPATH, TESTCLIENT_BTN_GET_TOKEN_V2]
+}
+
+CLICK_BUTTON_GET_SAMPLE_TOKEN_V3 = {
+    "display": "Click button to get sample v3 authorization token",
+    "action": Action.FIND_CLICK,
+    "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_GET_TOKEN_V3]
 }
 
 LOAD_TESTCLIENT_HOME = {
@@ -262,7 +273,7 @@ CALL_LOGIN = {
 # Navigate back to TestClient home page, different between prod and test/sbx/local
 TESTCLIENT_HOME = [
     WAIT_SECONDS,
-    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT_LINK if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     WAIT_SECONDS
 ]
 
@@ -353,7 +364,7 @@ SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
     WAIT_SECONDS
 ]
 
-SEQ_REACH_AUTHORIZE_BTN = [
+SEQ_REACH_AUTHORIZE_BTN_V1_V2 = [
     {
         "display": "Load BB2 Landing Page ...",
         "action": Action.LOAD_PAGE,
@@ -362,14 +373,23 @@ SEQ_REACH_AUTHORIZE_BTN = [
     {
         'sequence': TESTCLIENT_HOME
     },
+    CLICK_BUTTON_GET_SAMPLE_TOKEN_V1_V2
+]
+
+SEQ_REACH_AUTHORIZE_BTN_V3 = [
     {
-        "display": "Click link to get sample token v1/v2 with PKCE enabled",
-        "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
+        "display": "Load BB2 Landing Page ...",
+        "action": Action.LOAD_PAGE,
+        "params": [HOSTNAME_URL]
     },
+    {
+        'sequence': TESTCLIENT_HOME
+    },
+    CLICK_BUTTON_GET_SAMPLE_TOKEN_V3
 ]
 
 SEQ_AUTHORIZE_START_SPANISH = [
-    {"sequence": SEQ_REACH_AUTHORIZE_BTN},
+    {"sequence": SEQ_REACH_AUTHORIZE_BTN_V1_V2},
     {
         "display": "Check authorize link for PKCE challenge info present",
         "action": Action.CHECK_PKCE_CHALLENGE,
@@ -384,9 +404,20 @@ SEQ_AUTHORIZE_START_SPANISH = [
 
 SEQ_AUTHORIZE_RESTART = [
     CLICK_RESTART_TESTCLIENT,
+    CLICK_BUTTON_GET_SAMPLE_TOKEN_V1_V2,
     {
-        "display": "Click link to get sample token v1/v2",
-        "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
+        "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH]
+    },
+]
+
+SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
+    {"sequence": SEQ_REACH_AUTHORIZE_BTN_V1_V2},
+    {
+        "display": "Check authorize link for PKCE challenge info present",
+        "action": Action.CHECK_PKCE_CHALLENGE,
+        "params": [20, By.TAG_NAME, TAG_FOR_AUTHORIZE_LINK, True]
     },
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
@@ -395,8 +426,8 @@ SEQ_AUTHORIZE_RESTART = [
     },
 ]
 
-SEQ_AUTHORIZE_PKCE_START = [
-    {"sequence": SEQ_REACH_AUTHORIZE_BTN},
+SEQ_AUTHORIZE_PKCE_START_V3 = [
+    {'sequence': SEQ_REACH_AUTHORIZE_BTN_V3},
     {
         "display": "Check authorize link for PKCE challenge info present",
         "action": Action.CHECK_PKCE_CHALLENGE,
@@ -418,10 +449,7 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
     {
         'sequence': TESTCLIENT_HOME
     },
-    {
-        "display": "Click link to get sample token v1/v2",
-        "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
-    },
+    CLICK_BUTTON_GET_SAMPLE_TOKEN_V1_V2,
     {
         "display": "Call authorize endpoint with lang param - start authorization",
         "action": Action.COPY_LINK_AND_LOAD_WITH_PARAM,
@@ -527,6 +555,9 @@ SEQ_QUERY_FHIR_RESOURCES_V3 = SEQ_QUERY_FHIR_RESOURCES_V2 + [
         "display": "Click 'Digital Insurance Card' on FHIR resources page",
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, FHIR_LNK_TXT_PATIENT]
+    },
+    {
+        'sequence': TESTCLIENT_HOME
     },
 ]
 
@@ -652,39 +683,39 @@ SEQ_CHECK_SCOPES = [
 
 TESTS = {
     "auth_grant_fhir_calls_v2": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_V2}
     ],
     "auth_grant_fhir_calls_v3": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_V3}
     ],
     "auth_deny_fhir_calls": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_DENY_ACCESS,
         CHECK_TESTCLIENT_START_PAGE
     ],
     "auth_grant_w_no_demo": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_RADIO_NOT_SHARE,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
     ],
     "auth_grant_w_no_demo_new_perm_screen": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
     ],
     "authorize_lang_english_button": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         WAIT_SECONDS,
         WAIT_SECONDS,
@@ -710,7 +741,7 @@ TESTS = {
         CLICK_AGREE_ACCESS
     ],
     "authorize_get_v2_scopes": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         WAIT_SECONDS,
         WAIT_SECONDS,
@@ -723,7 +754,7 @@ TESTS = {
 SPANISH_TESTS = {
     "toggle_language": [
         # kick off default test client
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         # Wait to make sure we're logged in because login page also has Spanish link
         WAIT_SECONDS,
@@ -1099,7 +1130,7 @@ ACCT_TESTS = {
     ],
     # call authorize twice (1st call and 2nd call) - only 1st call emit email notification
     "first_api_call_email": [
-        {"sequence": SEQ_AUTHORIZE_PKCE_START},
+        {"sequence": SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
         VALIDATE_1ST_APP_CREATED_EMAIL,

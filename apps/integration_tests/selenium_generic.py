@@ -21,7 +21,6 @@ from selenium.common.exceptions import TimeoutException
 from .selenium_cases import (
     Action,
     TESTCASE_BANNER_FMT,
-    TESTCLIENT_BTN_GET_TOKEN_V2,
     TESTCLIENT_LNK_TXT_RESTART,
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
@@ -103,7 +102,6 @@ class SeleniumGenericTests():
             Action.CHECK: self._check_page_title,
             Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
             Action.CONTAIN_TEXT: self._check_page_content,
-            Action.GET_SAMPLE_TOKEN_PKCE_START: self._click_get_sample_token_pkce,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
@@ -198,9 +196,6 @@ class SeleniumGenericTests():
             log_step(f'Unexpected error in _find_and_sendkey: {type(e).__name__}', 'ERROR')
             check_element_state(self.driver, by, by_expr, "exception")
             raise
-
-    def _click_get_sample_token_pkce(self, **kwargs):
-        return self._find_and_click(30, By.LINK_TEXT, TESTCLIENT_BTN_GET_TOKEN_V2, **kwargs)
 
     def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         log_step(f"Looking for element: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
