@@ -80,7 +80,7 @@ class TestTokenHasProtectedCapabilityScopesSwitchTrue(TestCase):
         request = FakeRequest(FakeAuth("testing"))
 
         perm = TokenHasProtectedCapability()
-        with self.assertRaisesRegexp(BBCapabilitiesPermissionTokenScopeMissingException, "TokenHasScope requires.*"):
+        with self.assertRaisesRegex(BBCapabilitiesPermissionTokenScopeMissingException, "TokenHasScope requires.*"):
             perm.has_permission(request, None)
 
 

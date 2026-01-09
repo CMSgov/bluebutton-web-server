@@ -37,7 +37,10 @@
 
                 {% if user.is_authenticated %}
                     <a class="button profile-button" href="{% url 'account_settings' %}"><i data-feather="user"></i>Account</a>
-                    <a class="button logout-button" href="{% url 'logout' %}"><i data-feather="power"></i>Logout</a>
+                    <form method="post" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <button class="button logout-button" style="margin-left:1em" type="submit"><i data-feather="power"></i>Logout</button>
+                    </form>
                 {% else %}
                     <a class="button login-button" href="{% url 'login' %}"><i data-feather="user"></i>Login</a>
                     <a class="button signup-button" href="{% url 'accounts_create_account' %}"><i data-feather="plus"></i>Signup</a>
