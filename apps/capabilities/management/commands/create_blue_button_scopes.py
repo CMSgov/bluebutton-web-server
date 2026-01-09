@@ -58,8 +58,7 @@ def create_userinfo_capability(group, title="Profile information including name 
 def create_openid_capability(group, title="Openid profile permissions."):
     # Currently inert, but should be required with profile for profile information
     c = None
-    description = "OIDC userinfo endpoint %s" % (
-        reverse('openid_connect_userinfo'))
+    description = 'Enables user authentication and provides a unique identifier with basic profile info.'
     scope_string = "openid"
     pr = []
 
@@ -194,7 +193,7 @@ def create_eob_search_capability(group, fhir_prefix, title="Search my Medicare c
 def create_eob_read_search_capability(group, fhir_prefix, title="Read and search my Medicare claim information."):
 
     c = None
-    description = "Patient FHIR Resource"
+    description = 'ExplanationOfBenefit FHIR Resource'
     smart_scope_string = "patient/ExplanationOfBenefit.rs"
     pr = []
     # Functionally the same as .r for backwards compatibility
@@ -292,7 +291,7 @@ def create_launch_capability(group, fhir_prefix, title="Patient launch context."
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               default=False,
+                                               default=True,
                                                protected_resources=json.dumps(pr, indent=4))
     return c
 

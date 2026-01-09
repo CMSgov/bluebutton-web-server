@@ -56,7 +56,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     For more details, see https://docs.djangoproject.com/en/3.1/topics/testing/tools/#liveservertestcase
     This uses APIClient to test the BB2 FHIR API endpoints with the default (Fred) access token.
     '''
-    # fixtures = ['scopes.json']
 
     def setUp(self):
         call_command('create_blue_button_scopes')

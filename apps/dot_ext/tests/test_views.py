@@ -51,7 +51,6 @@ class TestApplicationUpdateView(BaseApiTest):
 
 
 class TestAuthorizationView(BaseApiTest):
-    # fixtures = ["scopes.json"]
 
     MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME  # "fhir.backend.bluebutton.hhsdevcloud.us"
     MOCK_FHIR_PATIENT_READVIEW_PATH = r"/v1/fhir/Patient/[-]?\d+[/]?"

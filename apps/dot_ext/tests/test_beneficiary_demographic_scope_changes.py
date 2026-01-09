@@ -15,7 +15,6 @@ from http import HTTPStatus
 
 
 class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
-    # fixtures = ['scopes.json']
 
     @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
