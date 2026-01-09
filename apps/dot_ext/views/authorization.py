@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -29,6 +30,7 @@ from waffle import switch_is_active, get_waffle_flag_model
 from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
+from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
 import uuid
 import html
@@ -113,18 +115,16 @@ class AuthorizationView(DotAuthorizationView):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
 
-        if switch_is_active('require_pkce'):
-            if not request.GET.get('code_challenge', None):
-                missing_params.append("code_challenge")
-            if not request.GET.get('code_challenge_method', None):
-                missing_params.append("code_challenge_method")
+        if not request.GET.get('code_challenge', None):
+            missing_params.append("code_challenge")
+        if not request.GET.get('code_challenge_method', None):
+            missing_params.append("code_challenge_method")
 
-        if switch_is_active('require_state'):
-            if not request.GET.get('state', None):
-                missing_params.append("state")
-            elif len(request.GET.get('state', None)) < 16:
-                error_message = "State parameter should have a minimum of 16 characters"
-                return JsonResponse({"status_code": 400, "message": error_message}, status=400)
+        if not request.GET.get('state', None):
+            missing_params.append("state")
+        elif len(request.GET.get('state', None)) < 16:
+            error_message = "State parameter should have a minimum of 16 characters"
+            return JsonResponse({"status_code": 400, "message": error_message}, status=400)
 
         # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
         # so it will not be modified as part of BB2-4250
@@ -557,6 +557,18 @@ class TokenView(DotTokenView):
                         )
                     except Crosswalk.DoesNotExist:
                         log.debug('Unable to find crosswalk record during a token refresh')
+                        return JsonResponse(
+                            {'status_code': 404, 'message': 'Not found.'},
+                            status=404,
+                        )
+                    except UpstreamServerException:
+                        log.debug('Failed to retrieve data from data source.')
+                        return JsonResponse(
+                            {'status_code': 500, 'message': 'Failed to retrieve data from data source."'},
+                            status=500,
+                        )
+                    except NotFound:
+                        log.debug('Unable to find patient data during a token refresh')
                         return JsonResponse(
                             {'status_code': 404, 'message': 'Not found.'},
                             status=404,

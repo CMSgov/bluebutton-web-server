@@ -115,13 +115,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/ajshred">
-                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
-                    <br />
-                    <sub><b>Adrian Jones</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/loganbertram">
                     <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
                     <br />
@@ -133,6 +126,13 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/57143602?v=4" width="100;" alt="stiwarisemanticbits"/>
                     <br />
                     <sub><b>Shivam Tiwari</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/ajshred">
+                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
+                    <br />
+                    <sub><b>Adrian Jones</b></sub>
                 </a>
             </td>
 		</tr>
@@ -182,6 +182,13 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
 		</tr>
 		<tr>
             <td align="center">
+                <a href="https://github.com/clewellyn-nava">
+                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
+                    <br />
+                    <sub><b>Connor Lewellyn</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/oragame">
                     <img src="https://avatars.githubusercontent.com/u/22204906?v=4" width="100;" alt="oragame"/>
                     <br />
@@ -193,13 +200,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/71290292?v=4" width="100;" alt="sb-benohe"/>
                     <br />
                     <sub><b>sb-benohe</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/clewellyn-nava">
-                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
-                    <br />
-                    <sub><b>Connor Lewellyn</b></sub>
                 </a>
             </td>
             <td align="center">

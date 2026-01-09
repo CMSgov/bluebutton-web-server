@@ -1,6 +1,5 @@
 import json
 import base64
-from time import strftime
 
 import pytz
 from datetime import datetime
@@ -16,6 +15,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 
 from apps.mymedicare_cb.tests.test_models import search_fhir_id_by_identifier_side_effect
 from apps.test import BaseApiTest
@@ -61,7 +61,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': redirect_uri,
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
@@ -74,7 +74,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'allow': True,
             "state": "0123456789abcdef",
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response['Location'], data=payload)
 
@@ -158,7 +158,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': redirect_uri,
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
@@ -171,7 +171,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'allow': True,
             "state": "0123456789abcdef",
             'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response['Location'], data=payload)
 
@@ -609,8 +609,19 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
         tkn = response.json()
-        expiration_date_string = strftime('%Y-%m-%dT%H:%M:%SZ', expiration_date.timetuple())
-        self.assertEqual(tkn["access_grant_expiration"][:-4], expiration_date_string[:-4])
+        dag.refresh_from_db()
+        token_expiration = datetime.strptime(
+            tkn["access_grant_expiration"], "%Y-%m-%dT%H:%M:%SZ"
+        ).replace(tzinfo=pytz.UTC)
+        dag_expiration = dag.expiration_date
+        if dag_expiration.tzinfo is None:
+            dag_expiration = dag_expiration.replace(tzinfo=pytz.UTC)
+        else:
+            dag_expiration = dag_expiration.astimezone(pytz.UTC)
+        self.assertLessEqual(
+            abs((token_expiration - dag_expiration).total_seconds()),
+            60,
+        )
 
     def test_revoke_endpoint(self):
         redirect_uri = 'http://localhost'

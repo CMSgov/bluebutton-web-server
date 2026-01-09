@@ -7,9 +7,10 @@ from unittest import skipIf
 from django.conf import settings
 from apps.versions import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
-from apps.testclient.constants import EndpointUrl
+from apps.testclient.constants import EndpointUrl, ResponseErrors
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
 from django.http import HttpRequest
+import json
 
 import os
 
@@ -92,13 +93,28 @@ class TestPaginationURIs(TestCase):
                 self.assertIn("startIndex", result)
 
 
+class TestResponseErrors(TestCase):
+    # These tests serve to make sure that the
+    # classmethods were defined correctly, no more.
+    def test_class_methods(self):
+        r1 = ResponseErrors.InvalidClient('tacos')
+        j1 = json.loads(r1.content)
+        self.assertIn('tacos', j1['error'])
+        self.assertEqual(j1['code'], 'InvalidClient')
+
+        r2 = ResponseErrors.MissingTokenError('macaroniandcheese')
+        j2 = json.loads(r2.content)
+        self.assertIn('macaroniandcheese', j2['error'])
+        self.assertEqual(j2['code'], 'MissingTokenError')
+
+
 class BlueButtonClientApiUserInfoTest(TestCase):
+    fixtures = ['scopes.json']
     """
     Test the BlueButton API UserInfo Endpoint
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
         self.testclient_setup = testclient_http_response_setup(version=version)
         self.token = "sample-token-string"
@@ -144,12 +160,12 @@ class BlueButtonClientApiUserInfoTest(TestCase):
 
 @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
 class BlueButtonClientApiFhirTest(TestCase):
+    fixtures = ['scopes.json']
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_blue_button_scopes")
         call_command("create_test_user_and_application")
         # TODO V3: The testclient response setup prepares URLs; the URLs we pass back
         # are not the same as those produced by EndpointUrl. We may want to centralized/
@@ -409,7 +425,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     # @override_switch('v3_endpoints', active=True)
     # def test_get_digital_insurance_card(self):
     #     """
-    #     Test DigitalInsuranceCard for CARIN C4DIC data from BFD
+    #     Test Patient/$generate-insurance-card for CARIN C4DIC data from BFD
     #     """
     #     self.versionedSetUp(Versions.V3)
     #     uri = "%s" % (

@@ -264,11 +264,14 @@
     <panel>
       <title>1. V1 FHIR Patient Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV1">
+        <search>
           <done>
             <set token="tokFhirV1PatientOKCount">$result.count$</set>
           </done>
-          <query>search message.path="/v1/fhir/Patient*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v1/fhir/Patient*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -278,11 +281,14 @@
     <panel>
       <title>2. V1 FHIR Coverage Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV1">
+        <search>
           <done>
             <set token="tokFhirV1CoverageOKCount">$result.count$</set>
           </done>
-          <query>search message.path="/v1/fhir/Coverage*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v1/fhir/Coverage*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -292,11 +298,14 @@
     <panel>
       <title>3. V1 FHIR EOB Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV1">
+        <search>
           <done>
             <set token="tokFhirV1EobOKCount">$result.count$</set>
           </done>
-          <query>search message.path="/v1/fhir/ExplanationOfBenefit*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v1/fhir/ExplanationOfBenefit*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -306,11 +315,14 @@
     <panel>
       <title>4. TOTAL V1 FHIR Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV1">
+        <search>
           <done>
             <set token="tokFhirV1OKCount">$result.count$</set>
           </done>
-          <query>search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v1/fhir/*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -332,11 +344,14 @@
     <panel>
       <title>1. V2 FHIR Patient Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV2">
+        <search>
           <done>
             <set token="tokFhirV2PatientOKCount">$result.count$</set>
           </done>
-          <query>search message.path="/v2/fhir/Patient*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v2/fhir/Patient*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -346,11 +361,14 @@
     <panel>
       <title>2. V2 FHIR Coverage Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV2">
+        <search>
           <done>
             <set token="tokFhirV2CoverageOKCount">$result.count$</set>
           </done>
-          <query>search message.path="/v2/fhir/Coverage*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v2/fhir/Coverage*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -360,11 +378,14 @@
     <panel>
       <title>3. V2 FHIR EOB Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV2">
+        <search>
           <done>
             <set token="tokFhirV2EobOKCount">$result.count$</set>
           </done>
-          <query>search message.path="/v2/fhir/ExplanationOfBenefit*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v2/fhir/ExplanationOfBenefit*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -374,11 +395,14 @@
     <panel>
       <title>4. TOTAL V2 FHIR Calls Made (w/ successful status)</title>
       <single>
-        <search base="baseSearchFhirV2">
+        <search>
           <done>
             <set token="tokFhirV2OKCount">$result.count$</set>
           </done>
-          <query>search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=prod message.path="/v2/fhir/*" | fields time message.path message.response_code message.fhir_id | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>

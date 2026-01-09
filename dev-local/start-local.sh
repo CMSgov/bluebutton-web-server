@@ -6,8 +6,9 @@ set -a
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
-    echo "🔵 setting up metabase"
-    source /code/dev-local/init-metabase.bash
+    
+    echo "🔵 running makemigrations"
+    python manage.py makemigrations
 
     echo "🔵 running migrations"
     python manage.py makemigrations
@@ -24,6 +25,7 @@ then
     else
         echo "🆗 ${SUPER_USER_NAME} already exists."
     fi
+
 
     python manage.py create_test_feature_switches
     echo "🆗 create_test_feature_switches"

@@ -1,0 +1,25 @@
+services:
+  ####################
+  # Local Selenium Server
+  selenium-tests:
+    image: selenium-local:latest
+    command: /code/dev-local/selenium/start-selenium.sh
+    network_mode: host
+    ports:
+      - "8910:8910"
+      - "6789:6789"
+    env_file:
+      - .env.selenium
+    volumes:
+      - ../..:/code
+    depends_on:
+      chrome:
+        condition: service_started
+  ####################
+  # Chrome for Selenium Remote
+  chrome:
+    image: selenium/standalone-chromium
+    hostname: chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"

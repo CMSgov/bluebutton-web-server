@@ -301,7 +301,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     search_patient_urls[version]),
-                {'count': 5, 'hello': 'world'},
+                {'count': 5},
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -672,7 +672,6 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(read_update_delete_patient_urls[version], kwargs={'resource_id': FHIR_ID_V2}),
-                {'hello': 'world'},
                 Authorization='Bearer %s' % (first_access_token)
             )
 
@@ -897,7 +896,7 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_on_different_fhir_id_than_associated_with_token(self):
         """
         Confirm that a 404 is thrown when we a Patient read request
-        is attempted for a different fhir_id than the fhir_id associated
+        is attempted for a different fhir_id_v2 than the fhir_id_v2 associated
         with the current token.
         Note: The 404 is being mocked, as in these scenarios, we no longer
         ping BFD.

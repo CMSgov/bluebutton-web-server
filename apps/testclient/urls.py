@@ -72,7 +72,7 @@ urlpatterns_v3 = [
     path('openidConfigV3', test_openid_config_v3, name='test_openid_config_v3'),
     path('PatientV3', test_patient_v3, name='test_patient_v3'),
     path('userinfoV3', test_userinfo_v3, name='test_userinfo_v3'),
-    path('DigitalInsuranceCard', test_digital_insurance_card_v3, name='test_digital_insurance_card_v3'),
+    path('GenerateInsuranceCardV3', test_digital_insurance_card_v3, name='test_digital_insurance_card_v3'),
 ]
 
 urlpatterns = urlpatterns_unversioned + urlpatterns_v1 + urlpatterns_v2 + urlpatterns_v3
