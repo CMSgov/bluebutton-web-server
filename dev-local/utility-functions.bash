@@ -16,6 +16,10 @@ check_valid_env () {
     # SBX
     elif [[ "${bfd}" == "sbx" ]]; then
         :
+    ##### 
+    # PROD
+    elif [[ "${bfd}" == "prod" ]]; then
+        :
     #####
     # ERR
     else
@@ -110,6 +114,12 @@ set_bfd_urls () {
         export FHIR_URL_V3="${FHIR_URL_V3_SBX}"
         # FIXME: Do we use "impl" or "sbx"? ...
         export LOCAL_TESTING_TARGET="impl"
+
+    elif [[ "${bfd}" == "prod" ]]; then
+        export FHIR_URL="${FHIR_URL_PROD}"
+        export FHIR_URL_V3="${FHIR_URL_V3_PROD}"
+        # FIXME: Do we use "impl" or "sbx"? ...
+        export LOCAL_TESTING_TARGET="impl"
     fi
 
     echo "✅ set_bfd_urls"
@@ -187,26 +197,50 @@ retrieve_certs () {
         echo "  Removing ${BB2_CERTSTORE}/$KEY"
         rm -f "${BB2_CERTSTORE}/$KEY"
 
-        echo "  Fetching ${BB2_CERTSTORE}/$CERT"
-        aws secretsmanager get-secret-value \
-            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
-            --query 'SecretString' \
-            --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
-        
-        if [ $? -ne 0 ]; then
-            echo "⛔ Failed to retrieve cert. Exiting."
-            return -3
-        fi
+        if [[ ${bfd} == "prod" ]]; then
+            echo "  Fetching ${BB2_CERTSTORE}/$CERT"
+            aws secretsmanager get-secret-value \
+                --secret-id /bb2/prod/app/fhir_cert_pem \
+                --query 'SecretString' \
+                --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
+            
+            if [ $? -ne 0 ]; then
+                echo "⛔ Failed to retrieve cert. Exiting."
+                return -3
+            fi
 
-        echo "  Fetching ${BB2_CERTSTORE}/$KEY"
-        aws secretsmanager get-secret-value \
-            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key${CERT_SUFFIX} \
-            --query 'SecretString' \
-            --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
+            echo "  Fetching ${BB2_CERTSTORE}/$KEY"
+            aws secretsmanager get-secret-value \
+                --secret-id /bb2/prod/app/fhir_key_pem \
+                --query 'SecretString' \
+                --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
 
-        if [ $? -ne 0 ]; then 
-            echo "⛔ Failed to retrieve private key. Exiting."
-            return -4
+            if [ $? -ne 0 ]; then 
+                echo "⛔ Failed to retrieve private key. Exiting."
+                return -4
+            fi
+        else
+            echo "  Fetching ${BB2_CERTSTORE}/$CERT"
+            aws secretsmanager get-secret-value \
+                --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
+                --query 'SecretString' \
+                --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
+            
+            if [ $? -ne 0 ]; then
+                echo "⛔ Failed to retrieve cert. Exiting."
+                return -3
+            fi
+
+            echo "  Fetching ${BB2_CERTSTORE}/$KEY"
+            aws secretsmanager get-secret-value \
+                --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key${CERT_SUFFIX} \
+                --query 'SecretString' \
+                --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
+
+            if [ $? -ne 0 ]; then 
+                echo "⛔ Failed to retrieve private key. Exiting."
+                return -4
+            fi
         fi
 
         # Check they really came down.
@@ -256,10 +290,10 @@ set_salt () {
         return 0
     elif [ "${bfd}" = "test" ]; then
         echo "🆗 Retrieving salt/client values for '${bfd}'."
-    elif [ "${bfd}" = "sbx" ]; then
+    elif [ "${bfd}" = "sbx" ] || [ "${bfd}" = "prod" ]; then
         echo "🆗 Retrieving salt/client values for '${bfd}'."
     else
-        echo "⛔ bfd must be set to 'test' or 'sbx'."
+        echo "⛔ bfd must be set to 'test', 'sbx', or 'prod'."
         echo "  bfd is currently set to '${bfd}'."
         echo "  Exiting."
         return -2
