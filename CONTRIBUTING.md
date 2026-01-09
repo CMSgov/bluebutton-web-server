@@ -66,7 +66,6 @@ Other environment variables used in the codebase are available in the docker-com
 **Initialize the database:**
 ```bash
 python manage.py migrate
-python manage.py loaddata apps/accounts/fixtures/scopes.json
 python manage.py loaddata apps/accounts/fixtures/groups.json
 python manage.py createsuperuser
 python manage.py create_admin_groups

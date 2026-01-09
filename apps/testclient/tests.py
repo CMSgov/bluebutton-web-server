@@ -109,16 +109,16 @@ class TestResponseErrors(TestCase):
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
-    fixtures = ['scopes.json']
     """
     Test the BlueButton API UserInfo Endpoint
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_test_user_and_application")
+        call_command('create_blue_button_scopes')
+        call_command('create_test_user_and_application')
         self.testclient_setup = testclient_http_response_setup(version=version)
-        self.token = "sample-token-string"
-        self.client = Client(Authorization="Bearer %s" % (self.token))
+        self.token = 'sample-token-string'
+        self.client = Client(Authorization='Bearer %s' % (self.token))
         match version:
             case Versions.V1:
                 self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
@@ -130,10 +130,10 @@ class BlueButtonClientApiUserInfoTest(TestCase):
                 self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V3
                 self.username = settings.DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f"Failed to set up tests with a valid version number; given {version}")  # noqa: E702
+                raise VersionNotMatched(f'Failed to set up tests with a valid version number; given {version}')  # noqa: E702
 
         # TODO V3: This may need to be parameterized based on the version number.
-        self.another_patient = "20140000000001"
+        self.another_patient = '20140000000001'
 
     def _test_get_userinfo(self, version=Versions.NOT_AN_API_VERSION):
         """
@@ -158,21 +158,21 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     #     self._test_get_userinfo(Versions.V3)
 
 
-@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+@skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
 class BlueButtonClientApiFhirTest(TestCase):
-    fixtures = ['scopes.json']
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
     """
 
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
-        call_command("create_test_user_and_application")
+        call_command('create_blue_button_scopes')
+        call_command('create_test_user_and_application')
         # TODO V3: The testclient response setup prepares URLs; the URLs we pass back
         # are not the same as those produced by EndpointUrl. We may want to centralized/
         # standardize those URLs for robustness.
         self.testclient_setup = testclient_http_response_setup(version=version)
-        self.token = "sample-token-string"
-        self.client = Client(Authorization="Bearer %s" % (self.token))
+        self.token = 'sample-token-string'
+        self.client = Client(Authorization='Bearer %s' % (self.token))
         match version:
             case Versions.V1:
                 self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
@@ -181,9 +181,9 @@ class BlueButtonClientApiFhirTest(TestCase):
             case Versions.V3:
                 self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f"Failed to set a patient id for version; given {version}")  # noqa: E702
+                raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')  # noqa: E702
 
-        self.another_patient = "20140000000001"
+        self.another_patient = '20140000000001'
 
     # python runtests.py apps.testclient.tests.BlueButtonClientApiFhirTest.test_get_patient
 
