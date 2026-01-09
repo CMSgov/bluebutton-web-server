@@ -31,7 +31,20 @@ def create_userinfo_capability(group, title="Profile information including name 
         reverse('openid_connect_userinfo'))
     scope_string = "profile"
     pr = []
-    pr.append(["GET", reverse('openid_connect_userinfo')])
+    pr.append(['GET', '/v[123]/connect/userinfo.*$'])
+
+    # {
+    #     "model": "capabilities.protectedcapability",
+    #     "pk": 2,
+    #     "fields": {
+    #         "title": "Profile information including name and email.",
+    #         "slug": "profile",
+    #         "group": 5,
+    #         "description": "OIDC userinfo endpoint /connect/userinfo",
+    #         "protected_resources": "[\n  [\n    \"GET\",\n    \"/v[123]/connect/userinfo.*$\"\n  ]\n]",
+    #         "default": "True"
+    #     }
+    # },
 
     if not ProtectedCapability.objects.filter(slug=scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
@@ -284,6 +297,44 @@ def create_launch_capability(group, fhir_prefix, title="Patient launch context."
     return c
 
 
+def create_token_management_capability(group):
+
+    c = None
+    description = 'Allow an app to manage all of a user\'s tokens.'
+    slug = 'token_management'
+    title = 'Token Management'
+    protected_resources = []
+    protected_resources.append(["GET\", \"/some-url"])
+
+    if not ProtectedCapability.objects.filter(slug=slug).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               slug=slug,
+                                               default=False,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
+def create_token_introspect_capability(group):
+
+    c = None
+    description = 'Allow an app to introspect a user\'s tokens.'
+    slug = 'token_introspect'
+    title = 'Token Introspect'
+    protected_resources = []
+    protected_resources.append(["POST\", \"/v[123]/o/introspect"])
+
+    if not ProtectedCapability.objects.filter(slug=slug).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               slug=slug,
+                                               default=False,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
 class Command(BaseCommand):
     help = 'Create BlueButton Group and Scopes'
 
@@ -304,3 +355,5 @@ class Command(BaseCommand):
         create_coverage_read_search_capability(g, fhir_prefix)
         create_launch_capability(g, fhir_prefix)
         create_openid_capability(g)
+        create_token_management_capability(g)
+        create_token_introspect_capability(g)

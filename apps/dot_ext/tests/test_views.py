@@ -4,6 +4,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.core.management import call_command
 from django.http import HttpRequest
 from django.urls import reverse
 from httmock import HTTMock, urlmatch
@@ -50,7 +51,7 @@ class TestApplicationUpdateView(BaseApiTest):
 
 
 class TestAuthorizationView(BaseApiTest):
-    fixtures = ["scopes.json"]
+    # fixtures = ["scopes.json"]
 
     MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME  # "fhir.backend.bluebutton.hhsdevcloud.us"
     MOCK_FHIR_PATIENT_READVIEW_PATH = r"/v1/fhir/Patient/[-]?\d+[/]?"
@@ -177,6 +178,7 @@ class TestAuthorizationView(BaseApiTest):
         The "VIEW_OAUTH2_SCOPES_TEST_CASES" dictionary of test cases
             for the different values is used.
         """
+        call_command('create_blue_button_scopes')
         # create a user
         self._create_user("anna", "123456")
 

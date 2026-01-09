@@ -2,6 +2,7 @@ import json
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.core.management import call_command
 from http import HTTPStatus
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
@@ -55,9 +56,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     For more details, see https://docs.djangoproject.com/en/3.1/topics/testing/tools/#liveservertestcase
     This uses APIClient to test the BB2 FHIR API endpoints with the default (Fred) access token.
     '''
-    fixtures = ['scopes.json']
+    # fixtures = ['scopes.json']
 
     def setUp(self):
+        call_command('create_blue_button_scopes')
         super().setUp()
 
     def _get_fhir_url(self, resource_name, params, v2=False):
