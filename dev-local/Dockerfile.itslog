@@ -1,0 +1,9 @@
+# Stage 1: Build the Go application
+FROM golang:trixie
+WORKDIR /app
+RUN git clone https://github.com/navapbc/its-log /app
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN CGO_ENABLED=0 GOOS=linux make build
+RUN mkdir -p /root/.itslog /data/itslog
+EXPOSE 8443
+CMD ["/app/its-log", "serve"]

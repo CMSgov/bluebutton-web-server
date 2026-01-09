@@ -1,0 +1,41 @@
+api_keys:
+    - application: "one app"
+      key: "not-a-real-api-key-but-it-needs-to-be-long"
+      kind: "log"
+    - application: "ci/cd"
+      key: "this-is-a-long-key-that-provides-admin-access"
+      kind: "admin"
+
+serve:
+  host: "0.0.0.0"
+  # When cert/key are "mock", we run with TLS.
+  port: 8443
+  cert: "mock" 
+  key: "mock"
+
+app:
+  # "debug" or "release"
+  gin_mode: "release"
+  storage: "sqlite"
+  event_buffer_length: 2000
+  event_buffer_flush_seconds: 10
+  # Keeping the seed constant means the same
+  # events get hashed to the same integers.
+  # Changing this changes the dictionary.
+  hash_seed: 42
+
+  # storage: "default"
+
+sqlite:
+  path: "/data/itslog"
+  # To test without generating files, tell SQLite
+  # to create an in-memory database.
+  # path: ":memory:"
+
+s3:
+  bucket: "blue-bucket"
+  scheme: "http"
+  host: "localhost"
+  port: "3900"
+  disableSSL: true
+  s3ForcePathStyle: true
