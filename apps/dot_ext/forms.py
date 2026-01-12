@@ -197,7 +197,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         app = super().save(*args, **kwargs)
         app.save()
         uri = app.store_media_file(
-            self.cleaned_data.pop("logo_image", None), "logo.jpg"
+            self.cleaned_data.pop('logo_image', None)
         )
         if uri:
             app.logo_uri = uri
@@ -363,7 +363,7 @@ class CreateNewApplicationForm(forms.ModelForm):
         )
         app.save()
         uri = app.store_media_file(
-            self.cleaned_data.pop("logo_image", None), "logo.jpg"
+            self.cleaned_data.pop('logo_image', None)
         )
         if uri:
             app.logo_uri = uri
