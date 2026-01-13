@@ -242,15 +242,24 @@ class Application(AbstractApplication):
         return allowed_schemes
 
     # Save a file to application media storage
-    def store_media_file(self, file, filename):
+    def store_media_file(self, file):
         uri = None
         if file:
-            if getattr(file, "name", False):
+            uploaded_file_name = file.__dict__.get('_name')
+            try:
+                file_extension = uploaded_file_name.split('.')[1]
+                file_name_to_save = 'logo.' + file_extension
+            except IndexError:
+                # If we are unable to retrieve the file extension for any
+                # reason, default to logo.jpg
+                file_name_to_save = 'logo.jpg'
+
+            if getattr(file, 'name', False):
                 file_path = (
-                    "applications/"
-                    + hashlib.sha256(str(self.pk).encode("utf-8")).hexdigest()
-                    + "/"
-                    + filename
+                    'applications/'
+                    + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest()
+                    + '/'
+                    + file_name_to_save
                 )
                 if default_storage.exists(file_path):
                     default_storage.delete(file_path)
