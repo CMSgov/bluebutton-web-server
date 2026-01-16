@@ -5,7 +5,6 @@ from .demographic_scopes_test_cases import FORM_OAUTH2_SCOPES_TEST_CASES
 
 
 class TestSimpleAllowForm(BaseApiTest):
-    fixtures = ['scopes.json']
 
     def test_form(self):
         """

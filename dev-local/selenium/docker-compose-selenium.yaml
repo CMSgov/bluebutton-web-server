@@ -4,10 +4,11 @@ services:
   selenium-tests:
     image: selenium-local:latest
     command: /code/dev-local/selenium/start-selenium.sh
-    network_mode: host
     ports:
       - "8910:8910"
       - "6789:6789"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env.selenium
     volumes:
@@ -20,6 +21,8 @@ services:
   chrome:
     image: selenium/standalone-chromium
     hostname: chrome
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "4444:4444"
       - "5900:5900"

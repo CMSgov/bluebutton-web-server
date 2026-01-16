@@ -548,8 +548,8 @@ EXPLAINATION_LINE = env("DJANGO_EXPLAINATION_LINE ", EXPLAINATION_LINE)
 
 # Application model settings
 APP_LOGO_SIZE_MAX = env("DJANGO_APP_LOGO_SIZE_MAX", "100")
-APP_LOGO_WIDTH_MAX = env("DJANGO_APP_LOGO_WIDTH_MAX", "128")
-APP_LOGO_HEIGHT_MAX = env("DJANGO_APP_LOGO_HEIGHT_MAX", "128")
+APP_LOGO_WIDTH_MAX = env("DJANGO_APP_LOGO_WIDTH_MAX", "512")
+APP_LOGO_HEIGHT_MAX = env("DJANGO_APP_LOGO_HEIGHT_MAX", "512")
 
 # Application label slugs to exclude from externally
 # published lists, like those used for internal use testing.
