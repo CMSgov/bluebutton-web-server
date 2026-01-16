@@ -5,19 +5,18 @@ cd ..
 source ./utility-functions.bash
 set -a -e -u -o pipefail
 
-echo_msg "Checking if Blue Button is running..."
 
 export HOSTNAME_URL='http://localhost:8000'
 export USE_NEW_PERM_SCREEN='true'
-export DJANGO_FHIR_CERTSTORE="/certstore"
-export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
-export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
+export DJANGO_FHIR_CERTSTORE='/certstore'
+export TESTS_LIST='./apps/integration_tests/selenium_tests.py'
+export DJANGO_SETTINGS_MODULE='hhs_oauth_server.settings.dev'
 export SELENIUM_GRID=true
 export PYTEST_SHOW_TRACE_OPT=''
 
-# TODO: Currently, you need to stand up your dev environment first and then when you call the selenium tests, you need to match what is running
+# Currently, you need to stand up your dev environment first and then when you call the selenium tests, you need to match what is running
 # otherwise selenium will try and use the wrong login sequence
-if [[ "${auth}" == "live" ]]; then
+if [[ "${auth}" == 'live' ]]; then
 	export USE_MSLSX=false
 	export USE_LOGIN_WITH_MEDICARE_BUTTON=true
 else
@@ -25,25 +24,27 @@ else
 	export USE_LOGIN_WITH_MEDICARE_BUTTON=false
 fi
 
-# TODO: Because we had to put selenium on the host network, I haven't figured out how to get debugging to work. I'm sure it's
-# possible, but I'm leaving it out for now with the concept in place
-# if [[ "${debug}" == "true" ]]; then
-# 	export DEBUG_MODE=true
-# else
-# 	export DEBUG_MODE=false
-# fi
+# Set debug mode
+if [[ "${debug}" == 'true' ]]; then
+	export DEBUG_MODE=true
+else
+	export DEBUG_MODE=false
+fi
 
 # Check if web service is running
-# TODO: Possible to start them intelligently? Attempts were made, but it always tried to /recreate/ web, which would fail to set
-# env variables correctly
-if ! docker ps --format '{{.Names}}' | grep -q "dev-local.*web"; then
-    echo "Blue Button is not running."
-	echo "Please start Blue Button before running selenium tests."
-	echo "Exiting..."
+echo_msg 'Checking if Blue Button is running...'
+if ! docker ps --format '{{.Names}}' | grep -q 'dev-local.*web'; then
+    echo '\tBlue Button is not running.'
+	echo '\tPlease start Blue Button before running selenium tests.'
+	echo '\tExiting...'
 	exit 1
 fi
 
-echo_msg "Blue Button is running. Starting selenium tests..."
+echo_msg 'Clearing selenium/dump screenshots and html...'
+
+rm -rf selenium/dump
+
+echo_msg 'Blue Button is running. Starting selenium tests...'
 
 docker-compose -f selenium/docker-compose-selenium.yaml down --remove-orphans || true
 

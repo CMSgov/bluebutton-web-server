@@ -11,7 +11,7 @@ build-local:
 		-f Dockerfile.selenium .
 
 run-local:
-	./run-selenium-local.sh auth=$(auth)
+	./run-selenium-local.sh auth=$(auth) debug=$(debug)
 
 run-remote:
 	@echo "Running Selenium: Remote"
