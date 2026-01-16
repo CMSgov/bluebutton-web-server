@@ -17,6 +17,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.fhir.server.settings import fhir_settings
 from .loggers import log_match_fhir_id
+from waffle import switch_is_active
 
 
 def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_API_VERSION):
@@ -161,6 +162,15 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         UpstreamServerException: If hicn_hash or mbi search found duplicates.
         NotFound: If both searches did not match a fhir_id.
     """
+    # Don't do v3 BFD lookups if the v3 switch isn't enabled to allow us to prevent extra errors in logs
+    if not switch_is_active('v3_endpoints') and version == Versions.V3:
+        log_match_fhir_id(request, version, None, hicn_hash, False, 'M', "Server settings don't enable v3 lookups.")
+        return MatchFhirIdResult(
+            error='This server\'s settings do not allow lookups of v3 ids',
+            error_type=MatchFhirIdErrorType.NOT_FOUND,
+            lookup_type=MatchFhirIdLookupType.MBI
+        )
+
     # Perform primary lookup using MBI
     if mbi:
         try:
