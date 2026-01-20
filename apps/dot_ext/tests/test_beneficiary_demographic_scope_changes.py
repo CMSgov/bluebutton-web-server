@@ -1,5 +1,6 @@
 import json
 from apps.test import BaseApiTest
+from django.core.management import call_command
 from django.http import HttpRequest
 from django.urls import reverse
 # from oauth2_provider.compat import parse_qs, urlparse
@@ -14,7 +15,6 @@ from http import HTTPStatus
 
 
 class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
-    fixtures = ['scopes.json']
 
     @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
@@ -60,6 +60,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         beneficiary's sharing choice. Tokens should be deleted when the choices is to
         NOT share demographic scopes.
         """
+        call_command('create_blue_button_scopes')
         # create a user
         self._create_user('anna', '123456')
 

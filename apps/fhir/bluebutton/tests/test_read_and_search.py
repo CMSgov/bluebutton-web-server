@@ -317,7 +317,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     search_patient_urls[version]),
-                {'count': 5, 'hello': 'world'},
+                {'count': 5},
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -692,7 +692,6 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(read_update_delete_patient_urls[version], kwargs={'resource_id': FHIR_ID_V2}),
-                {'hello': 'world'},
                 Authorization='Bearer %s' % (first_access_token)
             )
 

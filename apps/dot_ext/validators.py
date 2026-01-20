@@ -63,8 +63,8 @@ def validate_notags(value):
 # Validate the applciation logo imagefield in form clean
 def validate_logo_image(value):
     file_extension = ospath.splitext(value.name)[1]
-    if not file_extension.lower() in [".jpg"]:
-        raise ValidationError("The file type must be JPEG with a .jpg file extension!")
+    if not file_extension.lower() in ['.jpg', '.jpeg', '.png']:
+        raise ValidationError('The file type must be JPEG, JPG, or PNG with a .jpg, .jpeg, or .png file extension!')
 
     if value.size > int(settings.APP_LOGO_SIZE_MAX) * 1024:
         raise ValidationError(

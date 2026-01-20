@@ -29,7 +29,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     logo_image = forms.ImageField(
         label="Logo URI Image Upload",
         required=False,
-        help_text="Upload your logo image file here in JPEG (.jpg) format! "
+        help_text="Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! "
         "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
         "This will update the Logo URI after saving."
         % (
@@ -197,7 +197,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         app = super().save(*args, **kwargs)
         app.save()
         uri = app.store_media_file(
-            self.cleaned_data.pop("logo_image", None), "logo.jpg"
+            self.cleaned_data.pop('logo_image', None)
         )
         if uri:
             app.logo_uri = uri
@@ -209,7 +209,7 @@ class CreateNewApplicationForm(forms.ModelForm):
     logo_image = forms.ImageField(
         label="Logo URI Image Upload",
         required=False,
-        help_text="Upload your logo image file here in JPEG (.jpg) format! "
+        help_text="Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! "
         "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
         "This will update the Logo URI after saving."
         % (
@@ -363,7 +363,7 @@ class CreateNewApplicationForm(forms.ModelForm):
         )
         app.save()
         uri = app.store_media_file(
-            self.cleaned_data.pop("logo_image", None), "logo.jpg"
+            self.cleaned_data.pop('logo_image', None)
         )
         if uri:
             app.logo_uri = uri

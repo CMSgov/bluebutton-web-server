@@ -32,9 +32,6 @@ then
     python manage.py create_admin_groups
     echo "🆗 create_admin_groups"
     
-    python manage.py loaddata scopes.json
-    echo "🆗 loaddata scopes.json"
-    
     python manage.py create_blue_button_scopes
     echo "🆗 create_blue_button_scopes"
 

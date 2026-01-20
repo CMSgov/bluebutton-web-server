@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -33,10 +33,12 @@ from apps.fhir.bluebutton.signals import (
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_fhir_response,
-    valid_patient_read_or_search_call
+    valid_patient_read_or_search_call,
+    validate_query_parameters
 )
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+ENFORCE_PARAM_VALIDATAION = 'handling=strict'
 
 
 class FhirDataView(APIView):
@@ -154,9 +156,26 @@ class FhirDataView(APIView):
                 req.headers['BlueButton-Application'] = quote(req.headers.get('BlueButton-Application'))
 
         prepped = s.prepare_request(req)
+        query_param = prepped.headers.get('BlueButton-OriginalQuery')
+        accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
+        request_prefer_header = request.META.get('HTTP_PREFER')
+
+        if (
+            request_prefer_header == ENFORCE_PARAM_VALIDATAION
+            and query_param
+            and self.version == Versions.V3
+        ):
+            accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
+            validation_result = validate_query_parameters(accepted_query_parameters, query_param)
+            if not validation_result.valid:
+                # We are raising a ValidationError here so that, even when DEBUG = False, a developer
+                # making the request can see what the invalid parameters were so they can fix the request
+                raise ValidationError({
+                    'error': f'Invalid parameters: {validation_result.invalid_params}'
+                })
 
         if resource_type == 'Patient':
-            query_param = prepped.headers.get('BlueButton-OriginalQuery')
+
             resource_id = kwargs.get('resource_id')
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 

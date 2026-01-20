@@ -1,6 +1,7 @@
 import jsonschema
 import re
 import os
+import traceback
 from functools import wraps
 from jsonschema import validate
 from selenium.common.exceptions import NoSuchElementException
@@ -35,16 +36,26 @@ def screenshot_on_exception(func):
                     test_folder = os.path.join('dev-local/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
 
-                    # Remove all previous files so only the latest failure is kept
-                    for file in os.listdir(test_folder):
-                        os.remove(os.path.join(test_folder, file))
+                    # screenshot of failed page
                     screenshot_filename = os.path.join(test_folder, 'screenshot.png')
                     webdriver.save_screenshot(screenshot_filename)
 
+                    # html dump of failed page
                     html_filename = os.path.join(test_folder, 'page.html')
                     with open(html_filename, 'w', encoding='utf-8') as html_file:
                         html_file.write(webdriver.page_source)
 
+                    # error stack trace
+                    error_filename = os.path.join(test_folder, 'error.txt')
+                    with open(error_filename, 'w', encoding='utf-8') as error_file:
+                        trace_text = ''.join(
+                            traceback.format_exception(
+                                type(outer_exception),
+                                outer_exception,
+                                outer_exception.__traceback__,
+                            )
+                        )
+                        error_file.write(trace_text)
                 except Exception as save_error:
                     print(f'Failed to capture test failure: {save_error}')
             raise outer_exception
@@ -54,7 +65,7 @@ def screenshot_on_exception(func):
 def log_step(message, level='INFO'):
     """Log a step with consistent formatting"""
     prefix = {
-        'INFO': 'ℹ',
+        'INFO': 'ℹ️',
         'SUCCESS': '✅',
         'ERROR': '❌',
         'WARNING': '⚠️'
