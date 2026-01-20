@@ -41,7 +41,7 @@ pyjwt == 2.7.0
 pyrsistent == 0.19.3
 python-dateutil == 2.8.2
 python-dotenv == 1.0.0
-python-stdnum == 1.18
+python-stdnum == 1.18 # via django-localflavor
 pytz == 2023.3
 pyyaml == 6.0.1
 requests == 2.32.2
