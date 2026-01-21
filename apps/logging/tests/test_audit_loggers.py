@@ -15,6 +15,7 @@ from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
 from oauth2_provider.models import get_access_token_model
 from rest_framework import status
+from waffle.testutils import override_switch
 
 from apps.dot_ext.models import Application
 from apps.logging.utils import redirect_loggers, get_log_content, cleanup_logger
@@ -172,12 +173,15 @@ class TestAuditEventLoggers(BaseApiTest):
                 )
             )
 
+    @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_slsx_logger(self):
         self._callback_url_success_slsx_logger(1)
 
+    @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_slsx_logger_v2(self):
         self._callback_url_success_slsx_logger(2)
 
+    @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_slsx_logger_v3(self):
         self._callback_url_success_slsx_logger(3)
 

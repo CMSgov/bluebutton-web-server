@@ -6,6 +6,7 @@ from apps.fhir.server.authentication import MatchFhirIdResult, MatchFhirIdLookup
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+from waffle.testutils import override_switch
 
 from apps.mymedicare_cb.models import (
     create_beneficiary_record,
@@ -421,6 +422,7 @@ class BeneficiaryLoginTest(TestCase):
 
     @patch('apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect)
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
+    @override_switch('v3_endpoints', active=True)
     def test_get_and_update_from_refresh_fhir_id_v3_previously_null(self, mock_archive, mock_match_fhir) -> None:
         """Test that the get_and_update_from_refresh executes fields correctly,
         specifically in this test, fhir_id_v3
