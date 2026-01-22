@@ -1,0 +1,66 @@
+#!groovy
+def aws_creds = 'cbj-deploy'
+
+pipeline {
+  agent any
+
+  stages {
+    stage('Clear') {
+      steps {
+        deleteDir()
+      }
+    }
+
+    stage('Checkout') {
+      steps {
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: "${params.GIT_VERSION}"]],
+            userRemoteConfigs: [[
+              url: 'https://github.com/CMSgov/bluebutton-css.git'
+            ]]
+        ])
+      }
+    }
+
+    stage('Deploy To TEST') {
+      steps {
+        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
+          sh """
+            aws s3 cp ./dist/sandbox-main.css s3://content-test-bbonfhir-com/static/dist/
+          """
+        }
+      }
+    }
+
+    stage('Deploy To IMPL') {
+      steps {
+        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
+          sh """
+            aws s3 cp ./dist/sandbox-main.css s3://content-impl-bbonfhir-com/static/dist/
+          """
+        }
+      }
+      when {
+        expression {
+          params.DEPLOY_IMPL == true
+        }
+      }
+    }
+
+    stage('Deploy To PROD') {
+      steps {
+        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
+          sh """
+            aws s3 cp ./dist/sandbox-main.css s3://content-prod-bluebutton-cms-gov/static/dist/
+          """
+        }
+      }
+      when {
+        expression {
+          params.DEPLOY_PROD == true
+        }
+      }
+    }
+  }
+}

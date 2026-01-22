@@ -1,0 +1,35 @@
+// Vatiable Overrides
+// ------------------
+// NOTE: This is a legacy file, but it does adhere to CMS Design System's
+// guidelines. Keeping for now, but there may be a better way to organize
+// for our purposes in the future.
+
+//
+// Paths
+//
+$font-path: 'fonts/';
+$image-path: 'images/';
+
+//
+// Design
+//
+$font-sans: 'Roboto', sans-serif;
+
+$large-hero-text: #FFFFFF;
+
+p.ds-text--lead {
+  color: $large-hero-text;
+}
+
+h1.ds-display {
+  color: $large-hero-text;
+}
+
+.other-main-nav ul {
+  -webkit-padding-start: 0px;
+}
+
+.other-main-nav img {
+  display: inline-block;
+  margin: 25px 10px;
+}
