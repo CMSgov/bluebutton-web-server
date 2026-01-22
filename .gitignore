@@ -80,11 +80,6 @@ migration.completed
 venv/
 ENV/
 
-# CSS/SCSSS
-*.css.map
-.sass-cache/*
-bluebutton-css/
-
 .vscode
 
 # cert files
