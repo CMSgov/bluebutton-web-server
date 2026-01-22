@@ -4,20 +4,7 @@ const gulp = require('gulp');
 const sass = require('gulp-sass')(require('sass'));
 const sourcemaps = require('gulp-sourcemaps');
 
-// CSS Task
-/*
-gulp.task('css', () => {
-	pump([
-		gulp.src(['scss/static-main.scss', 'scss/sandbox-main.scss']),
-		sourcemaps.init(),
-		sass().on('error', sass.logError),
-		cleanCSS(),
-		sourcemaps.write('.'),
-		gulp.dest('dist')
-	]);
-});
-*/
-
+// CSS Build Task
 gulp.task('default', gulp.parallel(function (done) {
 	gulp.src(['scss/static-main.scss', 'scss/sandbox-main.scss'],)
 		.pipe(sourcemaps.init())
@@ -30,6 +17,7 @@ gulp.task('default', gulp.parallel(function (done) {
 	done();
 }));
 
+// CSS Watch Task
 gulp.task('watch', gulp.series(function (done) {
 	gulp.watch(['./scss/**/*.scss'], gulp.parallel('default'));
 }));
