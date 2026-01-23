@@ -310,8 +310,6 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_count=5', req.url)
             self.assertNotIn('hello', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
-            # self.assertDictContainsSubset(lower_dict(expected_request['headers']), req.headers)
             self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
@@ -388,7 +386,6 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
             self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
@@ -471,7 +468,6 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
             self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
@@ -527,7 +523,6 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
             self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
@@ -688,7 +683,6 @@ class BackendConnectionTest(BaseApiTest):
         def catchall(url, req):
             self.assertEqual(expected_request['url'], unquote(req.url))
             self.assertEqual(expected_request['method'], req.method)
-            # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
             self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
