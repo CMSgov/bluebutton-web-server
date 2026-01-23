@@ -146,16 +146,23 @@ class ConformanceReadRequestTest(TestCase):
         self.assertEqual(filter_works, True)
 
 
-def lower_dict(d):
+# _lower_dict :: dict -> dictionary
+# Lowercases the keys and values in a dictionary.
+# Also forces everything to a string.
+# This is to then compare the dictionaries as sets.
+def _lower_dict(d):
     lower_d = {}
     for k, v in d.items():
-        lower_d[k.lower()] = v.lower()
+        lower_d[str(k).lower()] = str(v).lower()
     return lower_d
 
+# _contains_subset :: dict, dict -> bool
+# Asks if d1 contains d1 as a subset.
 
-def _containsSubset(d1, d2) -> bool:
-    d1_set = set(lower_dict(d1).keys())
-    d2_set = set(lower_dict(d2).keys())
+
+def _contains_subset(d1, d2) -> bool:
+    d1_set = set(_lower_dict(d1).keys())
+    d2_set = set(_lower_dict(d2).keys())
     res = d1_set.issubset(d2_set)
     return res
 
@@ -305,7 +312,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(expected_request['method'], req.method)
             # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
             # self.assertDictContainsSubset(lower_dict(expected_request['headers']), req.headers)
-            self.assertTrue(_containsSubset(expected_request['headers'], req.headers))
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': 200,
@@ -382,7 +389,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
-            self.assertTrue(_containsSubset(expected_request['headers'], req.headers))
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': 404,
@@ -465,7 +472,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
-            self.assertTrue(_containsSubset(expected_request['headers'], req.headers))
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': bfd_status_code,
@@ -521,7 +528,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
             # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
-            self.assertTrue(_containsSubset(expected_request['headers'], req.headers))
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': bfd_status_code,
@@ -682,7 +689,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(expected_request['url'], unquote(req.url))
             self.assertEqual(expected_request['method'], req.method)
             # assertDictContainsSubset(a, b) => assertEqual(b, b | a)
-            self.assertTrue(_containsSubset(expected_request['headers'], req.headers))
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': 200,
