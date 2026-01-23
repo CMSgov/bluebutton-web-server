@@ -97,7 +97,7 @@ test_report.txt
 .github/instructions/snyk_rules.instructions.md
 
 # Static
-static/bluebutton-css/node_modules
+*node_modules*
 .sass-cache*
 *.css.map
 .DS_Store
