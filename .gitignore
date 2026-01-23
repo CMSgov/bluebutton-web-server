@@ -95,3 +95,9 @@ test_report.txt
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+
+# Static
+static/bluebutton-css/node_modules
+.sass-cache*
+*.css.map
+.DS_Store
