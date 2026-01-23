@@ -363,7 +363,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = "collectedstatic"
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "bluebutton-css"),
+    os.path.join(BASE_DIR, "static/bluebutton-css"),
     os.path.join(BASE_DIR, "static"),
 ]
 
