@@ -18,6 +18,7 @@ from jsonschema import validate
 from requests.exceptions import HTTPError
 from rest_framework import status
 from urllib.parse import urlparse, parse_qs
+from waffle.testutils import override_switch
 
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
@@ -227,6 +228,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def test_callback_url_success_v2(self):
         self._test_callback_url_success(2)
 
+    @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_v3(self):
         self._test_callback_url_success(3)
 
@@ -383,6 +385,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 with self.assertRaises(HTTPError):
                     sls_client.exchange_for_access_token("test_code", None)
 
+    @override_switch('v3_endpoints', active=True)
     def test_callback_exceptions(self):
         versions = [1, 2, 3]
         for version in versions:

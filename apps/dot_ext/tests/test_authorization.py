@@ -238,6 +238,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
 
+    @override_switch('v3_endpoints', active=True)
     def test_refresh_token(self):
         redirect_uri = 'http://localhost'
         # create a user
