@@ -255,7 +255,7 @@ class TestAuthorizationView(BaseApiTest):
             # Perform authorization request
             if result_has_error:
                 # Expecting an error with request
-                with self.assertRaisesRegexp(
+                with self.assertRaisesRegex(
                     result_raises_exception, result_exception_mesg
                 ):
                     response = self._authorize_and_request_token(payload, application)
@@ -582,7 +582,7 @@ class TestTokenView(BaseApiTest):
         # 20251120 This test is now gated on a variable; if the variable does not exist, or
         # is not set, the test will run. This is the desired behavior.
         if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 OSError, 'Could not find the TLS certificate file'
             ):
                 response = self.client.get(
@@ -641,7 +641,7 @@ class TestTokenView(BaseApiTest):
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 OSError, 'Could not find the TLS certificate file'
             ):
                 response = self.client.get(
@@ -653,7 +653,7 @@ class TestTokenView(BaseApiTest):
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 OSError, 'Could not find the TLS certificate file'
             ):
                 response = self.client.get(

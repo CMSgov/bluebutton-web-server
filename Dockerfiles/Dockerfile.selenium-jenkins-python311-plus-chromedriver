@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.11
+FROM --platform=linux/amd64 python:3.12
 # For build CBC Jenkins job ECR image
 ENV PYTHONUNBUFFERED 1
 

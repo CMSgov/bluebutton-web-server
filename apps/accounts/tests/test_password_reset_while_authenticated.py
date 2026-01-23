@@ -87,7 +87,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see updated password
-        self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
+        self.assertEqual(self.user.check_password("IchangedTHEpassword#123"), True)
 
     @override_switch('login', active=True)
     @mock.patch("apps.accounts.validators.datetime", StubDate)
@@ -105,21 +105,21 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Password must contain at least 2 upper case letter(s)")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
-        self.assertEquals(self.user.check_password("foobarfoobarfoobar"), True)
+        self.assertEqual(self.user.check_password("foobarfoobarfoobar"), True)
         form_data = {'old_password': 'foobarfoobarfoobar',
                      'new_password1': 'IchangedthePassword123',
                      'new_password2': 'IchangedthePassword123'}
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Password must contain at least 1 special character(s)")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
-        self.assertEquals(self.user.check_password("foobarfoobarfoobar"), True)
+        self.assertEqual(self.user.check_password("foobarfoobarfoobar"), True)
         form_data = {'old_password': 'foobarfoobarfoobar',
                      'new_password1': 'IchangedthePassword@123',
                      'new_password2': 'IchangedthePassword@123'}
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password has been updated
-        self.assertEquals(self.user.check_password("IchangedthePassword@123"), True)
+        self.assertEqual(self.user.check_password("IchangedthePassword@123"), True)
         form_data = {'old_password': 'IchangedthePassword@123',
                      'new_password1': 'ChangeP@ssw0rd2S00n',
                      'new_password2': 'ChangeP@ssw0rd2S00n'}
@@ -130,7 +130,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "You can not change password that does not satisfy minimum password age")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
-        self.assertEquals(self.user.check_password("IchangedthePassword@123"), True)
+        self.assertEqual(self.user.check_password("IchangedthePassword@123"), True)
 
     @override_switch('login', active=True)
     @mock.patch("apps.accounts.validators.datetime", StubDate)
@@ -150,7 +150,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
-        self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
+        self.assertEqual(self.user.check_password("IchangedTHEpassword#123"), True)
 
         # 2nd password change
         form_data = {'old_password': 'IchangedTHEpassword#123',
@@ -163,7 +163,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
-        self.assertEquals(self.user.check_password("2ndChange#Pass"), True)
+        self.assertEqual(self.user.check_password("2ndChange#Pass"), True)
 
         # 3rd password change - re-use password used in 1st
         form_data = {'old_password': '2ndChange#Pass',
@@ -178,7 +178,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                             ("You can not use a password that is already used"
                              " in this application within password re-use interval"))
         self.user = User.objects.get(username="fred")  # get user again so that you can see password unchanged
-        self.assertEquals(self.user.check_password("2ndChange#Pass"), True)
+        self.assertEqual(self.user.check_password("2ndChange#Pass"), True)
 
         # 4th password change - re-use password used in 1st
         form_data = {'old_password': '2ndChange#Pass',
@@ -191,7 +191,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
-        self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
+        self.assertEqual(self.user.check_password("IchangedTHEpassword#123"), True)
 
     @override_switch('login', active=True)
     @mock.patch("apps.accounts.validators.datetime", StubDate)

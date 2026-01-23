@@ -55,7 +55,11 @@ pipeline {
       steps {
         sh """
           pip3 install --upgrade pip setuptools wheel
-          pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+          pip3 install \
+            --require-hashes \
+            --no-deps \
+            --prefer-binary \
+            -r requirements/requirements.dev.txt
         """
       }
     }

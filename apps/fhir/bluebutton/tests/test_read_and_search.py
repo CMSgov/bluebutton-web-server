@@ -33,7 +33,7 @@ def get_expected_read_request(version: int):
             'Accept': '*/*',
             'Connection': 'keep-alive',
             'BlueButton-OriginalQueryCounter': '1',
-            'BlueButton-BeneficiaryId': f'patientId:{FHIR_ID_V2}',
+            'BlueButton-BeneficiaryId': f'patientId:{FHIR_ID_V2}',  # noqa: E231
             'BlueButton-Application': 'John_Smith_test',
             'X-Forwarded-For': '127.0.0.1',
             'keep-alive': 'timeout=120, max=10',
@@ -54,7 +54,7 @@ def get_expected_request(version):
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
                 'BlueButton-OriginalQueryCounter': '1',
-                'BlueButton-BeneficiaryId': f'patientId:{FHIR_ID_V2}',
+                'BlueButton-BeneficiaryId': f'patientId:{FHIR_ID_V2}',  # noqa: E231
                 'BlueButton-Application': 'John_Smith_test',
                 'X-Forwarded-For': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
@@ -144,6 +144,27 @@ class ConformanceReadRequestTest(TestCase):
             filter_works = True
 
         self.assertEqual(filter_works, True)
+
+
+# _lower_dict :: dict -> dictionary
+# Lowercases the keys and values in a dictionary.
+# Also forces everything to a string.
+# This is to then compare the dictionaries as sets.
+def _lower_dict(d):
+    lower_d = {}
+    for k, v in d.items():
+        lower_d[str(k).lower()] = str(v).lower()
+    return lower_d
+
+# _contains_subset :: dict, dict -> bool
+# Asks if d1 contains d1 as a subset.
+
+
+def _contains_subset(d1, d2) -> bool:
+    d1_set = set(_lower_dict(d1).keys())
+    d2_set = set(_lower_dict(d2).keys())
+    res = d1_set.issubset(d2_set)
+    return res
 
 
 class ThrottleReadRequestTest(BaseApiTest):
@@ -289,7 +310,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_count=5', req.url)
             self.assertNotIn('hello', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': 200,
@@ -365,7 +386,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': 404,
@@ -406,7 +427,7 @@ class BackendConnectionTest(BaseApiTest):
                     'link': [
                         {
                             'relation': 'self',
-                            'url': f'http://hapi.fhir.org/v{version}/fhir/ExplanationOfBenefit?_pretty=true&patient=1234'
+                            'url': f'http://hapi.fhir.org/v{version}/fhir/ExplanationOfBenefit?_pretty=true&patient=1234'  # noqa: E231, E501
                         },
                     ],
                 },
@@ -447,7 +468,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': bfd_status_code,
@@ -502,7 +523,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
             self.assertIn(f'_id={FHIR_ID_V2}', req.url)
             self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': bfd_status_code,
@@ -662,7 +683,7 @@ class BackendConnectionTest(BaseApiTest):
         def catchall(url, req):
             self.assertEqual(expected_request['url'], unquote(req.url))
             self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
+            self.assertTrue(_contains_subset(expected_request['headers'], req.headers))
 
             return {
                 'status_code': 200,
