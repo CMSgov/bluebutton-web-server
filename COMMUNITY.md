@@ -196,17 +196,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/sb-benohe">
-                    <img src="https://avatars.githubusercontent.com/u/71290292?v=4" width="100;" alt="sb-benohe"/>
-                    <br />
-                    <sub><b>sb-benohe</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/jadudm">
                     <img src="https://avatars.githubusercontent.com/u/38290?v=4" width="100;" alt="jadudm"/>
                     <br />
                     <sub><b>Matthew Jadud</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/sb-benohe">
+                    <img src="https://avatars.githubusercontent.com/u/71290292?v=4" width="100;" alt="sb-benohe"/>
+                    <br />
+                    <sub><b>sb-benohe</b></sub>
                 </a>
             </td>
             <td align="center">
