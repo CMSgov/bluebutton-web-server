@@ -7,17 +7,21 @@ from django.db import models
 from django.db.models import CASCADE, Q
 from django.utils.crypto import pbkdf2
 from requests import Response
-from rest_framework import status
 from rest_framework.exceptions import APIException
 from django.core.validators import MinLengthValidator
 from apps.accounts.models import get_user_id_salt
 
 from apps.versions import Versions, VersionNotMatched
 
+from http import HTTPStatus
+
 
 class BBFhirBluebuttonModelException(APIException):
     # BB2-237 custom exception
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    # 20260126 STATUSCHANGE Was a 500.
+    # Using NOT_IMPLEMENTED to handle the limited conditions under
+    # which we are wrapping/raising this error.
+    status_code = HTTPStatus.NOT_IMPLEMENTED
 
 
 # Real fhir_id Manager subclass

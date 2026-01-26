@@ -1,3 +1,4 @@
+from http import HTTPStatus
 import json
 import logging
 from datetime import datetime, timedelta
@@ -558,20 +559,22 @@ class TokenView(DotTokenView):
                     except Crosswalk.DoesNotExist:
                         log.debug('Unable to find crosswalk record during a token refresh')
                         return JsonResponse(
-                            {'status_code': 404, 'message': 'Not found.'},
-                            status=404,
+                            {'status_code': HTTPStatus.NOT_FOUND, 'message': 'Not found.'},
+                            status=HTTPStatus.NOT_FOUND,
                         )
                     except UpstreamServerException:
                         log.debug('Failed to retrieve data from data source.')
+                        # 20260126 STATUSCHANGE Convert 500 -> 503
                         return JsonResponse(
-                            {'status_code': 500, 'message': 'Failed to retrieve data from data source."'},
-                            status=500,
+                            {'status_code': HTTPStatus.SERVICE_UNAVAILABLE,
+                             'message': 'Failed to retrieve data from data source."'},
+                            status=HTTPStatus.SERVICE_UNAVAILABLE,
                         )
                     except NotFound:
                         log.debug('Unable to find patient data during a token refresh')
                         return JsonResponse(
-                            {'status_code': 404, 'message': 'Not found.'},
-                            status=404,
+                            {'status_code': HTTPStatus.NOT_FOUND, 'message': 'Not found.'},
+                            status=HTTPStatus.NOT_FOUND,
                         )
 
                 body['access_grant_expiration'] = dag_expiry
