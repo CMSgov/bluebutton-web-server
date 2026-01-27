@@ -18,6 +18,6 @@ gulp.task('default', gulp.parallel(function (done) {
 }));
 
 // CSS Watch Task
-gulp.task('watch', gulp.series(function (done) {
-	gulp.watch(['./scss/**/*.scss'], gulp.parallel('default'));
-}));
+gulp.task('watch', function () {
+	gulp.watch(['./scss/**/*.scss'], gulp.series('default'));
+});
