@@ -211,7 +211,7 @@ INSTALLED_APPS = [
     "apps.bb2_tools",
     # 3rd Party ---------------------
     "corsheaders",
-    "bootstrap5",
+    "django_bootstrap5",
     "waffle",
     # DOT must be installed after apps.dot_ext in order to override templates
     "oauth2_provider",
