@@ -17,8 +17,6 @@ from http import HTTPStatus
 
 
 class BBFhirBluebuttonModelException(APIException):
-    # BB2-237 custom exception
-    # 20260126 STATUSCHANGE Was a 500.
     # Using NOT_IMPLEMENTED to handle the limited conditions under
     # which we are wrapping/raising this error.
     status_code = HTTPStatus.NOT_IMPLEMENTED

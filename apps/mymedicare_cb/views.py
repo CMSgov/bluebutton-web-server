@@ -124,28 +124,24 @@ def callback(request):
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
-        # 20260126 STATUSCHANGE Now a 409
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
         return JsonResponse({
             "error": e.detail,
         }, status=HTTPStatus.CONFLICT)
     except BBMyMedicareCallbackCrosswalkCreateException as e:
-        # 20260126 STATUSCHANGE Now a 409
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
         return JsonResponse({
             "error": e.detail,
         }, status=HTTPStatus.CONFLICT)
     except BBMyMedicareCallbackCrosswalkUpdateException as e:
-        # 20260126 STATUSCHANGE Now a 409
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
         return JsonResponse({
             "error": e.detail,
         }, status=HTTPStatus.CONFLICT)
     except UpstreamServerException:
-        # 20260126 STATUSCHANGE Now a 502
         # Elsewhere in the code we take upstream errors and turn them into
         # 502 errors (Bad Gateway), because we are operating as a gateway and
         # encounter an error not-in-our-code. Hence, this should also become a 502.

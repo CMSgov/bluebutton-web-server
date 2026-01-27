@@ -467,8 +467,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 self.callback_url, data={"req_token": "test", "relay": state}
             )
 
-            # assert 500 exception
-            # 20260126 STATUSCHANGE Now a 409
             self.assertEqual(
                 response.status_code, HTTPStatus.CONFLICT
             )
@@ -1166,7 +1164,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             s.save()
             response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
             resp_json = response.json()
-            # 20260126 STATUSCHANGE Now a 409
             self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
             self.assertIsNotNone(resp_json)
             self.assertIsNotNone(resp_json.get("error"))

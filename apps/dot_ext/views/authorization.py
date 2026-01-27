@@ -564,11 +564,10 @@ class TokenView(DotTokenView):
                         )
                     except UpstreamServerException:
                         log.debug('Failed to retrieve data from data source.')
-                        # 20260126 STATUSCHANGE Convert 500 -> 503
                         return JsonResponse(
-                            {'status_code': HTTPStatus.SERVICE_UNAVAILABLE,
+                            {'status_code': HTTPStatus.BAD_GATEWAY,
                              'message': 'Failed to retrieve data from data source."'},
-                            status=HTTPStatus.SERVICE_UNAVAILABLE,
+                            status=HTTPStatus.BAD_GATEWAY,
                         )
                     except NotFound:
                         log.debug('Unable to find patient data during a token refresh')

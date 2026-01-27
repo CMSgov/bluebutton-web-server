@@ -56,7 +56,7 @@ def process_error_response(response: Fhir_Response) -> APIException:
         return err
     elif response.status_code >= 500:
         # Anything that is a 500-class error from upstream becomes a 502
-        # as we propogate it forward.
+        # as we propagate it forward.
         msg = 'A failure occurred contacting the upstream server'
         err = UpstreamServerException(msg)
         return err
