@@ -8,19 +8,20 @@ services:
       - ./dev-local:/code
     profiles:
       - mocksls
+
   db:
     image: postgres
     env_file:
       - docker-compose/db-env-vars.env
     ports:
       - "5432:5432"
+
   web:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
     env_file:
       - docker-compose/web-env-vars.env
       - docker-compose/slsx-env-vars.env
-      # local devel specific variables go here!
       - .env
     volumes:
       - .:/code
@@ -32,13 +33,28 @@ services:
     profiles:
       - slsx
     platform: linux/amd64
+    read_only: true
+    tmpfs:
+      - /tmp:size=1G,mode=1777
+      - /var/tmp:size=100M,mode=1777
+      - /var/log:size=500M,mode=0755
+      - /var/run:size=100M,mode=0755
+    volumes_tmpfs:
+      - type: tmpfs
+        target: /code/logs
+        tmpfs:
+          size: 500M
+      - type: tmpfs
+        target: /code/media
+        tmpfs:
+          size: 1G
+          
   web_msls:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
     env_file:
       - docker-compose/web-env-vars.env
       - docker-compose/msls-env-vars.env
-      # local devel specific variables go here!
       - .env
     volumes:
       - .:/code
@@ -51,6 +67,22 @@ services:
     profiles:
       - mocksls
     platform: linux/amd64
+    read_only: true
+    tmpfs:
+      - /tmp:size=1G,mode=1777
+      - /var/tmp:size=100M,mode=1777
+      - /var/log:size=500M,mode=0755
+      - /var/run:size=100M,mode=0755
+    volumes_tmpfs:
+      - type: tmpfs
+        target: /code/logs
+        tmpfs:
+          size: 500M
+      - type: tmpfs
+        target: /code/media
+        tmpfs:
+          size: 1G
+          
   unittests:
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
@@ -62,3 +94,7 @@ services:
       - .:/code
     profiles:
       - tests
+    read_only: true
+    tmpfs:
+      - /tmp:size=1G,mode=1777
+      - /var/tmp:size=100M,mode=1777
