@@ -17,12 +17,13 @@ from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
+from apps.dot_ext.models import Application, ArchivedToken
+from apps.dot_ext.views import AuthorizationView, TokenView
+from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.mymedicare_cb.tests.test_models import search_fhir_id_by_identifier_side_effect
 from apps.test import BaseApiTest
 from apps.versions import Versions
-from apps.dot_ext.models import Application, ArchivedToken
-from apps.dot_ext.views import AuthorizationView, TokenView
-from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from http import HTTPStatus
 
 AccessToken = get_access_token_model()
@@ -1292,3 +1293,97 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # the v3_early_adopter flag (part of BB2-4250). Because all of the mocks are not included in this test
         # such that the authorize call will return a 302 for v3, v3 in this test throws a 403
         assert response_v3.status_code == HTTPStatus.FORBIDDEN
+
+    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
+                                                                    error='Failure',
+                                                                    error_type=MatchFhirIdErrorType.UPSTREAM,
+                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
+    def test_failure_response_v1_refresh_token_flow_match_fhir_id_failure(self, mock_match_fhir):
+        """During v1 refresh token flow, if we fail to retrieve the fhir_id for v2 from match_fhir_id,
+        a 500 error should be thrown with a message of 'Failed to retrieve data from data source.'
+        """
+        # Test with application setup as grant_type=authorization_code and client_type=public
+        redirect_uri = 'com.custom.bluebutton://example.it'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_PUBLIC,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        response = self.client.get('/v1/o/authorize', data=payload)
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            "state": "0123456789abcdef",
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        response = self.client.post(response['Location'], data=payload)
+
+        self.assertEqual(response.status_code, 302)
+
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789'
+        }
+        c = Client()
+
+        response = c.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 200)
+
+        # Now we have a token and refresh token
+        refresh_tkn = response.json()['refresh_token']
+
+        refresh_request_data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_tkn,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
+        }
+        body = urlencode(refresh_request_data)
+
+        # the below block is to ensure the request.session.version comes through as v1 in __get_and_update_user
+        # version was coming through as v2 in this test even though the url contains v1
+        session = self.client.session
+        session['version'] = Versions.V1
+        session.save()
+
+        response = self.client.post(
+            reverse('oauth2_provider:token'),
+            data=body,
+            content_type='application/x-www-form-urlencoded'
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')

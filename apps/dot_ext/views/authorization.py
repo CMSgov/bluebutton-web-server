@@ -564,7 +564,7 @@ class TokenView(DotTokenView):
                     except UpstreamServerException:
                         log.debug('Failed to retrieve data from data source.')
                         return JsonResponse(
-                            {'status_code': 500, 'message': 'Failed to retrieve data from data source."'},
+                            {'status_code': 500, 'message': 'Failed to retrieve data from data source.'},
                             status=500,
                         )
                     except NotFound:

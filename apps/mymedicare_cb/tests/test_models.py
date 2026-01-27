@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
-from apps.fhir.server.authentication import MatchFhirIdResult, MatchFhirIdLookupType
+from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
@@ -25,6 +25,13 @@ mock_request = Mock(spec=HttpRequest)
 mock_request.session = {'version': 2}
 
 
+DEFAULT_USERNAME = '00112233-4455-6677-8899-aabbccddeeff'
+DEFAULT_HICN_HASH = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+DEFAULT_FIRST_NAME = 'Hello'
+DEFAULT_LAST_NAME = 'World'
+DEFAULT_EMAIL = 'oscar@sesamestreet.gov'
+
+
 def search_fhir_id_by_identifier_side_effect(search_identifier, request, version) -> str:
     # Would try to retrieve these values via os envvars, but not sure what those look like in the jenkins pipeline
     if version == Versions.V1:
@@ -36,6 +43,24 @@ def search_fhir_id_by_identifier_side_effect(search_identifier, request, version
     return '-20140000008325'
 
 
+def match_fhir_id_side_effect_fail_v3(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION) -> MatchFhirIdResult:
+    if version == Versions.V2:
+        return MatchFhirIdResult(
+            fhir_id='-20140000008325',
+            lookup_type=MatchFhirIdLookupType.MBI
+        )
+    elif version == Versions.V3:
+        return MatchFhirIdResult(
+            error='Failure',
+            error_type=MatchFhirIdErrorType.UPSTREAM,
+            lookup_type=MatchFhirIdLookupType.MBI
+        )
+    return MatchFhirIdResult(
+        fhir_id='-20140000008325',
+        lookup_type=MatchFhirIdLookupType.MBI
+    )
+
+
 class BeneficiaryLoginTest(TestCase):
 
     def setUp(self):
@@ -43,15 +68,15 @@ class BeneficiaryLoginTest(TestCase):
 
     def test_create_beneficiary_record_full(self):
         args = {
-            'username': '00112233-4455-6677-8899-aabbccddeeff',
-            'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            'username': DEFAULT_USERNAME,
+            'user_hicn_hash': DEFAULT_HICN_HASH,
             'mbi': '1SA0A00AA00',
             'user_id_type': 'H',
             'fhir_id_v2': '-20000000002346',
             'fhir_id_v3': '-20000000002346',
-            'first_name': 'Hello',
-            'last_name': 'World',
-            'email': 'oscar@sesamestreet.gov',
+            'first_name': DEFAULT_FIRST_NAME,
+            'last_name': DEFAULT_LAST_NAME,
+            'email': DEFAULT_EMAIL,
         }
         slsx_client = OAuth2ConfigSLSx(args)
 
@@ -68,7 +93,7 @@ class BeneficiaryLoginTest(TestCase):
     def test_create_beneficiary_record_min(self):
         args = {
             'username': '001010101010110',
-            'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            'user_hicn_hash': DEFAULT_HICN_HASH,
             'fhir_id_v2': '00001'
         }
         slsx_client = OAuth2ConfigSLSx(args)
@@ -80,14 +105,14 @@ class BeneficiaryLoginTest(TestCase):
         # Test creating new record with a None (Null) user_mbi value
         # This is OK. Handles the case where SLSx returns an empty mbi value.
         args = {
-            'username': '00112233-4455-6677-8899-aabbccddeeff',
-            'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            'username': DEFAULT_USERNAME,
+            'user_hicn_hash': DEFAULT_HICN_HASH,
             'user_mbi': None,
             'user_id_type': 'H',
             'fhir_id_v3': '0000001',
-            'first_name': 'Hello',
-            'last_name': 'World',
-            'email': 'oscar@sesamestreet.gov',
+            'first_name': DEFAULT_FIRST_NAME,
+            'last_name': DEFAULT_LAST_NAME,
+            'email': DEFAULT_EMAIL,
         }
         slsx_client = OAuth2ConfigSLSx(args)
         bene = create_beneficiary_record(slsx_client, fhir_id_v3=args['fhir_id_v3'])
@@ -102,13 +127,13 @@ class BeneficiaryLoginTest(TestCase):
         # Test creating new record with NO user_mbi value
         # This is OK. Handles the case where SLSx returns an empty mbi value.
         args = {
-            'username': '00112233-4455-6677-8899-aabbccddeeff',
-            'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            'username': DEFAULT_USERNAME,
+            'user_hicn_hash': DEFAULT_HICN_HASH,
             'user_id_type': 'H',
             'fhir_id_v2': '000001',
-            'first_name': 'Hello',
-            'last_name': 'World',
-            'email': 'oscar@sesamestreet.gov',
+            'first_name': DEFAULT_FIRST_NAME,
+            'last_name': DEFAULT_LAST_NAME,
+            'email': DEFAULT_EMAIL,
         }
         slsx_client = OAuth2ConfigSLSx(args)
         bene = create_beneficiary_record(slsx_client, fhir_id_v2=args['fhir_id_v2'])
@@ -125,53 +150,53 @@ class BeneficiaryLoginTest(TestCase):
             'empty username': {
                 'args': {
                     'username': '',
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'user_mbi': '1SA0A00AA00',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'username can not be None or empty string',
             },
             'missing username': {
                 'args': {
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'user_mbi': '1SA0A00AA00',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'username can not be None',
             },
             'missing hash': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
+                    'username': DEFAULT_USERNAME,
                     'user_mbi': '1SA0A00AA00',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'user_hicn_hash can not be None',
             },
             'invalid_hicn_hash': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
+                    'username': DEFAULT_USERNAME,
                     'user_mbi': '1SA0A00AA00',
                     'user_hicn_hash': '71f16b70b1b4fbdad76b',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'incorrect user HICN hash format',
@@ -179,66 +204,66 @@ class BeneficiaryLoginTest(TestCase):
             # try to create a record with a len(user_mbi) > 11
             'invalid_mbi_too_long': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'username': DEFAULT_USERNAME,
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'mbi': '1SA0A00AA00000',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'incorrect user MBI format',
             },
             'empty string mbi': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'username': DEFAULT_USERNAME,
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'mbi': '',
                     'fhir_id_v2': '-20140000008325',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'incorrect user MBI format',
             },
             'empty_fhir_id_v2': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'username': DEFAULT_USERNAME,
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'fhir_id_v2': '',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'fhir_id_v2 can not be an empty string',
             },
             'empty_fhir_id_v3': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'username': DEFAULT_USERNAME,
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'fhir_id_v3': '',
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'fhir_id_v3 can not be an empty string',
             },
             'no_fhir_id': {
                 'args': {
-                    'username': '00112233-4455-6677-8899-aabbccddeeff',
-                    'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                    'username': DEFAULT_USERNAME,
+                    'user_hicn_hash': DEFAULT_HICN_HASH,
                     'user_id_type': 'H',
-                    'first_name': 'Hello',
-                    'last_name': 'World',
-                    'email': 'oscar@sesamestreet.gov',
+                    'first_name': DEFAULT_FIRST_NAME,
+                    'last_name': DEFAULT_LAST_NAME,
+                    'email': DEFAULT_EMAIL,
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'a crosswalk must contain at least one valid fhir_id',
@@ -256,13 +281,13 @@ class BeneficiaryLoginTest(TestCase):
             'colliding username': {
                 'args': [
                     {
-                        'username': '00112233-4455-6677-8899-aabbccddeeff',
-                        'user_hicn_hash': '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+                        'username': DEFAULT_USERNAME,
+                        'user_hicn_hash': DEFAULT_HICN_HASH,
                         'user_id_type': 'H',
                         'fhir_id_v2': '-19990000000001',
                     },
                     {
-                        'username': '00112233-4455-6677-8899-aabbccddeeff',
+                        'username': DEFAULT_USERNAME,
                         'user_hicn_hash': '60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
                         'user_id_type': 'H',
                         'fhir_id_v2': '-19990000000002',
@@ -363,23 +388,23 @@ class BeneficiaryLoginTest(TestCase):
     def test_user_mbi_updated_from_null(self, mock_archive, mock_match_fhir) -> None:
         """Test that user_mbi gets updated when previously null"""
         fake_user = User.objects.create_user(
-            username='00112233-4455-6677-8899-aabbccddeeff',
-            email='oscar@sesamestreet.gov'
+            username=DEFAULT_USERNAME,
+            email=DEFAULT_EMAIL
         )
         slsx_mbi = '1S00EU7JH82'
 
         crosswalk = Crosswalk.objects.create(
             user=fake_user,
             fhir_id_v2='-20000000002346',
-            user_hicn_hash='50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            user_hicn_hash=DEFAULT_HICN_HASH,
             user_mbi=None,
             user_id_type='M'
         )
 
         slsx_client = Mock(spec=OAuth2ConfigSLSx)
-        slsx_client.user_id = '00112233-4455-6677-8899-aabbccddeeff'
+        slsx_client.user_id = DEFAULT_USERNAME
         slsx_client.mbi = slsx_mbi
-        slsx_client.hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+        slsx_client.hicn_hash = DEFAULT_HICN_HASH
 
         user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
 
@@ -395,23 +420,23 @@ class BeneficiaryLoginTest(TestCase):
     def test_user_mbi_updated_from_different_value(self, mock_archive, mock_match_fhir) -> None:
         """Test that user_mbi gets updated when previously a different value"""
         fake_user = User.objects.create_user(
-            username='00112233-4455-6677-8899-aabbccddeeff',
-            email='oscar@sesamestreet.gov'
+            username=DEFAULT_USERNAME,
+            email=DEFAULT_EMAIL
         )
         slsx_mbi = '1S00EU7JH82'
 
         crosswalk = Crosswalk.objects.create(
             user=fake_user,
             fhir_id_v2='-20000000002346',
-            user_hicn_hash='50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            user_hicn_hash=DEFAULT_HICN_HASH,
             user_mbi='1S00EU7JH00',
             user_id_type='M'
         )
 
         slsx_client = Mock(spec=OAuth2ConfigSLSx)
-        slsx_client.user_id = '00112233-4455-6677-8899-aabbccddeeff'
+        slsx_client.user_id = DEFAULT_USERNAME
         slsx_client.mbi = slsx_mbi
-        slsx_client.hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+        slsx_client.hicn_hash = DEFAULT_HICN_HASH
 
         user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
 
@@ -427,10 +452,10 @@ class BeneficiaryLoginTest(TestCase):
         """Test that the get_and_update_from_refresh executes fields correctly,
         specifically in this test, fhir_id_v3
         """
-        user_hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+        user_hicn_hash = DEFAULT_HICN_HASH
         user_mbi = '1S00EU7JH00'
         fhir_id_v2 = '-20140000008325'
-        username = '00112233-4455-6677-8899-aabbccddeeff'
+        username = DEFAULT_USERNAME
 
         fake_user = User.objects.create_user(
             username=username,
@@ -457,10 +482,10 @@ class BeneficiaryLoginTest(TestCase):
         """Test that the get_and_update_from_refresh executes fields correctly,
         specifically in this test, fhir_id_v2
         """
-        user_hicn_hash = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
+        user_hicn_hash = DEFAULT_HICN_HASH
         user_mbi = '1S00EU7JH00'
         fhir_id_v3 = '-30250000008325'
-        username = '00112233-4455-6677-8899-aabbccddeeff'
+        username = DEFAULT_USERNAME
 
         fake_user = User.objects.create_user(
             username=username,
@@ -496,3 +521,23 @@ class BeneficiaryLoginTest(TestCase):
     def test_match_fhir_id_error_should_be_checked_v1_v3_call(self) -> None:
         result = _match_fhir_id_error_should_be_checked(Versions.V1, Versions.V3)
         assert not result
+
+    @patch('apps.mymedicare_cb.models.match_fhir_id', side_effect=match_fhir_id_side_effect_fail_v3)
+    def test_v2_auth_flow_when_v3_match_fhir_id_call_fails(self, mock_match_fhir) -> None:
+        """During v2 auth flow, if match_fhir_id for v3 throws and error, the execution of
+        __get_and_update_user should continue, and a crosswalk record should be created,
+        if no record already exists for the user.
+        """
+
+        slsx_client = Mock(spec=OAuth2ConfigSLSx)
+        slsx_client.user_id = DEFAULT_USERNAME
+        slsx_client.mbi = '1S00EU7JH82'
+        slsx_client.hicn_hash = DEFAULT_HICN_HASH
+        slsx_client.firstname = DEFAULT_FIRST_NAME
+        slsx_client.lastname = DEFAULT_LAST_NAME
+        slsx_client.email = DEFAULT_EMAIL
+
+        user, crosswalk_type = get_and_update_user_from_initial_auth(slsx_client, mock_request)
+        self.assertIsNotNone(user.crosswalk)
+        self.assertEqual(crosswalk_type, 'C')
+        self.assertIsNone(user.crosswalk.fhir_id_v3)
