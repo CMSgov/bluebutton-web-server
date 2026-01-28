@@ -467,9 +467,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 self.callback_url, data={"req_token": "test", "relay": state}
             )
 
-            # assert 500 exception
             self.assertEqual(
-                response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+                response.status_code, HTTPStatus.CONFLICT
             )
             content = json.loads(response.content)
             self.assertEqual(content["error"], settings.MEDICARE_ERROR_MSG)
@@ -1165,7 +1164,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             s.save()
             response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
             resp_json = response.json()
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
             self.assertIsNotNone(resp_json)
             self.assertIsNotNone(resp_json.get("error"))
             self.assertEqual(resp_json.get("error"), settings.MEDICARE_ERROR_MSG)
