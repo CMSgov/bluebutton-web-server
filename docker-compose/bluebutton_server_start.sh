@@ -42,13 +42,6 @@ else
     echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
 fi
 
-if [ ! -d 'bluebutton-css' ]
-then
-    git clone https://github.com/CMSgov/bluebutton-css.git
-else
-    echo 'CSS already installed.'
-fi
-
 if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ]
 then
     if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]

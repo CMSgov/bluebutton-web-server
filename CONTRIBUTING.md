@@ -91,25 +91,32 @@ For a containerized development environment, see instructions in [docker-compose
 
 ### CSS/Styling Development
 
-This project uses a dedicated [Blue Button CSS Repo](https://github.com/CMSgov/bluebutton-css) for styling.
+The majority of the styling this project uses is found within the static/ folder. This includes swagger, design-system, font-awesome, and a previously separate repository of scss called bluebutton-css.
 
-To work with styles locally:
+To work with and build styles locally:
 
 ```bash
-# Clone the CSS repository
-git clone git@github.com:CMSgov/bluebutton-css.git
-
-# Install Node.js dependencies
-cd bluebutton-css
-npm i
-npm i gulp@4
-
-# Build CSS once
-gulp
-
-# Watch for changes during development
-gulp watch
+cd static/bluebutton-css
 ```
+
+You'll need to make sure you have NodeJS installed. [Click here to find out more about NodeJS](https://nodejs.org/en/). Once you have NodeJs installed, run:
+
+```bash
+npm i
+```
+
+*To export the CSS once, run:*
+
+```bash
+npm run gulp
+```
+
+*To watch the SCSS files for changes, run:*
+
+```bash
+npm run gulp watch
+```
+
 
 ### Workflow and Branching
 

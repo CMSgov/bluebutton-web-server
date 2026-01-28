@@ -1,0 +1,43 @@
+// Accordion Component
+// -------------------
+
+@import 'global-variables';
+
+.bb-c-accordion {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 2rem;
+	.accordion-item {
+		background: $white;
+	}
+	.accordion-item .accordion-toggle {
+		background: $black;
+		color: $white;
+		display: flex;
+		padding: 1rem;
+		cursor: pointer;
+		transition: background 90ms ease;
+		.title {
+			flex-grow: 2;
+			font-weight: bold;
+		}
+		&:hover, &:focus {
+			background: darken($black, 10%);
+			text-decoration: underline;
+		}
+	}
+	.accordion-item .accordion-content {
+		padding: 1rem;
+		display: none;
+	}
+	.accordion-content-visible {
+		display: block !important;
+	}
+}
+
+// Custom fix for textarea widths
+.accordion-content {
+	textarea {
+		width: 75%;
+	}
+}
