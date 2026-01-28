@@ -27,3 +27,9 @@ make generate-requirements:
 
 exec-web:
 	cd dev-local ; make exec-web ; cd ..
+
+run-selenium:
+	cd dev-local ; make run-selenium ; cd ..
+
+generate:
+	cd requirements ; make generate ; cd ..

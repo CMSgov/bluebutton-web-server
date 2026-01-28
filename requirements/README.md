@@ -2,6 +2,30 @@
 
 The goal is to have a local environment that is consistent and repeatable (across dev machines, as we go to production, etc.). In order to consistently generate the requirements.txt/requirements.dev.txt files, a container for generating those files is provided.
 
+### the short short how to update a library
+
+1. Open the appropriate `.in` file
+2. Remove the version pin for the library. E.g. change `urllib == 2.6.0` to `urllib`
+3. Run `make generate`
+4. Open the `.txt` file (e.g. `requirements.txt`)
+5. Look at the version that the library was updated to
+6. Copy that to the `.in` file, re-pinning the library (e.g. `urllib = 2.6.3`)
+
+#### to test
+
+1. `make build-local`
+2. Run all unit tests (`make exec-web`, `python runtests.py`)
+3. Run Selenium tests (`cd dev-local`, `make run-selenium ...`)
+
+#### why?
+
+What we are doing is being very explicit about what updates. In this way, only the library we want updated is allowed to update. There are two possible results:
+
+1. **The library updates to the most recent version**. This is good. We're happy.
+2. **The library does not update at all**. This means that there are constraints that prevent it from going higher. 
+
+In that case, the approach is to unpin a second library, and then a third, until the *set* of library updates that are necessary are uncovered. We then re-pin all libraries and test.
+
 ### how to update requirements
 
 1. make sure that the Python version for the build container matches what we are using in the development stack (/dev-local/Dockerfile.local), which in turn should match the Python version we ware using in production.
