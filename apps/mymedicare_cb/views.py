@@ -29,8 +29,11 @@ from .authorization import (OAuth2ConfigSLSx,
                             BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException)
 from .models import AnonUserState, get_and_update_user_from_initial_auth
 
+from http import HTTPStatus
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
+
+
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
@@ -116,28 +119,35 @@ def callback(request):
     except ValidationError as e:
         return JsonResponse({
             "error": e.message,
-        }, status=status.HTTP_400_BAD_REQUEST)
+        }, status=HTTPStatus.BAD_REQUEST)
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
+        # This is essentially an internal error where we have a conflict with the
+        # current state of the system. Instead of a 500, we'll return a 409.
         return JsonResponse({
             "error": e.detail,
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        }, status=HTTPStatus.CONFLICT)
     except BBMyMedicareCallbackCrosswalkCreateException as e:
+        # This is essentially an internal error where we have a conflict with the
+        # current state of the system. Instead of a 500, we'll return a 409.
         return JsonResponse({
             "error": e.detail,
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        }, status=HTTPStatus.CONFLICT)
     except BBMyMedicareCallbackCrosswalkUpdateException as e:
+        # This is essentially an internal error where we have a conflict with the
+        # current state of the system. Instead of a 500, we'll return a 409.
         return JsonResponse({
             "error": e.detail,
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        }, status=HTTPStatus.CONFLICT)
     except UpstreamServerException:
-        # Return more generic message to users to prevent oversharing information
-        # Full error details will be available in logs from match_fhir_id
+        # Elsewhere in the code we take upstream errors and turn them into
+        # 502 errors (Bad Gateway), because we are operating as a gateway and
+        # encounter an error not-in-our-code. Hence, this should also become a 502.
         return JsonResponse({
             "error": "Failed to retrieve data from data source."
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        }, status=HTTPStatus.BAD_GATEWAY)
 
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
 
