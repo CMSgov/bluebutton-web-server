@@ -1385,5 +1385,5 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             content_type='application/x-www-form-urlencoded'
         )
 
-        self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
         self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')
