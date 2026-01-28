@@ -566,7 +566,7 @@ class TokenView(DotTokenView):
                         log.debug('Failed to retrieve data from data source.')
                         return JsonResponse(
                             {'status_code': HTTPStatus.BAD_GATEWAY,
-                             'message': 'Failed to retrieve data from data source."'},
+                             'message': 'Failed to retrieve data from data source.'},
                             status=HTTPStatus.BAD_GATEWAY,
                         )
                     except NotFound:

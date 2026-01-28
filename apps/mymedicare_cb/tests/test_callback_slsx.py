@@ -17,10 +17,12 @@ from httmock import urlmatch, all_requests, HTTMock
 from jsonschema import validate
 from requests.exceptions import HTTPError
 from rest_framework import status
+from unittest.mock import patch
 from urllib.parse import urlparse, parse_qs
 from waffle.testutils import override_switch
 
 from apps.accounts.models import UserProfile
+from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
@@ -1177,3 +1179,33 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             log_rec_json = json.loads(quoted_strings[0])
             self.assertIsNotNone(log_rec_json)
             self.assertEqual(log_rec_json.get("sls_status_mesg"), err_msg)
+
+    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
+                                                                    error='Failure',
+                                                                    error_type=MatchFhirIdErrorType.UPSTREAM,
+                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
+    def test_failure_response_v1_auth_flow_match_fhir_id_failure(self, mock_match_fhir):
+        """During v1 auth flow, if we fail to retrieve the fhir_id for v2 from match_fhir_id,
+        a 500 error should be thrown with a message of 'Failed to retrieve data from data source.'
+        """
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri=(
+                'http://www.doesnotexist.gov?next=/v1/o/authorize'  # noqa: E231
+                '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
+            )
+        )
+
+        with HTTMock(
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_invalid_mbi_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
+        ):
+            response = self.client.get(
+                self.callback_url,
+                data={"req_token": "0000-test_req_token-0000", "relay": state},
+            )
+            self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
+            self.assertEqual(response.json()['error'], 'Failed to retrieve data from data source.')
