@@ -19,10 +19,15 @@ RUN apt-get update \
         postgresql-client \
         python3-dev
 
+
 # Set the local user for development
 # and mount the codebase at /code
 # Set this as the current/active path.
 RUN useradd -m -s /bin/bash DEV
+# Make sure the DEV user can write to /media.
+# Do this before the USER command.
+RUN mkdir -p /media
+RUN chown -R DEV:DEV /media
 USER DEV
 ADD .. /code
 WORKDIR /code
@@ -31,6 +36,7 @@ RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip install --upgrade pip pip-tools setuptools
+
 
 # Trying to bring things through with vendor directory...
 # RUN pip install --no-deps cffi --find-links /code/vendor/
