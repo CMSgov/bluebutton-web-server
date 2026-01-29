@@ -15,6 +15,8 @@ info:
     8. **Explore APIs**: You can now start exploring and testing the APIs by providing the relevant parameters.
 
 tags:
+  - name: v2
+  - name: v1
   - name: v3
     description: These endpoints are part of BB2 v3 which is currently 
         available for pilot usage in the [Sandbox](https://sandbox.bluebutton.cms.gov/) environment by 
@@ -22,6 +24,420 @@ tags:
         token generation should also use v3 endpoints (`/v3/o/authorize/` and `/v3/o/token/`) to ensure compatibility.
 
 paths:
+########## V3 Endpoints ##########
+  /v3/connect/.well-known/openid-configuration:
+    get:
+      operationId: openIdConfigv3
+      description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
+      summary: "OpenID Connect protocol (OIDC) Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenIdConfiguration'
+              examples:
+                OpenIdConfigurationExamplev3:
+                  $ref: '#/components/examples/OpenIdConfigurationExamplev3'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OpenIdConfiguration'
+              examples:
+                OpenIdConfigurationExamplev3:
+                  $ref: '#/components/examples/OpenIdConfigurationExamplev3'
+          description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
+      tags:
+        - v3
+
+  /v3/fhir/.well-known/smart-configuration:
+    get:
+      operationId: smartConfigV3
+      description: "Returns Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      summary: "Smart App Launch Discovery information"
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExamplev3:
+                  $ref: '#/components/examples/SmartConfigurationExamplev3'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/SmartConfiguration'
+              examples:
+                SmartConfigurationExamplev3:
+                  $ref: '#/components/examples/SmartConfigurationExamplev3'
+          description: "Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
+      tags:
+        - v3
+
+  /v3/fhir/metadata:
+    get:
+      operationId: fhirMetaData_v3
+      description: "Returns FHIR CapabilityStatement resource (public access, no token needed)"
+      summary: "FHIR CapabilityStatement resource"
+      security: []
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirMetadataExample:
+                  $ref: '#/components/examples/V3FhirMetadataExample'
+          description: "FHIR CapabilityStatement resource"
+        '502':
+
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+
+  /v3/connect/userinfo:
+    get:
+      operationId: listopenidconnect_userinfos_v3
+      description: "Returns OpenID Connect protocol (OIDC) userinfo"
+      summary: "OpenID Connect protocol (OIDC) userinfo"
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V3UserInfo'
+              examples:
+                V3UserInfoExample:
+                  $ref: '#/components/examples/V3UserInfoExample'
+          description:  "OIDC userinfo"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+
+  /v3/fhir/Patient/{resource_id}:
+    get:
+      operationId: listReadViewPatients_v3
+      description: "Returns Patient FHIR resource identified by resource_id"
+      summary: "Patient FHIR resource identified by resource_id"
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: "Patient FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirPatientByIdExample:
+                  $ref: '#/components/examples/V3FhirPatientByIdExample'
+          description: "Patient FHIR resource"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '404':
+          description: "Error: Not Found, e.g. The requested resource does not exist."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Patient/:
+    get:
+      operationId: listSearchViewPatients_v3
+      description: "Returns Patient FHIR resources matching search criteria as a FHIR Bundle"
+      summary: "Patient FHIR resources matching search criteria as a FHIR Bundle"
+      parameters:
+        - in: query
+          name: identifier
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+            Examples:
+              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
+        - in: query
+          name: _id
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirPatientExample:
+                  $ref: '#/components/examples/V3FhirPatientExample'
+          description: "Patient FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Coverage/{resource_id}:
+    get:
+      operationId: listReadViewCoverages_v3
+      description: "Returns Coverage FHIR resource identified by resource_id"
+      summary: "Coverage FHIR resource identified by resource_id"
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: "Coverage FHIR resource id, e.g. part-a--20140000000001"
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirCoverageByIdExample:
+                  $ref: '#/components/examples/V3FhirCoverageByIdExample'
+          description: "Coverage FHIR resource"
+        '400':
+          description: "Error: Bad Request, e.g. Unsupported ID pattern: partparta_20140000000001."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '404':
+          description: "Error: Not Found, e.g. The requested resource does not exist."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Coverage/:
+    get:
+      operationId: listSearchViewCoverages_v3
+      description: "Returns Coverage FHIR resources matching the search criteria as a FHIR Bundle"
+      summary: "Coverage FHIR resources matching the search criteria as a FHIR Bundle"
+      parameters:
+        - in: query
+          name: beneficiary
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
+            
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+            Examples:
+              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirCoverageExample:
+                  $ref: '#/components/examples/V3FhirCoverageExample'
+          description: "Coverage FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/ExplanationOfBenefit/{resource_id}:
+    get:
+      operationId: listReadViewExplanationOfBenefits_v3
+      description: "Returns ExplanationOfBenefit FHIR resource identified by resource_id"
+      summary: "ExplanationOfBenefit FHIR resource identified by resource_id"
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: "ExplanationOfBenefit FHIR resource id, e.g. -9631024438695"
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirExplanationOfBenefitByIdExample:
+                  $ref: '#/components/examples/V3FhirExplanationOfBenefitByIdExample'
+          description: "ExplanationOfBenefit FHIR resource"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '404':
+          description: "Error: Not Found, e.g. The requested resource does not exist."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/ExplanationOfBenefit/:
+    get:
+      operationId: listSearchViewExplanationOfBenefits_v3
+      description: "Returns ExplanationOfBenefit FHIR resources matching search criteria as a FHIR Bundle"
+      summary: "ExplanationOfBenefit FHIR resources matching search criteria as a FHIR Bundle"
+      parameters:
+        - in: query
+          name: patient
+          schema:
+            type: string
+          required: false
+          description: "The patient identifier to search for"
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+            Examples:
+              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
+        - in: query
+          name: service-date
+          schema:
+            type: string
+          required: false
+          description: |-
+            Only satisfy the Search request if a claim's _billable period_
+            falls within a specified _DateRange_.
+
+            A _DateRange_ can be defined by providing _lt_ (less than), _le_
+            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
+            than or equal to) values.
+
+            This parameter can be included in a request one or more times.
+
+            Inexact timestamps are accepted, but not recommended, since the input will implicitly
+            be converted to use the server's timezone.
+
+
+            Examples:
+              - _service-date=gt2023-01-02T00:00+00:00&service-date=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
+              - _service-date=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
+              - _service-date=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: "The offset used for result pagination"
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: "A list of claim types to include"
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirExplanationOfBenefitExample:
+                  $ref: '#/components/examples/V3FhirExplanationOfBenefitExample'
+          description: "ExplanationOfBenefit FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/Patient/$generate-insurance-card:
+    get:
+      operationId: listDigitalInsuranceCard_v3
+      description: "Returns C4DIC FHIR resources as a FHIR Bundle"
+      summary: "CARIN Digital Insurance Card (C4DIC) FHIR resources as a FHIR Bundle"
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3DigitalInsuranceCardExample:
+                  $ref: '#/components/examples/V3DigitalInsuranceCardExample'
+          description: "ExplanationOfBenefit FHIR resources bundle"
+        '400':
+          description: "Error: Bad Request, e.g. Malformed request"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
 
 ########## V2 Endpoints ##########
   /v2/connect/.well-known/openid-configuration:
@@ -840,421 +1256,6 @@ paths:
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v1
-        
-########## V3 Endpoints ##########
-  /v3/connect/.well-known/openid-configuration:
-    get:
-      operationId: openIdConfigv3
-      description: "Returns OIDC (OpenID Connect protocol) Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)"
-      summary: "OpenID Connect protocol (OIDC) Discovery information"
-      security: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OpenIdConfiguration'
-              examples:
-                OpenIdConfigurationExamplev3:
-                  $ref: '#/components/examples/OpenIdConfigurationExamplev3'
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OpenIdConfiguration'
-              examples:
-                OpenIdConfigurationExamplev3:
-                  $ref: '#/components/examples/OpenIdConfigurationExamplev3'
-          description: "OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims"
-      tags:
-        - v3
-
-  /v3/fhir/.well-known/smart-configuration:
-    get:
-      operationId: smartConfigV3
-      description: "Returns Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
-      summary: "Smart App Launch Discovery information"
-      security: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SmartConfiguration'
-              examples:
-                SmartConfigurationExamplev3:
-                  $ref: '#/components/examples/SmartConfigurationExamplev3'
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/SmartConfiguration'
-              examples:
-                SmartConfigurationExamplev3:
-                  $ref: '#/components/examples/SmartConfigurationExamplev3'
-          description: "Smart App Launch Discovery: listing of the authorization endpoint URLs and features the server supports"
-      tags:
-        - v3
-
-  /v3/fhir/metadata:
-    get:
-      operationId: fhirMetaData_v3
-      description: "Returns FHIR CapabilityStatement resource (public access, no token needed)"
-      summary: "FHIR CapabilityStatement resource"
-      security: []
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirMetadataExample:
-                  $ref: '#/components/examples/V3FhirMetadataExample'
-          description: "FHIR CapabilityStatement resource"
-        '502':
-
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-
-  /v3/connect/userinfo:
-    get:
-      operationId: listopenidconnect_userinfos_v3
-      description: "Returns OpenID Connect protocol (OIDC) userinfo"
-      summary: "OpenID Connect protocol (OIDC) userinfo"
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V3UserInfo'
-              examples:
-                V3UserInfoExample:
-                  $ref: '#/components/examples/V3UserInfoExample'
-          description:  "OIDC userinfo"
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '403':
-          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-
-  /v3/fhir/Patient/{resource_id}:
-    get:
-      operationId: listReadViewPatients_v3
-      description: "Returns Patient FHIR resource identified by resource_id"
-      summary: "Patient FHIR resource identified by resource_id"
-      parameters:
-        - name: resource_id
-          in: path
-          required: true
-          description: "Patient FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
-          schema:
-            type: string
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirPatientByIdExample:
-                  $ref: '#/components/examples/V3FhirPatientByIdExample'
-          description: "Patient FHIR resource"
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '403':
-          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
-        '404':
-          description: "Error: Not Found, e.g. The requested resource does not exist."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-  /v3/fhir/Patient/:
-    get:
-      operationId: listSearchViewPatients_v3
-      description: "Returns Patient FHIR resources matching search criteria as a FHIR Bundle"
-      summary: "Patient FHIR resources matching search criteria as a FHIR Bundle"
-      parameters:
-        - in: query
-          name: identifier
-          schema:
-            type: string
-          required: false
-          description: "The patient identifier to search for"
-        - in: query
-          name: _lastUpdated
-          schema:
-            type: string
-          required: false
-          description: |-
-            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
-
-            A _DateRange_ can be defined by providing _lt_ (less than), _le_
-            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
-            than or equal to) values.
-
-            This parameter can be included in a request one or more times.
-
-            Inexact timestamps are accepted, but not recommended, since the input will implicitly
-            be converted to use the server's timezone.
-
-            Examples:
-              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
-              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
-              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: _id
-          schema:
-            type: string
-          required: false
-          description: "The patient identifier to search for"
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirPatientExample:
-                  $ref: '#/components/examples/V3FhirPatientExample'
-          description: "Patient FHIR resources bundle"
-        '400':
-          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '403':
-          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-  /v3/fhir/Coverage/{resource_id}:
-    get:
-      operationId: listReadViewCoverages_v3
-      description: "Returns Coverage FHIR resource identified by resource_id"
-      summary: "Coverage FHIR resource identified by resource_id"
-      parameters:
-        - name: resource_id
-          in: path
-          required: true
-          description: "Coverage FHIR resource id, e.g. part-a--20140000000001"
-          schema:
-            type: string
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirCoverageByIdExample:
-                  $ref: '#/components/examples/V3FhirCoverageByIdExample'
-          description: "Coverage FHIR resource"
-        '400':
-          description: "Error: Bad Request, e.g. Unsupported ID pattern: partparta_20140000000001."
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '404':
-          description: "Error: Not Found, e.g. The requested resource does not exist."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-  /v3/fhir/Coverage/:
-    get:
-      operationId: listSearchViewCoverages_v3
-      description: "Returns Coverage FHIR resources matching the search criteria as a FHIR Bundle"
-      summary: "Coverage FHIR resources matching the search criteria as a FHIR Bundle"
-      parameters:
-        - in: query
-          name: beneficiary
-          schema:
-            type: string
-          required: false
-          description: "The patient identifier to search for"
-        - in: query
-          name: _lastUpdated
-          schema:
-            type: string
-          required: false
-          description: |-
-            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
-            
-            A _DateRange_ can be defined by providing _lt_ (less than), _le_
-            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
-            than or equal to) values.
-
-            This parameter can be included in a request one or more times.
-
-            Inexact timestamps are accepted, but not recommended, since the input will implicitly
-            be converted to use the server's timezone.
-
-            Examples:
-              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
-              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
-              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirCoverageExample:
-                  $ref: '#/components/examples/V3FhirCoverageExample'
-          description: "Coverage FHIR resources bundle"
-        '400':
-          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-  /v3/fhir/ExplanationOfBenefit/{resource_id}:
-    get:
-      operationId: listReadViewExplanationOfBenefits_v3
-      description: "Returns ExplanationOfBenefit FHIR resource identified by resource_id"
-      summary: "ExplanationOfBenefit FHIR resource identified by resource_id"
-      parameters:
-        - name: resource_id
-          in: path
-          required: true
-          description: "ExplanationOfBenefit FHIR resource id, e.g. -9631024438695"
-          schema:
-            type: string
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirExplanationOfBenefitByIdExample:
-                  $ref: '#/components/examples/V3FhirExplanationOfBenefitByIdExample'
-          description: "ExplanationOfBenefit FHIR resource"
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '404':
-          description: "Error: Not Found, e.g. The requested resource does not exist."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-  /v3/fhir/ExplanationOfBenefit/:
-    get:
-      operationId: listSearchViewExplanationOfBenefits_v3
-      description: "Returns ExplanationOfBenefit FHIR resources matching search criteria as a FHIR Bundle"
-      summary: "ExplanationOfBenefit FHIR resources matching search criteria as a FHIR Bundle"
-      parameters:
-        - in: query
-          name: patient
-          schema:
-            type: string
-          required: false
-          description: "The patient identifier to search for"
-        - in: query
-          name: _lastUpdated
-          schema:
-            type: string
-          required: false
-          description: |-
-            Only satisfy the Search if the Beneficiary's _last_updated_ Date falls within a specified _DateRange_.
-
-            A _DateRange_ can be defined by providing _lt_ (less than), _le_
-            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
-            than or equal to) values.
-
-            This parameter can be included in a request one or more times.
-
-            Inexact timestamps are accepted, but not recommended, since the input will implicitly
-            be converted to use the server's timezone.
-
-            Examples:
-              - __lastUpdated=gt2023-01-02T00:00+00:00&\_lastUpdated=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
-              - __lastUpdated=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
-              - __lastUpdated=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: service-date
-          schema:
-            type: string
-          required: false
-          description: |-
-            Only satisfy the Search request if a claim's _billable period_
-            falls within a specified _DateRange_.
-
-            A _DateRange_ can be defined by providing _lt_ (less than), _le_
-            (less than or equal to), _gt_ (greater than), and/or _ge_ (greater
-            than or equal to) values.
-
-            This parameter can be included in a request one or more times.
-
-            Inexact timestamps are accepted, but not recommended, since the input will implicitly
-            be converted to use the server's timezone.
-
-
-            Examples:
-              - _service-date=gt2023-01-02T00:00+00:00&service-date=lt2023-05-01T00:00+00:00_ defines a range between two provided dates
-              - _service-date=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
-              - _service-date=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
-        - in: query
-          name: startIndex
-          schema:
-            type: string
-          required: false
-          description: "The offset used for result pagination"
-        - in: query
-          name: type
-          schema:
-            type: string
-          required: false
-          description: "A list of claim types to include"
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3FhirExplanationOfBenefitExample:
-                  $ref: '#/components/examples/V3FhirExplanationOfBenefitExample'
-          description: "ExplanationOfBenefit FHIR resources bundle"
-        '400':
-          description: "Error: Bad Request, e.g. the _lastUpdated operator is not valid."
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
-  /v3/fhir/Patient/$generate-insurance-card:
-    get:
-      operationId: listDigitalInsuranceCard_v3
-      description: "Returns C4DIC FHIR resources as a FHIR Bundle"
-      summary: "CARIN Digital Insurance Card (C4DIC) FHIR resources as a FHIR Bundle"
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
-              examples:
-                V3DigitalInsuranceCardExample:
-                  $ref: '#/components/examples/V3DigitalInsuranceCardExample'
-          description: "ExplanationOfBenefit FHIR resources bundle"
-        '400':
-          description: "Error: Bad Request, e.g. Malformed request"
-        '401':
-          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
-        '403':
-          description: "Error: Forbidden, e.g. beneficiary does not grant access to PII."
-        '502':
-          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
-      tags:
-        - v3
 
 components:
   securitySchemes:
