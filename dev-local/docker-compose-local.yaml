@@ -30,44 +30,13 @@ services:
     env_file:
       - .env.container
     volumes:
-      # Comment out the /code bind to simulate
-      # a completely read-only container, with statically
-      # built CSS assets inside the image.
-      - type: bind
-        source: ..
-        target: /code
-        read_only: true
       - type: bind
         source: ~/.bb2/certstore
         target: /certstore
         read_only: true
-      # We are simulating a writeable space at /media.
-      # As we move to containerized production, we need to
-      # remove this, and instead have all writes go to a
-      # mocked S3 endpoint.
-      # See also 
-      # https://stackoverflow.com/questions/53498380/docker-compose-mounting-a-tmpfs-usable-by-non-root-user
-      - type: tmpfs
-        target: /media
-        tmpfs:
-          size: 64m
-          mode: 777
     ports:
       - "8000:8000"
       - "5678:5678"
     depends_on:
       - db
       - msls
-
-
-  # s3mock:
-  #   image: adobe/s3mock:latest
-  #   environment:
-  #     - debug=true
-  #     - COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS=mediabucket
-  #     - COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT=true
-  #     - COM_ADOBE_TESTING_S3MOCK_STORE_ROOT=containers3root
-  #   volumes:
-  #     - ./locals3root:/container3root
-  #   ports:
-  #     - 9090:9090

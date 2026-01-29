@@ -16,20 +16,25 @@ RUN apt-get update \
         gnupg \
         libffi-dev \
         libssl-dev \
-        nodejs \
-        npm \
         postgresql-client \
         python3-dev
 
 # Add in the codebase
 ADD .. /code
 WORKDIR /code
+
+# This is a forward pointer to read-only images.
+# We will want to install `nodejs` and `npm` via apt, and 
+# use that to build our static assets into the container image.
+# This will grow build time significantly, and is not included
+# at this time. 
+#
 # Build the CSS/USWDS assets
 # This builds them statically into the image, allowing us 
 # to test a read-only configuration.
-RUN cd /code/static/bluebutton-css \
-    && npm i \
-    && npm run gulp
+# RUN cd /code/static/bluebutton-css \
+#     && npm i \
+#     && npm run gulp
 
 # Set the local user for development
 # and mount the codebase at /code

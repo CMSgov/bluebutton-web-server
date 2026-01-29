@@ -11,8 +11,6 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from .themes import THEMES, THEME_SELECTED
 
-import sys
-
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
 # We want the launch to generally be quiet, and only tell us things
 # that worked, or announce genuine errors.
@@ -356,20 +354,13 @@ USE_I18N = True
 USE_TZ = True
 
 # static files and media
-WRITEABLE_ROOT = env("DJANGO_WRITEABLE_ROOT", None)
-if WRITEABLE_ROOT is None:
-    print("DJANGO_WRITEABLE_ROOT must be set. Exiting.")
-    sys.exit(-1)
+ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", BASE_DIR)
 
-# MEDIA_URL is for URL construction in apps/dot_ext/urls.py
-# It is also referenced in models.py.
-# MEDIA_URL must end in a slash.
+MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
+
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(WRITEABLE_ROOT, "media_root")
-# MEDIA_ROOT = WRITEABLE_ROOT
-
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(WRITEABLE_ROOT, "static")
+STATIC_ROOT = "collectedstatic"
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -773,9 +764,9 @@ IS_MEDIA_URL_LOCAL = False
 if env("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
-    MEDIAFILES_LOCATION = "media/"
     STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    MEDIAFILES_LOCATION = "media/"
     STORAGES = {
         "default": {
             "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
@@ -794,23 +785,13 @@ else:
     #
     #     The following ENV variables are needed:
     #         AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
-    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", None)
+    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     if AWS_S3_CUSTOM_DOMAIN:
         AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-        STATICFILES_LOCATION = "static/"
         MEDIAFILES_LOCATION = "media/"
-        # DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
-        STORAGES = {
-            "default": {
-                "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
-            },
-            "staticfiles": {
-                "BACKEND": "django.core.files.storage.FileSystemStorage",
-            },
-        }
-        MEDIA_URL = "https://%s:9090/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
-        SEND_EMAIL = False
-        CSRF_COOKIE_SECURE = False
+        STATICFILES_LOCATION = "static/"
+        DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
+        MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
     else:
         # This sets up a media path in urls.py when set for local storage.
         IS_MEDIA_URL_LOCAL = True
