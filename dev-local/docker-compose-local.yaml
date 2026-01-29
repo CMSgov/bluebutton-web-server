@@ -30,13 +30,12 @@ services:
     env_file:
       - .env.container
     volumes:
+      # Comment out the /code bind to simulate
+      # a completely read-only container, with statically
+      # built CSS assets inside the image.
       - type: bind
         source: ..
         target: /code
-        read_only: true
-      - type: bind
-        source: ../bluebutton-css
-        target: /code/bluebutton-css
         read_only: true
       - type: bind
         source: ~/.bb2/certstore

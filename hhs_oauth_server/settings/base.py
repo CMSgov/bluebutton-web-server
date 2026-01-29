@@ -365,11 +365,11 @@ if WRITEABLE_ROOT is None:
 # It is also referenced in models.py.
 # MEDIA_URL must end in a slash.
 MEDIA_URL = "/media/"
-# MEDIA_ROOT = os.path.join(WRITEABLE_ROOT, "media_root")
-MEDIA_ROOT = WRITEABLE_ROOT
+MEDIA_ROOT = os.path.join(WRITEABLE_ROOT, "media_root")
+# MEDIA_ROOT = WRITEABLE_ROOT
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(WRITEABLE_ROOT, "collectedstatic")
+STATIC_ROOT = os.path.join(WRITEABLE_ROOT, "static")
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
