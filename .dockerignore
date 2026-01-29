@@ -1,7 +1,6 @@
 # exclude when build image
 apidocs/
 splunk/
-bluebutton-css/
 apidocs/
 bluebutton-openapi-doc/
 *.sh

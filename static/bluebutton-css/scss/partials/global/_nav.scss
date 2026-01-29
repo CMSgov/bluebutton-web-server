@@ -1,0 +1,251 @@
+// Styles for the main navigation
+// ------------------------------
+
+// Variables
+// ---------
+
+$desktop-nav-bg: #f7f7f7;
+$desktop-nav-color: #323A45;
+
+$sandbox-desktop-nav-bg: #323A45;
+$sandbox-desktop-nav-color: #ffffff;
+
+
+// Breakpoints
+// -----------
+
+// $phone: "(min-width: 0px) and (max-width: 639px)";
+// $mobile-nav: "(min-width: 0px) and (max-width: 895px)";
+// $tablet: "(min-width: 640px) and (max-width: 1023px)";
+// $desktop: "(min-width: 1024px)";
+
+$large-nav: "(min-width: 780px)";
+$med-nav: "(min-width: 500px) and (max-width: 779px)";
+$small-nav: "(min-width: 0px) and (max-width: 500px)";
+
+
+// Header
+// ------
+
+header {
+  background: $desktop-nav-bg;
+  font-family: 'Roboto', sans-serif;
+}
+
+// Desktop Navigation
+// ------------------
+
+// Desktop Nav Container
+.ds-c-desktop-nav {
+  background: $desktop-nav-bg;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1em;
+  // Hide for small screens
+  @media #{$med-nav, $small-nav} {
+    display: none;
+  }
+}
+
+// Logo Link Container
+.logo-link-container {
+  font-weight: bold;
+  color: $desktop-nav-color;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-size: 1.1em;
+  transition: color 90ms ease;
+  svg {
+    margin-right: .5em;
+  }
+  &:hover {
+    color: #000000;
+  }
+}
+
+// Desktop Nav Items (and mobile as well)
+.ds-c-desktop-nav .desktop-nav-items,
+.mobile-nav-items {
+  font-size: .85em;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  a {
+    color: $desktop-nav-color;
+    text-decoration: none;
+    margin-left: 1.5em;
+    transition: color 90ms ease;
+    &:hover {
+      text-decoration: underline;
+      color: #000;
+    }
+  }
+  // Button
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $desktop-nav-color;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: .3em;
+    font-size: .85em;
+    transition: background 90ms ease;
+    svg {
+      margin-right: .5em;
+    }
+    &:hover {
+      background: #000;
+      color: #fff;
+      text-decoration: none;
+    }
+  }
+
+}
+
+// Sandbox Color Overrides
+// -----------------------
+
+.sandbox-colors {
+  background: $sandbox-desktop-nav-bg !important;
+  a {
+    color: $sandbox-desktop-nav-color !important;
+  }
+  .mobile-nav-trigger-button {
+    background: darken($sandbox-desktop-nav-bg, 5%) !important;
+    color: $sandbox-desktop-nav-color !important;
+    &:visited {
+      color: $sandbox-desktop-nav-color !important;
+    }
+    &:active {
+      color: $sandbox-desktop-nav-color !important;
+    }
+  }
+  .mobile-nav-trigger-button.trigger-active {
+    background: $sandbox-desktop-nav-bg !important;
+  }
+}
+
+// Login Button (Sandbox)
+.login-button {
+  background: #0071BC !important;
+  &:hover {
+    background: darken(#0071BC, 10%) !important;
+  }
+}
+// Sign Up Button (Sandbox)
+.signup-button {
+  background: #2E8540 !important;
+  &:hover {
+    background: darken(#2E8540, 10%) !important;
+  }
+}
+
+.profile-button, .logout-button {
+  background: darken($sandbox-desktop-nav-bg, 5%) !important;
+}
+
+.desktop-nav-items {
+  @media #{$med-nav, $small-nav} {
+    display: none !important;
+  }
+}
+
+// Mobile Navigation
+// -----------------
+
+// Desktop Nav Container
+.ds-c-mobile-nav {
+  background: $desktop-nav-bg;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0em;
+  // Show for small screens
+  @media #{$med-nav, $small-nav} {
+    display: flex;
+  }
+  // Add margin for logo on mobile
+  .logo-link-container {
+    margin-left: 1em;
+  }
+}
+
+// Mobile Nav Trigger Button
+.mobile-nav-trigger-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: $desktop-nav-color;
+  background: darken($desktop-nav-bg, 5%);
+  font-weight: bold;
+  font-size: .8em;
+  text-decoration: none;
+  padding: 1em;
+  transition: background .4s ease;
+  @media #{$large-nav} {
+    display: none;
+  }
+  &:visited {
+    color: $desktop-nav-color !important;
+  }
+  &:active {
+    color: $desktop-nav-color !important;
+  }
+}
+
+.trigger-active {
+  background: $desktop-nav-bg !important;
+  color: $desktop-nav-color !important;
+}
+
+// Mobile Nav Items
+.mobile-nav-items {
+  // General Styles
+  background: $desktop-nav-bg;
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 2em;
+  padding-top: 4rem;
+
+  // Animation/Visibility Styles
+  height: 0;
+  opacity: 0;
+	overflow: hidden;
+  transition: opacity .5s ease, height .4s ease;
+
+  a {
+    margin: .5rem 1rem;
+    line-height: 1;
+  }
+  a, a.button {
+    transition: opacity .4s ease-in-out;
+    transition-delay: .4s;
+    opacity: 0;
+  }
+  .button {
+    min-width: 150px;
+  }
+  // Hide for large screens
+  @media #{$large-nav} {
+    display: none;
+  }
+}
+
+.mobile-nav-items.is-visible {
+  display: flex;
+	height: 100%;
+  opacity: 1;
+  a {
+    opacity: 1;
+  }
+  a.button {
+    font-size: .85rem;
+  }
+}

@@ -1,0 +1,46 @@
+// Styles for the Beneficiary Authoization Screen
+// ----------------------------------------------
+
+.bene-auth-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	background: #146a5d;
+	.medicare-logo {
+		max-width: 200px;
+		margin-bottom: 1rem;
+	}
+	.app-logo {
+		img {
+			max-width: 100px;
+		}
+	}
+	ul {
+		list-style: none;
+		padding-left: 0;
+		li {
+			margin: 1rem 0;
+		}
+	}
+	.bene-auth-fieldset {
+		label {
+			border: 1px solid #AEAEAE;
+			background: #F7F7F7;
+			border-radius: .3rem;
+			padding: 1rem 1rem 1rem 3rem;
+			max-width: 33em !important;
+			.ds-c-field__hint {
+				margin: .2rem 0;
+			}
+		}
+		.ds-c-choice[type="radio"] + label::before {
+			left: .5rem;
+			top: 1.5rem;
+		}
+	}
+}
+
+.bene-auth-max-width {
+	max-width: 860px;
+}

@@ -10,8 +10,6 @@ set -e
 # bfd = local | test | sbx
 # auth = mock | live
 
-fetch_and_update_css
-
 # let's make sure we have a valid ENV var before proceeding
 check_valid_env
 
