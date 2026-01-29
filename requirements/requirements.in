@@ -50,6 +50,6 @@ six == 1.16.0
 soupsieve == 2.4.1
 sqlparse == 0.5.4
 typing_extensions == 4.15.0
-urllib3 == 2.6.0
+urllib3 == 2.6.3
 voluptuous == 0.13.1
 zipp == 3.19.2
