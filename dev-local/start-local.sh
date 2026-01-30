@@ -4,6 +4,11 @@ set -e
 set -a
 
 
+# Bounce localhost:9090 inside the container to s3mock:9090
+# This is necessary to start early for collectstatic.
+echo "🔵 running socat localhost:9090 -> docker.internal:9090"
+socat TCP-LISTEN:9090,fork,reuseaddr TCP:host.docker.internal:9090 &
+
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
     
@@ -12,6 +17,9 @@ then
 
     echo "🔵 running migrations"
     python manage.py migrate
+
+    echo "🔵 running collectstatic"
+    python manage.py collectstatic --noinput
 
     # We will recrate this with every launch.
     # echo "TRUNCATE authorization_archiveddataaccessgrant;" | psql "${DATABASES_CUSTOM}"

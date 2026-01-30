@@ -765,9 +765,9 @@ our_target_env = env("TARGET_ENV", "")
 if our_target_env in ["dev", "test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
+    MEDIAFILES_LOCATION = "media/"
     STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-    MEDIAFILES_LOCATION = "media/"
     STORAGES = {
         "default": {
             "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
@@ -783,24 +783,43 @@ if our_target_env in ["dev", "test", "impl", "prod"]:
 else:
     # Setup S3 media storage only for local docker testing.
     # We are hardcoding against an s3mock in our local stack
-    AWS_S3_ENDPOINT_URL = 'http://s3mock:9090'
+    # THIS HAS TO BE LOCALHOST
+    # Why? Because our templates want to look up our data at
+    # localhost:9090, which is where s3mock exposes itself for read/write.
+    # But, we have to use a different URL in the options below, because
+    # Django has to write to the docker-internal name of `s3mock`
+    # AWS_S3_ENDPOINT_URL = 'http://localhost:9090'
     AWS_STORAGE_BUCKET_NAME = "django"
     AWS_ACCESS_KEY_ID = 'not-a-key-id'
     AWS_SECRET_ACCESS_KEY = 'not-a-secret'
     AWS_S3_CUSTOM_DOMAIN = None
     AWS_S3_SECURE_URLS = False
-    # MEDIAFILES_LOCATION = "media/"
-    # STATICFILES_LOCATION = "static/"
+    MEDIAFILES_LOCATION = "media/"
+    STATICFILES_LOCATION = "static/"
     # DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
-    MEDIA_URL = "http://s3mock:9090/django/media/"
-    STATIC_URL = "http://s3mock:9090/django/static/"
+    MEDIA_URL = "http://localhost:9090/django/media/"
+    STATIC_URL = "http://localhost:9090/django/static/"
 
     STORAGES = {
         "default": {
             "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
+            "OPTIONS": {
+                "endpoint_url": 'http://localhost:9090',
+                "access_key": AWS_ACCESS_KEY_ID,
+                "secret_key": AWS_SECRET_ACCESS_KEY,
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                # Other options can be set as needed (e.g., custom_domain, default_acl)
+            }
         },
         "staticfiles": {
             "BACKEND": "hhs_oauth_server.s3_storage.StaticStorage",
+            "OPTIONS": {
+                "endpoint_url": 'http://localhost:9090',
+                "access_key": AWS_ACCESS_KEY_ID,
+                "secret_key": AWS_SECRET_ACCESS_KEY,
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                # Other options can be set as needed (e.g., custom_domain, default_acl)
+            },
         },
     }
     # else:

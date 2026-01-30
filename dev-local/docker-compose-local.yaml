@@ -27,6 +27,8 @@ services:
     platform: linux/amd64
     command: /code/dev-local/start-local.sh
     read_only: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env.container
     volumes:
