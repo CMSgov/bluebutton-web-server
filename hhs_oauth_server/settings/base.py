@@ -761,7 +761,8 @@ EXTERNAL_LOGIN_TEMPLATE_NAME = "/v1/accounts/upstream-login"
 BLOCK_HTTP_REDIRECT_URIS = False
 IS_MEDIA_URL_LOCAL = False
 
-if env("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
+our_target_env = env("TARGET_ENV", "")
+if our_target_env in ["dev", "test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
     STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
@@ -781,20 +782,30 @@ if env("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
     CSRF_COOKIE_SECURE = True
 else:
     # Setup S3 media storage only for local docker testing.
-    # NOTE: To test, place variables in the .env file of the project root directory.
-    #
-    #     The following ENV variables are needed:
-    #         AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
-    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
-    if AWS_S3_CUSTOM_DOMAIN:
-        AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-        MEDIAFILES_LOCATION = "media/"
-        STATICFILES_LOCATION = "static/"
-        DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
-        MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
-    else:
-        # This sets up a media path in urls.py when set for local storage.
-        IS_MEDIA_URL_LOCAL = True
+    # We are hardcoding against an s3mock in our local stack
+    AWS_S3_ENDPOINT_URL = 'http://s3mock:9090'
+    AWS_STORAGE_BUCKET_NAME = "django"
+    AWS_ACCESS_KEY_ID = 'not-a-key-id'
+    AWS_SECRET_ACCESS_KEY = 'not-a-secret'
+    AWS_S3_CUSTOM_DOMAIN = None
+    AWS_S3_SECURE_URLS = False
+    # MEDIAFILES_LOCATION = "media/"
+    # STATICFILES_LOCATION = "static/"
+    # DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
+    MEDIA_URL = "http://s3mock:9090/django/media/"
+    STATIC_URL = "http://s3mock:9090/django/static/"
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "hhs_oauth_server.s3_storage.StaticStorage",
+        },
+    }
+    # else:
+    #     # This sets up a media path in urls.py when set for local storage.
+    #     IS_MEDIA_URL_LOCAL = True
 
 # PROD Access Credentialing
 # TTL (time to live, in minutes) for a bb2 generated unique and one time use url to be shared with on boarding app
