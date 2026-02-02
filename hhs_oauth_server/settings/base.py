@@ -788,7 +788,7 @@ else:
     # localhost:9090, which is where s3mock exposes itself for read/write.
     # But, we have to use a different URL in the options below, because
     # Django has to write to the docker-internal name of `s3mock`
-    # AWS_S3_ENDPOINT_URL = 'http://localhost:9090'
+    AWS_S3_ENDPOINT_URL = 'http://localhost:9090'
     AWS_STORAGE_BUCKET_NAME = "django"
     AWS_ACCESS_KEY_ID = 'not-a-key-id'
     AWS_SECRET_ACCESS_KEY = 'not-a-secret'
@@ -796,7 +796,6 @@ else:
     AWS_S3_SECURE_URLS = False
     MEDIAFILES_LOCATION = "media/"
     STATICFILES_LOCATION = "static/"
-    # DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
     MEDIA_URL = "http://localhost:9090/django/media/"
     STATIC_URL = "http://localhost:9090/django/static/"
 
@@ -804,27 +803,22 @@ else:
         "default": {
             "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
             "OPTIONS": {
-                "endpoint_url": 'http://localhost:9090',
+                "endpoint_url": AWS_S3_ENDPOINT_URL,
                 "access_key": AWS_ACCESS_KEY_ID,
                 "secret_key": AWS_SECRET_ACCESS_KEY,
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
-                # Other options can be set as needed (e.g., custom_domain, default_acl)
             }
         },
         "staticfiles": {
             "BACKEND": "hhs_oauth_server.s3_storage.StaticStorage",
             "OPTIONS": {
-                "endpoint_url": 'http://localhost:9090',
+                "endpoint_url": AWS_S3_ENDPOINT_URL,
                 "access_key": AWS_ACCESS_KEY_ID,
                 "secret_key": AWS_SECRET_ACCESS_KEY,
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
-                # Other options can be set as needed (e.g., custom_domain, default_acl)
             },
         },
     }
-    # else:
-    #     # This sets up a media path in urls.py when set for local storage.
-    #     IS_MEDIA_URL_LOCAL = True
 
 # PROD Access Credentialing
 # TTL (time to live, in minutes) for a bb2 generated unique and one time use url to be shared with on boarding app

@@ -24,27 +24,10 @@ RUN apt-get update \
 ADD .. /code
 WORKDIR /code
 
-# This is a forward pointer to read-only images.
-# We will want to install `nodejs` and `npm` via apt, and 
-# use that to build our static assets into the container image.
-# This will grow build time significantly, and is not included
-# at this time. 
-#
-# Build the CSS/USWDS assets
-# This builds them statically into the image, allowing us 
-# to test a read-only configuration.
-# RUN cd /code/static/bluebutton-css \
-#     && npm i \
-#     && npm run gulp
-
 # Set the local user for development
 # and mount the codebase at /code
 # Set this as the current/active path.
 RUN useradd -m -s /bin/bash DEV
-# Make sure the DEV user can write to /media.
-# Do this before the USER command.
-RUN mkdir -p /media
-RUN chown -R DEV:DEV /media
 USER DEV
 
 # Do the setup in a temporary venv
