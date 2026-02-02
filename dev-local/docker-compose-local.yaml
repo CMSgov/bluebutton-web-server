@@ -50,11 +50,19 @@ services:
   s3mock:
     image: adobe/s3mock:latest
     environment:
-      - debug=false
       - COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS=django
       - COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT=true
       - COM_ADOBE_TESTING_S3MOCK_STORE_ROOT=/s3
     volumes:
-      - ./local-s3:/s3
+      # If you want to see all of the files in the mock S3 instance,
+      # uncomment this line. This will mount the folder `local-s3` as the 
+      # location for all S3 files.
+      # - ./local-s3:/s3
+      #
+      # This line uses a volume, which is harder to browse/inspect. 
+      # But, it keeps the local tree clean.
+      - s3mock-data:/s3
     ports:
       - 9090:9090
+volumes:
+    s3mock-data:
