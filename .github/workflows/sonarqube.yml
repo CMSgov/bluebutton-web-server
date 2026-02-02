@@ -21,19 +21,15 @@ env:
 jobs:
   sonarqube:
     name: SonarQube Analysis
-    runs-on: ubuntu-latest
+    # Use CodeBuild runner - runs inside CMS/AWS network, can reach internal SonarQube
+    runs-on:
+      - codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
