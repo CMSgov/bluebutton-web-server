@@ -1,0 +1,76 @@
+# SonarQube Code Analysis
+# Migrated from Jenkins pipeline
+
+name: SonarQube Analysis
+
+on:
+  push:
+    branches: 
+      - noor1027/test-githubactions
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  # These values come from GitHub Repository Variables
+  # Settings → Secrets and variables → Actions → Variables
+  SONARQUBE_URL: ${{ vars.SONARQUBE_URL }}
+  SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+  DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+
+jobs:
+  sonarqube:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python3.12 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          python3.12 -m pip install --upgrade pip setuptools wheel
+          TMPDIR=/tmp/pip-tmp pip3.12 install -r requirements/requirements.txt --require-hashes --no-deps --prefer-binary
+          pip install coverage pytest
+          echo "/tmp/venv/bin" >> $GITHUB_PATH
+
+      - name: Run tests with coverage
+        run: |
+          source /tmp/venv/bin/activate
+          coverage run runtests.py
+          coverage xml
+
+      - name: Check SonarQube connectivity
+        run: |
+          echo "Checking SonarQube server connectivity..."
+          curl -I ${{ env.SONARQUBE_URL }} || echo "Warning: Could not reach SonarQube"
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONARQUBE_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.sources=.
+            -Dsonar.inclusions=apps/*/*.py,hhs_oauth_server/*/*.py
+            -Dsonar.exclusions=apps/*/management/migrations/*.py,apps/*/tests/*.py,apps/integration_tests/*
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONARQUBE_URL }}
