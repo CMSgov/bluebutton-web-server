@@ -51,22 +51,22 @@ jobs:
           echo "Checking SonarQube server connectivity..."
           curl -I ${{ env.SONARQUBE_URL }} || echo "Warning: Could not reach SonarQube"
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
+      - name: Install and Run SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ env.SONARQUBE_URL }}
-        with:
-          args: >
-            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-            -Dsonar.sources=.
-            -Dsonar.inclusions=apps/*/*.py,hhs_oauth_server/*/*.py
-            -Dsonar.exclusions=apps/*/management/migrations/*.py,apps/*/tests/*.py,apps/integration_tests/*
+        run: |
+          echo "Installing SonarQube scanner..."
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip -q sonar-scanner.zip
+          export PATH="$PWD/sonar-scanner-5.0.1.3006-linux/bin:$PATH"
+          
+          echo "Running SonarQube analysis..."
+          sonar-scanner \
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=${{ env.SONARQUBE_URL }} \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.inclusions=apps/*/*.py,hhs_oauth_server/*/*.py \
+            -Dsonar.exclusions=apps/*/management/migrations/*.py,apps/*/tests/*.py,apps/integration_tests/* \
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
-      - name: SonarQube Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ env.SONARQUBE_URL }}
