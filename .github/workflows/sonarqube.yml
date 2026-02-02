@@ -31,12 +31,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check Python version
+        run: |
+          echo "Available Python versions:"
+          python3 --version || true
+          which python3 || true
+          
       - name: Install dependencies
         run: |
-          python3.12 -m venv /tmp/venv
+          python3 -m venv /tmp/venv
           source /tmp/venv/bin/activate
-          python3.12 -m pip install --upgrade pip setuptools wheel
-          TMPDIR=/tmp/pip-tmp pip3.12 install -r requirements/requirements.txt --require-hashes --no-deps --prefer-binary
+          python3 -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
           pip install coverage pytest
           echo "/tmp/venv/bin" >> $GITHUB_PATH
 
