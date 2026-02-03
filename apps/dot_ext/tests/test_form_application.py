@@ -364,7 +364,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         # to simulate the context in BB2 runtime when
         # a new CustomRegisterApplicationForm instance is saved
         # as BB2 admin user added a new app with logo
-        form.save(commit=False)
+        app = form.save(commit=False)
+        # 2026-02-03 We don't want to write to the filesystem or the S3 Mock
+        # So, set the logo_uri to *something*.
+        app.logo_uri = "mock_logo/" + file_name
         return form
 
     def test_create_application_form_has_fld_internal_app_labels(self):
