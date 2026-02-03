@@ -15,6 +15,8 @@ info:
     8. **Explore APIs**: You can now start exploring and testing the APIs by providing the relevant parameters.
 
 tags:
+  - name: v2
+  - name: v1
   - name: v3
     description: These endpoints are part of BB2 v3 which is currently 
         available for pilot usage in the [Sandbox](https://sandbox.bluebutton.cms.gov/) environment by 
