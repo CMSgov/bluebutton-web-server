@@ -4,6 +4,18 @@ variable "env" {
   description = "Environment name (e.g. test, impl, prod). If null, uses OpenTofu workspace."
 }
 
+variable "region" {
+  type        = string
+  default     = "us-east-1"
+  description = "Primary AWS region"
+}
+
+variable "secondary_region" {
+  type        = string
+  default     = "us-west-2"
+  description = "Secondary AWS region for DR/failover"
+}
+
 variable "image_tag" {
   type        = string
   default     = "latest"

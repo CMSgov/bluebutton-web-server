@@ -36,6 +36,11 @@ output "account_id" {
   value       = data.aws_caller_identity.current.account_id
 }
 
+output "secondary_region" {
+  description = "Secondary AWS region for DR/failover"
+  value       = var.secondary_region
+}
+
 output "aws_caller_identity" {
   description = "AWS caller identity"
   sensitive   = true

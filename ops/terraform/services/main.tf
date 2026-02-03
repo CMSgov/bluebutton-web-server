@@ -1,10 +1,3 @@
-provider "aws" {
-  region = "us-east-1"
-
-  default_tags {
-    tags = module.platform.default_tags
-  }
-}
 
 # ============================================================================
 # Platform Module (Terraservice Pattern)

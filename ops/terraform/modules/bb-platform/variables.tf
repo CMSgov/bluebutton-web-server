@@ -64,3 +64,9 @@ variable "additional_tags" {
   default     = {}
   description = "Additional tags to merge with default tags"
 }
+
+variable "secondary_region" {
+  type        = string
+  default     = "us-west-2"
+  description = "Secondary AWS region for DR/failover"
+}
