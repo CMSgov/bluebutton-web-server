@@ -30,7 +30,7 @@ services:
       - .env.container
     volumes:
       - ..:/code
-      - ~/.bb2/certstore:/certstore
+      - ${BB2_CERTSTORE}:/certstore
     ports:
       - "8000:8000"
       - "5678:5678"

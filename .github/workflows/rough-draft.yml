@@ -1,0 +1,69 @@
+name: Initial GitHub Action
+
+on:
+  push:
+  pull_request:
+
+env:
+  KION_ACCOUNT_ALIAS: ${{ secrets.KION_ACCOUNT_ALIAS }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+  CA_CERT: ${{ secrets.CA_CERT }}
+  CA_KEY: ${{ secrets.CA_KEY }}
+  BB2_CERTSTORE: ${{ vars.BB2_CERTSTORE }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # - name: Install AWS CLI
+      #   run: |
+      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #     unzip awscliv2.zip
+      #     sudo ./aws/install
+
+      - name: Install Certificates
+        run: |
+          echo ${{ env.BB2_CERTSTORE }}
+          mkdir -p ${{ env.BB2_CERTSTORE }}
+          echo "$CA_CERT" > ${{ env.BB2_CERTSTORE }}/ca.cert.pem
+          echo "$CA_KEY" > ${{ env.BB2_CERTSTORE }}/ca.key.nocrypt.pem
+          ls ${{ env.BB2_CERTSTORE }}
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      # - name: make build-local
+      #   run: |
+      #     make build-local
+
+      - name: make run-local
+        run: |
+          cd dev-local
+          mv .env.local.example .env.local
+          cd ..
+          make run-local auth=mock bfd=sbx daemon=1
+          docker exec dev-local-web-1 ls -al /certstore
+
+      - name: Run Unit Tests
+        run: |
+          docker ps
+
+      - name: Run Selenium
+        run: |
+          make run-selenium auth=mock debug=false
+
+      - name: Cleanup on failure
+        if: always()
+        run: |
+          cd dev-local
+          docker compose down -v || true
+          cd ..
+          docker stop $(docker ps -q) || true
+          docker rm $(docker ps -aq) || true
