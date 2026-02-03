@@ -1,8 +1,7 @@
 name: Initial GitHub Action
 
 on:
-  push:
-  pull_request:
+  public:
 
 env:
   KION_ACCOUNT_ALIAS: ${{ secrets.KION_ACCOUNT_ALIAS }}
