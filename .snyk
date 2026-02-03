@@ -1,0 +1,7 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities
+version: v1.25.0
+ignore:
+    'global':
+        - 'Dockerfiles/Dockerfile.selenium-jenkins-python311-plus-chromedriver':
+            reason: 'Used in testing; used in production code'
+            created: '2026-02-03'
