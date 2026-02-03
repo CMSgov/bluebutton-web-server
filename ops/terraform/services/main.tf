@@ -77,3 +77,15 @@ resource "aws_sns_topic" "cloudwatch_alarms_topic" {
   name              = "bb-${module.platform.env}-cloudwatch-alarms"
   kms_master_key_id = "alias/aws/sns"
 }
+
+# ============================================================================
+# CodeBuild (GitHub Actions Self-Hosted Runner)
+# Includes: ECR, CodeBuild project, GitHub OIDC
+# ============================================================================
+module "codebuild" {
+  source = "../modules/bb-codebuild"
+
+  env                      = module.platform.env
+  iam_path                 = try(module.platform.ssm["/bluebutton/config/iam_path"], "/")
+  permissions_boundary_arn = module.platform.permissions_boundary
+}

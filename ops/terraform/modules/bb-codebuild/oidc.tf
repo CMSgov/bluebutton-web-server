@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 
 # IAM Role for GitHub Actions
 resource "aws_iam_role" "github_actions" {
-  name                 = "bb-${local.env}-github-actions"
+  name                 = "bb-${var.env}-github-actions"
   path                 = var.iam_path
   permissions_boundary = var.permissions_boundary_arn
   description          = "OIDC Assumable GitHub Actions Role for Blue Button"
@@ -45,7 +45,7 @@ resource "aws_iam_role" "github_actions" {
   force_detach_policies = true
 
   tags = {
-    Name = "bb-${local.env}-github-actions"
+    Name = "bb-${var.env}-github-actions"
   }
 }
 
@@ -78,7 +78,7 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
   policy = data.aws_iam_policy_document.github_actions_ecr.json
 }
 
-# CodeBuild trigger permissions (optional - to trigger builds from GHA)
+# CodeBuild trigger permissions (to trigger builds from GHA)
 data "aws_iam_policy_document" "github_actions_codebuild" {
   statement {
     sid = "AllowCodeBuildTrigger"
@@ -86,7 +86,7 @@ data "aws_iam_policy_document" "github_actions_codebuild" {
       "codebuild:StartBuild",
       "codebuild:BatchGetBuilds"
     ]
-    resources = [module.codebuild.project_arn]
+    resources = [aws_codebuild_project.main.arn]
   }
 }
 

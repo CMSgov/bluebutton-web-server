@@ -47,3 +47,19 @@ output "sns_topic_arn" {
   description = "CloudWatch alarms SNS topic ARN"
   value       = aws_sns_topic.cloudwatch_alarms_topic.arn
 }
+
+# CodeBuild outputs
+output "codebuild_ecr_repository_url" {
+  description = "ECR repository URL for pushing images"
+  value       = module.codebuild.ecr_repository_url
+}
+
+output "github_actions_role_arn" {
+  description = "ARN of the GitHub Actions IAM role"
+  value       = module.codebuild.github_actions_role_arn
+}
+
+output "codebuild_project_name" {
+  description = "CodeBuild project name (use in workflow runs-on label)"
+  value       = module.codebuild.project_name
+}

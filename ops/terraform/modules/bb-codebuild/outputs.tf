@@ -8,22 +8,29 @@ output "project_name" {
 output "project_arn" {
   description = "ARN of the CodeBuild project"
   value       = aws_codebuild_project.main.arn
-  sensitive   = true
+}
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository"
+  value       = aws_ecr_repository.api.repository_url
+}
+
+output "ecr_repository_arn" {
+  description = "ARN of the ECR repository"
+  value       = aws_ecr_repository.api.arn
+}
+
+output "github_actions_role_arn" {
+  description = "ARN of the GitHub Actions IAM role (for OIDC)"
+  value       = aws_iam_role.github_actions.arn
 }
 
 output "github_connection_arn" {
-  description = "ARN of GitHub CodeStar connection (must be confirmed in AWS Console after first apply)"
+  description = "ARN of the GitHub CodeStar connection"
   value       = aws_codestarconnections_connection.github.arn
-  sensitive   = true
 }
 
-output "iam_role_arn" {
-  description = "ARN of the CodeBuild IAM role"
+output "codebuild_role_arn" {
+  description = "ARN of the CodeBuild service role"
   value       = aws_iam_role.codebuild.arn
-  sensitive   = true
-}
-
-output "log_group_name" {
-  description = "CloudWatch log group name"
-  value       = aws_cloudwatch_log_group.runner.name
 }
