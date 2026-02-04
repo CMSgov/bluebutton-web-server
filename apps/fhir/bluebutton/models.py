@@ -153,7 +153,7 @@ class Crosswalk(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False),
+                condition=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False),
                 name='at_least_one_fhir_id_required'
             )
         ]

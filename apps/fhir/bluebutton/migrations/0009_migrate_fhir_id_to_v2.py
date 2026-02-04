@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(  # After migrate_fhir_id_to_v2 is run, add constraint that a fhir_id_v2 or v3 must be present
             model_name='crosswalk',
             constraint=models.CheckConstraint(
-                check=models.Q(fhir_id_v2__isnull=False) | models.Q(fhir_id_v3__isnull=False),
+                condition=models.Q(fhir_id_v2__isnull=False) | models.Q(fhir_id_v3__isnull=False),
                 name='at_least_one_fhir_id_required'
             ),
         ),
