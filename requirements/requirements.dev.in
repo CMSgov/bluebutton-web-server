@@ -15,7 +15,6 @@ markupsafe == 3.0.3
 mccabe == 0.7.0 # via flake8
 outcome == 1.3.0.post0 # via trio
 packaging == 25.0 # via pytest
-pip < 25.3
 pluggy == 1.6.0  # via pytest
 pycodestyle == 2.10.0 # via pytest
 pyflakes == 3.0.1 # via pytest
