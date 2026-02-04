@@ -113,7 +113,7 @@ service_config = {
 /bluebutton/
 ├── test/                          # Environment: test
 │   ├── common/
-│   │   ├── vpc_id                 # "vpc-0c29bedf51a38e125"
+│   │   ├── vpc_id                 # "vpc-XXXXXXXXXX"
 │   │   └── azs                    # '["us-east-1a","us-east-1b"]'
 │   └── config/
 │       ├── api_port               # "8000"
