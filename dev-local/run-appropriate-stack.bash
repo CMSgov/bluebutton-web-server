@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 source ./utility-functions.bash
-source ./fetch-and-update-css.bash
 
 # this says to "export all variables."
 set -a

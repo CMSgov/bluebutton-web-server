@@ -138,7 +138,7 @@ def __generate_random_state(num) -> str:
 
 
 def __generate_auth_data() -> dict:
-    auth_data = {"state": __generate_random_state(32)}
+    auth_data = {"state": __generate_random_state(512)}
     auth_data.update(__generate_pkce_data())
     return auth_data
 
