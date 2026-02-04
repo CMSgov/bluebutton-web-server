@@ -101,3 +101,4 @@ test_report.txt
 .sass-cache*
 *.css.map
 .DS_Store
+static/bluebutton-css/dist

@@ -4,6 +4,11 @@ set -e
 set -a
 
 
+# Bounce localhost:9090 inside the container to s3mock:9090
+# This is necessary to start early for collectstatic.
+echo "🔵 running socat localhost:9090 -> docker.internal:9090"
+socat TCP-LISTEN:9090,fork,reuseaddr TCP:host.docker.internal:9090 &
+
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
     
@@ -13,11 +18,14 @@ then
     echo "🔵 running migrations"
     python manage.py migrate
 
+    echo "🔵 running collectstatic"
+    python manage.py collectstatic --noinput
+
     # We will recrate this with every launch.
     # echo "TRUNCATE authorization_archiveddataaccessgrant;" | psql "${DATABASES_CUSTOM}"
 
     # Only create the root user if it doesn't exist.
-    result=$(echo "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)" | python manage.py shell)
+    result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")
     if [[ "$result" == "0" ]]; then
         echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
         echo "🆗 created ${SUPER_USER_NAME} user."
