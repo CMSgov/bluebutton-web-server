@@ -1,5 +1,3 @@
-from oauth2_provider.settings import oauth2_settings
-
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 
 from .models import ExpiresIn
@@ -19,7 +17,7 @@ def my_token_expires_in(request):
     # if no record is found we default to the value defined in the
     # settings.
     if expires_in is None:
-        expires_in = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
+        expires_in = 3600  # default to 1 hour
 
     return expires_in
 
