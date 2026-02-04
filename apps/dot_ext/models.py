@@ -31,7 +31,7 @@ from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
 
 
-TEN_HOURS = _("for 10 hours")
+ONE_HOUR = _("for 1 hour")
 THIRTEEN_MONTHS = _("for 13 months, until ")
 
 
@@ -193,7 +193,7 @@ class Application(AbstractApplication):
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
         if self.has_one_time_only_data_access():
-            return TEN_HOURS
+            return ONE_HOUR
         # no message displayed for RESEARCH_STUDY
         else:
             return THIRTEEN_MONTHS
