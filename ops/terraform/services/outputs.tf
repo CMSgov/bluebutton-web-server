@@ -27,6 +27,7 @@ output "ecs_service_names" {
 
 output "ecr_repository_urls" {
   description = "ECR repository URLs"
+  sensitive   = true
   value       = module.bb_ecs.ecr_repository_urls
 }
 
@@ -39,6 +40,7 @@ output "alb_dns_names" {
 # Network outputs
 output "vpc_id" {
   description = "VPC ID"
+  sensitive   = true
   value       = module.platform.vpc_id
 }
 

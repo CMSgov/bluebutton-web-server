@@ -12,7 +12,7 @@ output "env" {
 }
 
 output "parent_env" {
-  description = "Parent environment (test, impl, prod)"
+  description = "Parent environment (test, sandbox, prod)"
   value       = local.parent_env
 }
 
@@ -33,6 +33,7 @@ output "primary_region" {
 
 output "account_id" {
   description = "AWS account ID"
+  sensitive   = true
   value       = data.aws_caller_identity.current.account_id
 }
 
@@ -49,6 +50,7 @@ output "aws_caller_identity" {
 
 output "vpc_id" {
   description = "The current environment VPC ID value"
+  sensitive   = true
   value       = local.vpc_id
 }
 
@@ -102,3 +104,25 @@ output "ssm" {
   sensitive   = true
   value       = local.ssm_config
 }
+
+# Config access - all values required from SSM (no defaults)
+output "config" {
+  description = "Configuration values from SSM (all required)"
+  value = {
+    # API Service Config
+    api_port              = tonumber(local.ssm_config["/bluebutton/config/api_port"])
+    api_cpu               = tonumber(local.ssm_config["/bluebutton/config/api_cpu"])
+    api_memory            = tonumber(local.ssm_config["/bluebutton/config/api_memory"])
+    api_count             = tonumber(local.ssm_config["/bluebutton/config/api_count"])
+    api_min_capacity      = tonumber(local.ssm_config["/bluebutton/config/api_min_capacity"])
+    api_max_capacity      = tonumber(local.ssm_config["/bluebutton/config/api_max_capacity"])
+    api_health_check_path = local.ssm_config["/bluebutton/config/api_health_check_path"]
+    api_alb               = tobool(local.ssm_config["/bluebutton/config/api_alb"])
+    api_autoscale_enabled = tobool(local.ssm_config["/bluebutton/config/api_autoscale_enabled"])
+
+    # S3 Buckets (optional - used for IAM permissions)
+    app_config_bucket     = try(local.ssm_config["/bluebutton/config/app_config_bucket"], "")
+    static_content_bucket = try(local.ssm_config["/bluebutton/config/static_content_bucket"], "")
+  }
+}
+

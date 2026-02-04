@@ -2,7 +2,7 @@
 
 variable "env" {
   type        = string
-  description = "Environment name (e.g., test, impl, prod)"
+  description = "Environment name (e.g., test, sandbox, prod)"
 }
 
 variable "github_repo_url" {
@@ -11,20 +11,16 @@ variable "github_repo_url" {
   default     = "https://github.com/CMSgov/bluebutton-web-server"
 }
 
-variable "buildspec_path" {
+variable "github_org" {
   type        = string
-  description = "Path to buildspec.yml in the repository"
-  default     = "buildspec.yml"
+  description = "GitHub organization name"
+  default     = "CMSgov"
 }
 
-variable "ecr_repository_arn" {
+variable "github_repo" {
   type        = string
-  description = "ARN of ECR repository for docker push"
-}
-
-variable "ecr_repository_url" {
-  type        = string
-  description = "URL of ECR repository for docker push"
+  description = "GitHub repository name"
+  default     = "bluebutton-web-server"
 }
 
 variable "kms_key_arn" {

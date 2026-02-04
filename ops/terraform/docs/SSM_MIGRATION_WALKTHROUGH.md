@@ -55,9 +55,9 @@ graph TB
 
 | File | Purpose |
 |------|---------|
-| [platform.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-platform/platform.tf) | SSM loading, VPC/subnet discovery, ACM lookup |
-| [variables.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-platform/variables.tf) | Input: app, env, ssm_hierarchy_roots |
-| [outputs.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-platform/outputs.tf) | Outputs: ssm, vpc_id, subnets, acm_certificate |
+| [platform.tf](../modules/bb-platform/platform.tf) | SSM loading, VPC/subnet discovery, ACM lookup |
+| [variables.tf](../modules/bb-platform/variables.tf) | Input: app, env, ssm_hierarchy_roots |
+| [outputs.tf](../modules/bb-platform/outputs.tf) | Outputs: ssm, config, vpc_id, subnets, acm_certificate |
 
 **Key Logic** (platform.tf):
 ```hcl
@@ -85,13 +85,13 @@ ssm_config = zipmap(
 
 | File | Purpose |
 |------|---------|
-| [data.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/data.tf) | References `var.platform.ssm` |
-| [locals.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/locals.tf) | Transforms SSM → `service_config` |
-| [ecs.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/ecs.tf) | ECS cluster, task definitions, services |
-| [alb.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/alb.tf) | Application Load Balancer |
-| [iam.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/iam.tf) | Task execution + task roles |
-| [ecr.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/ecr.tf) | ECR repositories |
-| [security_groups.tf](file:///Users/43254/projects/bluebutton-web-server/ops/terraform/modules/bb-ecs/security_groups.tf) | ECS + ALB security groups |
+| [data.tf](../modules/bb-ecs/data.tf) | References `var.platform.ssm` |
+| [locals.tf](../modules/bb-ecs/locals.tf) | Transforms SSM → `service_config` |
+| [ecs.tf](../modules/bb-ecs/ecs.tf) | ECS cluster, task definitions, services |
+| [alb.tf](../modules/bb-ecs/alb.tf) | Application Load Balancer |
+| [iam.tf](../modules/bb-ecs/iam.tf) | Task execution + task roles |
+| [ecr.tf](../modules/bb-ecs/ecr.tf) | ECR repositories |
+| [security_groups.tf](../modules/bb-ecs/security_groups.tf) | ECS + ALB security groups |
 
 **Key Logic** (locals.tf):
 ```hcl
@@ -126,7 +126,7 @@ service_config = {
 │       ├── api_alb                # "true"
 │       └── api_autoscale_enabled  # "true"
 │
-├── impl/                          # Environment: impl
+├── sandbox/                       # Environment: sandbox
 │   └── ... (same structure)
 │
 └── prod/                          # Environment: prod

@@ -47,20 +47,65 @@ module "bb_ecs" {
   create_cluster        = true
   image_tag             = var.image_tag
   log_retention_days    = 30
-  app_config_bucket     = try(module.platform.ssm["/bluebutton/config/app_config_bucket"], "")
-  static_content_bucket = try(module.platform.ssm["/bluebutton/config/static_content_bucket"], "")
+  app_config_bucket     = module.platform.config.app_config_bucket
+  static_content_bucket = module.platform.config.static_content_bucket
 
-  # Secrets from Secrets Manager
-  secrets = [
-    {
-      name       = "DATABASE_URL"
-      value_from = "arn:aws:secretsmanager:${module.platform.primary_region.name}:${module.platform.account_id}:secret:/bb2/${module.platform.env}/app/database_url"
-    },
-    {
-      name       = "SECRET_KEY"
-      value_from = "arn:aws:secretsmanager:${module.platform.primary_region.name}:${module.platform.account_id}:secret:/bb2/${module.platform.env}/app/secret_key"
+  # Backend services configuration - loaded from SSM via platform.config
+  backend_services = {
+    api = {
+      name              = "api"
+      port              = module.platform.config.api_port
+      cpu               = module.platform.config.api_cpu
+      memory            = module.platform.config.api_memory
+      count             = module.platform.config.api_count
+      min_capacity      = module.platform.config.api_min_capacity
+      max_capacity      = module.platform.config.api_max_capacity
+      alb               = true
+      autoscale_enabled = true
+      health_check_path = module.platform.config.api_health_check_path
     }
+  }
+
+  # ALB Security Groups - Environment-specific (VPN + Akamai)
+  # All environments use the same pattern: bb-sg-{env}-clb-*
+  alb_allow_all_ingress  = false
+  alb_security_group_ids = [
+    data.aws_security_group.cmscloud_vpn.id,
+    data.aws_security_group.clb_cms_vpn.id,
+    data.aws_security_group.clb_akamai.id,
   ]
+
+  # Secrets are now auto-discovered from:
+  # - SSM Parameter Store: /bb2/{env}/app/*
+  # - Secrets Manager: /bb2/{env}/*
+  # See bb-ecs/data.tf and bb-ecs/locals.tf for discovery logic
+}
+
+# ============================================================================
+# Security Group Data Sources for ALB (Production/Sandbox only)
+# ============================================================================
+data "aws_security_group" "cmscloud_vpn" {
+  filter {
+    name   = "group-name"
+    values = ["cmscloud-vpn"]
+  }
+  vpc_id = module.platform.vpc_id
+}
+
+data "aws_security_group" "clb_cms_vpn" {
+  filter {
+    name   = "group-name"
+    values = ["bb-sg-${module.platform.parent_env}-clb-cms-vpn"]
+  }
+  vpc_id = module.platform.vpc_id
+}
+
+data "aws_security_group" "clb_akamai" {
+  filter {
+    name   = "group-name"
+    values = ["bb-sg-${module.platform.parent_env}-clb-akamai-prod"]
+  }
+  vpc_id = module.platform.vpc_id
 }
 
 # ============================================================================

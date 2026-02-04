@@ -16,3 +16,21 @@ locals {
   # Use the SSM config passed from platform module
   ssm_config = var.platform.ssm
 }
+
+# ============================================================================
+# Dynamic Secret Discovery (Secrets Manager only)
+# ============================================================================
+
+# Discover all Secrets Manager secrets under /bb2/{env}/
+data "aws_secretsmanager_secrets" "app_secrets" {
+  filter {
+    name   = "name"
+    values = ["/bb2/${var.platform.env}/"]
+  }
+}
+
+# Get details for each discovered secret
+data "aws_secretsmanager_secret" "app_secrets" {
+  for_each = toset(data.aws_secretsmanager_secrets.app_secrets.arns)
+  arn      = each.value
+}

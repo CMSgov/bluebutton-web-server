@@ -1,7 +1,7 @@
 variable "env" {
   type        = string
   default     = null
-  description = "Environment name (e.g. test, impl, prod). If null, uses OpenTofu workspace."
+  description = "Environment name (e.g. test, sandbox, prod). If null, uses OpenTofu workspace."
 }
 
 variable "region" {

@@ -53,12 +53,29 @@ resource "aws_security_group" "alb_sg" {
     Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg"
   })
 
-  ingress {
-    description = "HTTPS from anywhere"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  # Allow HTTPS from anywhere (for test/dev environments)
+  dynamic "ingress" {
+    for_each = var.alb_allow_all_ingress ? [1] : []
+    content {
+      description = "HTTPS from anywhere"
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+
+  # When not allowing all, require traffic through specified security groups
+  # (Used in production with Akamai/VPN security groups)
+  dynamic "ingress" {
+    for_each = !var.alb_allow_all_ingress && length(var.alb_security_group_ids) > 0 ? [1] : []
+    content {
+      description     = "HTTPS from VPN/CDN security groups"
+      from_port       = 443
+      to_port         = 443
+      protocol        = "tcp"
+      security_groups = var.alb_security_group_ids
+    }
   }
 
   egress {
@@ -69,3 +86,4 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+

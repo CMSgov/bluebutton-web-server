@@ -9,12 +9,14 @@ GitHub Actions Workflow
         │
         │ WORKFLOW_JOB_QUEUED event
         ▼
-AWS CodeBuild Runner
+AWS CodeBuild Runner (bb-{env}-web-server)
         │
         │ Executes workflow steps
         ▼
-Docker Build → ECR Push
+Docker Build → ECR Push (bb-{env}-api)
 ```
+
+The CodeBuild infrastructure is managed by the `bb-codebuild` module, which is deployed as part of the main services stack.
 
 ---
 
@@ -30,18 +32,26 @@ Docker Build → ECR Push
 
 ### Step 1: Deploy Infrastructure
 
+CodeBuild is deployed as part of the main services stack:
+
 ```bash
-cd ops/terraform/services/codebuild
+cd ops/terraform/services
 
 # Initialize
 tofu init
 
-# Create workspace
-tofu workspace new test || tofu workspace select test
+# Select workspace
+tofu workspace select test  # or sandbox, prod
 
-# Apply
+# Apply (includes ECS, CodeBuild, and all other resources)
 tofu apply
 ```
+
+The `bb-codebuild` module creates:
+- ECR repository (`bb-{env}-api`)
+- CodeBuild project (`bb-{env}-web-server`)
+- GitHub OIDC provider
+- IAM roles for CodeBuild and GitHub Actions
 
 ### Step 2: Confirm GitHub CodeStar Connection
 
@@ -76,11 +86,12 @@ or permission issue encountered when creating the webhook.
 | Secret Name | Value |
 |-------------|-------|
 | `AWS_ROLE_ARN_TEST` | `arn:aws:iam::ACCOUNT_ID:role/bb-test-github-actions` |
-| `AWS_ROLE_ARN_IMPL` | `arn:aws:iam::ACCOUNT_ID:role/bb-impl-github-actions` |
+| `AWS_ROLE_ARN_SANDBOX` | `arn:aws:iam::ACCOUNT_ID:role/bb-sandbox-github-actions` |
 | `AWS_ROLE_ARN_PROD` | `arn:aws:iam::ACCOUNT_ID:role/bb-prod-github-actions` |
 
-Get the role ARN:
+Get the role ARN from Terraform output:
 ```bash
+cd ops/terraform/services
 tofu output github_actions_role_arn
 ```
 
@@ -107,6 +118,14 @@ The workflow will automatically run on push to `main` or `develop`.
 aws logs tail /aws/codebuild/bb-test-web-server --follow
 ```
 
+### View Terraform Outputs
+```bash
+cd ops/terraform/services
+tofu output codebuild_project_name
+tofu output codebuild_ecr_repository_url
+tofu output github_actions_role_arn
+```
+
 ---
 
 ## Troubleshooting
@@ -120,6 +139,20 @@ aws logs tail /aws/codebuild/bb-test-web-server --follow
 
 ---
 
+## Module Reference
+
+The CodeBuild resources are defined in [`modules/bb-codebuild/`](../modules/bb-codebuild/):
+
+| File | Purpose |
+|------|---------|
+| `main.tf` | CodeBuild project, ECR repository, CloudWatch logs |
+| `iam.tf` | CodeBuild service role and policies |
+| `oidc.tf` | GitHub Actions OIDC provider and role |
+| `variables.tf` | Input variables (env, IAM path, permissions boundary) |
+| `outputs.tf` | Project name, ECR URL, GitHub Actions role ARN |
+
+---
+
 ## How It Works
 
 1. **Push to GitHub** → Triggers workflow
@@ -129,3 +162,4 @@ aws logs tail /aws/codebuild/bb-test-web-server --follow
 5. **Results reported** → Back to GitHub Actions UI
 
 This eliminates the need for `buildspec.yml` - the workflow YAML defines all build steps.
+

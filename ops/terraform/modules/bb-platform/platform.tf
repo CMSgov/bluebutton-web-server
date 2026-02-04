@@ -4,9 +4,9 @@ locals {
   app              = var.app
   env              = var.env != null ? var.env : terraform.workspace
   # Find established env name in workspace string, fallback to env itself, handle nulls
-  found_env        = one([for x in ["test", "impl", "prod"] : x if can(regex("${x}", local.env))])
+  found_env        = one([for x in ["test", "sandbox", "prod"] : x if can(regex("${x}", local.env))])
   parent_env       = local.found_env != null ? local.found_env : local.env
-  sdlc_env         = contains(["impl", "prod"], coalesce(local.parent_env, "none")) ? "production" : "non-production"
+  sdlc_env         = contains(["sandbox", "prod"], coalesce(local.parent_env, "none")) ? "production" : "non-production"
   service          = var.service
 
   # Standard tags

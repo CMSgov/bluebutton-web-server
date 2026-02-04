@@ -5,7 +5,7 @@ locals {
   # Get values from platform object
   workspace       = var.platform.env
   app_prefix      = var.platform.app
-  cluster_name    = var.create_cluster ? "${local.app_prefix}-${local.workspace}" : var.cluster_name
+  cluster_name    = var.create_cluster ? "${local.app_prefix}-${local.workspace}-cluster" : var.cluster_name
   private_subnets = var.platform.private_subnet_ids
   public_subnets  = var.platform.public_subnet_ids
   region          = var.platform.primary_region.name
@@ -39,8 +39,20 @@ locals {
 
   common_tags = var.platform.default_tags
 
-  # Certificate secrets auto-built from ARN variables
-  # These are merged with var.secrets when passed to container template
+  # ============================================================================
+  # Dynamic Secret Discovery - Secrets Manager only
+  # ============================================================================
+  
+  # Transform Secrets Manager secrets to ECS format
+  # Path /bb2/test/app/secret_key → ENV var SECRET_KEY
+  secrets_manager_discovered = [
+    for secret in data.aws_secretsmanager_secret.app_secrets : {
+      name      = replace(upper(replace(basename(secret.name), "-", "_")), "/[^A-Z0-9_]/", "_")
+      valueFrom = secret.arn
+    }
+  ]
+
+  # Certificate secrets auto-built from ARN variables (legacy support)
   certificate_secrets = compact([
     var.www_key_secret_arn != "" ? jsonencode({ name = "WWW_KEY_FILE_B64", valueFrom = var.www_key_secret_arn }) : "",
     var.www_cert_secret_arn != "" ? jsonencode({ name = "WWW_COMBINED_CRT_B64", valueFrom = var.www_cert_secret_arn }) : "",
@@ -48,10 +60,11 @@ locals {
     var.fhir_key_secret_arn != "" ? jsonencode({ name = "FHIR_KEY_PEM_B64", valueFrom = var.fhir_key_secret_arn }) : ""
   ])
 
-  # Merge user-provided secrets with certificate secrets
+  # Merge all secrets: discovered Secrets Manager + certificates + explicit overrides
   all_secrets = concat(
-    var.secrets,
-    [for s in local.certificate_secrets : jsondecode(s)]
+    local.secrets_manager_discovered,
+    [for s in local.certificate_secrets : jsondecode(s)],
+    var.secrets  # Keep var.secrets for any explicit overrides
   )
 
   # Default environment variables (migrated from env.j2 template)

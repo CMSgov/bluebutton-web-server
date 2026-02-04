@@ -154,3 +154,20 @@ variable "environment_variables" {
   default     = []
   description = "Additional environment variables for Django (hostname, email, SLSx, etc.)"
 }
+
+# ALB Security Groups - Environment-specific
+# These should reference existing security groups that are environment-specific:
+# - cmscloud-vpn (shared across all envs)
+# - bb-sg-{env}-clb-cms-vpn
+# - bb-sg-{env}-clb-akamai-prod
+variable "alb_security_group_ids" {
+  type        = list(string)
+  default     = []
+  description = "Additional security group IDs to attach to ALB (VPN, Akamai, etc.)"
+}
+
+variable "alb_allow_all_ingress" {
+  type        = bool
+  default     = true
+  description = "Allow HTTPS from 0.0.0.0/0 when true, restrict to alb_security_group_ids when false"
+}

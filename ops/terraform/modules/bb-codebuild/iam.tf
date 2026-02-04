@@ -80,7 +80,7 @@ data "aws_iam_policy_document" "ecr" {
       "ecr:UploadLayerPart",
       "ecr:CompleteLayerUpload"
     ]
-    resources = [var.ecr_repository_arn]
+    resources = [aws_ecr_repository.api.arn]
   }
 }
 

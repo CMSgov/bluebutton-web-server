@@ -1,13 +1,49 @@
 # Blue Button CodeBuild Module
-# Configured as GitHub Actions Self-Hosted Runner (like BFD pattern)
+# Includes: CodeBuild runner, ECR, GitHub Actions OIDC
 
 locals {
   project_name = "bb-${var.env}-web-server"
 }
 
-# GitHub Connection
+# ============================================================================
+# ECR Repository for storing built images
+# ============================================================================
+resource "aws_ecr_repository" "api" {
+  name                 = "bb-${var.env}-api"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "bb-${var.env}-api"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "api" {
+  repository = aws_ecr_repository.api.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last 30 images"
+      selection = {
+        tagStatus     = "tagged"
+        tagPrefixList = ["v"]
+        countType     = "imageCountMoreThan"
+        countNumber   = 30
+      }
+      action = { type = "expire" }
+    }]
+  })
+}
+
+# ============================================================================
+# GitHub Connection (CodeStar)
 # NOTE: After first apply, manually confirm in AWS Console:
 # Developer Tools → Settings → Connections → Update pending connection
+# ============================================================================
 resource "aws_codestarconnections_connection" "github" {
   name          = "bb-github-connection"
   provider_type = "GitHub"
@@ -19,14 +55,18 @@ resource "aws_codebuild_source_credential" "github" {
   token       = aws_codestarconnections_connection.github.arn
 }
 
+# ============================================================================
 # CloudWatch Logs
+# ============================================================================
 resource "aws_cloudwatch_log_group" "runner" {
   name              = "/aws/codebuild/${local.project_name}"
   retention_in_days = 30
   kms_key_id        = var.kms_key_arn
 }
 
+# ============================================================================
 # CodeBuild Project - Acts as GitHub Actions Runner
+# ============================================================================
 resource "aws_codebuild_project" "main" {
   depends_on = [aws_codebuild_source_credential.github]
 
@@ -49,7 +89,7 @@ resource "aws_codebuild_project" "main" {
 
     environment_variable {
       name  = "ECR_URI"
-      value = var.ecr_repository_url
+      value = aws_ecr_repository.api.repository_url
     }
 
     environment_variable {
@@ -83,7 +123,6 @@ resource "aws_codebuild_project" "main" {
 }
 
 # Webhook for GitHub Actions Runner integration
-# This enables CodeBuild to act as a self-hosted runner
 resource "aws_codebuild_webhook" "runner" {
   project_name = aws_codebuild_project.main.name
   build_type   = "BUILD"
@@ -100,4 +139,3 @@ resource "aws_codebuild_webhook" "runner" {
 # Data sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
-
