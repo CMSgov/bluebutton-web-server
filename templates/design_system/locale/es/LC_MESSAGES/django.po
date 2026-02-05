@@ -145,6 +145,10 @@ msgstr "durante 13 meses, hasta el "
 msgid "for 1 hour"
 msgstr "durante 1 hora"
 
+#: templates/design_system/new_authorize_v2.html:145
+msgid "for 10 hours"
+msgstr "durante 10 horas"
+
 #: templates/design_system/new_authorize_v2.html:160
 msgid "To stop sharing your information with "
 msgstr "Para dejar de compartir su información con "
