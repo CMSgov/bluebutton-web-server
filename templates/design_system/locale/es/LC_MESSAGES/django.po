@@ -142,6 +142,10 @@ msgid "for 13 months, until "
 msgstr "durante 13 meses, hasta el "
 
 #: templates/design_system/new_authorize_v2.html:145
+msgid "for 1 hour"
+msgstr "durante 1 hora"
+
+#: templates/design_system/new_authorize_v2.html:145
 msgid "for 10 hours"
 msgstr "durante 10 horas"
 

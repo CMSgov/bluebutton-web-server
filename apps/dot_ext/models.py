@@ -29,8 +29,10 @@ from oauth2_provider.models import (
 )
 from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
+from waffle import switch_is_active
 
 
+ONE_HOUR = _("for 1 hour")
 TEN_HOURS = _("for 10 hours")
 THIRTEEN_MONTHS = _("for 13 months, until ")
 
@@ -193,7 +195,11 @@ class Application(AbstractApplication):
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
         if self.has_one_time_only_data_access():
-            return TEN_HOURS
+            if switch_is_active("one_hour_token_expiry"):
+                return ONE_HOUR
+            else:
+                return TEN_HOURS
+
         # no message displayed for RESEARCH_STUDY
         else:
             return THIRTEEN_MONTHS

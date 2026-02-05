@@ -29,7 +29,7 @@ def screenshot_on_exception(func):
             # Make sure there is a webdriver and we are not in an AWS environment
             if webdriver and os.getenv('TARGET_ENV') == 'dev':
                 try:
-                    print(f"{'='*80}")
+                    print(f"{'=' * 80}")
                     print(f'Current URL: {webdriver.current_url}')
                     print(f'Page Title: {webdriver.title}')
 
