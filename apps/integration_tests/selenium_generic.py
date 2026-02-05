@@ -81,7 +81,7 @@ class SeleniumGenericTests():
 
         if self.selenium_grid.lower() == 'true':
             # selenium hub
-            hub_url = f'http://{self.selenium_grid_host}' + ':4444/wd/hub'
+            hub_url = f'http://{self.selenium_grid_host}' + ':4444/wd/hub'  # noqa: E231
             print(f'RemoteDriver: grid hub url={hub_url}')
             opt.binary_location = '/usr/bin/chromium'
             self.driver = webdriver.Remote(
@@ -324,7 +324,6 @@ class SeleniumGenericTests():
                 if action is not None:
                     display_msg = s.get('display', 'Not available')
                     print(f"\n{'─' * 80}")
-                    print(f'{step[0]}: {display_msg}')
                     try:
                         if action == Action.LOGIN:
                             self.actions[action](*s.get('params', []), step, **kwargs)
