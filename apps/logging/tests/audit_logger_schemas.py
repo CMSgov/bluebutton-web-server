@@ -51,7 +51,7 @@ AUTHENTICATION_START_LOG_SCHEMA = {
     "title": "AuthenticationStartLogSchema",
     "type": "object",
     "properties": {
-        "type": {"pattern": "Authentication:start"},
+        "type": {"pattern": "Authentication: ?start"},
         "sls_status": {"pattern": "OK"},
         "sls_status_mesg": {"type": "null"},
         "sub": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
@@ -88,7 +88,7 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
     'title': 'AuthenticationSuccessLogSchema',
     'type': 'object',
     'properties': {
-        'type': {'pattern': 'Authentication:success'},
+        'type': {'pattern': 'Authentication: ?success'},
         'sub': {'pattern': '00112233-4455-6677-8899-aabbccddeeff'},
         'user': {
             'type': 'object',
@@ -349,7 +349,7 @@ MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA = {
     "title": "MyMedicareCbCreateBeneLogSchema",
     "type": "object",
     "properties": {
-        "type": {"pattern": "mymedicare_cb:create_beneficiary_record"},
+        "type": {"pattern": "mymedicare_cb: ?create_beneficiary_record"},
         "status": {"pattern": "OK"},
         "username": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
         "fhir_id_v2": {"pattern": "-20140000008325"},
@@ -374,7 +374,7 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
     'title': 'MyMedicareCbGetUpdateBeneLogSchema',
     'type': 'object',
     'properties': {
-        'type': {'type': 'string', 'pattern': '^mymedicare_cb:get_and_update_user_(initial_auth|refresh)$'},
+        'type': {'type': 'string', 'pattern': '^mymedicare_cb: ?get_and_update_user_(initial_auth|refresh)$'},
         'status': {'type': 'string', 'pattern': '^OK$'},
         'subject': {
             'type': 'string',
