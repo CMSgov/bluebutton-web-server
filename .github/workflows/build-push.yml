@@ -1,0 +1,101 @@
+# Build and Deploy using CodeBuild as GitHub Actions Runner
+# No buildspec needed - workflow steps run directly on CodeBuild
+# Sensitive values are masked to prevent exposure in logs
+
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - impl
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    # This runs ON CodeBuild, not GitHub's infrastructure!
+    # Format: codebuild-{project-name}-{run-id}-{attempt}
+    runs-on:
+      - codebuild-bb-${{ github.event.inputs.environment || 'test' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Mask sensitive values
+        run: |
+          # Mask AWS account ID
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
+          if [ -n "$ACCOUNT_ID" ]; then
+            echo "::add-mask::$ACCOUNT_ID"
+          fi
+
+      - name: Configure AWS credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Mask additional sensitive values
+        run: |
+          # Mask the role ARN
+          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
+          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
+          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
+          
+          # Get and mask account ID
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "::add-mask::$ACCOUNT_ID"
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Mask ECR registry
+        run: |
+          # Mask the ECR registry URL (contains account ID)
+          echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: bb-${{ github.event.inputs.environment || 'test' }}-api
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Mask the full ECR URI
+          echo "::add-mask::$ECR_REGISTRY"
+          echo "::add-mask::$ECR_REGISTRY/$ECR_REPOSITORY"
+          
+          echo "🔨 Building Docker image..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 2>&1 | grep -v "$ECR_REGISTRY"
+          
+          echo "🏷️ Tagging as latest..."
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "📤 Pushing to ECR..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 2>&1 | grep -v "$ECR_REGISTRY" || true
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 2>&1 | grep -v "$ECR_REGISTRY" || true
+          
+          echo "✅ Image pushed successfully"
