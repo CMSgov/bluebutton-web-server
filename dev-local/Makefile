@@ -1,3 +1,5 @@
+SHELL:=/bin/bash
+
 all: build-local run-local
 
 build-local:
@@ -43,3 +45,9 @@ run-selenium:
 build-selenium:
 	@echo "Running Selenium: Local"
 	cd selenium && make build-local
+
+migrations:
+	RUN_MIGRATIONS=1 bfd=local auth=mock ./run-appropriate-stack.bash
+
+collectstatic:
+	COLLECTSTATIC=1 bfd=local auth=mock ./run-appropriate-stack.bash

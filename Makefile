@@ -36,3 +36,9 @@ generate:
 
 retrieve-certs:
 	cd dev-local ; make retrieve-certs ; cd ..
+
+migrations:
+	cd dev-local ;  make migrations ; cd ..
+
+collectstatic:
+	cd dev-local ; make migrations ; cd ..
