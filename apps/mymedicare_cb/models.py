@@ -111,7 +111,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         version_user_id_type = versioned_match_fhir_id_results[Versions.V2].lookup_type
 
     log_dict = {
-        'type': f'mymedicare_cb:get_and_update_user_{auth_type}',
+        'type': f'mymedicare_cb: get_and_update_user_{auth_type}',
         'subject': user_id,
         'fhir_id_v2': bfd_fhir_id_v2,
         'fhir_id_v3': bfd_fhir_id_v3,
@@ -302,7 +302,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     log_dict = {
-        'type': 'mymedicare_cb:create_beneficiary_record',
+        'type': 'mymedicare_cb: create_beneficiary_record',
         'username': slsx_client.user_id,
         'fhir_id_v2': fhir_id_v2,
         'fhir_id_v3': fhir_id_v3,

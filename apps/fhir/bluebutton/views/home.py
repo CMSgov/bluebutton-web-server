@@ -86,7 +86,11 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
     parsed_url = urlparse(fhir_url)
     call_to = None
     if parsed_url.path is not None:
-        call_to = f'{parsed_url.scheme}://{parsed_url.netloc}/v{version}/fhir/metadata'
+        call_to = '{scheme}://{netloc}/v{version}/fhir/metadata'.format(
+            scheme=parsed_url.scheme,
+            netloc=parsed_url.netloc,
+            version=version,
+        )
     else:
         # url with no path
         call_to = f'{fhir_url}/v{version}/fhir/metadata'
