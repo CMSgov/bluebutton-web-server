@@ -26,14 +26,43 @@ services:
     image: bb-local:latest
     platform: linux/amd64
     command: /code/dev-local/start-local.sh
+    read_only: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env.container
     volumes:
-      - ..:/code
-      - ~/.bb2/certstore:/certstore
+      - type: bind
+        source: ..
+        target: /code
+        read_only: true
+      - type: bind
+        source: ${BB2_CERTSTORE}
+        target: /certstore
+        read_only: true
     ports:
       - "8000:8000"
       - "5678:5678"
     depends_on:
       - db
       - msls
+
+  s3mock:
+    image: adobe/s3mock:latest
+    environment:
+      - COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS=django
+      - COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT=true
+      - COM_ADOBE_TESTING_S3MOCK_STORE_ROOT=/s3
+    volumes:
+      # If you want to see all of the files in the mock S3 instance,
+      # uncomment this line. This will mount the folder `local-s3` as the 
+      # location for all S3 files.
+      # - ./local-s3:/s3
+      #
+      # This line uses a volume, which is harder to browse/inspect. 
+      # But, it keeps the local tree clean.
+      - s3mock-data:/s3
+    ports:
+      - 9090:9090
+volumes:
+    s3mock-data:
