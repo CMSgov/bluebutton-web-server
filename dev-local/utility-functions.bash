@@ -177,80 +177,91 @@ retrieve_certs () {
         export PROFILE="slsx"
     fi
 
+    CERT="ca.cert.pem"
+    KEY="ca.key.nocrypt.pem"
+
 
     if [[ "${CERT_AND_SALT}" == "YES" ]]; then
-        echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
-        # We will (rudely) create a .bb2 directory in the user's homedir.
-        # Let's call that BB2_CONFIG_DIR
-        export BB2_CONFIG_DIR="${HOME}/.bb2"
-        mkdir -p "${BB2_CONFIG_DIR}"
-        # And, lets put the certs in their own subdir.
-        export BB2_CERTSTORE="${BB2_CONFIG_DIR}/certstore"
-        mkdir -p "${BB2_CERTSTORE}"
 
-        CERT="ca.cert.pem"
-        KEY="ca.key.nocrypt.pem"
+        if [ -z "${CA_CERT}" ] && [ -z "${CA_KEY}" ]; then
 
-        # Remove them first
-        echo "  Removing ${BB2_CERTSTORE}/$CERT"
-        rm -f "${BB2_CERTSTORE}/$CERT"
-        echo "  Removing ${BB2_CERTSTORE}/$KEY"
-        rm -f "${BB2_CERTSTORE}/$KEY"
+            echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
+            # We will (rudely) create a .bb2 directory in the user's homedir.
+            # Let's call that BB2_CONFIG_DIR
+            export BB2_CONFIG_DIR="${HOME}/.bb2"
+            mkdir -p "${BB2_CONFIG_DIR}"
 
-        if [[ ${bfd} == "prod" ]]; then
-            echo "  Fetching ${BB2_CERTSTORE}/$CERT"
-            aws secretsmanager get-secret-value \
-                --secret-id /bb2/prod/app/fhir_cert_pem \
-                --query 'SecretString' \
-                --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
-            
-            if [ $? -ne 0 ]; then
-                echo "⛔ Failed to retrieve cert. Exiting."
-                return -3
-            fi
+            # And, lets put the certs in their own subdir.
+            export BB2_CERTSTORE="${BB2_CONFIG_DIR}/certstore"
+            mkdir -p "${BB2_CERTSTORE}"
 
-            echo "  Fetching ${BB2_CERTSTORE}/$KEY"
-            aws secretsmanager get-secret-value \
-                --secret-id /bb2/prod/app/fhir_key_pem \
-                --query 'SecretString' \
-                --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
+            echo "${BB2_CERTSTORE}"
+            echo "  Removing ${BB2_CERTSTORE}/$CERT"
+            rm -f "${BB2_CERTSTORE}/$CERT"
+            echo "  Removing ${BB2_CERTSTORE}/$KEY"
+            rm -f "${BB2_CERTSTORE}/$KEY"
 
-            if [ $? -ne 0 ]; then 
-                echo "⛔ Failed to retrieve private key. Exiting."
-                return -4
+            if [[ ${bfd} == "prod" ]]; then
+                echo "  Fetching ${BB2_CERTSTORE}/$CERT"
+                aws secretsmanager get-secret-value \
+                    --secret-id /bb2/prod/app/fhir_cert_pem \
+                    --query 'SecretString' \
+                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
+                
+                if [ $? -ne 0 ]; then
+                    echo "⛔ Failed to retrieve cert. Exiting."
+                    return -3
+                fi
+
+                echo "  Fetching ${BB2_CERTSTORE}/$KEY"
+                aws secretsmanager get-secret-value \
+                    --secret-id /bb2/prod/app/fhir_key_pem \
+                    --query 'SecretString' \
+                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
+
+                if [ $? -ne 0 ]; then 
+                    echo "⛔ Failed to retrieve private key. Exiting."
+                    return -4
+                fi
+            else
+                echo "  Fetching ${BB2_CERTSTORE}/$CERT"
+                aws secretsmanager get-secret-value \
+                    --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
+                    --query 'SecretString' \
+                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
+                
+                if [ $? -ne 0 ]; then
+                    echo "⛔ Failed to retrieve cert. Exiting."
+                    return -3
+                fi
+
+                echo "  Fetching ${BB2_CERTSTORE}/$KEY"
+                aws secretsmanager get-secret-value \
+                    --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key${CERT_SUFFIX} \
+                    --query 'SecretString' \
+                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
+
+                if [ $? -ne 0 ]; then 
+                    echo "⛔ Failed to retrieve private key. Exiting."
+                    return -4
+                fi
             fi
         else
-            echo "  Fetching ${BB2_CERTSTORE}/$CERT"
-            aws secretsmanager get-secret-value \
-                --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
-                --query 'SecretString' \
-                --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
-            
-            if [ $? -ne 0 ]; then
-                echo "⛔ Failed to retrieve cert. Exiting."
-                return -3
-            fi
-
-            echo "  Fetching ${BB2_CERTSTORE}/$KEY"
-            aws secretsmanager get-secret-value \
-                --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key${CERT_SUFFIX} \
-                --query 'SecretString' \
-                --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
-
-            if [ $? -ne 0 ]; then 
-                echo "⛔ Failed to retrieve private key. Exiting."
-                return -4
-            fi
-        fi
+            echo "  ℹ️  CI/CD Pipeline. Using certificates from environment variables."
+        fi     
+        
+        echo ${BB2_CERTSTORE}
+        echo "${BB2_CERTSTORE}"
+        echo "${BB2_CERTSTORE}/${FILE}"
 
         # Check they really came down.
         declare -a cert_files=($CERT $KEY)
         for FILE in "${cert_files[@]}"; 
         do
             if [ -s "${BB2_CERTSTORE}/${FILE}" ]; then
-                echo "  🆗 '$FILE' exists."
+                echo "  🆗 ${BB2_CERTSTORE}/${FILE} exists."
             else
-                echo "  ⛔ '$FILE' does not exist."
+                echo "  ⛔ ${BB2_CERTSTORE}/${FILE} does not exist."
                 echo "  ⛔ Try exiting your 'kion' shell and re-authenticating."
                 return -5
             fi
