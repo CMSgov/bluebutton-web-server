@@ -338,7 +338,7 @@ Add below contents to `.vscode/launch.json`
             "request": "attach",
             "connect": {
                 "host": "0.0.0.0",
-                "port": 6789
+                "port": 5678
             },
             "pathMappings": [
                 {

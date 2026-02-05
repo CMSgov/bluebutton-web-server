@@ -11,15 +11,12 @@ socat TCP-LISTEN:9090,fork,reuseaddr TCP:host.docker.internal:9090 &
 
 if [ "${DB_MIGRATIONS}" = "true" ]
 then
-    
-    echo "🔵 running makemigrations"
-    python manage.py makemigrations
 
     echo "🔵 running migrations"
     python manage.py migrate
 
-    echo "🔵 running collectstatic"
-    python manage.py collectstatic --noinput
+    # echo "🔵 running collectstatic"
+    # python manage.py collectstatic --noinput >/dev/null 2>&1
 
     # We will recrate this with every launch.
     # echo "TRUNCATE authorization_archiveddataaccessgrant;" | psql "${DATABASES_CUSTOM}"
