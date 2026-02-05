@@ -1,0 +1,11 @@
+--container-architecture linux/amd64
+--container-options "--memory=8g"
+--rm
+-s AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+-s AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION"
+-s AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+-s AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN"
+-s CA_CERT=$(<~/.bb2/certstore/ca.cert.pem)
+-s CA_KEY=$(<~/.bb2/certstore/ca.key.nocrypt.pem)
+--var BB2_CERTSTORE=${HOME}/.bb2/certstore
+-s KION_ACCOUNT_ALIAS="1"

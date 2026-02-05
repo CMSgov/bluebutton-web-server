@@ -17,32 +17,24 @@ RUN apt-get update \
         libffi-dev \
         libssl-dev \
         postgresql-client \
-        python3-dev
+        python3-dev \
+        socat
+
+# Add in the codebase
+ADD .. /code
+WORKDIR /code
 
 # Set the local user for development
 # and mount the codebase at /code
 # Set this as the current/active path.
 RUN useradd -m -s /bin/bash DEV
 USER DEV
-ADD .. /code
-WORKDIR /code
 
+# Do the setup in a temporary venv
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip install --upgrade pip pip-tools setuptools
-
-# Trying to bring things through with vendor directory...
-# RUN pip install --no-deps cffi --find-links /code/vendor/
-# RUN pip install --no-deps markupsafe --find-links /code/vendor/
-# RUN pip install --no-deps newrelic --find-links /code/vendor/
-
-# THE NOW
-# RUN pip install \
-#     -r requirements/requirements.dev.txt \
-#     --no-index \
-#     --find-links /code/vendor/
-# RUN pip install wheel setuptools pip --upgrade
 
 # NEXT STEPS
 # https://pip.pypa.io/en/stable/topics/secure-installs/

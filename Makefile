@@ -33,3 +33,6 @@ run-selenium:
 
 generate:
 	cd requirements ; make generate ; cd ..
+
+retrieve-certs:
+	cd dev-local ; make retrieve-certs ; cd ..
