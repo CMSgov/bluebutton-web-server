@@ -22,5 +22,10 @@ RUN pip install --upgrade \
     pip \
     pip-tools \
     setuptools
-RUN python -m pip install --upgrade pip
+    
+# There is a problem in the interaction between pip v 25.3 and pip-compile, because
+# of how pip-compile uses some undocumented APIs in pip. We can track this/upgrade to pip 26.0
+# when things stabilize/work.
+# https://stackoverflow.com/questions/79802659/trying-to-solve-a-pip-compile-stack-trace-error
+RUN pip install -U 'pip<25.3'
 CMD ["/requirements/generate.bash"]

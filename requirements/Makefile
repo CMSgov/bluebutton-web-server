@@ -7,6 +7,7 @@ build:
 
 generate: clean build
 	docker run \
+		--platform "linux/amd64" \
 		-v ./generate.bash:/requirements/generate.bash \
 		-v ../vendor:/vendor \
 		-v .:/output \
