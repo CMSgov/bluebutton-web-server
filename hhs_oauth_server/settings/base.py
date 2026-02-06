@@ -313,8 +313,7 @@ MIDDLEWARE = [
     "axes.middleware.AxesMiddleware",
 ]
 
-CORS_ORIGIN_ALLOW_ALL = bool_env(os.getenv("CORS_ORIGIN_ALLOW_ALL"))
-print("CORS_ORIGIN_ALLOW_ALL check: ", CORS_ORIGIN_ALLOW_ALL, type(CORS_ORIGIN_ALLOW_ALL))
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "hhs_oauth_server.urls"
 
@@ -407,7 +406,7 @@ DEFAULT_ADMIN_EMAIL = os.getenv("DJANGO_ADMIN_EMAIL", "change-me@example.com")
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = "django.core.mail.backends.console.EmailBackend"
-EMAIL_BACKEND = os.getenv("DJANGO_EMAIL_BACKEND", EMAIL_BACKEND_DEFAULT)
+EMAIL_BACKEND = os.getenv("DJANGO_EMAIL_BACKEND")
 EMAIL_HOST = os.getenv("DJANGO_EMAIL_HOST", "email-smtp.us-east-1.amazonaws.com")
 # SES PORT options: 25, 465, 587, 2465 or 2587.
 # Port 25 is throttled
@@ -709,7 +708,7 @@ REQUEST_CALL_TIMEOUT = (30, 120)
 # this can be over-ridden in aws-{os.getenv}.py file to set values per environment
 REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 
-SIGNUP_TIMEOUT_DAYS = os.getenv("SIGNUP_TIMEOUT_DAYS", 7)
+SIGNUP_TIMEOUT_DAYS = 7
 ORGANIZATION_NAME = "CMS Medicare Blue Button"
 
 LOGIN_REDIRECT_URL = "/"
@@ -766,10 +765,10 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # Change these for production
-USER_ID_SALT = os.getenv("DJANGO_USER_ID_SALT", "6E6F747468657265616C706570706572")
+USER_ID_SALT = os.getenv("DJANGO_USER_ID_SALT")
 
 # Check type for cases where this is an INT in local development
-iterations = os.getenv("DJANGO_USER_ID_ITERATIONS", None)
+iterations = os.getenv("DJANGO_USER_ID_ITERATIONS")
 if iterations:
     if isinstance(iterations, int):
         USER_ID_ITERATIONS = iterations
@@ -782,8 +781,8 @@ else:
 USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
 
 USER_ID_TYPE_DEFAULT = "H"
-DEFAULT_SAMPLE_FHIR_ID_V2 = os.getenv("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V2", "-20140000008325")
-DEFAULT_SAMPLE_FHIR_ID_V3 = os.getenv("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V3", "-30250000008325")
+DEFAULT_SAMPLE_FHIR_ID_V2 = os.getenv("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V2")
+DEFAULT_SAMPLE_FHIR_ID_V3 = os.getenv("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V3")
 TESTCLIENT_REDIRECT_URI = "/testclient/callback"
 
 OFFLINE = False
