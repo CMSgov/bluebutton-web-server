@@ -37,8 +37,8 @@ generate:
 retrieve-certs:
 	cd dev-local ; make retrieve-certs ; cd ..
 
-migrations:
-	cd dev-local ;  make migrations ; cd ..
+migrate:
+	cd dev-local ;  make migrate ; cd ..
 
 collectstatic:
-	cd dev-local ; make migrations ; cd ..
+	cd dev-local ; make collectstatic ; cd ..

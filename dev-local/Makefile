@@ -46,8 +46,8 @@ build-selenium:
 	@echo "Running Selenium: Local"
 	cd selenium && make build-local
 
-migrations:
-	RUN_MIGRATIONS=1 bfd=local auth=mock ./run-appropriate-stack.bash
+migrate:
+	MIGRATE=1 bfd=local auth=mock ./run-appropriate-stack.bash
 
 collectstatic:
 	COLLECTSTATIC=1 bfd=local auth=mock ./run-appropriate-stack.bash

@@ -19,7 +19,7 @@ make build-local
 On a first run, after removing volumes, or after altering models:
 
 ```
-make migrations
+make migrate
 ```
 
 On a first run, to generate static assets, or after changing CSS:
@@ -40,6 +40,22 @@ or maybe
 make run-local bfd=sbx auth=live
 ```
 
+
+## handling migrations
+
+After altering models, log into a running stack (e.g. `docker exec`) and run
+
+```
+python manage.py makemigrations
+```
+
+This will generate the migrations file. If you then want to apply those, run
+
+```
+make migrate
+```
+
+to run the Makefile target that stands up the stack and runs `python manage.py migrate`.
 
 ## pre-requisites
 

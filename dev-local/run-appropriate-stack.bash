@@ -53,7 +53,7 @@ if [[ "${daemon}" == "1" ]]; then
     -f docker-compose-local.yaml \
     up \
     --detach
-elif [[ "${RUN_MIGRATIONS}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
+elif [[ "${MIGRATE}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
     echo "📊 Tailing logs."
     echo
     docker compose \

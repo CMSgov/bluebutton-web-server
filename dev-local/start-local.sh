@@ -12,11 +12,11 @@ socat TCP-LISTEN:9090,fork,reuseaddr TCP:host.docker.internal:9090 &
 # We exit the stack if we're running migrations
 # or collecting static files. These are run-and-quit
 # actions. They have their own make targets locally.
-if [ "${RUN_MIGRATIONS}" = "1" ]
+if [ "${MIGRATE}" = "1" ]
 then
-    echo "🔵 running migrations"
+    echo "🔵 running migrate"
     python manage.py migrate
-    echo "🔵 done running migrations ; bring down the stack"
+    echo "🔵 done running migrate ; bring down the stack"
     exit 0
 fi
 
