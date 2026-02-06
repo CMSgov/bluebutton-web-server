@@ -102,8 +102,7 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
 
     if r.status_code >= 300:
         logger.debug(f'We have an error code to deal with: {r.status_code}')
-        return HttpResponse(json.dumps(r._content),
-                            status=r.status_code,
+        return HttpResponse(json.dumps(r._content), status=r.status_code,
                             content_type='application/json')
 
     text_in = get_response_text(fhir_response=r)
