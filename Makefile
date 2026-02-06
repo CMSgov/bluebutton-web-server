@@ -41,4 +41,4 @@ migrations:
 	cd dev-local ;  make migrations ; cd ..
 
 collectstatic:
-	cd dev-local ; make migrations ; cd ..
+	cd dev-local ; make collectstatic ; cd ..
