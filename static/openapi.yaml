@@ -835,6 +835,34 @@ paths:
           description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
       tags:
         - v2
+  /v2/o/introspect/:
+    post:
+      operationId: introspect_v2
+      description: "Returns information about a given token"
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/token_introspection'
+              examples:
+                valid_token:
+                  $ref: '#/components/examples/token_introspection'
+                inactive_token:
+                  $ref: '#/components/examples/expired_token'
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/token_introspection'
+              examples:
+                valid_token:
+                  $ref: '#/components/examples/token_introspection'
+                inactive_token:
+                  $ref: '#/components/examples/expired_token'
+          description: "a valid token reponse"
+        '403':
+          description: "Not authorized to use the introspect endpoint (requires introspect scope)"
+      tags:
+        - v2
 
 ########## V1 Endpoints ##########
   /v1/connect/.well-known/openid-configuration:
