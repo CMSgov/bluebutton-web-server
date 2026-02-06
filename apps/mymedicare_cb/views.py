@@ -193,7 +193,7 @@ def generate_nonce(length=26):
 def mymedicare_login(request):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
-    env = os.environ.get('TARGET_ENV')
+    env = os.getenv('TARGET_ENV')
     max_retries = 3
     retries = 0
 

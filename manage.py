@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 
 if __name__ == "__main__":
-    if os.environ.get('DJANGO_DOTENV_FILE', None):
-        load_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
+    if os.getenv('DJANGO_DOTENV_FILE', None):
+        load_dotenv(os.getenv('DJANGO_DOTENV_FILE'))
     else:
         load_dotenv()
 

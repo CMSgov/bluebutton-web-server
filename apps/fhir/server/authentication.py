@@ -90,7 +90,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
 
     max_retries = 3
     retries = 0
-    env = os.environ.get('TARGET_ENV')
+    env = os.getenv('TARGET_ENV')
     while retries <= max_retries:
         try:
             s = requests.Session()

@@ -31,8 +31,8 @@ OAUTH2_PROVIDER = {
 
 CACHES = {
     'default': {
-        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
-        'LOCATION': os.environ.get('CACHE_LOCATION', 'unique-snowflake'),
+        'BACKEND': os.getenv('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.getenv('CACHE_LOCATION', 'unique-snowflake'),
     },
     'axes_cache': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',

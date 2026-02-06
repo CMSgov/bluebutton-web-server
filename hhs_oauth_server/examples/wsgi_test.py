@@ -26,7 +26,7 @@ print("sys.modules.has_key('hhs_oauth_server') =", sys.modules.has_key('mysite')
 if sys.modules.has_key('hhs_oauth_server'):
     print("sys.modules['hhs_oauth_server'].__name__ =", sys.modules['mysite'].__name__)
     print("sys.modules['hhs_oauth_server'].__file__ =", sys.modules['mysite'].__file__)
-    print("os.environ['DJANGO_SETTINGS_MODULE'] =", os.environ.get('DJANGO_SETTINGS_MODULE', None))
+    print("os.getenv['DJANGO_SETTINGS_MODULE'] =", os.getenv('DJANGO_SETTINGS_MODULE', None))
 
 
 DEBUG = True
