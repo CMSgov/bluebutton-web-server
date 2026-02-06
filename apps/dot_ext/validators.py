@@ -66,13 +66,13 @@ def validate_logo_image(value):
     if not file_extension.lower() in ['.jpg', '.jpeg', '.png']:
         raise ValidationError('The file type must be JPEG, JPG, or PNG with a .jpg, .jpeg, or .png file extension!')
 
-    if value.size > int(settings.APP_LOGO_SIZE_MAX) * 1024:
+    if value.size > settings.APP_LOGO_SIZE_MAX * 1024:
         raise ValidationError(
             "Max file size is %sKB. Your file size is %0.1fKB"
             % (str(settings.APP_LOGO_SIZE_MAX), value.size / 1024)
         )
 
-    if value.image.width > int(settings.APP_LOGO_WIDTH_MAX):
+    if value.image.width > settings.APP_LOGO_WIDTH_MAX:
         raise ValidationError(
             "Max image width is %s. Your image width is %s."
             % (str(settings.APP_LOGO_WIDTH_MAX), str(value.image.width))

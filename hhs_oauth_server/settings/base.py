@@ -205,7 +205,7 @@ PASSWORD_RULES = [
 
 PASSWORD_HASH_ITERATIONS = int(os.getenv("DJANGO_PASSWORD_HASH_ITERATIONS"))
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
+ALLOWED_HOSTS = ["*", socket.gethostname()]
 
 # 20251029 NOTE: Setting this to `False` may disable all
 # CSS styling in the application when working locally.
@@ -268,6 +268,12 @@ INSTALLED_APPS += DEV_SPECIFIC_APPS
 
 if os.getenv("ENV_SPECIFIC_APPS"):
     INSTALLED_APPS += os.getenv("ENV_SPECIFIC_APPS")
+
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_RATES": {
+        "token": os.getenv("TOKEN_THROTTLE_RATE"),
+    },
+}
 
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
@@ -341,10 +347,8 @@ WSGI_APPLICATION = "hhs_oauth_server.wsgi.application"
 
 CACHES = {
     "default": {
-        "BACKEND": os.getenv(
-            "CACHE_BACKEND", "django.core.cache.backends.db.DatabaseCache"
-        ),
-        "LOCATION": os.getenv("CACHE_LOCATION", "django_cache"),
+        "BACKEND": os.getenv("CACHE_BACKEND"),
+        "LOCATION": os.getenv("CACHE_LOCATION"),
     },
 }
 
@@ -384,7 +388,7 @@ USE_I18N = True
 USE_TZ = True
 
 # static files and media
-ASSETS_ROOT = os.getenv("DJANGO_ASSETS_ROOT", BASE_DIR)
+ASSETS_ROOT = os.getenv("DJANGO_ASSETS_ROOT")
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
 
@@ -504,7 +508,7 @@ LOGGING = os.getenv(
 )
 
 # Option for local development to pretty print/format JSON logging
-LOG_JSON_FORMAT_PRETTY = os.getenv("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
+LOG_JSON_FORMAT_PRETTY = bool_env(os.getenv("DJANGO_LOG_JSON_FORMAT_PRETTY"))
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
@@ -572,12 +576,11 @@ TAG_LINE_2 = os.getenv(
     "DJANGO_TAG_LINE_2", "with applications, organizations, and people you trust."
 )
 EXPLAINATION_LINE = "This service allows Medicare beneficiaries to connect their health data to applications of their choosing."
-EXPLAINATION_LINE = os.getenv("DJANGO_EXPLAINATION_LINE ", EXPLAINATION_LINE)
 
 # Application model settings
-APP_LOGO_SIZE_MAX = os.getenv("DJANGO_APP_LOGO_SIZE_MAX", "100")
-APP_LOGO_WIDTH_MAX = os.getenv("DJANGO_APP_LOGO_WIDTH_MAX", "512")
-APP_LOGO_HEIGHT_MAX = os.getenv("DJANGO_APP_LOGO_HEIGHT_MAX", "512")
+APP_LOGO_SIZE_MAX = 100
+APP_LOGO_WIDTH_MAX = 512
+APP_LOGO_HEIGHT_MAX = 512
 
 # Application label slugs to exclude from externally
 # published lists, like those used for internal use testing.
@@ -587,18 +590,16 @@ APP_LIST_EXCLUDE = os.getenv("DJANGO_APP_LIST_EXCLUDE", ["internal-use"])
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
 DEVELOPER_DOCS_TITLE = "Documentation"
 
-DEFAULT_DISCLOSURE_TEXT = """
+DISCLOSURE_TEXT = """
     This system is provided for use by 3rd party application developers
     to register a beneficiary-facing application.  See the documentation
     for more information on proper use. Unauthorized or improper use of this
     system or its data may result in disciplinary action, as well as civil
     and criminal penalties. This system may be monitored, recorded and
     subject to audit.
-    """
+"""
 
-DISCLOSURE_TEXT = os.getenv("DJANGO_PRIVACY_POLICY_URI", DEFAULT_DISCLOSURE_TEXT)
-
-HOSTNAME_URL = os.getenv("HOSTNAME_URL", "http://localhost:8000")
+HOSTNAME_URL = os.getenv("HOSTNAME_URL")
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = "utf-8"
@@ -653,20 +654,20 @@ APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
 
 FHIR_CLIENT_CERTSTORE = os.getenv(
     "DJANGO_FHIR_CERTSTORE",
-    os.path.join(BASE_DIR, os.getenv("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
+    os.path.join(BASE_DIR, os.getenv("DJANGO_FHIR_CERTSTORE_REL")),
 )
 
 FHIR_SERVER = {
     # Strip trailing '/' from all URLs. We expect hostnames/paths to *not* have a trailing slash
     # throughout the codebase. Allowing a '/' through at the end here will create many situations where
     # URLs have a "//" embedded within them, and may cause problems for tests and other substring matches.
-    "FHIR_URL": os.getenv("FHIR_URL", "https://invalid_fhir_url.gov").rstrip("/"),
-    "FHIR_URL_V3": os.getenv("FHIR_URL_V3", "https://invalid_fhir_url_v3.gov").rstrip("/"),
+    "FHIR_URL": os.getenv("FHIR_URL").rstrip("/"),
+    "FHIR_URL_V3": os.getenv("FHIR_URL_V3").rstrip("/"),
     "CERT_FILE": os.path.join(
-        FHIR_CLIENT_CERTSTORE, os.getenv("FHIR_CERT_FILE", "ca.cert.pem")
+        FHIR_CLIENT_CERTSTORE, os.getenv("FHIR_CERT_FILE")
     ),
     "KEY_FILE": os.path.join(
-        FHIR_CLIENT_CERTSTORE, os.getenv("FHIR_KEY_FILE", "ca.key.nocrypt.pem")
+        FHIR_CLIENT_CERTSTORE, os.getenv("FHIR_KEY_FILE")
     ),
     "CLIENT_AUTH": True,
 }
@@ -751,8 +752,8 @@ SLSX_USERINFO_ENDPOINT = os.getenv(
 )
 
 # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
-SLSX_VERIFY_SSL_INTERNAL = os.getenv("DJANGO_SLSX_VERIFY_SSL_INTERNAL", False)
-SLSX_VERIFY_SSL_EXTERNAL = os.getenv("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", False)
+SLSX_VERIFY_SSL_INTERNAL = bool_env(os.getenv("DJANGO_SLSX_VERIFY_SSL_INTERNAL"))
+SLSX_VERIFY_SSL_EXTERNAL = bool_env(os.getenv("DJANGO_SLSX_VERIFY_SSL_EXTERNAL"))
 
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"

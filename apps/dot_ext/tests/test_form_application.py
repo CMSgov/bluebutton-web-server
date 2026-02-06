@@ -134,8 +134,8 @@ class TestRegisterApplicationForm(BaseApiTest):
 
         # Testing valid logo_image with max dimensions
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
-                          int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new('RGB', size=(settings.APP_LOGO_WIDTH_MAX,
+                          settings.APP_LOGO_HEIGHT_MAX), color='red')
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(
@@ -149,8 +149,8 @@ class TestRegisterApplicationForm(BaseApiTest):
 
         # Testing logo_image exceeding max width
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1,
-                          int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new('RGB', size=(settings.APP_LOGO_WIDTH_MAX + 1,
+                          settings.APP_LOGO_HEIGHT_MAX), color='red')
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(
@@ -168,8 +168,8 @@ class TestRegisterApplicationForm(BaseApiTest):
 
         # Testing logo_image exceeding max height
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
-                          int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red')
+        image = Image.new('RGB', size=(settings.APP_LOGO_WIDTH_MAX,
+                          settings.APP_LOGO_HEIGHT_MAX + 1), color='red')
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(
@@ -348,8 +348,8 @@ class TestRegisterApplicationForm(BaseApiTest):
     #     self.assertIsNotNone(file_name)
     #     self.assertIsNotNone(color)
     #     logo_file = BytesIO()
-    #     image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
-    #                       int(settings.APP_LOGO_HEIGHT_MAX)), color=color)
+    #     image = Image.new('RGB', size=(settings.APP_LOGO_WIDTH_MAX,
+    #                       settings.APP_LOGO_HEIGHT_MAX), color=color)
     #     image.save(logo_file, 'jpeg')
     #     logo_file.seek(0)
     #     image = InMemoryUploadedFile(
