@@ -10,11 +10,25 @@ These tools assume you are a developer working on the project, and have access t
 
 ## TL;DR
 
+To build the images (necessary after any library changes):
+
 ```
 make build-local
 ```
 
-And then
+On a first run, after removing volumes, or after altering models:
+
+```
+make migrations
+```
+
+On a first run, to generate static assets, or after changing CSS:
+
+```
+make collectstatic
+```
+
+Then, your typical day-to-day:
 
 ```
 make run-local bfd=test auth=live daemon=1
