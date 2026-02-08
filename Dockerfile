@@ -9,7 +9,8 @@ WORKDIR /code
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install --upgrade pip pip-tools setuptools
+RUN pip install pip==25.3
+RUN pip install pip-tools setuptools
 RUN pip install \
     --require-hashes \
     --no-deps \
