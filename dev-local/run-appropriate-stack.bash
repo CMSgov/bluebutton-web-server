@@ -53,6 +53,13 @@ if [[ "${daemon}" == "1" ]]; then
     -f docker-compose-local.yaml \
     up \
     --detach
+elif [[ "${MIGRATE}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
+    echo "📊 Tailing logs."
+    echo
+    docker compose \
+        -f docker-compose-local.yaml \
+        up --abort-on-container-exit
+    docker compose down
 else
     echo "📊 Tailing logs."
     echo

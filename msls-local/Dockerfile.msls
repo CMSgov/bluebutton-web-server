@@ -6,7 +6,7 @@ ENV PYTHON_VERSION=3.12
 WORKDIR /code
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
+RUN pip install --no-cache-dir pip==25.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir debugpy
 
