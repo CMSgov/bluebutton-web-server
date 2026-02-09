@@ -53,3 +53,4 @@ typing_extensions == 4.15.0
 urllib3 == 2.6.3
 voluptuous == 0.13.1
 zipp == 3.19.2
+gunicorn == 25.0.3

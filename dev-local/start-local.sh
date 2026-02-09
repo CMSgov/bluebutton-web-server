@@ -57,7 +57,7 @@ echo "🆗 create_user_identification_label_selection"
 if [ "${TEST}" != "" ];
 then
     echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach for a single test..."
-    python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client runtests.py ${TEST}
+    gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 3 --timeout 120 --reload
     exit
 fi
 
@@ -66,12 +66,12 @@ then
     if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ];
     then
         echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach..."
-        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
+        gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 3 --timeout 120 --reload
     else
         echo "🐛 Start bluebutton server with debugging, no waiting"
-        python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 ${TEST}
+        gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 3 --timeout 120 --reload
     fi
 else
         echo "🔵 Start bluebutton server"
-        python3 manage.py runserver 0.0.0.0:8000
+        gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 3 --timeout 120 --reload
 fi
