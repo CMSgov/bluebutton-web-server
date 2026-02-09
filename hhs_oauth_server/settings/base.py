@@ -404,21 +404,22 @@ STATICFILES_DIRS = [
 WAFFLE_FLAG_MODEL = "core.Flag"
 
 # emails
-DEFAULT_FROM_EMAIL = os.getenv("DJANGO_FROM_EMAIL", "change-me@example.com")
-DEFAULT_ADMIN_EMAIL = os.getenv("DJANGO_ADMIN_EMAIL", "change-me@example.com")
+DEFAULT_FROM_EMAIL = os.getenv("DJANGO_FROM_EMAIL")
+DEFAULT_ADMIN_EMAIL = os.getenv("DJANGO_ADMIN_EMAIL")
 
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = "django.core.mail.backends.console.EmailBackend"
 EMAIL_BACKEND = os.getenv("DJANGO_EMAIL_BACKEND")
-EMAIL_HOST = os.getenv("DJANGO_EMAIL_HOST", "email-smtp.us-east-1.amazonaws.com")
+EMAIL_HOST = os.getenv("DJANGO_EMAIL_HOST")
 # SES PORT options: 25, 465, 587, 2465 or 2587.
 # Port 25 is throttled
 # Use port 587 or 2587 for TLS connections
 # Use port 465 or 2465 for Native SSL support
-EMAIL_PORT = int_env(os.getenv("DJANGO_EMAIL_PORT", 587))
-EMAIL_USE_TLS = bool_env(os.getenv("DJANGO_EMAIL_USE_TLS", "True"))
-EMAIL_USE_SSL = bool_env(os.getenv("DJANGO_EMAIL_USE_SSL", "False"))
+EMAIL_PORT = int_env(os.getenv("DJANGO_EMAIL_PORT"))
+EMAIL_USE_TLS = bool_env(os.getenv("DJANGO_EMAIL_USE_TLS"))
+EMAIL_USE_SSL = bool_env(os.getenv("DJANGO_EMAIL_USE_SSL"))
+# Unclear if we need any of these, none of them are referenced outside of this file
 EMAIL_TIMEOUT = os.getenv("DJANGO_EMAIL_TIMEOUT", None)
 EMAIL_HOST_USER = os.getenv("DJANGO_EMAIL_HOST_USER", None)
 EMAIL_HOST_PASSWORD = os.getenv("DJANGO_EMAIL_HOST_PASSWORD", None)
@@ -426,86 +427,83 @@ EMAIL_SSL_KEYFILE = os.getenv("DJANGO_EMAIL_SSL_KEYFILE", None)
 EMAIL_SSL_CERTFILE = os.getenv("DJANGO_EMAIL_SSL_CERTFILE", None)
 
 # Use os.getenv-specific logging config if present
-LOGGING = os.getenv(
-    "DJANGO_LOGGING",
-    {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "verbose": {
-                "format": "%(asctime)s %(levelname)s "
-                "[%(process)d] %(name)s line:%(lineno)d %(message)s"
-            },
-            "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
-            "jsonout": {
-                "format": '{"os.getenv": "'
-                + os.getenv("TARGET_ENV", "DEV")
-                + '", "time": "%(asctime)s", "level": "%(levelname)s", '
-                '"name": "%(name)s", "message": "%(message)s"}',
-                "datefmt": "%Y-%m-%d %H:%M:%S",
-            },
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s "
+            "[%(process)d] %(name)s line:%(lineno)d %(message)s"
         },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "verbose",
-                "filters": [SENSITIVE_DATA_FILTER],
-            }
-        },
-        "filters": {
-            "sensitive_data_filter": {
-                "()": SensitiveDataFilter,
-            }
-        },
-        "loggers": {
-            # handy for sql trouble shooting
-            # 'django.db.backends': {
-            #     'level': 'DEBUG',
-            #     'handlers': ['console'],
-            # },
-            "hhs_server": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-            "hhs_oauth_server.accounts": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-            "oauth2_provider": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "oauthlib": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "unsuccessful_logins": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "admin_interface": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "tests": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-            "audit": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "performance": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            'django': {
-                'handlers': ['console'],
-                'level': 'INFO',
-            },
+        "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
+        "jsonout": {
+            "format": '{"os.getenv": "'
+            + os.getenv("TARGET_ENV", "DEV")
+            + '", "time": "%(asctime)s", "level": "%(levelname)s", '
+            '"name": "%(name)s", "message": "%(message)s"}',
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
-)
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+            "filters": [SENSITIVE_DATA_FILTER],
+        }
+    },
+    "filters": {
+        "sensitive_data_filter": {
+            "()": SensitiveDataFilter,
+        }
+    },
+    "loggers": {
+        # handy for sql trouble shooting
+        # 'django.db.backends': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console'],
+        # },
+        "hhs_server": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+        "hhs_oauth_server.accounts": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+        "oauth2_provider": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "oauthlib": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "unsuccessful_logins": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "admin_interface": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "tests": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+        "audit": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        "performance": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
 
 # Option for local development to pretty print/format JSON logging
 LOG_JSON_FORMAT_PRETTY = bool_env(os.getenv("DJANGO_LOG_JSON_FORMAT_PRETTY"))
@@ -558,23 +556,16 @@ BENE_PERSONAL_INFO_SCOPES = [
 THEME = THEMES[THEME_SELECTED]
 
 
-APPLICATION_TITLE = os.getenv("DJANGO_APPLICATION_TITLE", "Blue Button 2.0")
-ORGANIZATION_TITLE = os.getenv(
-    "DJANGO_ORGANIZATION_TITLE",
-    "The U.S. Centers for Medicare & Medicaid Services (CMS)",
-)
-ORGANIZATION_URI = os.getenv("DJANGO_ORGANIZATION_URI", "https://cms.gov")
-POLICY_URI = os.getenv(
-    "DJANGO_POLICY_URI",
-    "https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html",
-)
-POLICY_TITLE = os.getenv("DJANGO_POLICY_TITLE", "Privacy Policy")
-TOS_URI = os.getenv("DJANGO_TOS_URI", "https://bluebutton.cms.gov/terms")
-TOS_TITLE = os.getenv("DJANGO_TOS_TITLE", "Terms of Service")
-TAG_LINE_1 = os.getenv("DJANGO_TAG_LINE_1", "Share your Medicare data")
-TAG_LINE_2 = os.getenv(
-    "DJANGO_TAG_LINE_2", "with applications, organizations, and people you trust."
-)
+APPLICATION_TITLE = os.getenv("DJANGO_APPLICATION_TITLE")
+ORGANIZATION_TITLE = os.getenv("DJANGO_ORGANIZATION_TITLE")
+# No references in codebase for ORGANIZATION_URI
+ORGANIZATION_URI = os.getenv("DJANGO_ORGANIZATION_URI")
+POLICY_URI = os.getenv("DJANGO_POLICY_URI")
+POLICY_TITLE = "Privacy Policy"
+TOS_URI = os.getenv("DJANGO_TOS_URI")
+TOS_TITLE = "Terms of Service"
+TAG_LINE_1 = os.getenv("DJANGO_TAG_LINE_1")
+TAG_LINE_2 = os.getenv("DJANGO_TAG_LINE_2")
 EXPLAINATION_LINE = "This service allows Medicare beneficiaries to connect their health data to applications of their choosing."
 
 # Application model settings
@@ -584,7 +575,7 @@ APP_LOGO_HEIGHT_MAX = 512
 
 # Application label slugs to exclude from externally
 # published lists, like those used for internal use testing.
-APP_LIST_EXCLUDE = os.getenv("DJANGO_APP_LIST_EXCLUDE", ["internal-use"])
+APP_LIST_EXCLUDE = ["internal-use"]
 
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
@@ -605,7 +596,7 @@ HOSTNAME_URL = os.getenv("HOSTNAME_URL")
 ENCODING = "utf-8"
 
 SESSION_COOKIE_AGE = 5400
-SESSION_COOKIE_SECURE = os.getenv("DJANGO_SECURE_SESSION", True)
+SESSION_COOKIE_SECURE = os.getenv("DJANGO_SECURE_SESSION")
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 APPLICATION_TEMPORARILY_INACTIVE = (
@@ -730,26 +721,13 @@ SLSX_CLIENT_SECRET = os.getenv("DJANGO_SLSX_CLIENT_SECRET")
 # ACA token for SLSX_TOKEN_ENDPOINT
 MEDICARE_SLSX_AKAMAI_ACA_TOKEN = os.getenv("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", "")
 
-MEDICARE_SLSX_REDIRECT_URI = os.getenv(
-    "DJANGO_MEDICARE_SLSX_REDIRECT_URI", "http://localhost:8000/mymedicare/sls-callback"
-)
+MEDICARE_SLSX_REDIRECT_URI = os.getenv("DJANGO_MEDICARE_SLSX_REDIRECT_URI")
 
-MEDICARE_SLSX_LOGIN_URI = os.getenv(
-    "DJANGO_MEDICARE_SLSX_LOGIN_URI",
-    "https://test.medicare.gov/sso/authorize?client_id=bb2api",
-)
-SLSX_HEALTH_CHECK_ENDPOINT = os.getenv(
-    "DJANGO_SLSX_HEALTH_CHECK_ENDPOINT", "https://test.accounts.cms.gov/health"
-)
-SLSX_TOKEN_ENDPOINT = os.getenv(
-    "DJANGO_SLSX_TOKEN_ENDPOINT", "https://test.medicare.gov/sso/session"
-)
-SLSX_SIGNOUT_ENDPOINT = os.getenv(
-    "DJANGO_SLSX_SIGNOUT_ENDPOINT", "https://test.medicare.gov/sso/signout"
-)
-SLSX_USERINFO_ENDPOINT = os.getenv(
-    "DJANGO_SLSX_USERINFO_ENDPOINT", "https://test.accounts.cms.gov/v1/users"
-)
+MEDICARE_SLSX_LOGIN_URI = os.getenv("DJANGO_MEDICARE_SLSX_LOGIN_URI")
+SLSX_HEALTH_CHECK_ENDPOINT = os.getenv("DJANGO_SLSX_HEALTH_CHECK_ENDPOINT")
+SLSX_TOKEN_ENDPOINT = os.getenv("DJANGO_SLSX_TOKEN_ENDPOINT")
+SLSX_SIGNOUT_ENDPOINT = os.getenv("DJANGO_SLSX_SIGNOUT_ENDPOINT")
+SLSX_USERINFO_ENDPOINT = os.getenv("DJANGO_SLSX_USERINFO_ENDPOINT")
 
 # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
 SLSX_VERIFY_SSL_INTERNAL = bool_env(os.getenv("DJANGO_SLSX_VERIFY_SSL_INTERNAL"))
