@@ -18,14 +18,8 @@ WORKDIR /requirements
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install --upgrade \
-    pip \
+RUN pip install pip==25.3
+RUN pip install \
     pip-tools \
     setuptools
-    
-# There is a problem in the interaction between pip v 25.3 and pip-compile, because
-# of how pip-compile uses some undocumented APIs in pip. We can track this/upgrade to pip 26.0
-# when things stabilize/work.
-# https://stackoverflow.com/questions/79802659/trying-to-solve-a-pip-compile-stack-trace-error
-RUN pip install -U 'pip<25.3'
 CMD ["/requirements/generate.bash"]
