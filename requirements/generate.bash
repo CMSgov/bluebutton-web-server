@@ -3,7 +3,7 @@
 python --version
 echo $PYTHON_VERSION
 
-echo Generating requriements.txt
+echo Generating requirements.txt
 pip-compile --generate-hashes \
     --output-file=/output/requirements.txt \
     /requirements/requirements.in

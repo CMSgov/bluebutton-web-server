@@ -18,9 +18,8 @@ WORKDIR /requirements
 RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install --upgrade \
-    pip \
+RUN pip install pip==25.3
+RUN pip install \
     pip-tools \
     setuptools
-RUN python -m pip install --upgrade pip
 CMD ["/requirements/generate.bash"]
