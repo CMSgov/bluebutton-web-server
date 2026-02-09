@@ -323,7 +323,7 @@ class SeleniumGenericTests():
 
                 if action is not None:
                     display_msg = s.get('display', 'Not available')
-                    print(f"\n{'─'*80}")
+                    print(f"\n{'─' * 80}")
                     print(f'{step[0]}:{display_msg}')
                     try:
                         if action == Action.LOGIN:
