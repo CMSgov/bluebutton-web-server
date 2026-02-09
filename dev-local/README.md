@@ -13,6 +13,10 @@ These tools assume you are a developer working on the project, and have access t
 To build the images (necessary after any library changes):
 
 ```
+make generate
+```
+
+```
 make build-local
 ```
 
