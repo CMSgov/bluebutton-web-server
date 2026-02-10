@@ -73,6 +73,5 @@ then
     fi
 else
         echo "🔵 Start bluebutton server"
-        # python3 manage.py runserver 0.0.0.0:8000
         gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 4 --timeout 120 --reload --log-level debug
 fi
