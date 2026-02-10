@@ -20,6 +20,7 @@
 HOSTNAME_URL="http://localhost:8000"
 
 DJANGO_FHIR_CERTSTORE="/certstore"
+DJANGO_SECRET_KEY="replace-me-with-real-secret"
 CERTSTORE_TEMPORARY_MOUNT_PATH="/tmp/certstore"
 
 DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
