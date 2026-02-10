@@ -378,9 +378,9 @@ djangorestframework-csv==3.0.0 \
     --hash=sha256:46b39864f68cf42e7357a8be6109a85d484be52d6d8720bfac5e62163ec1a300 \
     --hash=sha256:d6b2ee9a5fc62f98f6f4af241928836e2a2efab384d33def8ec722f9301602bf
     # via -r /requirements/requirements.in
-flake8==6.0.0 \
-    --hash=sha256:3833794e27ff64ea4e9cf5d410082a8b97ff1a06c16aa3d2027339cd0f1195c7 \
-    --hash=sha256:c61007e76655af75e6785a931f452915b371dc48f56efd765247c8fe68f2b181
+flake8==6.1.0 \
+    --hash=sha256:d5b3857f07c030bdb5bf41c7f53799571d75c4491748a3adcd47de929e34cd23 \
+    --hash=sha256:ffdfce58ea94c6580c77888a86506937f9a1a227dfcd15f245d694ae20a6b6e5
     # via -r /requirements/requirements.dev.in
 flask==3.0.3 \
     --hash=sha256:34e815dfaa43340d1d15a5c3a02b8476004037eb4840b34910c6e21679d288f3 \
@@ -786,9 +786,9 @@ pybind11==3.0.1 \
     --hash=sha256:9c0f40056a016da59bab516efb523089139fcc6f2ba7e4930854c61efb932051 \
     --hash=sha256:aa8f0aa6e0a94d3b64adfc38f560f33f15e589be2175e103c0a33c6bce55ee89
     # via -r /requirements/requirements.in
-pycodestyle==2.10.0 \
-    --hash=sha256:347187bdb476329d98f695c213d7295a846d1152ff4fe9bacb8a9590b8ee7053 \
-    --hash=sha256:8a4eaf0d0495c7395bdab3589ac2db602797d76207242c17d470186815706610
+pycodestyle==2.11.1 \
+    --hash=sha256:41ba0e7afc9752dfb53ced5489e89f8186be00e599e712660695b7a75ff2663f \
+    --hash=sha256:44fe31000b2d866f2e41841b18528a505fbd7fef9017b04eff4e2648a0fadc67
     # via
     #   -r /requirements/requirements.dev.in
     #   flake8
@@ -798,9 +798,9 @@ pycparser==2.21 \
     # via
     #   -r /requirements/requirements.in
     #   cffi
-pyflakes==3.0.1 \
-    --hash=sha256:ec55bf7fe21fff7f1ad2f7da62363d749e2a470500eab1b555334b67aa1ef8cf \
-    --hash=sha256:ec8b276a6b60bd80defed25add7e439881c19e64850afd9b346283d4165fd0fd
+pyflakes==3.1.0 \
+    --hash=sha256:4132f6d49cb4dae6819e5379898f2b8cce3c5f23994194c24b77d5da2e36f774 \
+    --hash=sha256:a0aae034c444db0071aa077972ba4768d40c830d9539fd45bf4cd3f8f6992efc
     # via
     #   -r /requirements/requirements.dev.in
     #   flake8

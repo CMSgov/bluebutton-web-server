@@ -37,7 +37,7 @@ services:
         target: /code
         read_only: true
       - type: bind
-        source: ~/.bb2/certstore
+        source: ${BB2_CERTSTORE}
         target: /certstore
         read_only: true
     ports:

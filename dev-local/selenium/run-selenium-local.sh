@@ -46,11 +46,11 @@ rm -rf selenium/dump
 
 echo_msg 'Blue Button is running. Starting selenium tests...'
 
-docker-compose -f selenium/docker-compose-selenium.yaml down --remove-orphans || true
+docker compose -f selenium/docker-compose-selenium.yaml down --remove-orphans || true
 
-docker-compose -f selenium/docker-compose-selenium.yaml run --rm --service-ports selenium-tests
+docker compose -f selenium/docker-compose-selenium.yaml run --rm --service-ports selenium-tests
 EXIT_CODE=$?
 
-docker-compose -f selenium/docker-compose-selenium.yaml down
+docker compose -f selenium/docker-compose-selenium.yaml down
 
 exit $EXIT_CODE

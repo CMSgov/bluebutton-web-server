@@ -1,3 +1,5 @@
+SHELL:=/bin/bash
+
 all: build-local run-local
 
 build-local:
@@ -29,6 +31,10 @@ run-local:
 	@echo "Configuring for ${ENV}" ; \
 		./run-appropriate-stack.bash
 
+retrieve-certs:
+	@echo "Retrieiving certs for $(if $(env),$(env),test)" ; \
+		./scripts/retrieve-aws-certs.bash
+
 exec-web:
 	docker exec -it `docker ps -aqf "name=.*web.*"` /bin/bash
 
@@ -39,3 +45,9 @@ run-selenium:
 build-selenium:
 	@echo "Running Selenium: Local"
 	cd selenium && make build-local
+
+migrate:
+	MIGRATE=1 bfd=local auth=mock ./run-appropriate-stack.bash
+
+collectstatic:
+	COLLECTSTATIC=1 bfd=local auth=mock ./run-appropriate-stack.bash

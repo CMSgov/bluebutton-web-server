@@ -10,11 +10,29 @@ These tools assume you are a developer working on the project, and have access t
 
 ## TL;DR
 
+To build the images (necessary after any library changes):
+
+```
+make generate
+```
+
 ```
 make build-local
 ```
 
-And then
+On a first run, after removing volumes, or after altering models:
+
+```
+make migrate
+```
+
+On a first run, to generate static assets, or after changing CSS:
+
+```
+make collectstatic
+```
+
+Then, your typical day-to-day:
 
 ```
 make run-local bfd=test auth=live daemon=1
@@ -26,6 +44,22 @@ or maybe
 make run-local bfd=sbx auth=live
 ```
 
+
+## handling migrations
+
+After altering models, log into a running stack (e.g. `docker exec`) and run
+
+```
+python manage.py makemigrations
+```
+
+This will generate the migrations file. If you then want to apply those, run
+
+```
+make migrate
+```
+
+to run the Makefile target that stands up the stack and runs `python manage.py migrate`.
 
 ## pre-requisites
 
