@@ -15,9 +15,8 @@ env = environ.Env()
 
 # Set the project base directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print("BASE_DIR: ", BASE_DIR)
-print("BASE_DIR locality: ", BASE_DIR + '/dev-local')
-# Take environment variables from .env file
+
+# Take environment variables from .env.local file
 environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
 
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
@@ -609,7 +608,6 @@ APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
     ' If you are a Medicare Beneficiary and need assistance, please contact'
     ' the support team for the application you are trying to access.'
 )
-# TODO: Come back to this
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     default=os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", default="../certstore")),
@@ -742,9 +740,8 @@ EXTERNAL_LOGIN_TEMPLATE_NAME = "/v1/accounts/upstream-login"
 BLOCK_HTTP_REDIRECT_URIS = False
 IS_MEDIA_URL_LOCAL = False
 
-# TODO: Sort out TARGET_ENV
 our_target_env = env("TARGET_ENV", default="local")
-if our_target_env in ["local", "test", "impl", "prod"]:
+if our_target_env in ["dev", "test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
     MEDIAFILES_LOCATION = "media/"
