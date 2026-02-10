@@ -54,10 +54,10 @@ echo "🆗 create_test_user_and_application"
 python manage.py create_user_identification_label_selection
 echo "🆗 create_user_identification_label_selection"
 
-if [ "${TEST}" != "" ];
+if [ "${UNIT_TEST_NAME}" != "" ];
 then
     echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach for a single test..."
-    python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client runtests.py ${TEST}
+    python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client runtests.py ${UNIT_TEST_NAME}
     exit
 fi
 
@@ -66,12 +66,13 @@ then
     if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ];
     then
         echo "🐛⏯️ Start bluebutton server with remote debugging and wait attach..."
-        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 1 --timeout 120 --reload
+        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 4 --timeout 120 --reload
     else
         echo "🐛 Start bluebutton server with debugging, no waiting"
-        python3 -m debugpy --listen 0.0.0.0:5678 -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 1 --timeout 120 --reload ${TEST}
+        python3 -m debugpy --listen 0.0.0.0:5678 -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 4 --timeout 120 --reload
     fi
 else
         echo "🔵 Start bluebutton server"
-        gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 1 --timeout 120 --reload
+        # python3 manage.py runserver 0.0.0.0:8000
+        gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 4 --timeout 120 --reload --log-level debug
 fi
