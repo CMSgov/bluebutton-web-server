@@ -1,15 +1,13 @@
-from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
-
+import datetime
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
-from .themes import THEMES, THEME_SELECTED
-
-# What we are keeping
-import os
 import environ
+import os
 import socket
-import datetime
 from urllib.parse import urlparse
+
+from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
+from hhs_oauth_server.settings.themes import THEMES, THEME_SELECTED
 
 env = environ.Env()
 
