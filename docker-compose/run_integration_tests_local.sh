@@ -20,7 +20,6 @@
 HOSTNAME_URL="http://localhost:8000"
 
 DJANGO_FHIR_CERTSTORE="/certstore"
-DJANGO_SECRET_KEY="replace-me-with-real-secret"
 CERTSTORE_TEMPORARY_MOUNT_PATH="/tmp/certstore"
 
 DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
@@ -72,6 +71,7 @@ export SUPER_USER_EMAIL=dummy
 export SUPER_USER_PASSWORD=dummy
 export BB20_ENABLE_REMOTE_DEBUG=dummy
 export BB20_REMOTE_DEBUG_WAIT_ATTACH=dummy
+export DJANGO_SECRET_KEY=dummy
 
 # Set SYSTEM
 SYSTEM=$(uname -s)
