@@ -69,7 +69,7 @@ then
         python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 1 --timeout 120 --reload
     else
         echo "🐛 Start bluebutton server with debugging, no waiting"
-        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 1 --timeout 120 --reload ${TEST}
+        python3 -m debugpy --listen 0.0.0.0:5678 -m gunicorn hhs_oauth_server.wsgi:application --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --workers 1 --timeout 120 --reload ${TEST}
     fi
 else
         echo "🔵 Start bluebutton server"
