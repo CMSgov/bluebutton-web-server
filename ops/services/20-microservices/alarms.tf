@@ -3,11 +3,11 @@
 # SNS Topic for Alarm Notifications
 resource "aws_sns_topic" "alarms" {
   name              = "bb-${local.workspace}-cloudwatch-alarms"
-  kms_master_key_id = local.platform.kms_key_arn
+  kms_master_key_id = local.kms_key_arn
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-cloudwatch-alarms"
-  })
+  }
 }
 
 # Email Subscription (Optional)
@@ -22,7 +22,7 @@ resource "aws_sns_topic_subscription" "alarms_email" {
 # Infrastructure Alarms (Deadman Switch & ELB)
 # ============================================================================
 
-# Alarm: Log Availability (Deadman Switch) - BFD Pattern
+# Alarm: Log Availability (Deadman Switch)
 # Triggers if no logs are received for 1 hour, indicating a silent failure
 resource "aws_cloudwatch_metric_alarm" "log_availability" {
   for_each            = nonsensitive(local.service_config)
@@ -44,12 +44,12 @@ resource "aws_cloudwatch_metric_alarm" "log_availability" {
     LogGroupName = aws_cloudwatch_log_group.ecs[each.key].name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-${each.key}-log-availability"
-  })
+  }
 }
 
-# Alarm: ELB 5xx Errors (Infrastructure/Routing) - AB2D Pattern
+# Alarm: ELB 5xx Errors (Infrastructure/Routing)
 # Catches errors where the LB fails to route to targets (e.g., no healthy hosts)
 resource "aws_cloudwatch_metric_alarm" "elb_5xx_errors" {
   for_each            = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
@@ -70,9 +70,9 @@ resource "aws_cloudwatch_metric_alarm" "elb_5xx_errors" {
     LoadBalancer = aws_lb.alb[each.key].arn_suffix
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-${each.key}-elb-5xx-errors"
-  })
+  }
 }
 
 # ============================================================================
@@ -101,9 +101,9 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
     TargetGroup  = aws_lb_target_group.tg[each.key].arn_suffix
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-${each.key}-no-healthy-hosts"
-  })
+  }
 }
 
 # Alarm: High Target 5xx Error Rate (Application Errors)
@@ -126,9 +126,9 @@ resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
     TargetGroup  = aws_lb_target_group.tg[each.key].arn_suffix
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-${each.key}-api-5xx-errors"
-  })
+  }
 }
 
 # Alarm: High API Latency (P99)
@@ -151,9 +151,9 @@ resource "aws_cloudwatch_metric_alarm" "api_latency_p99" {
     TargetGroup  = aws_lb_target_group.tg[each.key].arn_suffix
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-${each.key}-api-latency-high"
-  })
+  }
 }
 
 # Alarm: 4xx Error Rate (Client Errors)
@@ -176,7 +176,7 @@ resource "aws_cloudwatch_metric_alarm" "api_4xx_errors" {
     TargetGroup  = aws_lb_target_group.tg[each.key].arn_suffix
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "bb-${local.workspace}-${each.key}-api-4xx-errors"
-  })
+  }
 }

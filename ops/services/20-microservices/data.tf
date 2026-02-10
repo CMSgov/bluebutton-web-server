@@ -1,5 +1,5 @@
 # terraform/services/20-microservices/data.tf
-# Cross-service references via AWS data sources (BFD/AB2D pattern — no remote state)
+# Cross-service references via AWS data sources (no remote state)
 
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
@@ -31,7 +31,7 @@ data "aws_ecs_cluster" "main" {
 # ============================================================================
 data "aws_ssm_parameter" "service_config" {
   for_each = var.enable_ssm_config ? var.backend_services : toset([])
-  name     = "/bb/${local.platform.env}/${each.key}/config"
+  name     = "/bb/${local.workspace}/${each.key}/config"
 }
 
 locals {
@@ -63,7 +63,7 @@ locals {
 data "aws_secretsmanager_secrets" "app_secrets" {
   filter {
     name   = "name"
-    values = ["/bb2/${local.platform.env}/app/"]
+    values = ["/bb2/${local.workspace}/app/"]
   }
 }
 

@@ -5,7 +5,5 @@ resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/aws/ecs/fargate/${local.app_prefix}-${local.workspace}-${each.key}"
   retention_in_days = var.log_retention_days
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-logs"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-logs" }
 }

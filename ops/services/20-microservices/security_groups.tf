@@ -1,5 +1,5 @@
 # terraform/services/20-microservices/security_groups.tf
-# Separate rule resources following BFD/AB2D pattern
+# Separate rule resources for fine-grained control
 
 # ============================================================================
 # Security Group for ECS Tasks (empty shell — rules defined separately)
@@ -8,11 +8,9 @@ resource "aws_security_group" "ecs_sg" {
   for_each    = nonsensitive(local.service_config)
   name        = "${local.app_prefix}-${local.workspace}-ecs-${each.key}-sg"
   description = "ECS ${title(each.key)} Security Group"
-  vpc_id      = local.platform.vpc_id
+  vpc_id      = local.vpc_id
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-ecs-sg"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-ecs-sg" }
 }
 
 # ECS ingress: Allow from ALB
@@ -32,7 +30,7 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_from_private" {
   for_each = {
     for pair in flatten([
       for svc_key, svc in nonsensitive(local.service_config) : [
-        for subnet_id, subnet in local.platform.private_subnets : {
+        for subnet_id, subnet in module.platform.private_subnets : {
           key       = "${svc_key}-${subnet_id}"
           svc_key   = svc_key
           port      = svc.port
@@ -67,11 +65,9 @@ resource "aws_security_group" "alb_sg" {
   for_each    = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
   name        = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg"
   description = "ALB ${title(each.key)} Security Group"
-  vpc_id      = local.platform.vpc_id
+  vpc_id      = local.vpc_id
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg" }
 }
 
 # ALB ingress: HTTPS from anywhere (dev/test only)
@@ -91,7 +87,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_from_vpn" {
   for_each = !var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
 
   security_group_id            = aws_security_group.alb_sg[each.key].id
-  referenced_security_group_id = data.aws_security_group.cmscloud_vpn.id
+  referenced_security_group_id = module.platform.sg_cmscloud_vpn.id
   from_port                    = 443
   to_port                      = 443
   ip_protocol                  = "tcp"
@@ -102,7 +98,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_from_cms_vpn" {
   for_each = !var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
 
   security_group_id            = aws_security_group.alb_sg[each.key].id
-  referenced_security_group_id = data.aws_security_group.clb_cms_vpn.id
+  referenced_security_group_id = module.platform.sg_clb_cms_vpn.id
   from_port                    = 443
   to_port                      = 443
   ip_protocol                  = "tcp"
@@ -113,7 +109,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_from_akamai" {
   for_each = !var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
 
   security_group_id            = aws_security_group.alb_sg[each.key].id
-  referenced_security_group_id = data.aws_security_group.clb_akamai.id
+  referenced_security_group_id = module.platform.sg_clb_akamai.id
   from_port                    = 443
   to_port                      = 443
   ip_protocol                  = "tcp"

@@ -91,12 +91,27 @@ output "kms_key_arn" {
 
 output "acm_certificate" {
   description = "ACM certificate"
-  value       = data.aws_acm_certificate.selected
+  value       = length(data.aws_acm_certificate.selected) > 0 ? data.aws_acm_certificate.selected[0] : null
 }
 
 output "permissions_boundary" {
   description = "IAM permissions boundary ARN"
   value       = length(data.aws_iam_policy.permissions_boundary) > 0 ? data.aws_iam_policy.permissions_boundary[0].arn : null
+}
+
+output "sg_cmscloud_vpn" {
+  description = "CMS Cloud VPN security group"
+  value       = length(data.aws_security_group.cmscloud_vpn) > 0 ? data.aws_security_group.cmscloud_vpn[0] : null
+}
+
+output "sg_clb_cms_vpn" {
+  description = "CMS VPN CLB security group"
+  value       = length(data.aws_security_group.clb_cms_vpn) > 0 ? data.aws_security_group.clb_cms_vpn[0] : null
+}
+
+output "sg_clb_akamai" {
+  description = "Akamai CLB security group"
+  value       = length(data.aws_security_group.clb_akamai) > 0 ? data.aws_security_group.clb_akamai[0] : null
 }
 
 output "default_tags" {
@@ -110,32 +125,4 @@ output "ssm" {
   value       = local.ssm_config
 }
 
-# Legacy config access - values from /bluebutton/ SSM hierarchy
-# Only used by ops_old module pattern. New services read SSM directly in locals.tf.
-# All values wrapped in try() since new services use "bb" hierarchy root, not "bluebutton".
-output "config" {
-  description = "Configuration values from SSM (legacy /bluebutton/ paths, optional)"
-  value = {
-    # API Service Config (optional — may not exist if using "bb" SSM root)
-    api_port              = try(tonumber(local.ssm_config["/bluebutton/config/api_port"]), null)
-    api_cpu               = try(tonumber(local.ssm_config["/bluebutton/config/api_cpu"]), null)
-    api_memory            = try(tonumber(local.ssm_config["/bluebutton/config/api_memory"]), null)
-    api_count             = try(tonumber(local.ssm_config["/bluebutton/config/api_count"]), null)
-    api_min_capacity      = try(tonumber(local.ssm_config["/bluebutton/config/api_min_capacity"]), null)
-    api_max_capacity      = try(tonumber(local.ssm_config["/bluebutton/config/api_max_capacity"]), null)
-    api_health_check_path = try(local.ssm_config["/bluebutton/config/api_health_check_path"], null)
-    api_alb               = try(tobool(local.ssm_config["/bluebutton/config/api_alb"]), null)
-    api_autoscale_enabled = try(tobool(local.ssm_config["/bluebutton/config/api_autoscale_enabled"]), null)
-
-    # S3 Buckets (SSM preferred, fallback to naming convention)
-    app_config_bucket = try(
-      local.ssm_config["/bluebutton/config/app_config_bucket"],
-      "bb-${local.env == "sandbox" ? "prod" : local.env}-app-config"
-    )
-    static_content_bucket = try(
-      local.ssm_config["/bluebutton/config/static_content_bucket"],
-      "bb-${local.env == "sandbox" ? "prod" : local.env}-static-content"
-    )
-  }
-}
 

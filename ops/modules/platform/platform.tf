@@ -1,13 +1,13 @@
 # Blue Button Platform Module
 
 locals {
-  app              = var.app
-  env              = var.env != null ? var.env : terraform.workspace
-  # Find established env name in workspace string, fallback to env itself, handle nulls
-  found_env        = one([for x in ["test", "sandbox", "prod"] : x if can(regex("${x}", local.env))])
-  parent_env       = local.found_env != null ? local.found_env : local.env
-  sdlc_env         = contains(["sandbox", "prod"], coalesce(local.parent_env, "none")) ? "production" : "non-production"
-  service          = var.service
+  app = var.app
+  env = var.env != null ? var.env : terraform.workspace
+  # Find established env name in workspace string, anchored to end to avoid substring matches
+  found_env  = one([for x in ["test", "sandbox", "prod"] : x if can(regex("${x}$$", local.env))])
+  parent_env = local.found_env != null ? local.found_env : local.env
+  sdlc_env   = contains(["sandbox", "prod"], coalesce(local.parent_env, "none")) ? "production" : "non-production"
+  service    = var.service
 
   # Standard tags
   static_tags = {
@@ -28,7 +28,7 @@ locals {
 
   # Flatten SSM data into a map
   ssm_flattened_data = {
-    names = flatten([for k, v in data.aws_ssm_parameters_by_path.params : v.names])
+    names  = flatten([for k, v in data.aws_ssm_parameters_by_path.params : v.names])
     values = flatten([for k, v in data.aws_ssm_parameters_by_path.params : nonsensitive(v.values)])
   }
 
@@ -39,7 +39,7 @@ locals {
 
   # Resolved ACM Domain: 1) Variable 2) SSM 3) Default Pattern
   # Use coalesce to avoid null in string template
-  resolved_acm_domain = var.acm_domain != "" ? var.acm_domain : try(local.ssm_config["/bluebutton/config/acm_domain"], "${coalesce(local.parent_env, "test")}.bluebutton.cms.gov")
+  resolved_acm_domain = var.acm_domain != "" ? var.acm_domain : try(local.ssm_config["/bb/config/acm_domain"], "${coalesce(local.parent_env, "test")}.bluebutton.cms.gov")
 
   # VPC ID resolution logic: Prefer variable if provided, else use discovery
   vpc_id = var.vpc_id != null ? var.vpc_id : try(data.aws_vpc.this[0].id, "")
@@ -106,8 +106,9 @@ data "aws_kms_alias" "primary" {
   name  = var.kms_key_alias
 }
 
-# ACM Certificate (Automatic resolution)
+# ACM Certificate (only when needed — e.g. 20-microservices for ALB)
 data "aws_acm_certificate" "selected" {
+  count       = var.enable_acm_lookup ? 1 : 0
   domain      = local.resolved_acm_domain
   statuses    = ["ISSUED"]
   most_recent = true
@@ -117,4 +118,35 @@ data "aws_acm_certificate" "selected" {
 data "aws_iam_policy" "permissions_boundary" {
   count = var.permissions_boundary_name != "" ? 1 : 0
   name  = var.permissions_boundary_name
+}
+
+# ============================================================================
+# Shared Security Groups (pre-existing, managed by CMS Cloud)
+# Only looked up when needed (e.g., 20-microservices for ALB ingress rules)
+# ============================================================================
+data "aws_security_group" "cmscloud_vpn" {
+  count = var.enable_security_group_lookup ? 1 : 0
+  filter {
+    name   = "group-name"
+    values = ["cmscloud-vpn"]
+  }
+  vpc_id = local.vpc_id
+}
+
+data "aws_security_group" "clb_cms_vpn" {
+  count = var.enable_security_group_lookup ? 1 : 0
+  filter {
+    name   = "group-name"
+    values = ["${local.app}-sg-${local.parent_env}-clb-cms-vpn"]
+  }
+  vpc_id = local.vpc_id
+}
+
+data "aws_security_group" "clb_akamai" {
+  count = var.enable_security_group_lookup ? 1 : 0
+  filter {
+    name   = "group-name"
+    values = ["${local.app}-sg-${local.parent_env}-clb-akamai-prod"]
+  }
+  vpc_id = local.vpc_id
 }

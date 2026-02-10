@@ -18,9 +18,7 @@ resource "aws_lb" "alb" {
     enabled = var.enable_access_logs
   }
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb" }
 }
 
 # Target Group
@@ -29,7 +27,7 @@ resource "aws_lb_target_group" "tg" {
   name        = "${local.app_prefix}-${local.workspace}-${each.key}-tg"
   port        = each.value.port
   protocol    = "HTTP"
-  vpc_id      = local.platform.vpc_id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {
@@ -44,9 +42,7 @@ resource "aws_lb_target_group" "tg" {
     unhealthy_threshold = 3
   }
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-tg"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-tg" }
 }
 
 # HTTPS Listener
@@ -56,13 +52,13 @@ resource "aws_lb_listener" "https" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = local.platform.acm_certificate != null ? local.platform.acm_certificate.arn : null
+  certificate_arn   = local.acm_certificate != null ? local.acm_certificate.arn : null
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.tg[each.key].arn
   }
 
-  tags = local.common_tags
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-https" }
 }
 

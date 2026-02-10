@@ -5,7 +5,7 @@ module "platform" {
   source    = "../../modules/platform"
   providers = { aws = aws, aws.secondary = aws.secondary }
 
-  app         = "bb"
+  app         = local.app
   env         = local.env
   root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/00-bootstrap"
   service     = local.service
@@ -13,7 +13,8 @@ module "platform" {
 
 locals {
   # Environment from workspace
-  env = terraform.workspace
+  env          = terraform.workspace
+  default_tags = module.platform.default_tags
 
   # Map platform outputs to local variables
   vpc_id               = module.platform.vpc_id

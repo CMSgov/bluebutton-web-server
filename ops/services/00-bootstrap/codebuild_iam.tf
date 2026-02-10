@@ -25,6 +25,8 @@ resource "aws_iam_role" "codebuild" {
 
 # CloudWatch Logs Policy
 data "aws_iam_policy_document" "logs" {
+  count = local.create_resources ? 1 : 0
+
   statement {
     sid       = "AllowLogStreamControl"
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
@@ -36,11 +38,13 @@ resource "aws_iam_role_policy" "logs" {
   count  = local.create_resources ? 1 : 0
   name   = "logs"
   role   = aws_iam_role.codebuild[0].id
-  policy = data.aws_iam_policy_document.logs.json
+  policy = data.aws_iam_policy_document.logs[0].json
 }
 
 # GitHub Connection Policy
 data "aws_iam_policy_document" "github" {
+  count = local.create_resources ? 1 : 0
+
   statement {
     sid = "AllowGitHubConnection"
     actions = [
@@ -61,11 +65,13 @@ resource "aws_iam_role_policy" "github" {
   count  = local.create_resources ? 1 : 0
   name   = "github"
   role   = aws_iam_role.codebuild[0].id
-  policy = data.aws_iam_policy_document.github.json
+  policy = data.aws_iam_policy_document.github[0].json
 }
 
 # ECR Policy (for docker pull/push)
 data "aws_iam_policy_document" "ecr" {
+  count = local.create_resources ? 1 : 0
+
   statement {
     sid       = "AllowECRAuthorization"
     actions   = ["ecr:GetAuthorizationToken"]
@@ -91,7 +97,7 @@ resource "aws_iam_role_policy" "ecr" {
   count  = local.create_resources ? 1 : 0
   name   = "ecr"
   role   = aws_iam_role.codebuild[0].id
-  policy = data.aws_iam_policy_document.ecr.json
+  policy = data.aws_iam_policy_document.ecr[0].json
 }
 
 # KMS Policy (optional, for encrypted logs/ECR)

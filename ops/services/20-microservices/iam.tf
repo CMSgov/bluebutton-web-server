@@ -43,8 +43,7 @@ data "aws_iam_policy_document" "ssm" {
       "ssm:GetParametersByPath"
     ]
     resources = [
-      "arn:aws:ssm:${local.region}:${local.account_id}:parameter/bb/${local.workspace}/*",
-      "arn:aws:ssm:${local.region}:${local.account_id}:parameter/bluebutton/${local.workspace}/*"
+      "arn:aws:ssm:${local.region}:${local.account_id}:parameter/bb/${local.workspace}/*"
     ]
   }
 }
@@ -53,7 +52,7 @@ data "aws_iam_policy_document" "kms" {
   statement {
     sid       = "AllowKMSDecrypt"
     actions   = ["kms:Decrypt"]
-    resources = [local.platform.kms_alias != null ? local.platform.kms_alias.target_key_arn : "*"]
+    resources = [local.kms_alias != null ? local.kms_alias.target_key_arn : "*"]
   }
 }
 
@@ -108,9 +107,9 @@ resource "aws_iam_role" "execution" {
   name                 = "${local.name_prefix}-${each.key}-execution"
   path                 = local.iam_path
   assume_role_policy   = data.aws_iam_policy_document.ecs_assume_role.json
-  permissions_boundary = local.platform.permissions_boundary
+  permissions_boundary = local.permissions_boundary
 
-  tags = local.common_tags
+  tags = { Name = "${local.name_prefix}-${each.key}" }
 }
 
 resource "aws_iam_role_policy_attachment" "execution_base" {
@@ -147,9 +146,9 @@ resource "aws_iam_role" "task" {
   name                 = "${local.name_prefix}-${each.key}-task"
   path                 = local.iam_path
   assume_role_policy   = data.aws_iam_policy_document.ecs_assume_role.json
-  permissions_boundary = local.platform.permissions_boundary
+  permissions_boundary = local.permissions_boundary
 
-  tags = local.common_tags
+  tags = { Name = "${local.name_prefix}-${each.key}" }
 }
 
 resource "aws_iam_role_policy_attachment" "task_secrets" {

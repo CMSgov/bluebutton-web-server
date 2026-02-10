@@ -1,9 +1,9 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 6.0"
-      configuration_aliases = [ aws.secondary ]
+      source                = "hashicorp/aws"
+      version               = ">= 6.0"
+      configuration_aliases = [aws.secondary]
     }
   }
 }
@@ -12,15 +12,6 @@ terraform {
 
 variable "app" {
   type        = string
-
-
-
-
-
-
-
-
-
   default     = "bb"
   description = "Application name (short)"
 }
@@ -50,7 +41,7 @@ variable "root_module" {
 
 variable "ssm_hierarchy_roots" {
   type        = list(string)
-  default     = ["bluebutton"]
+  default     = ["bb"]
   description = "SSM parameter hierarchy roots to load"
 }
 
@@ -70,6 +61,18 @@ variable "acm_domain" {
   type        = string
   default     = ""
   description = "ACM certificate domain for lookup"
+}
+
+variable "enable_acm_lookup" {
+  type        = bool
+  default     = false
+  description = "Enable ACM certificate lookup. Only needed by services with ALB (20-microservices)"
+}
+
+variable "enable_security_group_lookup" {
+  type        = bool
+  default     = false
+  description = "Enable shared security group lookups (VPN, Akamai). Only needed by services with ALB."
 }
 
 variable "permissions_boundary_name" {

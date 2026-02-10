@@ -12,7 +12,7 @@ locals {
       one([for x in local.established_envs : x if can(regex("${x}$$", terraform.workspace))]),
       "invalid-workspace"
     ),
-    "test" # Default to test bucket (bb-test-app-config exists, bb-prod-app-config doesn't)
+    "invalid-parent-env" # No default — forces explicit -var="parent_env=..." on init
   )
 
   # Per-environment state buckets (CMS Cloud style)
@@ -21,16 +21,6 @@ locals {
 
   # Shared foundation buckets
   app_config_bucket = "bb-${local.bucket_env}-app-config"
-
-  default_tags = {
-    application    = local.app
-    business       = "oeda"
-    environment    = local.env
-    parent_env     = local.parent_env
-    service        = local.service
-    opentofu       = true
-    tf_root_module = var.root_module
-  }
 }
 
 variable "region" {
@@ -88,12 +78,12 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    # Dynamic backend configuration following BFD pattern
+    # Dynamic backend configuration
     # OpenTofu 1.8+ allows using locals and variables here
-    bucket       = "bb-${local.bucket_env}-app-config"
-    key          = "ops/services/${local.service}/tofu.tfstate"
-    region       = var.region
-    encrypt      = true
+    bucket  = "bb-${local.bucket_env}-app-config"
+    key     = "ops/services/${local.service}/tofu.tfstate"
+    region  = var.region
+    encrypt = true
     # use_lockfile = true # S3-native locking (versioning enabled)
     # TODO: Enable after creating KMS key alias/bb-{env}-cmk in 00-bootstrap
     # kms_key_id = "alias/bb-${local.bucket_env}-cmk"

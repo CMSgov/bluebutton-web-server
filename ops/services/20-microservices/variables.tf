@@ -1,7 +1,4 @@
-# terraform/modules/bb-ecs/variables.tf
-# Using platform object following Terraservice pattern
-
-# Variable platform removed (replaced by local.platform)
+# terraform/services/20-microservices/variables.tf
 
 variable "backend_services" {
   type        = set(string)

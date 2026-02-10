@@ -5,8 +5,8 @@
 # Created once per AWS account (not per environment)
 # Sandbox reuses the provider created by prod (same account)
 resource "aws_iam_openid_connect_provider" "github_actions" {
-  count = local.create_resources ? 1 : 0  # Only create in test and prod, not sandbox
-  
+  count = local.create_resources ? 1 : 0 # Only create in test and prod, not sandbox
+
   client_id_list = ["sts.amazonaws.com"]
   url            = "https://token.actions.githubusercontent.com"
 
@@ -54,7 +54,10 @@ resource "aws_iam_role" "github_actions" {
 }
 
 # ECR permissions for GitHub Actions (push/pull images)
+# Skipped for sandbox — reuses prod ECR repo
 data "aws_iam_policy_document" "github_actions_ecr" {
+  count = local.create_resources ? 1 : 0
+
   statement {
     sid       = "AllowECRAuthorization"
     actions   = ["ecr:GetAuthorizationToken"]
@@ -77,15 +80,16 @@ data "aws_iam_policy_document" "github_actions_ecr" {
 }
 
 resource "aws_iam_role_policy" "github_actions_ecr" {
+  count  = local.create_resources ? 1 : 0
   name   = "ecr"
   role   = aws_iam_role.github_actions.id
-  policy = data.aws_iam_policy_document.github_actions_ecr.json
+  policy = data.aws_iam_policy_document.github_actions_ecr[0].json
 }
 
 # CodeBuild trigger permissions (to trigger builds from GHA)
 data "aws_iam_policy_document" "github_actions_codebuild" {
   count = local.create_resources ? 1 : 0
-  
+
   statement {
     sid = "AllowCodeBuildTrigger"
     actions = [

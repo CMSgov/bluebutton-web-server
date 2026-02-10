@@ -1,0 +1,74 @@
+# BB2 SOPS seed file for test environment
+# To create the encrypted file:
+#   1. Copy this to test.sopsw.yaml
+#   2. Fill in actual values for sensitive fields
+#   3. Run: bin/sopsw -e values/test.sopsw.yaml
+#
+# Keys with "nonsensitive" in the path are stored as plaintext in SSM.
+# Keys with "sensitive" in the path are encrypted with KMS as SecureString.
+# ${env} is replaced at apply-time with the actual environment name.
+
+# ============================================================================
+# Core Django Settings
+# ============================================================================
+/bb/${env}/app/sensitive/django_secret_key: CHANGE_ME
+/bb/${env}/app/sensitive/django_user_id_salt: CHANGE_ME
+/bb/${env}/app/sensitive/django_user_id_iterations: "1000"
+/bb/${env}/app/sensitive/django_password_hash_iterations: "120000"
+/bb/${env}/app/nonsensitive/django_debug: "False"
+/bb/${env}/app/nonsensitive/hostname_url: "https://test.bluebutton.cms.gov"
+/bb/${env}/app/nonsensitive/django_allowed_hosts: "*"
+
+# ============================================================================
+# Database
+# ============================================================================
+/bb/${env}/app/sensitive/db_name: CHANGE_ME
+/bb/${env}/app/sensitive/db_user_name: CHANGE_ME
+/bb/${env}/app/sensitive/db_user_pw: CHANGE_ME
+/bb/${env}/app/sensitive/db_host: CHANGE_ME
+/bb/${env}/app/sensitive/db_port: "5432"
+
+# ============================================================================
+# FHIR Server
+# ============================================================================
+/bb/${env}/app/sensitive/fhir_url: CHANGE_ME
+/bb/${env}/app/sensitive/fhir_url_v3: CHANGE_ME
+
+# ============================================================================
+# Medicare SLS-x OAuth
+# ============================================================================
+/bb/${env}/app/sensitive/slsx_client_id: CHANGE_ME
+/bb/${env}/app/sensitive/slsx_client_secret: CHANGE_ME
+/bb/${env}/app/sensitive/medicare_slsx_akamai_aca_token: CHANGE_ME
+/bb/${env}/app/sensitive/medicare_slsx_login_uri: CHANGE_ME
+/bb/${env}/app/sensitive/medicare_slsx_redirect_uri: CHANGE_ME
+/bb/${env}/app/sensitive/slsx_token_endpoint: CHANGE_ME
+/bb/${env}/app/sensitive/slsx_signout_endpoint: CHANGE_ME
+/bb/${env}/app/sensitive/slsx_userinfo_endpoint: CHANGE_ME
+/bb/${env}/app/sensitive/slsx_health_check_endpoint: CHANGE_ME
+/bb/${env}/app/nonsensitive/slsx_verify_ssl_internal: "True"
+/bb/${env}/app/nonsensitive/slsx_verify_ssl_external: "True"
+
+# ============================================================================
+# Email (AWS SES)
+# ============================================================================
+/bb/${env}/app/sensitive/email_host_user: CHANGE_ME
+/bb/${env}/app/sensitive/email_host_password: CHANGE_ME
+/bb/${env}/app/nonsensitive/email_host: "email-smtp.us-east-1.amazonaws.com"
+/bb/${env}/app/nonsensitive/email_port: "587"
+/bb/${env}/app/nonsensitive/email_use_tls: "True"
+/bb/${env}/app/nonsensitive/email_backend: "django_ses.SESBackend"
+/bb/${env}/app/nonsensitive/from_email: "BlueButtonAPI@cms.hhs.gov"
+/bb/${env}/app/nonsensitive/admin_email: "BlueButtonAPI@cms.hhs.gov"
+
+# ============================================================================
+# NewRelic
+# ============================================================================
+/bb/${env}/app/sensitive/new_relic_license_key: CHANGE_ME
+/bb/${env}/app/nonsensitive/new_relic_app_name: "BlueButton-${env}"
+
+# ============================================================================
+# S3 Storage
+# ============================================================================
+/bb/${env}/app/nonsensitive/aws_s3_custom_domain: "s3.amazonaws.com"
+/bb/${env}/app/nonsensitive/aws_storage_bucket_name: "bb-test-static-content"

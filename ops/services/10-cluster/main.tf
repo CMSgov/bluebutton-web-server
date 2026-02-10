@@ -9,14 +9,12 @@ module "platform" {
   env         = local.env
   service     = local.service
   root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/10-cluster"
-
-  # SSM hierarchy roots to load
-  ssm_hierarchy_roots = ["bb"]
 }
 
 locals {
-  env     = terraform.workspace
-  service = "cluster"
+  env          = terraform.workspace
+  service      = "cluster"
+  default_tags = module.platform.default_tags
 
   # Platform outputs
   vpc_id             = module.platform.vpc_id
@@ -28,7 +26,7 @@ locals {
 # CloudWatch Log Group for ECS Exec
 # ============================================================================
 resource "aws_cloudwatch_log_group" "cluster" {
-  name              = "/aws/ecs/${local.service}"
+  name              = "/aws/ecs/bb-${local.env}-${local.service}"
   retention_in_days = 30
 
   tags = {

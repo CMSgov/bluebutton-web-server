@@ -60,14 +60,15 @@ Enabled by default, providing:
 ```bash
 cd ops/services/10-cluster
 
-# Initialize
-tofu init -var="parent_env=prod"
+# Initialize (parent_env determines S3 bucket for state)
+tofu init -var="parent_env=test"
 
-# Plan
-tofu plan -var="parent_env=prod"
+# Select workspace
+tofu workspace select test
 
-# Apply
-tofu apply -var="parent_env=prod"
+# Plan and apply
+tofu plan
+tofu apply
 ```
 
 ## Outputs
@@ -81,20 +82,15 @@ Key outputs for downstream services:
 
 ## Usage by Other Services
 
-Services reference this cluster via remote state:
+Downstream services discover this cluster via AWS data sources (not remote state):
 
 ```hcl
-data "terraform_remote_state" "cluster" {
-  backend = "s3"
-  config = {
-    bucket = "bb-${local.env}-app-config"
-    key    = "ops/services/cluster/tofu.tfstate"
-    region = "us-east-1"
-  }
+data "aws_ecs_cluster" "main" {
+  cluster_name = "bb-${local.workspace}-cluster"
 }
 
 resource "aws_ecs_service" "example" {
-  cluster = data.terraform_remote_state.cluster.outputs.cluster_arn
+  cluster = data.aws_ecs_cluster.main.arn
   # ...
 }
 ```
@@ -128,5 +124,71 @@ Container Insights metrics available in CloudWatch:
 
 1. **One Cluster Per Environment** - test, sandbox, prod each have their own
 2. **Container Insights** - Always enabled for observability
-3. **Capacity Providers** - Use FARGATE for production, FARGATE_SPOT for dev/test
+3. **Capacity Providers** - Use FARGATE for production, FARGATE_SPOT for test/non-critical
 4. **Tagging** - Consistent tags for cost allocation
+
+<!-- BEGIN_TF_DOCS -->
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
+
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_parent_env"></a> [parent\_env](#input\_parent\_env) | The parent environment of the current solution. Will correspond with `terraform.workspace`.<br/>Necessary on `tofu init` and `tofu workspace select` \_only\_. In all other situations, parent env<br/>will be divined from `terraform.workspace`. | `string` | `null` | no |
+| <a name="input_region"></a> [region](#input\_region) | AWS region for resources | `string` | `"us-east-1"` | no |
+| <a name="input_root_module"></a> [root\_module](#input\_root\_module) | Root module URL for tracking (e.g., GitHub URL) | `string` | `"https://github.com/CMSgov/bluebutton-web-server"` | no |
+| <a name="input_secondary_region"></a> [secondary\_region](#input\_secondary\_region) | Secondary AWS region for DR/failover | `string` | `"us-west-2"` | no |
+
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
+
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_cloudwatch_log_group.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_ecs_cluster.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster) | resource |
+| [aws_ecs_cluster_capacity_providers.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster_capacity_providers) | resource |
+
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_capacity_providers"></a> [capacity\_providers](#output\_capacity\_providers) | Capacity providers configured for the cluster |
+| <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn) | ARN of the ECS cluster |
+| <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | ID of the ECS cluster |
+| <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Name of the ECS cluster |
+<!-- END_TF_DOCS -->

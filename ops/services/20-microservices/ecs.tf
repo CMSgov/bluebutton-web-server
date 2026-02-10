@@ -46,9 +46,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   memory                   = each.value.memory
   requires_compatibilities = ["FARGATE"]
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-task"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-task" }
 }
 
 # ECS Service
@@ -90,9 +88,7 @@ resource "aws_ecs_service" "ecs_service" {
     ignore_changes = [desired_count]
   }
 
-  tags = merge(local.common_tags, {
-    Name = "${local.app_prefix}-${local.workspace}-${each.key}-service"
-  })
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-service" }
 }
 
 # Auto Scaling Target
