@@ -26,9 +26,6 @@ services:
     image: bb-local:latest
     platform: linux/amd64
     command: /code/dev-local/start-local.sh
-    # tmpfs:
-    #   - /tmp
-    #   - /root/.cache
     read_only: ${READ_ONLY:-true}
     extra_hosts:
       - "host.docker.internal:host-gateway"
