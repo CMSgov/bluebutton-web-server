@@ -9,17 +9,11 @@ ENV PYTHON_VERSION=3.12
 # We would rather install v16, to match the database, which matches Amazon.
 RUN apt-get update \
     && apt-get install -y \
-        gettext \
-        gnupg
+        nodejs \
+        npm
 
-ADD . /requirements
-WORKDIR /requirements
-
-RUN python -m venv /tmp/venv
-RUN . /tmp/venv/bin/activate
-ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install pip==25.3
-RUN pip install \
-    pip-tools \
-    setuptools
-CMD ["/requirements/generate.bash"]
+# Add in the codebase
+ADD .. /code
+WORKDIR /code
+# Build the CSS/USWDS assets
+CMD ["/code/dev-local/build-css.bash"]
