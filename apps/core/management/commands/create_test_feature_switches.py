@@ -19,6 +19,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("v3_endpoints", True, "This enables v3 endpoints."),
     ("v3_testclient", True, "Enables v3 pathways in the testclient."),
     ("wellknown_applications", True, "This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test."),
+    ("one_hour_token_expiry", False, "This makes OAuth2 access tokens expire in one hour.")
 )
 
 WAFFLE_FEATURE_FLAGS = (

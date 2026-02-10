@@ -1,6 +1,7 @@
-from oauth2_provider.settings import oauth2_settings
-
+from datetime import timedelta
+from waffle import switch_is_active
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
+from oauth2_provider.settings import oauth2_settings
 
 from .models import ExpiresIn
 from ..pkce.oauth2_server import PKCEServerMixin
@@ -17,9 +18,15 @@ def my_token_expires_in(request):
     user_id = request.user.pk
     expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
     # if no record is found we default to the value defined in the
-    # settings.
+    # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
+    # or one hour if the one_hour_token_expiry switch is active
     if expires_in is None:
-        expires_in = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
+        if switch_is_active("one_hour_token_expiry"):
+            one_hour_delta = timedelta(hours=1)
+            seconds_in_one_hour = int(one_hour_delta.total_seconds())
+            expires_in = seconds_in_one_hour
+        else:
+            expires_in = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
 
     return expires_in
 
