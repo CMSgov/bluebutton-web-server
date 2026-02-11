@@ -113,7 +113,6 @@ then
     CERT_FILENAME="ca.cert.pem"
     KEY_FILENAME="ca.key.nocrypt.pem"
     CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
-    SECRET_KEY="replace-me-with-real-secret"
     openssl pkcs12 -in ${BFD_CLIENT_TRUSTED_PFX} -password pass:changeit -nocerts -out "${CERTSTORE_TEMPORARY_MOUNT_PATH}/${KEY_FILENAME}" -nodes
     openssl pkcs12 -in ${BFD_CLIENT_TRUSTED_PFX} -password pass:changeit -nokeys -out "${CERTSTORE_TEMPORARY_MOUNT_PATH}/${CERT_FILENAME}"
 
