@@ -10,7 +10,7 @@ These tools assume you are a developer working on the project, and have access t
 
 ## TL;DR
 
-To build the images (necessary after any library changes):
+If your branch needs to make changes to the requirements, you'll need to make sure you run the following commands to update your changes:
 
 ```
 make generate
@@ -26,7 +26,7 @@ On a first run, after removing volumes, or after altering models:
 make migrate
 ```
 
-On a first run, to generate static assets, or after changing CSS:
+On a first run, after removing volumes, or after changing CSS, run the following to generate static assets:
 
 ```
 make collectstatic
