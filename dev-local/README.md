@@ -10,7 +10,7 @@ These tools assume you are a developer working on the project, and have access t
 
 ## TL;DR
 
-To build the images (necessary after any library changes):
+If your branch needs to make changes to the requirements, you'll need to make sure you run the following commands to update your changes:
 
 ```
 make generate
@@ -26,7 +26,7 @@ On a first run, after removing volumes, or after altering models:
 make migrate
 ```
 
-On a first run, to generate static assets, or after changing CSS:
+On a first run, after removing volumes, or after changing CSS, run the following to generate static assets:
 
 ```
 make collectstatic
@@ -47,13 +47,21 @@ make run-local bfd=sbx auth=live
 
 ## handling migrations
 
-After altering models, log into a running stack (e.g. `docker exec`) and run
+Before logging in to a running stack, ensure you ran the stack with READ_ONLY set to false like below:
+
+```
+make run-local bfd=test auth=live READ_ONLY=false
+```
+
+This will allow you to make a new migration and not run into any read-only file system issues.
+
+After altering models, open a new terminal and log into a running stack (e.g. `docker exec`) and run
 
 ```
 python manage.py makemigrations
 ```
 
-This will generate the migrations file. If you then want to apply those, run
+This will generate the migrations file. If you then want to apply those, exit the container and run
 
 ```
 make migrate

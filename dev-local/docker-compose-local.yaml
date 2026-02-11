@@ -26,7 +26,7 @@ services:
     image: bb-local:latest
     platform: linux/amd64
     command: /code/dev-local/start-local.sh
-    read_only: true
+    read_only: ${READ_ONLY:-true}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
@@ -35,7 +35,7 @@ services:
       - type: bind
         source: ..
         target: /code
-        read_only: true
+        read_only: ${READ_ONLY:-true}
       - type: bind
         source: ${BB2_CERTSTORE}
         target: /certstore
