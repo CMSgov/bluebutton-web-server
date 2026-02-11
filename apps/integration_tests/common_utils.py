@@ -27,7 +27,7 @@ def screenshot_on_exception(func):
         except Exception as outer_exception:
             webdriver = getattr(self, 'driver')
             # Make sure there is a webdriver and we are not in an AWS environment
-            if webdriver and os.getenv('TARGET_ENV') == 'dev':
+            if webdriver and os.getenv('TARGET_ENV') == 'local':
                 try:
                     print(f"{'=' * 80}")
                     print(f'Current URL: {webdriver.current_url}')

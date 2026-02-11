@@ -20,6 +20,7 @@ pipeline {
     DJANGO_SLSX_TOKEN_ENDPOINT = "http://localhost:8080/sso/session"
     DJANGO_SLSX_SIGNOUT_ENDPOINT = "http://localhost:8080/sso/signout"
     DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
+    DJANGO_SECRET_KEY='replace-me-with-real-secret'
     DJANGO_SLSX_CLIENT_ID = credentials("bb2-selenium-tests-slsx-client-id")
     DJANGO_SLSX_CLIENT_SECRET = credentials("bb2-selenium-tests-slsx-client-secret")
     DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")

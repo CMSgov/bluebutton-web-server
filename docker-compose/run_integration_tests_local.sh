@@ -21,7 +21,6 @@ HOSTNAME_URL="http://localhost:8000"
 
 DJANGO_FHIR_CERTSTORE="/certstore"
 CERTSTORE_TEMPORARY_MOUNT_PATH="/tmp/certstore"
-
 DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
 #DOCKER_TAG="py36-an27-tf11"
 DOCKER_TAG="py37-an27-tf12-boto3-botocore"

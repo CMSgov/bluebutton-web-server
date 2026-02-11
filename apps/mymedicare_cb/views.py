@@ -204,7 +204,7 @@ def mymedicare_login(request):
             if slsx_client.service_health_check(request):
                 break
         except requests.exceptions.ConnectionError as e:
-            if retries < max_retries and (env is None or env == 'DEV'):
+            if retries < max_retries and (env is None or env == 'local'):
                 time.sleep(0.5)
                 retries += 1
             else:
