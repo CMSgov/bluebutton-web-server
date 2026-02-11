@@ -9,7 +9,7 @@ import warnings
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from .models import (
+from apps.accounts.models import (
     UserPasswordDescriptor,
     PastPassword,
     PasswordHasher,

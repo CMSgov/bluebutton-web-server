@@ -25,20 +25,16 @@ from apps.mymedicare_cb.models import create_beneficiary_record
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 from apps.fhir.bluebutton.models import hash_hicn
+from apps.testclient.constants import (
+    APPLICATION_SCOPES_FULL,
+    APPLICATION_SCOPES_NON_DEMOGRAPHIC,
+    DEFAULT_BENE_COUNT,
+    DEFAULT_DEV_COUNT,
+    DEFAULT_MAX_APPS_PER_DEV
+)
 
 mymedicare_cb_logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
 outreach_logger = logging.getLogger('hhs_server.apps.dot_ext.signals')
-
-APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
-                           'patient/ExplanationOfBenefit.read', 'patient/Coverage.read',
-                           'capability-a', 'capability-b']
-APPLICATION_SCOPES_NON_DEMOGRAPHIC = ['patient/ExplanationOfBenefit.read',
-                                      'patient/Coverage.read', 'capability-a', 'capability-b']
-
-# Keep up with prod count
-DEFAULT_BENE_COUNT = 675000
-DEFAULT_DEV_COUNT = 150
-DEFAULT_MAX_APPS_PER_DEV = 5
 
 
 def create_group(name='BlueButton'):

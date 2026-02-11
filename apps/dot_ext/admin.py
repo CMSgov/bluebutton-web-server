@@ -3,9 +3,9 @@ from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 
-from .csv import ExportCsvMixin
-from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
-from .models import ApplicationLabel, AuthFlowUuid, InternalApplicationLabelsProxy
+from apps.dot_ext.csv import ExportCsvMixin
+from apps.dot_ext.forms import CreateNewApplicationForm, CustomRegisterApplicationForm
+from apps.dot_ext.models import ApplicationLabel, AuthFlowUuid, InternalApplicationLabelsProxy
 
 Application = get_application_model()
 

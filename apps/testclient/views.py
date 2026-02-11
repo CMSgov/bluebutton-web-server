@@ -15,10 +15,12 @@ from collections import namedtuple
 
 from waffle.decorators import waffle_switch
 
-from .utils import (testclient_http_response_setup,
-                    get_client_secret,
-                    extract_page_nav,
-                    _start_url_with_http_or_https)
+from apps.testclient.utils import (
+    testclient_http_response_setup,
+    get_client_secret,
+    extract_page_nav,
+    _start_url_with_http_or_https
+)
 
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import (

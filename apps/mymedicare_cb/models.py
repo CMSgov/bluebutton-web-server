@@ -13,11 +13,8 @@ from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType
 from apps.dot_ext.utils import get_api_version_number_from_url
 
-from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
-
-
-MAX_HICN_HASH_LENGTH = 64
-MAX_MBI_LENGTH = 11
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
+from apps.mymedicare_cb.constants import MAX_HICN_HASH_LENGTH, MAX_MBI_LENGTH
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):

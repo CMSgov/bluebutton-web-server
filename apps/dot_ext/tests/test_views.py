@@ -19,10 +19,10 @@ from apps.dot_ext.models import ArchivedToken
 from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
 
 from apps.test import BaseApiTest
-from ..models import Application
-from .demographic_scopes_test_cases import (
-    VIEW_OAUTH2_SCOPES_TEST_CASES,
+from apps.dot_ext.models import Application
+from apps.dot_ext.tests.demographic_scopes_test_cases import (
     SCOPES_TO_URL_BASE_PATH,
+    VIEW_OAUTH2_SCOPES_TEST_CASES,
 )
 
 import os

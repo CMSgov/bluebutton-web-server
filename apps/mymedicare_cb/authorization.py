@@ -12,18 +12,14 @@ from rest_framework.exceptions import APIException
 from apps.fhir.bluebutton.models import hash_hicn
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
-from .signals import response_hook_wrapper
-from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-
-
-MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
-MSG_SLS_RESP_MISSING_USERID = "Exchange user_id is missing in response error"
-MSG_SLS_RESP_MISSING_USERINFO_USERID = (
-    "SLSx userinfo user_id is missing in response error"
+from apps.mymedicare_cb.constants import (
+    MSG_SLS_RESP_MISSING_AUTHTOKEN,
+    MSG_SLS_RESP_MISSING_USERID,
+    MSG_SLS_RESP_MISSING_USERINFO_USERID,
+    MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID,
 )
-MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = (
-    "SLSx userinfo user_id is not equal in response error"
-)
+from apps.mymedicare_cb.signals import response_hook_wrapper
+from apps.mymedicare_cb.validators import is_mbi_format_valid, is_mbi_format_synthetic
 
 
 class MedicareCallbackExceptionType(Enum):

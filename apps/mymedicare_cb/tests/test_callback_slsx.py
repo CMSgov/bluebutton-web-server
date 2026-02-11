@@ -29,6 +29,7 @@ from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+from apps.mymedicare_cb.constants import ERR_MSG_HICN_EMPTY_OR_NONE, ERR_MSG_HICN_NOT_STR, ERR_MSG_MBI_NOT_STR
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.authorization import (
@@ -41,15 +42,11 @@ from apps.logging.tests.audit_logger_schemas import (
 )
 from apps.test import BaseApiTest
 
-from .responses import patient_response
+from apps.mymedicare_cb.tests.responses import patient_response
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 from http import HTTPStatus
-
-ERR_MSG_HICN_EMPTY_OR_NONE = "User info HICN cannot be empty or None."
-ERR_MSG_HICN_NOT_STR = "User info HICN must be str."
-ERR_MSG_MBI_NOT_STR = "User info MBI must be str."
 
 
 class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):

@@ -3,26 +3,12 @@ import logging
 import json
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
-from ...models import ProtectedCapability
+from apps.capabilities.constants import FHIR_PREFIX_CREATE_STARTER_SCOPES, SUPPORTED_RESOURCES
+from apps.capabilities.models import ProtectedCapability
 
 import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-
-fhir_prefix = "/v1/fhir/"
-
-supported_resources = [
-    'Condition',
-    'AllergyIntolerance',
-    'Medication',
-    'Observation',
-    'FamilyMemberHistory',
-    'Device',
-    'Procedure',
-    'Immunizations',
-    'CarePlan',
-    'DocumentReference',
-]
 
 
 def create_group(name="BlueButton"):
@@ -37,7 +23,7 @@ def create_group(name="BlueButton"):
 
 def create_fhir_readonly_capability(group,
                                     fhir_resource_type,
-                                    fhir_prefix=fhir_prefix,
+                                    FHIR_PREFIX_CREATE_STARTER_SCOPES=FHIR_PREFIX_CREATE_STARTER_SCOPES,
                                     title="",
                                     description=""):
     c = None
@@ -46,8 +32,8 @@ def create_fhir_readonly_capability(group,
 
     smart_scope_string = "patient/%.read" % (fhir_resource_type)
     pr = []
-    pr.append(["GET", "%s%s/" % (fhir_prefix, fhir_resource_type)])
-    pr.append(["GET", "%s%s/[id]" % (fhir_prefix, fhir_resource_type)])
+    pr.append(["GET", "%s%s/" % (FHIR_PREFIX_CREATE_STARTER_SCOPES, fhir_resource_type)])
+    pr.append(["GET", "%s%s/[id]" % (FHIR_PREFIX_CREATE_STARTER_SCOPES, fhir_resource_type)])
 
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
@@ -63,5 +49,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         g = create_group()
-        for r in supported_resources:
+        for r in SUPPORTED_RESOURCES:
             create_fhir_readonly_capability(g, r)

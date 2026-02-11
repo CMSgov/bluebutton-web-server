@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..validators import is_mbi_format_valid, is_mbi_format_synthetic
+from apps.mymedicare_cb.validators import is_mbi_format_synthetic, is_mbi_format_valid
 from string import ascii_uppercase
 
 

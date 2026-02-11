@@ -9,6 +9,7 @@ from oauth2_provider.models import get_application_model
 
 from apps.accounts.models import UserProfile
 from apps.dot_ext.models import ArchivedToken
+from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, TOKEN_VIEWERS
 from apps.bb2_tools.models import (
     BeneficiaryDashboard,
     ApplicationStats,
@@ -22,16 +23,6 @@ from apps.bb2_tools.models import (
     UserStats,
 )
 from apps.fhir.bluebutton.utils import get_v2_patient_by_id
-
-ADMIN_PREPEND = getattr(settings, "ADMIN_PREPEND_URL", "")
-BB2_TOOLS_PATH = (
-    "/{}/admin/bb2_tools/".format(ADMIN_PREPEND)
-    if ADMIN_PREPEND
-    else "/admin/bb2_tools/"
-)
-
-LINK_REF_FMT = "<a  href='{0}{1}?q={2}&user__id__exact={3}'>{4}</a>"
-TOKEN_VIEWERS = {MyAccessTokenViewer, MyRefreshTokenViewer, MyArchivedTokenViewer}
 
 
 def extract_date_range(response):

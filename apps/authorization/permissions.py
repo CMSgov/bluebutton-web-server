@@ -2,7 +2,7 @@ from django.conf import settings
 from rest_framework import (permissions, exceptions)
 from apps.versions import Versions, VersionNotMatched
 
-from .models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant
 
 
 class DataAccessGrantPermission(permissions.BasePermission):

@@ -8,7 +8,7 @@ from django.conf import settings
 from urllib.parse import parse_qs, urlparse
 from apps.versions import Versions
 
-from ..dot_ext.models import Application
+from apps.dot_ext.models import Application
 
 
 def _start_url_with_http_or_https(host: str) -> str:
