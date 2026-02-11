@@ -1,0 +1,8 @@
+creation_rules:
+  - path_regex: \.sopsw\.yaml$
+    kms: "arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/${APP}-${ENV}-app-key-alias"
+    unencrypted_regex: /nonsensitive/
+
+stores:
+  yaml:
+    indent: 2

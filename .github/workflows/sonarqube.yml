@@ -1,0 +1,79 @@
+# SonarQube Code Analysis
+# Migrated from Jenkins pipeline
+
+name: SonarQube Analysis
+
+on:
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  # These values come from GitHub Repository Variables
+  # Settings → Secrets and variables → Actions → Variables
+  SONARQUBE_URL: ${{ vars.SONARQUBE_URL }}
+  SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+  DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+
+jobs:
+  sonarqube:
+    name: SonarQube Analysis
+    # Use CodeBuild runner - runs inside CMS/AWS network, can reach internal SonarQube
+    runs-on:
+      - codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.12
+        run: |
+          echo "Setting up Python 3.12 via pyenv..."
+          pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
+          pyenv global 3.12 || pyenv global 3.12.0
+          python3 --version
+          
+      - name: Install dependencies
+        run: |
+          python3 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          python3 -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
+          pip install coverage pytest
+          echo "/tmp/venv/bin" >> $GITHUB_PATH
+
+      - name: Run tests with coverage
+        run: |
+          source /tmp/venv/bin/activate
+          coverage run runtests.py
+          coverage xml
+
+      - name: Check SonarQube connectivity
+        run: |
+          echo "Checking SonarQube server connectivity..."
+          curl -I ${{ env.SONARQUBE_URL }} || echo "Warning: Could not reach SonarQube"
+
+      - name: Install and Run SonarQube Scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "Installing SonarQube scanner..."
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip -q sonar-scanner.zip
+          export PATH="$PWD/sonar-scanner-5.0.1.3006-linux/bin:$PATH"
+          
+          echo "Running SonarQube analysis..."
+          sonar-scanner \
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=${{ env.SONARQUBE_URL }} \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.inclusions=apps/*/*.py,hhs_oauth_server/*/*.py \
+            -Dsonar.exclusions=apps/*/management/migrations/*.py,apps/*/tests/*.py,apps/integration_tests/* \
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+

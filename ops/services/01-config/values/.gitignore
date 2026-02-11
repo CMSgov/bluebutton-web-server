@@ -1,0 +1,5 @@
+*
+!.gitignore
+!.sops.yaml
+!*.sopsw.yaml
+!*.sopsw.yaml.seed
