@@ -6,7 +6,7 @@ name: SonarQube Analysis
 on:
   push:
     branches: 
-      - noor1027/test-githubactions
+      - master
   pull_request:
     branches: [master]
   workflow_dispatch:
