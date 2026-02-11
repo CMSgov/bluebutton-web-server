@@ -7,9 +7,9 @@ from .base import *
 # * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
 # * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
 DEBUG = True
-SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
-HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
+HOSTNAME_URL = env('HOSTNAME_URL', default='http://localhost:8000')
 
 TEMPLATES = [
     {

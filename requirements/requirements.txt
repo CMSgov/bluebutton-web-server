@@ -282,6 +282,10 @@ django-cors-headers==4.0.0 \
     --hash=sha256:a971cd4c75b29974068cc36b5c595698822f1e0edd5f1b32ea42ea37326ad4aa \
     --hash=sha256:e3cbd247a1a835da4cf71a70d4214378813ea7e08337778b82cb2c1bc19d28d6
     # via -r /requirements/requirements.in
+django-environ==0.12.0 \
+    --hash=sha256:227dc891453dd5bde769c3449cf4a74b6f2ee8f7ab2361c93a07068f4179041a \
+    --hash=sha256:92fb346a158abda07ffe6eb23135ce92843af06ecf8753f43adf9d2366dcc0ca
+    # via -r /requirements/requirements.in
 django-filter==25.2 \
     --hash=sha256:760e984a931f4468d096f5541787efb8998c61217b73006163bf2f9523fe8f23 \
     --hash=sha256:9c0f8609057309bba611062fe1b720b4a873652541192d232dd28970383633e3
@@ -326,6 +330,10 @@ djangorestframework-csv==3.0.0 \
     --hash=sha256:46b39864f68cf42e7357a8be6109a85d484be52d6d8720bfac5e62163ec1a300 \
     --hash=sha256:d6b2ee9a5fc62f98f6f4af241928836e2a2efab384d33def8ec722f9301602bf
     # via -r /requirements/requirements.in
+gunicorn==25.0.3 \
+    --hash=sha256:aca364c096c81ca11acd4cede0aaeea91ba76ca74e2c0d7f879154db9d890f35 \
+    --hash=sha256:b53a7fff1a07b825b962af320554de44ae77a26abfa373711ff3f83d57d3506d
+    # via -r /requirements/requirements.in
 idna==3.7 \
     --hash=sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc \
     --hash=sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0
@@ -364,6 +372,12 @@ oauthlib==3.2.2 \
     #   -r /requirements/requirements.in
     #   django-oauth-toolkit
     #   requests-oauthlib
+packaging==26.0 \
+    --hash=sha256:00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4 \
+    --hash=sha256:b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529
+    # via
+    #   -r /requirements/requirements.in
+    #   gunicorn
 pillow==12.0.0 \
     --hash=sha256:0869154a2d0546545cde61d1789a6524319fc1897d9ee31218eae7a60ccc5643 \
     --hash=sha256:09f2d0abef9e4e2f349305a4f8cc784a8a6c2f58a8c4892eea13b10a943bd26e \

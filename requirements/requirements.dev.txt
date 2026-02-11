@@ -334,6 +334,12 @@ django-debug-toolbar==4.0.0 \
     --hash=sha256:89619f6e0ea1057dca47bfc429ed99b237ef70074dabc065a7faa5f00e1459cf \
     --hash=sha256:bad339d68520652ddc1580c76f136fcbc3e020fd5ed96510a89a02ec81bb3fb1
     # via -r /requirements/requirements.dev.in
+django-environ==0.12.0 \
+    --hash=sha256:227dc891453dd5bde769c3449cf4a74b6f2ee8f7ab2361c93a07068f4179041a \
+    --hash=sha256:92fb346a158abda07ffe6eb23135ce92843af06ecf8753f43adf9d2366dcc0ca
+    # via
+    #   -r /requirements/requirements.dev.in
+    #   -r /requirements/requirements.in
 django-filter==25.2 \
     --hash=sha256:760e984a931f4468d096f5541787efb8998c61217b73006163bf2f9523fe8f23 \
     --hash=sha256:9c0f8609057309bba611062fe1b720b4a873652541192d232dd28970383633e3
@@ -392,6 +398,10 @@ flask-wtf==1.2.1 \
     --hash=sha256:8bb269eb9bb46b87e7c8233d7e7debdf1f8b74bf90cc1789988c29b37a97b695 \
     --hash=sha256:fa6793f2fb7e812e0fe9743b282118e581fb1b6c45d414b8af05e659bd653287
     # via -r /requirements/requirements.dev.in
+gunicorn==25.0.3 \
+    --hash=sha256:aca364c096c81ca11acd4cede0aaeea91ba76ca74e2c0d7f879154db9d890f35 \
+    --hash=sha256:b53a7fff1a07b825b962af320554de44ae77a26abfa373711ff3f83d57d3506d
+    # via -r /requirements/requirements.in
 h11==0.16.0 \
     --hash=sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1 \
     --hash=sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86
@@ -568,11 +578,12 @@ outcome==1.3.0.post0 \
     #   -r /requirements/requirements.dev.in
     #   trio
     #   trio-websocket
-packaging==25.0 \
-    --hash=sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484 \
-    --hash=sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f
+packaging==26.0 \
+    --hash=sha256:00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4 \
+    --hash=sha256:b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529
     # via
-    #   -r /requirements/requirements.dev.in
+    #   -r /requirements/requirements.in
+    #   gunicorn
     #   pytest
     #   setuptools-scm
 pillow==12.0.0 \
