@@ -1,0 +1,25 @@
+{
+  "name": "bluebutton-css",
+  "version": "0.0.1",
+  "description": "The consolidate repo for all Blue Button CSS files",
+  "main": "app.js",
+  "scripts": {
+    "gulp": "gulp"
+  },
+  "keywords": [
+    "CSS",
+    "BlueButton"
+  ],
+  "author": "John French",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp-clean-css": "^4.3.0",
+    "gulp-sass": "^5.1.0",
+    "gulp-sourcemaps": "^2.6.5"
+  },
+  "dependencies": {
+    "@cmsgov/design-system": "^4.0.4",
+    "gulp": "^5.0.0",
+    "sass": "^1.93.3"
+  }
+}

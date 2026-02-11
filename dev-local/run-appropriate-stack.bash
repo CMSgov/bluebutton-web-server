@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 source ./utility-functions.bash
-source ./fetch-and-update-css.bash
 
 # this says to "export all variables."
 set -a
@@ -9,8 +8,6 @@ set -e
 
 # bfd = local | test | sbx
 # auth = mock | live
-
-fetch_and_update_css
 
 # let's make sure we have a valid ENV var before proceeding
 check_valid_env
@@ -56,6 +53,13 @@ if [[ "${daemon}" == "1" ]]; then
     -f docker-compose-local.yaml \
     up \
     --detach
+elif [[ "${MIGRATE}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
+    echo "📊 Tailing logs."
+    echo
+    docker compose \
+        -f docker-compose-local.yaml \
+        up --abort-on-container-exit
+    docker compose down
 else
     echo "📊 Tailing logs."
     echo

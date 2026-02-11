@@ -80,11 +80,6 @@ migration.completed
 venv/
 ENV/
 
-# CSS/SCSSS
-*.css.map
-.sass-cache/*
-bluebutton-css/
-
 .vscode
 
 # cert files
@@ -100,3 +95,10 @@ test_report.txt
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+
+# Static
+*node_modules*
+.sass-cache*
+*.css.map
+.DS_Store
+static/bluebutton-css/dist

@@ -333,7 +333,7 @@ if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
         "params": [
             20,
             By.CSS_SELECTOR,
-            "button.ds-c-button.ds-c-button--solid.ds-u-margin-top--2"
+            "button[class*='ds-c-button--solid']"
         ],
     }]
 

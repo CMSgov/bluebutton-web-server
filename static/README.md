@@ -1,4 +1,4 @@
-Collected static goes here
+# Collected static resources for the bluebutton sandbox go here
 
 ## /font-awesome
 
@@ -15,6 +15,14 @@ Javascript goes here. Includes:
 
 Image files including Favicon
 
-## /theme
+## /design-system
 
-Store bootstrap/bootswatch themes here.
+CMS Design System components, js, css, and fonts.
+
+## /bluebutton-css
+
+Previously a separate repository, this has been merged into the web server repository as the static site is no longer using it. See: [README](bluebutton-css/README.md)
+
+## /swagger-ui-4.15.5-dist
+
+Swagger components

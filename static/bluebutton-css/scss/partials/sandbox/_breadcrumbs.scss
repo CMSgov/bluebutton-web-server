@@ -1,0 +1,22 @@
+// Breadcrumbs Component Styles
+// ----------------------------
+
+.breadcrumb {
+  list-style: none;
+  display: flex;
+  background: $light-gray;
+  padding: .5rem;
+  border-radius: .3rem;
+  li+li:before {
+    content: "/\00a0";
+    padding: .5rem .2rem .5rem .5rem;
+    color: darken($light-gray, 25%);
+  }
+  li a {
+    text-decoration: none;
+  }
+  li a:hover {
+    color: darken($blue, 15%);
+    text-decoration: underline;
+  }
+}
