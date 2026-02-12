@@ -2,6 +2,7 @@ import os
 import logging
 
 import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 import pytz
 import requests
@@ -23,7 +24,7 @@ from apps.wellknown.views import base_issuer, build_endpoint_info
 from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.dot_ext.utils import get_api_version_number_from_url
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class ValidateSearchParams(NamedTuple):

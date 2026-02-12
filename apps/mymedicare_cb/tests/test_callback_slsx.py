@@ -26,7 +26,6 @@ from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdRes
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
-from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.constants import (
@@ -39,9 +38,7 @@ from apps.mymedicare_cb.constants import (
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.views import generate_nonce
-from apps.logging.tests.audit_logger_schemas import (
-    MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA,
-)
+from apps.constants import CODE_CHALLENGE_METHOD_S256, MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
 from apps.test import BaseApiTest
 
 from apps.mymedicare_cb.tests.responses import patient_response

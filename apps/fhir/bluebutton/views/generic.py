@@ -4,7 +4,7 @@ import voluptuous
 import logging
 
 from apps.versions import VersionNotMatched, Versions
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
@@ -38,7 +38,7 @@ from apps.fhir.bluebutton.utils import (
     validate_query_parameters
 )
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):

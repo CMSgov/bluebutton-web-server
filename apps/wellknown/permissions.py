@@ -9,9 +9,9 @@ from rest_framework.exceptions import PermissionDenied
 from waffle import get_waffle_flag_model
 from apps.versions import Versions
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class V3EarlyAdopterWellKnownPermission(permissions.BasePermission):

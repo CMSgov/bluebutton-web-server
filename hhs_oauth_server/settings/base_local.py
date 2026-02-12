@@ -51,6 +51,11 @@ SILENCED_SYSTEM_CHECKS = ['urls.W002']
 # But should not change app behavior unless we test that thoroughly.
 # APPEND_SLASH = False
 
+# DJANGO SETTINGS - not used in codebase but used by Django
+
+
+# ENVIRONMENT VARIABLES - some of these are secrets and some could be constants
+
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, "..")

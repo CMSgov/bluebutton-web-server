@@ -7,12 +7,12 @@ from libs.mail import Mailer
 from libs.decorators import waffle_function_switch
 from apps.dot_ext.models import ArchivedToken
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 Application = get_application_model()
 Token = get_access_token_model()
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 beneficiary_authorized_application = Signal()

@@ -1,7 +1,7 @@
 from apps.dot_ext.forms import SimpleAllowForm
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
-from apps.dot_ext.tests.demographic_scopes_test_cases import FORM_OAUTH2_SCOPES_TEST_CASES
+from apps.dot_ext.constants import FORM_OAUTH2_SCOPES_TEST_CASES
 
 
 class TestSimpleAllowForm(BaseApiTest):

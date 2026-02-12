@@ -20,7 +20,7 @@ from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import CODE_CHALLENGE_METHOD_S256
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 

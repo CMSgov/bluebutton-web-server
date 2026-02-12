@@ -8,6 +8,7 @@ from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
+from apps.constants import C4BB_PROFILE_URLS
 from apps.core.models import Flag
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
@@ -17,7 +18,6 @@ from apps.integration_tests.constants import (
     COVERAGE_READ_SCHEMA,
     COVERAGE_READ_SCHEMA_V2,
     COVERAGE_SEARCH_SCHEMA,
-    C4BB_PROFILE_URLS,
     EOB_READ_INPT_SCHEMA,
     EOB_READ_SCHEMA,
     EOB_SEARCH_SCHEMA,

@@ -3,9 +3,9 @@ import json
 from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
+from apps.constants import C4BB_PROFILE_URLS
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
-    C4BB_PROFILE_URLS,
     C4BB_SYSTEM_TYPES,
     ENFORCE_PARAM_VALIDATAION,
     FHIR_CONFORMANCE_URLS,

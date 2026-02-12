@@ -37,7 +37,7 @@ import uuid
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.mymedicare_cb.models import get_and_update_from_refresh
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.versions import Versions
 
 from ..signals import beneficiary_authorized_application
@@ -59,7 +59,7 @@ from ..utils import (
 )
 from ...authorization.models import DataAccessGrant
 
-log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ["client_secret"]
 ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY = {"code", "grant_type", "code_verifier", "redirect_uri",

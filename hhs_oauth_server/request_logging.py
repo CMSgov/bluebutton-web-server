@@ -10,9 +10,8 @@ from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
 from apps.versions import Versions
-
+from apps.dot_ext.constants import SESSION_AUTH_FLOW_TRACE_KEYS
 from apps.dot_ext.loggers import (
-    SESSION_AUTH_FLOW_TRACE_KEYS,
     get_session_auth_flow_trace,
     is_path_part_of_auth_flow_trace,
 )

@@ -7,9 +7,9 @@ from django.core.management.base import BaseCommand
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES
 from apps.capabilities.models import ProtectedCapability
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 
