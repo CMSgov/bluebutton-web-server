@@ -77,7 +77,7 @@ variable "enable_security_group_lookup" {
 
 variable "permissions_boundary_name" {
   type        = string
-  default     = "ct-ado-poweruser-permissions-boundary-policy"
+  default     = "developer-boundary-policy"
   description = "IAM permissions boundary policy name"
 }
 
