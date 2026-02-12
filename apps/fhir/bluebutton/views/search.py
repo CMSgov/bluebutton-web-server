@@ -12,11 +12,11 @@ from voluptuous import (
 )
 from rest_framework import (permissions)
 
-from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from apps.fhir.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from ..permissions import (
+from apps.fhir.bluebutton.permissions import (
     SearchCrosswalkPermission,
     ResourcePermission,
     ApplicationActivePermission,

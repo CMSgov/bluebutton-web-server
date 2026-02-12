@@ -29,13 +29,15 @@ from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
-from apps.mymedicare_cb.constants import ERR_MSG_HICN_EMPTY_OR_NONE, ERR_MSG_HICN_NOT_STR, ERR_MSG_MBI_NOT_STR
+from apps.mymedicare_cb.constants import (
+    ERR_MSG_HICN_EMPTY_OR_NONE,
+    ERR_MSG_HICN_NOT_STR,
+    ERR_MSG_MBI_NOT_STR,
+    BBMyMedicareSLSxSignoutException,
+    BBMyMedicareSLSxUserinfoException
+)
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.authorization import (
-    BBMyMedicareSLSxUserinfoException,
-    BBMyMedicareSLSxSignoutException,
-)
 from apps.mymedicare_cb.views import generate_nonce
 from apps.logging.tests.audit_logger_schemas import (
     MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA,

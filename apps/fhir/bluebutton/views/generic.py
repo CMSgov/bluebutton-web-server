@@ -19,6 +19,7 @@ from urllib.parse import quote
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.dot_ext.throttling import TokenRateThrottle
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server.settings import fhir_settings
@@ -38,7 +39,6 @@ from apps.fhir.bluebutton.utils import (
 )
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-ENFORCE_PARAM_VALIDATAION = 'handling=strict'
 
 
 class FhirDataView(APIView):

@@ -7,7 +7,7 @@ from oauth2_provider.models import get_application_model
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from waffle import get_waffle_flag_model
-from apps.fhir.bluebutton.constants import ALLOWED_RESOURCE_TYPES
+from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
 from apps.versions import Versions, VersionNotMatched
 
 import apps.logging.request_logger as bb2logging

@@ -1,45 +1,21 @@
+from apps.fhir.constants import (
+    Appropriate,
+    MissingFields,
+    Status,
+    BASEURL,
+    PAGE_NOT_FOUND_TESTS,
+    TESTS,
+)
 from apps.test import BaseApiTest
 
-from collections import namedtuple as NT
 from django.conf import settings
 from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
 from unittest import skipIf
 from waffle.testutils import override_switch, override_flag
 
-# Introduced in bb2-4184
-# Rudimentary tests to make sure endpoints exist and are returning
-# basic responses that make sense. Not a deep test.
-#
-# PRECONDITION
-# You must be on the VPN. Tested against TEST w.r.t. certs.
-
-# Ensure that the status_code, version, and other attributes of the response are valid
-Appropriate = NT('Status', 'url,version,status_code')
-# Ensure the correct status_code is returned for a given endpoint
-Status = NT('Status', 'url,status_code')
-# These test cases ensure that certain fields are not present in the response for a given endpoint
-MissingFields = NT('MissingFields', 'url,version,fields,status_code')
 
 AccessToken = get_access_token_model()
-
-BASEURL = 'http://localhost:8000'
-TESTS = [
-    Appropriate('v1/connect/.well-known/openid-configuration', 'v1', 200),
-    Appropriate('v2/connect/.well-known/openid-configuration', 'v2', 200),
-    Appropriate('v3/connect/.well-known/openid-configuration', 'v3', 200),
-    MissingFields('v3/fhir/.well-known/smart-configuration', 'v3', ['fhir_metadata_uri', 'userinfo_endpoint'], 200),
-    Status('.well-known/openid-configuration', 200),
-    Status('.well-known/openid-configuration-v2', 200)
-]
-
-PAGE_NOT_FOUND_TESTS = [
-    Status('v3/connect/.well-known/openid-configuration', 404),
-    Status('v3/fhir/.well-known/smart-configuration', 404),
-    Status('v3/fhir/metadata', 404),
-    Status('.well-known/openid-configuration-v3', 404),
-]
-FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
 
 class BlueButtonTestEndpoints(BaseApiTest):
@@ -53,7 +29,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=False)
     def test_userinfo_returns_403(self):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 
@@ -67,7 +43,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=True)
     def test_userinfo_returns_200(self):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 

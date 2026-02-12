@@ -16,7 +16,7 @@ from apps.fhir.bluebutton.utils import (generate_info_headers,
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.fhir.server.settings import fhir_settings
-from .loggers import log_match_fhir_id
+from apps.fhir.server.loggers import log_match_fhir_id
 from waffle import switch_is_active
 
 

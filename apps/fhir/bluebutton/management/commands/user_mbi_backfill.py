@@ -1,5 +1,6 @@
 
 from apps.authorization.models import DataAccessGrant
+from apps.fhir.bluebutton.constants import DEFAULT_SLEEP, MAX_RETRIES, MBI_URL
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash
 
@@ -7,16 +8,11 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q, Exists, OuterRef
 from django.test import RequestFactory
 from django.utils.timezone import now
-import logging
 from oauth2_provider.models import get_refresh_token_model, get_application_model
 from time import sleep
 from typing import List, Optional, Dict, Any
 import requests
 
-
-MBI_URL = 'http://hl7.org/fhir/sid/us-mbi'
-MAX_RETRIES = 3
-DEFAULT_SLEEP = 5
 
 RefreshToken = get_refresh_token_model()
 Application = get_application_model()

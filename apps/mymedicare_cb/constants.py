@@ -1,3 +1,6 @@
+from enum import Enum
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
 DEFAULT_USERNAME = '00112233-4455-6677-8899-aabbccddeeff'
 DEFAULT_HICN_HASH = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
@@ -23,3 +26,54 @@ MSG_SLS_RESP_MISSING_USERINFO_USERID = (
 MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = (
     "SLSx userinfo user_id is not equal in response error"
 )
+
+
+class MedicareCallbackExceptionType(Enum):
+    TOKEN = 1
+    USERINFO = 2
+    SIGNOUT = 3
+    VALIDATE_SIGNOUT = 4
+    VALIDATION_ERROR = 5
+    AUTHN_USERINFO = 6
+    CALLBACK_CW_CREATE = 7
+    CALLBACK_CW_UPDATE = 8
+
+
+class BBMyMedicareSLSxSignoutException(APIException):
+    # BB2-544 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
+class BBMyMedicareSLSxTokenException(APIException):
+    # BB2-391 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
+class BBMyMedicareSLSxUserinfoException(APIException):
+    # BB2-391 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
+class BBMyMedicareSLSxValidateSignoutException(APIException):
+    # BB2-544 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
+class BBSLSxHealthCheckFailedException(APIException):
+    # BB2-391 custom exception
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+
+class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class BBMyMedicareCallbackCrosswalkCreateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

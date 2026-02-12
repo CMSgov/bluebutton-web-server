@@ -20,7 +20,7 @@ from apps.versions import Versions
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
-from .models import Crosswalk, Fhir_Response
+from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.dot_ext.utils import get_api_version_number_from_url
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))

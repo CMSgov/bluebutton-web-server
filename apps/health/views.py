@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .checks import (
+from apps.health.checks import (
     internal_services,
     external_services,
     slsx_services,

@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from urllib.parse import urlparse
 # from oauth2_provider.compat import urlparse
-from apps.fhir.bluebutton import constants
+from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
 from apps.fhir.bluebutton.utils import (request_call,
                                         prepend_q,
                                         get_response_text,
@@ -43,14 +43,13 @@ def conformance_filter(text_block):
     # A more robust way of pulling this apart as we increment versions
     # may be something to explore. Or, at least, handling possible key errors
     # when reaching multiple levels deep into a structure.
-    resource_names = constants.ALLOWED_RESOURCE_TYPES
     ct = 0
     if text_block:
         if 'rest' in text_block:
             for k in text_block['rest']:
                 for i, v in k.items():
                     if i == 'resource':
-                        supp_resources = get_supported_resources(v, resource_names)
+                        supp_resources = get_supported_resources(v, ALLOWED_RESOURCE_TYPES)
                         text_block['rest'][ct]['resource'] = supp_resources
                 ct += 1
         else:

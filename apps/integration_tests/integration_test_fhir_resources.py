@@ -11,37 +11,27 @@ from waffle.testutils import override_switch
 from apps.core.models import Flag
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
-from .common_utils import validate_json_schema
-from .endpoint_schemas import (COVERAGE_READ_SCHEMA_V2,
-                               EOB_READ_INPT_SCHEMA,
-                               FHIR_META_SCHEMA,
-                               USERINFO_SCHEMA,
-                               PATIENT_READ_SCHEMA,
-                               PATIENT_SEARCH_SCHEMA,
-                               COVERAGE_READ_SCHEMA,
-                               COVERAGE_SEARCH_SCHEMA,
-                               EOB_READ_SCHEMA,
-                               EOB_SEARCH_SCHEMA)
+from apps.integration_tests.common_utils import validate_json_schema
 
-
-C4BB_PROFILE_URLS = {
-    "COVERAGE": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage",
-    "PATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient",
-    "INPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional",
-    "OUTPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional",
-    "PHARMACY": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy",
-    "NONCLINICIAN": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician",
-}
-
-SAMPLE_A_888_MBI = '1SA0A00CC11'
-SAMPLE_A_888_HICN_HASH = '3637b48c050b8d7a3aa29cd012a535c0ab0e52fe18ddcf1863266b217adc242f'
-
-FHIR_RES_TYPE_EOB = "ExplanationOfBenefit"
-FHIR_RES_TYPE_PATIENT = "Patient"
-FHIR_RES_TYPE_COVERAGE = "Coverage"
-V3_403_DETAIL = 'This application, John_Doe_test, does not yet have access to v3 endpoints. ' \
-                'If you are the app maintainer, please contact the Blue Button API team. If you are a Medicare Beneficiary ' \
-                'and need assistance, please contact the support team for the application you are trying to access.'
+from apps.integration_tests.constants import (
+    COVERAGE_READ_SCHEMA,
+    COVERAGE_READ_SCHEMA_V2,
+    COVERAGE_SEARCH_SCHEMA,
+    C4BB_PROFILE_URLS,
+    EOB_READ_INPT_SCHEMA,
+    EOB_READ_SCHEMA,
+    EOB_SEARCH_SCHEMA,
+    FHIR_META_SCHEMA,
+    FHIR_RES_TYPE_COVERAGE,
+    FHIR_RES_TYPE_EOB,
+    FHIR_RES_TYPE_PATIENT,
+    PATIENT_READ_SCHEMA,
+    PATIENT_SEARCH_SCHEMA,
+    SAMPLE_A_888_MBI,
+    SAMPLE_A_888_HICN_HASH,
+    USERINFO_SCHEMA,
+    V3_403_DETAIL,
+)
 
 
 def dump_content(json_str, file_name):
