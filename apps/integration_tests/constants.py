@@ -801,7 +801,7 @@ EXPECTED_LOGGING_EVENTS = [
 ]
 
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
-USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
+USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
@@ -2017,5 +2017,3 @@ ACCT_TESTS = {
         VALIDATE_1ST_APP_CREATED_EMAIL,
     ]
 }
-
-USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
