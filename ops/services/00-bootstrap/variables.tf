@@ -21,5 +21,5 @@ variable "github_repo" {
 variable "iam_path" {
   description = "IAM path for roles"
   type        = string
-  default     = "/"
+  default     = "/delegatedadmin/developer/"
 }

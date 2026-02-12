@@ -50,7 +50,15 @@ tofu plan
 tofu apply
 ```
 
-**Post-deploy:** Confirm GitHub CodeStar connection in AWS Console.
+**Post-deploy steps:**
+
+1. Approve CodeStar connection: **AWS Console → Developer Tools → Connections → bb-github-connection → Update pending connection**
+2. Create CodeBuild webhook: **AWS Console → CodeBuild → bb-test-web-server → Edit → Source → Enable webhook → Event type: WORKFLOW_JOB_QUEUED → Save**
+3. Import webhook into state:
+
+```bash
+tofu import 'aws_codebuild_webhook.runner[0]' bb-test-web-server
+```
 
 ### 2. Deploy Config (SOPS)
 

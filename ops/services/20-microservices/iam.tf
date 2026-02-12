@@ -1,7 +1,7 @@
 # terraform/services/20-microservices/iam.tf
 
 locals {
-  iam_path    = "/bb/${local.workspace}/"
+  iam_path    = "/delegatedadmin/developer/"
   name_prefix = "${local.app_prefix}-${local.workspace}"
 }
 

@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "tg" {
   for_each    = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
   name        = "${local.app_prefix}-${local.workspace}-${each.key}-tg"
   port        = each.value.port
-  protocol    = "HTTP"
+  protocol    = "HTTPS"
   vpc_id      = local.vpc_id
   target_type = "ip"
 
@@ -37,7 +37,7 @@ resource "aws_lb_target_group" "tg" {
     matcher             = "200"
     path                = each.value.health_check_path
     port                = "traffic-port"
-    protocol            = "HTTP"
+    protocol            = "HTTPS"
     timeout             = 5
     unhealthy_threshold = 3
   }

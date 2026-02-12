@@ -123,8 +123,6 @@ locals {
     "mon_nessus_user",
     "tfbackend",
     "tfbackend2",
-    "www_combined_crt",
-    "www_key_file",
     "cf_app_pyapps_pwd",
   ])
 
@@ -152,12 +150,14 @@ locals {
   default_environment = [
     { name = "TARGET_ENV", value = local.workspace },
     { name = "ENVIRONMENT", value = local.workspace },
-    { name = "PORT", value = "8000" },
-    { name = "DJANGO_FHIR_CERTSTORE", value = "/app/certstore" },
+    { name = "DJANGO_FHIR_CERTSTORE", value = "/tmp/certstore" },
     { name = "FHIR_CERT_FILE", value = "ca.cert.pem" },
     { name = "FHIR_KEY_FILE", value = "ca.key.nocrypt.pem" },
     { name = "PYTHONUNBUFFERED", value = "1" },
     { name = "PYTHONDONTWRITEBYTECODE", value = "1" },
+    # NGINX + gunicorn configuration
+    { name = "NGINX_PORT", value = "8443" },
+    { name = "GUNICORN_PORT", value = "8000" },
     # NewRelic APM configuration
     { name = "NEW_RELIC_APP_NAME", value = "BlueButton-${local.workspace}" },
     { name = "NEW_RELIC_MONITOR_MODE", value = "true" },
