@@ -9,7 +9,6 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
 from apps.fhir.constants import (
     ACCEPTED_COVERAGE_QUERY_PARAMS,
-    ACCEPTED_EOB_QUERY_PARAMS,
     ACCEPTED_PATIENT_QUERY_PARAMS,
 )
 from apps.fhir.server.settings import fhir_settings
@@ -27,6 +26,34 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
 )
+from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
+from voluptuous import (
+    All,
+    Match,
+    Range,
+    Coerce,
+)
+
+# Leaving this here to avoid a circular import issue
+ACCEPTED_EOB_QUERY_PARAMS = {
+    'startIndex': Coerce(int, msg=None),
+    '_count': All(
+        Coerce(int, msg=None),
+        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
+    ),
+    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
+    'type': Match('(?i)^(((carrier)|(pde)|(dme)|(hha)|(hospice)|(inpatient)|(outpatient)|(snf)|(https://bluebutton.cms.gov/'
+                  'resources/codesystem/eob-type\\|)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|carrier)|('
+                  'https://bluebutton.cms.gov/resources/codesystem/eob-type\\|pde)|(https://bluebutton.cms.gov/resources/co'
+                  'desystem/eob-type\\|dme)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|hha)|(https://blueb'
+                  'utton.cms.gov/resources/codesystem/eob-type\\|hospice)|(https://bluebutton.cms.gov/resources/codesystem/'
+                  'eob-type\\|inpatient)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|outpatient)|(https://b'
+                  'luebutton.cms.gov/resources/codesystem/eob-type\\|snf))\\s*,*\\s*)+$',
+                  msg='the type parameter value is not valid'),
+    'service-date': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the service-date operator is not valid')],
+    'patient': str,
+    '_tag': SearchViewExplanationOfBenefit.validate_tag
+}
 
 
 class BluebuttonUtilsSimpleTestCase(BaseApiTest):

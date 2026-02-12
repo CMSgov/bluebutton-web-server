@@ -12,7 +12,6 @@ from voluptuous import (
 )
 from rest_framework import (permissions)
 
-from apps.fhir.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
@@ -57,6 +56,8 @@ class SearchView(FhirDataView):
     QUERY_TRANSFORMS = {
         'count': '_count',
     }
+    DEFAULT_PAGE_SIZE = 10
+    MAX_PAGE_SIZE = 50
 
     QUERY_SCHEMA = {
         'startIndex': Coerce(int),

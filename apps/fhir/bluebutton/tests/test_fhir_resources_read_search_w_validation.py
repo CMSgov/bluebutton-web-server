@@ -7,6 +7,7 @@ from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_PROFILE_URLS,
     C4BB_SYSTEM_TYPES,
+    ENFORCE_PARAM_VALIDATAION,
     FHIR_CONFORMANCE_URLS,
     READ_UPDATE_DELETE_PATIENT_URLS,
     READ_UPDATE_DELETE_EOB_URLS,
@@ -16,7 +17,6 @@ from apps.fhir.constants import (
     SEARCH_PATIENT_URLS,
     USERINFO_URLS,
 )
-from apps.fhir.bluebutton.views.generic import ENFORCE_PARAM_VALIDATAION
 from apps.versions import Versions
 from httmock import all_requests, HTTMock
 from http import HTTPStatus

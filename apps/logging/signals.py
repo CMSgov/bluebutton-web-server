@@ -20,7 +20,7 @@ from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.mymedicare_cb.signals import post_sls
 
-from .serializers import (
+from apps.logging.serializers import (
     Token,
     DataAccessGrantSerializer,
     FHIRRequest,

@@ -9,7 +9,25 @@ FHIR_SERVER = {
 }
 
 """
-from apps.fhir.constants import DEFAULTS, MANDATORY, USER_SETTINGS
+from django.conf import settings
+
+USER_SETTINGS = getattr(settings, "FHIR_SERVER", None)
+
+DEFAULTS = {
+    "FHIR_URL": None,
+    "FHIR_URL_V3": None,
+    "CLIENT_AUTH": False,
+    "CERT_FILE": "",
+    "KEY_FILE": "",
+    "SERVER_VERIFY": False,
+    "WAIT_TIME": 30,
+    "VERIFY_SERVER": False,
+}
+
+# List of settings that cannot be empty
+MANDATORY = (
+    "FHIR_URL",
+)
 
 
 class FHIRServerSettings(object):

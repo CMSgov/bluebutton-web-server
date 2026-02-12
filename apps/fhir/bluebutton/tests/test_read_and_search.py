@@ -33,11 +33,7 @@ AccessToken = get_access_token_model()
 def get_expected_read_request(version: int):
     return {
         'method': 'GET',
-        'url':
-            f'''
-                {FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{settings.DEFAULT_SAMPLE_FHIR_ID_V2}
-                /?_format=application/fhir+json&_id={settings.DEFAULT_SAMPLE_FHIR_ID_V2}
-            ''',
+        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{settings.DEFAULT_SAMPLE_FHIR_ID_V2}/?_format=application/fhir+json&_id={settings.DEFAULT_SAMPLE_FHIR_ID_V2}',  # noqa
         'headers': {
             # 'User-Agent': 'python-requests/2.20.0',
             'Accept-Encoding': 'gzip, deflate',
@@ -659,6 +655,9 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
+            print()
+            print("expected_request['url']: ", expected_request['url'])
+            print("unquote(req.url): ", unquote(req.url))
             self.assertEqual(expected_request['url'], unquote(req.url))
             self.assertEqual(expected_request['method'], req.method)
             self.assertTrue(_contains_subset(expected_request['headers'], req.headers))

@@ -1,7 +1,5 @@
-from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from apps.versions import Versions
 from collections import namedtuple as NT
-from django.conf import settings
 from voluptuous import (
     All,
     Match,
@@ -11,8 +9,6 @@ from voluptuous import (
 
 
 ALLOWED_RESOURCE_TYPES = ['Patient', 'Coverage', 'ExplanationOfBenefit', 'Bundle']
-DEFAULT_PAGE_SIZE = 10
-MAX_PAGE_SIZE = 50
 
 MBI_URL = 'http://hl7.org/fhir/sid/us-mbi'
 MAX_RETRIES = 3
@@ -98,25 +94,6 @@ ACCEPTED_COVERAGE_QUERY_PARAMS = {
     '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
     'beneficiary': str
 }
-ACCEPTED_EOB_QUERY_PARAMS = {
-    'startIndex': Coerce(int, msg=None),
-    '_count': All(
-        Coerce(int, msg=None),
-        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
-    ),
-    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
-    'type': Match('(?i)^(((carrier)|(pde)|(dme)|(hha)|(hospice)|(inpatient)|(outpatient)|(snf)|(https://bluebutton.cms.gov/'
-                  'resources/codesystem/eob-type\\|)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|carrier)|('
-                  'https://bluebutton.cms.gov/resources/codesystem/eob-type\\|pde)|(https://bluebutton.cms.gov/resources/co'
-                  'desystem/eob-type\\|dme)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|hha)|(https://blueb'
-                  'utton.cms.gov/resources/codesystem/eob-type\\|hospice)|(https://bluebutton.cms.gov/resources/codesystem/'
-                  'eob-type\\|inpatient)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|outpatient)|(https://b'
-                  'luebutton.cms.gov/resources/codesystem/eob-type\\|snf))\\s*,*\\s*)+$',
-                  msg='the type parameter value is not valid'),
-    'service-date': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the service-date operator is not valid')],
-    'patient': str,
-    '_tag': SearchViewExplanationOfBenefit.validate_tag
-}
 
 # Introduced in bb2-4184
 # Rudimentary tests to make sure endpoints exist and are returning
@@ -150,21 +127,3 @@ PAGE_NOT_FOUND_TESTS = [
 ]
 
 ENFORCE_PARAM_VALIDATAION = 'handling=strict'
-
-USER_SETTINGS = getattr(settings, "FHIR_SERVER", None)
-
-DEFAULTS = {
-    "FHIR_URL": None,
-    "FHIR_URL_V3": None,
-    "CLIENT_AUTH": False,
-    "CERT_FILE": "",
-    "KEY_FILE": "",
-    "SERVER_VERIFY": False,
-    "WAIT_TIME": 30,
-    "VERIFY_SERVER": False,
-}
-
-# List of settings that cannot be empty
-MANDATORY = (
-    "FHIR_URL",
-)
