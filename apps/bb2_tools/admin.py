@@ -344,7 +344,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     )
     def get_access_tokens(self, obj):
         # use relative URI in ref link to avoid re-login
-        return format_html(get_my_tokens_widget(obj.user.username, obj.user.id))
+        return format_html(format_string=get_my_tokens_widget(obj.user.username, obj.user.id), args={}, kwargs={})
 
     @admin.display(
         description="My Identities",
@@ -352,9 +352,11 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     )
     def get_identities(self, obj):
         return format_html(
-            '<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
+            format_string='<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
                 obj.fhir_id(2), obj.fhir_id(3), obj.user_hicn_hash, obj.user_mbi
-            )
+            ),
+            args={},
+            kwargs={}
         )
 
     @admin.display(
@@ -398,7 +400,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
 
         inlinehtml += "</ul></div>"
 
-        return format_html(inlinehtml)
+        return format_html(format_string=inlinehtml, args={}, kwargs={})
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         extra_context = extra_context or {}
