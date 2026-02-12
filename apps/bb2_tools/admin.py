@@ -363,7 +363,9 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         return format_html(
             format_string='<div><ul><li>FHIR_ID_V2:{}</li><li>FHIR_ID_V3:{}</li><li>HICN HASH:{}</li><li>MBI:{}</li>'.format(
                 obj.fhir_id(2), obj.fhir_id(3), obj.user_hicn_hash, obj.user_mbi
-            ), args={}, kwargs={}
+            ),
+            args={},
+            kwargs={}
         )
 
     @admin.display(
