@@ -1,4 +1,5 @@
 from hhs_oauth_server.settings import base
+from hhs_oauth_server.settings import git_release
 
 # This context processor replaces the use of
 # django-settings-export, which seems to only work with
@@ -38,5 +39,6 @@ def export_settings(request):
         "THEME": base.THEME,
         "TOS_TITLE": base.TOS_TITLE,
         "TOS_URI": base.TOS_URI,
+        "GITHUB_RELEASE": git_release.GIT_RELEASE,
     }
     return {'export_settings': exported_settings}
