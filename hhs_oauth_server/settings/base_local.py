@@ -588,7 +588,7 @@ else:
 BLOCK_HTTP_REDIRECT_URIS = False
 
 our_target_env = env("TARGET_ENV", default="local")
-if our_target_env in ["dev", "test", "impl", "prod"]:
+if our_target_env in ["test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
     MEDIAFILES_LOCATION = "media/"
