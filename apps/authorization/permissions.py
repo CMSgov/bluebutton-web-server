@@ -1,5 +1,5 @@
-from django.conf import settings
 from rest_framework import (permissions, exceptions)
+from apps.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
 from apps.versions import Versions, VersionNotMatched
 
 from apps.authorization.models import DataAccessGrant
@@ -23,7 +23,7 @@ class DataAccessGrantPermission(permissions.BasePermission):
         if dag:
             if dag.has_expired():
                 raise exceptions.NotAuthenticated(
-                    settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
                 )
             return True
 

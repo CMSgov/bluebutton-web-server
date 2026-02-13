@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, urlparse
 from apps.versions import Versions
 
 from apps.dot_ext.models import Application
+from apps.testclient.constants import TESTCLIENT_REDIRECT_URI
 
 
 def _start_url_with_http_or_https(host: str) -> str:
@@ -63,7 +64,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
-    response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
+    response['redirect_uri'] = '{}{}'.format(host, TESTCLIENT_REDIRECT_URI)
     response['coverage_uri'] = '{}/v{}/fhir/Coverage/'.format(host, version)
 
     auth_data = __generate_auth_data()

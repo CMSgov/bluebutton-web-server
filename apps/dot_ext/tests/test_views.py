@@ -3,7 +3,6 @@ import base64
 from datetime import date, timedelta
 
 from django.contrib.auth.models import User
-from django.conf import settings
 from django.core.management import call_command
 from django.http import HttpRequest
 from django.urls import reverse
@@ -18,6 +17,7 @@ from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import ArchivedToken
 from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
 
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.test import BaseApiTest
 from apps.dot_ext.models import Application
 from apps.dot_ext.constants import (
@@ -342,7 +342,7 @@ class TestAuthorizationView(BaseApiTest):
                         # Test ReadView for base path with FHIR_ID
                         if test_readview:
                             response = client.get(
-                                base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                                base_path + "/" + DEFAULT_SAMPLE_FHIR_ID_V2
                             )
                             content = json.loads(response.content)
                             self._assertScopeResponse(
@@ -351,7 +351,7 @@ class TestAuthorizationView(BaseApiTest):
 
                         # Test SearchView for base path with FHIR_ID
                         response = client.get(
-                            base_path + "?" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                            base_path + "?" + DEFAULT_SAMPLE_FHIR_ID_V2
                         )
                         content = json.loads(response.content)
                         self._assertScopeResponse(

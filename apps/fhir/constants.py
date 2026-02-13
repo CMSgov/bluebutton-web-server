@@ -120,3 +120,27 @@ PAGE_NOT_FOUND_TESTS = [
 ]
 
 ENFORCE_PARAM_VALIDATAION = 'handling=strict'
+
+"""
+    (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
+        - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
+    example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
+"""
+
+FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI = (
+    "http://hl7.org/fhir/sid/us-mbi"
+)
+
+FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
+    "https://bluebutton.cms.gov/resources/identifier/hicn-hash"
+)
+
+FHIR_PARAM_FORMAT = "json"
+
+REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
+
+USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
+
+USER_ID_TYPE_DEFAULT = "H"

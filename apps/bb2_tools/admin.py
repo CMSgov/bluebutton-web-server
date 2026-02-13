@@ -1,5 +1,4 @@
 import json
-from django.conf import settings
 from django.contrib import admin
 from django.db.models import Q, Count, Min, Max, DateTimeField
 from django.db.models.functions import Trunc
@@ -9,7 +8,7 @@ from oauth2_provider.models import get_application_model
 
 from apps.accounts.models import UserProfile
 from apps.dot_ext.models import ArchivedToken
-from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, TOKEN_VIEWERS
+from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, SPLUNK_DASHBOARDS, TOKEN_VIEWERS
 from apps.bb2_tools.models import (
     BeneficiaryDashboard,
     ApplicationStats,
@@ -497,7 +496,7 @@ class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
             request,
             extra_context=extra_context,
         )
-        response.context_data["splunk_dashboards"] = settings.SPLUNK_DASHBOARDS
+        response.context_data["splunk_dashboards"] = SPLUNK_DASHBOARDS
         return response
 
 

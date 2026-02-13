@@ -40,6 +40,8 @@ DEVELOPER_SIGNUP_ROLE_CHOICES = [
     (6, 'Other', 'other'),
 ]
 
+TESTCLIENT_REDIRECT_URI = "/testclient/callback"
+
 
 class EndpointFormatException(Exception):
     """Exception for endpoint formatting errors.

@@ -5,7 +5,6 @@ import requests
 
 import apps.logging.request_logger as logging
 
-from django.conf import settings
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
@@ -17,6 +16,7 @@ from oauth2_provider.models import get_access_token_model
 from rest_framework import status
 from waffle.testutils import override_switch
 
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.dot_ext.models import Application
 from apps.logging.utils import redirect_loggers, get_log_content, cleanup_logger
 from apps.mymedicare_cb.views import generate_nonce
@@ -106,7 +106,7 @@ class TestAuditEventLoggers(BaseApiTest):
         self._fhir_events_logging(2)
 
     def _fhir_events_logging(self, version=1):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         AccessToken = get_access_token_model()
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'

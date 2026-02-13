@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
-from apps.constants import C4BB_PROFILE_URLS
+from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
@@ -106,7 +106,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_patient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -119,7 +119,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(READ_UPDATE_DELETE_PATIENT_URLS[version],
-                        kwargs={'resource_id': settings.DEFAULT_SAMPLE_FHIR_ID_V2}),
+                        kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -133,7 +133,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _search_patient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Patient.read'
         ac.save()
@@ -170,7 +170,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     def _search_eob_by_parameter_tag(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
@@ -227,7 +227,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _search_eob_by_parameters_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
@@ -363,7 +363,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_eob_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -390,7 +390,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_eob_inpatient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -416,7 +416,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_eob_outpatient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -442,7 +442,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_coverage_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -480,7 +480,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _search_coverage_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.read'
         ac.save()
@@ -523,7 +523,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _query_fhir_meta(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -549,7 +549,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _query_userinfo(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -578,7 +578,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _err_response_caused_by_illegalarguments(self, version=1, bfd_status_code=500, expected_code=400):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -591,7 +591,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(READ_UPDATE_DELETE_PATIENT_URLS[version],
-                        kwargs={'resource_id': settings.DEFAULT_SAMPLE_FHIR_ID_V2}),
+                        kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
                 Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, expected_code)
@@ -660,8 +660,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         first_access_token = self.create_token(
             'John',
             'Smith',
-            fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2,
-            fhir_id_v3=settings.DEFAULT_SAMPLE_FHIR_ID_V3
+            fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2,
+            fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'

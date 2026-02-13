@@ -2,7 +2,6 @@ import json
 import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from django.conf import settings
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
@@ -18,6 +17,11 @@ from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation imp
     get_response_json,
 )
 
+from apps.constants import (
+    APPLICATION_TEMPORARILY_INACTIVE,
+    APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+)
 from apps.versions import Versions
 # TODO 4430 comes back to this
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
@@ -396,7 +400,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
-            expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
+            expected_response_detail_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(
                 app.name
             ),
         )
@@ -407,7 +411,7 @@ class TestDataAccessPermissions(BaseApiTest):
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_client",
-            expected_response_error_description_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(
+            expected_response_error_description_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(
                 app.name
             ),
         )
@@ -467,7 +471,7 @@ class TestDataAccessPermissions(BaseApiTest):
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.FORBIDDEN,
             expected_response_error_mesg="invalid_client",
-            expected_response_error_description_mesg=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+            expected_response_error_description_mesg=APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
         )
 
         # 3. Test that all calls are successful
@@ -542,14 +546,14 @@ class TestDataAccessPermissions(BaseApiTest):
             refresh_token=ac["refresh_token"],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_error_mesg="invalid_grant",
-            expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+            expected_response_error_description_mesg=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
         # 8. Test that all calls fail when data access expired
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
-            expected_response_detail_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+            expected_response_detail_mesg=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
         # 9. Test RE-AUTH works as expected in #10 thru end of tests.

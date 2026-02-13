@@ -532,3 +532,18 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         "result_exception_mesg": "200 != 302",
     },
 }
+
+# List of beneficiary personal information resource type scopes
+BENE_PERSONAL_INFO_SCOPES = [
+    "patient/Patient.read",
+    "patient/Patient.s",
+    "patient/Patient.r",
+    "patient/Patient.rs",
+    "profile",
+]
+
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
+    'User access cannot be found. '
+    'To refresh Medicare data, end user must re-authenticate '
+    'and consent to share their data.'
+)

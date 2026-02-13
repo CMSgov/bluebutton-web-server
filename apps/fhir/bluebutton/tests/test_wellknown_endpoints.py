@@ -1,3 +1,4 @@
+from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.fhir.constants import (
     Appropriate,
     MissingFields,
@@ -29,7 +30,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=False)
     def test_userinfo_returns_403(self):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 
@@ -37,13 +38,13 @@ class BlueButtonTestEndpoints(BaseApiTest):
             f'{BASEURL}/v3/connect/userinfo',
             Authorization='Bearer %s' % (first_access_token))
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['detail'], settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format('John_Smith_test'))
+        self.assertEqual(response.json()['detail'], APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format('John_Smith_test'))
 
     @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=True)
     def test_userinfo_returns_200(self):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 

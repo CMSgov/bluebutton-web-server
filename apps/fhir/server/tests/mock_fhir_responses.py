@@ -1,6 +1,5 @@
 # flake8: noqa
-from django.conf import settings
-
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 
 """
     mock_fhir_responses: A dictionary of short FHIR service mock responses
@@ -25,22 +24,22 @@ mock_fhir_responses = {
             "link": [
               {
                 "relation": "first",
-                "url": "http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "last",
-                "url": "http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "self",
-                "url": "http://localhost:8000/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
+                "url": "http://localhost:8000/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=" + DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
               }
             ],
             "entry": [
               {
                 "resource": {
                   "resourceType": "Patient",
-                  "id": settings.DEFAULT_SAMPLE_FHIR_ID_V2,
+                  "id": DEFAULT_SAMPLE_FHIR_ID_V2,
                   "meta": {
                     "lastUpdated": "2020-07-07T20:40:20.685+00:00"
                   },
@@ -57,7 +56,7 @@ mock_fhir_responses = {
                   "identifier": [
                     {
                       "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                      "value": settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                      "value": DEFAULT_SAMPLE_FHIR_ID_V2
                     },
                     {
                       "system": "https://bluebutton.cms.gov/resources/identifier/mbi-hash",
@@ -139,19 +138,19 @@ mock_fhir_responses = {
             "link": [
               {
                 "relation": "first",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "next",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "last",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "self",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
+                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
               }
             ],
             "entry": [
@@ -179,19 +178,19 @@ mock_fhir_responses = {
             "link": [
               {
                 "relation": "first",
-                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "next",
-                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "last",
-                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
               },
               {
                 "relation": "self",
-                "url": "http://localhost:8000/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&patient=" + settings.DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
+                "url": "http://localhost:8000/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
               }
             ],
             "entry": [

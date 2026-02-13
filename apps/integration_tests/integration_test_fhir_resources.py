@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.management import call_command
 from http import HTTPStatus
@@ -8,7 +7,7 @@ from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
-from apps.constants import C4BB_PROFILE_URLS
+from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.core.models import Flag
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
@@ -350,7 +349,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             self._assertAddressOK(resource)
 
         # 3. Test READ VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V2, v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V2, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
@@ -400,7 +399,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-" + settings.DEFAULT_SAMPLE_FHIR_ID_V2, v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-" + DEFAULT_SAMPLE_FHIR_ID_V2, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
@@ -762,7 +761,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         test patient read v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V3, False, None)
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, False, None)
 
     @override_switch('v3_endpoints', active=True)
     def test_coverage_read_endpoint_v3_403(self):
@@ -786,7 +785,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         test patient search v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
 
     @override_switch('v3_endpoints', active=True)
     def test_coverage_search_endpoint_v3_403(self):
@@ -794,7 +793,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         test coverage search v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
 
     @override_switch('v3_endpoints', active=True)
     def test_eob_search_endpoint_v3_403(self):
@@ -802,7 +801,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         test eob search v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         '''
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, settings.DEFAULT_SAMPLE_FHIR_ID_V3, True, 'patient=')
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'patient=')
 
     def _call_v3_endpoint_to_assert_403(self, resource_type: str, resource_value: str, search: bool, search_param: str):
         client = APIClient()

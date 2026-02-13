@@ -455,76 +455,6 @@ WAFFLE_FLAG_MODEL = "core.Flag"
 # BLUE BUTTON CUSTOM SETTINGS
 ###############################################################################
 
-CMS_SPLUNK_URL = env("CMS_SPLUNK_URL", default="https://splunk.cloud.cms.gov")
-
-# splunk dashboards links:
-SPLUNK_DASHBOARDS = [
-    {
-        "display_name": "BB2 Authorization Flow Dashboard",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-    {
-        "display_name": "API Big Stats Dashboard - Structured",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-    {
-        "display_name": "BB2 DASG Metrics Dashboard",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/BB2_DASG_Metrics_Dashboard".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-    {
-        "display_name": "BB2 V2 Activities Dashboard",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_v2_activities_dashboard".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-]
-
-# password rules used by validator: PasswordComplexityValidator,
-# this is part of the validation logic, exercise caution when make changes
-PASSWORD_RULES = [
-    {
-        "name": "min_length_digit",
-        "regex": "[0-9]",
-        "msg": "Password must contain at least {} digit(s).",
-        "help": "{} digit(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_alpha",
-        "regex": "[a-zA-Z]",
-        "msg": "Password must contain at least {} letter(s).",
-        "help": "{} letter(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_special",
-        "regex": "[~!{}@#$%^&*_+\":;()'[]",
-        "msg": "Password must contain at least {} special character(s).",
-        "help": "{} special char(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_lower",
-        "regex": "[a-z]",
-        "msg": "Password must contain at least {} lower case letter(s)",
-        "help": "{} lower case char(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_upper",
-        "regex": "[A-Z]",
-        "msg": "Password must contain at least {} upper case letter(s).",
-        "help": "{} upper case char(s)",
-        "min_len": 1,
-    },
-]
-
 PASSWORD_HASH_ITERATIONS = env.int("DJANGO_PASSWORD_HASH_ITERATIONS", default=200000)
 
 # Used for testing for optional apps in templates without causing a crash
@@ -539,37 +469,20 @@ if env("OPTIONAL_INSTALLED_APPS", default=False):
 # Option for local development to pretty print/format JSON logging
 LOG_JSON_FORMAT_PRETTY = env.bool("DJANGO_LOG_JSON_FORMAT_PRETTY", default=False)
 
-# List of beneficiary personal information resource type scopes
-BENE_PERSONAL_INFO_SCOPES = [
-    "patient/Patient.read",
-    "patient/Patient.s",
-    "patient/Patient.r",
-    "patient/Patient.rs",
-    "profile",
-]
-
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = env("DJANGO_APPLICATION_TITLE", default="Blue Button 2.0")
 ORGANIZATION_TITLE = env("DJANGO_ORGANIZATION_TITLE", default="The U.S. Centers for Medicare & Medicaid Services (CMS)")
 ORGANIZATION_URI = env("DJANGO_ORGANIZATION_URI", default="https://cms.gov")
-POLICY_URI = env("DJANGO_POLICY_URI", default="https://www.cms.gov/about-cms/web-policies-important-links/web-policies/privacy")
-POLICY_TITLE = env("DJANGO_POLICY_TITLE", default="Privacy Policy")
-TOS_URI = env("DJANGO_TOS_URI", default="https://bluebutton.cms.gov/terms")
-TOS_TITLE = env("DJANGO_TOS_TITLE", default="Terms of Service")
-TAG_LINE_1 = env("DJANGO_TAG_LINE_1", default="Share your Medicare data")
-TAG_LINE_2 = env("DJANGO_TAG_LINE_2", default="with applications, organizations, and people you trust.")
+
+POLICY_URI = "https://www.cms.gov/about-cms/web-policies-important-links/web-policies/privacy"
+POLICY_TITLE = "Privacy Policy"
+TOS_URI = "https://bluebutton.cms.gov/terms"
+TOS_TITLE = "Terms of Service"
+TAG_LINE_1 = "Share your Medicare data"
+TAG_LINE_2 = "with applications, organizations, and people you trust."
 EXPLAINATION_LINE = "This service allows Medicare beneficiaries to connect their health data to applications of their choosing."
-
-# Application model settings
-APP_LOGO_SIZE_MAX = env.int("DJANGO_APP_LOGO_SIZE_MAX", default=100)
-APP_LOGO_WIDTH_MAX = env.int("DJANGO_APP_LOGO_WIDTH_MAX", default=512)
-APP_LOGO_HEIGHT_MAX = env.int("DJANGO_APP_LOGO_HEIGHT_MAX", default=512)
-
-# Application label slugs to exclude from externally
-# published lists, like those used for internal use testing.
-APP_LIST_EXCLUDE = ["internal-use"]
 
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
@@ -584,43 +497,18 @@ DISCLOSURE_TEXT = """
     subject to audit.
 """
 
+# Application model settings
+APP_LOGO_SIZE_MAX = env.int("DJANGO_APP_LOGO_SIZE_MAX", default=100)
+APP_LOGO_WIDTH_MAX = env.int("DJANGO_APP_LOGO_WIDTH_MAX", default=512)
+APP_LOGO_HEIGHT_MAX = env.int("DJANGO_APP_LOGO_HEIGHT_MAX", default=512)
+
+# Application label slugs to exclude from externally
+# published lists, like those used for internal use testing.
+APP_LIST_EXCLUDE = env.list("DJANGO_APP_LIST_EXCLUDE", default=["internal-use"])
+
+
 HOSTNAME_URL = env("HOSTNAME_URL", default="http://localhost:8000")
 
-# Set the default Encoding standard. typically 'utf-8'
-ENCODING = "utf-8"
-
-APPLICATION_TEMPORARILY_INACTIVE = (
-    'This application, {}, is temporarily inactive.'
-    ' If you are the app maintainer, please contact the Blue Button API team.'
-    ' If you are a Medicare Beneficiary and need assistance, please contact'
-    ' the support team for the application you are trying to access.'
-)
-
-APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
-    'Your application is not allowed to refresh tokens. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data. '
-    'If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov.'
-)
-
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    'User access has timed out. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data.'
-)
-
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
-    'User access cannot be found. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data.'
-)
-
-APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
-    'This application, {}, does not yet have access to v3 endpoints.'
-    ' If you are the app maintainer, please contact the Blue Button API team.'
-    ' If you are a Medicare Beneficiary and need assistance, please contact'
-    ' the support team for the application you are trying to access.'
-)
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     default=os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", default="../certstore")),
@@ -648,27 +536,6 @@ FHIR_SERVER = {
 # or be correct. But, it does need to be consistent.
 MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
 MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL_V3"]).hostname
-
-"""
-    (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
-        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
-        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
-        - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
-    example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
-"""
-FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
-    "https://bluebutton.cms.gov/resources/identifier/hicn-hash"
-)
-
-FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI = (
-    "http://hl7.org/fhir/sid/us-mbi"
-)
-
-FHIR_PARAM_FORMAT = "json"
-
-# Headers Keep-Alive value
-# this can be over-ridden in aws-{env}.py file to set values per environment
-REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 
 SIGNUP_TIMEOUT_DAYS = env.int("SIGNUP_TIMEOUT_DAYS", default=7)
 
@@ -717,12 +584,6 @@ else:
     # Default for local development when ENV not set
     USER_ID_ITERATIONS = 2
 
-USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
-
-USER_ID_TYPE_DEFAULT = "H"
-DEFAULT_SAMPLE_FHIR_ID_V2 = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V2", default="-20140000008325")
-DEFAULT_SAMPLE_FHIR_ID_V3 = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V3", default="-30250000008325")
-TESTCLIENT_REDIRECT_URI = "/testclient/callback"
 
 BLOCK_HTTP_REDIRECT_URIS = False
 

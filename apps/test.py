@@ -9,7 +9,6 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
-from django.conf import settings
 from urllib.parse import parse_qs, urlparse
 
 
@@ -20,7 +19,7 @@ from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import CODE_CHALLENGE_METHOD_S256, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 
@@ -73,8 +72,8 @@ class BaseApiTest(TestCase):
         Returns:
             user: The created auth.User instance
         """
-        fhir_id_v2 = fhir_id_v2 or settings.DEFAULT_SAMPLE_FHIR_ID_V2
-        fhir_id_v3 = fhir_id_v3 or settings.DEFAULT_SAMPLE_FHIR_ID_V3
+        fhir_id_v2 = fhir_id_v2 or DEFAULT_SAMPLE_FHIR_ID_V2
+        fhir_id_v3 = fhir_id_v3 or DEFAULT_SAMPLE_FHIR_ID_V3
 
         # Some of our tests might create users more than once in the DB.
         # Just return them if they exist.

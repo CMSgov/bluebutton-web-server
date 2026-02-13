@@ -1,5 +1,3 @@
-from django.conf import settings
-
 
 # Enrollment and Identity Proofing. NIST SP 800-63-33 B
 # Authenticator Assurance Level
@@ -18,7 +16,8 @@ ACCT_MAIL_LOGGER_NAME = 'hhs_server.apps.accounts.emails'
 CHANGE = 2
 DELETION = 3
 DOT_EXT_SIGNAL_LOGGER_NAME = 'hhs_server.apps.dot_ext.signals'
-ENCODED = settings.ENCODING
+# Set the default Encoding standard. typically 'utf-8'
+ENCODED = "utf-8"
 
 # Enrollment and Identity Proofing. NIST SP 800-63-3 A
 # Identity assurance level
@@ -70,3 +69,43 @@ USER_CHOICES = (
     ('BEN', 'Beneficiary'),
     ('DEV', 'Developer'),
 )
+
+# password rules used by validator: PasswordComplexityValidator,
+# this is part of the validation logic, exercise caution when make changes
+PASSWORD_RULES = [
+    {
+        "name": "min_length_digit",
+        "regex": "[0-9]",
+        "msg": "Password must contain at least {} digit(s).",
+        "help": "{} digit(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_alpha",
+        "regex": "[a-zA-Z]",
+        "msg": "Password must contain at least {} letter(s).",
+        "help": "{} letter(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_special",
+        "regex": "[~!{}@#$%^&*_+\":;()'[]",
+        "msg": "Password must contain at least {} special character(s).",
+        "help": "{} special char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_lower",
+        "regex": "[a-z]",
+        "msg": "Password must contain at least {} lower case letter(s)",
+        "help": "{} lower case char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_upper",
+        "regex": "[A-Z]",
+        "msg": "Password must contain at least {} upper case letter(s).",
+        "help": "{} upper case char(s)",
+        "min_len": 1,
+    },
+]
