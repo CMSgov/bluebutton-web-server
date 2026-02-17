@@ -22,7 +22,7 @@ class Mailer(EmailMultiAlternatives):
         text_content = get_template(template_text).render(context)
         html_content = get_template(template_html).render(context)
 
-        super().__init__(subject, text_content, from_email, to, bcc,
-                         connection, attachments, headers, alternatives,
-                         cc, reply_to)
+        super().__init__(subject=subject, body=text_content, from_email=from_email, to=to, bcc=bcc,
+                         connection=connection, attachments=attachments, headers=headers,
+                         alternatives=alternatives, cc=cc, reply_to=reply_to)
         super().attach_alternative(html_content, "text/html")

@@ -14,6 +14,13 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
 
+# Discover OIDC provider (works for all workspaces including sandbox)
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
+
+  depends_on = [aws_iam_openid_connect_provider.github_actions]
+}
+
 # Trust policy: Allow GitHub Actions from this repo to assume the role
 data "aws_iam_policy_document" "github_actions_assume_role" {
   statement {
@@ -21,7 +28,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = local.create_resources ? [aws_iam_openid_connect_provider.github_actions[0].arn] : ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"]
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
     }
 
     condition {
@@ -38,7 +45,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
   }
 }
 
-# IAM Role for GitHub Actions
+# IAM Role for GitHub Actions (created per environment)
 resource "aws_iam_role" "github_actions" {
   name                 = "bb-${local.env}-github-actions"
   path                 = var.iam_path
@@ -53,11 +60,24 @@ resource "aws_iam_role" "github_actions" {
   }
 }
 
-# ECR permissions for GitHub Actions (push/pull images)
-# Skipped for sandbox — reuses prod ECR repo
-data "aws_iam_policy_document" "github_actions_ecr" {
-  count = local.create_resources ? 1 : 0
+# ============================================================================
+# Discover shared resources (ECR & CodeBuild) by name
+# For prod/test: finds the resource we just created
+# For sandbox: finds prod's resources (same account, bucket_env maps sandbox→prod)
+# ============================================================================
 
+data "aws_ecr_repository" "shared" {
+  name = "bb-${local.bucket_env}-api"
+
+  depends_on = [aws_ecr_repository.api]
+}
+
+# ============================================================================
+# ECR permissions for GitHub Actions (push/pull images)
+# All environments get this policy — sandbox references prod's ECR
+# ============================================================================
+
+data "aws_iam_policy_document" "github_actions_ecr" {
   statement {
     sid       = "AllowECRAuthorization"
     actions   = ["ecr:GetAuthorizationToken"]
@@ -75,18 +95,21 @@ data "aws_iam_policy_document" "github_actions_ecr" {
       "ecr:UploadLayerPart",
       "ecr:CompleteLayerUpload"
     ]
-    resources = [aws_ecr_repository.api[0].arn]
+    resources = [data.aws_ecr_repository.shared.arn]
   }
 }
 
 resource "aws_iam_role_policy" "github_actions_ecr" {
-  count  = local.create_resources ? 1 : 0
   name   = "ecr"
   role   = aws_iam_role.github_actions.id
-  policy = data.aws_iam_policy_document.github_actions_ecr[0].json
+  policy = data.aws_iam_policy_document.github_actions_ecr.json
 }
 
+# ============================================================================
 # CodeBuild trigger permissions (to trigger builds from GHA)
+# Only for environments that have a CodeBuild project (test, prod — not sandbox)
+# ============================================================================
+
 data "aws_iam_policy_document" "github_actions_codebuild" {
   count = local.create_resources ? 1 : 0
 

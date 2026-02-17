@@ -1,19 +1,20 @@
 # CloudWatch Alarms for Blue Button Microservices
 
-# SNS Topic for Alarm Notifications
+# SNS Topic for Alarm Notifications (per-service)
 resource "aws_sns_topic" "alarms" {
-  name              = "bb-${local.workspace}-cloudwatch-alarms"
+  for_each          = nonsensitive(local.service_config)
+  name              = "bb-${local.workspace}-${each.key}-cloudwatch-alarms"
   kms_master_key_id = local.kms_key_arn
 
   tags = {
-    Name = "bb-${local.workspace}-cloudwatch-alarms"
+    Name = "bb-${local.workspace}-${each.key}-cloudwatch-alarms"
   }
 }
 
-# Email Subscription (Optional)
+# Email Subscription (Optional, per-service)
 resource "aws_sns_topic_subscription" "alarms_email" {
-  count     = var.alarm_email != "" ? 1 : 0
-  topic_arn = aws_sns_topic.alarms.arn
+  for_each  = var.alarm_email != "" ? nonsensitive(local.service_config) : {}
+  topic_arn = aws_sns_topic.alarms[each.key].arn
   protocol  = "email"
   endpoint  = var.alarm_email
 }
@@ -37,8 +38,8 @@ resource "aws_cloudwatch_metric_alarm" "log_availability" {
   treat_missing_data  = "breaching"
 
   alarm_description = "${each.key} logs have stopped flowing. Service may be deadlocked or sidecar failed."
-  alarm_actions     = [aws_sns_topic.alarms.arn]
-  ok_actions        = [aws_sns_topic.alarms.arn]
+  alarm_actions     = [aws_sns_topic.alarms[each.key].arn]
+  ok_actions        = [aws_sns_topic.alarms[each.key].arn]
 
   dimensions = {
     LogGroupName = aws_cloudwatch_log_group.ecs[each.key].name
@@ -64,7 +65,7 @@ resource "aws_cloudwatch_metric_alarm" "elb_5xx_errors" {
   treat_missing_data  = "notBreaching"
 
   alarm_description = "${each.key} Load Balancer returning 5xx errors (infrastructure/routing failure)"
-  alarm_actions     = [aws_sns_topic.alarms.arn]
+  alarm_actions     = [aws_sns_topic.alarms[each.key].arn]
 
   dimensions = {
     LoadBalancer = aws_lb.alb[each.key].arn_suffix
@@ -93,8 +94,8 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
 
   alarm_description  = "No healthy ECS tasks available for ${each.key} service"
   treat_missing_data = "breaching"
-  alarm_actions      = [aws_sns_topic.alarms.arn]
-  ok_actions         = [aws_sns_topic.alarms.arn]
+  alarm_actions      = [aws_sns_topic.alarms[each.key].arn]
+  ok_actions         = [aws_sns_topic.alarms[each.key].arn]
 
   dimensions = {
     LoadBalancer = aws_lb.alb[each.key].arn_suffix
@@ -119,7 +120,7 @@ resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
   threshold           = "10"
 
   alarm_description = "${each.key} API returning 5xx errors"
-  alarm_actions     = [aws_sns_topic.alarms.arn]
+  alarm_actions     = [aws_sns_topic.alarms[each.key].arn]
 
   dimensions = {
     LoadBalancer = aws_lb.alb[each.key].arn_suffix
@@ -144,7 +145,7 @@ resource "aws_cloudwatch_metric_alarm" "api_latency_p99" {
   threshold           = "5000" # 5 seconds in milliseconds
 
   alarm_description = "${each.key} API p99 latency above threshold"
-  alarm_actions     = [aws_sns_topic.alarms.arn]
+  alarm_actions     = [aws_sns_topic.alarms[each.key].arn]
 
   dimensions = {
     LoadBalancer = aws_lb.alb[each.key].arn_suffix
@@ -169,7 +170,7 @@ resource "aws_cloudwatch_metric_alarm" "api_4xx_errors" {
   threshold           = "100" # Higher threshold for client errors
 
   alarm_description = "${each.key} API high rate of 4xx client errors"
-  alarm_actions     = [aws_sns_topic.alarms.arn]
+  alarm_actions     = [aws_sns_topic.alarms[each.key].arn]
 
   dimensions = {
     LoadBalancer = aws_lb.alb[each.key].arn_suffix
