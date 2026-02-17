@@ -827,3 +827,57 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(endpoint_url)
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.json()['detail'], V3_403_DETAIL)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_patient_search_endpoint_v3_400_operation_outcome(self):
+        '''
+        test patient search v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(FHIR_RES_TYPE_PATIENT, '-120930918340ajhf-----', True, '_id=', 'ID is not a valid number')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_patient_read_endpoint_v3_400_operation_outcome(self):
+        '''
+        test patient read v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(FHIR_RES_TYPE_PATIENT, '-120930918340ajhf-----', False, None, 'ID is not a valid number')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_eob_read_endpoint_v3_400_operation_outcome(self):
+        '''
+        test EOB read v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(FHIR_RES_TYPE_EOB, '-120930918340ajhf-----', False, None, 'ID is not a valid number')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_coverage_read_endpoint_v3_400_operation_outcome(self):
+        '''
+        test coverage read v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(FHIR_RES_TYPE_COVERAGE, 'part-b__--123456789', False, None,
+                               'Invalid Coverage ID format. Expected pattern like \'part-c-12345-H1234-001\'.')
+
+    def _call_v3_endpoint(
+        self,
+        resource_type: str,
+        resource_value: str,
+        search: bool,
+        search_param: str,
+        diagnostics_result: str
+    ):
+        client = APIClient()
+
+        # Authenticate
+        self._setup_apiclient(client)
+        # Ensure we don't get a 403 on the v3 call
+        Flag.objects.create(name='v3_early_adopter', everyone=True)
+        if search:
+            endpoint_url = "{}/v3/fhir/{}/?{}{}".format(self.live_server_url, resource_type, search_param, resource_value)
+        else:
+            endpoint_url = "{}/v3/fhir/{}/{}".format(self.live_server_url, resource_type, resource_value)
+        response = client.get(endpoint_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.json()['issue'][0]['severity'], 'error')
+        self.assertEqual(response.json()['issue'][0]['code'], 'processing')
+        self.assertEqual(response.json()['issue'][0]['diagnostics'], diagnostics_result)
