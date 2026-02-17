@@ -182,7 +182,9 @@ class FhirDataView(APIView):
             # For patient read and search calls, we need to ensure that what is being passed, either in
             # query parameters for search calls, or in the resource_id for read calls, is valid for the
             # current session (matching the beneficiary_id). If not, raise a 404 Not found before calling BFD.
-            if not valid_patient_read_or_search_call(beneficiary_id, resource_id, query_param):
+            # 20260217 update: We will not return a Not found error when the call is for v3. Instead, we will let
+            # exceptions.py handle it, and ensure an OperationOutcome is returned.
+            if self.version != Versions.V3 and not valid_patient_read_or_search_call(beneficiary_id, resource_id, query_param):
                 error = NotFound('Not found.')
                 raise error
 
@@ -217,7 +219,7 @@ class FhirDataView(APIView):
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128
-        error = process_error_response(response)
+        error = process_error_response(response, self.version)
         if error is not None:
             raise error
 

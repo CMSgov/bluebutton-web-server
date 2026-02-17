@@ -2,10 +2,12 @@ from rest_framework.exceptions import NotFound, APIException
 from rest_framework import status
 from requests import Response
 from requests.exceptions import JSONDecodeError
-from .models import Fhir_Response
+from typing import Any, Dict, List
+from apps.versions import Versions
+from apps.fhir.bluebutton.models import Fhir_Response
 
 
-def process_error_response(response: Fhir_Response) -> APIException:
+def process_error_response(response: Fhir_Response, version: int) -> APIException:
     """
     Process errors coming from FHIR endpoints.
     * All 2XX errors pass through as-is.
@@ -14,9 +16,22 @@ def process_error_response(response: Fhir_Response) -> APIException:
         * All 4XX errors get additional diagnostics attached
         * Except 404, which remains a NotFound
     * All 5XX errors are wrapped and become a 502
+
+    If it is a v3 request, the response code is a 400/500,
+    and the resource type is OperationOutcome, we will return the
+    OperationOutcome details.
     """
     err: APIException = None
     r: Response = response.backend_response
+
+    # Putting this check above the rest of the conditional block so we don't need to check for v3/operationOutcome
+    # in multiple spots within the conditional block. Also, if it turns out to not be an OperationOutcome, we want
+    # the conditional block to handle the exception as it would have before this change
+    if version == Versions.V3 and response.status_code >= 400 and response.status_code < 600:
+        response_json = r.json()
+        if _is_operation_outcome(response_json):
+            return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
+
     if response.status_code is None:
         # This should be impossible.
         msg = 'No status code from the upstream server'
@@ -69,9 +84,29 @@ def process_error_response(response: Fhir_Response) -> APIException:
     return err
 
 
+def _is_operation_outcome(response_json: Dict[str, Any]) -> bool:
+    if response_json.get('resourceType') == 'OperationOutcome':
+        return True
+    return False
+
+
 class UpstreamServerException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
 
 class BadRequestToBackendError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
+
+
+class OperationOutcomeException(APIException):
+
+    def __init__(
+        self,
+        status_code: int,
+        issue: List[Dict[str, Any]]
+    ):
+        self.status_code = status_code
+        self.detail = {
+            'resourceType': 'OperationOutcome',
+            'issue': issue,
+        }
