@@ -29,6 +29,9 @@ build-css:
 
 run-local:
 	@echo "Configuring for ${ENV}" ; \
+		MIGRATE=0 \
+		COLLECTSTATIC=0 \
+		UNIT_TEST_NAME="" \
 		./run-appropriate-stack.bash
 
 retrieve-certs:
