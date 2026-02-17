@@ -8,11 +8,16 @@
 
 ## Environments
 
-| Workspace | Account | Init Command |
-|-----------|---------|-------------|
-| `test` | Test | `tofu init -var="parent_env=test"` |
-| `sandbox` | Prod | `tofu init -var="parent_env=prod"` |
-| `prod` | Prod | `tofu init -var="parent_env=prod"` |
+| Workspace | Account | `TF_VAR_parent_env` |
+|-----------|---------|---------------------|
+| `test` | Non-Prod | `test` |
+| `sandbox` | Prod | `prod` |
+| `prod` | Prod | `prod` |
+
+```bash
+# Set once per shell session (sandbox shares prod's S3 bucket)
+export TF_VAR_parent_env=test   # or prod
+```
 
 ## Service Dependency Order
 
@@ -32,71 +37,100 @@ Always deploy top-to-bottom. Destroy bottom-to-top.
 
 ## First-Time Setup (New Environment)
 
-### 1. Initialize and Deploy Bootstrap
+Full walkthrough using `test` as an example. Replace with `prod`/`sandbox` as needed.
 
 ```bash
+# ============================================================
+# BB2 Fargate — Full Deploy (test environment)
+# ============================================================
+
+# Prerequisites
+export TF_VAR_parent_env=test
+aws sts get-caller-identity   # verify credentials
+
+# ============================================================
+# Step 1: 00-bootstrap
+# ============================================================
 cd ops/services/00-bootstrap
+tofu init
+tofu workspace select test || tofu workspace new test
 
-# Initialize backend (creates .terraform/)
-tofu init -var="parent_env=test"
-
-# Create workspace (first time only)
-tofu workspace new test
-
-# Review changes
+# Apply (webhook will fail — that's expected)
 tofu plan
-
-# Apply
 tofu apply
-```
 
-**Post-deploy steps:**
-
-1. Approve CodeStar connection: **AWS Console → Developer Tools → Connections → bb-github-connection → Update pending connection**
-2. Create CodeBuild webhook: **AWS Console → CodeBuild → bb-test-web-server → Edit → Source → Enable webhook → Event type: WORKFLOW_JOB_QUEUED → Save**
-3. Import webhook into state:
-
-```bash
+# Import the webhook into state
 tofu import 'aws_codebuild_webhook.runner[0]' bb-test-web-server
-```
 
-### 2. Deploy Config (SOPS)
+# >>> MANUAL: AWS Console → Developer Tools → Connections
+# >>> Approve "bb-github-connection" with GitHub
+# >>> MANUAL: Delete stale webhooks at
+# >>> https://github.com/CMSgov/bluebutton-web-server/settings/hooks
 
-```bash
-cd ops/services/01-config
+# Re-apply to create webhook (after connection is AVAILABLE)
+tofu plan
+tofu apply
 
-tofu init -var="parent_env=test"
-tofu workspace new test
+# ============================================================
+# Step 2: 01-config
+# ============================================================
+cd ../01-config
+tofu init
+tofu workspace select test || tofu workspace new test
 
-# First time: create encrypted values file from seed
-cp values/test.sopsw.yaml.seed values/test.sopsw.yaml
-# Edit with actual values, then encrypt:
+# Create encrypted values from seed
+cp values/test.sopsw.yaml.seed.minimal values/test.sopsw.yaml
 bin/sopsw -e values/test.sopsw.yaml
 
 tofu plan
 tofu apply
-```
 
-### 3. Deploy Cluster
+# Verify
+aws ssm get-parameters-by-path \
+  --path "/bb/test/app" --recursive \
+  --query 'Parameters[].{Name:Name,Type:Type}' --output table
 
-```bash
-cd ops/services/10-cluster
-
-tofu init -var="parent_env=test"
-tofu workspace new test
+# ============================================================
+# Step 3: 10-cluster
+# ============================================================
+cd ../10-cluster
+tofu init
+tofu workspace select test || tofu workspace new test
 tofu plan
 tofu apply
-```
 
-### 4. Deploy Microservices
+# Verify
+aws ecs describe-clusters --clusters bb-test-cluster \
+  --query 'clusters[0].{name:clusterName,status:status}'
 
-```bash
-cd ops/services/20-microservices
-
-tofu init -var="parent_env=test"
-tofu workspace new test
+# ============================================================
+# Step 4: 20-microservices
+# ============================================================
+cd ../20-microservices
+tofu init
+tofu workspace select test || tofu workspace new test
 tofu plan
 tofu apply
+
+# Verify
+tofu output alb_dns_names
+aws ecs describe-services \
+  --cluster bb-test-cluster \
+  --services bb-test-api-service \
+  --query 'services[0].{status:status,desired:desiredCount,running:runningCount}'
+```
+
+---
+
+## Teardown (Reverse Order)
+
+```bash
+cd ops/services
+for dir in 20-microservices 10-cluster 01-config 00-bootstrap; do
+  echo "=== Destroying $dir ==="
+  (cd $dir && tofu workspace select test && tofu destroy -auto-approve)
+  echo ""
+done
 ```
 
 ---
@@ -153,19 +187,32 @@ done
 
 ---
 
+## CI/CD Workflows (GitHub Actions)
+
+| Workflow | Trigger | Description |
+|----------|---------|-------------|
+| `tofu-plan` | PRs touching `ops/` | Runs `tofu plan` for all 3 envs |
+| `tofu-apply` | Push to `main` + weekday schedule | Applies changes for all 3 envs |
+| `tofu-fmt` | PRs touching `ops/` | Checks formatting |
+| `tofu-bootstrap` | Manual only | First-time setup with approval gates |
+
+All plan/apply workflows use `ops/scripts/tofu-plan` which runs services in dependency order. Apply mode stops on first failure; plan mode continues and reports all results.
+
+**Required GitHub secrets:** `NON_PROD_ACCOUNT`, `PROD_ACCOUNT`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`
+
+**Required GitHub environments** (with required reviewers): `bootstrap-approve`, `config-approve`, `cluster-approve`
+
+---
+
 ## Switching Environments
 
-The workspace determines which environment you operate on. The `parent_env` is only needed during `init` (to select the S3 bucket).
+The workspace determines which environment you operate on. `TF_VAR_parent_env` is needed for `tofu init` to select the S3 backend bucket.
 
 ```bash
 # Switch to prod
+export TF_VAR_parent_env=prod
 cd ops/services/20-microservices
 tofu workspace select prod
-
-# If workspace doesn't exist yet
-tofu workspace new prod
-
-# Plan against prod
 tofu plan
 ```
 
@@ -173,7 +220,8 @@ tofu plan
 
 ```bash
 # Switching from test to prod account
-tofu init -reconfigure -var="parent_env=prod"
+export TF_VAR_parent_env=prod
+tofu init -reconfigure
 tofu workspace select prod
 tofu plan
 ```
@@ -251,7 +299,8 @@ tofu workspace show
 Re-initialize with the correct parent_env:
 
 ```bash
-tofu init -reconfigure -var="parent_env=test"
+export TF_VAR_parent_env=test
+tofu init -reconfigure
 ```
 
 ### "Error acquiring the state lock"
@@ -309,7 +358,9 @@ aws elbv2 describe-target-health \
 
 | Action | Command |
 |--------|---------|
-| Initialize | `tofu init -var="parent_env=test"` |
+| Set parent env | `export TF_VAR_parent_env=test` |
+| Initialize | `tofu init` |
+| Re-initialize (switch account) | `tofu init -reconfigure` |
 | Select workspace | `tofu workspace select test` |
 | Plan | `tofu plan` |
 | Apply | `tofu apply` |
