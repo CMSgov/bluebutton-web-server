@@ -6,7 +6,7 @@ from rest_framework import permissions, status
 from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
 
-from .models import ProtectedCapability
+from apps.capabilities.models import ProtectedCapability
 
 
 class BBCapabilitiesPermissionTokenScopeMissingException(APIException):

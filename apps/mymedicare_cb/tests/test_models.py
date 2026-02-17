@@ -4,6 +4,13 @@ from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.mymedicare_cb.constants import (
+    DEFAULT_EMAIL,
+    DEFAULT_HICN_HASH,
+    DEFAULT_FIRST_NAME,
+    DEFAULT_LAST_NAME,
+    DEFAULT_USERNAME,
+)
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from waffle.testutils import override_switch
@@ -23,13 +30,6 @@ mock_request = Mock(spec=HttpRequest)
 
 # Initialize session as a dictionary
 mock_request.session = {'version': 2}
-
-
-DEFAULT_USERNAME = '00112233-4455-6677-8899-aabbccddeeff'
-DEFAULT_HICN_HASH = '50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b'
-DEFAULT_FIRST_NAME = 'Hello'
-DEFAULT_LAST_NAME = 'World'
-DEFAULT_EMAIL = 'oscar@sesamestreet.gov'
 
 
 def search_fhir_id_by_identifier_side_effect(search_identifier, request, version) -> str:

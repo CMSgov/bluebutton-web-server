@@ -9,8 +9,7 @@ from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
-from apps.dot_ext.models import ArchivedToken
-from ..models import Application
+from apps.dot_ext.models import ArchivedToken, Application
 from http import HTTPStatus
 
 

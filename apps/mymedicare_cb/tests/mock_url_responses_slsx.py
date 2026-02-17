@@ -3,9 +3,7 @@ import requests
 from httmock import urlmatch
 from rest_framework import status
 
-
-NETLOC_REGEX = r'dev\.accounts\.cms\.gov|test\.accounts\.cms\.gov|msls'
-NETLOC_REGEX_SSO_SESSION = r'dev\.accounts\.cms\.gov|test\.medicare\.gov|msls'
+from apps.mymedicare_cb.constants import NETLOC_REGEX, NETLOC_REGEX_SSO_SESSION
 
 
 def is_called_by_validate_user_signout():

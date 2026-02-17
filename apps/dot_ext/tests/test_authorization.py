@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.dot_ext.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import CODE_CHALLENGE_METHOD_S256
 
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken

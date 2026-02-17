@@ -1,10 +1,11 @@
 from django.core.management import call_command
 from django.test.client import Client
 from django.test import TestCase
-from .utils import testclient_http_response_setup, _start_url_with_http_or_https
+from apps.testclient.utils import testclient_http_response_setup, _start_url_with_http_or_https
 from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.versions import Versions, VersionNotMatched
 from apps.testclient.utils import (_ormap, _deepfind)
 from apps.testclient.constants import EndpointUrl, ResponseErrors
@@ -121,14 +122,14 @@ class BlueButtonClientApiUserInfoTest(TestCase):
         self.client = Client(Authorization='Bearer %s' % (self.token))
         match version:
             case Versions.V1:
-                self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
-                self.username = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                self.patient = DEFAULT_SAMPLE_FHIR_ID_V2
+                self.username = DEFAULT_SAMPLE_FHIR_ID_V2
             case Versions.V2:
-                self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
-                self.username = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                self.patient = DEFAULT_SAMPLE_FHIR_ID_V2
+                self.username = DEFAULT_SAMPLE_FHIR_ID_V2
             case Versions.V3:
-                self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V3
-                self.username = settings.DEFAULT_SAMPLE_FHIR_ID_V3
+                self.patient = DEFAULT_SAMPLE_FHIR_ID_V3
+                self.username = DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
                 raise VersionNotMatched(f'Failed to set up tests with a valid version number; given {version}')  # noqa: E702
 
@@ -175,11 +176,11 @@ class BlueButtonClientApiFhirTest(TestCase):
         self.client = Client(Authorization='Bearer %s' % (self.token))
         match version:
             case Versions.V1:
-                self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                self.patient = DEFAULT_SAMPLE_FHIR_ID_V2
             case Versions.V2:
-                self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V2
+                self.patient = DEFAULT_SAMPLE_FHIR_ID_V2
             case Versions.V3:
-                self.patient = settings.DEFAULT_SAMPLE_FHIR_ID_V3
+                self.patient = DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
                 raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')  # noqa: E702
 

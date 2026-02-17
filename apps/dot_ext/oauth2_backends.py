@@ -1,9 +1,12 @@
 import json
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.models import AccessToken
-from ..fhir.bluebutton.models import Crosswalk
-from .loggers import (clear_session_auth_flow_trace, update_session_auth_flow_trace_from_code,
-                      set_session_auth_flow_trace_value)
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.dot_ext.loggers import (
+    clear_session_auth_flow_trace,
+    update_session_auth_flow_trace_from_code,
+    set_session_auth_flow_trace_value
+)
 from apps.dot_ext.utils import get_api_version_number_from_url
 
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AnonUserState
+from apps.mymedicare_cb.models import AnonUserState
 
 
 @admin.register(AnonUserState)

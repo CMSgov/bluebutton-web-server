@@ -17,80 +17,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Take environment variables from .env.local file
 environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
 
-# SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
-# We want the launch to generally be quiet, and only tell us things
-# that worked, or announce genuine errors.
-# We currently have around 6 warnings on URL endpoints.
-#
-# https://stackoverflow.com/questions/41449814/django-url-warning-urls-w002
-# We can either use APPEND_SLASH or SILENCE_SYSTEM_CHECKS to quiet some warnings
-# around trailing slashes in URLs. There is no risk/danger/problem with having
-# them---Django is just opinionated.
-#
-# By using the SILENCE_SYSTEM_CHECKS, we just suppress warnings like
-#
-# ?: (urls.W002) Your URL pattern '/bfd/?$' has a route beginning with a '/'.
-# Remove this slash as it is unnecessary. If this pattern is targeted in an
-# include(), ensure the include() pattern has a trailing '/'.
-SILENCED_SYSTEM_CHECKS = ['urls.W002']
-#
-# If we use APPEND_SLASH, it also suppresses the warnings, but it also
-# changes Django's behavior. For example,
-#
-# localhost:8000/admin
-#
-# no longer works. You MUST then use
-#
-# localhost:8000/admin/
-#
-# Because this changes behavior, we should either
-#
-# 1. Update our URL pattern rules, or
-# 2. Suppress the warnings, as they do not represent a security issue
-#
-# But should not change app behavior unless we test that thoroughly.
-# APPEND_SLASH = False
+###############################################################################
+# DJANGO BASE SETTINGS
+###############################################################################
 
 # project root folder
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, "..")
-
-# security
-SECRET_KEY = env("DJANGO_SECRET_KEY")
-if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
-    print(
-        "WARNING: Generate your secret key and set in environment "
-        "variable: DJANGO_SECRET_KEY"
-    )
-CMS_SPLUNK_URL = env("CMS_SPLUNK_URL", default="https://splunk.cloud.cms.gov")
-
-# splunk dashboards links:
-SPLUNK_DASHBOARDS = [
-    {
-        "display_name": "BB2 Authorization Flow Dashboard",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-    {
-        "display_name": "API Big Stats Dashboard - Structured",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-    {
-        "display_name": "BB2 DASG Metrics Dashboard",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/BB2_DASG_Metrics_Dashboard".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-    {
-        "display_name": "BB2 V2 Activities Dashboard",
-        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_v2_activities_dashboard".format(
-            CMS_SPLUNK_URL
-        ),
-    },
-]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -129,56 +61,58 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# password rules used by validator: PasswordComplexityValidator,
-# this is part of the validation logic, exercise caution when make changes
-PASSWORD_RULES = [
+MIDDLEWARE = [
+    # Middleware that adds headers to the resposne
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    # Must be before CommonMiddleware but after SessionMiddleware
+    "django.middleware.locale.LocaleMiddleware",
+    # Middleware that can send a response must be below this line
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.dot_ext.throttling.ThrottleMiddleware",
+    "waffle.middleware.WaffleMiddleware",
+    # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
+    # It only formats user lockout messages and renders Axes lockout responses
+    # on failed user authentication attempts from login views.
+    # If you do not want Axes to override the authentication response
+    # you can skip installing the middleware and use your own views.
+    "axes.middleware.AxesMiddleware",
+]
+
+TEMPLATES = [
     {
-        "name": "min_length_digit",
-        "regex": "[0-9]",
-        "msg": "Password must contain at least {} digit(s).",
-        "help": "{} digit(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_alpha",
-        "regex": "[a-zA-Z]",
-        "msg": "Password must contain at least {} letter(s).",
-        "help": "{} letter(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_special",
-        "regex": "[~!{}@#$%^&*_+\":;()'[]",
-        "msg": "Password must contain at least {} special character(s).",
-        "help": "{} special char(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_lower",
-        "regex": "[a-z]",
-        "msg": "Password must contain at least {} lower case letter(s)",
-        "help": "{} lower case char(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_upper",
-        "regex": "[A-Z]",
-        "msg": "Password must contain at least {} upper case letter(s).",
-        "help": "{} upper case char(s)",
-        "min_len": 1,
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR, ("templates/"))],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                'hhs_oauth_server.settings.context_processors.export_settings',
+                "hhs_oauth_server.hhs_oauth_server_context.active_apps",
+            ],
+            "builtins": [],
+        },
     },
 ]
 
-PASSWORD_HASH_ITERATIONS = env.int("DJANGO_PASSWORD_HASH_ITERATIONS", default=200000)
+AUTHENTICATION_BACKENDS = (
+    # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    "axes.backends.AxesBackend",
+    "apps.accounts.backends.EmailAuthBackend",
+    "django.contrib.auth.backends.ModelBackend",
+)
 
 ALLOWED_HOSTS = ["*", socket.gethostname()]
-
-# 20251029 NOTE: Setting this to `False` may disable all
-# CSS styling in the application when working locally.
-# See:
-# * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
-# * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
-DEBUG = env.bool("DEBUG", default=False)
 
 # apps and middlewares
 INSTALLED_APPS = [
@@ -235,79 +169,11 @@ INSTALLED_APPS += DEV_SPECIFIC_APPS
 if env("ENV_SPECIFIC_APPS", default=False):
     INSTALLED_APPS += env("ENV_SPECIFIC_APPS")
 
-REST_FRAMEWORK = {
-    "DEFAULT_THROTTLE_RATES": {
-        "token": env("TOKEN_THROTTLE_RATE", default="100000/s"),
-    },
-}
-
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
-AXES_FAILURE_LIMIT = 5
-AXES_LOGIN_FAILURE_LIMIT = 5
-AXES_LOCK_OUT_AT_FAILURE = True
-# 2025-12-08 AXES_ONLY_USER_FAILURES is deprecated
-# AXES_ONLY_USER_FAILURES = True
-AXES_USERNAME_FORM_FIELD = "username"
-
-# Used for testing for optional apps in templates without causing a crash
-# used in SETTINGS_EXPORT below.
-OPTIONAL_INSTALLED_APPS = [
-    "",
-]
-
-if env("OPTIONAL_INSTALLED_APPS", default=False):
-    OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
-
-MIDDLEWARE = [
-    # Middleware that adds headers to the resposne
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    # Must be before CommonMiddleware but after SessionMiddleware
-    "django.middleware.locale.LocaleMiddleware",
-    # Middleware that can send a response must be below this line
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "apps.dot_ext.throttling.ThrottleMiddleware",
-    "waffle.middleware.WaffleMiddleware",
-    # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
-    # It only formats user lockout messages and renders Axes lockout responses
-    # on failed user authentication attempts from login views.
-    # If you do not want Axes to override the authentication response
-    # you can skip installing the middleware and use your own views.
-    "axes.middleware.AxesMiddleware",
-]
-
-CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=True)
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/v1/accounts/login"
+LOGOUT_REDIRECT_URL = "/"
 
 ROOT_URLCONF = "hhs_oauth_server.urls"
-
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, ("templates/"))],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.template.context_processors.i18n",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-                'hhs_oauth_server.settings.context_processors.export_settings',
-                "hhs_oauth_server.hhs_oauth_server_context.active_apps",
-            ],
-            "builtins": [],
-        },
-    },
-]
 
 WSGI_APPLICATION = "hhs_oauth_server.wsgi.application"
 
@@ -320,75 +186,6 @@ CACHES = {
 
 # keep backward compatible with AutoField instead of BigAutoField
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-DATABASES = {
-    "default": env.db(
-        "DATABASES_CUSTOM",
-        default=f"sqlite:///{BASE_DIR}/db.sqlite3",
-    )
-}
-
-# this helps Django messages format nicely with Bootstrap3
-MESSAGE_TAGS = {
-    messages.DEBUG: "debug",
-    messages.INFO: "info",
-    messages.SUCCESS: "success",
-    messages.WARNING: "warning",
-    messages.ERROR: "danger",
-}
-
-# Set the list of supported languages
-LANGUAGES = [
-    ('en', _('English')),
-    ('es', _('Spanish')),
-    # Add more languages as needed
-]
-
-LOCALE_PATHS = [
-    os.path.join(BASE_DIR, ("templates/design_system/locale")),
-]
-
-# internationalization
-LANGUAGE_CODE = "en"
-TIME_ZONE = "UTC"
-USE_I18N = True
-USE_TZ = True
-
-# static files and media
-ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", default="/code/hhs_oauth_server/..")
-
-MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
-
-MEDIA_URL = "/media/"
-STATIC_URL = "/static/"
-STATIC_ROOT = "collectedstatic"
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
-
-# Waffle
-WAFFLE_FLAG_MODEL = "core.Flag"
-
-# emails
-DEFAULT_FROM_EMAIL = env("DJANGO_FROM_EMAIL", default="change-me@example.com")
-DEFAULT_ADMIN_EMAIL = env("DJANGO_ADMIN_EMAIL", default="change-me@example.com")
-
-# The console.EmailBackend backend prints to the console.
-# Redefine this for SES or other email delivery mechanism
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="email-smtp.us-east-1.amazonaws.com")
-# SES PORT options: 25, 465, 587, 2465 or 2587.
-# Port 25 is throttled
-# Use port 587 or 2587 for TLS connections
-# Use port 465 or 2465 for Native SSL support
-EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)
-EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
-EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
-EMAIL_TIMEOUT = env("DJANGO_EMAIL_TIMEOUT", default=None)
-EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default=None)
-EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default=None)
-EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", default=None)
-EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", default=None)
 
 # Use env-specific logging config if present
 LOGGING = {
@@ -470,10 +267,133 @@ LOGGING = {
     },
 }
 
-# Option for local development to pretty print/format JSON logging
-LOG_JSON_FORMAT_PRETTY = env.bool("DJANGO_LOG_JSON_FORMAT_PRETTY", default=False)
+DATABASES = {
+    "default": env.db(
+        "DATABASES_CUSTOM",
+        default=f"sqlite:///{BASE_DIR}/db.sqlite3",
+    )
+}
 
-AUTH_PROFILE_MODULE = "accounts.UserProfile"
+# internationalization
+LANGUAGE_CODE = "en"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+
+# Set the list of supported languages
+LANGUAGES = [
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    # Add more languages as needed
+]
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, ("templates/design_system/locale")),
+]
+
+# emails
+DEFAULT_FROM_EMAIL = env("DJANGO_FROM_EMAIL", default="change-me@example.com")
+DEFAULT_ADMIN_EMAIL = env("DJANGO_ADMIN_EMAIL", default="change-me@example.com")
+
+# The console.EmailBackend backend prints to the console.
+# Redefine this for SES or other email delivery mechanism
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="email-smtp.us-east-1.amazonaws.com")
+# SES PORT options: 25, 465, 587, 2465 or 2587.
+# Port 25 is throttled
+# Use port 587 or 2587 for TLS connections
+# Use port 465 or 2465 for Native SSL support
+EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = env("DJANGO_EMAIL_TIMEOUT", default=None)
+EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default=None)
+EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default=None)
+EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", default=None)
+EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", default=None)
+
+# this helps Django messages format nicely with Bootstrap3
+MESSAGE_TAGS = {
+    messages.DEBUG: "debug",
+    messages.INFO: "info",
+    messages.SUCCESS: "success",
+    messages.WARNING: "warning",
+    messages.ERROR: "danger",
+}
+
+# static files and media
+# Note: ASSETS_ROOT is not a Django setting, but it is referenced by MEDIA_ROOT, which is a Django setting
+# and it appears ASSETS_ROOT is a environment variable available in deployed environments. For those reasons,
+# including it in the Django settings section
+ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", default="/code/hhs_oauth_server/..")
+
+MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
+
+MEDIA_URL = "/media/"
+STATIC_URL = "/static/"
+STATIC_ROOT = "collectedstatic"
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+# security
+SECRET_KEY = env("DJANGO_SECRET_KEY")
+if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
+    print(
+        "WARNING: Generate your secret key and set in environment "
+        "variable: DJANGO_SECRET_KEY"
+    )
+
+SESSION_COOKIE_AGE = 5400
+SESSION_COOKIE_SECURE = env.bool("DJANGO_SECURE_SESSION")
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# 20251029 NOTE: Setting this to `False` may disable all
+# CSS styling in the application when working locally.
+# See:
+# * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
+# * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
+DEBUG = env.bool("DEBUG", default=False)
+
+# SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
+# We want the launch to generally be quiet, and only tell us things
+# that worked, or announce genuine errors.
+# We currently have around 6 warnings on URL endpoints.
+#
+# https://stackoverflow.com/questions/41449814/django-url-warning-urls-w002
+# We can either use APPEND_SLASH or SILENCE_SYSTEM_CHECKS to quiet some warnings
+# around trailing slashes in URLs. There is no risk/danger/problem with having
+# them---Django is just opinionated.
+#
+# By using the SILENCE_SYSTEM_CHECKS, we just suppress warnings like
+#
+# ?: (urls.W002) Your URL pattern '/bfd/?$' has a route beginning with a '/'.
+# Remove this slash as it is unnecessary. If this pattern is targeted in an
+# include(), ensure the include() pattern has a trailing '/'.
+SILENCED_SYSTEM_CHECKS = ['urls.W002']
+#
+# If we use APPEND_SLASH, it also suppresses the warnings, but it also
+# changes Django's behavior. For example,
+#
+# localhost:8000/admin
+#
+# no longer works. You MUST then use
+#
+# localhost:8000/admin/
+#
+# Because this changes behavior, we should either
+#
+# 1. Update our URL pattern rules, or
+# 2. Suppress the warnings, as they do not represent a security issue
+#
+# But should not change app behavior unless we test that thoroughly.
+# APPEND_SLASH = False
+
+
+###############################################################################
+# PACKAGE SETTINGS
+###############################################################################
 
 # Django Oauth Tookit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = "dot_ext.Application"
@@ -508,38 +428,61 @@ GRANT_TYPES = (
     (GRANT_IMPLICIT, _("Implicit")),
 )
 
-# List of beneficiary personal information resource type scopes
-BENE_PERSONAL_INFO_SCOPES = [
-    "patient/Patient.read",
-    "patient/Patient.s",
-    "patient/Patient.r",
-    "patient/Patient.rs",
-    "profile",
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_RATES": {
+        "token": env("TOKEN_THROTTLE_RATE", default="100000/s"),
+    },
+}
+
+CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=True)
+
+# Failed Login Attempt Module: AXES
+# Either integer or timedelta.
+# If integer interpreted, as hours
+AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
+AXES_FAILURE_LIMIT = 5
+AXES_LOGIN_FAILURE_LIMIT = 5
+AXES_LOCK_OUT_AT_FAILURE = True
+# 2025-12-08 AXES_ONLY_USER_FAILURES is deprecated
+# AXES_ONLY_USER_FAILURES = True
+AXES_USERNAME_FORM_FIELD = "username"
+
+# Waffle
+WAFFLE_FLAG_MODEL = "core.Flag"
+
+
+###############################################################################
+# BLUE BUTTON CUSTOM SETTINGS
+###############################################################################
+
+PASSWORD_HASH_ITERATIONS = env.int("DJANGO_PASSWORD_HASH_ITERATIONS", default=200000)
+
+# Used for testing for optional apps in templates without causing a crash
+# used in SETTINGS_EXPORT below.
+OPTIONAL_INSTALLED_APPS = [
+    "",
 ]
+
+if env("OPTIONAL_INSTALLED_APPS", default=False):
+    OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
+
+# Option for local development to pretty print/format JSON logging
+LOG_JSON_FORMAT_PRETTY = env.bool("DJANGO_LOG_JSON_FORMAT_PRETTY", default=False)
 
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-
 APPLICATION_TITLE = env("DJANGO_APPLICATION_TITLE", default="Blue Button 2.0")
 ORGANIZATION_TITLE = env("DJANGO_ORGANIZATION_TITLE", default="The U.S. Centers for Medicare & Medicaid Services (CMS)")
 ORGANIZATION_URI = env("DJANGO_ORGANIZATION_URI", default="https://cms.gov")
-POLICY_URI = env("DJANGO_POLICY_URI", default="https://www.cms.gov/about-cms/web-policies-important-links/web-policies/privacy")
-POLICY_TITLE = env("DJANGO_POLICY_TITLE", default="Privacy Policy")
-TOS_URI = env("DJANGO_TOS_URI", default="https://bluebutton.cms.gov/terms")
-TOS_TITLE = env("DJANGO_TOS_TITLE", default="Terms of Service")
-TAG_LINE_1 = env("DJANGO_TAG_LINE_1", default="Share your Medicare data")
-TAG_LINE_2 = env("DJANGO_TAG_LINE_2", default="with applications, organizations, and people you trust.")
+
+POLICY_URI = "https://www.cms.gov/about-cms/web-policies-important-links/web-policies/privacy"
+POLICY_TITLE = "Privacy Policy"
+TOS_URI = "https://bluebutton.cms.gov/terms"
+TOS_TITLE = "Terms of Service"
+TAG_LINE_1 = "Share your Medicare data"
+TAG_LINE_2 = "with applications, organizations, and people you trust."
 EXPLAINATION_LINE = "This service allows Medicare beneficiaries to connect their health data to applications of their choosing."
-
-# Application model settings
-APP_LOGO_SIZE_MAX = env.int("DJANGO_APP_LOGO_SIZE_MAX", default=100)
-APP_LOGO_WIDTH_MAX = env.int("DJANGO_APP_LOGO_WIDTH_MAX", default=512)
-APP_LOGO_HEIGHT_MAX = env.int("DJANGO_APP_LOGO_HEIGHT_MAX", default=512)
-
-# Application label slugs to exclude from externally
-# published lists, like those used for internal use testing.
-APP_LIST_EXCLUDE = ["internal-use"]
 
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
@@ -554,58 +497,18 @@ DISCLOSURE_TEXT = """
     subject to audit.
 """
 
+# Application model settings
+APP_LOGO_SIZE_MAX = env.int("DJANGO_APP_LOGO_SIZE_MAX", default=100)
+APP_LOGO_WIDTH_MAX = env.int("DJANGO_APP_LOGO_WIDTH_MAX", default=512)
+APP_LOGO_HEIGHT_MAX = env.int("DJANGO_APP_LOGO_HEIGHT_MAX", default=512)
+
+# Application label slugs to exclude from externally
+# published lists, like those used for internal use testing.
+APP_LIST_EXCLUDE = env.list("DJANGO_APP_LIST_EXCLUDE", default=["internal-use"])
+
+
 HOSTNAME_URL = env("HOSTNAME_URL", default="http://localhost:8000")
 
-# Set the default Encoding standard. typically 'utf-8'
-ENCODING = "utf-8"
-
-SESSION_COOKIE_AGE = 5400
-SESSION_COOKIE_SECURE = env.bool("DJANGO_SECURE_SESSION")
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-APPLICATION_TEMPORARILY_INACTIVE = (
-    'This application, {}, is temporarily inactive.'
-    ' If you are the app maintainer, please contact the Blue Button API team.'
-    ' If you are a Medicare Beneficiary and need assistance, please contact'
-    ' the support team for the application you are trying to access.'
-)
-
-APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
-    "Application end date passed. "
-    "Contact us at BlueButtonAPI@cms.hhs.gov if you need to refresh Medicare data."
-)
-
-APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
-    'Your application is not allowed to refresh tokens. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data. '
-    'If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov.'
-)
-
-APPLICATION_NOT_AUTHENTICATED = (
-    'Application not authenticated. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data.'
-)
-
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    'User access has timed out. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data.'
-)
-
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
-    'User access cannot be found. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data.'
-)
-
-APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
-    'This application, {}, does not yet have access to v3 endpoints.'
-    ' If you are the app maintainer, please contact the Blue Button API team.'
-    ' If you are a Medicare Beneficiary and need assistance, please contact'
-    ' the support team for the application you are trying to access.'
-)
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     default=os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", default="../certstore")),
@@ -634,42 +537,7 @@ FHIR_SERVER = {
 MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
 MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL_V3"]).hostname
 
-
-FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
-    "https://bluebutton.cms.gov/resources/identifier/mbi-hash"
-)
-
-FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
-    "https://bluebutton.cms.gov/resources/identifier/hicn-hash"
-)
-
-"""
-    (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
-        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
-        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
-        - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
-    example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
-"""
-
-FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI = (
-    "http://hl7.org/fhir/sid/us-mbi"
-)
-
-FHIR_PARAM_FORMAT = "json"
-
-# Timeout for request call
-REQUEST_CALL_TIMEOUT = (30, 120)
-# Headers Keep-Alive value
-# this can be over-ridden in aws-{env}.py file to set values per environment
-REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
-
 SIGNUP_TIMEOUT_DAYS = env.int("SIGNUP_TIMEOUT_DAYS", default=7)
-ORGANIZATION_NAME = "CMS Medicare Blue Button"
-
-LOGIN_REDIRECT_URL = "/"
-LOGIN_URL = "/v1/accounts/login"
-
-LOGOUT_REDIRECT_URL = "/"
 
 # Move Admin to a variable url location
 ADMIN_PREPEND_URL = env("DJANGO_ADMIN_PREPEND_URL", default="")
@@ -682,7 +550,6 @@ SLSX_CLIENT_ID = env("DJANGO_SLSX_CLIENT_ID")
 SLSX_CLIENT_SECRET = env("DJANGO_SLSX_CLIENT_SECRET", default="xxxxx")
 
 # ACA token for SLSX_TOKEN_ENDPOINT
-# TODO: Return
 MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", default="")
 
 MEDICARE_SLSX_REDIRECT_URI = env("DJANGO_MEDICARE_SLSX_REDIRECT_URI", default="http://localhost:8000/mymedicare/sls-callback")
@@ -703,19 +570,11 @@ SLSX_VERIFY_SSL_EXTERNAL = env.bool("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", default=F
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"
 
-AUTHENTICATION_BACKENDS = (
-    # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
-    "axes.backends.AxesBackend",
-    "apps.accounts.backends.EmailAuthBackend",
-    "django.contrib.auth.backends.ModelBackend",
-)
-
 # Change these for production
 USER_ID_SALT = env("DJANGO_USER_ID_SALT", default="6E6F747468657265616C706570706572")
 
 # Check type for cases where this is an INT in local development
 iterations = env.int("DJANGO_USER_ID_ITERATIONS", default=None)
-# TODO refactor this
 if iterations:
     if isinstance(iterations, int):
         USER_ID_ITERATIONS = iterations
@@ -725,21 +584,11 @@ else:
     # Default for local development when ENV not set
     USER_ID_ITERATIONS = 2
 
-USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
-
-USER_ID_TYPE_DEFAULT = "H"
-DEFAULT_SAMPLE_FHIR_ID_V2 = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V2", default="-20140000008325")
-DEFAULT_SAMPLE_FHIR_ID_V3 = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID_V3", default="-30250000008325")
-TESTCLIENT_REDIRECT_URI = "/testclient/callback"
-
-OFFLINE = False
-EXTERNAL_LOGIN_TEMPLATE_NAME = "/v1/accounts/upstream-login"
 
 BLOCK_HTTP_REDIRECT_URIS = False
-IS_MEDIA_URL_LOCAL = False
 
 our_target_env = env("TARGET_ENV", default="local")
-if our_target_env in ["dev", "test", "impl", "prod"]:
+if our_target_env in ["test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
     MEDIAFILES_LOCATION = "media/"

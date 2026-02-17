@@ -5,66 +5,26 @@ import apps.logging.request_logger as logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from enum import Enum
 from rest_framework import status
-from rest_framework.exceptions import APIException
+
 
 from apps.fhir.bluebutton.models import hash_hicn
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
-from .signals import response_hook_wrapper
-from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-
-
-MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
-MSG_SLS_RESP_MISSING_USERID = "Exchange user_id is missing in response error"
-MSG_SLS_RESP_MISSING_USERINFO_USERID = (
-    "SLSx userinfo user_id is missing in response error"
+from apps.mymedicare_cb.constants import (
+    MSG_SLS_RESP_MISSING_AUTHTOKEN,
+    MSG_SLS_RESP_MISSING_USERID,
+    MSG_SLS_RESP_MISSING_USERINFO_USERID,
+    MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID,
+    MedicareCallbackExceptionType,
+    BBMyMedicareSLSxSignoutException,
+    BBMyMedicareSLSxTokenException,
+    BBMyMedicareSLSxUserinfoException,
+    BBMyMedicareSLSxValidateSignoutException,
+    BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException,
 )
-MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = (
-    "SLSx userinfo user_id is not equal in response error"
-)
-
-
-class MedicareCallbackExceptionType(Enum):
-    TOKEN = 1
-    USERINFO = 2
-    SIGNOUT = 3
-    VALIDATE_SIGNOUT = 4
-    VALIDATION_ERROR = 5
-    AUTHN_USERINFO = 6
-    CALLBACK_CW_CREATE = 7
-    CALLBACK_CW_UPDATE = 8
-
-
-class BBMyMedicareSLSxSignoutException(APIException):
-    # BB2-544 custom exception
-    status_code = status.HTTP_502_BAD_GATEWAY
-
-
-class BBMyMedicareSLSxTokenException(APIException):
-    # BB2-391 custom exception
-    status_code = status.HTTP_502_BAD_GATEWAY
-
-
-class BBMyMedicareSLSxUserinfoException(APIException):
-    # BB2-391 custom exception
-    status_code = status.HTTP_502_BAD_GATEWAY
-
-
-class BBMyMedicareSLSxValidateSignoutException(APIException):
-    # BB2-544 custom exception
-    status_code = status.HTTP_502_BAD_GATEWAY
-
-
-class BBSLSxHealthCheckFailedException(APIException):
-    # BB2-391 custom exception
-    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-
-
-class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
-    # BB2-237 custom exception
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+from apps.mymedicare_cb.signals import response_hook_wrapper
+from apps.mymedicare_cb.validators import is_mbi_format_valid, is_mbi_format_synthetic
 
 
 class OAuth2ConfigSLSx(object):

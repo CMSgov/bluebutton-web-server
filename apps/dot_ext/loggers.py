@@ -4,7 +4,8 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
-from .models import AuthFlowUuid
+from apps.dot_ext.constants import AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, SESSION_AUTH_FLOW_TRACE_KEYS
+from apps.dot_ext.models import AuthFlowUuid
 
 
 """
@@ -15,18 +16,6 @@ from .models import AuthFlowUuid
 
   Values are retrieved/updated in the request.session.
 """
-
-# List of value keys that are being tracked via request.session
-SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type', 'auth_app_id',
-                                'auth_app_name', 'auth_app_data_access_type',
-                                'auth_pkce_method', 'auth_crosswalk_action',
-                                'auth_share_demographic_scopes', 'auth_require_demographic_scopes',
-                                'auth_language']
-
-# REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
-AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = ("(^/v[1|2]/o/authorize/.*"
-                                         "|^/mymedicare/login$|^/mymedicare/sls-callback$"
-                                         "|^/v[1|2]/o/token/$)")
 
 
 def is_path_part_of_auth_flow_trace(path):

@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from functools import wraps
 from time import strftime
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
@@ -37,7 +36,7 @@ import uuid
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.mymedicare_cb.models import get_and_update_from_refresh
-import apps.logging.request_logger as bb2logging
+from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
 from apps.versions import Versions
 
 from ..signals import beneficiary_authorized_application
@@ -59,7 +58,7 @@ from ..utils import (
 )
 from ...authorization.models import DataAccessGrant
 
-log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ["client_secret"]
 ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY = {"code", "grant_type", "code_verifier", "redirect_uri",
@@ -264,7 +263,7 @@ class AuthorizationView(DotAuthorizationView):
                 return
             else:
                 raise AccessDeniedTokenCustomError(
-                    description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                    description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
             raise AccessDeniedTokenCustomError(
@@ -486,7 +485,7 @@ class TokenView(DotTokenView):
                 return
             else:
                 raise AccessDeniedTokenCustomError(
-                    description=settings.APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
+                    description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
             raise AccessDeniedTokenCustomError(

@@ -5,8 +5,8 @@ from django.test import TestCase
 from waffle.testutils import override_switch
 
 from apps.capabilities.permissions import BBCapabilitiesPermissionTokenScopeMissingException
-from .models import ProtectedCapability
-from .permissions import TokenHasProtectedCapability
+from apps.capabilities.models import ProtectedCapability
+from apps.capabilities.permissions import TokenHasProtectedCapability
 
 
 class SimpleToken(object):

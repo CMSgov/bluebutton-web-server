@@ -1,11 +1,8 @@
 import json
-from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from apps.test import BaseApiTest
-
-
-ENCODED = settings.ENCODING
+from apps.accounts.constants import ENCODED
 
 
 class TestUserSelfEndpoint(BaseApiTest):

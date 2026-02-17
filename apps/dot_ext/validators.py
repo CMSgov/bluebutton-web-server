@@ -1,5 +1,3 @@
-import re
-
 from oauth2_provider.validators import URIValidator
 from oauth2_provider.validators import urlsplit
 from oauth2_provider.settings import oauth2_settings
@@ -9,11 +7,7 @@ from django.utils.encoding import force_str
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from os import path as ospath
-
-URL_REGEX = re.compile(
-    r'^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.'
-    r'[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'
-)
+from apps.dot_ext.constants import URL_REGEX
 
 
 class RedirectURIValidator(URIValidator):
