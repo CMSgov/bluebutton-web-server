@@ -84,7 +84,7 @@ terraform {
     key     = "ops/services/${local.service}/tofu.tfstate"
     region  = var.region
     encrypt = true
-    # use_lockfile = true # S3-native locking (versioning enabled)
+    use_lockfile = true
     # TODO: Enable after creating KMS key alias/bb-{env}-cmk in 00-bootstrap
     # kms_key_id = "alias/bb-${local.bucket_env}-cmk"
   }
