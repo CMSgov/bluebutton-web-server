@@ -2,13 +2,12 @@ import pytz
 
 from datetime import datetime
 
-from .models import ActivationKey
-
-LINK_EXPIRED_MSG = """The activation key is expired.
-                Contact us at bluebuttonapi@cms.hhs.gov for further assistance"""
-ACCT_HAS_ISSUE_MSG = """There may be an issue with your account.
-                Contact us at bluebuttonapi@cms.hhs.gov"""
-ACCT_ACTIVATED_MSG = """Your account has been activated. You may now login."""
+from apps.accounts.constants import (
+    ACCT_ACTIVATED_MSG,
+    ACCT_HAS_ISSUE_MSG,
+    LINK_EXPIRED_MSG,
+)
+from apps.accounts.models import ActivationKey
 
 
 def validate_activation_key(activation_key):

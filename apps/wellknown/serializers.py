@@ -1,5 +1,5 @@
 from rest_framework.serializers import (ModelSerializer, SerializerMethodField)
-from ..dot_ext.models import Application, ApplicationLabel
+from apps.dot_ext.models import Application, ApplicationLabel
 
 
 class ApplicationLabelSerializer(ModelSerializer):

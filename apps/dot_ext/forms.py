@@ -9,17 +9,16 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.constants import PRINTABLE_SPECIAL_ASCII
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
 from django.contrib.auth.models import Group, User
 from django.forms.widgets import URLInput
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-
-PRINTABLE_SPECIAL_ASCII = "!\"#$%&'()*+,-/:;<=>?@[\\]^_`{|}~"
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 # TODO Consider refactoring the following two forms which are possibly redundant
 # Refer to comment on BB2-2933

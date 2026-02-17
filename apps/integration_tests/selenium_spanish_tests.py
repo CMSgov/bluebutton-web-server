@@ -1,5 +1,5 @@
 from .selenium_generic import SeleniumGenericTests
-from .selenium_cases import SPANISH_TESTS
+from apps.integration_tests.constants import SPANISH_TESTS
 from apps.versions import Versions
 from apps.integration_tests.common_utils import screenshot_on_exception
 

@@ -3,8 +3,8 @@ from waffle import switch_is_active
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 from oauth2_provider.settings import oauth2_settings
 
-from .models import ExpiresIn
-from ..pkce.oauth2_server import PKCEServerMixin
+from apps.dot_ext.models import ExpiresIn
+from apps.pkce.oauth2_server import PKCEServerMixin
 
 
 def my_token_expires_in(request):

@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import (
+from apps.health.views import (
     CheckBFD,
     CheckDB,
     CheckInternal,

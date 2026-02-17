@@ -11,7 +11,7 @@ from apps.authorization.models import DataAccessGrant
 from apps.fhir.bluebutton.signals import pre_fetch
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.test import BaseApiTest
-from ..models import Application
+from apps.dot_ext.models import Application
 
 
 def create_patient_capability(

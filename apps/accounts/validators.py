@@ -6,10 +6,10 @@ from datetime import (
 import re
 import warnings
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from .models import (
+from apps.accounts.constants import PASSWORD_RULES
+from apps.accounts.models import (
     UserPasswordDescriptor,
     PastPassword,
     PasswordHasher,
@@ -38,7 +38,7 @@ class PasswordComplexityValidator:
         self.min_length_upper = min_length_upper
         self.special_characters = special_characters
 
-        settings.PASSWORD_RULES[2]['regex'] = self.special_characters
+        PASSWORD_RULES[2]['regex'] = self.special_characters
 
         self.actual_params = [
             self.min_length_digit,
@@ -50,7 +50,7 @@ class PasswordComplexityValidator:
 
         password_requirements = []
 
-        for rule in zip(settings.PASSWORD_RULES, self.actual_params):
+        for rule in zip(PASSWORD_RULES, self.actual_params):
             if rule[1]:
                 password_requirements.append(rule[0]['help'].format(rule[1]))
 
@@ -58,7 +58,7 @@ class PasswordComplexityValidator:
 
     def validate(self, password, user=None):
         validation_errors = []
-        for tuple in zip(settings.PASSWORD_RULES, self.actual_params):
+        for tuple in zip(PASSWORD_RULES, self.actual_params):
             rule = tuple[0]
             min_len_required = tuple[1]
             p = re.compile(rule['regex'])

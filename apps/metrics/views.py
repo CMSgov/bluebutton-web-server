@@ -37,9 +37,9 @@ from apps.fhir.bluebutton.models import (
     Crosswalk,
     get_crosswalk_bene_counts)
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
-log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS
 

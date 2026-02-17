@@ -4,7 +4,7 @@ import voluptuous
 import logging
 
 from apps.versions import VersionNotMatched, Versions
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
@@ -19,6 +19,7 @@ from urllib.parse import quote
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.dot_ext.throttling import TokenRateThrottle
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server.settings import fhir_settings
@@ -37,8 +38,7 @@ from apps.fhir.bluebutton.utils import (
     validate_query_parameters
 )
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-ENFORCE_PARAM_VALIDATAION = 'handling=strict'
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):

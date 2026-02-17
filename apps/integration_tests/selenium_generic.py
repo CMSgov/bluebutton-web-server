@@ -18,7 +18,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException
 
-from .selenium_cases import (
+from apps.integration_tests.constants import (
     Action,
     TESTCASE_BANNER_FMT,
     TESTCLIENT_LNK_TXT_RESTART,

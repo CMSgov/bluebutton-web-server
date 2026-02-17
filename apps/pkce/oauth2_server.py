@@ -6,10 +6,7 @@ from oauthlib.oauth2.rfc6749.errors import OAuth2Error, InvalidRequestError
 from oauth2_provider.models import get_grant_model
 from oauth2_provider.settings import oauth2_settings
 from django.core.exceptions import ObjectDoesNotExist
-
-ERR_CCM_S256_REQUIRED = "PKCE code_challenge_method required to be S256"
-ERR_CC_REQUIRED = "PKCE code_challenge required"
-ERR_CCM_REQUIRED = "code_challenge_method required for pkce, missing parameter: code_challenge_method=S256"
+from apps.pkce.constants import ERR_CC_REQUIRED, ERR_CCM_S256_REQUIRED, ERR_CCM_REQUIRED
 
 Grant = get_grant_model()
 

@@ -1,19 +1,17 @@
 
-from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock
 from http import HTTPStatus
 from oauth2_provider.models import get_access_token_model
 
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.test import BaseApiTest
 
 # Get the pre-defined Conformance statement
 from waffle.testutils import override_switch
 
 AccessToken = get_access_token_model()
-
-FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
 POSSIBLE_COVERAGE_SCOPES = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
 POSSIBLE_PATIENT_SCOPES = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.r']
@@ -41,7 +39,7 @@ class InsuranceCardTest(BaseApiTest):
     def test_scope_combinations(self):
         for tt in InsuranceCardTest.TEST_TABLE:
             with self.subTest(tt=tt):
-                token = self.create_token('Annie', 'User', fhir_id_v2=FHIR_ID_V2)
+                token = self.create_token('Annie', 'User', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
                 ac = AccessToken.objects.get(token=token)
                 ac.scope = " ".join(tt['scope'])
                 ac.save()
