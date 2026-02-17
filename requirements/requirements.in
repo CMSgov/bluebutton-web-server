@@ -31,7 +31,7 @@ importlib-resources == 5.12.0
 jmespath == 1.0.1
 jsonschema == 4.17.3
 jwcrypto == 1.5.6
-newrelic == 8.8.0
+newrelic == 9.4.0
 oauthlib == 3.2.2
 packaging == 26.0
 pillow == 12.0.0
