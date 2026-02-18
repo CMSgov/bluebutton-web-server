@@ -4,14 +4,11 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 from apps.accounts.models import UserProfile
+from apps.constants import OPERATION_OUTCOME
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
-from apps.fhir.constants import (
-    ACCEPTED_COVERAGE_QUERY_PARAMS,
-    ACCEPTED_PATIENT_QUERY_PARAMS,
-    OPERATION_OUTCOME,
-)
+from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS
 from apps.fhir.server.settings import fhir_settings
 
 

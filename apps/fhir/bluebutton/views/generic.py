@@ -44,7 +44,7 @@ logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 class FhirDataView(APIView):
     version = 1
     parser_classes = [JSONParser, FHIRParser]
-    renderer_classes = [JSONRenderer, FHIRRenderer]
+    renderer_classes = [FHIRRenderer, JSONRenderer]
     throttle_classes = [TokenRateThrottle]
     authentication_classes = [OAuth2ResourceOwner]
     # BB2-149 note, check authenticated first, then app active etc.

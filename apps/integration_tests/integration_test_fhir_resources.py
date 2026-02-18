@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
 from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import OPERATION_OUTCOME
 from apps.core.models import Flag
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
@@ -894,6 +895,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(endpoint_url)
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.json()['resourceType'], OPERATION_OUTCOME)
         self.assertEqual(response.json()['issue'][0]['severity'], 'error')
         self.assertEqual(response.json()['issue'][0]['code'], 'processing')
         self.assertEqual(response.json()['issue'][0]['diagnostics'], diagnostics_result)

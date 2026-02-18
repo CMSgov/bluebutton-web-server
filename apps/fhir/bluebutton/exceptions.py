@@ -4,7 +4,7 @@ from requests import Response
 from requests.exceptions import JSONDecodeError
 from typing import Any, Dict, List
 from apps.versions import Versions
-from apps.fhir.constants import OPERATION_OUTCOME
+from apps.constants import OPERATION_OUTCOME
 from apps.fhir.bluebutton.models import Fhir_Response
 from apps.fhir.bluebutton.utils import is_operation_outcome
 
@@ -19,14 +19,14 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
         * Except 404, which remains a NotFound
     * All 5XX errors are wrapped and become a 502
 
-    If it is a v3 request, the response code is a 400/500,
+    If it is a v3 request, the response code is a 4XX or 5XX,
     and the resource type is OperationOutcome, we will return the
     OperationOutcome details.
     """
     err: APIException = None
     r: Response = response.backend_response
 
-    # Putting this check above the rest of the conditional block so we don't need to check for v3/operationOutcome
+    # Putting this check above the rest of the conditional block so we don't need to check for v3 and OperationOutcome
     # in multiple spots within the conditional block. Also, if it turns out to not be an OperationOutcome, we want
     # the conditional block to handle the exception as it would have before this change
     if version == Versions.V3 and response.status_code >= 400 and response.status_code < 600:
