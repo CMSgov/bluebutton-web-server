@@ -134,7 +134,7 @@ RUN dnf clean all
 USER boton
 
 # Write out a git release variable matching our release tag.
-RUN rm ${BB}/hhs_oauth_server/settings/git_release.py \
+RUN rm -f ${BB}/hhs_oauth_server/settings/git_release.py \
     && echo "GIT_RELEASE = '${RELEASE_TAG}'" > ${BB}/hhs_oauth_server/settings/git_release.py
 
 # Make sure the entrypoint is executable.
