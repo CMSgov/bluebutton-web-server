@@ -18,7 +18,7 @@ build-local:
 		-f Dockerfile \
 		../../..
 
-build:
+build-cloud:
 	echo "build"
 	env="local" \
 	bfd=${bfd} \
@@ -30,17 +30,3 @@ build:
 		-t bb:latest \
 		-f Dockerfile \
 		.
-
-run-local:
-	env="local" \
-	bfd=${bfd} \
-	docker run -it \
-		--platform "linux/amd64" \
-		-e env=${env} \
-		-e bfd=${bfd} \
-		-p 8000:8000 \
-		-v ${PWD}:/home/boton/bb/ops/containers/bb-web-api \
-		bb:latest
-
-push:
-	echo "push"
