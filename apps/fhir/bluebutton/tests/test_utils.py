@@ -10,6 +10,7 @@ from apps.versions import Versions
 from apps.fhir.constants import (
     ACCEPTED_COVERAGE_QUERY_PARAMS,
     ACCEPTED_PATIENT_QUERY_PARAMS,
+    OPERATION_OUTCOME,
 )
 from apps.fhir.server.settings import fhir_settings
 
@@ -25,6 +26,7 @@ from apps.fhir.bluebutton.utils import (
     build_oauth_resource,
     valid_patient_read_or_search_call,
     validate_query_parameters,
+    is_operation_outcome,
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -179,6 +181,13 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         result = validate_query_parameters(ACCEPTED_EOB_QUERY_PARAMS, query_param)
         assert not result.valid
         assert 'hello' in result.invalid_params
+
+    def test_is_operation_outcome(self):
+        result = is_operation_outcome({'resourceType': OPERATION_OUTCOME})
+        assert result
+
+        result = is_operation_outcome({'resourceType': 'patient'})
+        assert not result
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):

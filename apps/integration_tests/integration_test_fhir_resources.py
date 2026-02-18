@@ -30,6 +30,10 @@ from apps.integration_tests.constants import (
     SAMPLE_A_888_HICN_HASH,
     USERINFO_SCHEMA,
     V3_403_DETAIL,
+    COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
+    INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+    INVALID_PATIENT_ID,
+    INVALID_COVERAGE_ID,
 )
 
 
@@ -822,29 +826,52 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         '''
         test patient search v3 throwing a 400 operation outcome when a bad request is made
         '''
-        self._call_v3_endpoint(FHIR_RES_TYPE_PATIENT, '-120930918340ajhf-----', True, '_id=', 'ID is not a valid number')
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_PATIENT,
+            INVALID_PATIENT_ID,
+            True,
+            '_id=',
+            INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+        )
 
     @override_switch('v3_endpoints', active=True)
     def test_patient_read_endpoint_v3_400_operation_outcome(self):
         '''
         test patient read v3 throwing a 400 operation outcome when a bad request is made
         '''
-        self._call_v3_endpoint(FHIR_RES_TYPE_PATIENT, '-120930918340ajhf-----', False, None, 'ID is not a valid number')
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_PATIENT,
+            INVALID_PATIENT_ID,
+            False,
+            None,
+            INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+        )
 
     @override_switch('v3_endpoints', active=True)
     def test_eob_read_endpoint_v3_400_operation_outcome(self):
         '''
         test EOB read v3 throwing a 400 operation outcome when a bad request is made
         '''
-        self._call_v3_endpoint(FHIR_RES_TYPE_EOB, '-120930918340ajhf-----', False, None, 'ID is not a valid number')
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_EOB,
+            INVALID_PATIENT_ID,
+            False,
+            None,
+            INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+        )
 
     @override_switch('v3_endpoints', active=True)
     def test_coverage_read_endpoint_v3_400_operation_outcome(self):
         '''
         test coverage read v3 throwing a 400 operation outcome when a bad request is made
         '''
-        self._call_v3_endpoint(FHIR_RES_TYPE_COVERAGE, 'part-b__--123456789', False, None,
-                               'Invalid Coverage ID format. Expected pattern like \'part-c-12345-H1234-001\'.')
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_COVERAGE,
+            INVALID_COVERAGE_ID,
+            False,
+            None,
+            COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
+        )
 
     def _call_v3_endpoint(
         self,
@@ -861,9 +888,9 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Ensure we don't get a 403 on the v3 call
         Flag.objects.create(name='v3_early_adopter', everyone=True)
         if search:
-            endpoint_url = "{}/v3/fhir/{}/?{}{}".format(self.live_server_url, resource_type, search_param, resource_value)
+            endpoint_url = '{}/v3/fhir/{}/?{}{}'.format(self.live_server_url, resource_type, search_param, resource_value)
         else:
-            endpoint_url = "{}/v3/fhir/{}/{}".format(self.live_server_url, resource_type, resource_value)
+            endpoint_url = '{}/v3/fhir/{}/{}'.format(self.live_server_url, resource_type, resource_value)
         response = client.get(endpoint_url)
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)

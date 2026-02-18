@@ -144,3 +144,5 @@ REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
 
 USER_ID_TYPE_DEFAULT = "H"
+
+OPERATION_OUTCOME = 'OperationOutcome'

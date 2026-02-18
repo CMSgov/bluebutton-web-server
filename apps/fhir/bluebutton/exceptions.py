@@ -4,7 +4,9 @@ from requests import Response
 from requests.exceptions import JSONDecodeError
 from typing import Any, Dict, List
 from apps.versions import Versions
+from apps.fhir.constants import OPERATION_OUTCOME
 from apps.fhir.bluebutton.models import Fhir_Response
+from apps.fhir.bluebutton.utils import is_operation_outcome
 
 
 def process_error_response(response: Fhir_Response, version: int) -> APIException:
@@ -29,7 +31,7 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
     # the conditional block to handle the exception as it would have before this change
     if version == Versions.V3 and response.status_code >= 400 and response.status_code < 600:
         response_json = r.json()
-        if _is_operation_outcome(response_json):
+        if is_operation_outcome(response_json):
             return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
 
     if response.status_code is None:
@@ -84,12 +86,6 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
     return err
 
 
-def _is_operation_outcome(response_json: Dict[str, Any]) -> bool:
-    if response_json.get('resourceType') == 'OperationOutcome':
-        return True
-    return False
-
-
 class UpstreamServerException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
@@ -107,6 +103,6 @@ class OperationOutcomeException(APIException):
     ):
         self.status_code = status_code
         self.detail = {
-            'resourceType': 'OperationOutcome',
+            'resourceType': OPERATION_OUTCOME,
             'issue': issue,
         }
