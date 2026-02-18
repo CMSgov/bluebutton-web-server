@@ -1,0 +1,120 @@
+#!/bin/bash
+# Run tofu plan (and optionally apply) across all BB2 services.
+# Used by both tofu-plan and tofu-apply workflows.
+#
+# Follows the BB2 Fargate deploy order:
+#   00-bootstrap → 01-config → 10-cluster → 20-microservices
+# See ops/services/RUNBOOK.md for the full manual procedure.
+#
+# Environment variables:
+#   ENV    - Target environment (test, sandbox, prod)
+#   APPLY  - Set to "true" to apply after plan (default: plan only)
+#
+# NOTE: First-time bootstrap requires manual steps (GitHub connection
+# approval, CodeBuild webhook import, SOPS seed creation) that cannot
+# be automated. This script handles day-to-day plan/apply only.
+
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+job_error=false
+temp_plan_out=$(mktemp)
+
+# Derive parent_env for backend bucket selection (sandbox shares prod bucket)
+parent_env="$ENV"
+if [ "$parent_env" = "sandbox" ]; then parent_env="prod"; fi
+
+# Export as TF_VAR so tofu picks it up for init and plan/apply
+export TF_VAR_parent_env="$parent_env"
+
+echo "=== BB2 tofu ${APPLY:+apply}${APPLY:-plan} for $ENV (parent_env=$parent_env) ==="
+
+# Verify AWS credentials before starting
+aws sts get-caller-identity --query 'Arn' --output text || {
+  echo "::error::AWS credentials not configured"
+  exit 1
+}
+
+# ============================================================
+# Services deployed in strict dependency order:
+#   00-bootstrap  → ECR, KMS, CodeBuild, OIDC
+#   01-config     → SOPS → SSM parameters
+#   10-cluster    → ECS Fargate cluster
+#   20-microservices → ECS services, ALB, IAM, autoscaling
+# ============================================================
+services=(00-bootstrap 01-config 10-cluster 20-microservices)
+
+for service in "${services[@]}"; do
+  dir="$repo_root/ops/services/$service"
+  cd "$dir"
+
+  echo "::group::$service ($ENV)"
+
+  # Step 1: Init
+  if ! tofu init -reconfigure -no-color; then
+    echo "::endgroup::"
+    echo "::error::Error in tofu init for $service ($ENV)"
+    if [ "${APPLY:-}" == "true" ]; then exit 1; fi
+    job_error=true
+    continue
+  fi
+
+  # Step 2: Select or create workspace
+  tofu workspace select -or-create=true "$ENV" -no-color
+
+  # Step 3: Plan
+  tofu_warning=""
+  tofu_error=""
+  plan_exit=0
+  tofu plan -detailed-exitcode -out "$temp_plan_out" -no-color || plan_exit=$?
+
+  if [ "$plan_exit" -eq 0 ]; then
+    echo "No changes planned for $service ($ENV)"
+  elif [ "$plan_exit" -eq 2 ]; then
+    tofu_warning="Changes planned for $service ($ENV)"
+  else
+    tofu_error="Error in tofu plan for $service ($ENV)"
+    if [ "${APPLY:-}" == "true" ]; then
+      echo "::endgroup::"
+      echo "::error::$tofu_error"
+      exit 1
+    fi
+    job_error=true
+  fi
+
+  # Step 4: Apply (only when APPLY=true and changes were planned)
+  if [[ -n "$tofu_warning" && "${APPLY:-}" == "true" ]]; then
+    echo "Applying plan for $service ($ENV)..."
+    if ! tofu apply -no-color -input=false "$temp_plan_out"; then
+      echo "::endgroup::"
+      echo "::error::Error in tofu apply for $service ($ENV)"
+      exit 1
+    fi
+
+    # Step 5: Verify after apply
+    case "$service" in
+      10-cluster)
+        echo "Verifying ECS cluster..."
+        aws ecs describe-clusters --clusters "bb-${ENV}-cluster" \
+          --query 'clusters[0].{name:clusterName,status:status}' \
+          --output table 2>/dev/null || true
+        ;;
+      20-microservices)
+        echo "Verifying ECS services..."
+        aws ecs describe-services \
+          --cluster "bb-${ENV}-cluster" \
+          --services "bb-${ENV}-api-service" \
+          --query 'services[0].{status:status,desired:desiredCount,running:runningCount}' \
+          --output table 2>/dev/null || true
+        ;;
+    esac
+  fi
+
+  echo "::endgroup::"
+  [ -n "$tofu_warning" ] && echo "::warning::$tofu_warning"
+  [ -n "$tofu_error" ] && echo "::error::$tofu_error"
+done
+
+if [ "$job_error" == "true" ]; then
+  exit 1
+fi
