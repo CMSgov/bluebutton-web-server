@@ -1,0 +1,50 @@
+name: tofu-plan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'ops/services/**'
+      - 'ops/modules/**'
+
+concurrency:
+  group: tofu-plan-or-apply
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  plan:
+    runs-on: codebuild-bb-${{ github.run_id }}-${{ github.run_attempt }}
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [test, sandbox, prod]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if tofu is installed
+        id: check-tofu
+        run: |
+          if command -v tofu &>/dev/null; then
+            echo "installed=true" >> "$GITHUB_OUTPUT"
+            echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
+          else
+            echo "installed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup OpenTofu
+        if: steps.check-tofu.outputs.installed != 'true'
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version_file: ops/services/.opentofu-version
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ matrix.env == 'test' && secrets.NON_PROD_ACCOUNT || secrets.PROD_ACCOUNT }}:role/delegatedadmin/developer/bb-${{ matrix.env }}-github-actions
+          aws-region: us-east-1
+
+      - run: scripts/tofu-plan
+        env:
+          ENV: ${{ matrix.env }}
