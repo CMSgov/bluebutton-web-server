@@ -28,7 +28,6 @@ DOCKER_TAG="py37-an27-tf12-boto3-botocore"
 
 # Backend FHIR server to use for integration tests of FHIR resource endpoints:
 FHIR_URL="https://prod-sbx.fhir.bfd.cmscloud.local"
-FHIR_URL_V3="https://sandbox.fhirv3.bfd.cmscloud.local"
 
 # List of integration tests to run. To be passed in to runtests.py.
 INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
@@ -202,7 +201,6 @@ else
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
                 -e FHIR_URL=${FHIR_URL} \
-                -e FHIR_URL_V3=${FHIR_URL_V3} \
                 -e HOSTNAME_URL=${HOSTNAME_URL} \
                 -e DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} \
                 -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
@@ -218,7 +216,6 @@ else
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
                 -e FHIR_URL=${FHIR_URL} \
-                -e FHIR_URL_V3=${FHIR_URL_V3} \
                 -e HOSTNAME_URL=${HOSTNAME_URL} \
                 -e DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} \
                 web bash -c "python ${DEBUG_OPTS} runtests.py --integration ${INTEGRATION_TESTS_LIST}"
@@ -243,7 +240,6 @@ else
             -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
             -e DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} \
             -e FHIR_URL=${FHIR_URL} \
-            -e FHIR_URL_V3=${FHIR_URL_V3} \
             --mount type=bind,source="$(pwd)",target=/app,readonly \
             --mount type=bind,source="${CERTSTORE_TEMPORARY_MOUNT_PATH}",target=/certstore,readonly \
             --rm \
