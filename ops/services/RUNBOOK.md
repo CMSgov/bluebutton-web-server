@@ -37,30 +37,32 @@ Always deploy top-to-bottom. Destroy bottom-to-top.
 
 ## First-Time Setup (New Environment)
 
-Full walkthrough using `test` as an example. Replace with `prod`/`sandbox` as needed.
+Replace `$ENV` with your target environment (`test`, `sandbox`, or `prod`).
+Set `TF_VAR_parent_env` to `test` for test, or `prod` for sandbox/prod.
 
 ```bash
 # ============================================================
-# BB2 Fargate — Full Deploy (test environment)
+# BB2 Fargate — Full Deploy
 # ============================================================
 
 # Prerequisites
-export TF_VAR_parent_env=test
-aws sts get-caller-identity   # verify credentials
+export ENV=test                        # test | sandbox | prod
+export TF_VAR_parent_env=test          # test → test, sandbox/prod → prod
+aws sts get-caller-identity            # verify credentials
 
 # ============================================================
 # Step 1: 00-bootstrap
 # ============================================================
 cd ops/services/00-bootstrap
 tofu init
-tofu workspace select test || tofu workspace new test
+tofu workspace select $ENV || tofu workspace new $ENV
 
 # Apply (webhook will fail — that's expected)
 tofu plan
 tofu apply
 
 # Import the webhook into state
-tofu import 'aws_codebuild_webhook.runner[0]' bb-test-web-server
+tofu import 'aws_codebuild_webhook.runner[0]' bb-${ENV}-web-server
 
 # >>> MANUAL: AWS Console → Developer Tools → Connections
 # >>> Approve "bb-github-connection" with GitHub
@@ -76,47 +78,49 @@ tofu apply
 # ============================================================
 cd ../01-config
 tofu init
-tofu workspace select test || tofu workspace new test
+tofu workspace select $ENV || tofu workspace new $ENV
 
 # Create encrypted values from seed
-cp values/test.sopsw.yaml.seed.minimal values/test.sopsw.yaml
-bin/sopsw -e values/test.sopsw.yaml
+cp values/${ENV}.sopsw.yaml.seed.minimal values/${ENV}.sopsw.yaml
+bin/sopsw -e values/${ENV}.sopsw.yaml
 
 tofu plan
 tofu apply
 
 # Verify
 aws ssm get-parameters-by-path \
-  --path "/bb/test/app" --recursive \
+  --path "/bb/${ENV}/app" --recursive \
   --query 'Parameters[].{Name:Name,Type:Type}' --output table
 
 # ============================================================
 # Step 3: 10-cluster
 # ============================================================
 cd ../10-cluster
+export TF_VAR_parent_env=$TF_VAR_parent_env
 tofu init
-tofu workspace select test || tofu workspace new test
+tofu workspace select $ENV || tofu workspace new $ENV
 tofu plan
 tofu apply
 
 # Verify
-aws ecs describe-clusters --clusters bb-test-cluster \
+aws ecs describe-clusters --clusters bb-${ENV}-cluster \
   --query 'clusters[0].{name:clusterName,status:status}'
 
 # ============================================================
 # Step 4: 20-microservices
 # ============================================================
 cd ../20-microservices
+export TF_VAR_parent_env=$TF_VAR_parent_env
 tofu init
-tofu workspace select test || tofu workspace new test
+tofu workspace select $ENV || tofu workspace new $ENV
 tofu plan
 tofu apply
 
 # Verify
 tofu output alb_dns_names
 aws ecs describe-services \
-  --cluster bb-test-cluster \
-  --services bb-test-api-service \
+  --cluster bb-${ENV}-cluster \
+  --services bb-${ENV}-api-service \
   --query 'services[0].{status:status,desired:desiredCount,running:runningCount}'
 ```
 
@@ -128,7 +132,7 @@ aws ecs describe-services \
 cd ops/services
 for dir in 20-microservices 10-cluster 01-config 00-bootstrap; do
   echo "=== Destroying $dir ==="
-  (cd $dir && tofu workspace select test && tofu destroy -auto-approve)
+  (cd $dir && tofu workspace select $ENV && tofu destroy -auto-approve)
   echo ""
 done
 ```
@@ -141,7 +145,7 @@ done
 
 ```bash
 cd ops/services/20-microservices
-tofu workspace select test
+tofu workspace select $ENV
 tofu plan
 ```
 
@@ -149,7 +153,7 @@ tofu plan
 
 ```bash
 cd ops/services/20-microservices
-tofu workspace select test
+tofu workspace select $ENV
 tofu apply
 ```
 
@@ -159,7 +163,7 @@ tofu apply
 cd ops/services
 for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
   echo "=== Planning $dir ==="
-  (cd $dir && tofu workspace select test && tofu plan -detailed-exitcode) || true
+  (cd $dir && tofu workspace select $ENV && tofu plan -detailed-exitcode) || true
   echo ""
 done
 ```
@@ -170,7 +174,7 @@ done
 cd ops/services
 for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
   echo "=== Deploying $dir ==="
-  (cd $dir && tofu workspace select test && tofu apply -auto-approve)
+  (cd $dir && tofu workspace select $ENV && tofu apply -auto-approve)
   echo ""
 done
 ```
@@ -196,7 +200,7 @@ done
 | `tofu-fmt` | PRs touching `ops/` | Checks formatting |
 | `tofu-bootstrap` | Manual only | First-time setup with approval gates |
 
-All plan/apply workflows use `ops/scripts/tofu-plan` which runs services in dependency order. Apply mode stops on first failure; plan mode continues and reports all results.
+All plan/apply workflows use `scripts/tofu-plan` which runs services in dependency order. Apply mode stops on first failure; plan mode continues and reports all results.
 
 **Required GitHub secrets:** `NON_PROD_ACCOUNT`, `PROD_ACCOUNT`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`
 
