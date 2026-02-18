@@ -20,6 +20,7 @@
 HOSTNAME_URL="http://localhost:8000"
 
 DJANGO_FHIR_CERTSTORE="/certstore"
+DJANGO_SECRET_KEY="replace-me-with-real-secret"
 CERTSTORE_TEMPORARY_MOUNT_PATH="/tmp/certstore"
 DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
 #DOCKER_TAG="py36-an27-tf11"
@@ -201,6 +202,7 @@ else
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
                 -e FHIR_URL=${FHIR_URL} \
                 -e HOSTNAME_URL=${HOSTNAME_URL} \
+                -e DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} \
                 -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
                 web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
         else
@@ -215,6 +217,7 @@ else
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
                 -e FHIR_URL=${FHIR_URL} \
                 -e HOSTNAME_URL=${HOSTNAME_URL} \
+                -e DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} \
                 web bash -c "python ${DEBUG_OPTS} runtests.py --integration ${INTEGRATION_TESTS_LIST}"
         fi
     fi
@@ -235,6 +238,7 @@ else
             -e DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET} \
             -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
             -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+            -e DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} \
             -e FHIR_URL=${FHIR_URL} \
             --mount type=bind,source="$(pwd)",target=/app,readonly \
             --mount type=bind,source="${CERTSTORE_TEMPORARY_MOUNT_PATH}",target=/certstore,readonly \

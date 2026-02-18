@@ -1,15 +1,8 @@
 from django.test import TestCase
 
 from apps.versions import VersionNotMatched
-from ..utils import get_api_version_number_from_url
-
-SUPPORTED_VERSION_TEST_CASES = [
-    {'url_path': '/v2/fhir/Patient/', 'expected': 2},
-    # return 0 because v2 does not have a leading /
-    {'url_path': 'v2/fhir/Patient/', 'expected': 0},
-    {'url_path': '/v3/fhir/Coverage/', 'expected': 3},
-    {'url_path': '/v3/fhir/Coverage/v2/', 'expected': 3},
-]
+from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
+from apps.dot_ext.utils import get_api_version_number_from_url
 
 
 class TestDOTUtils(TestCase):

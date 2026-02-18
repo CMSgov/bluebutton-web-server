@@ -1,14 +1,6 @@
 from django.core.management.base import BaseCommand
 from apps.accounts.models import UserIdentificationLabel
-
-DEVELOPER_SIGNUP_ROLE_CHOICES = [
-    (1, 'I am a developer working on behalf of my organization', 'dev-of-org'),
-    (2, 'I am a developer checking out Blue Button for fun', 'dev-for-fun'),
-    (3, 'I am a student', 'dev-student'),
-    (4, 'I am part of an organization but am not a developer', 'person-part-of-org'),
-    (5, 'I am a Medicare beneficiary', 'medicare-bene'),
-    (6, 'Other', 'other'),
-]
+from apps.testclient.constants import DEVELOPER_SIGNUP_ROLE_CHOICES
 
 
 def create_user_identification_label():

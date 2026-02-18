@@ -1,6 +1,5 @@
 import requests
 import os
-from django.conf import settings
 from urllib.parse import quote
 from typing import NamedTuple, Optional
 
@@ -10,13 +9,14 @@ from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
+from apps.fhir.constants import FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH, FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI
 from apps.fhir.bluebutton.utils import (generate_info_headers,
                                         set_default_header)
 
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.fhir.server.settings import fhir_settings
-from .loggers import log_match_fhir_id
+from apps.fhir.server.loggers import log_match_fhir_id
 from waffle import switch_is_active
 
 
@@ -25,7 +25,7 @@ def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_
         Search the backend FHIR server's patient resource
         using the mbi identifier.
     """
-    search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
+    search_identifier = f"{FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 
@@ -34,7 +34,7 @@ def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None, version=Vers
         Search the backend FHIR server's patient resource
         using the hicn_hash identifier.
     """
-    search_identifier = f"{settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
+    search_identifier = f"{FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
     return search_fhir_id_by_identifier(search_identifier, request, version)
 
 

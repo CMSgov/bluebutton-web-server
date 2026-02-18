@@ -1,11 +1,10 @@
 import json
-import re
 
 from django.db import models
 from django.contrib.auth.models import Group
-# from django.utils.lru_cache import lru_cache
 from functools import lru_cache
 from django.db.models import CASCADE
+from apps.capabilities.constants import URL_BIT_PATTERN
 
 
 class ProtectedCapability(models.Model):
@@ -75,9 +74,6 @@ def _tokenize_path(path):
     e.g.: "/api/foo/" -> ["", "api", "foo"]
     """
     return path.rstrip("/").split("/")
-
-
-URL_BIT_PATTERN = re.compile(r"\[.*\]")
 
 
 @lru_cache()

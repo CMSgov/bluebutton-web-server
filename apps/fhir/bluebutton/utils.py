@@ -2,6 +2,7 @@ import os
 import logging
 
 import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 import pytz
 import requests
@@ -15,15 +16,16 @@ from urllib.parse import parse_qs
 
 from django.conf import settings
 from django.contrib import messages
+from apps.fhir.constants import FHIR_PARAM_FORMAT, REQUEST_EOB_KEEP_ALIVE
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
-from .models import Crosswalk, Fhir_Response
+from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.dot_ext.utils import get_api_version_number_from_url
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class ValidateSearchParams(NamedTuple):
@@ -204,7 +206,7 @@ def set_default_header(request, header=None):
     if header is None:
         header = {}
 
-    header["keep-alive"] = settings.REQUEST_EOB_KEEP_ALIVE
+    header["keep-alive"] = REQUEST_EOB_KEEP_ALIVE
     if request.is_secure():
         header["X-Forwarded-Proto"] = "https"
     else:
@@ -711,7 +713,7 @@ def get_v2_patient_by_id(id, request):
     headers["includeIdentifiers"] = "true"
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
-    url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/{id}?_format={settings.FHIR_PARAM_FORMAT}'
+    url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/{id}?_format={FHIR_PARAM_FORMAT}'
     s = requests.Session()
     req = requests.Request("GET", url, headers=headers)
     prepped = req.prepare()

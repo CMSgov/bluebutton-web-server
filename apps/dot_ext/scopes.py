@@ -1,7 +1,7 @@
-from django.conf import settings
 from django.db.models import Q
 from oauth2_provider.scopes import BaseScopes
 from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 from waffle import switch_is_active
 
 
@@ -96,7 +96,7 @@ class CapabilitiesScopes(BaseScopes):
         # Remove personal information scopes
         out_scopes = []
         for s in scopes:
-            if s not in settings.BENE_PERSONAL_INFO_SCOPES:
+            if s not in BENE_PERSONAL_INFO_SCOPES:
                 out_scopes.append(s)
         return out_scopes
 

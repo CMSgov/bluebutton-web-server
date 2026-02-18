@@ -18,7 +18,7 @@ import apps.logging.request_logger as logging
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
 from apps.test import BaseApiTest
 
-from .audit_logger_schemas import (
+from apps.logging.constants import (
     GLOBAL_STATE_METRICS_LOG_SCHEMA,
     GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA,
 )
