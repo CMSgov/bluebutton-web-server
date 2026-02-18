@@ -5,6 +5,7 @@
 # Follows the BB2 Fargate deploy order:
 #   00-bootstrap → 01-config → 10-cluster → 20-microservices
 # See ops/services/RUNBOOK.md for the full manual procedure.
+# test tofu
 #
 # Environment variables:
 #   ENV    - Target environment (test, sandbox, prod)
