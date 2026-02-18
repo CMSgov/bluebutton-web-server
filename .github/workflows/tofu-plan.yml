@@ -2,13 +2,17 @@ name: tofu-plan
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'noor1027/test-tofu'  # <--- Quotes required due to slash
   pull_request:
     paths:
       - 'ops/services/**'
       - 'ops/modules/**'
 
 concurrency:
-  group: tofu-plan-or-apply
+  group: tofu-plan-or-apply-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -16,11 +20,18 @@ permissions:
 
 jobs:
   plan:
-    runs-on: codebuild-bb-${{ github.run_id }}-${{ github.run_attempt }}
+    name: Plan ${{ matrix.env }}
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    
+    defaults:
+      run:
+        working-directory: ops/services
+
     strategy:
       fail-fast: false
       matrix:
         env: [test, sandbox, prod]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -40,11 +51,19 @@ jobs:
         with:
           tofu_version_file: ops/services/.opentofu-version
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ matrix.env == 'test' && secrets.NON_PROD_ACCOUNT || secrets.PROD_ACCOUNT }}:role/delegatedadmin/developer/bb-${{ matrix.env }}-github-actions
+          role-to-assume: arn:aws:iam::${{ (matrix.env == 'test' || matrix.env == 'sandbox') && secrets.NON_PROD_ACCOUNT || secrets.PROD_ACCOUNT }}:role/delegatedadmin/developer/bb-${{ matrix.env }}-github-actions
           aws-region: us-east-1
 
-      - run: scripts/tofu-plan
+      - name: Tofu Init
+        run: tofu init -backend-config="key=bluebutton-web-server/${{ matrix.env }}/terraform.tfstate"
+
+      - name: Tofu Plan
         env:
           ENV: ${{ matrix.env }}
+        run: |
+          echo "Planning for environment: $ENV"
+          tofu workspace select $ENV || tofu workspace new $ENV
+          tofu plan -var-file="vars/${ENV}.tfvars" -out="${ENV}.tfplan"
