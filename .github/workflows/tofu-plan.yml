@@ -1,69 +1,58 @@
-name: tofu-plan
+  name: tofu-plan
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - 'noor1027/test-tofu'  # <--- Quotes required due to slash
-  pull_request:
-    paths:
-      - 'ops/services/**'
-      - 'ops/modules/**'
+  on:
+    workflow_dispatch:
+    push:
+      branches:
+        - 'noor1027/test-tofu'
+    pull_request:
+      paths:
+        - 'ops/services/**'
+        - 'ops/modules/**'
 
-concurrency:
-  group: tofu-plan-or-apply-${{ github.ref }}
-  cancel-in-progress: false
+  concurrency:
+    group: tofu-plan-or-apply-${{ github.ref }}
+    cancel-in-progress: false
 
-permissions:
-  id-token: write
-  contents: read
+  permissions:
+    id-token: write
+    contents: read
 
-jobs:
-  plan:
-    name: Plan ${{ matrix.env }}
-    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    
-    defaults:
-      run:
-        working-directory: ops/services
+  jobs:
+    plan:
+      name: Plan ${{ matrix.env }}
+      runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+      strategy:
+        fail-fast: false
+        matrix:
+          env: [test]
 
-    strategy:
-      fail-fast: false
-      matrix:
-        env: [test, sandbox, prod]
+      steps:
+        - uses: actions/checkout@v4
 
-    steps:
-      - uses: actions/checkout@v4
+        - name: Check if tofu is installed
+          id: check-tofu
+          run: |
+            if command -v tofu &>/dev/null; then
+              echo "installed=true" >> "$GITHUB_OUTPUT"
+              echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
+            else
+              echo "installed=false" >> "$GITHUB_OUTPUT"
+            fi
 
-      - name: Check if tofu is installed
-        id: check-tofu
-        run: |
-          if command -v tofu &>/dev/null; then
-            echo "installed=true" >> "$GITHUB_OUTPUT"
-            echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
-          else
-            echo "installed=false" >> "$GITHUB_OUTPUT"
-          fi
+        - name: Setup OpenTofu
+          if: steps.check-tofu.outputs.installed != 'true'
+          uses: opentofu/setup-opentofu@v1
+          with:
+            tofu_version_file: ops/services/.opentofu-version
 
-      - name: Setup OpenTofu
-        if: steps.check-tofu.outputs.installed != 'true'
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version_file: ops/services/.opentofu-version
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            role-to-assume: arn:aws:iam::${{ secrets.NON_PROD_ACCOUNT }}:role/delegatedadmin/developer/bb-${{ matrix.env }}-github-actions
+            aws-region: us-east-1
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ (matrix.env == 'test' || matrix.env == 'sandbox') && secrets.NON_PROD_ACCOUNT || secrets.PROD_ACCOUNT }}:role/delegatedadmin/developer/bb-${{ matrix.env }}-github-actions
-          aws-region: us-east-1
-
-      - name: Tofu Init
-        run: tofu init -backend-config="key=bluebutton-web-server/${{ matrix.env }}/terraform.tfstate"
-
-      - name: Tofu Plan
-        env:
-          ENV: ${{ matrix.env }}
-        run: |
-          echo "Planning for environment: $ENV"
-          tofu workspace select $ENV || tofu workspace new $ENV
-          tofu plan -var-file="vars/${ENV}.tfvars" -out="${ENV}.tfplan"
+        - name: Tofu Plan
+          run: scripts/tofu-plan
+          env:
+            ENV: ${{ matrix.env }}
