@@ -1,6 +1,6 @@
 # Build
 
-name: Build and Deploy
+name: Build and Deploy [TEST]
 
 on:
   workflow_dispatch:
@@ -12,8 +12,8 @@ on:
         type: choice
         options:
           - test
-          - impl
-          - prod
+          # - impl
+          # - prod
 
 env:
   AWS_REGION: us-east-1
@@ -86,5 +86,10 @@ jobs:
           echo "::add-mask::$ECR_REGISTRY/$ECR_REPOSITORY"
 
           echo "🔨 Building Docker image..."
+          docker buildx build \
+            --cache-from=type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:cache \
+            --cache-to=type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:cache,mode=max \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --push .
+          
 
           
