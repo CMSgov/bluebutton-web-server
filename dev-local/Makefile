@@ -27,7 +27,7 @@ build-css:
 		-v ../static/bluebutton-css/dist:/code/static/bluebutton-css/dist \
 		bbcss:latest
 
-run-local:
+run-local: decrypt_sops
 	@echo "Configuring for ${ENV}" ; \
 		MIGRATE=0 \
 		COLLECTSTATIC=0 \
@@ -54,3 +54,18 @@ migrate:
 
 collectstatic:
 	COLLECTSTATIC=1 bfd=local auth=mock ./run-appropriate-stack.bash
+
+.PHONY: decrypt_sops
+decrypt_sops:
+	@echo "🔐 Decrypting SOPS secrets..."
+	@if [ -f "env_vars.yaml" ]; then \
+		if command -v sops >/dev/null 2>&1; then \
+			sops -d env_vars.yaml | sed 's/: /=/g' | tr -d '"' > ../.env && \
+			echo "✅ decrypt_sops" || \
+			(echo "❌ SOPS decryption failed" && exit 1); \
+		else \
+			echo "⚠️  sops not installed, skipping SOPS decryption"; \
+		fi \
+	else \
+		echo "ℹ️  No env_vars.yaml found, skipping SOPS decryption"; \
+	fi
