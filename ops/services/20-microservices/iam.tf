@@ -49,10 +49,12 @@ data "aws_iam_policy_document" "ssm" {
 }
 
 data "aws_iam_policy_document" "kms" {
+  count = local.kms_key_arn != null ? 1 : 0
+
   statement {
     sid       = "AllowKMSDecrypt"
     actions   = ["kms:Decrypt"]
-    resources = [local.kms_alias != null ? local.kms_alias.target_key_arn : "*"]
+    resources = [local.kms_key_arn]
   }
 }
 
@@ -86,9 +88,10 @@ resource "aws_iam_policy" "ssm" {
 }
 
 resource "aws_iam_policy" "kms" {
+  count  = local.kms_key_arn != null ? 1 : 0
   name   = "${local.name_prefix}-kms"
   path   = local.iam_path
-  policy = data.aws_iam_policy_document.kms.json
+  policy = data.aws_iam_policy_document.kms[0].json
 }
 
 resource "aws_iam_policy" "s3" {
@@ -131,9 +134,9 @@ resource "aws_iam_role_policy_attachment" "execution_ssm" {
 }
 
 resource "aws_iam_role_policy_attachment" "execution_kms" {
-  for_each   = nonsensitive(local.service_config)
+  for_each   = local.kms_key_arn != null ? nonsensitive(local.service_config) : {}
   role       = aws_iam_role.execution[each.key].name
-  policy_arn = aws_iam_policy.kms.arn
+  policy_arn = aws_iam_policy.kms[0].arn
 }
 
 # ============================================================================
@@ -164,9 +167,9 @@ resource "aws_iam_role_policy_attachment" "task_ssm" {
 }
 
 resource "aws_iam_role_policy_attachment" "task_kms" {
-  for_each   = nonsensitive(local.service_config)
+  for_each   = local.kms_key_arn != null ? nonsensitive(local.service_config) : {}
   role       = aws_iam_role.task[each.key].name
-  policy_arn = aws_iam_policy.kms.arn
+  policy_arn = aws_iam_policy.kms[0].arn
 }
 
 resource "aws_iam_role_policy_attachment" "task_s3" {
