@@ -3,8 +3,8 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
-from apps.accounts.models import UserProfile
 from apps.constants import OPERATION_OUTCOME
+from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
