@@ -84,15 +84,27 @@ jobs:
           ECR_REPOSITORY: bb-${{ github.event.inputs.environment || 'test' }}-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Mask the full ECR URI
-          echo "::add-mask::$ECR_REGISTRY"
-          echo "::add-mask::$ECR_REGISTRY/$ECR_REPOSITORY"
+          # Mask ECR URL
+          ECR_URL="$ECR_REGISTRY/$ECR_REPOSITORY"
+          echo "::add-mask::$ECR_URL"
 
           echo "🔨 Building Docker image..."
           docker buildx build \
-            --cache-from=type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:cache \
-            --cache-to=type=registry,ref=$ECR_REGISTRY/$ECR_REPOSITORY:cache,mode=max \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --push .
+            --build-arg RELEASE_TAG=r178 \
+            --progress=plain \
+            -t $ECR_URL:$IMAGE_TAG \
+            -t $ECR_URL:latest \
+            ops/images/
+
+          echo "📤 Pushing to ECR..."
+          # Now these images actually exist locally with these names
+          docker push $REPO_URL:$IMAGE_TAG
+          docker push $REPO_URL:latest
+          
+          echo "✅ Done!"
+          
+
+          
           
 
           
