@@ -1,4 +1,4 @@
-# Build
+# Build and Deploy - Test
 
 name: Build and Deploy [TEST]
 
@@ -12,8 +12,8 @@ on:
         type: choice
         options:
           - test
-          # - impl
-          # - prod
+          - impl
+          - prod
 
 env:
   AWS_REGION: us-east-1
