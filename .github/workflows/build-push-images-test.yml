@@ -90,7 +90,7 @@ jobs:
 
           echo "🔨 Building Docker image..."
           docker buildx build \
-            --build-arg RELEASE_TAG=r178 \
+            --build-arg BUILD_TARGET=cloud \
             --progress=plain \
             -t $ECR_URL:$IMAGE_TAG \
             -t $ECR_URL:latest \
@@ -98,8 +98,8 @@ jobs:
 
           echo "📤 Pushing to ECR..."
           # Now these images actually exist locally with these names
-          docker push $REPO_URL:$IMAGE_TAG
-          docker push $REPO_URL:latest
+          docker push $ECR_URL:$IMAGE_TAG
+          docker push $ECR_URL:latest
           
           echo "✅ Done!"
           
