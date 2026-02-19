@@ -1,4 +1,4 @@
-# Build 
+# Build
 
 name: Build and Deploy
 
@@ -19,8 +19,8 @@ env:
   AWS_REGION: us-east-1
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write # This is required for requesting the AWS IAM OIDC JWT
+  contents: write # This is required for actions/checkout
 
 jobs:
   build:
@@ -41,6 +41,9 @@ jobs:
             echo "::add-mask::$ACCOUNT_ID"
           fi
 
+          pwd
+          ls -al
+
       - name: Configure AWS credentials
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4
@@ -55,7 +58,7 @@ jobs:
           echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
           echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
           echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
-          
+
           # Get and mask account ID
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "::add-mask::$ACCOUNT_ID"
@@ -81,15 +84,7 @@ jobs:
           # Mask the full ECR URI
           echo "::add-mask::$ECR_REGISTRY"
           echo "::add-mask::$ECR_REGISTRY/$ECR_REPOSITORY"
-          
+
           echo "🔨 Building Docker image..."
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 2>&1 | grep -v "$ECR_REGISTRY"
+
           
-          echo "🏷️ Tagging as latest..."
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
-          echo "📤 Pushing to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 2>&1 | grep -v "$ECR_REGISTRY" || true
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 2>&1 | grep -v "$ECR_REGISTRY" || true
-          
-          echo "✅ Image pushed successfully"
