@@ -22,6 +22,7 @@ from apps.versions import Versions
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import base_issuer, build_endpoint_info
+from apps.constants import OPERATION_OUTCOME
 from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.dot_ext.utils import get_api_version_number_from_url
 
@@ -803,3 +804,9 @@ def validate_query_parameters(accepted_query_params: Dict[str, Any], api_query_p
         valid=valid,
         invalid_params=invalid_params
     )
+
+
+def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
+    if response_json.get('resourceType') == OPERATION_OUTCOME:
+        return True
+    return False

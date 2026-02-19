@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
 from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import OPERATION_OUTCOME
 from apps.core.models import Flag
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
@@ -30,6 +31,10 @@ from apps.integration_tests.constants import (
     SAMPLE_A_888_HICN_HASH,
     USERINFO_SCHEMA,
     V3_403_DETAIL,
+    COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
+    INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+    INVALID_PATIENT_ID,
+    INVALID_COVERAGE_ID,
 )
 
 
@@ -816,3 +821,81 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(endpoint_url)
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.json()['detail'], V3_403_DETAIL)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_patient_search_endpoint_v3_400_operation_outcome(self):
+        '''
+        test patient search v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_PATIENT,
+            INVALID_PATIENT_ID,
+            True,
+            '_id=',
+            INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+        )
+
+    @override_switch('v3_endpoints', active=True)
+    def test_patient_read_endpoint_v3_400_operation_outcome(self):
+        '''
+        test patient read v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_PATIENT,
+            INVALID_PATIENT_ID,
+            False,
+            None,
+            INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+        )
+
+    @override_switch('v3_endpoints', active=True)
+    def test_eob_read_endpoint_v3_400_operation_outcome(self):
+        '''
+        test EOB read v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_EOB,
+            INVALID_PATIENT_ID,
+            False,
+            None,
+            INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
+        )
+
+    @override_switch('v3_endpoints', active=True)
+    def test_coverage_read_endpoint_v3_400_operation_outcome(self):
+        '''
+        test coverage read v3 throwing a 400 operation outcome when a bad request is made
+        '''
+        self._call_v3_endpoint(
+            FHIR_RES_TYPE_COVERAGE,
+            INVALID_COVERAGE_ID,
+            False,
+            None,
+            COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
+        )
+
+    def _call_v3_endpoint(
+        self,
+        resource_type: str,
+        resource_value: str,
+        search: bool,
+        search_param: str,
+        diagnostics_result: str
+    ):
+        client = APIClient()
+
+        # Authenticate
+        self._setup_apiclient(client)
+        # Ensure we don't get a 403 on the v3 call
+        Flag.objects.create(name='v3_early_adopter', everyone=True)
+        if search:
+            endpoint_url = '{}/v3/fhir/{}/?{}{}'.format(self.live_server_url, resource_type, search_param, resource_value)
+        else:
+            endpoint_url = '{}/v3/fhir/{}/{}'.format(self.live_server_url, resource_type, resource_value)
+        response = client.get(endpoint_url)
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.json()['resourceType'], OPERATION_OUTCOME)
+        self.assertEqual(response.json()['issue'][0]['severity'], 'error')
+        self.assertEqual(response.json()['issue'][0]['code'], 'processing')
+        self.assertEqual(response.json()['issue'][0]['diagnostics'], diagnostics_result)
