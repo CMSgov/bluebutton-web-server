@@ -1,6 +1,5 @@
 from base64 import b64decode
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http.response import JsonResponse
@@ -8,6 +7,12 @@ from oauth2_provider.models import AccessToken, RefreshToken, get_application_mo
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
 import re
+from apps.constants import (
+    APPLICATION_TEMPORARILY_INACTIVE,
+    APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+)
+from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
 from apps.versions import Versions, VersionNotMatched
 
 from apps.authorization.models import DataAccessGrant
@@ -121,7 +126,7 @@ def validate_app_is_active(request):
             # This is a FORBIDDEN error for the API consumer.
             if app.has_one_time_only_data_access():
                 raise InvalidClientError(
-                    description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+                    description=APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
                     status_code=HTTPStatus.FORBIDDEN
                 )
 
@@ -141,7 +146,7 @@ def validate_app_is_active(request):
                         # We will return a 401 (UNAUTHORIZED) because this is in keeping
                         # with the OAuth RFC.
                         raise InvalidGrantError(
-                            description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+                            description=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
                             status_code=HTTPStatus.UNAUTHORIZED
                         )
             except DataAccessGrant.DoesNotExist:
@@ -149,7 +154,7 @@ def validate_app_is_active(request):
                 # We pass back a FORBIDDEN and a message saying as much (and, again, encouraging
                 # reauthentication).
                 raise InvalidGrantError(
-                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+                    description=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
                     status_code=HTTPStatus.FORBIDDEN
                 )
             except RefreshToken.DoesNotExist:
@@ -159,7 +164,7 @@ def validate_app_is_active(request):
                 )
     elif app and not app.active:
         raise InvalidClientError(
-            description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
+            description=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
             status_code=HTTPStatus.FORBIDDEN
         )
 

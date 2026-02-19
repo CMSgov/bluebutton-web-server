@@ -3,8 +3,7 @@ import apps.logging.request_logger as logging
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from rest_framework import status
-from rest_framework.exceptions import APIException, NotFound
+from rest_framework.exceptions import NotFound
 from apps.versions import Versions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
@@ -13,21 +12,14 @@ from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType
 from apps.dot_ext.utils import get_api_version_number_from_url
 
-from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
-
-
-MAX_HICN_HASH_LENGTH = 64
-MAX_MBI_LENGTH = 11
-
-
-class BBMyMedicareCallbackCrosswalkCreateException(APIException):
-    # BB2-237 custom exception
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
-    # BB2-237 custom exception
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+from apps.mymedicare_cb.constants import (
+    MAX_HICN_HASH_LENGTH,
+    MAX_MBI_LENGTH,
+    BBMyMedicareCallbackCrosswalkCreateException,
+    BBMyMedicareCallbackCrosswalkUpdateException,
+    MedicareCallbackExceptionType
+)
 
 
 def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_client=None):

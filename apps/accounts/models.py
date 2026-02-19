@@ -1,3 +1,15 @@
+from apps.accounts.constants import (
+    AAL_CHOICES,
+    ADDITION,
+    CHANGE,
+    DELETION,
+    IAL_CHOICES,
+    LOA_CHOICES,
+    QUESTION_1_CHOICES,
+    QUESTION_2_CHOICES,
+    QUESTION_3_CHOICES,
+    USER_CHOICES,
+)
 import apps.logging.request_logger as logging
 
 import binascii
@@ -26,77 +38,9 @@ from django.utils.translation import gettext
 
 from .emails import send_activation_key_via_email
 
-ADDITION = 1
-CHANGE = 2
-DELETION = 3
-
 
 logger = logging.getLogger("hhs_oauth_server.accounts")
 admin_logger = logging.getLogger("admin_interface")
-
-
-USER_CHOICES = (
-    ("BEN", "Beneficiary"),
-    ("DEV", "Developer"),
-)
-
-
-# Enrollment and Identity Proofing. NIST SP 800-63-A
-# Level of Assurance - Legacy/Deprecated  See NIST SP 800-63-2
-LOA_CHOICES = (
-    ("", "Undefined"),
-    ("1", "LOA-1"),
-    ("2", "LOA-2"),
-    ("3", "LOA-3"),
-    ("4", "LOA-4"),
-)
-
-# Enrollment and Identity Proofing. NIST SP 800-63-3 A
-# Identity assurance level
-IAL_CHOICES = (
-    ("", "Undefined"),
-    ("0", "IAL0"),
-    ("1", "IAL1"),
-    ("2", "IAL2"),
-    ("3", "IAL3"),
-)
-
-
-# Enrollment and Identity Proofing. NIST SP 800-63-33 B
-# Authenticator Assurance Level
-AAL_CHOICES = (
-    ("", "Undefined"),
-    ("0", "AAL0"),
-    ("1", "AAL1"),
-    ("2", "AAL2"),
-    ("3", "AAL3"),
-)
-
-
-QUESTION_1_CHOICES = (
-    ("1", "What is your favorite color?"),
-    ("2", "What is your favorite vegetable?"),
-    ("3", "What is your favorite movie?"),
-)
-
-QUESTION_2_CHOICES = (
-    ("1", "What was the name of your best friend from childhood?"),
-    ("2", "What was the name of your elementary school?"),
-    ("3", "What was the name of your favorite pet?"),
-)
-
-QUESTION_3_CHOICES = (
-    ("1", "What was the make of your first automobile?"),
-    ("2", "What was your maternal grandmother's maiden name?"),
-    ("3", "What was your paternal grandmother's maiden name?"),
-)
-
-ISSUE_INVITE = (
-    ("", "Not Set"),
-    ("YES", "Yes - Send Invite"),
-    ("NO", "NO - Do not send invite"),
-    ("DONE", "Invite has been sent"),
-)
 
 
 class UserProfile(models.Model):

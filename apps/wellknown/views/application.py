@@ -6,7 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
 from apps.dot_ext.models import Application, ApplicationLabel
-from ..serializers import ApplicationListSerializer, ApplicationLabelSerializer
+from apps.wellknown.serializers import ApplicationListSerializer, ApplicationLabelSerializer
 
 
 class ApplicationListPagination(PageNumberPagination):

@@ -1,7 +1,5 @@
 from django.db import models
-from django.conf import settings
-
-GRANT_MODEL = getattr(settings, "OAUTH2_PROVIDER_GRANT_MODEL", "oauth2_provider.Grant")
+from apps.pkce.constants import GRANT_MODEL
 
 
 class CodeChallenge(models.Model):

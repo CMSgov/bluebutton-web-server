@@ -1,12 +1,6 @@
 from rest_framework.throttling import SimpleRateThrottle
 from django.utils.deprecation import MiddlewareMixin
-
-
-HEADERS = {
-    'Remaining': 'X-RateLimit-Remaining',
-    'Limit': 'X-RateLimit-Limit',
-    'Reset': 'X-RateLimit-Reset',
-}
+from apps.dot_ext.constants import HEADERS
 
 
 class TokenRateThrottle(SimpleRateThrottle):

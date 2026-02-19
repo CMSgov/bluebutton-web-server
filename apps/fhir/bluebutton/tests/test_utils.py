@@ -7,14 +7,11 @@ from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
-from apps.fhir.server.settings import fhir_settings
-from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
-from voluptuous import (
-    All,
-    Match,
-    Range,
-    Coerce,
+from apps.fhir.constants import (
+    ACCEPTED_COVERAGE_QUERY_PARAMS,
+    ACCEPTED_PATIENT_QUERY_PARAMS,
 )
+from apps.fhir.server.settings import fhir_settings
 
 
 from apps.fhir.bluebutton.utils import (
@@ -29,27 +26,15 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
 )
+from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
+from voluptuous import (
+    All,
+    Match,
+    Range,
+    Coerce,
+)
 
-ENCODED = settings.ENCODING
-ACCEPTED_PATIENT_QUERY_PARAMS = {
-    'startIndex': Coerce(int, msg=None),
-    '_count': All(
-        Coerce(int, msg=None),
-        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
-    ),
-    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
-    '_id': str,
-    'identifier': str
-}
-ACCEPTED_COVERAGE_QUERY_PARAMS = {
-    'startIndex': Coerce(int, msg=None),
-    '_count': All(
-        Coerce(int, msg=None),
-        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
-    ),
-    '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
-    'beneficiary': str
-}
+# Leaving this here to avoid a circular import issue
 ACCEPTED_EOB_QUERY_PARAMS = {
     'startIndex': Coerce(int, msg=None),
     '_count': All(

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (
+from apps.testclient.views import (
     # all versions
     callback,
     restart,

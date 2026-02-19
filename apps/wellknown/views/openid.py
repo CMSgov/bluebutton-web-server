@@ -6,34 +6,16 @@ from collections import OrderedDict
 from django.conf import settings
 from django.urls import reverse
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 from apps.versions import Versions
+from apps.wellknown.constants import (
+    CAPABILITIES,
+    CODE_CHALLENGE_METHODS_SUPPORTED,
+    SCOPES_SUPPORTED,
+)
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-SCOPES_SUPPORTED = [
-    'openid',
-    'profile',
-    'launch/patient',
-    'patient/Patient.read',
-    'patient/ExplanationOfBenefit.read',
-    'patient/Coverage.read',
-    'patient/Patient.rs',
-    'patient/ExplanationOfBenefit.rs',
-    'patient/Coverage.rs',
-]
-CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
-CAPABILITIES = [
-    'client-confidential-symmetric',
-    'context-standalone-patient',
-    'launch-standalone',
-    'permission-offline',
-    'permission-patient',
-    'permission-v1',
-    'permission-v2',
-    'authorize-post'
-]
-WELL_KNOWN_INDICATOR = '.well-known'
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def format_v3_links(request_dict: OrderedDict) -> OrderedDict:

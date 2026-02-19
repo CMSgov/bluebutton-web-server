@@ -15,17 +15,19 @@ from collections import namedtuple
 
 from waffle.decorators import waffle_switch
 
-from .utils import (testclient_http_response_setup,
-                    get_client_secret,
-                    extract_page_nav,
-                    _start_url_with_http_or_https)
+from apps.testclient.utils import (
+    testclient_http_response_setup,
+    get_client_secret,
+    extract_page_nav,
+    _start_url_with_http_or_https
+)
 
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import (
     fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3)
 from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 from apps.versions import Versions, VersionNotMatched
 
@@ -36,7 +38,7 @@ from apps.testclient.constants import (
     ResponseErrors
 )
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 ############################################################
 # SUPPORT FUNCTIONS

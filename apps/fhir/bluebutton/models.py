@@ -10,6 +10,7 @@ from requests import Response
 from rest_framework.exceptions import APIException
 from django.core.validators import MinLengthValidator
 from apps.accounts.models import get_user_id_salt
+from apps.fhir.constants import USER_ID_TYPE_CHOICES, USER_ID_TYPE_DEFAULT
 
 from apps.versions import Versions, VersionNotMatched
 
@@ -117,8 +118,8 @@ class Crosswalk(models.Model):
     user_id_type = models.CharField(
         max_length=1,
         verbose_name='Hash ID type last used for FHIR_ID lookup',
-        default=settings.USER_ID_TYPE_DEFAULT,
-        choices=settings.USER_ID_TYPE_CHOICES,
+        default=USER_ID_TYPE_DEFAULT,
+        choices=USER_ID_TYPE_CHOICES,
     )
     _user_id_hash = models.CharField(
         max_length=64,
@@ -258,8 +259,8 @@ class ArchivedCrosswalk(models.Model):
     user_id_type = models.CharField(
         max_length=1,
         verbose_name='Hash ID type last used for FHIR_ID lookup',
-        default=settings.USER_ID_TYPE_DEFAULT,
-        choices=settings.USER_ID_TYPE_CHOICES,
+        default=USER_ID_TYPE_DEFAULT,
+        choices=USER_ID_TYPE_CHOICES,
     )
     _user_id_hash = models.CharField(
         max_length=64,

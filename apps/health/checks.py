@@ -9,9 +9,9 @@ from apps.fhir.server.settings import fhir_settings
 from apps.fhir.bluebutton.utils import FhirServerAuth
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def django_rds_database(v2=False):

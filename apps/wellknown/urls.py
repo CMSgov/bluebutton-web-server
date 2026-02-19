@@ -1,6 +1,6 @@
 from django.urls import path
 from waffle.decorators import waffle_switch
-from .views import (
+from apps.wellknown.views import (
     openid_configuration_v1,
     openid_configuration_v2,
     openid_configuration_v3,

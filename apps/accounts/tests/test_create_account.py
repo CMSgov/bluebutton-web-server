@@ -6,6 +6,13 @@ from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from apps.accounts.constants import (
+    ACCT_MAIL_LOGGER_NAME,
+    DOT_EXT_SIGNAL_LOGGER_NAME,
+    LOGIN_MSG_ACTIVATED,
+    MAIL_SENT_EVENT,
+    MAILER_EVENT_LOGGERS
+)
 from apps.accounts.models import UserProfile, UserIdentificationLabel
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle.testutils import override_switch
@@ -13,12 +20,6 @@ from waffle.testutils import override_switch
 from apps.logging.utils import redirect_loggers_custom, get_log_content, cleanup_logger
 
 from ..models import ActivationKey
-
-ACCT_MAIL_LOGGER_NAME = "hhs_server.apps.accounts.emails"
-DOT_EXT_SIGNAL_LOGGER_NAME = "hhs_server.apps.dot_ext.signals"
-MAILER_EVENT_LOGGERS = [ACCT_MAIL_LOGGER_NAME, DOT_EXT_SIGNAL_LOGGER_NAME]
-LOGIN_MSG_ACTIVATED = "Your account has been activated. You may now login"
-MAIL_SENT_EVENT = "Activation link sent to testactivation@example.com (testactivation@example.com)"
 
 
 class CreateDeveloperAccountTestCase(TestCase):
