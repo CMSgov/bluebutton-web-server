@@ -94,7 +94,7 @@ jobs:
             --progress=plain \
             -t $ECR_URL:$IMAGE_TAG \
             -t $ECR_URL:latest \
-            ops/images/
+            ops/containers/bb-web-api/
 
           echo "📤 Pushing to ECR..."
           # Now these images actually exist locally with these names
