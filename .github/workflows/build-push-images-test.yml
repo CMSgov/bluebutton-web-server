@@ -22,8 +22,9 @@ env:
   AWS_REGION: us-east-1
 
 permissions:
-  id-token: write # This is required for requ esting the AWS IAM OIDC JWT
-  contents: write # This is required for actions/checkout
+  id-token: write # Required for requ esting the AWS IAM OIDC JWT
+  contents: write # Required for actions/checkout
+  actions: write # Required for GHA cache
 
 jobs:
   build:
@@ -43,9 +44,6 @@ jobs:
           if [ -n "$ACCOUNT_ID" ]; then
             echo "::add-mask::$ACCOUNT_ID"
           fi
-
-          pwd
-          ls -al
 
       - name: Configure AWS credentials
         id: aws-creds
@@ -75,36 +73,20 @@ jobs:
 
       - name: Mask ECR registry
         run: |
-          # Mask the ECR registry URL (contains account ID)
           echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
 
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: bb-${{ github.event.inputs.environment || 'test' }}-api
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          # Mask ECR URL
-          ECR_URL="$ECR_REGISTRY/$ECR_REPOSITORY"
-          echo "::add-mask::$ECR_URL"
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
 
-          echo "🔨 Building Docker image..."
-          docker buildx build \
-            --build-arg BUILD_TARGET=production \
-            --progress=plain \
-            -t $ECR_URL:$IMAGE_TAG \
-            -t $ECR_URL:latest \
-            ops/containers/bb-web-api/
-
-          echo "📤 Pushing to ECR..."
-          # Now these images actually exist locally with these names
-          docker push $ECR_URL:$IMAGE_TAG
-          docker push $ECR_URL:latest
-          
-          echo "✅ Done!"
-          
-
-          
-          
-
-          
+      - name: Build and Push Docker Image to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: ops/containers/bb-web-api/
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
+          build-args: |
+            BUILD_TARGET=production
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
