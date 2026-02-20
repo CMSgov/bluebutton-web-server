@@ -150,6 +150,8 @@ set_auth_profile () {
 # This will overwrite any set variables from .env.local and will clobber anything already loaded
 # as this happens later in the process during run-appropriate-stack.bash.
 # It will create a .env.sops file in the dev-local directory, but that file is in .gitignore and should not be committed.
+# For more information on how SOPS can be set up and used, see:
+# https://confluence.cms.gov/spaces/BB2/pages/1509770397/BB2-4513+SOPS+Secret+Management+%E2%80%94+Local+Development+Setup
 
 load_sops_secrets () {
 
