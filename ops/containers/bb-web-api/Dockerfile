@@ -77,7 +77,6 @@ USER boton
 RUN mkdir -p ${BB}
 WORKDIR ${BB}
 
-
 # Copy the code in
 COPY --chown=boton:boton . .
 
@@ -107,9 +106,6 @@ RUN python3.12 -m venv ${VENVPATH} \
 # When we build the production container, we want to check out the repo
 # and then checkout the correct release tag.
 FROM base AS build-production
-
-RUN pwd
-RUN ls -al
 
 # The cloud environment only installs the core requirements.
 RUN ${BOTONBIN}/pip3 install \

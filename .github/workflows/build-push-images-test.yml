@@ -34,9 +34,6 @@ jobs:
       - codebuild-bb-${{ github.event.inputs.environment || 'test' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Mask sensitive values
         run: |
           # Mask AWS account ID
@@ -78,15 +75,11 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Check PWD and LS
-        run: |
-          pwd
-          ls -al
-
       - name: Build and Push Docker Image to ECR
         uses: docker/build-push-action@v6
         with:
-          context: ops/containers/bb-web-api/
+          context: .
+          file: ops/containers/bb-web-api/Dockerfile
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
