@@ -326,6 +326,7 @@ class OAuth2ConfigSLSx(object):
 
         log_dict = {
             "type": "Authentication:start",
+            "api_version": request.session['version'],
             "sls_status": "FAIL",
             "sls_status_mesg": None,
             "sls_signout_status_code": self.signout_status_code,
@@ -373,6 +374,7 @@ class OAuth2ConfigSLSx(object):
 
         log_dict = {
             "type": "Authentication:start",
+            "api_version": request.session['version'],
             "sub": self.user_id,
             "sls_status": "OK",
             "sls_status_mesg": None,
@@ -395,6 +397,7 @@ class OAuth2ConfigSLSx(object):
             "type": "Authentication:success",
             "sub": self.user_id,
             "user": None,
+            "api_version": request.session['version']
         }
         log_dict.update(extra)
         logger.info(log_dict)
