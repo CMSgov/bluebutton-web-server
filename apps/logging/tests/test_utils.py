@@ -52,6 +52,4 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         result = construct_quicksuite_logging_path(request)
 
-        print(result)
-
         assert result == "v/callback"
