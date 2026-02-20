@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./prepare-environment-support.bash
+source scripts/external/prepare-environment-support.bash
 
 ####################################
 # OPERATING CONDITIONS
@@ -13,6 +13,8 @@ set -a
 # ENV SETUP
 check_valid_env
 gonogo "check_valid_env"
+check_env_preconditions
+gonogo "check_env_preconditions"
 # source the baseline environment variables
 load_env_vars
 gonogo "load_env_vars"
@@ -52,22 +54,30 @@ fi
 
 cleanup_docker_stack
 
+# This is run from a makefile two levels up.
+# We `cd` into this directory to run the script.
+# Hence, we need to pop back up in order to get to the right
+# place to run the compose.
+cd ../..
+
 if [[ "${daemon}" == "1" ]]; then
     docker compose \
-    -f docker-compose-local.yaml \
+    -f FIXME/docker-compose-local.yaml \
     up \
     --detach
 elif [[ "${MIGRATE}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
     echo "📊 Tailing logs."
     echo
     docker compose \
-        -f docker-compose-local.yaml \
+        -f FIXME/docker-compose-local.yaml \
         up --abort-on-container-exit
     docker compose down
 else
     echo "📊 Tailing logs."
     echo
+    BUILD_TARGET=local \
+    RELEASE_TAG=local \
     docker compose \
-        -f docker-compose-local.yaml \
+        -f containers/docker-compose-local.yaml \
         up
 fi

@@ -8,14 +8,10 @@ auth ?= "live"
 # reset ; docker run -it -v ./entrypoint.bash:/bb/ops/containers/bb-web-api/entrypoint.bash -v ./nginx.conf.in:/bb/ops/containers/bb-web-api/nginx.conf.in bb:latest
 
 build-local:
-	echo "build-local"
-	docker build \
-		--platform "linux/amd64" \
-		--build-arg RELEASE_TAG="local" \
-		--build-arg BUILD_TARGET="local" \
-		-t bb:latest \
-		-f Dockerfile \
-		../../..
+	cd build-css ; make build-local
+	cd msls ; make build-local
+	cd bb-web-api ; make build-local
+
 
 build-production:
 	echo "build"
@@ -27,11 +23,12 @@ build-production:
 		--build-arg BUILD_TARGET="production" \
 		--no-cache \
 		-t bb:latest \
-		-f Dockerfile \
+		-f bb-web-api/Dockerfile \
 		.
 
 run-local:
-	bfd=${bfd} \
-	env=${env} \
-	auth=${auth} \
-	./scripts/external/prepare-environment.bash
+	cd bb-web-api ; make run-local
+
+.PHONY: build-css
+build-css:
+	cd build-css ; make build-css

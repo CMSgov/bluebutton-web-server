@@ -16,8 +16,7 @@ gonogo () {
 # execution environments.
 check_valid_env () {
     if [[ "${bfd}" == "local" ]]; then
-        # This is a no-op.
-        :
+        : # This is a no-op.
     #####
     # TEST
     elif [[ "${bfd}" == "test" ]]; then
@@ -42,39 +41,66 @@ check_valid_env () {
     return 0
 }
 
+########################################
+# check_env_preconditions
+# Certain minimal things must be true in order to proceed.
+check_env_preconditions () {
+    
+    if [[ "${TARGET_ENV}" == "local" ]]; then
+        if [ "${bfd}" != "local" ]; then
+            if [ -z ${KION_ACCOUNT_ALIAS} ]; then
+                echo "You must run 'kion f <alias>' before 'make run bfd=${bfd}'."
+                echo "Exiting."
+                return 1
+            fi
+        fi
+
+        # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
+        if [ -z ${bfd} ]; then
+            echo "'bfd' not set. Cannot retrieve certs."
+            echo "'bfd' must be one of 'local', 'test', or 'sbx'."
+            echo "For example:"
+            echo "  make run-local bfd=test"
+            echo "Exiting."
+            return 1
+        fi
+    fi
+    return 0
+}
+
 load_env_vars () {
     # By definition, this should only be used when TARGET_ENV == "local"
     # We should not be getting variables in this manner when we are running
     # in a production-like environment.
     if [[ "${TARGET_ENV}" == "local" ]]; then
-        AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
-        AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
-        AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
-        AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}"
-        BB2_SERVER_STD2FILE=''
-        BB20_ENABLE_REMOTE_DEBUG="${BB20_ENABLE_REMOTE_DEBUG:-true}"
-        BB20_REMOTE_DEBUG_WAIT_ATTACH="${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}"
-        DATABASES_CUSTOM="${DATABASES_CUSTOM:-postgres://postgres:toor@db:5432/bluebutton}"
-        DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/bfd/certs}"
-        DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
-        DJANGO_SECRET_KEY=$(openssl rand -hex 32)
-        DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"
-        DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.dev}"
-        DJANGO_USER_ID_ITERATIONS="${DJANGO_USER_ID_ITERATIONS:-2}"
-        DJANGO_USER_ID_SALT="${DJANGO_USER_ID_SALT:-6E6F747468657265616C706570706572}"
-        FHIR_URL_SBX="${FHIR_URL_SBX:-https://prod-sbx.fhir.bfd.cmscloud.local}"
-        FHIR_URL_TEST="${FHIR_URL_TEST:-https://test.fhir.bfd.cmscloud.local}"
-        FHIR_URL_V3_SBX="${FHIR_URL_V3_SBX:-https://sandbox.fhirv3.bfd.cmscloud.local}"
-        FHIR_URL_V3_TEST="${FHIR_URL_V3_TEST:-https://test.fhirv3.bfd.cmscloud.local}"
-        OAUTHLIB_INSECURE_TRANSPORT="${OAUTHLIB_INSECURE_TRANSPORT:-true}"
-        POSTGRES_DB="${POSTGRES_DB:-bluebutton}"
-        POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-toor}"
-        POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-        RUN_ONLINE_TESTS="${RUN_ONLINE_TESTS:-true}"
-        RUNNING_IN_LOCAL_STACK="${RUNNING_IN_LOCAL_STACK:-true}"
-        SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
-        SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
-        SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
+        export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+        export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+        export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+        export AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}"
+        export BB2_SERVER_STD2FILE=''
+        export BB20_ENABLE_REMOTE_DEBUG="${BB20_ENABLE_REMOTE_DEBUG:-true}"
+        export BB20_REMOTE_DEBUG_WAIT_ATTACH="${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}"
+        export DATABASES_CUSTOM="${DATABASES_CUSTOM:-postgres://postgres:toor@db:5432/bluebutton}"
+        export DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/bfd/certs}"
+        export DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
+        export DJANGO_SECRET_KEY=$(openssl rand -hex 32)
+        export DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"
+        export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.dev}"
+        export DJANGO_USER_ID_ITERATIONS="${DJANGO_USER_ID_ITERATIONS:-2}"
+        export DJANGO_USER_ID_SALT="${DJANGO_USER_ID_SALT:-6E6F747468657265616C706570706572}"
+        export FHIR_URL_SBX="${FHIR_URL_SBX:-https://prod-sbx.fhir.bfd.cmscloud.local}"
+        export FHIR_URL_TEST="${FHIR_URL_TEST:-https://test.fhir.bfd.cmscloud.local}"
+        export FHIR_URL_V3_SBX="${FHIR_URL_V3_SBX:-https://sandbox.fhirv3.bfd.cmscloud.local}"
+        export FHIR_URL_V3_TEST="${FHIR_URL_V3_TEST:-https://test.fhirv3.bfd.cmscloud.local}"
+        export OAUTHLIB_INSECURE_TRANSPORT="${OAUTHLIB_INSECURE_TRANSPORT:-true}"
+        export POSTGRES_DB="${POSTGRES_DB:-bluebutton}"
+        export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-toor}"
+        export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+        export RUN_ONLINE_TESTS="${RUN_ONLINE_TESTS:-true}"
+        export RUNNING_IN_LOCAL_STACK="${RUNNING_IN_LOCAL_STACK:-true}"
+        export SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
+        export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
+        export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
         return 0
     else
         echo "⛔ cannot load env vars for non-local environments."
@@ -152,20 +178,20 @@ retrieve_bfd_certs () {
         BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
             --query 'SecretString' \
-            --output text | base64 -d)
+            --output text)
         BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
             --query 'SecretString' \
-            --output text | base64 -d)
+            --output text)
     elif [[ "${bfd}" == "sbx" ]]; then
         BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
             --query 'SecretString' \
-            --output text | base64 -d)
+            --output text)
         BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
             --query 'SecretString' \
-            --output text | base64 -d)
+            --output text)
     elif [[ "${bfd}" == "prod" ]]; then
         echo "⛔ fetching certs for prod target not supported locally."
         return 1
@@ -186,12 +212,17 @@ retrieve_nginx_certs () {
             -nodes \
             -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname" \
             >/dev/null 2>&1
-        NGINX_KEY_PEM=$(<$KEY_TEMP)
-        NGINX_CERT_PEM=$(<$CERT_TEMP)
+        NGINX_KEY_PEM_B64=$(<$KEY_TEMP)
+        export NGINX_KEY_PEM_B64=$(echo "${NGINX_CERT_PEM_B64}" | base64)
+        NGINX_CERT_PEM_B64=$(<$CERT_TEMP)
+        export NGINX_CERT_PEM_B64=$(echo "${NGINX_CERT_PEM_B64}" | base64)
     else
+        rm -f $KEY_TEMP
+        rm -f $CERT_TEMP
         echo "⛔ nginx certs must be fetched in cloud environments."
         return 1
     fi
+    
     rm -f $KEY_TEMP
     rm -f $CERT_TEMP
     return 0

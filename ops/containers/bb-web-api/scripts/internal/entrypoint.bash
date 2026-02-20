@@ -53,5 +53,4 @@ gonogo "run_nginx"
 
 # Launch our app
 launch_blue_button
-tree /tmp
 gonogo "LAUNCH BLUE BUTTON"
