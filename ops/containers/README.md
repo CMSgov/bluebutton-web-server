@@ -2,6 +2,17 @@
 
 docker run -v ./scripts:/home/boton/bb/ops/containers/bb-web-api/scripts -e TARGET_ENV=local --platform="linux/amd64" -t bb:latest
 
+## sequence
+
+make build-css
+make run-local
+
+docker exec -it containers-web /bin/bash
+> source ~/venv/bin/activate
+> python manage.py migrate
+> python manage.py collectstatic
+
+
 ## structure
 
 ```

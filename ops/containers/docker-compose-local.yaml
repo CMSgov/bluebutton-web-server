@@ -6,7 +6,7 @@ services:
     build: 
       context: msls
       dockerfile: Dockerfile
-    image: msls:latest
+    image: bb-msls:latest
     platform: linux/amd64
     command: scripts/internal/entrypoint.bash
     ports:
@@ -35,7 +35,7 @@ services:
       # dockerfile is down in the `ops` tree.
       context: ../..
       dockerfile: ops/containers/bb-web-api/Dockerfile
-    image: bb:latest
+    image: bb-web-api:latest
     platform: linux/amd64
     command: /home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
     read_only: ${READ_ONLY:-true}

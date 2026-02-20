@@ -7,11 +7,17 @@ auth ?= "live"
 
 # reset ; docker run -it -v ./entrypoint.bash:/bb/ops/containers/bb-web-api/entrypoint.bash -v ./nginx.conf.in:/bb/ops/containers/bb-web-api/nginx.conf.in bb:latest
 
-build-local:
+css:
 	cd build-css ; make build-local
+	cd build-css ; make run-local
+
+requirements:
+	cd requirements-generation ; make build-local
+	cd requirements-generation ; make run-local
+
+build-local: css
 	cd msls ; make build-local
 	cd bb-web-api ; make build-local
-
 
 build-production:
 	echo "build"
