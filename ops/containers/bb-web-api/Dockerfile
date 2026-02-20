@@ -108,6 +108,9 @@ RUN python3.12 -m venv ${VENVPATH} \
 # and then checkout the correct release tag.
 FROM base AS build-production
 
+RUN pwd
+RUN ls -al
+
 # The cloud environment only installs the core requirements.
 RUN ${BOTONBIN}/pip3 install \
     --require-hashes \
