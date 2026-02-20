@@ -17,7 +17,7 @@ from httmock import urlmatch, all_requests, HTTMock
 from jsonschema import validate
 from requests.exceptions import HTTPError
 from rest_framework import status
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from urllib.parse import urlparse, parse_qs
 from waffle.testutils import override_switch
 
@@ -357,7 +357,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 }
 
             with HTTMock(catchall):
-                sls_client.exchange_for_access_token("test_code", None)
+                request = MagicMock()
+                request.session = {"version": "3"}
+                sls_client.exchange_for_access_token("test_code", request)
                 self.assertEqual(sls_client.auth_token, "test_tkn")
                 self.assertEqual(
                     sls_client.user_id, "00112233-4455-6677-8899-aabbccddeeff"
