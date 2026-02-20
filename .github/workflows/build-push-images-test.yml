@@ -70,6 +70,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         with:
           mask-password: true
+          registry-type: public
 
       - name: Mask ECR registry
         run: |

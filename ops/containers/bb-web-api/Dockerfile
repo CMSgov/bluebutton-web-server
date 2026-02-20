@@ -1,7 +1,7 @@
 ARG BUILD_TARGET="local"
 ARG RELEASE_TAG="NO_RELEASE_TAG_SET"
 
-FROM amazonlinux:2023.10.20260202.2 AS base
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023.10.20260202.2 AS base
 
 # Ensures STDOUT and STDERR do not buffer and 
 # flush with every newline so Django logs are captured
