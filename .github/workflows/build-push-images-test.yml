@@ -34,6 +34,9 @@ jobs:
       - codebuild-bb-${{ github.event.inputs.environment || 'test' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Mask sensitive values
         run: |
           # Mask AWS account ID
