@@ -1,0 +1,87 @@
+services:
+  ####################
+  # Local MSLS server
+  # A small Flask app for testing.
+  msls:
+    build: 
+      context: msls
+      dockerfile: Dockerfile
+    image: msls:latest
+    platform: linux/amd64
+    command: scripts/internal/entrypoint.bash
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./msls:/code
+
+  ####################
+  # Postgres database
+  # Pin to the version of Postgres that is 
+  # equivalent to production.
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: "bluebutton"
+      POSTGRES_PASSWORD: "toor"
+      POSTGRES_PORT: 5432
+    ports:
+      - "5432:5432"
+
+  ####################
+  # Blue Button
+  web:
+    build: 
+      # Note the context is the top of the repo, and the
+      # dockerfile is down in the `ops` tree.
+      context: ../..
+      dockerfile: ops/containers/bb-web-api/Dockerfile
+    image: bb:latest
+    platform: linux/amd64
+    command: /home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
+    read_only: ${READ_ONLY:-true}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - bb-web-api/files/external/.env.container
+    volumes:
+      - ./bb-web-api/scripts:/home/boton/bb/ops/containers/bb-web-api/scripts
+      - type: bind
+        source: ../..
+        target: /home/boton/bb
+        read_only: ${READ_ONLY:-true}
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 200000000 # 200MB
+          mode: 0777
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      - db
+      - msls
+
+
+  ####################
+  # Mock object store
+  # This mocks the S3 bucket we use for static assets.
+  s3mock:
+    image: adobe/s3mock:latest
+    environment:
+      - COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS=django
+      - COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT=true
+      - COM_ADOBE_TESTING_S3MOCK_STORE_ROOT=/s3
+    volumes:
+      # If you want to see all of the files in the mock S3 instance,
+      # uncomment this line. This will mount the folder `local-s3` as the 
+      # location for all S3 files.
+      # - ./local-s3:/s3
+      #
+      # This line uses a volume, which is harder to browse/inspect. 
+      # But, it keeps the local tree clean.
+      - s3mock-data:/s3
+    ports:
+      - 9090:9090
+
+volumes:
+    s3mock-data:
