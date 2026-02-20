@@ -79,7 +79,11 @@ def construct_quicksuite_logging_path(request: HttpRequest) -> str:
     Returns:
         A string that represents the path to be used in QuickSuite.
     """
-    version_number = request.session.get('version', 2)
-    path = f'v{version_number}{request.path}'
+    if not request:
+        return ""
+
+    version_number = getattr(request, "session", {}).get('version', "")
+    path_param = getattr(request, "path", "")
+    path = f'v{version_number}{path_param}'
 
     return path
