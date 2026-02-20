@@ -108,6 +108,7 @@ RUN git clone -depth 1 https://github.com/CMSgov/bluebutton-web-server.git . \
     && git checkout ${RELEASE_TAG}
 
 # The cloud environment only installs the core requirements.
+WORKDIR ${BB}
 RUN ${BOTONBIN}/pip3 install \
     --require-hashes \
     --no-deps \
@@ -126,10 +127,12 @@ COPY --chown=boton:boton . .
 USER root
 RUN dnf install -y \
     openssl \
-    socat
+    socat \
+    tree
 USER boton
 
 # Local dev brings in additional tools to support debugging, etc.
+WORKDIR ${BB}
 RUN ${BOTONBIN}/pip3 install \
     --require-hashes \
     --no-deps \

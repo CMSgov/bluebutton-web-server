@@ -1,39 +1,43 @@
 #!/usr/bin/env bash
-source ./utility-functions.bash
+source ./prepare-environment-support.bash
 
-# this says to "export all variables."
-set -a
-# exit on error.
+####################################
+# OPERATING CONDITIONS
+# We want bash to fail fast if something goes wrong.
+# And, we want all our variables exported so the 
+# container launch can pick them up.
 set -e
+set -a
 
-# bfd = local | test | sbx
-# auth = mock | live
-
-# let's make sure we have a valid ENV var before proceeding
+####################################
+# ENV SETUP
 check_valid_env
-
+gonogo "check_valid_env"
 # source the baseline environment variables
-# these set the stage for all further environment manipulation for 
-# launching the app.
-clear_canary_variables
-source ./.env.local
-
-# add another check or two after we source the env file.
-check_env_after_source
-
-# let's make sure the .env.local sourced in correctly.
-check_env_preconditions
-
-# set the FHIR_URL and FHIR_URL_V3
+load_env_vars
+gonogo "load_env_vars"
+check_env_after_setup
+gonogo "check_env_after_setup"
 set_bfd_urls
+gonogo "set_bfd_urls"
 
-# set the profile for docker compose
-set_auth_profile
+####################################
+# CERTS
+# retrieve the certs for BFD and store them in $BFD_CERT_PEM_B64 and $BFD_KEY_PEM_B64
+# We don't write them to disk; that happens *inside* the container.
+retrieve_bfd_certs
+gonogo "retrieve_bfd_certs"
+# These are the certs we need for HTTPs termination
+# e.g. the things that let us be `test.bluebutton.cms.gov` with secure authority.
+# Locally, we create bogus/self-signed certs.
+retrieve_nginx_certs
+gonogo "retrieve_nginx_certs"
 
-# retrieve the certs and store them in $HOME/.bb2/certstore
-retrieve_certs
-
-set_salt
+####################################
+# SLSX
+# We may want to run against a mock, or against
+# the live system. 
+configure_slsx
 
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
 

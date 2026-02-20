@@ -32,3 +32,21 @@ Scripts external to the container---scripts that configure a local environment, 
 ### files
 
 Files necessary to support the application---templates, etc.---are stored here.
+
+
+## /tmp in the container
+
+```
+/tmp
+|-- bfd
+|   `-- certs
+|       |-- cert.pem
+|       `-- key.pem
+`-- nginx
+    |-- certs
+    |   |-- cert.pem
+    |   `-- key.pem
+    |-- nginx.conf
+    |-- tmp
+    `-- uwsgi_params -> /etc/nginx/uwsgi_params
+```

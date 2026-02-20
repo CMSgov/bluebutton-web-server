@@ -1,4 +1,14 @@
-#!/usr/bin/env bash
+gonogo () {
+    STEP=$1
+    result=$?
+    if [[ $result == 0 ]]; then
+        echo "✅ OK: $STEP"
+        return 0
+    else
+        echo "⛔ BADNESS: $STEP - $result"
+        exit -1
+    fi
+}
 
 ########################################
 # check_valid_env
@@ -23,72 +33,68 @@ check_valid_env () {
     #####
     # ERR
     else
-        echo "⛔ 'bfd' must be set to 'local', 'test', or 'sbx'."
+        echo "⛔ 'bfd' must be set to 'local', 'test', 'sbx', or 'prod'."
         echo "⛔ 'bfd' is currently set to '${bfd}'."
         echo "Exiting."
-        return -2
+        return 1
     fi 
 
-    echo "✅ check_valid_env"
+    return 0
 }
 
-########################################
-# clear_canary_variables
-# We want one or two variables that we know will be obtained
-# via sourcing the .env. Unset them first.
-clear_canary_variables () {
-    unset OATHLIB_INSECURE_TRANSPORT
-    unset DB_MIGRATIONS
-}
-
-########################################
-# check_env_preconditions
-# Certain minimal things must be true in order to proceed.
-check_env_preconditions () {
-    if [ "${bfd}" != "local" ]; then
-        if [ -z ${KION_ACCOUNT_ALIAS} ]; then
-            echo "You must run 'kion f <alias>' before 'make run bfd=${bfd}'."
-            echo "Exiting."
-            return -1
-        fi
+load_env_vars () {
+    # By definition, this should only be used when TARGET_ENV == "local"
+    # We should not be getting variables in this manner when we are running
+    # in a production-like environment.
+    if [[ "${TARGET_ENV}" == "local" ]]; then
+        AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+        AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+        AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+        AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}"
+        BB2_SERVER_STD2FILE=''
+        BB20_ENABLE_REMOTE_DEBUG="${BB20_ENABLE_REMOTE_DEBUG:-true}"
+        BB20_REMOTE_DEBUG_WAIT_ATTACH="${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}"
+        DATABASES_CUSTOM="${DATABASES_CUSTOM:-postgres://postgres:toor@db:5432/bluebutton}"
+        DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/bfd/certs}"
+        DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
+        DJANGO_SECRET_KEY=$(openssl rand -hex 32)
+        DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"
+        DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.dev}"
+        DJANGO_USER_ID_ITERATIONS="${DJANGO_USER_ID_ITERATIONS:-2}"
+        DJANGO_USER_ID_SALT="${DJANGO_USER_ID_SALT:-6E6F747468657265616C706570706572}"
+        FHIR_URL_SBX="${FHIR_URL_SBX:-https://prod-sbx.fhir.bfd.cmscloud.local}"
+        FHIR_URL_TEST="${FHIR_URL_TEST:-https://test.fhir.bfd.cmscloud.local}"
+        FHIR_URL_V3_SBX="${FHIR_URL_V3_SBX:-https://sandbox.fhirv3.bfd.cmscloud.local}"
+        FHIR_URL_V3_TEST="${FHIR_URL_V3_TEST:-https://test.fhirv3.bfd.cmscloud.local}"
+        OAUTHLIB_INSECURE_TRANSPORT="${OAUTHLIB_INSECURE_TRANSPORT:-true}"
+        POSTGRES_DB="${POSTGRES_DB:-bluebutton}"
+        POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-toor}"
+        POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+        RUN_ONLINE_TESTS="${RUN_ONLINE_TESTS:-true}"
+        RUNNING_IN_LOCAL_STACK="${RUNNING_IN_LOCAL_STACK:-true}"
+        SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
+        SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
+        SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
+        return 0
+    else
+        echo "⛔ cannot load env vars for non-local environments."
+        return 1
     fi
-
-    # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
-    if [ -z ${bfd} ]; then
-        echo "'bfd' not set. Cannot retrieve certs."
-        echo "'bfd' must be one of 'local', 'test', or 'sbx'."
-        echo "For example:"
-        echo "  make run-local bfd=test"
-        echo "Exiting."
-        return -1
-    fi
-
-    echo "✅ check_env_preconditions"
-
 }
 
 ########################################
-# check_env_after_source
-# After sourcing in the .env, we need to make sure that one or two
+# check_env_after_setup
+# After setting up the env, we need to make sure that one or two
 # variables are now present that would not have been otherwise.
-check_env_after_source () {
-
+check_env_after_setup () {
     if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
         echo "We need insecure transport when running locally."
         echo "OAUTHLIB_INSECURE_TRANSPORT was not set to true."
         echo "Something went badly wrong."
         echo "Exiting."
-        return -1
+        return 1
     fi
-
-    if [ -z ${DB_MIGRATIONS} ]; then
-        echo "There should be a DB_MIGRATIONS flag."
-        echo "Something went badly wrong."
-        echo "Exiting."
-        return -1
-    fi
-
-    echo "✅ check_env_after_source"
+    return 0
 }
 
 ########################################
@@ -104,49 +110,27 @@ set_bfd_urls () {
     #####
     # TEST
     elif [[ "${bfd}" == "test" ]]; then
-        export FHIR_URL="${FHIR_URL_TEST}"
-        export FHIR_URL_V3="${FHIR_URL_V3_TEST}"
-        export LOCAL_TESTING_TARGET="test"
+        FHIR_URL="${FHIR_URL_TEST}"
+        FHIR_URL_V3="${FHIR_URL_V3_TEST}"
+        LOCAL_TESTING_TARGET="test"
     #####
     # SBX
     elif [[ "${bfd}" == "sbx" ]]; then
-        export FHIR_URL="${FHIR_URL_SBX}"
-        export FHIR_URL_V3="${FHIR_URL_V3_SBX}"
+        FHIR_URL="${FHIR_URL_SBX}"
+        FHIR_URL_V3="${FHIR_URL_V3_SBX}"
         # FIXME: Do we use "impl" or "sbx"? ...
-        export LOCAL_TESTING_TARGET="impl"
+        LOCAL_TESTING_TARGET="impl"
 
     elif [[ "${bfd}" == "prod" ]]; then
-        export FHIR_URL="${FHIR_URL_PROD}"
-        export FHIR_URL_V3="${FHIR_URL_V3_PROD}"
-        # FIXME: Do we use "impl" or "sbx"? ...
-        export LOCAL_TESTING_TARGET="impl"
+        echo "⛔ no way to set BFD urls for prod when running locally"
+        return 1
     fi
 
-    echo "✅ set_bfd_urls"
+    return 0
 }
 
 ########################################
-# set_auth_profile
-# This sets the variables that determine if we will 
-# auth locally (mock) or against a live server.
-set_auth_profile () {
-    if [[ "${bfd}" == "local" ]]; then
-        export PROFILE="mock-sls"
-    #####
-    # TEST
-    elif [[ "${bfd}" == "test" ]]; then
-        export PROFILE="slsx"
-    #####
-    # SBX
-    elif [[ "${bfd}" == "sbx" ]]; then
-        export PROFILE="slsx"
-    fi
-
-    echo "✅ set_profile"
-}
-
-########################################
-# retrieve_certs
+# retrieve_bfd_certs
 # Download the certs from the secrets store.
 # Put them in a "BB2 config directory" in the developer's
 # home directory. This keeps them out of the tree.
@@ -156,131 +140,67 @@ set_auth_profile () {
 # We assume yes, but set it to `no` when running fully locally.
 export CERT_AND_SALT="YES"
 
-retrieve_certs () {
-
-    unset CERT_SUFFIX
-
+retrieve_bfd_certs () {
     if [[ "${bfd}" == "local" ]]; then
         echo "🆗 Running locally. Not retrieving certs."
         echo "🆗 Running locally. Not retrieving salt."
-        CERT_AND_SALT="NO"
-        export CERT_SUFFIX=""
-    #####
-    # TEST
+        unset BFD_CERT_PEM_B64
+        unset BFD_KEY_PEM_B64
     elif [[ "${bfd}" == "test" ]]; then
         export CERT_SUFFIX="_test"
         export PROFILE="slsx"
-    #####
-    # SBX
+        BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
+            --query 'SecretString' \
+            --output text | base64 -d)
+        BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
+            --query 'SecretString' \
+            --output text | base64 -d)
     elif [[ "${bfd}" == "sbx" ]]; then
-        export CERT_SUFFIX=""
-        export PROFILE="slsx"
+        BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
+            --query 'SecretString' \
+            --output text | base64 -d)
+        BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
+            --query 'SecretString' \
+            --output text | base64 -d)
+    elif [[ "${bfd}" == "prod" ]]; then
+        echo "⛔ fetching certs for prod target not supported locally."
+        return 1
     fi
 
-    CERT="ca.cert.pem"
-    KEY="ca.key.nocrypt.pem"
+    return 0
+}
 
-
-    if [[ "${CERT_AND_SALT}" == "YES" ]]; then
-
-        if [ -z "${CA_CERT}" ] && [ -z "${CA_KEY}" ]; then
-
-            echo "🎁 Retrieving certs for the '${bfd}' environment with suffix '${CERT_SUFFIX}'."
-            # We will (rudely) create a .bb2 directory in the user's homedir.
-            # Let's call that BB2_CONFIG_DIR
-            export BB2_CONFIG_DIR="${HOME}/.bb2"
-            mkdir -p "${BB2_CONFIG_DIR}"
-
-            # And, lets put the certs in their own subdir.
-            export BB2_CERTSTORE="${BB2_CONFIG_DIR}/certstore"
-            mkdir -p "${BB2_CERTSTORE}"
-
-            echo "${BB2_CERTSTORE}"
-            echo "  Removing ${BB2_CERTSTORE}/$CERT"
-            rm -f "${BB2_CERTSTORE}/$CERT"
-            echo "  Removing ${BB2_CERTSTORE}/$KEY"
-            rm -f "${BB2_CERTSTORE}/$KEY"
-
-            if [[ ${bfd} == "prod" ]]; then
-                echo "  Fetching ${BB2_CERTSTORE}/$CERT"
-                aws secretsmanager get-secret-value \
-                    --secret-id /bb2/prod/app/fhir_cert_pem \
-                    --query 'SecretString' \
-                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
-                
-                if [ $? -ne 0 ]; then
-                    echo "⛔ Failed to retrieve cert. Exiting."
-                    return -3
-                fi
-
-                echo "  Fetching ${BB2_CERTSTORE}/$KEY"
-                aws secretsmanager get-secret-value \
-                    --secret-id /bb2/prod/app/fhir_key_pem \
-                    --query 'SecretString' \
-                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
-
-                if [ $? -ne 0 ]; then 
-                    echo "⛔ Failed to retrieve private key. Exiting."
-                    return -4
-                fi
-            else
-                echo "  Fetching ${BB2_CERTSTORE}/$CERT"
-                aws secretsmanager get-secret-value \
-                    --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate${CERT_SUFFIX} \
-                    --query 'SecretString' \
-                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.cert.pem"
-                
-                if [ $? -ne 0 ]; then
-                    echo "⛔ Failed to retrieve cert. Exiting."
-                    return -3
-                fi
-
-                echo "  Fetching ${BB2_CERTSTORE}/$KEY"
-                aws secretsmanager get-secret-value \
-                    --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key${CERT_SUFFIX} \
-                    --query 'SecretString' \
-                    --output text | base64 -d > "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
-
-                if [ $? -ne 0 ]; then 
-                    echo "⛔ Failed to retrieve private key. Exiting."
-                    return -4
-                fi
-            fi
-        else
-            echo "  ℹ️  CI/CD Pipeline. Using certificates from environment variables."
-        fi     
-        
-        echo ${BB2_CERTSTORE}
-        echo "${BB2_CERTSTORE}"
-        echo "${BB2_CERTSTORE}/${FILE}"
-
-        # Check they really came down.
-        declare -a cert_files=($CERT $KEY)
-        for FILE in "${cert_files[@]}"; 
-        do
-            if [ -s "${BB2_CERTSTORE}/${FILE}" ]; then
-                echo "  🆗 ${BB2_CERTSTORE}/${FILE} exists."
-            else
-                echo "  ⛔ ${BB2_CERTSTORE}/${FILE} does not exist."
-                echo "  ⛔ Try exiting your 'kion' shell and re-authenticating."
-                return -5
-            fi
-        done
-
-        chmod 600 "${BB2_CERTSTORE}/ca.cert.pem"
-        chmod 600 "${BB2_CERTSTORE}/ca.key.nocrypt.pem"
-
+retrieve_nginx_certs () {
+    KEY_TEMP=$(mktemp)
+    CERT_TEMP=$(mktemp)
+    if [[ $TARGET_ENV == "local" ]]; then
+        openssl req -x509 -newkey rsa:4096 \
+            -keyout $KEY_TEMP \
+            -out $CERT_TEMP \
+            -sha256 \
+            -days 3650 \
+            -nodes \
+            -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname" \
+            >/dev/null 2>&1
+        NGINX_KEY_PEM=$(<$KEY_TEMP)
+        NGINX_CERT_PEM=$(<$CERT_TEMP)
+    else
+        echo "⛔ nginx certs must be fetched in cloud environments."
+        return 1
     fi
-
-    echo "✅ retrieve_certs"
+    rm -f $KEY_TEMP
+    rm -f $CERT_TEMP
+    return 0
 }
 
 ########################################
-# set_salt
-# The other half of retrieve_certs. Sets up additional
-# variables for secure communication with auth servers 
-# (or helps set up the mock).
-set_salt () {
+# configure_slsx
+# How do we want to authenticate? Mock or live?
+configure_slsx () {
     if [ "${auth}" = "mock" ]; then
         echo "🆗 Running locally. Not retrieving salt."
         export DJANGO_USER_ID_SALT="6E6F747468657265616C706570706572"

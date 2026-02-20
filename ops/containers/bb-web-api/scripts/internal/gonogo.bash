@@ -2,10 +2,10 @@ gonogo () {
     STEP=$1
     result=$?
     if [[ $result == 0 ]]; then
-        echo "$STEP: OK"
+        echo "🔵 OK: $STEP"
         return 0
     else
-        echo "$STEP: ERR $result"
+        echo "⛔ BADNESS: $STEP - $result"
         exit -1
     fi
 }

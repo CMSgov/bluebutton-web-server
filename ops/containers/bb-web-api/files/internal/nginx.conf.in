@@ -57,8 +57,8 @@ http {
     # BB2-52 enforce referrer policy
     add_header Referrer-Policy strict-origin-when-cross-origin;
 
-    ssl_certificate     /tmp/ssl/certs/cert.pem;
-    ssl_certificate_key /tmp/ssl/certs/key.pem;
+    ssl_certificate     /tmp/nginx/certs/cert.pem;
+    ssl_certificate_key /tmp/nginx/certs/key.pem;
     # updated for AL2023 support fix
     ssl_protocols TLSv1.2;
     ssl_prefer_server_ciphers on;
