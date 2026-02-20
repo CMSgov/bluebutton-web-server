@@ -25,6 +25,7 @@ from apps.mymedicare_cb.constants import (
 )
 from apps.mymedicare_cb.signals import response_hook_wrapper
 from apps.mymedicare_cb.validators import is_mbi_format_valid, is_mbi_format_synthetic
+from apps.logging.utils import construct_quicksuite_logging_path
 
 
 class OAuth2ConfigSLSx(object):
@@ -324,9 +325,12 @@ class OAuth2ConfigSLSx(object):
         # iterate boolean expressions and log err message if the expression evalaute to true
         logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
 
+        # This isn't the actual path, but we construct a path for QuickSuite purposes
+        path = construct_quicksuite_logging_path(request)
+
         log_dict = {
             "type": "Authentication:start",
-            "api_version": request.session['version'],
+            "path": path,
             "sls_status": "FAIL",
             "sls_status_mesg": None,
             "sls_signout_status_code": self.signout_status_code,
@@ -372,9 +376,12 @@ class OAuth2ConfigSLSx(object):
     def log_event(self, request, extra):
         logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
 
+        # This isn't the actual path, but we construct a path for QuickSuite purposes
+        path = construct_quicksuite_logging_path(request)
+
         log_dict = {
             "type": "Authentication:start",
-            "api_version": request.session['version'],
+            "path": path,
             "sub": self.user_id,
             "sls_status": "OK",
             "sls_status_mesg": None,
@@ -393,11 +400,15 @@ class OAuth2ConfigSLSx(object):
 
     def log_authn_success(self, request, extra):
         logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
+
+        # This isn't the actual path, but we construct a path for QuickSuite purposes
+        path = construct_quicksuite_logging_path(request)
+
         log_dict = {
             "type": "Authentication:success",
             "sub": self.user_id,
             "user": None,
-            "api_version": request.session['version']
+            "path": path
         }
         log_dict.update(extra)
         logger.info(log_dict)

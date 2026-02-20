@@ -358,7 +358,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
             with HTTMock(catchall):
                 request = MagicMock()
-                request.session = {"version": "3"}
+                request.session = {"version": "3", "path": "mymedicare/sls-callback"}
                 sls_client.exchange_for_access_token("test_code", request)
                 self.assertEqual(sls_client.auth_token, "test_tkn")
                 self.assertEqual(
