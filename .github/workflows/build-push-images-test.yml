@@ -78,6 +78,11 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Check PWD and LS
+        run: |
+          pwd
+          ls -al
+
       - name: Build and Push Docker Image to ECR
         uses: docker/build-push-action@v6
         with:
