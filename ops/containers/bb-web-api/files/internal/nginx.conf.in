@@ -1,0 +1,92 @@
+daemon off;
+
+# was nginx nginx
+# user boton boton; 
+worker_processes 2;
+
+
+worker_rlimit_nofile 65535;
+
+events {
+  worker_connections 4096;
+}
+
+http {
+  log_format main '$$http_x_forwarded_for - $$remote_user [$$time_local] '
+                  '"$$request" $$status $$body_bytes_sent "$$http_referer" '
+                  '"$$http_user_agent"';
+  # access_log /dev/stdout main;
+  #  error_log /dev/stdout info;
+  #  error_log stderr info;
+
+  gzip on;
+  gzip_types text/plain application/json application/json+fhir;
+  gzip_min_length 1000;
+  gzip_proxied no-cache no-store private expired auth;
+
+  sendfile             on;
+  keepalive_timeout    0;
+  upstream application {
+    server unix:///var/pyapps/hhs_o_server/run/pyapps.sock;
+  }
+
+  server {
+    listen 80;
+    server_name _;
+    server_tokens off;
+    return 301 https://$$host$$request_uri;
+  }
+
+  server {
+    # Do we do IPv6?
+    listen ${NGINX_PORT} ssl default_server;
+    listen [::]:${NGINX_PORT} ssl;
+    http2 on;
+
+    server_name _;
+    server_tokens off;
+
+    # BB2-233 enabled CSP in report only mode
+    add_header Content-Security-Policy-Report-Only "default-src 'self' https://s3.amazonaws.com/${ENV_S3_STORAGE_BUCKET_NAME}/ https://ajax.googleapis.com https://stackpath.bootstrapcdn.com/bootstrap/ https://unpkg.com/feather-icons https://fonts.googleapis.com https://fonts.gstatic.com";
+
+    # enforce HSTS policy (force clients to use HTTPS)
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options DENY;
+
+    # BB2-52 enforce referrer policy
+    add_header Referrer-Policy strict-origin-when-cross-origin;
+
+    ssl_certificate     /tmp/nginx/certs/cert.pem;
+    ssl_certificate_key /tmp/nginx/certs/key.pem;
+    # updated for AL2023 support fix
+    ssl_protocols TLSv1.2;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:AES128-GCM-SHA256:AES128-SHA256:AES256-GCM-SHA384:AES256-SHA256';
+    ssl_ecdh_curve secp384r1;
+    ssl_session_tickets off;
+
+    proxy_set_header Host $$host;
+    proxy_set_header X-Real-IP $$remote_addr;
+    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $$scheme;
+
+    location ~ /(health|${DJANGO_ADMIN_REDIRECTOR}admin/) {
+      include                   uwsgi_params;
+      uwsgi_pass                application;
+    }
+
+    location / {
+      include                 uwsgi_params;
+      uwsgi_pass              application;
+      uwsgi_buffer_size       32k;
+      uwsgi_buffers           8 32k;
+      uwsgi_busy_buffers_size 224k;
+      proxy_buffer_size       32k;
+      proxy_buffers           8 32k;
+      proxy_busy_buffers_size 224k;
+      client_max_body_size    8m;
+      client_body_buffer_size 128k;
+    }
+  }
+}
