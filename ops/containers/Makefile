@@ -15,7 +15,7 @@ requirements:
 	cd requirements-generation ; make build-local
 	cd requirements-generation ; make run-local
 
-build-local: css
+build-local: css requirements
 	cd msls ; make build-local
 	cd bb-web-api ; make build-local
 

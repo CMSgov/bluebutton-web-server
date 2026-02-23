@@ -19,14 +19,14 @@ build-production:
 	echo "build"
 	env="local" \
 	bfd=${bfd} \
-		docker build \
-		--platform "linux/amd64" \
-		--build-arg RELEASE_TAG="${RELEASE_TAG}" \
-		--build-arg BUILD_TARGET="production" \
-		--no-cache \
-		-t bb-web-api-prod:latest \
-		-f Dockerfile \
-		.
+	docker build \
+	--platform "linux/amd64" \
+	--build-arg RELEASE_TAG="${RELEASE_TAG}" \
+	--build-arg BUILD_TARGET="production" \
+	--no-cache \
+	-t bb-web-api-prod:latest \
+	-f Dockerfile \
+	.
 
 run-local:
 	bfd=${bfd} \
