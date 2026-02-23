@@ -67,7 +67,7 @@ def _decode(b64code):
 
 
 def _load_user_data():
-    csv_path = os.path.join(os.path.dirname(__file__), 'files', 'users.csv')
+    csv_path = os.path.join(os.path.dirname(__file__), 'files', 'internal', 'users.csv')
     users = []
 
     if os.path.exists(csv_path):

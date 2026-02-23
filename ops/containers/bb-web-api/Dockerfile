@@ -125,10 +125,12 @@ FROM base AS build-local
 USER root
 RUN dnf install -y \
     openssl \
-    socat
+    socat \
+    tree
 USER boton
 
 # Local dev brings in additional tools to support debugging, etc.
+WORKDIR ${BB}
 RUN ${BOTONBIN}/pip3 install \
     --require-hashes \
     --no-deps \
