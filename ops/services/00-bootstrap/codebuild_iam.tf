@@ -68,6 +68,24 @@ resource "aws_iam_role_policy" "github" {
   policy = data.aws_iam_policy_document.github[0].json
 }
 
+# Secrets Manager Policy
+data "aws_iam_policy_document" "secrets" {
+  count = local.create_resources ? 1 : 0
+
+  statement {
+    sid       = "AllowGetSecrets"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "secrets" {
+  count  = local.create_resources ? 1 : 0
+  name   = "secrets"
+  role   = aws_iam_role.codebuild[0].id
+  policy = data.aws_iam_policy_document.secrets[0].json
+}
+
 # ECR Policy (for docker pull/push)
 data "aws_iam_policy_document" "ecr" {
   count = local.create_resources ? 1 : 0

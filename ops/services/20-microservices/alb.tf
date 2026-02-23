@@ -10,7 +10,9 @@ resource "aws_lb" "alb" {
   security_groups    = [aws_security_group.alb_sg[each.key].id]
   subnets            = local.public_subnets
 
-  enable_deletion_protection = var.enable_deletion_protection
+  enable_deletion_protection       = var.enable_deletion_protection
+  drop_invalid_header_fields       = true
+  enable_cross_zone_load_balancing = true
 
   access_logs {
     bucket  = var.access_logs_bucket != "" ? var.access_logs_bucket : "cms-cloud-${local.account_id}-${local.region}"
@@ -29,6 +31,8 @@ resource "aws_lb_target_group" "tg" {
   protocol    = "HTTPS"
   vpc_id      = local.vpc_id
   target_type = "ip"
+
+  deregistration_delay = 30
 
   health_check {
     enabled             = true
@@ -51,7 +55,7 @@ resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.alb[each.key].arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
   certificate_arn   = local.acm_certificate != null ? local.acm_certificate.arn : null
 
   default_action {

@@ -39,18 +39,6 @@ variable "service_overrides" {
   EOT
 }
 
-variable "create_cluster" {
-  type        = bool
-  default     = true
-  description = "Create new ECS cluster or use existing"
-}
-
-variable "cluster_name" {
-  type        = string
-  default     = ""
-  description = "Existing cluster name (when create_cluster = false)"
-}
-
 variable "image_tag" {
   type        = string
   default     = "latest"
@@ -75,22 +63,10 @@ variable "memory_target_value" {
   description = "Memory target for auto scaling"
 }
 
-variable "app_config_bucket" {
-  type        = string
-  default     = ""
-  description = "App config S3 bucket"
-}
-
-variable "static_content_bucket" {
-  type        = string
-  default     = ""
-  description = "Static content S3 bucket"
-}
-
 variable "secrets" {
   type = list(object({
-    name       = string
-    value_from = string
+    name      = string
+    valueFrom = string
   }))
   default     = []
   description = "Secrets to inject from Secrets Manager"

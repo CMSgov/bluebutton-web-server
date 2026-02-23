@@ -142,7 +142,7 @@ resource "aws_cloudwatch_metric_alarm" "api_latency_p99" {
   namespace           = "AWS/ApplicationELB"
   period              = "300"
   extended_statistic  = "p99"
-  threshold           = "5000" # 5 seconds in milliseconds
+  threshold           = "5" # TargetResponseTime unit is seconds
 
   alarm_description = "${each.key} API p99 latency above threshold"
   alarm_actions     = [aws_sns_topic.alarms[each.key].arn]

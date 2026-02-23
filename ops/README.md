@@ -32,22 +32,132 @@ ops/
 20-microservices (ECS Services, ALB, Auto-scaling)
 ```
 
+Always deploy top-to-bottom. Destroy bottom-to-top.
+
 ## Quick Start
 
 ```bash
+# Set ENV and parent_env (sandbox shares prod's S3 bucket)
+export ENV=test                        # test | sandbox | prod
+export TF_VAR_parent_env=test          # test → test, sandbox/prod → prod
+
 cd ops/services/<service>
-
-# Initialize (parent_env determines which S3 bucket for state)
-tofu init -var="parent_env=test"    # test account
-tofu init -var="parent_env=prod"    # prod/sandbox account
-
-# Select workspace
-tofu workspace select test
-
-# Plan and apply
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
 tofu plan
 tofu apply
 ```
+
+## Full Deploy
+
+Replace `$ENV` with your target environment (`test`, `sandbox`, or `prod`).
+Set `TF_VAR_parent_env` to `test` for test, or `prod` for sandbox/prod.
+
+```bash
+# ============================================================
+# BB2 Fargate — Full Deploy
+# ============================================================
+
+# Prerequisites
+export ENV=test                        # test | sandbox | prod
+export TF_VAR_parent_env=test          # test → test, sandbox/prod → prod
+aws sts get-caller-identity            # verify credentials
+
+# ============================================================
+# Step 1: 00-bootstrap
+# ============================================================
+cd ops/services/00-bootstrap
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+
+# Apply (webhook will fail — that's expected)
+tofu apply
+tofu import 'aws_codebuild_webhook.runner[0]' bb-${ENV}-web-server
+
+# >>> MANUAL: AWS Console → Developer Tools → Connections
+# >>> Approve "bb-github-connection" with GitHub
+# >>> MANUAL: Delete stale webhooks at
+# >>> https://github.com/CMSgov/bluebutton-web-server/settings/hooks
+
+# Re-apply to create webhook (after connection is AVAILABLE)
+tofu apply
+
+# ============================================================
+# Step 2: 01-config
+# ============================================================
+cd ../01-config
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+
+# Create encrypted values from seed
+cp values/${ENV}.sopsw.yaml.seed.minimal values/${ENV}.sopsw.yaml
+bin/sopsw -e values/${ENV}.sopsw.yaml
+
+tofu plan
+tofu apply
+
+# Verify
+aws ssm get-parameters-by-path \
+  --path "/bb/${ENV}/app" --recursive \
+  --query 'Parameters[].{Name:Name,Type:Type}' --output table
+
+# ============================================================
+# Step 3: 10-cluster
+# ============================================================
+cd ../10-cluster
+export TF_VAR_parent_env=$TF_VAR_parent_env
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+tofu plan
+tofu apply
+
+# Verify
+aws ecs describe-clusters --clusters bb-${ENV}-cluster \
+  --query 'clusters[0].{name:clusterName,status:status}'
+
+# ============================================================
+# Step 4: 20-microservices
+# ============================================================
+cd ../20-microservices
+export TF_VAR_parent_env=$TF_VAR_parent_env
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+tofu plan
+tofu apply
+
+# Verify
+tofu output alb_dns_names
+aws ecs describe-services \
+  --cluster bb-${ENV}-cluster \
+  --services bb-${ENV}-api-service \
+  --query 'services[0].{status:status,desired:desiredCount,running:runningCount}'
+```
+
+## Teardown (Reverse Order)
+
+```bash
+cd ops/services
+for dir in 20-microservices 10-cluster 01-config 00-bootstrap; do
+  echo "=== Destroying $dir ==="
+  (cd $dir && tofu workspace select $ENV && tofu destroy -auto-approve)
+  echo ""
+done
+```
+
+## CI/CD Workflows (GitHub Actions)
+
+| Workflow | Trigger | Description |
+|----------|---------|-------------|
+| `tofu-plan` | PRs touching `ops/` | Runs `tofu plan` for all 3 envs |
+| `tofu-apply` | Push to `main` + weekday schedule | Applies changes for all 3 envs |
+| `tofu-fmt` | PRs touching `ops/` | Checks formatting |
+| `tofu-bootstrap` | Manual only | First-time setup with approval gates |
+
+All plan/apply workflows use `scripts/tofu-plan` which runs services in dependency order. Apply mode stops on first failure; plan mode continues and reports all results.
+
+**Required GitHub secrets:** `NON_PROD_ACCOUNT`, `PROD_ACCOUNT`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`
+
+**Required GitHub environments** (with required reviewers): `bootstrap-approve`, `config-approve`, `cluster-approve`
 
 ## Key Concepts
 
@@ -94,5 +204,6 @@ data "aws_ecr_repository" "api" {
 
 ## Documentation
 
+- [Services RUNBOOK](services/RUNBOOK.md) — Full runbook with day-to-day operations and troubleshooting
 - [Services README](services/README.md) — Service details and architecture
 - [Naming Conventions](services/NAMING.md) — Resource naming patterns
