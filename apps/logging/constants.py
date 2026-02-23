@@ -9,12 +9,16 @@ from rest_framework import status
 """
 
 FHIR_PAT_ID_STR = "patientId:-20140000008325"
+AUTHENTICATION_PATH_PATTERN = r'v[0-9]/mymedicare/sls-callback'
+AUTHORIZATION_PATH_PATTERN = r'v[0-9]/o/authorize'
+ACCESS_TOKEN_PATH_PATTERN = r'v[0-9]/o/token'
 
 ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA = {
     'title': 'AccessTokenAuthorizedLogSchema',
     'type': 'object',
     'properties': {
         'type': {'pattern': 'AccessToken'},
+        'path': {'pattern': ACCESS_TOKEN_PATH_PATTERN},
         'action': {'pattern': 'authorized'},
         'auth_grant_type': {'pattern': 'password'},
         'id': {'type': 'integer'},
@@ -41,6 +45,7 @@ ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA = {
     },
     'required': [
         'type',
+        'path',
         'action',
         'auth_grant_type',
         'id',
@@ -55,6 +60,7 @@ AUTHENTICATION_START_LOG_SCHEMA = {
     "type": "object",
     "properties": {
         "type": {"pattern": "Authentication:start"},
+        "path": {"pattern": AUTHENTICATION_PATH_PATTERN},
         "sls_status": {"pattern": "OK"},
         "sls_status_mesg": {"type": "null"},
         "sub": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
@@ -74,6 +80,7 @@ AUTHENTICATION_START_LOG_SCHEMA = {
     },
     "required": [
         "type",
+        "path",
         "sls_status",
         "sls_status_mesg",
         "sub",
@@ -92,6 +99,7 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
     'type': 'object',
     'properties': {
         'type': {'pattern': 'Authentication:success'},
+        "path": {"pattern": AUTHENTICATION_PATH_PATTERN},
         'sub': {'pattern': '00112233-4455-6677-8899-aabbccddeeff'},
         'user': {
             'type': 'object',
@@ -117,7 +125,7 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
         },
         'auth_crosswalk_action': {'pattern': 'C'},
     },
-    'required': ['type', 'sub', 'user', 'auth_crosswalk_action'],
+    'required': ['type', 'path', 'sub', 'user', 'auth_crosswalk_action'],
 }
 
 AUTHORIZATION_LOG_SCHEMA = {
@@ -125,6 +133,7 @@ AUTHORIZATION_LOG_SCHEMA = {
     'type': 'object',
     'properties': {
         'type': {'pattern': 'Authorization'},
+        'path': {'pattern': AUTHORIZATION_PATH_PATTERN},
         'auth_status': {'pattern': 'OK'},
         'auth_status_code': {'type': 'null'},
         'user': {
@@ -170,6 +179,7 @@ AUTHORIZATION_LOG_SCHEMA = {
     },
     'required': [
         'type',
+        'path',
         'auth_status',
         'auth_status_code',
         'user',
