@@ -1,0 +1,22 @@
+FROM python:3.12-trixie
+
+ENV PYTHONUNBUFFERED=1
+ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+ENV PYTHON_VERSION=3.12
+
+RUN apt-get update \
+    && apt-get install -y \
+        gettext \
+        gnupg
+
+ADD . /code
+WORKDIR /code/requirements
+
+RUN python -m venv /tmp/venv
+RUN . /tmp/venv/bin/activate
+ENV PATH="/tmp/venv/bin:${PATH}"
+RUN pip install pip==25.3
+RUN pip install \
+    pip-tools \
+    setuptools
+CMD ["/code/ops/containers/requirements-generation/scripts/internal/entrypoint.bash"]
