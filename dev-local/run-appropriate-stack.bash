@@ -34,6 +34,7 @@ set_auth_profile
 retrieve_certs
 
 set_salt
+load_sops_secrets
 
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
 
