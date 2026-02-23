@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e 
+set -e
 
 source ops/containers/bb-web-api/scripts/internal/gonogo.bash
 source ops/containers/bb-web-api/scripts/internal/entrypoint-support.bash
@@ -20,6 +20,7 @@ export NGINX_PORT=${NGINX_PORT:-8443}
 export GUNICORN_PORT=${GUNICORN_PORT:-8000}
 export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
+
 
 # ========== SOCAT ==========
 # socat is used locally so that Blue Button can talk to the S3 mock.

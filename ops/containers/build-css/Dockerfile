@@ -15,5 +15,6 @@ RUN apt-get update \
 # Add in the codebase
 ADD .. /code
 WORKDIR /code
+
 # Build the CSS/USWDS assets
 CMD ["/code/dev-local/build-css.bash"]
