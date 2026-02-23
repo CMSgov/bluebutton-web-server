@@ -37,14 +37,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Mask sensitive values
-        run: |
-          # Mask AWS account ID
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
-          if [ -n "$ACCOUNT_ID" ]; then
-            echo "::add-mask::$ACCOUNT_ID"
-          fi
-
       - name: Configure AWS credentials
         id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4

@@ -1,6 +1,15 @@
-# exclude when build image
-apidocs/
-splunk/
 apidocs/
 bluebutton-openapi-doc/
+splunk/
+msls-local/
+dev-local/
+docker-compose/
+Jenkinsfiles/
+insights/
+
 *.sh
+*.md
+
+.git/
+.github/
+sql/
