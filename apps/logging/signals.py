@@ -34,7 +34,9 @@ from apps.logging.serializers import (
 def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow dict from session for logging
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
-    token_logger.info(Token(token, action="authorized").to_dict())
+    token_dict = Token(token, action="authorized").to_dict()
+    token_dict["path"] = request.path
+    token_logger.info(token_dict)
 
 
 @receiver(beneficiary_authorized_application)
@@ -68,6 +70,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
 
     log_dict = {
         'type': 'Authorization',
+        'path': request.path,
         'auth_status': auth_status,
         'auth_status_code': auth_status_code,
         'user': {

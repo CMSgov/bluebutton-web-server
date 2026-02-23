@@ -101,17 +101,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/synasius">
-                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
-                    <br />
-                    <sub><b>Federico Frenguelli</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/jimmyfagan">
                     <img src="https://avatars.githubusercontent.com/u/90421499?v=4" width="100;" alt="jimmyfagan"/>
                     <br />
                     <sub><b>jimmyfagan</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/synasius">
+                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
+                    <br />
+                    <sub><b>Federico Frenguelli</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -122,17 +122,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/ajshred">
-                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
-                    <br />
-                    <sub><b>Adrian Jones</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/JamesDemeryNava">
                     <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
                     <br />
                     <sub><b>James Demery</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/ajshred">
+                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
+                    <br />
+                    <sub><b>Adrian Jones</b></sub>
                 </a>
             </td>
 		</tr>
@@ -166,17 +166,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/JFU-NAVA-PBC">
-                    <img src="https://avatars.githubusercontent.com/u/135686833?v=4" width="100;" alt="JFU-NAVA-PBC"/>
-                    <br />
-                    <sub><b>Jim Fuqian</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/bwang-icf">
                     <img src="https://avatars.githubusercontent.com/u/178809349?v=4" width="100;" alt="bwang-icf"/>
                     <br />
                     <sub><b>bwang-icf</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/JFU-NAVA-PBC">
+                    <img src="https://avatars.githubusercontent.com/u/135686833?v=4" width="100;" alt="JFU-NAVA-PBC"/>
+                    <br />
+                    <sub><b>Jim Fuqian</b></sub>
                 </a>
             </td>
 		</tr>
@@ -189,17 +189,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/sharonfruit">
-                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
-                    <br />
-                    <sub><b>Sharon Su</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/jadudm">
                     <img src="https://avatars.githubusercontent.com/u/38290?v=4" width="100;" alt="jadudm"/>
                     <br />
                     <sub><b>Matthew Jadud</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/sharonfruit">
+                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
+                    <br />
+                    <sub><b>Sharon Su</b></sub>
                 </a>
             </td>
             <td align="center">
