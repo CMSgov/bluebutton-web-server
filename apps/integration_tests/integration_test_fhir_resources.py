@@ -35,6 +35,7 @@ from apps.integration_tests.constants import (
     INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
     INVALID_PATIENT_ID,
     INVALID_COVERAGE_ID,
+    V3_FHIR_CALL_PREFIX,
 )
 
 
@@ -808,16 +809,16 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         '''
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'patient=')
 
-    def _call_v3_endpoint_to_assert_403(self, resource_type: str, resource_value: str, search: bool, search_param: str):
+    def _call_v3_endpoint_to_assert_403(self, resource_type: str, resource_value: str, is_search_call: bool, search_param: str):
         client = APIClient()
 
         # Authenticate
         self._setup_apiclient(client)
         Flag.objects.create(name='v3_early_adopter', everyone=None)
-        if search:
-            endpoint_url = "{}/v3/fhir/{}/?{}{}".format(self.live_server_url, resource_type, search_param, resource_value)
+        if is_search_call:
+            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/?{search_param}{resource_value}'
         else:
-            endpoint_url = "{}/v3/fhir/{}/{}".format(self.live_server_url, resource_type, resource_value)
+            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/{resource_value}'
         response = client.get(endpoint_url)
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.json()['detail'], V3_403_DETAIL)
@@ -878,7 +879,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self,
         resource_type: str,
         resource_value: str,
-        search: bool,
+        is_search_call: bool,
         search_param: str,
         diagnostics_result: str
     ):
@@ -888,10 +889,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._setup_apiclient(client)
         # Ensure we don't get a 403 on the v3 call
         Flag.objects.create(name='v3_early_adopter', everyone=True)
-        if search:
-            endpoint_url = '{}/v3/fhir/{}/?{}{}'.format(self.live_server_url, resource_type, search_param, resource_value)
+        if is_search_call:
+            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/?{search_param}{resource_value}'
         else:
-            endpoint_url = '{}/v3/fhir/{}/{}'.format(self.live_server_url, resource_type, resource_value)
+            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/{resource_value}'
         response = client.get(endpoint_url)
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
