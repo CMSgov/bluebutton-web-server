@@ -103,3 +103,5 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
         'crosswalk_before',
     ],
 }
+
+OPERATION_OUTCOME = 'OperationOutcome'
