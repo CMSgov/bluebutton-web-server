@@ -146,6 +146,29 @@ set_auth_profile () {
 }
 
 ########################################
+# load_sops_secrets
+# This will overwrite any set variables from .env.local and will clobber anything already loaded
+# as this happens later in the process during run-appropriate-stack.bash.
+# It will create a .env.sops file in the dev-local directory, but that file is in .gitignore and should not be committed.
+# For more information on how SOPS can be set up and used, see:
+# https://confluence.cms.gov/spaces/BB2/pages/1509770397/BB2-4513+SOPS+Secret+Management+%E2%80%94+Local+Development+Setup
+
+load_sops_secrets () {
+
+    if [ -f "env_vars.yaml" ]; then
+		if command -v sops >/dev/null 2>&1; then
+			sops -d env_vars.yaml | sed 's/: /=/g' | tr -d '"' > .env.sops
+			echo "✅ decrypt_sops"
+            source .env.sops
+		else
+			echo "⚠️  sops not installed, skipping SOPS decryption";
+		fi
+	else
+		echo "ℹ️  No env_vars.yaml found, skipping SOPS decryption";
+	fi
+}
+
+########################################
 # retrieve_certs
 # Download the certs from the secrets store.
 # Put them in a "BB2 config directory" in the developer's

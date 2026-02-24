@@ -1,6 +1,7 @@
 import io
 
 import apps.logging.request_logger as logging
+from django.http import HttpRequest
 
 """
   Utility functions for logging, and logging manipulations (used in tests)
@@ -66,3 +67,23 @@ def collect_logs(logger_registry: dict, override_loggers=[]):
         v = logger_registry.get(n)
         log_contents[n] = v[0].getvalue()
     return log_contents
+
+
+def construct_quicksuite_logging_path(request: HttpRequest) -> str:
+    """
+    Constructs a path in logging so that it can be used in QuickSuite. See BB2-4511.
+
+    Args:
+        request: The Http Request.
+
+    Returns:
+        A string that represents the path to be used in QuickSuite.
+    """
+    if not request:
+        return ""
+
+    version_number = getattr(request, "session", {}).get('version', "")
+    path_param = getattr(request, "path", "")
+    path = f'v{version_number}{path_param}'
+
+    return path
