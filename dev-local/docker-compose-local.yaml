@@ -27,6 +27,8 @@ services:
     platform: linux/amd64
     command: /code/dev-local/start-local.sh
     read_only: ${READ_ONLY:-true}
+    tmpfs:
+      - /tmp
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
