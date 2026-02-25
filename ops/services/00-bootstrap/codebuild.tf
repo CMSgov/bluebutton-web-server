@@ -9,12 +9,15 @@ resource "aws_codestarconnections_connection" "github" {
   provider_type = "GitHub"
 }
 
-resource "aws_codebuild_source_credential" "github" {
-  count       = local.create_resources ? 1 : 0
-  auth_type   = "CODECONNECTIONS"
-  server_type = "GITHUB"
-  token       = aws_codestarconnections_connection.github[0].arn
-}
+# Disabled: PAT via Secrets Manager is the active auth. The source credential
+# was imported manually (aws codebuild import-source-credentials) and is not
+# managed by tofu. Re-enable when switching to CodeConnections.
+# resource "aws_codebuild_source_credential" "github" {
+#   count       = local.create_resources ? 1 : 0
+#   auth_type   = "CODECONNECTIONS"
+#   server_type = "GITHUB"
+#   token       = aws_codestarconnections_connection.github[0].arn
+# }
 
 # ============================================================================
 # CloudWatch Logs
@@ -30,8 +33,7 @@ resource "aws_cloudwatch_log_group" "runner" {
 # CodeBuild Project - Acts as GitHub Actions Runner
 # ============================================================================
 resource "aws_codebuild_project" "main" {
-  count      = local.create_resources ? 1 : 0
-  depends_on = [aws_codebuild_source_credential.github]
+  count = local.create_resources ? 1 : 0
 
   name               = local.project_name
   description        = "Blue Button Web Server - GitHub Actions Runner"
