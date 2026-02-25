@@ -87,17 +87,19 @@ for service in "${services[@]}"; do
 
   # Push full plan output to CloudWatch for private review
   cw_log_group="/bb/${ENV}/tofu-plan"
-  cw_log_stream="${service}/$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  cw_log_stream="${service}/$(date -u +%Y-%m-%dT%H%M%SZ)"
   if aws logs create-log-group --log-group-name "$cw_log_group" 2>/dev/null; then
     aws logs put-retention-policy --log-group-name "$cw_log_group" --retention-in-days 30 2>/dev/null || true
   fi
   aws logs create-log-stream --log-group-name "$cw_log_group" --log-stream-name "$cw_log_stream" 2>/dev/null || true
-  # Send plan log as a single event
-  plan_message=$(cat "$plan_log" | jq -Rs .)
+  # Send plan log as a single event (use temp JSON file to avoid shell escaping issues)
+  cw_event_file=$(mktemp)
+  jq -Rs --arg ts "$(date -u +%s)000" '[{timestamp: ($ts | tonumber), message: .}]' "$plan_log" > "$cw_event_file"
   aws logs put-log-events \
     --log-group-name "$cw_log_group" \
     --log-stream-name "$cw_log_stream" \
-    --log-events "timestamp=$(date -u +%s%3N),message=$plan_message" > /dev/null 2>&1 || true
+    --log-events "file://$cw_event_file" > /dev/null 2>&1 || true
+  rm -f "$cw_event_file"
 
   if [ "$plan_exit" -eq 0 ]; then
     echo "No changes planned for $service ($ENV)"
