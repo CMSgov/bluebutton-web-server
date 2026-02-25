@@ -39,6 +39,17 @@ if ! aws sts get-caller-identity > /dev/null 2>&1; then
 fi
 echo "AWS credentials verified"
 
+# Mask AWS account ID in GitHub Actions logs (BFD pattern)
+account_id=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
+if [[ -n "$account_id" ]]; then
+  echo "::add-mask::$account_id"
+fi
+
+# CloudWatch log group for detailed plan output
+cw_log_group="/bb/${ENV}/tofu-plan"
+echo "View detailed plan output in CloudWatch:"
+echo "  aws logs tail --since 1h --follow '$cw_log_group'"
+
 # ============================================================
 # Services deployed in strict dependency order:
 #   00-bootstrap  → ECR, KMS, CodeBuild, OIDC
@@ -86,8 +97,7 @@ for service in "${services[@]}"; do
   tofu plan -detailed-exitcode -input=false -out "$temp_plan_out" -no-color > "$plan_log" 2>&1 || plan_exit=$?
 
   # Push full plan output to CloudWatch for private review
-  cw_log_group="/bb/${ENV}/tofu-plan"
-  cw_log_stream="${service}/$(date -u +%Y-%m-%dT%H%M%SZ)"
+  cw_log_stream="${service}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
   if aws logs create-log-group --log-group-name "$cw_log_group" 2>/dev/null; then
     aws logs put-retention-policy --log-group-name "$cw_log_group" --retention-in-days 30 2>/dev/null || true
   fi
@@ -109,7 +119,8 @@ for service in "${services[@]}"; do
     tofu_warning="Changes planned for $service ($ENV)"
   else
     # Show only error lines, not the full plan output
-    grep -E '^Error:|^  Error:|planning failed|exit status' "$plan_log" | sed -E 's/[0-9]{12}/***ACCOUNT***/g' >&2 || true
+    # Account IDs are auto-masked by ::add-mask:: above
+    grep -E '^Error:|^  Error:|planning failed|exit status' "$plan_log" >&2 || true
     tofu_error="Error in tofu plan for $service ($ENV)"
     if [ "${APPLY:-}" == "true" ]; then
       echo "::endgroup::"
