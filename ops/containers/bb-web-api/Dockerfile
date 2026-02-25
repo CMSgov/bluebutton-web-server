@@ -1,7 +1,7 @@
 ARG BUILD_TARGET="local"
 ARG RELEASE_TAG="NO_RELEASE_TAG_SET"
 
-FROM amazonlinux:2023.10.20260202.2 AS base
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023.10.20260202.2 AS base
 
 # Ensures STDOUT and STDERR do not buffer and 
 # flush with every newline so Django logs are captured
@@ -77,6 +77,9 @@ USER boton
 RUN mkdir -p ${BB}
 WORKDIR ${BB}
 
+# Copy the code in
+COPY --chown=boton:boton . .
+
 # We abuse the pip `bin` directory for all
 # binaries that boton might want to use.
 RUN mkdir -p ${BOTONBIN}
@@ -103,12 +106,8 @@ RUN python3.12 -m venv ${VENVPATH} \
 # When we build the production container, we want to check out the repo
 # and then checkout the correct release tag.
 FROM base AS build-production
-RUN git clone -depth 1 https://github.com/CMSgov/bluebutton-web-server.git . \
-    && git fetch --tags \
-    && git checkout ${RELEASE_TAG}
 
 # The cloud environment only installs the core requirements.
-WORKDIR ${BB}
 RUN ${BOTONBIN}/pip3 install \
     --require-hashes \
     --no-deps \
@@ -122,7 +121,6 @@ RUN ${BOTONBIN}/pip3 install \
 # code in the developer's tree. The docker context needs to be 
 # set to the root of the repo.
 FROM base AS build-local
-COPY --chown=boton:boton . .
 # Only install socat if we are building the local container.
 USER root
 RUN dnf install -y \
