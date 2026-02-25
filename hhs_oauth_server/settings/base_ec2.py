@@ -4,7 +4,7 @@
 # deployed environments as well.
 
 import os
-from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
+from apps.logging.sensitive_logging_filters import SensitiveDataFilter
 import dj_database_url
 import socket
 import datetime
@@ -397,87 +397,138 @@ EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", None)
 EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", None)
 
 # Use env-specific logging config if present
-LOGGING = env(
-    "DJANGO_LOGGING",
-    {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "verbose": {
-                "format": "%(asctime)s %(levelname)s "
-                "[%(process)d] %(name)s line:%(lineno)d %(message)s"
-            },
-            "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
-            "jsonout": {
-                "format": '{"env": "'
-                + env("TARGET_ENV", "DEV")
-                + '", "time": "%(asctime)s", "level": "%(levelname)s", '
-                '"name": "%(name)s", "message": "%(message)s"}',
-                "datefmt": "%Y-%m-%d %H:%M:%S",
-            },
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s "
+            "[%(process)d] %(name)s line:%(lineno)d %(message)s"
         },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "verbose",
-                "filters": [SENSITIVE_DATA_FILTER],
-            },
-            'perf_mon': {
-                'level': 'INFO',
-                'class': 'logging.FileHandler',
-                'formatter': 'jsonout',
-                'filename': '/var/log/pyapps/perf_mon.log',
-            }
-        },
-        "filters": {
-            "sensitive_data_filter": {
-                "()": SensitiveDataFilter,
-            }
-        },
-        "loggers": {
-            "hhs_server": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-            "hhs_oauth_server.accounts": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-            "oauth2_provider": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "oauthlib": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "unsuccessful_logins": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "admin_interface": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "tests": {
-                "handlers": ["console"],
-                "level": "DEBUG",
-            },
-            "audit": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            "performance": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-            'django': {
-                'handlers': ['console'],
-                'level': 'INFO',
-            },
-        },
+        "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
+        'jsonout': {
+            'format': '{"env": "impl", "time\\": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": %(message)s}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
-)
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        "sensitive_data_filter": {
+            "()": SensitiveDataFilter,
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'cloudwatch_console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'jsonout',
+        },
+        'file_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': '/var/log/pyapps/debug.log',
+        },
+        'file_error': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': '/var/log/pyapps/error.log',
+        },
+        'file_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/info.log',
+        },
+        'badlogin_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/login_failed.log',
+        },
+        'adminuse_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/admin_access.log',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_true'],
+            'formatter': 'verbose'
+        },
+        'perf_mon': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'jsonout',
+            'filename': '/var/log/pyapps/perf_mon.log',
+        }
+    },
+    'loggers': {
+        'hhs_server': {
+            'handlers': ['file_debug', 'perf_mon', 'cloudwatch_console'],
+            'level': 'DEBUG',
+        },
+        'hhs_oauth_server.accounts': {
+            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        },
+        'hhs_server_debug': {
+            'handlers': ['file_debug', 'perf_mon', 'cloudwatch_console'],
+            'level': 'DEBUG',
+        },
+        'hhs_server_error': {
+            'handlers': ['file_error', 'mail_admins', 'perf_mon', 'cloudwatch_console'],
+            'level': 'ERROR',
+        },
+        'unsuccessful_logins': {
+            'handlers': ['badlogin_info', 'perf_mon', 'cloudwatch_console', 'file_info'],
+            'level': 'INFO',
+        },
+        'admin_interface': {
+            'handlers': ['adminuse_info', 'perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        },
+        'hhs_server_info': {
+            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        },
+        'oauth2_provider': {
+            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        },
+        'oauthlib': {
+            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        },
+        'tests': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'audit': {
+            'handlers': ['perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        },
+        'performance': {
+            'handlers': ['perf_mon', 'cloudwatch_console'],
+            'level': 'INFO',
+        }
+    },
+},
+
 
 # Option for local development to pretty print/format JSON logging
 LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)

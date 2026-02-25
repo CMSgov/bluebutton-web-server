@@ -210,6 +210,7 @@ LOGGING = {
             "formatter": "verbose",
             "filters": [SENSITIVE_DATA_FILTER],
         },
+        # Mimics what we will see in production
         'cloudwatch_console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
