@@ -466,6 +466,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "codebuild:DeleteSourceCredentials",
       "codebuild:DeleteWebhook",
       "codebuild:ImportSourceCredentials",
+      "codebuild:ListSourceCredentials",
       "codebuild:UpdateProject",
       "codebuild:UpdateWebhook",
     ]
