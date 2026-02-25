@@ -64,6 +64,8 @@ if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
         "variable: DJANGO_SECRET_KEY"
     )
 
+TARGET_ENV = env('TARGET_ENV')
+
 CMS_SPLUNK_URL = env("CMS_SPLUNK_URL", "https://splunk.cloud.cms.gov")
 
 # splunk dashboards links:
@@ -396,7 +398,6 @@ EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", None)
 EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", None)
 EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", None)
 
-# Use env-specific logging config if present
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -407,10 +408,9 @@ LOGGING = {
         },
         "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
         'jsonout': {
-            'format': '{"env": "impl", "time\\": "%(asctime)s", "level": "%(levelname)s", '
-                      '"name": "%(name)s", "message": %(message)s}',
+            'format': f'{{"env": "{TARGET_ENV}", "time": "%(asctime)s", "level": "%(levelname)s", '
+                      f'"name": "%(name)s", "message": %(message)s}}',
             'datefmt': '%Y-%m-%d %H:%M:%S'
-
         }
     },
     'filters': {
