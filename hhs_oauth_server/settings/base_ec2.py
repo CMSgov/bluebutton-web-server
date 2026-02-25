@@ -421,6 +421,12 @@ LOGGING = env(
                 "class": "logging.StreamHandler",
                 "formatter": "verbose",
                 "filters": [SENSITIVE_DATA_FILTER],
+            },
+            'perf_mon': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'formatter': 'jsonout',
+                'filename': '/var/log/pyapps/perf_mon.log',
             }
         },
         "filters": {
@@ -429,11 +435,6 @@ LOGGING = env(
             }
         },
         "loggers": {
-            # handy for sql trouble shooting
-            # 'django.db.backends': {
-            #     'level': 'DEBUG',
-            #     'handlers': ['console'],
-            # },
             "hhs_server": {
                 "handlers": ["console"],
                 "level": "DEBUG",
