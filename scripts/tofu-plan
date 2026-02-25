@@ -8,8 +8,9 @@
 # test tofu
 #
 # Environment variables:
-#   ENV    - Target environment (test, sandbox, prod)
-#   APPLY  - Set to "true" to apply after plan (default: plan only)
+#   ENV     - Target environment (test, sandbox, prod)
+#   APPLY   - Set to "true" to apply after plan (default: plan only)
+#   SERVICE - Single service to plan/apply (default: all)
 #
 # NOTE: First-time bootstrap requires manual steps (GitHub connection
 # approval, CodeBuild webhook import, SOPS seed creation) that cannot
@@ -20,6 +21,7 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 job_error=false
 temp_plan_out=$(mktemp)
+trap 'rm -f "$temp_plan_out"' EXIT
 
 # Derive parent_env for backend bucket selection (sandbox shares prod bucket)
 parent_env="$ENV"
@@ -43,7 +45,18 @@ aws sts get-caller-identity --query 'Arn' --output text || {
 #   10-cluster    → ECS Fargate cluster
 #   20-microservices → ECS services, ALB, IAM, autoscaling
 # ============================================================
-services=(00-bootstrap 01-config 10-cluster 20-microservices)
+all_services=(00-bootstrap 01-config 10-cluster 20-microservices)
+
+if [[ -n "${SERVICE:-}" && "$SERVICE" != "all" ]]; then
+  # Validate service name
+  if [[ ! " ${all_services[*]} " =~ " ${SERVICE} " ]]; then
+    echo "::error::Unknown service: $SERVICE. Must be one of: ${all_services[*]}"
+    exit 1
+  fi
+  services=("$SERVICE")
+else
+  services=("${all_services[@]}")
+fi
 
 for service in "${services[@]}"; do
   dir="$repo_root/ops/services/$service"
@@ -67,7 +80,7 @@ for service in "${services[@]}"; do
   tofu_warning=""
   tofu_error=""
   plan_exit=0
-  tofu plan -detailed-exitcode -out "$temp_plan_out" -no-color || plan_exit=$?
+  tofu plan -detailed-exitcode -input=false -out "$temp_plan_out" -no-color || plan_exit=$?
 
   if [ "$plan_exit" -eq 0 ]; then
     echo "No changes planned for $service ($ENV)"

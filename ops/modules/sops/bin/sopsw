@@ -59,10 +59,9 @@ extract_env() {
 }
 
 prepare_temp_file() {
-  tmp_sops_file="$TMP_DIR/$(basename "$sops_file")"
-
   aws_account_id="$(aws sts get-caller-identity --query 'Account' --output text)"
   sops_env="$(extract_env "$sops_file")"
+  tmp_sops_file="$TMP_DIR/${sops_env}.sopsw.yaml"
 
   # Create temp .sops.yaml with all variables resolved
   local sops_yaml_dir

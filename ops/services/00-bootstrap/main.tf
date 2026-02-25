@@ -88,16 +88,28 @@ resource "aws_ecr_lifecycle_policy" "api" {
   repository = aws_ecr_repository.api[0].name
 
   policy = jsonencode({
-    rules = [{
-      rulePriority = 1
-      description  = "Keep last 30 images"
-      selection = {
-        tagStatus     = "tagged"
-        tagPrefixList = ["v"]
-        countType     = "imageCountMoreThan"
-        countNumber   = 30
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 30 images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["v"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 30
+        }
+        action = { type = "expire" }
+      },
+      {
+        rulePriority = 2
+        selection = {
+          tagStatus  = "untagged"
+          countType  = "sinceImagePushed"
+          countUnit  = "days"
+          countNumber = 1
+        }
+        action = { type = "expire" }
       }
-      action = { type = "expire" }
-    }]
+    ]
   })
 }

@@ -1,58 +1,83 @@
-  name: tofu-plan
+name: tofu-plan
 
-  on:
-    workflow_dispatch:
-    push:
-      branches:
-        - 'noor1027/test-tofu'
-    pull_request:
-      paths:
-        - 'ops/services/**'
-        - 'ops/modules/**'
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to plan'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - sandbox
+          - prod
+      service:
+        description: 'Service to plan (or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - 00-bootstrap
+          - 01-config
+          - 10-cluster
+          - 20-microservices
+  pull_request:
+    paths:
+      - 'ops/services/**'
+      - 'ops/modules/**'
 
-  concurrency:
-    group: tofu-plan-or-apply-${{ github.ref }}
-    cancel-in-progress: false
+concurrency:
+  group: tofu-plan-or-apply-${{ github.ref }}
+  cancel-in-progress: false
 
-  permissions:
-    id-token: write
-    contents: read
+permissions:
+  id-token: write
+  contents: read
 
-  jobs:
-    plan:
-      name: Plan ${{ matrix.env }}
-      runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-      strategy:
-        fail-fast: false
-        matrix:
-          env: [test]
+jobs:
+  plan:
+    name: Plan ${{ github.event.inputs.environment || 'test' }}
+    runs-on: codebuild-bb-${{ (github.event.inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
-      steps:
-        - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Check if tofu is installed
-          id: check-tofu
-          run: |
-            if command -v tofu &>/dev/null; then
-              echo "installed=true" >> "$GITHUB_OUTPUT"
-              echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
-            else
-              echo "installed=false" >> "$GITHUB_OUTPUT"
-            fi
+      - name: Set account
+        id: account
+        run: |
+          ENV="${{ github.event.inputs.environment || 'test' }}"
+          if [ "$ENV" = "test" ]; then
+            echo "account=${{ secrets.NON_PROD_ACCOUNT }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "account=${{ secrets.PROD_ACCOUNT }}" >> "$GITHUB_OUTPUT"
+          fi
 
-        - name: Setup OpenTofu
-          if: steps.check-tofu.outputs.installed != 'true'
-          uses: opentofu/setup-opentofu@v1
-          with:
-            tofu_version_file: ops/services/.opentofu-version
+      - name: Check if tofu is installed
+        id: check-tofu
+        run: |
+          if command -v tofu &>/dev/null; then
+            echo "installed=true" >> "$GITHUB_OUTPUT"
+            echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
+          else
+            echo "installed=false" >> "$GITHUB_OUTPUT"
+          fi
 
-        - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: arn:aws:iam::${{ secrets.NON_PROD_ACCOUNT }}:role/delegatedadmin/developer/bb-${{ matrix.env }}-github-actions
-            aws-region: us-east-1
+      - name: Setup OpenTofu
+        if: steps.check-tofu.outputs.installed != 'true'
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version_file: ops/services/.opentofu-version
 
-        - name: Tofu Plan
-          run: scripts/tofu-plan
-          env:
-            ENV: ${{ matrix.env }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.account.outputs.account }}:role/delegatedadmin/developer/bb-${{ github.event.inputs.environment || 'test' }}-github-actions
+          aws-region: us-east-1
+
+      - name: Tofu Plan
+        run: scripts/tofu-plan
+        env:
+          ENV: ${{ github.event.inputs.environment || 'test' }}
+          SERVICE: ${{ github.event.inputs.service || 'all' }}
