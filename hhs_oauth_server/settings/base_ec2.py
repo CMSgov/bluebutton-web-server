@@ -527,7 +527,7 @@ LOGGING = {
             'level': 'INFO',
         }
     },
-},
+}
 
 
 # Option for local development to pretty print/format JSON logging
