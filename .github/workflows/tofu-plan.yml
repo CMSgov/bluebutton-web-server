@@ -44,41 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set account
-        id: account
-        run: |
-          ENV="${{ github.event.inputs.environment || 'test' }}"
-          if [ "$ENV" = "test" ]; then
-            echo "account=${{ secrets.NON_PROD_ACCOUNT }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "account=${{ secrets.PROD_ACCOUNT }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Check if tofu is installed
-        id: check-tofu
-        run: |
-          if command -v tofu &>/dev/null; then
-            echo "installed=true" >> "$GITHUB_OUTPUT"
-            echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
-          else
-            echo "installed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Setup OpenTofu
-        if: steps.check-tofu.outputs.installed != 'true'
-        uses: opentofu/setup-opentofu@v1
+      - name: Setup OpenTofu & AWS
+        uses: ./.github/actions/setup-tofu
         with:
-          tofu_version_file: ops/services/.opentofu-version
-
-      - name: Mask sensitive values
-        run: |
-          echo "::add-mask::${{ steps.account.outputs.account }}"
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ steps.account.outputs.account }}:role/delegatedadmin/developer/bb-${{ github.event.inputs.environment || 'test' }}-github-actions
-          aws-region: us-east-1
+          environment: ${{ github.event.inputs.environment || 'test' }}
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
 
       - name: Tofu Plan
         run: scripts/tofu-run
