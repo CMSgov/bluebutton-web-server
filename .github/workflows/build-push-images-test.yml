@@ -3,9 +3,6 @@
 name: Build and Deploy [TEST]
 
 on:
-  push:
-    branches:
-      - clewellyn-nava/bb2-4517/ecr-gha
   workflow_dispatch:
     inputs:
       environment:
