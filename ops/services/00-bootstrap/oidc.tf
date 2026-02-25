@@ -204,6 +204,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     sid = "ACM"
     actions = [
       "acm:DescribeCertificate",
+      "acm:GetCertificate",
       "acm:ListCertificates",
       "acm:ListTagsForCertificate",
     ]
@@ -242,9 +243,11 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     sid = "CloudWatchLogs"
     actions = [
       "logs:CreateLogGroup",
+      "logs:CreateLogStream",
       "logs:DeleteLogGroup",
       "logs:DescribeLogGroups",
       "logs:ListTagsForResource",
+      "logs:PutLogEvents",
       "logs:PutRetentionPolicy",
       "logs:TagResource",
       "logs:UntagResource",
@@ -431,6 +434,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "secretsmanager:DescribeSecret",
       "secretsmanager:GetResourcePolicy",
       "secretsmanager:GetSecretValue",
+      "secretsmanager:ListSecrets",
     ]
     resources = ["*"]
   }

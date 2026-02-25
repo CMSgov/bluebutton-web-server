@@ -21,7 +21,7 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 job_error=false
 temp_plan_out=$(mktemp)
-trap 'rm -f "$temp_plan_out"' EXIT
+trap 'rm -f "$temp_plan_out" "${plan_log:-}"' EXIT
 
 # Derive parent_env for backend bucket selection (sandbox shares prod bucket)
 parent_env="$ENV"
@@ -33,10 +33,11 @@ export TF_VAR_parent_env="$parent_env"
 echo "=== BB2 tofu ${APPLY:+apply}${APPLY:-plan} for $ENV (parent_env=$parent_env) ==="
 
 # Verify AWS credentials before starting
-aws sts get-caller-identity --query 'Arn' --output text || {
+if ! aws sts get-caller-identity > /dev/null 2>&1; then
   echo "::error::AWS credentials not configured"
   exit 1
-}
+fi
+echo "AWS credentials verified"
 
 # ============================================================
 # Services deployed in strict dependency order:
@@ -64,8 +65,8 @@ for service in "${services[@]}"; do
 
   echo "::group::$service ($ENV)"
 
-  # Step 1: Init
-  if ! tofu init -reconfigure -no-color; then
+  # Step 1: Init (suppress output to avoid leaking backend config in public logs)
+  if ! tofu init -reconfigure -no-color > /dev/null 2>&1; then
     echo "::endgroup::"
     echo "::error::Error in tofu init for $service ($ENV)"
     if [ "${APPLY:-}" == "true" ]; then exit 1; fi
@@ -74,19 +75,39 @@ for service in "${services[@]}"; do
   fi
 
   # Step 2: Select or create workspace
-  tofu workspace select -or-create=true "$ENV" -no-color
+  tofu workspace select -or-create=true "$ENV" -no-color > /dev/null 2>&1
 
   # Step 3: Plan
+  # Capture plan output to avoid leaking sensitive info (ARNs, IDs) in public repo logs
   tofu_warning=""
   tofu_error=""
   plan_exit=0
-  tofu plan -detailed-exitcode -input=false -out "$temp_plan_out" -no-color || plan_exit=$?
+  plan_log=$(mktemp)
+  tofu plan -detailed-exitcode -input=false -out "$temp_plan_out" -no-color > "$plan_log" 2>&1 || plan_exit=$?
+
+  # Push full plan output to CloudWatch for private review
+  cw_log_group="/bb/${ENV}/tofu-plan"
+  cw_log_stream="${service}/$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  if aws logs create-log-group --log-group-name "$cw_log_group" 2>/dev/null; then
+    aws logs put-retention-policy --log-group-name "$cw_log_group" --retention-in-days 30 2>/dev/null || true
+  fi
+  aws logs create-log-stream --log-group-name "$cw_log_group" --log-stream-name "$cw_log_stream" 2>/dev/null || true
+  # Send plan log as a single event
+  plan_message=$(cat "$plan_log" | jq -Rs .)
+  aws logs put-log-events \
+    --log-group-name "$cw_log_group" \
+    --log-stream-name "$cw_log_stream" \
+    --log-events "timestamp=$(date -u +%s%3N),message=$plan_message" > /dev/null 2>&1 || true
 
   if [ "$plan_exit" -eq 0 ]; then
     echo "No changes planned for $service ($ENV)"
   elif [ "$plan_exit" -eq 2 ]; then
+    # Only show the summary line, not the full resource details
+    grep -E '^Plan:|^No changes' "$plan_log" || true
     tofu_warning="Changes planned for $service ($ENV)"
   else
+    # Show errors but mask account IDs
+    sed -E 's/[0-9]{12}/***ACCOUNT***/g' "$plan_log" >&2
     tofu_error="Error in tofu plan for $service ($ENV)"
     if [ "${APPLY:-}" == "true" ]; then
       echo "::endgroup::"
