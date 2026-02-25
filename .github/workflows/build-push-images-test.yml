@@ -1,0 +1,82 @@
+# Build and Deploy - Test
+
+name: Build and Deploy [TEST]
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - impl
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write # Required for requ esting the AWS IAM OIDC JWT
+  contents: write # Required for actions/checkout
+  actions: write # Required for GHA cache
+
+jobs:
+  build:
+    # This runs on CodeBuild, not a public GitHub Action Runner.
+    # TODO - Optimize CodeBuile usage, use public runners when appropriate
+    runs-on:
+      - codebuild-bb-${{ github.event.inputs.environment || 'test' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Mask additional sensitive values
+        run: |
+          # Mask the role ARN
+          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
+          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
+          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
+
+          # Get and mask account ID
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "::add-mask::$ACCOUNT_ID"
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Mask ECR registry
+        run: |
+          echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ops/containers/bb-web-api/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
+          build-args: |
+            BUILD_TARGET=production
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
