@@ -81,7 +81,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Tofu Plan
-        run: scripts/tofu-plan
+        run: scripts/tofu-run
         env:
           ENV: ${{ github.event.inputs.environment || 'test' }}
           SERVICE: ${{ github.event.inputs.service || 'all' }}

@@ -77,7 +77,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Tofu Apply
-        run: scripts/tofu-plan
+        run: scripts/tofu-run
         env:
           ENV: ${{ github.event.inputs.environment }}
           SERVICE: ${{ github.event.inputs.service }}
