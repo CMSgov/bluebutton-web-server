@@ -318,11 +318,11 @@ EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", default=None)
 
 # this helps Django messages format nicely with Bootstrap3
 MESSAGE_TAGS = {
-    messages.DEBUG: 'DEBUG',
-    messages.INFO: 'INFO',
-    messages.SUCCESS: "success",
-    messages.WARNING: "warning",
-    messages.ERROR: "danger",
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
 }
 
 # static files and media
@@ -331,7 +331,7 @@ MESSAGE_TAGS = {
 # including it in the Django settings section
 ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", default="/code/hhs_oauth_server/..")
 
-MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
+MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"

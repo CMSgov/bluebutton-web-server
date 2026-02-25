@@ -10,7 +10,7 @@ env = environ.Env(
 
 environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
 
-TARGET_ENV = env('TARGET_ENV', default='')
+TARGET_ENV = env('TARGET_ENV')
 
 if TARGET_ENV == 'local':
     from .base_local import * # noqa
