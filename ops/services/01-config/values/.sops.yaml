@@ -1,6 +1,6 @@
 creation_rules:
   - path_regex: \.sopsw\.yaml$
-    kms: "arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/${APP}-${ENV}-app-key-alias"
+    kms: "arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/${APP}-${ENV}-app-key-alias" #replace with actual KMS ARN. Also replace this value at the bottom of whichever .sopsw.yaml files you want to work in with this KMS key.
     unencrypted_regex: /nonsensitive/
 
 stores:
