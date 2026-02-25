@@ -106,8 +106,8 @@ for service in "${services[@]}"; do
     grep -E '^Plan:|^No changes' "$plan_log" || true
     tofu_warning="Changes planned for $service ($ENV)"
   else
-    # Show errors but mask account IDs
-    sed -E 's/[0-9]{12}/***ACCOUNT***/g' "$plan_log" >&2
+    # Show only error lines, not the full plan output
+    grep -E '^Error:|^  Error:|planning failed|exit status' "$plan_log" | sed -E 's/[0-9]{12}/***ACCOUNT***/g' >&2 || true
     tofu_error="Error in tofu plan for $service ($ENV)"
     if [ "${APPLY:-}" == "true" ]; then
       echo "::endgroup::"
