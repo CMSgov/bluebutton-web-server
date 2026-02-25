@@ -328,6 +328,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "iam:DeleteRolePolicy",
       "iam:DetachRolePolicy",
       "iam:GetOpenIDConnectProvider",
+      "iam:ListOpenIDConnectProviders",
       "iam:GetPolicy",
       "iam:GetPolicyVersion",
       "iam:GetRole",
@@ -441,6 +442,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "ecr:CreateRepository",
       "ecr:DeleteLifecyclePolicy",
       "ecr:DeleteRepository",
+      "ecr:DescribeImages",
       "ecr:DescribeRepositories",
       "ecr:GetLifecyclePolicy",
       "ecr:GetRepositoryPolicy",
@@ -476,10 +478,12 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "codeconnections:GetConnection",
       "codeconnections:CreateConnection",
       "codeconnections:DeleteConnection",
+      "codeconnections:ListTagsForResource",
       "codeconnections:TagResource",
       "codestar-connections:GetConnection",
       "codestar-connections:CreateConnection",
       "codestar-connections:DeleteConnection",
+      "codestar-connections:ListTagsForResource",
       "codestar-connections:TagResource",
     ]
     resources = ["*"]
