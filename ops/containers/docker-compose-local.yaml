@@ -7,7 +7,7 @@ services:
       context: msls
       dockerfile: Dockerfile
     image: bb-msls:latest
-    platform: linux/amd64
+    platform: linux/arm64
     command: scripts/internal/entrypoint.bash
     ports:
       - "8080:8080"
@@ -36,7 +36,7 @@ services:
       context: ../..
       dockerfile: ops/containers/bb-web-api/Dockerfile
     image: bb-web-api:latest
-    platform: linux/amd64
+    platform: linux/arm64
     command: /home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
     read_only: ${READ_ONLY:-true}
     extra_hosts:

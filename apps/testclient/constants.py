@@ -128,9 +128,9 @@ class ResponseErrors:
         }, status=HTTPStatus.BAD_REQUEST)
 
     @classmethod
-    def MissingCallbackVersionContext(cls):
+    def MissingCallbackVersionContext(cls, version):
         return JsonResponse({
-            'error': 'Missing API version in callback session',
+            'error': f'Missing API version in callback session; received "{version}"',
             'code': 'MissingCallbackVersion',
             'help': 'Try authorizing again'
             # was 500, should remain 500

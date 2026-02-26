@@ -1,13 +1,13 @@
 build:
 	@echo Building container to compile the requirements
 	docker build \
-		--platform "linux/amd64" \
+		--platform "linux/arm64" \
 		-t bb-requirements:latest \
 		-f Dockerfile.compile-requirements . 
 
 generate: clean build
 	docker run \
-		--platform "linux/amd64" \
+		--platform "linux/arm64" \
 		-v ./generate.bash:/requirements/generate.bash \
 		-v ../vendor:/vendor \
 		-v .:/output \

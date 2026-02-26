@@ -14,7 +14,7 @@ services:
   # A small Flask app for testing.
   msls:
     image: msls-local:latest
-    platform: linux/amd64
+    platform: linux/arm64
     command: /code/start-local.sh
     ports:
       - "8080:8080"
@@ -24,7 +24,7 @@ services:
   # Blue Button
   web:
     image: bb-local:latest
-    platform: linux/amd64
+    platform: linux/arm64
     command: /code/dev-local/start-local.sh
     read_only: ${READ_ONLY:-true}
     extra_hosts:

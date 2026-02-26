@@ -7,7 +7,7 @@ build-local:
 	cd ../msls-local ; make all ; cd ../dev-local
 	@echo "building local blue button image"
 	cd ../dev-local ; docker build \
-    	--platform "linux/amd64" \
+    	--platform "linux/arm64" \
     	-t bb-local:latest \
     	-f Dockerfile.local ..
 	@echo "building selenium image"
