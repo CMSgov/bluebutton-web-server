@@ -398,6 +398,21 @@ EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", None)
 EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", None)
 EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", None)
 
+# Option for local development to pretty print/format JSON logging
+LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
+
+
+LOG_DIR = '/var/log/pyapps'
+
+# Added for integration tests (currently, log files are created in some ansible/terraform way)
+# TODO - may ne unnecessary, depending on how our integration tests end up in the fargate migration
+if not os.path.exists(LOG_DIR):
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+    except OSError:
+        LOG_DIR = os.path.join(BASE_DIR, 'logs')
+        os.makedirs(LOG_DIR, exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -438,31 +453,31 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
-            'filename': '/var/log/pyapps/debug.log',
+            'filename': os.path.join(LOG_DIR, 'debug.log'),
         },
         'file_error': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
-            'filename': '/var/log/pyapps/error.log',
+            'filename': os.path.join(LOG_DIR, 'error.log'),
         },
         'file_info': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'simple',
-            'filename': '/var/log/pyapps/info.log',
+            'filename': os.path.join(LOG_DIR, 'info.log'),
         },
         'badlogin_info': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'simple',
-            'filename': '/var/log/pyapps/login_failed.log',
+            'filename': os.path.join(LOG_DIR, 'login_failed.log'),
         },
         'adminuse_info': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'simple',
-            'filename': '/var/log/pyapps/admin_access.log',
+            'filename': os.path.join(LOG_DIR, 'admin_access.log'),
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -474,7 +489,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'jsonout',
-            'filename': '/var/log/pyapps/perf_mon.log',
+            'filename': os.path.join(LOG_DIR, 'perf_mon.log'),
         }
     },
     'loggers': {
@@ -528,10 +543,6 @@ LOGGING = {
         }
     },
 }
-
-
-# Option for local development to pretty print/format JSON logging
-LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
