@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source scripts/external/prepare-environment-support.bash
+source bb-web-api/scripts/external/prepare-environment-support.bash
 
 ####################################
 # OPERATING CONDITIONS
@@ -62,16 +62,25 @@ cd ../..
 
 if [[ "${daemon}" == "1" ]]; then
     docker compose \
-    -f FIXME/docker-compose-local.yaml \
+    -f ops/containers/docker-compose-local.yaml \
     up \
     --detach
-elif [[ "${MIGRATE}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
-    echo "📊 Tailing logs."
+elif [[ "${MIGRATE}" == "1"  ]]; then
+    echo "📊 Migrating."
     echo
     docker compose \
-        -f FIXME/docker-compose-local.yaml \
+        -f ops/containers/docker-compose-local.yaml \
         up --abort-on-container-exit
     docker compose down
+    exit
+elif [[ "${COLLECTSTATIC}" == "1" ]]; then
+    echo "📊 Collecting static."
+    echo
+    docker compose \
+        -f ops/containers/docker-compose-local.yaml \
+        up --abort-on-container-exit
+    docker compose down
+    exit
 else
     echo "📊 Tailing logs."
     echo
@@ -79,6 +88,6 @@ else
     RELEASE_TAG=local \
     TARGET_ENV="local" \
     docker compose \
-        -f containers/docker-compose-local.yaml \
+        -f ops/containers/docker-compose-local.yaml \
         up
 fi

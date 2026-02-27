@@ -11,7 +11,7 @@ build-local:
 		--platform "linux/arm64" \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
-		-t bb-web-api:latest \
+		-t bbwebapi:latest \
 		-f Dockerfile \
 		../../..
 

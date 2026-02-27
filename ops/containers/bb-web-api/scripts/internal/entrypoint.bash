@@ -21,13 +21,26 @@ export GUNICORN_PORT=${GUNICORN_PORT:-8000}
 export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 
-
 # ========== SOCAT ==========
 # socat is used locally so that Blue Button can talk to the S3 mock.
 # We do not want to run it in production. No particular harm comes from running it
 # in production, but we don't need to.
 run_socat_locally
 gonogo "run_socat_locally"
+
+# ========== MIGRATE ==========
+# When running locally, we may want to run 
+# python manage.py migrate
+#
+# or
+#
+# python manage.py collectstatic
+# 
+# This conditionally does that only if TARGET_ENV=local and 
+# either MIGRATE=1 or COLLECTSTATIC=1
+#
+# Must come after socat, so we can talk to the s3mock.
+possibly_migrate_or_collectstatic_if_local
 
 # ========== BFD ==========
 # We need certs to talk to BFD. These are grabbed

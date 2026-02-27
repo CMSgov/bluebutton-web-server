@@ -53,8 +53,9 @@ check_bfd_certs_are_not_empty () {
 write_nginx_certs_to_tmp () {
     mkdir -p /tmp/nginx/certs
     if [[ $TARGET_ENV == "local" ]]; then
-        echo "${NGINX_KEY_PEM}" | base64 --decode > /tmp/nginx/certs/key.pem
-        echo "${NGINX_CERT_PEM}" | base64 --decode > /tmp/nginx/certs/cert.pem
+        echo "🔵 writing nginx certs to temp"
+        echo "${NGINX_KEY_PEM_B64}" | base64 --decode > /tmp/nginx/certs/key.pem
+        echo "${NGINX_CERT_PEM_B64}" | base64 --decode > /tmp/nginx/certs/cert.pem
         return 0
     else
         # In production, we grab the certs from the envirionment.
@@ -80,9 +81,32 @@ run_nginx () {
     return $?
 }
 
+possibly_migrate_or_collectstatic_if_local () {
+    echo "🟦 possibly migrate or collectstatic"
+
+    if [[ $TARGET_ENV == "local" ]]; then
+        if [[ "${MIGRATE}" == "1" ]]
+        then
+            echo "🔵 running migrate"
+            python manage.py migrate
+            echo "🔵 done running migrate ; bring down the stack"
+            exit 0
+        fi
+
+        if [[ "${COLLECTSTATIC}" == "1" ]]
+        then    
+            echo "🔵 running collectstatic"
+            python manage.py collectstatic --noinput
+            echo "🔵 done running collectstatic; bring down the stack"
+            exit 0
+        fi
+    fi
+}
+
 launch_blue_button () {
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
+
         echo "🟦 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \

@@ -32,7 +32,17 @@ build-production:
 	.
 
 run-local:
-	cd bb-web-api ; make run-local
+	bfd="test" \
+	env="local" \
+	TARGET_ENV="local" \
+	bash ./bb-web-api/scripts/external/prepare-environment.bash
+
+collectstatic:
+	COLLECTSTATIC=1 \
+	bfd="test" \
+	env="local" \
+	TARGET_ENV="local" \
+	bash ./bb-web-api/scripts/external/prepare-environment.bash
 
 .PHONY: build-css
 build-css:

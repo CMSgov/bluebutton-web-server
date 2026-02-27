@@ -173,27 +173,29 @@ retrieve_bfd_certs () {
         unset BFD_CERT_PEM_B64
         unset BFD_KEY_PEM_B64
     elif [[ "${bfd}" == "test" ]]; then
+        echo "🆗 BFD for test"
         export CERT_SUFFIX="_test"
         export PROFILE="slsx"
-        BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
+        export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
             --query 'SecretString' \
             --output text)
-        BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
+        export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
             --query 'SecretString' \
             --output text)
     elif [[ "${bfd}" == "sbx" ]]; then
-        BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
+        echo "🆗 BFD for sbx"
+        export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
             --query 'SecretString' \
             --output text)
-        BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
+        export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
             --query 'SecretString' \
             --output text)
     elif [[ "${bfd}" == "prod" ]]; then
-        echo "⛔ fetching certs for prod target not supported locally."
+        echo "⛔ fetching BFD certs for prod target not supported locally."
         return 1
     fi
 
@@ -212,17 +214,17 @@ retrieve_nginx_certs () {
             -nodes \
             -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname" \
             >/dev/null 2>&1
-        NGINX_KEY_PEM_B64=$(<$KEY_TEMP)
-        export NGINX_KEY_PEM_B64=$(echo "${NGINX_CERT_PEM_B64}" | base64)
-        NGINX_CERT_PEM_B64=$(<$CERT_TEMP)
-        export NGINX_CERT_PEM_B64=$(echo "${NGINX_CERT_PEM_B64}" | base64)
+        _NGINX_KEY_PEM_B64=$(<$KEY_TEMP)
+        export NGINX_KEY_PEM_B64=$(echo "${_NGINX_KEY_PEM_B64}" | base64)
+        _NGINX_CERT_PEM_B64=$(<$CERT_TEMP)
+        export NGINX_CERT_PEM_B64=$(echo "${_NGINX_CERT_PEM_B64}" | base64)
     else
         rm -f $KEY_TEMP
         rm -f $CERT_TEMP
         echo "⛔ nginx certs must be fetched in cloud environments."
         return 1
     fi
-    
+
     rm -f $KEY_TEMP
     rm -f $CERT_TEMP
     return 0
