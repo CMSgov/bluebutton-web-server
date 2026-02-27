@@ -204,6 +204,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     sid = "ACM"
     actions = [
       "acm:DescribeCertificate",
+      "acm:GetCertificate",
       "acm:ListCertificates",
       "acm:ListTagsForCertificate",
     ]
@@ -242,9 +243,11 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     sid = "CloudWatchLogs"
     actions = [
       "logs:CreateLogGroup",
+      "logs:CreateLogStream",
       "logs:DeleteLogGroup",
       "logs:DescribeLogGroups",
       "logs:ListTagsForResource",
+      "logs:PutLogEvents",
       "logs:PutRetentionPolicy",
       "logs:TagResource",
       "logs:UntagResource",
@@ -327,6 +330,8 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "iam:DeleteRole",
       "iam:DeleteRolePolicy",
       "iam:DetachRolePolicy",
+      "iam:GetOpenIDConnectProvider",
+      "iam:ListOpenIDConnectProviders",
       "iam:GetPolicy",
       "iam:GetPolicyVersion",
       "iam:GetRole",
@@ -334,6 +339,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "iam:ListAccountAliases",
       "iam:ListAttachedRolePolicies",
       "iam:ListInstanceProfilesForRole",
+      "iam:ListPolicies",
       "iam:ListPolicyVersions",
       "iam:ListRolePolicies",
       "iam:PassRole",
@@ -417,6 +423,73 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "ssm:ListTagsForResource",
       "ssm:PutParameter",
       "ssm:RemoveTagsFromResource",
+    ]
+    resources = ["*"]
+  }
+
+  # Secrets Manager
+  statement {
+    sid = "SecretsManager"
+    actions = [
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetResourcePolicy",
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:ListSecrets",
+    ]
+    resources = ["*"]
+  }
+
+  # ECR
+  statement {
+    sid = "ECR"
+    actions = [
+      "ecr:CreateRepository",
+      "ecr:DeleteLifecyclePolicy",
+      "ecr:DeleteRepository",
+      "ecr:DescribeImages",
+      "ecr:DescribeRepositories",
+      "ecr:GetLifecyclePolicy",
+      "ecr:GetRepositoryPolicy",
+      "ecr:ListTagsForResource",
+      "ecr:PutLifecyclePolicy",
+      "ecr:SetRepositoryPolicy",
+      "ecr:TagResource",
+      "ecr:UntagResource",
+    ]
+    resources = ["*"]
+  }
+
+  # CodeBuild & CodeConnections (for bootstrap)
+  statement {
+    sid = "CodeBuild"
+    actions = [
+      "codebuild:BatchGetProjects",
+      "codebuild:CreateProject",
+      "codebuild:CreateWebhook",
+      "codebuild:DeleteProject",
+      "codebuild:DeleteSourceCredentials",
+      "codebuild:DeleteWebhook",
+      "codebuild:ImportSourceCredentials",
+      "codebuild:ListSourceCredentials",
+      "codebuild:UpdateProject",
+      "codebuild:UpdateWebhook",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "CodeConnections"
+    actions = [
+      "codeconnections:GetConnection",
+      "codeconnections:CreateConnection",
+      "codeconnections:DeleteConnection",
+      "codeconnections:ListTagsForResource",
+      "codeconnections:TagResource",
+      "codestar-connections:GetConnection",
+      "codestar-connections:CreateConnection",
+      "codestar-connections:DeleteConnection",
+      "codestar-connections:ListTagsForResource",
+      "codestar-connections:TagResource",
     ]
     resources = ["*"]
   }

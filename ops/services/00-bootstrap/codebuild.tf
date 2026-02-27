@@ -9,12 +9,15 @@ resource "aws_codestarconnections_connection" "github" {
   provider_type = "GitHub"
 }
 
-resource "aws_codebuild_source_credential" "github" {
-  count       = local.create_resources ? 1 : 0
-  auth_type   = "CODECONNECTIONS"
-  server_type = "GITHUB"
-  token       = aws_codestarconnections_connection.github[0].arn
-}
+# Disabled: PAT via Secrets Manager is the active auth. The source credential
+# was imported manually (aws codebuild import-source-credentials) and is not
+# managed by tofu. Re-enable when switching to CodeConnections.
+# resource "aws_codebuild_source_credential" "github" {
+#   count       = local.create_resources ? 1 : 0
+#   auth_type   = "CODECONNECTIONS"
+#   server_type = "GITHUB"
+#   token       = aws_codestarconnections_connection.github[0].arn
+# }
 
 # ============================================================================
 # CloudWatch Logs
@@ -30,8 +33,7 @@ resource "aws_cloudwatch_log_group" "runner" {
 # CodeBuild Project - Acts as GitHub Actions Runner
 # ============================================================================
 resource "aws_codebuild_project" "main" {
-  count      = local.create_resources ? 1 : 0
-  depends_on = [aws_codebuild_source_credential.github]
+  count = local.create_resources ? 1 : 0
 
   name               = local.project_name
   description        = "Blue Button Web Server - GitHub Actions Runner"
@@ -45,7 +47,7 @@ resource "aws_codebuild_project" "main" {
 
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
+    image                       = "aws/codebuild/amazonlinux-aarch64-standard:3.0"
     image_pull_credentials_type = "CODEBUILD"
     privileged_mode             = true # Required for Docker builds
     type                        = "ARM_CONTAINER"
@@ -79,6 +81,11 @@ resource "aws_codebuild_project" "main" {
     location        = var.github_repo_url
     git_clone_depth = 1
 
+    auth {
+      type     = "SECRETS_MANAGER"
+      resource = data.aws_secretsmanager_secret.github_token[0].arn
+    }
+
     git_submodules_config {
       fetch_submodules = false
     }
@@ -103,3 +110,8 @@ resource "aws_codebuild_webhook" "runner" {
 # Data sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
+
+data "aws_secretsmanager_secret" "github_token" {
+  count = local.create_resources ? 1 : 0
+  name  = "/bb/${local.env}/gitpat"
+}
