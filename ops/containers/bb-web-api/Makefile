@@ -6,8 +6,9 @@ auth ?= "live"
 
 build-local:
 	echo "build-local"
+	TARGET_ENV="local" \
 	docker build \
-		--platform "linux/amd64" \
+		--platform "linux/arm64" \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
 		-t bb-web-api:latest \
@@ -20,7 +21,7 @@ build-production:
 	env="local" \
 	bfd=${bfd} \
 	docker build \
-	--platform "linux/amd64" \
+	--platform "linux/arm64" \
 	--build-arg RELEASE_TAG="${RELEASE_TAG}" \
 	--build-arg BUILD_TARGET="production" \
 	--no-cache \
@@ -32,4 +33,5 @@ run-local:
 	bfd=${bfd} \
 	env=${env} \
 	auth=${auth} \
+	TARGET_ENV="local" \
 	./scripts/external/prepare-environment.bash

@@ -77,6 +77,7 @@ else
     echo
     BUILD_TARGET=local \
     RELEASE_TAG=local \
+    TARGET_ENV="local" \
     docker compose \
         -f containers/docker-compose-local.yaml \
         up

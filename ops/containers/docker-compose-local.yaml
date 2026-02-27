@@ -3,9 +3,9 @@ services:
   # Local MSLS server
   # A small Flask app for testing.
   msls:
-    build: 
-      context: msls
-      dockerfile: Dockerfile
+    # build: 
+    #   context: msls
+    #   dockerfile: Dockerfile
     image: bb-msls:latest
     platform: linux/arm64
     command: scripts/internal/entrypoint.bash
@@ -30,13 +30,13 @@ services:
   ####################
   # Blue Button
   web:
-    build: 
-      # Note the context is the top of the repo, and the
-      # dockerfile is down in the `ops` tree.
-      context: ../..
-      dockerfile: ops/containers/bb-web-api/Dockerfile
+    # build: 
+    #   # Note the context is the top of the repo, and the
+    #   # dockerfile is down in the `ops` tree.
+    #   context: ../..
+    #   dockerfile: ops/containers/bb-web-api/Dockerfile
     image: bb-web-api:latest
-    platform: linux/arm64
+    platform: linux/amd64
     command: /home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
     read_only: ${READ_ONLY:-true}
     extra_hosts:
