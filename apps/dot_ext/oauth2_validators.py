@@ -45,8 +45,7 @@ class OAuth2Validator(DotOAuth2Validator):
         original_scopes = utils.scope_to_list(
             self.get_original_scopes(refresh_token, request)
         )
-        print("original_scopes: ", original_scopes)
-        print("request_scopes: ", request_scopes)
+
         for req_scope in request_scopes:
             if not self._is_smart_subscope(req_scope, original_scopes):
                 return False
@@ -66,7 +65,7 @@ class OAuth2Validator(DotOAuth2Validator):
             return True
 
         # Try SMART v2 granular subscope: same resource, requested permissions subset of original
-        # Format: patient/ResourceType.(r|c|u|d|s)+
+        # Format: patient/ResourceType.(r|s)
         for orig in original_list:
             if self._smart_scope_contains(orig, requested):
                 return True
@@ -101,9 +100,8 @@ class OAuth2Validator(DotOAuth2Validator):
         # All requested permission chars must be present in original
         # valid_chars is used to ignore any invalid chars that may be present in the scopes,
         # such as 'patient/Patient.rw' which has an invalid 'w' char
-        valid_chars = set('rcuds')
-        orig_perm_set = set(orig_perms) & valid_chars
-        req_perm_set = set(req_perms) & valid_chars
+        orig_perm_set = set(orig_perms)
+        req_perm_set = set(req_perms)
 
         return req_perm_set.issubset(orig_perm_set)
 
