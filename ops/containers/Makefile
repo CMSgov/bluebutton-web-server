@@ -37,6 +37,13 @@ run-local:
 	TARGET_ENV="local" \
 	bash ./bb-web-api/scripts/external/prepare-environment.bash
 
+migrate:
+	MIGRATE=1 \
+	bfd="test" \
+	env="local" \
+	TARGET_ENV="local" \
+	bash ./bb-web-api/scripts/external/prepare-environment.bash
+
 collectstatic:
 	COLLECTSTATIC=1 \
 	bfd="test" \
