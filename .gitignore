@@ -93,6 +93,12 @@ docker-compose/tmp/
 dev-tools/
 test_report.txt
 
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
 
