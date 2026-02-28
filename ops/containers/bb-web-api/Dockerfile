@@ -32,6 +32,7 @@ EXPOSE ${NGINX_PORT}
 RUN dnf install -y \
     git \
     nginx \
+    procps-ng \
     python3.12 \
     shadow-utils \
     unzip \
@@ -65,7 +66,8 @@ RUN rm -rf /var/lib/nginx/tmp && ln -s ${NGINX_TMP}/tmp /var/lib/nginx/tmp
 # That should be linked into /tmp, and the path
 # needs to be writable by boton.
 RUN ln -s ${NGINX_TMP}/run /run \
-    && chown -R boton:boton /run
+    && chown -R boton:boton /run \
+    && chown -R boton:boton ${NGINX_TMP}/run
 
 #################################################################
 # ACTIONS TAKEN AS BOTON USER

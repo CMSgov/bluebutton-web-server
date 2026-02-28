@@ -9,6 +9,13 @@ source bb-web-api/scripts/external/prepare-environment-support.bash
 set -e
 set -a
 
+echo "-------- ENV VARS --------"
+echo "🥑 bfd          ${bfd}"
+echo "🥑 auth         ${auth}"
+echo "🥑 env          ${env}"
+echo "🥑 TARGET_ENV   ${TARGET_ENV}"
+
+
 ####################################
 # ENV SETUP
 check_valid_env
@@ -89,5 +96,5 @@ else
     TARGET_ENV="local" \
     docker compose \
         -f ops/containers/docker-compose-local.yaml \
-        up
+        up --abort-on-container-exit
 fi

@@ -1,9 +1,17 @@
 daemon off;
 
+###########################
+# WARNING - envsubst
+# Any value starting with a dollar sign in this file
+# will be substituted by `envsubst`.
+# If you want to have a variable *in the nginx config*
+# passed through to nginx, you must use a double-dollar sign.
+
 # was nginx nginx
 # user boton boton; 
 worker_processes 2;
 
+pid /tmp/nginx/nginx.pid;
 
 worker_rlimit_nofile 65535;
 
@@ -26,10 +34,7 @@ http {
 
   sendfile             on;
   keepalive_timeout    0;
-  upstream application {
-    server unix:///var/pyapps/hhs_o_server/run/pyapps.sock;
-  }
-
+  
   server {
     listen 80;
     server_name _;
@@ -37,6 +42,11 @@ http {
     return 301 https://$$host$$request_uri;
   }
 
+  # unix:///tmp/nginx/gunicorn.sock
+  upstream application {
+    server unix:///tmp/nginx/gunicorn.sock;
+  }
+  
   server {
     # Do we do IPv6?
     listen ${NGINX_PORT} ssl default_server;
@@ -77,16 +87,28 @@ http {
     }
 
     location / {
-      include                 uwsgi_params;
-      uwsgi_pass              application;
-      uwsgi_buffer_size       32k;
-      uwsgi_buffers           8 32k;
-      uwsgi_busy_buffers_size 224k;
-      proxy_buffer_size       32k;
-      proxy_buffers           8 32k;
-      proxy_busy_buffers_size 224k;
-      client_max_body_size    8m;
-      client_body_buffer_size 128k;
+      # NOTE
+      # This is using an HTTP proxy through from NGINX to gunicorn.
+      # HOWEVER, it is *within* the container.
+      
+      proxy_pass http://application;
+      proxy_set_header Host $$host;
+      proxy_set_header X-Real-IP $$remote_addr;
+      proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $$scheme;
+      
+      # Possible exploration on permissions for socket-based
+      # connection: https://oneuptime.com/blog/post/2026-02-08-how-to-set-up-docker-containers-with-unix-socket-communication/view
+      # include                 uwsgi_params;
+      # uwsgi_pass              application;
+      # uwsgi_buffer_size       32k;
+      # uwsgi_buffers           8 32k;
+      # uwsgi_busy_buffers_size 224k;
+      # proxy_buffer_size       32k;
+      # proxy_buffers           8 32k;
+      # proxy_busy_buffers_size 224k;
+      # client_max_body_size    8m;
+      # client_body_buffer_size 128k;
     }
   }
 }

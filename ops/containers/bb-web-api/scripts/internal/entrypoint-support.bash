@@ -78,7 +78,13 @@ configure_nginx () {
 run_nginx () {
     # This happens in all environments, local and production
     nginx -c ${NGINX_TMP}/nginx.conf &
-    return $?
+    result=$?
+    if [[ $result == "0" ]]; then
+        echo "🔵 nginx is up"
+    else
+        echo "⛔ nginx is not up"
+    fi
+    return $result
 }
 
 possibly_migrate_or_collectstatic_if_local () {
@@ -106,12 +112,15 @@ possibly_migrate_or_collectstatic_if_local () {
 launch_blue_button () {
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
+        # --bind 0.0.0.0:${GUNICORN_PORT} \
 
         echo "🟦 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
             --worker-tmp-dir /dev/shm \
             --bind 0.0.0.0:${GUNICORN_PORT} \
+            -m 000 \
+            --bind unix:/tmp/nginx/gunicorn.sock
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
             --reload \

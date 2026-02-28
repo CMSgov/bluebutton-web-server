@@ -8,7 +8,6 @@ build-local:
 	echo "build-local"
 	TARGET_ENV="local" \
 	docker build \
-		--platform "linux/arm64" \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
 		-t bbwebapi:latest \
@@ -21,7 +20,6 @@ build-production:
 	env="local" \
 	bfd=${bfd} \
 	docker build \
-	--platform "linux/arm64" \
 	--build-arg RELEASE_TAG="${RELEASE_TAG}" \
 	--build-arg BUILD_TARGET="production" \
 	--no-cache \

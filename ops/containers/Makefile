@@ -32,8 +32,9 @@ build-production:
 	.
 
 run-local:
-	bfd="test" \
-	env="local" \
+	bfd="${bfd}" \
+	env="${env}" \
+	auth="${auth}" \
 	TARGET_ENV="local" \
 	bash ./bb-web-api/scripts/external/prepare-environment.bash
 

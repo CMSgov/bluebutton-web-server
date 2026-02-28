@@ -168,14 +168,27 @@ export CERT_AND_SALT="YES"
 
 retrieve_bfd_certs () {
     if [[ "${bfd}" == "local" ]]; then
-        echo "🆗 Running locally. Not retrieving certs."
-        echo "🆗 Running locally. Not retrieving salt."
+        KEY_TEMP=$(mktemp)
+        CERT_TEMP=$(mktemp)
+        echo "🦄 Running locally. Generating bogus BFD certs."
         unset BFD_CERT_PEM_B64
         unset BFD_KEY_PEM_B64
+        openssl req -x509 -newkey rsa:4096 \
+            -keyout $KEY_TEMP \
+            -out $CERT_TEMP \
+            -sha256 \
+            -days 3650 \
+            -nodes \
+            -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname" \
+            >/dev/null 2>&1
+        _BFD_KEY_PEM_B64=$(<$KEY_TEMP)
+        export BFD_KEY_PEM_B64=$(echo "${_BFD_KEY_PEM_B64}" | base64)
+        _BFD_CERT_PEM_B64=$(<$CERT_TEMP)
+        export BFD_CERT_PEM_B64=$(echo "${_BFD_CERT_PEM_B64}" | base64)
+        rm -f $KEY_TEMP
+        rm -f $CERT_TEMP
     elif [[ "${bfd}" == "test" ]]; then
         echo "🆗 BFD for test"
-        export CERT_SUFFIX="_test"
-        export PROFILE="slsx"
         export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
             --query 'SecretString' \

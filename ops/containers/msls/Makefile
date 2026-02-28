@@ -2,7 +2,6 @@ all: build-local
 
 build-local:
 	docker build \
-		--platform "linux/arm64" \
     	-t mslsx:latest \
     	-f Dockerfile .
 
