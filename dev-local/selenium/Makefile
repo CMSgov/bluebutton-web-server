@@ -6,7 +6,6 @@ all: build-local
 build-local:
 	@echo "Building Selenium Image"
 	docker build \
-		--platform "linux/arm64" \
 		-t selenium-local:latest \
 		-f Dockerfile.selenium .
 
