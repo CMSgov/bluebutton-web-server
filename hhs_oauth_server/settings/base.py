@@ -5,12 +5,12 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 env = environ.Env(
-    TARGET_ENV=(str, ""),
+    TARGET_ENV=(str, ''),
 )
 
 environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
 
-TARGET_ENV = env("TARGET_ENV", default="")
+TARGET_ENV = env('TARGET_ENV')
 
 if TARGET_ENV == 'local':
     from .base_local import * # noqa

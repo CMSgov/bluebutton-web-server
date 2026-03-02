@@ -795,6 +795,7 @@ HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
+TEST_URL = 'https://test.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
 
@@ -823,10 +824,10 @@ UI Widget text: texts on e.g. buttons, links, labels etc.
 
 # Synthetic beneficiary login info
 BENE_TXT_USERNAME = 'BBUser09003'
-BENE_TXT_PASSWORD_SBX = 'PW09003!@'
+BENE_TXT_PASSWORD_TEST = 'PW09003!@'
 BENE_TXT_PASSWORD_PROD = 'PW09003!'
 BENE_TXT_PASSWORD = \
-    BENE_TXT_PASSWORD_PROD if HOSTNAME_URL.startswith(PROD_URL) else BENE_TXT_PASSWORD_SBX
+    BENE_TXT_PASSWORD_TEST if HOSTNAME_URL.startswith(TEST_URL) else BENE_TXT_PASSWORD_PROD
 
 LNK_TXT_SIGNUP = "Signup"
 TAG_FOR_AUTHORIZE_LINK = "pre"

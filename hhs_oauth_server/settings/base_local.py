@@ -197,21 +197,25 @@ LOGGING = {
             "[%(process)d] %(name)s line:%(lineno)d %(message)s"
         },
         "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
-        "jsonout": {
-            "format": '{"env": "'
-            # + env("TARGET_ENV", "DEV")
-            + "DEV"
-            + '", "time": "%(asctime)s", "level": "%(levelname)s", '
-            '"name": "%(name)s", "message": "%(message)s"}',
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
+        'jsonout': {
+            'format': '{"env": "local", "time": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": %(message)s}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
-    "handlers": {
-        "console": {
+    'handlers': {
+        'console': {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
             "filters": [SENSITIVE_DATA_FILTER],
-        }
+        },
+        # Mimics what we will see in production
+        'cloudwatch_console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'jsonout',
+        },
     },
     "filters": {
         "sensitive_data_filter": {
@@ -225,40 +229,40 @@ LOGGING = {
         #     'handlers': ['console'],
         # },
         "hhs_server": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
         "hhs_oauth_server.accounts": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
         "oauth2_provider": {
-            "handlers": ["console"],
-            "level": "INFO",
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         "oauthlib": {
-            "handlers": ["console"],
-            "level": "INFO",
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         "unsuccessful_logins": {
-            "handlers": ["console"],
-            "level": "INFO",
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         "admin_interface": {
-            "handlers": ["console"],
-            "level": "INFO",
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         "tests": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
         "audit": {
-            "handlers": ["console"],
-            "level": "INFO",
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         "performance": {
-            "handlers": ["console"],
-            "level": "INFO",
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         'django': {
             'handlers': ['console'],
@@ -314,11 +318,11 @@ EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", default=None)
 
 # this helps Django messages format nicely with Bootstrap3
 MESSAGE_TAGS = {
-    messages.DEBUG: "debug",
-    messages.INFO: "info",
-    messages.SUCCESS: "success",
-    messages.WARNING: "warning",
-    messages.ERROR: "danger",
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
 }
 
 # static files and media
@@ -327,7 +331,7 @@ MESSAGE_TAGS = {
 # including it in the Django settings section
 ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", default="/code/hhs_oauth_server/..")
 
-MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
+MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
@@ -354,7 +358,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # See:
 # * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
 # * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
-DEBUG = env.bool("DEBUG", default=False)
+DEBUG = env.bool('DEBUG', default=False)
 
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
 # We want the launch to generally be quiet, and only tell us things
