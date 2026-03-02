@@ -48,7 +48,7 @@ class UserProfile(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
     )
-    organization_name = models.CharField(max_length=255, blank=True, default="")
+    organization_name = models.TextField(blank=True, default='')
     loa = models.CharField(
         default="2",
         choices=LOA_CHOICES,
@@ -111,15 +111,15 @@ class UserProfile(models.Model):
     password_reset_question_1 = models.CharField(
         default="1", choices=QUESTION_1_CHOICES, max_length=1
     )
-    password_reset_answer_1 = models.CharField(default="", blank=True, max_length=50)
+    password_reset_answer_1 = models.TextField(default='', blank=True)
     password_reset_question_2 = models.CharField(
         default="1", choices=QUESTION_2_CHOICES, max_length=1
     )
-    password_reset_answer_2 = models.CharField(default="", blank=True, max_length=50)
+    password_reset_answer_2 = models.TextField(default='', blank=True)
     password_reset_question_3 = models.CharField(
         default="1", choices=QUESTION_3_CHOICES, max_length=1
     )
-    password_reset_answer_3 = models.CharField(default="", blank=True, max_length=50)
+    password_reset_answer_3 = models.TextField(default='', blank=True)
 
     def __str__(self):
         name = "%s %s (%s)" % (
