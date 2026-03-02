@@ -38,10 +38,22 @@ class OAuth2Validator(DotOAuth2Validator):
         *args: Any,
         **kwargs: Any,
     ) -> bool:
+        """Determine if the requested scopes are within the original scopes of the access token.
+        This overrides a function from OAuth2Validator to ensure that when a client makes a refresh
+        token request with a subset of the original scopes, that is allowed as long as the scopes are
+        valid subscopes of the originally granted scopes.
+
+        Args:
+            request_scopes (List[str]): The scopes requested in the current refresh token request
+            refresh_token (str): The refresh token for the current access token
+            request (Any): The Django request object
+            args (Any): Additional positional arguments
+            kwargs (Any): Additional keyword arguments
+
+        Returns:
+            bool: Whether or not the requested scopes are within the original scopes of the access token
         """
-        Handle SMART v2 granular scope downscoping.
-        e.g. patient/Patient.r is a valid subset of patient/Patient.rs
-        """
+
         original_scopes = utils.scope_to_list(
             self.get_original_scopes(refresh_token, request)
         )
@@ -56,37 +68,45 @@ class OAuth2Validator(DotOAuth2Validator):
         requested: str,
         original_list: List[str],
     ) -> bool:
-        """
-        Check if `requested` is a valid SMART v2 subscope of any scope in original_list.
-        e.g. 'patient/Patient.r' is a subscope of 'patient/Patient.rs'
+        """Determine if the requested scope is a valid SMART v2 subscope of any scope in the original scope list.
+
+        Args:
+            requested (str): Part of the scope being requested in the current refresh token request
+            original_list (List[str]): The list of scopes originally granted for the access token being refreshed
+        Returns:
+            bool: Whether or not the requested scope is a valid SMART v2 subscope of any scope in the original scope list
         """
         # First try exact match
         if requested in original_list:
             return True
 
-        # Try SMART v2 granular subscope: same resource, requested permissions subset of original
-        # Format: patient/ResourceType.(r|s)
+        # For each scope in the original scope list, check if the requested scope is a valid subscope of it
+        # If the requested scope does not match any scope in the original scope list, and is not a subscope either
+        # we will fail the refresh token request
         for orig in original_list:
             if self._smart_scope_contains(orig, requested):
                 return True
         return False
-        # return any(self._smart_scope_contains(orig, requested) for orig in original_list)
 
     def _smart_scope_contains(
         self,
         original: str,
         requested: str,
     ) -> bool:
+        """Determine if the requested scope is a valid SMART v2 subscope of the original scope.
+
+        Args:
+            original (str): Part of the scope originally granted for the access token being refreshed
+            requested (str): Part of the scope being requested in the current refresh token request
+        Returns:
+            bool: Whether or not the requested scope is a valid SMART v2 subscope of the original
         """
-        Returns True if `requested` scope is a subset of `original` scope.
-        e.g. original='patient/Patient.rs', requested='patient/Patient.r' → True
-        """
+
         # Split into context/resource and permissions
         # Example: original = patient/Patient.rs, requested = patient/Patient.r
         # That would result in the following splits:
         # orig_resource = patient/Patient, orig_perms = rs
         # req_resource = patient/Patient, req_perms = r
-
         try:
             orig_resource, orig_perms = original.rsplit('.', 1)
             req_resource, req_perms = requested.rsplit('.', 1)
