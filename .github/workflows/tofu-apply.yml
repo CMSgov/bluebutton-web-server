@@ -1,0 +1,81 @@
+name: tofu-apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to apply'
+        required: true
+        type: choice
+        options:
+          - test
+          - sandbox
+          - prod
+      service:
+        description: 'Service to apply (or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - 00-bootstrap
+          - 01-config
+          - 10-cluster
+          - 20-microservices
+
+concurrency:
+  group: tofu-plan-or-apply-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  plan:
+    name: Plan ${{ github.event.inputs.environment }}
+    if: github.ref == 'refs/heads/master'
+    runs-on: codebuild-bb-${{ github.event.inputs.environment == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup OpenTofu & AWS
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Tofu Plan
+        run: scripts/tofu-run
+        env:
+          ENV: ${{ github.event.inputs.environment }}
+          SERVICE: ${{ github.event.inputs.service }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+
+  apply:
+    name: Apply ${{ github.event.inputs.environment }}
+    needs: plan
+    runs-on: codebuild-bb-${{ github.event.inputs.environment == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup OpenTofu & AWS
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Tofu Apply
+        run: scripts/tofu-run
+        env:
+          ENV: ${{ github.event.inputs.environment }}
+          SERVICE: ${{ github.event.inputs.service }}
+          APPLY: "true"
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}

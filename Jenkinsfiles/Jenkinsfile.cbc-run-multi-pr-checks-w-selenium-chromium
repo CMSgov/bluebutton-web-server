@@ -28,6 +28,7 @@ pipeline {
     FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
     FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
     FHIR_URL = "${params.FHIR_URL}"
+    FHIR_URL_V3 = "${params.FHIR_URL_V3}"
     HOSTNAME_URL = "http://localhost:8000"
   }
 
@@ -36,6 +37,11 @@ pipeline {
       name: 'FHIR_URL',
       defaultValue: "https://prod-sbx.fhir.bfd.cmscloud.local",
       description: 'The default FHIR URL for the back end BFD service.'
+    )
+    string(
+      name: 'FHIR_URL_V3',
+      defaultValue: "https://sandbox.fhirv3.bfd.cmscloud.local",
+      description: 'The default V3 FHIR URL for the back end BFD service.'
     )
     booleanParam(
         name: 'RUN_SELENIUM_TESTS', 
