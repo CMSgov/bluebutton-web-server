@@ -547,3 +547,5 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
     'To refresh Medicare data, end user must re-authenticate '
     'and consent to share their data.'
 )
+
+PATIENT_COVERAGE_SCOPES_CONSTANT = 'patient/Patient.rs patient/Coverage.rs'

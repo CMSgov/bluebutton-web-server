@@ -3,14 +3,12 @@ from django.http import HttpRequest
 from django.test import TestCase
 from unittest.mock import patch
 
+from apps.dot_ext.constants import PATIENT_COVERAGE_SCOPES_CONSTANT
 from apps.dot_ext.oauth2_validators import OAuth2Validator
 from apps.dot_ext.validators import validate_uris
 
 
 class TestOauth2Validators(TestCase):
-
-    def setUp(self):
-        pass
 
     def test_validate_uris(self):
         with self.assertRaises(ValidationError):
@@ -37,7 +35,7 @@ class TestOauth2Validators(TestCase):
         with patch.object(
             validator,
             'get_original_scopes',
-            return_value='patient/Patient.rs patient/Coverage.rs'
+            return_value=PATIENT_COVERAGE_SCOPES_CONSTANT
         ):
             result = validator.is_within_original_scope(['patient/ExplanationOfBenefit.rs'], object(), request)
 
@@ -49,7 +47,7 @@ class TestOauth2Validators(TestCase):
         with patch.object(
             validator,
             'get_original_scopes',
-            return_value='patient/Patient.rs patient/Coverage.rs'
+            return_value=PATIENT_COVERAGE_SCOPES_CONSTANT
         ):
             result = validator.is_within_original_scope(['patient/Coverage.s'], object(), request)
 
@@ -61,7 +59,7 @@ class TestOauth2Validators(TestCase):
         with patch.object(
             validator,
             'get_original_scopes',
-            return_value='patient/Patient.rs patient/Coverage.rs'
+            return_value=PATIENT_COVERAGE_SCOPES_CONSTANT
         ):
             result = validator.is_within_original_scope(['patient/Coverage.s', 'patient/Patient.s'], object(), request)
 
@@ -73,7 +71,7 @@ class TestOauth2Validators(TestCase):
         with patch.object(
             validator,
             'get_original_scopes',
-            return_value='patient/Patient.rs patient/Coverage.rs'
+            return_value=PATIENT_COVERAGE_SCOPES_CONSTANT
         ):
             result = validator.is_within_original_scope(['profile'], object(), request)
 
