@@ -796,7 +796,6 @@ USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
 SANDBOX_URL = 'https://sandbox.bluebutton.cms.gov'
-TEST_URL = 'https://test.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
 
