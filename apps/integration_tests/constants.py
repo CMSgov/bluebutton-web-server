@@ -970,6 +970,9 @@ EOB_SCOPE = "patient/ExplanationOfBenefit.rs"
 OPENID_SCOPE = "openid"
 LAUNCH_SCOPE = "launch/patient"
 
+# New login screen upon clicking Authorize as a Beneficiary button on TestClient home page
+X_PATH_FOR_MEDICARE_LOGIN = '//*[@id="App"]/div/div[5]/button/div/div[2]/h2'
+
 BROWSERBACK = {
     "display": "Back to FHIR resource page",
     "action": Action.BACK,
@@ -1190,6 +1193,11 @@ SEQ_AUTHORIZE_START_SPANISH = [
         "action": Action.FIND_CLICK,
         "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH]
     },
+    {
+        "display": "Click on Medicare.gov option - continue authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
+    },
 ]
 
 SEQ_AUTHORIZE_RESTART = [
@@ -1214,6 +1222,11 @@ SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
         "action": Action.FIND_CLICK,
         "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH]
     },
+    {
+        "display": "Click on Medicare.gov option - continue authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
+    },
 ]
 
 SEQ_AUTHORIZE_PKCE_START_V3 = [
@@ -1227,6 +1240,11 @@ SEQ_AUTHORIZE_PKCE_START_V3 = [
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
         "action": Action.FIND_CLICK,
         "params": [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH]
+    },
+    {
+        "display": "Click on Medicare.gov option - continue authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
     },
 ]
 
