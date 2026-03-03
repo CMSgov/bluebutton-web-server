@@ -1,7 +1,11 @@
-from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Validator
 from django.core.exceptions import ObjectDoesNotExist
-from apps.pkce.oauth2_validators import PKCEValidatorMixin
+from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Validator
+from oauthlib.oauth2.rfc6749 import utils
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+from typing import Any, List
+
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.pkce.oauth2_validators import PKCEValidatorMixin
 
 
 class OAuth2Validator(DotOAuth2Validator):
@@ -26,6 +30,39 @@ class OAuth2Validator(DotOAuth2Validator):
             return None
 
         return auth_string
+
+    def is_within_original_scope(
+        self,
+        request_scopes: List[str],
+        refresh_token: str,
+        request: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> bool:
+        """Determine if the requested scopes are within the original scopes of the access token.
+        This overrides a function from OAuth2Validator to ensure that when a client makes a refresh
+        token request with a subset of the original scopes, that is allowed as long as the scopes are
+        valid subscopes of the originally granted scopes.
+
+        Args:
+            request_scopes (List[str]): The scopes requested in the current refresh token request
+            refresh_token (str): The refresh token for the current access token
+            request (Any): The Django request object
+            args (Any): Additional positional arguments
+            kwargs (Any): Additional keyword arguments
+
+        Returns:
+            bool: Whether or not the requested scopes are within the original scopes of the access token
+        """
+
+        original_scopes = utils.scope_to_list(
+            self.get_original_scopes(refresh_token, request)
+        )
+
+        for req_scope in request_scopes:
+            if not CapabilitiesScopes().is_smart_subscope(req_scope, original_scopes):
+                return False
+        return True
 
 
 class SingleAccessTokenValidator(
