@@ -14,7 +14,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-from apps.dot_ext.constants import TOKEN_ENDPOINT_V3_KEY
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from oauth2_provider.exceptions import OAuthToolkitError
@@ -61,8 +60,6 @@ from ...authorization.models import DataAccessGrant
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ["client_secret"]
-ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY = {"code", "grant_type", "code_verifier", "redirect_uri",
-                                        "client_id", "client_secret", "refresh_token"}
 
 
 def get_grant_expiration(data_access_type):
@@ -455,22 +452,6 @@ class ApprovalView(AuthorizationView):
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
 
-    def validate_token_endpoint_request_body(self, request):
-        """
-        Validate request body keys for v3 token endpoints.
-        """
-        rm = getattr(request, "resolver_match", None)
-        url_name = rm.url_name
-        if url_name != TOKEN_ENDPOINT_V3_KEY:
-            return
-        body = request.POST.dict()
-        invalid_parameters = set(body.keys()) - ALLOWED_PARAMETERS_IN_TOKEN_REQ_BODY
-
-        if invalid_parameters:
-            raise InvalidRequestError(
-                description=f"Invalid parameters in request: {invalid_parameters}"
-            )
-
     def validate_v3_token_call(self, request) -> None:
         flag = get_waffle_flag_model().get('v3_early_adopter')
 
@@ -504,7 +485,6 @@ class TokenView(DotTokenView):
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
             if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
                 self.validate_v3_token_call(request)
-            self.validate_token_endpoint_request_body(request)
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
