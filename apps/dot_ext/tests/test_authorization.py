@@ -605,7 +605,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
         self.assertEqual(response.status_code, 200)
         # Now we have a token and refresh token
-        tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
         refresh_request_data = {
             'grant_type': 'refresh_token',
@@ -627,8 +626,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
                 content_type='application/x-www-form-urlencoded'
             )
 
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertNotEqual(response.json()['access_token'], tkn)
+        assert response.status_code == HTTPStatus.OK
+        assert response.json()['scope'] == 'capability-a'
 
     @override_switch('v3_endpoints', active=True)
     def test_refresh_token_with_scope_parameter_invalid_request(self):
@@ -697,7 +696,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
                 content_type='application/x-www-form-urlencoded'
             )
 
-        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json()['error'] == 'invalid_scope'
 
     def test_dag_expiration_exists(self):
         redirect_uri = 'http://localhost'

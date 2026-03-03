@@ -795,8 +795,8 @@ HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
+SANDBOX_URL = 'https://sandbox.bluebutton.cms.gov'
 TEST_URL = 'https://test.bluebutton.cms.gov'
-LOCALHOST_URL = 'http://localhost:8000'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
 
@@ -828,9 +828,9 @@ BENE_TXT_USERNAME = 'BBUser09003'
 BENE_TXT_PASSWORD_TEST = 'PW09003!@'
 BENE_TXT_PASSWORD_PROD = 'PW09003!'
 BENE_TXT_PASSWORD = \
-    BENE_TXT_PASSWORD_TEST \
-    if HOSTNAME_URL.startswith(TEST_URL) or HOSTNAME_URL.startswith(LOCALHOST_URL) \
-    else BENE_TXT_PASSWORD_PROD
+    BENE_TXT_PASSWORD_PROD \
+    if HOSTNAME_URL.startswith(PROD_URL) or HOSTNAME_URL.startswith(SANDBOX_URL) \
+    else BENE_TXT_PASSWORD_TEST
 
 LNK_TXT_SIGNUP = "Signup"
 TAG_FOR_AUTHORIZE_LINK = "pre"
