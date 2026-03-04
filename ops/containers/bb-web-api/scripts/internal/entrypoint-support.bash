@@ -17,8 +17,10 @@ run_socat_locally () {
 }
 
 write_bfd_certs_to_tmp () {
+    echo "🟦 Writing Certs to ${DJANGO_FHIR_CERTSTORE}"
     mkdir -p ${DJANGO_FHIR_CERTSTORE}
     if [[ $TARGET_ENV == "local" ]]; then
+        echo "🔵 Local"
         echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/key.pem
         echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/cert.pem
         return 0
@@ -26,13 +28,14 @@ write_bfd_certs_to_tmp () {
         # Fargate: certs injected as env vars from SM auto-discovery
         # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
         # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
+        echo "🔵 AWS"
         echo "${FHIR_KEY_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
         echo "${FHIR_CERT_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
-
-        return 1
+        return 0
     fi
 
     # Should not get here
+    echo "⛔ Could not write certs"
     return 2
 }
 

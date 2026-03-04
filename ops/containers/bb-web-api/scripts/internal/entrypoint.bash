@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 source ops/containers/bb-web-api/scripts/internal/gonogo.bash
 source ops/containers/bb-web-api/scripts/internal/entrypoint-support.bash
