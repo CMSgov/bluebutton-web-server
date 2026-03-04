@@ -21,14 +21,10 @@ module "platform" {
 module "sops" {
   source = "../../modules/sops"
 
-  env         = module.platform.env
-  parent_env  = module.platform.parent_env
-  kms_key_arn = module.platform.kms_key_arn
-}
-
-output "sopsw" {
-  description = "Command to edit the current environment's encrypted values file"
-  value       = module.sops.sopsw
+  env                  = module.platform.env
+  parent_env           = module.platform.parent_env
+  kms_key_arn          = module.platform.kms_key_arn
+  create_sopsw_wrapper = false
 }
 
 output "ssm_parameters" {
