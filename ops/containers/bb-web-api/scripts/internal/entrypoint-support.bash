@@ -20,7 +20,7 @@ write_bfd_certs_to_tmp () {
     mkdir -p ${DJANGO_FHIR_CERTSTORE}
     if [[ $TARGET_ENV == "local" ]]; then
         echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/key.pem
-        echo "${BFD_CERT_PEM_B64}" | base64 --decode > /${DJANGO_FHIR_CERTSTORE}/cert.pem
+        echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/cert.pem
         return 0
     else
         # Fargate: certs injected as env vars from SM auto-discovery
