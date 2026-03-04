@@ -449,84 +449,84 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'jsonout',
         },
-        'file_debug': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'formatter': 'verbose',
-            'filename': os.path.join(LOG_DIR, 'debug.log'),
-        },
-        'file_error': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'verbose',
-            'filename': os.path.join(LOG_DIR, 'error.log'),
-        },
-        'file_info': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'simple',
-            'filename': os.path.join(LOG_DIR, 'info.log'),
-        },
-        'badlogin_info': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'simple',
-            'filename': os.path.join(LOG_DIR, 'login_failed.log'),
-        },
-        'adminuse_info': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'simple',
-            'filename': os.path.join(LOG_DIR, 'admin_access.log'),
-        },
+        # 'file_debug': {
+        #     'level': 'DEBUG',
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'verbose',
+        #     'filename': os.path.join(LOG_DIR, 'debug.log'),
+        # },
+        # 'file_error': {
+        #     'level': 'INFO',
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'verbose',
+        #     'filename': os.path.join(LOG_DIR, 'error.log'),
+        # },
+        # 'file_info': {
+        #     'level': 'INFO',
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'simple',
+        #     'filename': os.path.join(LOG_DIR, 'info.log'),
+        # },
+        # 'badlogin_info': {
+        #     'level': 'INFO',
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'simple',
+        #     'filename': os.path.join(LOG_DIR, 'login_failed.log'),
+        # },
+        # 'adminuse_info': {
+        #     'level': 'INFO',
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'simple',
+        #     'filename': os.path.join(LOG_DIR, 'admin_access.log'),
+        # },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'filters': ['require_debug_true'],
             'formatter': 'verbose'
         },
-        'perf_mon': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'jsonout',
-            'filename': os.path.join(LOG_DIR, 'perf_mon.log'),
-        }
+        # 'perf_mon': {
+        #     'level': 'INFO',
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'jsonout',
+        #     'filename': os.path.join(LOG_DIR, 'perf_mon.log'),
+        # }
     },
     'loggers': {
         'hhs_server': {
-            'handlers': ['file_debug', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'DEBUG',
         },
         'hhs_oauth_server.accounts': {
-            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         },
         'hhs_server_debug': {
-            'handlers': ['file_debug', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'DEBUG',
         },
         'hhs_server_error': {
-            'handlers': ['file_error', 'mail_admins', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['mail_admins', 'cloudwatch_console'],
             'level': 'ERROR',
         },
         'unsuccessful_logins': {
-            'handlers': ['badlogin_info', 'perf_mon', 'cloudwatch_console', 'file_info'],
+            'handlers': ['cloudwatch_console',],
             'level': 'INFO',
         },
         'admin_interface': {
-            'handlers': ['adminuse_info', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         },
         'hhs_server_info': {
-            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         },
         'oauth2_provider': {
-            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         },
         'oauthlib': {
-            'handlers': ['file_info', 'perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         },
         'tests': {
@@ -534,11 +534,11 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'audit': {
-            'handlers': ['perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         },
         'performance': {
-            'handlers': ['perf_mon', 'cloudwatch_console'],
+            'handlers': ['cloudwatch_console'],
             'level': 'INFO',
         }
     },

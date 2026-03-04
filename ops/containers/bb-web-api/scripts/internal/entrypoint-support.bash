@@ -20,7 +20,7 @@ write_bfd_certs_to_tmp () {
     echo "🟦 Writing Certs to ${DJANGO_FHIR_CERTSTORE}"
     mkdir -p ${DJANGO_FHIR_CERTSTORE}
     if [[ $TARGET_ENV == "local" ]]; then
-        echo "🔵 Local"
+        echo "🔵 certs local"
         echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/key.pem
         echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/cert.pem
         return 0
@@ -28,7 +28,7 @@ write_bfd_certs_to_tmp () {
         # Fargate: certs injected as env vars from SM auto-discovery
         # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
         # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
-        echo "🔵 AWS"
+        echo "🔵 certs aws"
         echo "${FHIR_KEY_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
         echo "${FHIR_CERT_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
         return 0
@@ -94,11 +94,13 @@ possibly_migrate_or_collectstatic_if_local () {
 }
 
 launch_blue_button () {
+    echo "🟦 Launch Blue Button"
     mkdir -p /tmp/gunicorn
+    LAUNCH_RESULT=1
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
         # --bind 0.0.0.0:${GUNICORN_PORT} \
-        echo "🟦 local run options"
+        echo "🔵 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
             --worker-tmp-dir /tmp/gunicorn \
@@ -107,7 +109,9 @@ launch_blue_button () {
             --timeout ${GUNICORN_TIMEOUT} \
             --reload \
             --log-level debug
+        RESULT=$?
     else
+        echo "🔵 aws run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
             --worker-tmp-dir /tmp/gunicorn \
@@ -116,7 +120,8 @@ launch_blue_button () {
             --timeout ${GUNICORN_TIMEOUT} \
             --reload \
             --log-level debug
+        RESULT=$?
     fi
 
-    return 0
+    return $RESULT
 }
