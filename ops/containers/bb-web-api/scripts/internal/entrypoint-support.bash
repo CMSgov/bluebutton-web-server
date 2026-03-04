@@ -26,8 +26,8 @@ write_bfd_certs_to_tmp () {
         # Fargate: certs injected as env vars from SM auto-discovery
         # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
         # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
-        echo "${FHIR_KEY_PEM}" | base64 --decode > /tmp/certstore/ca.key.nocrypt.pem
-        echo "${FHIR_CERT_PEM}" | base64 --decode > /tmp/certstore/ca.cert.pem
+        echo "${FHIR_KEY_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
+        echo "${FHIR_CERT_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
         return 1
     fi
 
