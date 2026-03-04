@@ -50,43 +50,6 @@ check_bfd_certs_are_not_empty () {
     return 0
 }
 
-write_nginx_certs_to_tmp () {
-    mkdir -p /tmp/nginx/certs
-    if [[ $TARGET_ENV == "local" ]]; then
-        echo "🔵 writing nginx certs to temp"
-        echo "${NGINX_KEY_PEM_B64}" | base64 --decode > /tmp/nginx/certs/key.pem
-        echo "${NGINX_CERT_PEM_B64}" | base64 --decode > /tmp/nginx/certs/cert.pem
-        return 0
-    else
-        # In production, we grab the certs from the envirionment.
-        echo "not implemented"
-        return 1
-    fi
-    # Should not get here
-    return 2
-}
-
-configure_nginx () {
-    # This happens in all environments, local and production
-    mkdir -p ${NGINX_TMP}/tmp
-    cat ${HOME}/bb/ops/containers/bb-web-api/files/internal/nginx.conf.in | ${BOTONBIN}/envsubst  > ${NGINX_TMP}/nginx.conf
-    rm -f ${NGINX_TMP}/uwsgi_params
-    ln -s /etc/nginx/uwsgi_params ${NGINX_TMP}/uwsgi_params
-    
-}
-
-run_nginx () {
-    # This happens in all environments, local and production
-    nginx -c ${NGINX_TMP}/nginx.conf &
-    result=$?
-    if [[ $result == "0" ]]; then
-        echo "🔵 nginx is up"
-    else
-        echo "⛔ nginx is not up"
-    fi
-    return $result
-}
-
 possibly_migrate_or_collectstatic_if_local () {
     echo "🟦 possibly migrate or collectstatic"
 
@@ -113,14 +76,12 @@ launch_blue_button () {
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
         # --bind 0.0.0.0:${GUNICORN_PORT} \
-
+        mkdir -p /tmp/gunicorn
         echo "🟦 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
-            --worker-tmp-dir /dev/shm \
+            --worker-tmp-dir /tmp/gunicorn \
             --bind 0.0.0.0:${GUNICORN_PORT} \
-            -m 000 \
-            --bind unix:/tmp/nginx/gunicorn.sock
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
             --reload \
@@ -128,7 +89,7 @@ launch_blue_button () {
     else
         gunicorn \
             hhs_oauth_server.wsgi:application \
-            --worker-tmp-dir /dev/shm \
+            --worker-tmp-dir /tmp/gunicorn \
             --bind 0.0.0.0:${GUNICORN_PORT} \
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \

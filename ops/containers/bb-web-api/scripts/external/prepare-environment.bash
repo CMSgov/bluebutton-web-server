@@ -36,11 +36,6 @@ gonogo "set_bfd_urls"
 # We don't write them to disk; that happens *inside* the container.
 retrieve_bfd_certs
 gonogo "retrieve_bfd_certs"
-# These are the certs we need for HTTPs termination
-# e.g. the things that let us be `test.bluebutton.cms.gov` with secure authority.
-# Locally, we create bogus/self-signed certs.
-retrieve_nginx_certs
-gonogo "retrieve_nginx_certs"
 
 ####################################
 # SLSX

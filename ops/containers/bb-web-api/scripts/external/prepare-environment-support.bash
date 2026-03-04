@@ -215,34 +215,6 @@ retrieve_bfd_certs () {
     return 0
 }
 
-retrieve_nginx_certs () {
-    KEY_TEMP=$(mktemp)
-    CERT_TEMP=$(mktemp)
-    if [[ $TARGET_ENV == "local" ]]; then
-        openssl req -x509 -newkey rsa:4096 \
-            -keyout $KEY_TEMP \
-            -out $CERT_TEMP \
-            -sha256 \
-            -days 3650 \
-            -nodes \
-            -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname" \
-            >/dev/null 2>&1
-        _NGINX_KEY_PEM_B64=$(<$KEY_TEMP)
-        export NGINX_KEY_PEM_B64=$(echo "${_NGINX_KEY_PEM_B64}" | base64)
-        _NGINX_CERT_PEM_B64=$(<$CERT_TEMP)
-        export NGINX_CERT_PEM_B64=$(echo "${_NGINX_CERT_PEM_B64}" | base64)
-    else
-        rm -f $KEY_TEMP
-        rm -f $CERT_TEMP
-        echo "⛔ nginx certs must be fetched in cloud environments."
-        return 1
-    fi
-
-    rm -f $KEY_TEMP
-    rm -f $CERT_TEMP
-    return 0
-}
-
 ########################################
 # configure_slsx
 # How do we want to authenticate? Mock or live?

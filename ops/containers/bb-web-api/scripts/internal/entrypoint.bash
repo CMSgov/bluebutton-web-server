@@ -51,20 +51,6 @@ gonogo "write_bfd_certs_to_tmp"
 check_bfd_certs_are_not_empty
 gonogo "check_bfd_certs_are_not_empty"
 
-# ========== NGINX ==========
-# We should have our certificates in the secrets. This means they will be made available
-# to us here, and they can be written out to files at startup. There are both
-# the certs for the container (for HTTPS termination) as well as the BFD certs
-# (so we can make upstream calls on the behalf of applications).
-write_nginx_certs_to_tmp
-gonogo "write_nginx_certs_to_tmp"
-# Write the config out to /tmp
-configure_nginx
-gonogo "configure_nginx"
-# Run nginx
-run_nginx
-gonogo "run_nginx"
-
 # Launch our app
 launch_blue_button
 gonogo "LAUNCH BLUE BUTTON"
