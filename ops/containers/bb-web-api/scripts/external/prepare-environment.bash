@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source scripts/external/prepare-environment-support.bash
+source bb-web-api/scripts/external/prepare-environment-support.bash
 
 ####################################
 # OPERATING CONDITIONS
@@ -8,6 +8,13 @@ source scripts/external/prepare-environment-support.bash
 # container launch can pick them up.
 set -e
 set -a
+
+echo "-------- ENV VARS --------"
+echo "🥑 bfd          ${bfd}"
+echo "🥑 auth         ${auth}"
+echo "🥑 env          ${env}"
+echo "🥑 TARGET_ENV   ${TARGET_ENV}"
+
 
 ####################################
 # ENV SETUP
@@ -29,11 +36,6 @@ gonogo "set_bfd_urls"
 # We don't write them to disk; that happens *inside* the container.
 retrieve_bfd_certs
 gonogo "retrieve_bfd_certs"
-# These are the certs we need for HTTPs termination
-# e.g. the things that let us be `test.bluebutton.cms.gov` with secure authority.
-# Locally, we create bogus/self-signed certs.
-retrieve_nginx_certs
-gonogo "retrieve_nginx_certs"
 
 ####################################
 # SLSX
@@ -62,22 +64,32 @@ cd ../..
 
 if [[ "${daemon}" == "1" ]]; then
     docker compose \
-    -f FIXME/docker-compose-local.yaml \
+    -f ops/containers/docker-compose-local.yaml \
     up \
     --detach
-elif [[ "${MIGRATE}" == "1"  || "${COLLECTSTATIC}" == "1" ]]; then
-    echo "📊 Tailing logs."
+elif [[ "${MIGRATE}" == "1"  ]]; then
+    echo "📊 Migrating."
     echo
     docker compose \
-        -f FIXME/docker-compose-local.yaml \
+        -f ops/containers/docker-compose-local.yaml \
         up --abort-on-container-exit
     docker compose down
+    exit
+elif [[ "${COLLECTSTATIC}" == "1" ]]; then
+    echo "📊 Collecting static."
+    echo
+    docker compose \
+        -f ops/containers/docker-compose-local.yaml \
+        up --abort-on-container-exit
+    docker compose down
+    exit
 else
     echo "📊 Tailing logs."
     echo
     BUILD_TARGET=local \
     RELEASE_TAG=local \
+    TARGET_ENV="local" \
     docker compose \
-        -f containers/docker-compose-local.yaml \
-        up
+        -f ops/containers/docker-compose-local.yaml \
+        up --abort-on-container-exit
 fi

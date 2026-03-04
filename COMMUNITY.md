@@ -217,19 +217,26 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/noor1027">
+                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
+                    <br />
+                    <sub><b>noor1027</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
                 <a href="https://github.com/micahtaylor">
                     <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
                     <br />
                     <sub><b>Micah Taylor</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
-                <a href="https://github.com/noor1027">
-                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
+                <a href="https://github.com/ryan-morosa">
+                    <img src="https://avatars.githubusercontent.com/u/253099523?v=4" width="100;" alt="ryan-morosa"/>
                     <br />
-                    <sub><b>noor1027</b></sub>
+                    <sub><b>ryan-morosa</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -251,13 +258,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/148500681?v=4" width="100;" alt="meliGuzman"/>
                     <br />
                     <sub><b>meliGuzman</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/ryan-morosa">
-                    <img src="https://avatars.githubusercontent.com/u/253099523?v=4" width="100;" alt="ryan-morosa"/>
-                    <br />
-                    <sub><b>ryan-morosa</b></sub>
                 </a>
             </td>
             <td align="center">
