@@ -74,7 +74,6 @@ jobs:
           file: ops/containers/bb-web-api/Dockerfile
           push: true
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
           build-args: |
             BUILD_TARGET=production
