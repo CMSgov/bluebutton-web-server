@@ -17,10 +17,10 @@ run_socat_locally () {
 }
 
 write_bfd_certs_to_tmp () {
-    mkdir -p /tmp/bfd/certs
+    mkdir -p ${DJANGO_FHIR_CERTSTORE}
     if [[ $TARGET_ENV == "local" ]]; then
-        echo "${BFD_KEY_PEM_B64}" | base64 --decode > /tmp/bfd/certs/key.pem
-        echo "${BFD_CERT_PEM_B64}" | base64 --decode > /tmp/bfd/certs/cert.pem
+        echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/key.pem
+        echo "${BFD_CERT_PEM_B64}" | base64 --decode > /${DJANGO_FHIR_CERTSTORE}/cert.pem
         return 0
     else
         # Fargate: certs injected as env vars from SM auto-discovery
@@ -28,6 +28,7 @@ write_bfd_certs_to_tmp () {
         # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
         echo "${FHIR_KEY_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
         echo "${FHIR_CERT_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
+
         return 1
     fi
 
@@ -53,12 +54,12 @@ check_bfd_certs_are_not_empty () {
 
     if [[ $TARGET_ENV == "local" ]]; then
         # Make sure the files are not empty
-        if [[ -z $(grep '[^[:space:]]' /tmp/bfd/certs/key.pem) ]]; then
+        if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/key.pem) ]]; then
             echo "⛔ BFD key.pem is empty"
             return 1
         fi
 
-        if [[ -z $(grep '[^[:space:]]' /tmp/bfd/certs/cert.pem) ]]; then
+        if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/cert.pem) ]]; then
             echo "⛔ BFD cert.pem is empty"
             return 1
         fi
