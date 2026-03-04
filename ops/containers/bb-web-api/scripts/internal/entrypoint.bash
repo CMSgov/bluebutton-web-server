@@ -21,6 +21,13 @@ export GUNICORN_PORT=${GUNICORN_PORT:-8000}
 export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 
+# ========== DATABASE ==========
+# Construct DATABASES_CUSTOM from individual SM secrets (supports credential rotation)
+# Django uses dj_database_url to parse this connection string
+if [[ $TARGET_ENV != "local" ]] && [[ -n "$DB_USER_NAME" ]]; then
+    export DATABASES_CUSTOM="postgres://${DB_USER_NAME}:${DB_USER_PW}@${DB_HOST}:15432/${DB_NAME}?sslmode=require&options=-c role=${DB_ROLE}"
+    echo "DATABASES_CUSTOM constructed from individual DB env vars"
+fi
 
 # ========== SOCAT ==========
 # socat is used locally so that Blue Button can talk to the S3 mock.
@@ -38,19 +45,21 @@ gonogo "write_bfd_certs_to_tmp"
 check_bfd_certs_are_not_empty
 gonogo "check_bfd_certs_are_not_empty"
 
-# ========== NGINX ==========
-# We should have our certificates in the secrets. This means they will be made available
-# to us here, and they can be written out to files at startup. There are both
-# the certs for the container (for HTTPS termination) as well as the BFD certs
-# (so we can make upstream calls on the behalf of applications).
-write_nginx_certs_to_tmp
-gonogo "write_nginx_certs_to_tmp"
-# Write the config out to /tmp
-configure_nginx
-gonogo "configure_nginx"
-# Run nginx
-run_nginx
-gonogo "run_nginx"
+# ========== TLS CERTS ==========
+# DigiCert certs for HTTPS termination — used by nginx (local) or gunicorn (Fargate)
+write_tls_certs_to_tmp
+gonogo "write_tls_certs_to_tmp"
+
+if [[ $TARGET_ENV == "local" ]]; then
+    # Local: nginx handles HTTPS on 8443, proxies to gunicorn HTTP on 8000
+    configure_nginx
+    gonogo "configure_nginx"
+    run_nginx
+    gonogo "run_nginx"
+else
+    # Fargate: gunicorn handles TLS directly (no nginx), matching BFD/AB2D pattern
+    echo "Skipping nginx — gunicorn handles TLS directly"
+fi
 
 # Launch our app
 launch_blue_button
