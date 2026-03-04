@@ -94,10 +94,10 @@ possibly_migrate_or_collectstatic_if_local () {
 }
 
 launch_blue_button () {
+    mkdir -p /tmp/gunicorn
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
         # --bind 0.0.0.0:${GUNICORN_PORT} \
-        mkdir -p /tmp/gunicorn
         echo "🟦 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
