@@ -19,9 +19,14 @@ resource "aws_ecs_task_definition" "ecs_task" {
       protocol      = "tcp"
     }]
 
-    mountPoints = [
-      { containerPath = "/tmp", sourceVolume = "tmp", readOnly = false }
-    ]
+    linuxParameters = {
+      initProcessEnabled = true
+      tmpfs = [{
+        containerPath = "/tmp"
+        size          = 256
+        mountOptions  = ["rw", "noexec", "nosuid"]
+      }]
+    }
 
     environment = local.all_environment
     secrets     = local.all_secrets
@@ -34,6 +39,11 @@ resource "aws_ecs_task_definition" "ecs_task" {
       }
     }
   }])
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "ARM64"
+  }
 
   volume {
     name = "tmp"
