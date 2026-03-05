@@ -2,8 +2,7 @@ all: build-local
 
 build-local:
 	docker build \
-    	--platform "linux/amd64" \
-    	-t bb-msls:latest \
+    	-t mslsx:latest \
     	-f Dockerfile .
 
 build-cloud:
