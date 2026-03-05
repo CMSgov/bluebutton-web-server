@@ -21,13 +21,26 @@ export GUNICORN_PORT=${GUNICORN_PORT:-8000}
 export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 
-
 # ========== SOCAT ==========
 # socat is used locally so that Blue Button can talk to the S3 mock.
 # We do not want to run it in production. No particular harm comes from running it
 # in production, but we don't need to.
 run_socat_locally
 gonogo "run_socat_locally"
+
+# ========== MIGRATE ==========
+# When running locally, we may want to run 
+# python manage.py migrate
+#
+# or
+#
+# python manage.py collectstatic
+# 
+# This conditionally does that only if TARGET_ENV=local and 
+# either MIGRATE=1 or COLLECTSTATIC=1
+#
+# Must come after socat, so we can talk to the s3mock.
+possibly_migrate_or_collectstatic_if_local
 
 # ========== BFD ==========
 # We need certs to talk to BFD. These are grabbed
@@ -37,20 +50,6 @@ write_bfd_certs_to_tmp
 gonogo "write_bfd_certs_to_tmp"
 check_bfd_certs_are_not_empty
 gonogo "check_bfd_certs_are_not_empty"
-
-# ========== NGINX ==========
-# We should have our certificates in the secrets. This means they will be made available
-# to us here, and they can be written out to files at startup. There are both
-# the certs for the container (for HTTPS termination) as well as the BFD certs
-# (so we can make upstream calls on the behalf of applications).
-write_nginx_certs_to_tmp
-gonogo "write_nginx_certs_to_tmp"
-# Write the config out to /tmp
-configure_nginx
-gonogo "configure_nginx"
-# Run nginx
-run_nginx
-gonogo "run_nginx"
 
 # Launch our app
 launch_blue_button

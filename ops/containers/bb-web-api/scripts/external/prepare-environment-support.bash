@@ -168,42 +168,11 @@ export CERT_AND_SALT="YES"
 
 retrieve_bfd_certs () {
     if [[ "${bfd}" == "local" ]]; then
-        echo "🆗 Running locally. Not retrieving certs."
-        echo "🆗 Running locally. Not retrieving salt."
+        KEY_TEMP=$(mktemp)
+        CERT_TEMP=$(mktemp)
+        echo "🦄 Running locally. Generating bogus BFD certs."
         unset BFD_CERT_PEM_B64
         unset BFD_KEY_PEM_B64
-    elif [[ "${bfd}" == "test" ]]; then
-        export CERT_SUFFIX="_test"
-        export PROFILE="slsx"
-        BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
-            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
-            --query 'SecretString' \
-            --output text)
-        BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
-            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
-            --query 'SecretString' \
-            --output text)
-    elif [[ "${bfd}" == "sbx" ]]; then
-        BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
-            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
-            --query 'SecretString' \
-            --output text)
-        BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
-            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
-            --query 'SecretString' \
-            --output text)
-    elif [[ "${bfd}" == "prod" ]]; then
-        echo "⛔ fetching certs for prod target not supported locally."
-        return 1
-    fi
-
-    return 0
-}
-
-retrieve_nginx_certs () {
-    KEY_TEMP=$(mktemp)
-    CERT_TEMP=$(mktemp)
-    if [[ $TARGET_ENV == "local" ]]; then
         openssl req -x509 -newkey rsa:4096 \
             -keyout $KEY_TEMP \
             -out $CERT_TEMP \
@@ -212,19 +181,37 @@ retrieve_nginx_certs () {
             -nodes \
             -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname" \
             >/dev/null 2>&1
-        NGINX_KEY_PEM_B64=$(<$KEY_TEMP)
-        export NGINX_KEY_PEM_B64=$(echo "${NGINX_CERT_PEM_B64}" | base64)
-        NGINX_CERT_PEM_B64=$(<$CERT_TEMP)
-        export NGINX_CERT_PEM_B64=$(echo "${NGINX_CERT_PEM_B64}" | base64)
-    else
+        _BFD_KEY_PEM_B64=$(<$KEY_TEMP)
+        export BFD_KEY_PEM_B64=$(echo "${_BFD_KEY_PEM_B64}" | base64)
+        _BFD_CERT_PEM_B64=$(<$CERT_TEMP)
+        export BFD_CERT_PEM_B64=$(echo "${_BFD_CERT_PEM_B64}" | base64)
         rm -f $KEY_TEMP
         rm -f $CERT_TEMP
-        echo "⛔ nginx certs must be fetched in cloud environments."
+    elif [[ "${bfd}" == "test" ]]; then
+        echo "🆗 BFD for test"
+        export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
+            --query 'SecretString' \
+            --output text)
+        export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
+            --query 'SecretString' \
+            --output text)
+    elif [[ "${bfd}" == "sbx" ]]; then
+        echo "🆗 BFD for sbx"
+        export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
+            --query 'SecretString' \
+            --output text)
+        export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
+            --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
+            --query 'SecretString' \
+            --output text)
+    elif [[ "${bfd}" == "prod" ]]; then
+        echo "⛔ fetching BFD certs for prod target not supported locally."
         return 1
     fi
-    
-    rm -f $KEY_TEMP
-    rm -f $CERT_TEMP
+
     return 0
 }
 

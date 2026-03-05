@@ -3,11 +3,10 @@ services:
   # Local MSLS server
   # A small Flask app for testing.
   msls:
-    build: 
-      context: msls
-      dockerfile: Dockerfile
-    image: bb-msls:latest
-    platform: linux/amd64
+    # build: 
+    #   context: msls
+    #   dockerfile: Dockerfile
+    image: mslsx:latest
     command: scripts/internal/entrypoint.bash
     ports:
       - "8080:8080"
@@ -30,19 +29,17 @@ services:
   ####################
   # Blue Button
   web:
-    build: 
-      # Note the context is the top of the repo, and the
-      # dockerfile is down in the `ops` tree.
-      context: ../..
-      dockerfile: ops/containers/bb-web-api/Dockerfile
-    image: bb-web-api:latest
-    platform: linux/amd64
+    # build: 
+    #   # Note the context is the top of the repo, and the
+    #   # dockerfile is down in the `ops` tree.
+    #   context: ../..
+    #   dockerfile: ops/containers/bb-web-api/Dockerfile
+    image: bbwebapi:latest
     command: /home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
     read_only: ${READ_ONLY:-true}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    env_file:
-      - bb-web-api/files/external/.env.container
+    env_file: ./bb-web-api/files/external/.env.container
     volumes:
       - ./bb-web-api/scripts:/home/boton/bb/ops/containers/bb-web-api/scripts
       - type: bind
@@ -56,6 +53,7 @@ services:
           mode: 0777
     ports:
       - "8000:8000"
+      - "8443:8443"
       - "5678:5678"
     depends_on:
       - db
