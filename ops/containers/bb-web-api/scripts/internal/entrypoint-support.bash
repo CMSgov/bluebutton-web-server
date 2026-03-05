@@ -29,8 +29,8 @@ write_bfd_certs_to_tmp () {
         # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
         # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
         echo "🔵 certs aws"
-        echo "${FHIR_KEY_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
-        echo "${FHIR_CERT_PEM}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
+        echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
+        echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
         return 0
     fi
 
@@ -39,19 +39,6 @@ write_bfd_certs_to_tmp () {
     return 2
 }
 
-# write_bfd_certs_to_tmp () {
-#     mkdir -p /tmp/certstore
-#     if [[ $TARGET_ENV == "local" ]]; then
-#         echo "${BFD_KEY_PEM_B64}" | base64 --decode > /tmp/certstore/ca.key.nocrypt.pem
-#         echo "${BFD_CERT_PEM_B64}" | base64 --decode > /tmp/certstore/ca.cert.pem
-#     else
-#         # Fargate: certs injected as env vars from SM auto-discovery
-#         # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
-#         # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
-#         echo "${FHIR_KEY_PEM}" | base64 --decode > /tmp/certstore/ca.key.nocrypt.pem
-#         echo "${FHIR_CERT_PEM}" | base64 --decode > /tmp/certstore/ca.cert.pem
-#     fi
-#     return 0
 
 check_bfd_certs_are_not_empty () {
 
