@@ -47,6 +47,31 @@ runs:
       with:
         tofu_version_file: ops/services/.opentofu-version
 
+    - name: Install sops and yq
+      shell: bash
+      run: |
+        # sops — decrypt SOPS-encrypted config files
+        if ! command -v sops &>/dev/null; then
+          ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+          curl -sSLfo /usr/local/bin/sops \
+            "https://github.com/getsops/sops/releases/download/v3.9.4/sops-v3.9.4.linux.${ARCH}"
+          chmod +x /usr/local/bin/sops
+          echo "sops $(sops --version) installed"
+        else
+          echo "sops $(sops --version) already installed"
+        fi
+
+        # yq — YAML/JSON processing for SOPS wrapper
+        if ! command -v yq &>/dev/null; then
+          ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+          curl -sSLfo /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/v4.44.6/yq_linux_${ARCH}"
+          chmod +x /usr/local/bin/yq
+          echo "yq $(yq --version) installed"
+        else
+          echo "yq $(yq --version) already installed"
+        fi
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
