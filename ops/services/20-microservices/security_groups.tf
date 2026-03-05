@@ -149,3 +149,18 @@ resource "aws_vpc_security_group_egress_rule" "alb_all" {
   description       = "Allow all outbound"
 }
 
+# ============================================================================
+# RDS Ingress: Allow ECS tasks to reach the database
+# Auto-discovers BB-SG-{ENV}-DATA-ALLZONE and adds ingress from ECS SG
+# ============================================================================
+resource "aws_vpc_security_group_ingress_rule" "rds_from_ecs" {
+  for_each = nonsensitive(local.service_config)
+
+  security_group_id            = data.aws_security_group.rds.id
+  referenced_security_group_id = aws_security_group.ecs_sg[each.key].id
+  from_port                    = 15432
+  to_port                      = 15432
+  ip_protocol                  = "tcp"
+  description                  = "PostgreSQL from ECS ${title(each.key)}"
+}
+

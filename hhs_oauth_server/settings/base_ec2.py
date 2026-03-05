@@ -175,7 +175,8 @@ PASSWORD_RULES = [
 
 PASSWORD_HASH_ITERATIONS = int(env("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
 
-ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
+_allowed_hosts = env("DJANGO_ALLOWED_HOSTS", "*")
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(",")] + [socket.gethostname()]
 
 # 20251029 NOTE: Setting this to `False` may disable all
 # CSS styling in the application when working locally.
@@ -267,8 +268,10 @@ if env("OPTIONAL_INSTALLED_APPS", False):
     OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
 
 MIDDLEWARE = [
-    # Middleware that adds headers to the resposne
+    "django.middleware.gzip.GZipMiddleware",
+    # Middleware that adds headers to the response
     "django.middleware.security.SecurityMiddleware",
+    "hhs_oauth_server.middleware.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -289,6 +292,16 @@ MIDDLEWARE = [
     # you can skip installing the middleware and use your own views.
     "axes.middleware.AxesMiddleware",
 ]
+
+# Security headers (previously set by nginx, now via Django SecurityMiddleware)
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SECURE_SSL_REDIRECT = False  # ALB handles HTTPS redirect
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+X_FRAME_OPTIONS = "DENY"
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
 

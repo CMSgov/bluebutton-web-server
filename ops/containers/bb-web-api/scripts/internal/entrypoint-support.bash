@@ -41,7 +41,6 @@ write_bfd_certs_to_tmp () {
 
 
 check_bfd_certs_are_not_empty () {
-
     if [[ $TARGET_ENV == "local" ]]; then
         # Make sure the files are not empty
         if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/key.pem) ]]; then
@@ -53,8 +52,19 @@ check_bfd_certs_are_not_empty () {
             echo "⛔ BFD cert.pem is empty"
             return 1
         fi
+    else
+        # Fargate: check /tmp/certstore/
+        if [[ -z $(grep '[^[:space:]]' /tmp/certstore/ca.key.nocrypt.pem) ]]; then
+            echo "⛔ BFD ca.key.nocrypt.pem is empty"
+            return 1
+        fi
+
+        if [[ -z $(grep '[^[:space:]]' /tmp/certstore/ca.cert.pem) ]]; then
+            echo "⛔ BFD ca.cert.pem is empty"
+            return 1
+        fi
     fi
-    
+
     return 0
 }
 
@@ -80,6 +90,16 @@ possibly_migrate_or_collectstatic_if_local () {
     fi
 }
 
+write_tls_certs_to_tmp () {
+    # Fargate: certs injected as env vars from SM auto-discovery
+    # SM /bb2/{env}/app/www_key_file → WWW_KEY_FILE
+    # SM /bb2/{env}/app/www_combined_crt → WWW_COMBINED_CRT
+    mkdir -p /tmp/certstore/tls
+    echo "${WWW_KEY_FILE}" | base64 --decode > /tmp/certstore/tls/key.pem
+    echo "${WWW_COMBINED_CRT}" | base64 --decode > /tmp/certstore/tls/cert.pem
+    return 0
+}
+
 launch_blue_button () {
     echo "🟦 Launch Blue Button"
     mkdir -p /tmp/gunicorn
@@ -98,16 +118,20 @@ launch_blue_button () {
             --log-level debug
         RESULT=$?
     else
+        # Fargate: gunicorn handles TLS directly with DigiCert certs (no nginx)
+        # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
+        # newrelic-admin run-program auto-configures the NR agent from NEW_RELIC_* env vars
         echo "🔵 aws run options"
-        gunicorn \
+        newrelic-admin run-program \
+            gunicorn \
             hhs_oauth_server.wsgi:application \
+            --certfile /tmp/certstore/tls/cert.pem \
+            --keyfile /tmp/certstore/tls/key.pem \
             --worker-tmp-dir /tmp/gunicorn \
-            --bind 0.0.0.0:${GUNICORN_PORT} \
+            --bind 0.0.0.0:8443 \
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
-            --reload \
-            --log-level debug
-        RESULT=$?
+            --log-level info
     fi
 
     return $RESULT

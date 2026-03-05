@@ -56,6 +56,28 @@ locals {
 }
 
 # ============================================================================
+# Non-Sensitive Environment Variables from SSM (individual parameters)
+# Provisioned by 01-config (SOPS seed) at /bb/{env}/app/nonsensitive/*
+# Each parameter basename uppercases to become the ECS env var name
+# e.g., /bb/test/app/nonsensitive/debug → DEBUG
+# ============================================================================
+data "aws_ssm_parameters_by_path" "app_nonsensitive" {
+  path = "/bb/${local.workspace}/app/nonsensitive"
+}
+
+# ============================================================================
+# RDS Security Group (auto-discovered by naming convention)
+# Pattern: BB-SG-{ENV}-DATA-ALLZONE (pre-existing, managed outside this module)
+# ============================================================================
+data "aws_security_group" "rds" {
+  filter {
+    name   = "group-name"
+    values = ["BB-SG-${upper(local.workspace)}-DATA-ALLZONE"]
+  }
+  vpc_id = local.vpc_id
+}
+
+# ============================================================================
 # Dynamic Secret Discovery (Secrets Manager only)
 # ============================================================================
 

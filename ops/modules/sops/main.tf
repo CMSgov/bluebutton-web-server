@@ -19,12 +19,13 @@ locals {
   decrypted_data = yamldecode(data.external.decrypted_sops.result.decrypted_sops)
 
   # Build SSM config from decrypted values
+  # Handles strings, lists (→ JSON), and skips nulls/undefined
   ssm_config = {
     for key, val in nonsensitive(local.decrypted_data) : key => {
-      str_val      = tostring(val)
+      str_val      = try(tostring(val), jsonencode(val))
       is_sensitive = length(regexall(local.nonsensitive_regex, key)) == 0
       source       = basename(local.values_file)
-    } if lower(tostring(val)) != "undefined"
+    } if val != null && lower(try(tostring(val), "")) != "undefined"
   }
 
   # Replace ${env} template variables with actual environment name
