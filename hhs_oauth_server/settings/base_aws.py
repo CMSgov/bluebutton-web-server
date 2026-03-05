@@ -730,7 +730,6 @@ FHIR_SERVER = {
 MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
 MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL_V3"]).hostname
 
-
 FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
     "https://bluebutton.cms.gov/resources/identifier/mbi-hash"
 )
