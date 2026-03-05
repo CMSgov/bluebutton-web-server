@@ -24,9 +24,15 @@ export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 # ========== DATABASE ==========
 # Construct DATABASES_CUSTOM from individual SM secrets (supports credential rotation)
 # Django uses dj_database_url to parse this connection string
-if [[ $TARGET_ENV != "local" ]] && [[ -n "$DB_USER_NAME" ]]; then
-    export DATABASES_CUSTOM="postgres://${DB_USER_NAME}:${DB_USER_PW}@${DB_HOST}:15432/${DB_NAME}?sslmode=require&options=-c role=${DB_ROLE}"
-    echo "DATABASES_CUSTOM constructed from individual DB env vars"
+if [[ $TARGET_ENV == "local" ]]; then
+    echo "🔵 using DATABASES_CUSTOM from local environment"
+else
+    if [[ -n "$DB_USER_NAME" ]]; then
+        export DATABASES_CUSTOM="postgres://${DB_USER_NAME}:${DB_USER_PW}@${DB_HOST}:15432/${DB_NAME}?sslmode=require&options=-c role=${DB_ROLE}"
+        echo "🔵 DATABASES_CUSTOM constructed from individual DB env vars"
+    else
+        echo "⛔ DB_USER_NAME not set — DATABASES_CUSTOM not constructed"
+    fi
 fi
 
 # ========== SOCAT ==========

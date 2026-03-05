@@ -423,7 +423,7 @@ if not os.path.exists(LOG_DIR):
     try:
         os.makedirs(LOG_DIR, exist_ok=True)
     except OSError:
-        LOG_DIR = '/tmp/logs'
+        LOG_DIR = os.path.join(BASE_DIR, 'logs')
         os.makedirs(LOG_DIR, exist_ok=True)
 
 LOGGING = {
