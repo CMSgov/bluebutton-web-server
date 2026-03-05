@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-python --version
-echo $PYTHON_VERSION
+PATH="/venv/bin:$PATH"
 
 echo Generating requirements.txt
 pip-compile --generate-hashes \

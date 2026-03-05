@@ -50,43 +50,37 @@ check_bfd_certs_are_not_empty () {
     return 0
 }
 
-write_nginx_certs_to_tmp () {
-    mkdir -p /tmp/nginx/certs
+possibly_migrate_or_collectstatic_if_local () {
+    echo "🟦 possibly migrate or collectstatic"
+
     if [[ $TARGET_ENV == "local" ]]; then
-        echo "${NGINX_KEY_PEM}" | base64 --decode > /tmp/nginx/certs/key.pem
-        echo "${NGINX_CERT_PEM}" | base64 --decode > /tmp/nginx/certs/cert.pem
-        return 0
-    else
-        # In production, we grab the certs from the envirionment.
-        echo "not implemented"
-        return 1
+        if [[ "${MIGRATE}" == "1" ]]
+        then
+            echo "🔵 running migrate"
+            python manage.py migrate
+            echo "🔵 done running migrate ; bring down the stack"
+            exit 0
+        fi
+
+        if [[ "${COLLECTSTATIC}" == "1" ]]
+        then    
+            echo "🔵 running collectstatic"
+            python manage.py collectstatic --noinput
+            echo "🔵 done running collectstatic; bring down the stack"
+            exit 0
+        fi
     fi
-    # Should not get here
-    return 2
-}
-
-configure_nginx () {
-    # This happens in all environments, local and production
-    mkdir -p ${NGINX_TMP}/tmp
-    cat ${HOME}/bb/ops/containers/bb-web-api/files/internal/nginx.conf.in | ${BOTONBIN}/envsubst  > ${NGINX_TMP}/nginx.conf
-    rm -f ${NGINX_TMP}/uwsgi_params
-    ln -s /etc/nginx/uwsgi_params ${NGINX_TMP}/uwsgi_params
-    
-}
-
-run_nginx () {
-    # This happens in all environments, local and production
-    nginx -c ${NGINX_TMP}/nginx.conf &
-    return $?
 }
 
 launch_blue_button () {
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
+        # --bind 0.0.0.0:${GUNICORN_PORT} \
+        mkdir -p /tmp/gunicorn
         echo "🟦 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
-            --worker-tmp-dir /dev/shm \
+            --worker-tmp-dir /tmp/gunicorn \
             --bind 0.0.0.0:${GUNICORN_PORT} \
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
@@ -95,7 +89,7 @@ launch_blue_button () {
     else
         gunicorn \
             hhs_oauth_server.wsgi:application \
-            --worker-tmp-dir /dev/shm \
+            --worker-tmp-dir /tmp/gunicorn \
             --bind 0.0.0.0:${GUNICORN_PORT} \
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
