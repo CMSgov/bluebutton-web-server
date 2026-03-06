@@ -15,4 +15,4 @@ TARGET_ENV = env('TARGET_ENV')
 if TARGET_ENV == 'local':
     from .base_local import * # noqa
 else:
-    from .base_ec2 import * # noqa
+    from .base_aws import * # noqa

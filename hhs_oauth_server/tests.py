@@ -13,7 +13,7 @@ import json
 from apps.logging.sensitive_logging_filters import mask_mbi
 
 
-from .utils import bool_env, TRUE_LIST, FALSE_LIST, int_env
+from hhs_oauth_server.utils import bool_env, TRUE_LIST, FALSE_LIST, int_env
 
 
 class Check_BooleanVariable_Test(TestCase):

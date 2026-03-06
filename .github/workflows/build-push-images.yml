@@ -1,8 +1,11 @@
 # Build and Deploy - Test
 
-name: Build and Deploy [TEST]
+name: Build Image and Publish to ECR
 
 on:
+  push:
+    branches:
+      - 'clewellyn-nava/bb2-4587/test-fargate-deploy'
   workflow_dispatch:
     inputs:
       environment:
@@ -14,6 +17,11 @@ on:
           - test
           - impl
           - prod
+      version:
+        description: 'Version to deploy'
+        required: true
+        default: 'none'
+        type: string
 
 env:
   AWS_REGION: us-east-1
@@ -46,8 +54,8 @@ jobs:
         run: |
           # Mask the role ARN
           echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
-          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
-          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
+          # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
+          # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
 
           # Get and mask account ID
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -64,6 +72,10 @@ jobs:
         run: |
           echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
 
+      - name: Untag previous "latest"
+        run: |
+          aws ecr batch-delete-image --repository-name bb-${{ github.event.inputs.environment || 'test' }}-api --image-ids imageTag="latest"
+
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -74,6 +86,7 @@ jobs:
           file: ops/containers/bb-web-api/Dockerfile
           platforms: linux/arm64
           push: true
+          provenance: false
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
