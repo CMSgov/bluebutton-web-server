@@ -13,12 +13,14 @@ from django.utils.deprecation import MiddlewareMixin
 
 
 class SecurityHeadersMiddleware(MiddlewareMixin):
-    """
-    Adds Content-Security-Policy-Report-Only header (BB2-233).
+    """ Adds Content-Security-Policy-Report-Only header (BB2-233).
 
     Other security headers (HSTS, X-Content-Type-Options, Referrer-Policy,
     X-Frame-Options) are handled by Django's SecurityMiddleware and
     XFrameOptionsMiddleware via settings in base_ec2.py.
+
+    Args:
+        MiddlewareMixin: Django legacy mixin class for pre 1.10 middleware
     """
 
     def __init__(self, get_response=None):

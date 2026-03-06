@@ -4,17 +4,17 @@
 # deployed environments as well.
 
 import os
-from apps.logging.sensitive_logging_filters import SensitiveDataFilter
 import dj_database_url
 import socket
 import datetime
-from getenv import env
-from ..utils import bool_env, int_env
-from urllib.parse import urlparse
 
+from apps.logging.sensitive_logging_filters import SensitiveDataFilter
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
-from .themes import THEMES, THEME_SELECTED
+from getenv import env
+from hhs_oauth_server.settings.themes import THEMES, THEME_SELECTED
+from hhs_oauth_server.utils import bool_env, int_env
+from urllib.parse import urlparse
 
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
 # We want the launch to generally be quiet, and only tell us things
@@ -221,7 +221,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_bootstrap5",
     "waffle",
-    # DOT must be installed after apps.dot_ext in order to override templates
+    # dot (django-oauth-toolkit) must be installed after apps.dot_ext in order to override templates
     "oauth2_provider",
     "axes",
     "apps.logging",
@@ -269,7 +269,6 @@ if env("OPTIONAL_INSTALLED_APPS", False):
 
 MIDDLEWARE = [
     "django.middleware.gzip.GZipMiddleware",
-    # Middleware that adds headers to the response
     "django.middleware.security.SecurityMiddleware",
     "hhs_oauth_server.middleware.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -462,48 +461,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'jsonout',
         },
-        # 'file_debug': {
-        #     'level': 'DEBUG',
-        #     'class': 'logging.FileHandler',
-        #     'formatter': 'verbose',
-        #     'filename': os.path.join(LOG_DIR, 'debug.log'),
-        # },
-        # 'file_error': {
-        #     'level': 'INFO',
-        #     'class': 'logging.FileHandler',
-        #     'formatter': 'verbose',
-        #     'filename': os.path.join(LOG_DIR, 'error.log'),
-        # },
-        # 'file_info': {
-        #     'level': 'INFO',
-        #     'class': 'logging.FileHandler',
-        #     'formatter': 'simple',
-        #     'filename': os.path.join(LOG_DIR, 'info.log'),
-        # },
-        # 'badlogin_info': {
-        #     'level': 'INFO',
-        #     'class': 'logging.FileHandler',
-        #     'formatter': 'simple',
-        #     'filename': os.path.join(LOG_DIR, 'login_failed.log'),
-        # },
-        # 'adminuse_info': {
-        #     'level': 'INFO',
-        #     'class': 'logging.FileHandler',
-        #     'formatter': 'simple',
-        #     'filename': os.path.join(LOG_DIR, 'admin_access.log'),
-        # },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'filters': ['require_debug_true'],
             'formatter': 'verbose'
-        },
-        # 'perf_mon': {
-        #     'level': 'INFO',
-        #     'class': 'logging.FileHandler',
-        #     'formatter': 'jsonout',
-        #     'filename': os.path.join(LOG_DIR, 'perf_mon.log'),
-        # }
+        }
     },
     'loggers': {
         'hhs_server': {
