@@ -1,15 +1,40 @@
-apidocs/
-bluebutton-openapi-doc/
-splunk/
-msls-local/
-dev-local/
-docker-compose/
-Jenkinsfiles/
-insights/
-
-*.sh
-*.md
-
+# Version control
 .git/
 .github/
+.gitignore
+
+# Documentation
+*.md
+apidocs/
+bluebutton-openapi-doc/
+
+# Local dev / CI tooling
+dev-local/
+docker-compose/
+docker-compose*.yml
+Dockerfiles/
+Jenkinsfiles/
+msls-local/
+scripts/
+splunk/
+insights/
 sql/
+
+# Infrastructure (only ops/containers/bb-web-api is needed at runtime)
+ops/modules/
+ops/services/
+ops/containers/msls/
+ops/containers/requirements-generation/
+ops/containers/build-css/
+ops/containers/Makefile
+ops/containers/docker-compose-local.yaml
+
+# Test / synthetic data
+synthetic-data/
+static/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
