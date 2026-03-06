@@ -76,9 +76,7 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
-            # SHA tag FIRST (becomes the new source of truth)
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
-            # latest tag LAST (gets overwritten in next step)
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
           build-args: |
             BUILD_TARGET=production
@@ -95,7 +93,6 @@ jobs:
           echo "Rotating tags for $REGISTRY/$REPO_NAME"
           echo "1. Get manifest from existing 'latest'..."
           
-          # Get manifest digest from current 'latest' 
           OLD_MANIFEST=$(aws ecr batch-get-image \
             --repository-name "$REPO_NAME" \
             --image-ids imageTag=latest \
