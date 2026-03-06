@@ -105,8 +105,7 @@ data "aws_iam_policy_document" "ecr" {
       "ecr:PutImage",
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload",
-      "ecr:BatchDeleteImage"
+      "ecr:CompleteLayerUpload"
     ]
     resources = [aws_ecr_repository.api[0].arn]
   }
