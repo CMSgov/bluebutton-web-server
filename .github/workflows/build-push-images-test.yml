@@ -68,6 +68,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and Push Docker Image to ECR
+        id: build-and-push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -75,9 +76,48 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
+            # SHA tag FIRST (becomes the new source of truth)
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
+            # latest tag LAST (gets overwritten in next step)
             ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
           build-args: |
             BUILD_TARGET=production
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+
+      - name: Rotate latest tag (previous-latest → SHA → new-latest)
+        run: |
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          REPO_NAME="bb-${{ github.event.inputs.environment || 'test' }}-api"
+          SHA="${{ github.sha }}"
+          
+          echo "Rotating tags for $REGISTRY/$REPO_NAME"
+          echo "1. Get manifest from existing 'latest'..."
+          
+          # Get manifest digest from current 'latest' 
+          OLD_MANIFEST=$(aws ecr batch-get-image \
+            --repository-name "$REPO_NAME" \
+            --image-ids imageTag=latest \
+            --query 'images[0].imageManifest' \
+            --output text)
+          
+          echo "2. Tag previous-latest as SHA (immutable backup)..."
+          aws ecr put-image \
+            --repository-name "$REPO_NAME" \
+            --image-tag "$SHA-old" \
+            --image-manifest "$OLD_MANIFEST"
+          
+          echo "3. Tag new build as 'latest'..."
+          NEW_MANIFEST=$(aws ecr batch-get-image \
+            --repository-name "$REPO_NAME" \
+            --image-ids imageTag="$SHA" \
+            --query 'images[0].imageManifest' \
+            --output text)
+          
+          aws ecr put-image \
+            --repository-name "$REPO_NAME" \
+            --image-tag "latest" \
+            --image-manifest "$NEW_MANIFEST"
+          
+          echo "✅ Rotation complete: latest → $SHA → latest"
