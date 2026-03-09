@@ -20,6 +20,61 @@ resource "aws_sns_topic_subscription" "alarms_email" {
 }
 
 # ============================================================================
+# GuardDuty Runtime Monitoring
+# ============================================================================
+
+# EventBridge rule to detect when GuardDuty runtime agent stops sending telemetry.
+# Disabled by default until alerts are tuned (ref: BFD-4379 in upstream BFD project).
+resource "aws_cloudwatch_event_rule" "guardduty_runtime_health" {
+  name        = "bb-${local.workspace}-guardduty-runtime-health"
+  state       = "DISABLED"
+  description = "Capture events indicating a GuardDuty runtime agent is no longer sending telemetry"
+
+  event_pattern = jsonencode({
+    source      = ["aws.guardduty"]
+    detail-type = ["GuardDuty Runtime Protection Unhealthy"]
+  })
+
+  tags = {
+    Name = "bb-${local.workspace}-guardduty-runtime-health"
+  }
+}
+
+resource "aws_cloudwatch_event_target" "guardduty_runtime_health" {
+  for_each = nonsensitive(local.service_config)
+
+  rule      = aws_cloudwatch_event_rule.guardduty_runtime_health.name
+  target_id = "guardduty-health-${each.key}"
+  arn       = aws_sns_topic.alarms[each.key].arn
+}
+
+# EventBridge rule for GuardDuty security findings (MEDIUM severity and above)
+resource "aws_cloudwatch_event_rule" "guardduty_findings" {
+  name        = "bb-${local.workspace}-guardduty-findings"
+  description = "Capture GuardDuty findings with MEDIUM severity or higher"
+
+  event_pattern = jsonencode({
+    source      = ["aws.guardduty"]
+    detail-type = ["GuardDuty Finding"]
+    detail = {
+      severity = [{ numeric = [">=", 4] }]
+    }
+  })
+
+  tags = {
+    Name = "bb-${local.workspace}-guardduty-findings"
+  }
+}
+
+resource "aws_cloudwatch_event_target" "guardduty_findings" {
+  for_each = nonsensitive(local.service_config)
+
+  rule      = aws_cloudwatch_event_rule.guardduty_findings.name
+  target_id = "guardduty-findings-${each.key}"
+  arn       = aws_sns_topic.alarms[each.key].arn
+}
+
+# ============================================================================
 # Infrastructure Alarms (Deadman Switch & ELB)
 # ============================================================================
 
