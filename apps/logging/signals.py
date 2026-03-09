@@ -48,7 +48,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     crosswalk_log = {
         'id': None,
         'user_hicn_hash': None,
-        'user_mbi': None,
         'fhir_id_v2': None,
         'fhir_id_v3': None,
         'user_id_type': None
