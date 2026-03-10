@@ -8,16 +8,13 @@ from apps.capabilities.constants import URL_BIT_PATTERN
 
 
 class ProtectedCapability(models.Model):
-    title = models.CharField(max_length=255,
-                             default='',
+    title = models.TextField(default='',
                              unique=True)
-    slug = models.CharField(verbose_name='Scope',
-                            max_length=255,
+    slug = models.TextField(verbose_name='Scope',
                             default='',
                             unique=True)
     group = models.ForeignKey(Group, on_delete=CASCADE,)
-    description = models.TextField(max_length=10240,
-                                   blank=True,
+    description = models.TextField(blank=True,
                                    default='')
     protected_resources = models.TextField(
         help_text="""A JSON list of pairs containing HTTP method and URL.
