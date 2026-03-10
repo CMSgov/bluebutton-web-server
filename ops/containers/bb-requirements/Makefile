@@ -6,7 +6,7 @@ build-local:
 
 run-local:
 	docker run \
-		-v ./scripts/internal/entrypoint.bash:/code/ops/containers/requirements-generation/scripts/internal/entrypoint.bash \
+		-v ./scripts/internal/entrypoint.bash:/code/ops/containers/bb-requirements/scripts/internal/entrypoint.bash \
 		-v ../../../requirements:/output \
 		-t bb-requirements:latest
 	
