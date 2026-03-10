@@ -4,7 +4,6 @@
 .gitignore
 
 # Documentation
-*.md
 apidocs/
 bluebutton-openapi-doc/
 
@@ -20,21 +19,23 @@ splunk/
 insights/
 sql/
 
-# Infrastructure (only ops/containers/bb-web-api is needed at runtime)
+# Infrastructure (only ops/containers/bb-api is needed at runtime)
 ops/modules/
 ops/services/
-ops/containers/msls/
-ops/containers/requirements-generation/
-ops/containers/build-css/
-ops/containers/Makefile
+ops/containers/bb-requirements/
+ops/containers/bb-css/
 ops/containers/docker-compose-local.yaml
+ops/containers/mslsx/
 
 # Test / synthetic data
 synthetic-data/
-static/
 
 # IDE / editor
 .vscode/
 .idea/
-*.swp
-*.swo
+
+# Wildcards
+**/*.swp
+**/*.swo
+**/Makefile
+**/.*md

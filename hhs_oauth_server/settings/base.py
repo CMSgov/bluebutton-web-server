@@ -13,6 +13,6 @@ environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
 TARGET_ENV = env('TARGET_ENV')
 
 if TARGET_ENV == 'local':
-    from .base_local import * # noqa
+    from hhs_oauth_server.settings.base_local import * # noqa
 else:
-    from .base_aws import * # noqa
+    from hhs_oauth_server.settings.base_aws import * # noqa

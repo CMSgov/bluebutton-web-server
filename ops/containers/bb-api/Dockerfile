@@ -122,5 +122,5 @@ RUN rm -f ${BB}/hhs_oauth_server/settings/git_release.py \
 
 # Make sure the entrypoint is executable.
 # Default to the production entrypoint.
-RUN chmod 755 ${BB}/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
-CMD [ "/home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash" ]
+RUN chmod 755 ${BB}/ops/containers/bb-api/scripts/internal/entrypoint.bash
+CMD [ "/home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash" ]

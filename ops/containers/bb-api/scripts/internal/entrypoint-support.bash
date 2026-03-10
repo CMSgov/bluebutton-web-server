@@ -19,52 +19,25 @@ run_socat_locally () {
 write_bfd_certs_to_tmp () {
     echo "🟦 Writing Certs to ${DJANGO_FHIR_CERTSTORE}"
     mkdir -p ${DJANGO_FHIR_CERTSTORE}
-    if [[ $TARGET_ENV == "local" ]]; then
-        echo "🔵 certs local"
-        echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/key.pem
-        echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/cert.pem
-        return 0
-    else
-        # Fargate: certs injected as env vars from SM auto-discovery
-        # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
-        # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
-        echo "🔵 certs aws"
-        echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
-        echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
-        return 0
-    fi
-
-    # Should not get here
-    echo "⛔ Could not write certs"
-    return 2
+    echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
+    echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
+    return 0
 }
 
 
 check_bfd_certs_are_not_empty () {
-    if [[ $TARGET_ENV == "local" ]]; then
-        # Make sure the files are not empty
-        if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/key.pem) ]]; then
-            echo "⛔ BFD key.pem is empty"
-            return 1
-        fi
-
-        if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/cert.pem) ]]; then
-            echo "⛔ BFD cert.pem is empty"
-            return 1
-        fi
-    else
-        # Fargate: check /tmp/certstore/
-        if [[ -z $(grep '[^[:space:]]' /tmp/certstore/ca.key.nocrypt.pem) ]]; then
-            echo "⛔ BFD ca.key.nocrypt.pem is empty"
-            return 1
-        fi
-
-        if [[ -z $(grep '[^[:space:]]' /tmp/certstore/ca.cert.pem) ]]; then
-            echo "⛔ BFD ca.cert.pem is empty"
-            return 1
-        fi
+    echo "🟦 Check BFD certs are at ${DJANGO_FHIR_CERTSTORE}"
+    # Make sure the files are not empty
+    if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem) ]]; then
+        echo "⛔ BFD ca.key.nocrypt.pem is empty"
+        return 1
     fi
 
+    if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem) ]]; then
+        echo "⛔ BFD cert.pem is empty"
+        return 1
+    fi
+    
     return 0
 }
 

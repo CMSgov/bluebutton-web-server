@@ -1,4 +1,5 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:2023.10.20260202.2 AS base
+# TODO - does this need to be running the same version as the API?
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 
 ENV PYTHONUNBUFFERED=1
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
@@ -21,4 +22,5 @@ RUN PATH="/venv/bin:${PATH}" \
     pip3.12 install \
         pip-tools \
         setuptools
-CMD ["/code/ops/containers/requirements-generation/scripts/internal/entrypoint.bash"]
+
+CMD ["/code/ops/containers/bb-requirements/scripts/internal/entrypoint.bash"]

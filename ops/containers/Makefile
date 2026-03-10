@@ -5,17 +5,17 @@ env ?= "local"
 auth ?= "live"
 
 css:
-	cd build-css ; make build-local
-	cd build-css ; make run-local
+	cd bb-css ; make build-local
+	cd bb-css ; make run-local
 
 requirements:
-	cd requirements-generation ; make clean
-	cd requirements-generation ; make build-local
-	cd requirements-generation ; make run-local
+	cd bb-requirements ; make clean
+	cd bb-requirements ; make build-local
+	cd bb-requirements ; make run-local
 
 build-local: css requirements
-	cd msls ; make build-local
-	cd bb-web-api ; make build-local
+	cd mslsx ; make build-local
+	cd bb-api ; make build-local
 
 # This is speculative; not yet tested in production.
 build-production:
@@ -28,7 +28,7 @@ build-production:
 	--build-arg BUILD_TARGET="production" \
 	--no-cache \
 	-t bb:latest \
-	-f bb-web-api/Dockerfile \
+	-f bb-api/Dockerfile \
 	.
 
 run-local:
@@ -36,22 +36,22 @@ run-local:
 	env="${env}" \
 	auth="${auth}" \
 	TARGET_ENV="local" \
-	bash ./bb-web-api/scripts/external/prepare-environment.bash
+	bash ./bb-api/scripts/external/prepare-environment.bash
 
 migrate:
 	MIGRATE=1 \
 	bfd="test" \
 	env="local" \
 	TARGET_ENV="local" \
-	bash ./bb-web-api/scripts/external/prepare-environment.bash
+	bash ./bb-api/scripts/external/prepare-environment.bash
 
 collectstatic:
 	COLLECTSTATIC=1 \
 	bfd="test" \
 	env="local" \
 	TARGET_ENV="local" \
-	bash ./bb-web-api/scripts/external/prepare-environment.bash
+	bash ./bb-api/scripts/external/prepare-environment.bash
 
 .PHONY: build-css
 build-css:
-	cd build-css ; make build-css
+	cd bb-css ; make build-css

@@ -2,28 +2,28 @@
 
 The `/ops/container` subtree contains specs for all of Blue Buttons containers. This includes containers that are intended to run in production as well as containerized apps and processes that run local-only.
 
-# tl;dr: local
+## tl;dr: local
 
-```
+```bash
 make build-local
 ```
 
 will build all containers needed to stand up Blue Button locally.
 
-```
+```bash
 make run-local
 ```
 
-will run the stack. 
+will run the stack.
 
-# local
+## local
 
 Our goal should be for the local application and the production application to be *as similar as possible*. This lets developers be confident that code they develop will behave the same locally as well as in production. 
 
 We can do a few things to try and achieve this:
 
 1. Use the same Dockerfile locally and in production. Some variation may be necessary, but we want things to be "the same as is reasonable."
-2. Run the same startup sequence. Our startup scripts (e.g. entrypoint.bash) can contain conditionals if necessary (e.g. is this local vs. production), but if we run the same code in both places, we have more confidence that the conditionals (for example) are right. 
+2. Run the same startup sequence. Our startup scripts (e.g. entrypoint.bash) can contain conditionals if necessary (e.g. is this local vs. production), but if we run the same code in both places, we have more confidence that the conditionals (for example) are right.
 3. Provide the same environment. While the local stack will look very different than the containerized Fargate instances, we want the environment provided to the app to look "the same." That means the same environment variables, the same systems (e.g. a mock S3 container), etc.
 
 When we have confidence that our local is "the same" as production, then we have more confidence in the code we write and ship, letting us move faster.
@@ -36,24 +36,24 @@ To run the local stack, we need to follow a sequence of steps. In production, we
 
 The first `make` command is a sequence unto itself.
 
-```
+```bash
 make build-local
 ```
 
 expands to
 
-```
+```bash
 make requirements
 make css
 ```
 
-followed by commands to build the `msls` and `bb-web-api` containers. This is necessary if you are working on static assets, changing the `requirements.txt` files, or working on MSLS. 
+followed by commands to build the `mslsx` and `bb-api` containers. This is necessary if you are working on static assets, changing the `requirements.txt` files, or working on MSLS.
 
 ## run the stack
 
 Next, you run the stack. You need to be in an active Kion session for this to work.
 
-```
+```bash
 make run-local bfd="..." auth="..."
 ```
 
@@ -65,23 +65,23 @@ If it is the first time you run the stack, you will need to run migrations (in o
 
 First, exec into the web container
 
-```
+```bash
 docker exec -it containers-web /bin/bash
 ```
 
 Then, source the venv that Django is using, and run the migrate and collectstatic management commands.
 
-```
-> source ~/venv/bin/activate
-> python manage.py migrate
-> python manage.py collectstatic
+```bash
+source ~/venv/bin/activate
+python manage.py migrate
+python manage.py collectstatic
 ```
 
 ## structure
 
 Every container should follow this structure as closely as possible.
 
-```
+```md
 containers
   | - <application>
   |        | - files (external, internal)
@@ -95,7 +95,7 @@ The external files are used before running the stack; the internal files are use
 
 The Makefile should always have a `build-local` and `run-local` target.
 
-### dockerfile 
+### dockerfile
 
 Each application folder contains a Dockerfile specifying how to build a container that can be run locally or, in some cases, in production.
 
@@ -114,12 +114,11 @@ Scripts external to the container---scripts that configure a local environment, 
 
 Files necessary to support the application---templates, etc.---are stored here.
 
-
 ## /tmp in the container
 
 We have access to `/tmp` locally and in production. That space is used for writing keys that are passed into the container, as well as templated configuration for services internal to the container.
 
-```
+```md
 /tmp
 |-- bfd
 |   `-- certs

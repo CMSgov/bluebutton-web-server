@@ -10,7 +10,7 @@ build-local:
 	docker build \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
-		-t bbwebapi:latest \
+		-t bb-api:latest \
 		-f Dockerfile \
 		../../..
 
@@ -23,7 +23,7 @@ build-production:
 	--build-arg RELEASE_TAG="${RELEASE_TAG}" \
 	--build-arg BUILD_TARGET="production" \
 	--no-cache \
-	-t bb-web-api-prod:latest \
+	-t bb-api-prod:latest \
 	-f Dockerfile \
 	.
 

@@ -667,7 +667,7 @@ APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
 
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
-    os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
+    os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../tmp/certstore")),
 )
 
 FHIR_SERVER = {
