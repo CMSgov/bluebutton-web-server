@@ -14,8 +14,7 @@ class ProtectedCapability(models.Model):
                             default='',
                             unique=True)
     group = models.ForeignKey(Group, on_delete=CASCADE,)
-    description = models.TextField(max_length=10240,
-                                   blank=True,
+    description = models.TextField(blank=True,
                                    default='')
     protected_resources = models.TextField(
         help_text="""A JSON list of pairs containing HTTP method and URL.
