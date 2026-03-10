@@ -1198,7 +1198,7 @@ SEQ_AUTHORIZE_START_SPANISH = [
     {
         "display": "Click on Medicare.gov option - continue authorization",
         "action": Action.FIND_CLICK,
-        "params": [30, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
+        "params": [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
     },
 ]
 
@@ -1227,7 +1227,7 @@ SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
     {
         "display": "Click on Medicare.gov option - continue authorization",
         "action": Action.FIND_CLICK,
-        "params": [30, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
+        "params": [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
     },
 ]
 
@@ -1246,7 +1246,7 @@ SEQ_AUTHORIZE_PKCE_START_V3 = [
     {
         "display": "Click on Medicare.gov option - continue authorization",
         "action": Action.FIND_CLICK,
-        "params": [30, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
+        "params": [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN]
     },
 ]
 
