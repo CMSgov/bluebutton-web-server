@@ -763,10 +763,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema["properties"].update(
             {
                 "mesg": {"pattern": "^RETURN existing beneficiary record$"},
-                "user_mbi": {
-                    "type": "string",
-                    "pattern": "^1SA0A00AA00$",
-                },
                 "hash_lookup_type": {"type": "string", "pattern": "^M$"},
                 "crosswalk_before": {
                     "type": "object",

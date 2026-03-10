@@ -48,7 +48,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     crosswalk_log = {
         'id': None,
         'user_hicn_hash': None,
-        'user_mbi': None,
         'fhir_id_v2': None,
         'fhir_id_v3': None,
         'user_id_type': None
@@ -58,7 +57,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         crosswalk_log = {
             'id': user.crosswalk.id,
             'user_hicn_hash': user.crosswalk.user_hicn_hash,
-            'user_mbi': user.crosswalk.user_mbi,
             'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
             'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
             'user_id_type': user.crosswalk.user_id_type
