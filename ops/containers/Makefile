@@ -51,7 +51,3 @@ collectstatic:
 	env="local" \
 	TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
-
-.PHONY: build-css
-build-css:
-	cd bb-css ; make build-css
