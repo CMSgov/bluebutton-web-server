@@ -80,7 +80,6 @@ class Token:
             'crosswalk': {
                 'id': getattr(crosswalk, 'id', None),
                 'user_hicn_hash': getattr(crosswalk, 'user_hicn_hash', None),
-                'user_mbi': getattr(crosswalk, 'user_mbi', None),
                 'fhir_id': getattr(crosswalk, 'fhir_id', lambda: None)(),
                 'user_id_type': getattr(crosswalk, 'user_id_type', None),
             },
