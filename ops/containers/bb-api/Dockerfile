@@ -31,12 +31,9 @@ EXPOSE ${GUNICORN_PORT}
 # shadow-utils: for useradd
 RUN dnf install -y \
     awscli \
-    git \
     procps-ng \
     python3.12 \
-    shadow-utils \
-    unzip \
-    vim
+    shadow-utils
 
 #################################################################
 # ACTIONS TAKEN AS ROOT USER

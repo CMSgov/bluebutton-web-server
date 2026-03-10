@@ -21,13 +21,14 @@ scripts/
 splunk/
 insights/
 sql/
+media/
+static/
 
 # Infrastructure (only ops/containers/bb-api is needed at runtime)
 ops/modules/
 ops/services/
 ops/containers/bb-requirements/
 ops/containers/bb-css/
-ops/containers/docker-compose-local.yaml
 ops/containers/mslsx/
 
 # Test / synthetic data
@@ -42,3 +43,4 @@ synthetic-data/
 **/*.swo
 **/Makefile
 **/.*md
+**/.yaml
