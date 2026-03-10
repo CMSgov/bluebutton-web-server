@@ -33,7 +33,8 @@ RUN dnf install -y \
     awscli \
     procps-ng \
     python3.12 \
-    shadow-utils
+    shadow-utils && dnf clean all && rm -rf /var/cache/dnf
+
 
 #################################################################
 # ACTIONS TAKEN AS ROOT USER
