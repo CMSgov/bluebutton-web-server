@@ -3,9 +3,6 @@
 name: Build Image and Publish to ECR
 
 on:
-  push:
-    branches:
-      - 'clewellyn-nava/bb2-4587/test-fargate-deploy'
   workflow_dispatch:
     inputs:
       environment:
