@@ -10,11 +10,13 @@ from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
+from apps.capabilities.models import ProtectedCapability
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
@@ -138,9 +140,20 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
+        if self.version == Versions.V3:
+            application_scopes = list(
+                ProtectedCapability.objects.filter(Q(application=self.application))
+                .values_list('slug', flat=True).distinct()
+            )
+            kwargs['scopes'] = application_scopes
+
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
+
+        if 'form' in context and self.version == Versions.V3:
+            context['form'].initial['scope'] = ' '.join(application_scopes)
+
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -212,6 +225,9 @@ class AuthorizationView(DotAuthorizationView):
 
         if not switch_is_active("enable_coverage_only"):
             return [default_tpl]
+
+        if self.version == Versions.V3:
+            return ["design_system/authorize_v3.html"]
 
         app = getattr(self, "application", None)
         if app is not None and "coverage-eligibility" in app.get_internal_application_labels():
