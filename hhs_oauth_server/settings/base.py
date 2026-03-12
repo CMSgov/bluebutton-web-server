@@ -15,4 +15,4 @@ TARGET_ENV = env('TARGET_ENV')
 if TARGET_ENV == 'local':
     from hhs_oauth_server.settings.base_local import * # noqa
 else:
-    from hhs_oauth_server.settings.base_aws import * # noqa
+    from hhs_oauth_server.settings.base_ec2 import * # noqa
