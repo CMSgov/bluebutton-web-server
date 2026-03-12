@@ -390,6 +390,23 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     resources = ["*"]
   }
 
+  # EventBridge
+  statement {
+    sid = "EventBridge"
+    actions = [
+      "events:DescribeRule",
+      "events:DeleteRule",
+      "events:ListTagsForResource",
+      "events:ListTargetsByRule",
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:TagResource",
+      "events:UntagResource",
+    ]
+    resources = ["*"]
+  }
+
   # SNS
   statement {
     sid = "SNS"
