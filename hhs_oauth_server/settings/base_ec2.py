@@ -413,21 +413,15 @@ EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", None)
 # Option for local development to pretty print/format JSON logging
 LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
 
-
-LOG_DIR = '/var/log/pyapps'
-
-# Added for integration tests (currently, log files are created in some ansible/terraform way)
-# TODO - may ne unnecessary, depending on how our integration tests end up in the fargate migration
-if not os.path.exists(LOG_DIR):
+# TODO - this is to pass integration tests, make a note to change this with Fargate
+for log_path in ("/var/log/pyapps", os.path.join(BASE_DIR, "logs")):
     try:
-        os.makedirs(LOG_DIR, exist_ok=True)
+        os.makedirs(log_path, exist_ok=True)
+        break
     except OSError:
-        try:
-            LOG_DIR = os.path.join(BASE_DIR, 'logs')
-            os.makedirs(LOG_DIR, exist_ok=True)
-        except OSError:
-            print("Running in Fargate")
+        pass
 
+# TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks that aren't being migrated
 LOGGING = env("DJANGO_LOGGING", {
     "version": 1,
     "disable_existing_loggers": False,
