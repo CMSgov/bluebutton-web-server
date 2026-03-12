@@ -59,8 +59,9 @@ resource "aws_ecs_cluster" "main" {
   }
 
   tags = {
-    Name        = "bb-${local.env}-cluster"
-    Environment = local.env
+    Name             = "bb-${local.env}-cluster"
+    Environment      = local.env
+    GuardDutyManaged = "true"
   }
 }
 
