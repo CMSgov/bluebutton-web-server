@@ -422,10 +422,13 @@ if not os.path.exists(LOG_DIR):
     try:
         os.makedirs(LOG_DIR, exist_ok=True)
     except OSError:
-        LOG_DIR = os.path.join(BASE_DIR, 'logs')
-        os.makedirs(LOG_DIR, exist_ok=True)
+        try:
+            LOG_DIR = os.path.join(BASE_DIR, 'logs')
+            os.makedirs(LOG_DIR, exist_ok=True)
+        except OSError:
+            print("Running in Fargate")
 
-LOGGING = {
+LOGGING = env("DJANGO_LOGGING", {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -518,7 +521,7 @@ LOGGING = {
             'level': 'INFO',
         }
     },
-}
+})
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
