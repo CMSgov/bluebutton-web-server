@@ -37,7 +37,7 @@ check_bfd_certs_are_not_empty () {
         echo "⛔ BFD cert.pem is empty"
         return 1
     fi
-    
+    echo "🔵 BFD certs are in place"
     return 0
 }
 
@@ -53,6 +53,7 @@ possibly_migrate_or_collectstatic_if_local () {
             exit 0
         fi
 
+        # TODO - collectstatic does not tear down the stack currently
         if [[ "${COLLECTSTATIC}" == "1" ]]
         then    
             echo "🔵 running collectstatic"
