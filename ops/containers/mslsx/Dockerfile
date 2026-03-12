@@ -5,9 +5,6 @@ ENV PYTHON_VERSION=3.12
 
 WORKDIR /code
 
-RUN ls -al
-RUN pwd
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir pip==25.3 && \
     pip install --no-cache-dir -r requirements.txt && \

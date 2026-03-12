@@ -1,4 +1,3 @@
-# TODO - does this need to be running the same version as the API?
 FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 
 ENV PYTHONUNBUFFERED=1
