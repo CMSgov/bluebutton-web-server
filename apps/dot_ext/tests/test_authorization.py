@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.http import HttpRequest
+from django.db.models import Q
 from django.urls import reverse
 from django.test import Client
 from unittest.mock import patch, MagicMock
@@ -1527,3 +1528,55 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
         self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')
+
+    @patch('apps.dot_ext.views.authorization.ProtectedCapability')
+    def test_v3_sets_scopes_in_kwargs(self, mock_pc):
+        """Ensure that for a AuthorizationView initialized for v3, that scopes are
+        set correctly on the context when get_context_data is called, and that the
+        ProtectedCapability query is called with the correct application filter.
+        """
+        mock_pc.objects.filter.return_value \
+            .values_list.return_value \
+            .distinct.return_value = ['patient/Patient.rs']
+
+        view = AuthorizationView(version=Versions.V3)
+        mock_application = MagicMock()
+        request = HttpRequest()
+        view.request = request
+        view.application = mock_application
+
+        with patch.object(
+            AuthorizationView.__bases__[0],  # parent class
+            'get_context_data',
+            return_value={'form': MagicMock(), 'scopes': ['patient/Patient.rs']},
+        ):
+            context = view.get_context_data()
+
+        mock_pc.objects.filter.assert_called_once_with(
+            Q(application=mock_application)
+        )
+        self.assertEqual(context['scopes'], ['patient/Patient.rs'])
+
+    @patch('apps.dot_ext.views.authorization.ProtectedCapability')
+    def test_v2_does_not_scopes_in_kwargs(self, mock_pc):
+        """Ensure that for a AuthorizationView initialized for v2, that we do not run
+        a query on ProtectedCapability
+        """
+        mock_pc.objects.filter.return_value \
+            .values_list.return_value \
+            .distinct.return_value = ['patient/Patient.rs']
+
+        view = AuthorizationView(version=Versions.V2)
+        mock_application = MagicMock()
+        request = HttpRequest()
+        view.request = request
+        view.application = mock_application
+
+        with patch.object(
+            AuthorizationView.__bases__[0],
+            'get_context_data',
+            return_value={'form': MagicMock()},
+        ):
+            view.get_context_data()
+
+        mock_pc.objects.filter.assert_not_called()
