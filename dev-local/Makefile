@@ -13,7 +13,7 @@ build-local:
 	cd ../dev-local/selenium && make all
 	@echo "building the CSS builder"
 	cd ../dev-local ; docker build \
-		-t bb-css:latest \
+		-t bbcss:latest \
 		-f Dockerfile.build-css ..
 	if test ! -d  ../static/bluebutton-css/dist; then \
 		echo "building CSS static assets for local dev"; \
@@ -24,7 +24,7 @@ build-css:
 	docker run \
 		-v ./build-css.bash:/code/dev-local/build-css.bash \
 		-v ../static/bluebutton-css/dist:/code/static/bluebutton-css/dist \
-		bb-css:latest
+		bbcss:latest
 
 run-local:
 	@echo "Configuring for ${ENV}" ; \
