@@ -54,3 +54,9 @@ output "ssm_service_configs" {
   sensitive   = true
   value       = local.ssm_service_configs
 }
+
+output "sns_alarm_topic_arns" {
+  description = "SNS alarm topic ARNs (per-service)"
+  value       = { for k, v in aws_sns_topic.alarms : k => v.arn }
+  sensitive   = true
+}

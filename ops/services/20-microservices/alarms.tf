@@ -75,6 +75,21 @@ resource "aws_cloudwatch_event_target" "guardduty_findings" {
 }
 
 # ============================================================================
+# SSM Export: SNS Topic ARN for cross-service discovery
+# Consumed by 30-notifications for Splunk On-Call / Slack routing
+# ============================================================================
+resource "aws_ssm_parameter" "sns_topic_arn" {
+  for_each = nonsensitive(local.service_config)
+  name     = "/bb/${local.workspace}/notifications/config/sns_topic_arn_${each.key}"
+  type     = "String"
+  value    = aws_sns_topic.alarms[each.key].arn
+
+  tags = {
+    Name = "bb-${local.workspace}-${each.key}-sns-topic-arn"
+  }
+}
+
+# ============================================================================
 # Infrastructure Alarms (Deadman Switch & ELB)
 # ============================================================================
 
