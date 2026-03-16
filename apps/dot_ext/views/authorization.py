@@ -141,11 +141,29 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         if self.version == Versions.V3:
+            scopes_from_request = kwargs.get('scopes', [])
             application_scopes = list(
                 ProtectedCapability.objects.filter(Q(application=self.application))
                 .values_list('slug', flat=True).distinct()
             )
+
             kwargs['scopes'] = application_scopes
+            if not application_scopes:
+                raise AccessDeniedTokenCustomError(
+                    description='No scopes provided.'
+                )
+
+            scopes_from_request = set(scopes_from_request)
+            application_scopes_set = set(application_scopes)
+            matching_scopes = application_scopes_set & scopes_from_request
+
+            # Note: scopes_from_request should always have a value if it is a v3 request, including it here is a
+            # precaution. This conditional will need to be modified or expanded in case the request asks for
+            # patient/Coverage.read and in the database, the application has patient/Coverage.rs for example
+            if scopes_from_request and not matching_scopes:
+                raise AccessDeniedTokenCustomError(
+                    description='No scopes provided.'
+                )
 
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
