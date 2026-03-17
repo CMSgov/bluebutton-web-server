@@ -1,0 +1,55 @@
+name: Build and Upload Static Assets
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  collectstatic:
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+
+        # Verify Node/npm and Python was installed
+      - name: Verify Node and Python Installation
+        run:  |
+          pwd
+          ls -la
+          node --version
+          npm --version
+          python --version
+
+      - name: Install python dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements/requirements.txt
+
+      - name: Compile and Build CSS assets
+        run:  |
+            cd static/bluebutton-css
+            npm i 
+            npm run gulp
+
+      - name: Collect static files
+        run: |
+          python manage.py collectstatic --noinput
+
+    #   - name: Upload static assets to S3 Dryrun
+    #     run: |
+    #       aws s3 sync /code/static/ s3://bb-static-assets/ --delete --dryrun
