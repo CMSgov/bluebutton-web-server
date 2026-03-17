@@ -41,6 +41,7 @@ jobs:
 
       - name: Collect static files
         run: |
+          ls -la
           python3 manage.py collectstatic --noinput
 
     #   - name: Upload static assets to S3 Dryrun
