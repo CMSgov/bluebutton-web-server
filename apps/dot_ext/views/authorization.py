@@ -147,7 +147,6 @@ class AuthorizationView(DotAuthorizationView):
                 .values_list('slug', flat=True).distinct()
             )
 
-            kwargs['scopes'] = application_scopes
             if not application_scopes:
                 raise AccessDeniedTokenCustomError(
                     description='No scopes provided.'
@@ -156,7 +155,9 @@ class AuthorizationView(DotAuthorizationView):
             scopes_from_request = set(scopes_from_request)
             application_scopes_set = set(application_scopes)
             matching_scopes = application_scopes_set & scopes_from_request
-
+            # Ensure we only populate kwargs['scopes'] with scopes that are both in the request and available to the application
+            # This is what controls what shows on the permissions scree
+            kwargs['scopes'] = list(matching_scopes)
             # Note: scopes_from_request should always have a value if it is a v3 request, including it here is a
             # precaution. This conditional will need to be modified or expanded in case the request asks for
             # patient/Coverage.read and in the database, the application has patient/Coverage.rs for example
@@ -170,7 +171,10 @@ class AuthorizationView(DotAuthorizationView):
         context['permission_end_date'] = self.application.access_end_date()
 
         if 'form' in context and self.version == Versions.V3:
-            context['form'].initial['scope'] = ' '.join(application_scopes)
+            # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
+            # for the access token are in the intersection of what the application is allowed to have and
+            # what the request is asking for
+            context['form'].initial['scope'] = ' '.join(list(matching_scopes))
 
         return context
 
