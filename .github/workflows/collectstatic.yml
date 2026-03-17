@@ -48,6 +48,7 @@ jobs:
           ls -la
           source venv/bin/activate
           python3 manage.py collectstatic --noinput
+          ls -la
 
     #   - name: Upload static assets to S3 Dryrun
     #     run: |
