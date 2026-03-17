@@ -1,8 +1,7 @@
 #!/bin/bash
-set -e
 
-source ops/containers/bb-web-api/scripts/internal/gonogo.bash
-source ops/containers/bb-web-api/scripts/internal/entrypoint-support.bash
+source ops/containers/bb-api/scripts/internal/gonogo.bash
+source ops/containers/bb-api/scripts/internal/entrypoint-support.bash
 
 echo "TARGET_ENV: $TARGET_ENV"
 

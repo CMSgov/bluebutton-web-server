@@ -17,46 +17,27 @@ run_socat_locally () {
 }
 
 write_bfd_certs_to_tmp () {
-    if [[ $TARGET_ENV == "local" ]]; then
-        mkdir -p /tmp/bfd/certs
-        echo "${BFD_KEY_PEM_B64}" | base64 --decode > /tmp/bfd/certs/key.pem
-        echo "${BFD_CERT_PEM_B64}" | base64 --decode > /tmp/bfd/certs/cert.pem
-    else
-        # Fargate: certs injected as env vars from SM auto-discovery
-        # SM /bb2/{env}/app/fhir_key_pem → FHIR_KEY_PEM
-        # SM /bb2/{env}/app/fhir_cert_pem → FHIR_CERT_PEM
-        mkdir -p /tmp/certstore
-        echo "${FHIR_KEY_PEM}" | base64 --decode > /tmp/certstore/ca.key.nocrypt.pem
-        echo "${FHIR_CERT_PEM}" | base64 --decode > /tmp/certstore/ca.cert.pem
-    fi
+    echo "🟦 Writing Certs to ${DJANGO_FHIR_CERTSTORE}"
+    mkdir -p ${DJANGO_FHIR_CERTSTORE}
+    echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
+    echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
     return 0
 }
 
+
 check_bfd_certs_are_not_empty () {
-    if [[ $TARGET_ENV == "local" ]]; then
-        # Make sure the files are not empty
-        if [[ -z $(grep '[^[:space:]]' /tmp/bfd/certs/key.pem) ]]; then
-            echo "⛔ BFD key.pem is empty"
-            return 1
-        fi
-
-        if [[ -z $(grep '[^[:space:]]' /tmp/bfd/certs/cert.pem) ]]; then
-            echo "⛔ BFD cert.pem is empty"
-            return 1
-        fi
-    else
-        # Fargate: check /tmp/certstore/
-        if [[ -z $(grep '[^[:space:]]' /tmp/certstore/ca.key.nocrypt.pem) ]]; then
-            echo "⛔ BFD ca.key.nocrypt.pem is empty"
-            return 1
-        fi
-
-        if [[ -z $(grep '[^[:space:]]' /tmp/certstore/ca.cert.pem) ]]; then
-            echo "⛔ BFD ca.cert.pem is empty"
-            return 1
-        fi
+    echo "🟦 Check BFD certs are at ${DJANGO_FHIR_CERTSTORE}"
+    # Make sure the files are not empty
+    if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem) ]]; then
+        echo "⛔ BFD ca.key.nocrypt.pem is empty"
+        return 1
     fi
 
+    if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem) ]]; then
+        echo "⛔ BFD cert.pem is empty"
+        return 1
+    fi
+    echo "🔵 BFD certs are in place"
     return 0
 }
 
@@ -72,8 +53,9 @@ possibly_migrate_or_collectstatic_if_local () {
             exit 0
         fi
 
+        # TODO - collectstatic does not tear down the stack currently
         if [[ "${COLLECTSTATIC}" == "1" ]]
-        then
+        then    
             echo "🔵 running collectstatic"
             python manage.py collectstatic --noinput
             echo "🔵 done running collectstatic; bring down the stack"
@@ -93,11 +75,13 @@ write_tls_certs_to_tmp () {
 }
 
 launch_blue_button () {
+    echo "🟦 Launch Blue Button"
+    mkdir -p /tmp/gunicorn
+    LAUNCH_RESULT=1
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
         # --bind 0.0.0.0:${GUNICORN_PORT} \
-        mkdir -p /tmp/gunicorn
-        echo "🟦 local run options"
+        echo "🔵 local run options"
         gunicorn \
             hhs_oauth_server.wsgi:application \
             --worker-tmp-dir /tmp/gunicorn \
@@ -106,11 +90,12 @@ launch_blue_button () {
             --timeout ${GUNICORN_TIMEOUT} \
             --reload \
             --log-level debug
+        RESULT=$?
     else
         # Fargate: gunicorn handles TLS directly with DigiCert certs (no nginx)
         # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
         # newrelic-admin run-program auto-configures the NR agent from NEW_RELIC_* env vars
-        mkdir -p /tmp/gunicorn
+        echo "🔵 aws run options"
         newrelic-admin run-program \
             gunicorn \
             hhs_oauth_server.wsgi:application \
@@ -123,5 +108,5 @@ launch_blue_button () {
             --log-level info
     fi
 
-    return 0
+    return $RESULT
 }

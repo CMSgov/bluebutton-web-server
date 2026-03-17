@@ -91,7 +91,7 @@ variable "access_logs_bucket" {
 }
 
 # Environment variables (migrated from env.j2 template in bluebutton-web-deployment)
-# Pass additional Django settings beyond the defaults in locals.tf
+# Pass additional Django settings beyond the defaults in main.tf (default_environment)
 variable "environment_variables" {
   type = list(object({
     name  = string

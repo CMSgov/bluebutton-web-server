@@ -8,7 +8,7 @@ set -a -e -u -o pipefail
 
 export HOSTNAME_URL='http://localhost:8000'
 export USE_NEW_PERM_SCREEN='true'
-export DJANGO_FHIR_CERTSTORE='/certstore'
+export DJANGO_FHIR_CERTSTORE='/tmp/certstore'
 export TESTS_LIST='./apps/integration_tests/selenium_tests.py'
 export DJANGO_SETTINGS_MODULE='hhs_oauth_server.settings.dev'
 export SELENIUM_GRID=true
