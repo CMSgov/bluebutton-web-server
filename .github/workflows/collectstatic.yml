@@ -20,18 +20,10 @@ jobs:
           python3 --version
 
       - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '25'
-
-        # Verify Node/npm and Python was installed
-      - name: Verify Node and Python Installation
         run:  |
-          pwd
-          ls -la
-        #   python3 --version
-        #   node --version
-        #   npm --version
+            apt-get update && apt-get install -y nodejs npm
+            node --version
+            npm --version
 
       - name: Install python dependencies
         run: |
