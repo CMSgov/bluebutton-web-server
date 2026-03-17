@@ -29,13 +29,13 @@ jobs:
         run:  |
           pwd
           ls -la
-          node --version
-          npm --version
           python3 --version
+        #   node --version
+        #   npm --version
 
       - name: Install python dependencies
         run: |
-          python -m venv venv
+          python3 -m venv venv
           source venv/bin/activate
           python3 -m pip install --upgrade pip
           pip install -r requirements/requirements.txt
