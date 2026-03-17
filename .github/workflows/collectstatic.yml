@@ -29,7 +29,7 @@ jobs:
         run:  |
           pwd
           ls -la
-          python3 --version
+        #   python3 --version
         #   node --version
         #   npm --version
 
@@ -42,6 +42,7 @@ jobs:
 
       - name: Compile and Build CSS assets
         run:  |
+            ls -la
             cd static/bluebutton-css
             npm i 
             npm run gulp
