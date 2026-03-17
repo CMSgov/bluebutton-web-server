@@ -12,10 +12,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+      - name: Setup Python 3.12
+        run: |
+          echo "Setting up Python 3.12 via pyenv..."
+          pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
+          pyenv global 3.12 || pyenv global 3.12.0
+          python3 --version
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -29,13 +31,13 @@ jobs:
           ls -la
           node --version
           npm --version
-          python --version
+          python3 --version
 
       - name: Install python dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
-          python -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip
           pip install -r requirements/requirements.txt
 
       - name: Compile and Build CSS assets
@@ -46,7 +48,7 @@ jobs:
 
       - name: Collect static files
         run: |
-          python manage.py collectstatic --noinput
+          python3 manage.py collectstatic --noinput
 
     #   - name: Upload static assets to S3 Dryrun
     #     run: |
