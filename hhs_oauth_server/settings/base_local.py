@@ -515,7 +515,7 @@ HOSTNAME_URL = env("HOSTNAME_URL", default="http://localhost:8000")
 
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
-    default=os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", default="../certstore")),
+    default=os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", default="../tmp/certstore")),
 )
 
 FHIR_SERVER = {
