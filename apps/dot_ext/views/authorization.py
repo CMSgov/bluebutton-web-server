@@ -155,9 +155,11 @@ class AuthorizationView(DotAuthorizationView):
             scopes_from_request = set(scopes_from_request)
             application_scopes_set = set(application_scopes)
             matching_scopes = application_scopes_set & scopes_from_request
+
             # Ensure we only populate kwargs['scopes'] with scopes that are both in the request and available to the application
-            # This is what controls what shows on the permissions scree
+            # This is what controls what shows on the permissions screen
             kwargs['scopes'] = list(matching_scopes)
+
             # Note: scopes_from_request should always have a value if it is a v3 request, including it here is a
             # precaution. This conditional will need to be modified or expanded in case the request asks for
             # patient/Coverage.read and in the database, the application has patient/Coverage.rs for example

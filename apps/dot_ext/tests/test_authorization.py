@@ -1555,7 +1555,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         mock_pc.objects.filter.assert_called_once_with(
             Q(application=mock_application)
         )
-        self.assertEqual(context['scopes'], ['patient/Patient.rs'])
+        assert context['scopes'] == ['patient/Patient.rs']
 
     @patch('apps.dot_ext.views.authorization.ProtectedCapability')
     def test_v2_does_not_scopes_in_kwargs(self, mock_pc):
@@ -1580,3 +1580,53 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             view.get_context_data()
 
         mock_pc.objects.filter.assert_not_called()
+
+    @patch('apps.dot_ext.views.authorization.ProtectedCapability')
+    def test_v3_form_scopes_are_intersection_of_app_and_requested(self, mock_pc):
+        """Ensure that for a AuthorizationView initialized for v3, the scopes set on
+        the form's initial data are the intersection of the application's scopes in
+        the DB and the scopes requested by the OAuth client.
+        """
+        app_scopes_in_db = ['patient/Patient.rs', 'patient/Observation.rs', 'openid']
+
+        requested_scopes = ['patient/Patient.rs', 'launch/patient', 'openid']
+
+        # Expected intersection
+        expected_scopes = set(app_scopes_in_db) & set(requested_scopes)
+        # {'patient/Patient.rs', 'openid'}
+
+        mock_pc.objects.filter.return_value \
+            .values_list.return_value \
+            .distinct.return_value = app_scopes_in_db
+
+        view = AuthorizationView(version=Versions.V3)
+        mock_application = MagicMock()
+        request = HttpRequest()
+        view.request = request
+        view.application = mock_application
+
+        mock_form = MagicMock()
+        mock_form.initial = {}
+
+        def mock_super_get_context_data(**kwargs):
+            result = {'form': mock_form, 'scopes': requested_scopes}
+            result.update(kwargs)
+            return result
+
+        with patch.object(
+            AuthorizationView.__bases__[0],
+            'get_context_data',
+            side_effect=mock_super_get_context_data,
+        ):
+            context = view.get_context_data(scopes=requested_scopes)
+
+        mock_pc.objects.filter.assert_called_once_with(
+            Q(application=mock_application)
+        )
+
+        # Context scopes should be the intersection, not the full DB or requested list
+        assert set(context['scopes']) == expected_scopes
+
+        # Form initial scope string should only contain intersected scopes
+        form_scopes = set(context['form'].initial['scope'].split())
+        assert form_scopes == expected_scopes
