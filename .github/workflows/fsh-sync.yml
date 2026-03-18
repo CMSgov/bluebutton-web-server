@@ -20,6 +20,11 @@ jobs:
         repository: CMSgov/beneficiary-fhir-data
         path: beneficiary-fhir-data
 
+    - name: Check what's in container
+      run: |
+        echo "Checking current directory"
+        ls
+
     # Setup Node
     - name: Setup Node
       uses: actions/setup-node@v4
