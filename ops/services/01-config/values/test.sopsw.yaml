@@ -15,8 +15,7 @@
 /bb/test/app/nonsensitive/target_env: test
 /bb/test/app/nonsensitive/django_application_title: Blue Button 2.0 [TEST]
 /bb/test/app/nonsensitive/signup_timeout_days: "7"
-/bb/test/app/nonsensitive/cors_origin_allow_all: "False"
-/bb/test/app/nonsensitive/cors_allowed_origins: "https://test.bluebutton.cms.gov"
+/bb/test/app/nonsensitive/cors_origin_allow_all: "True"
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 #ENC[AES256_GCM,data:spJgnncvZi3qyraZgJC82sJghYiA,iv:ipn+nvndjFEoFw51PQTStyz5oplo1ULQXExWbsKidCQ=,tag:bthqEYK9+fJk5XC5vz0iAA==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
