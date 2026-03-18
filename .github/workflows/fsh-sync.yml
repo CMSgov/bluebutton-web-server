@@ -20,11 +20,6 @@ jobs:
         repository: CMSgov/beneficiary-fhir-data
         path: beneficiary-fhir-data
 
-    - name: Verify BFD Repo Checkout
-      run:  |
-        ls
-        ls beneficiary-fhir-data
-
     # Setup Node
     - name: Setup Node
       uses: actions/setup-node@v4
@@ -39,11 +34,9 @@ jobs:
 
     # Install Sushi
     - name: Install Sushi
-      run: npm install -g fsh-sushi fhirpath
-
-    # Verify sushi was installed
-    - name: Verify Sushi Install
-      run: sushi --version
+      run:  |
+        npm install -g fsh-sushi fhirpath
+        sushi --version
 
     # Generate JSON from FSH
     - name: Generate JSON
