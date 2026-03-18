@@ -7,7 +7,7 @@ on:
 env:
   DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
   DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-#   TARGET_ENV: test
+  TARGET_ENV: test
 
 jobs:
   collectstatic:
