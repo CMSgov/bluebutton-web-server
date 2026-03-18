@@ -141,6 +141,7 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         if self.version == Versions.V3:
+            kwargs['beneficiary_name'] = self.request.beneficiary_name
             scopes_from_request = kwargs.get('scopes', [])
             application_scopes = list(
                 ProtectedCapability.objects.filter(Q(application=self.application))
