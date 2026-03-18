@@ -438,7 +438,34 @@ REST_FRAMEWORK = {
     },
 }
 
+# CORS settings
+# In local development we default to allowing all origins for convenience.
 CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=True)
+# Optionally provide a comma-separated list via `CORS_ALLOWED_ORIGINS`
+# Example: CORS_ALLOWED_ORIGINS=https://example.com,https://app.example.com
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+
+# Restrict allowed HTTP methods and headers for CORS
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.

@@ -13,7 +13,8 @@
 /bb/sandbox/app/nonsensitive/target_env: impl
 /bb/sandbox/app/nonsensitive/django_application_title: Blue Button 2.0 sandbox
 /bb/sandbox/app/nonsensitive/signup_timeout_days: "7"
-/bb/sandbox/app/nonsensitive/cors_origin_allow_all: "True"
+/bb/sandbox/app/nonsensitive/cors_origin_allow_all: "False"
+/bb/sandbox/app/nonsensitive/cors_allowed_origins: "https://sandbox.bluebutton.cms.gov"
 #ENC[AES256_GCM,data:E5elXiLRe9Qwp+Ybtmq5xSUSramM7PwxlJOVO4oxnp+uVbspz4OWUMHFLz//FWDyXhnHryeATpbxksfLR50avDywapBtaSQvlqKsnSo=,iv:gAdmsuhkOS82IlnvICoB/VFeAWC/NbUGrmW/b5o5aiU=,tag:EcK4NOLADGFopU9s1XJ0RA==,type:comment]
 #ENC[AES256_GCM,data:9xyjWpwegeETsHi5d5brcIZ93Kwm,iv:rL3iOjQWeoK02FEtxmvk8M6Zm5bB+hrjDvtVR+0h1FA=,tag:U+NbU+F0if2Rs/c+qBnK5w==,type:comment]
 #ENC[AES256_GCM,data:g9MubL2otZQ3a+EqmNTDJJrbWIYe05XtMG1DCac6bnXvqLYKiio0djQXu2RpJwPgNtehIHM57xIzt5w/PdsiZycTfcqoWgcieOXMZdQ=,iv:Xq547xuQkTyp2JA2p1a2wGrl49QbQ+i4myjsSj7Wcck=,tag:3EO46lLuyp6l3LpymnXSmA==,type:comment]

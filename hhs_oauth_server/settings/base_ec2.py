@@ -303,7 +303,33 @@ SECURE_SSL_REDIRECT = False  # ALB handles HTTPS redirect
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "DENY"
 
-CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
+CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", False))
+# Parse comma-separated list from environment into a Python list
+# Example: CORS_ALLOWED_ORIGINS=https://example.com,https://app.example.com
+_CORS_ALLOWED = env("CORS_ALLOWED_ORIGINS", "")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(",") if o.strip()]
+
+# Restrict allowed HTTP methods and headers for CORS
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 ROOT_URLCONF = "hhs_oauth_server.urls"
 
