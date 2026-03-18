@@ -7,10 +7,22 @@ on:
 env:
   DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
   DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
+#   TARGET_ENV: test
 
 jobs:
   collectstatic:
     runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    # Use s3 mock for now
+    services:
+      s3mock:
+        image: adobe/s3mock:latest
+        env:
+          initialBuckets: django
+          retainFilesOnExit: "true"
+          root: /s3
+        ports:
+          - "9090:9090"
 
     steps:
       - name: Checkout code
@@ -28,6 +40,15 @@ jobs:
             apt-get update && apt-get install -y nodejs npm
             node --version
             npm --version
+
+      - name: Wait for S3 mock to be ready
+        run: |
+          echo "Waiting for S3 mock to be ready..."
+          until curl -s http://localhost:9090/health; do
+            echo "S3 mock not ready yet, waiting..."
+            sleep 5
+          done
+          echo "S3 mock is ready!"
 
       - name: Install python dependencies
         run: |
