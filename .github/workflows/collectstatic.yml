@@ -16,7 +16,7 @@ jobs:
     # Use s3 mock for now
     services:
       s3mock:
-        image: adobe/s3mock:latest
+        image: ghcr.io/adobe/s3mock
         env:
           initialBuckets: django
           retainFilesOnExit: "true"
