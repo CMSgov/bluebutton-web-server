@@ -5,6 +5,7 @@ on:
     # Run on day 1 and day 15 of the month at 8:00 AM UTC
     - cron: '0 8 1,15 * *'
   workflow_dispatch:
+  push:
 
 jobs:
   generate-json:
