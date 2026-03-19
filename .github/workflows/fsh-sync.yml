@@ -40,6 +40,7 @@ jobs:
     # Generate JSON from FSH
     - name: Generate JSON
       run: |
+        ls -la
         cd beneficiary-fhir-data/apps/bfd-model-idr/sushi
         sushi build
 
