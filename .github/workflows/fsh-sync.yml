@@ -97,6 +97,8 @@ jobs:
       if: steps.check-for-changes.outputs.changed == 'true'
       run: |
         cd bluebutton-site-static
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
         git commit -m "Update JSON from BFD FSH files - $(date +%Y-%m-%d)"
         git push origin json-update-$(date +%Y-%m-%d)
 
