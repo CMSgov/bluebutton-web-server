@@ -1,6 +1,6 @@
 ARG BUILD_TARGET="local"
 ARG RELEASE_TAG="NO_RELEASE_TAG_SET"
-FROM public.ecr.aws/amazonlinux/amazonlinux:2023.10.20260202.2 AS base
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS base
 # BUILD ARGS ARE STRANGE
 # Note the scoping rules if you want to use them inside a FROM.
 # https://docs.docker.com/reference/dockerfile#understand-how-arg-and-from-interact
@@ -31,12 +31,10 @@ EXPOSE ${GUNICORN_PORT}
 # shadow-utils: for useradd
 RUN dnf install -y \
     awscli \
-    git \
     procps-ng \
     python3.12 \
-    shadow-utils \
-    unzip \
-    vim
+    shadow-utils && dnf clean all && rm -rf /var/cache/dnf
+
 
 #################################################################
 # ACTIONS TAKEN AS ROOT USER
@@ -122,5 +120,5 @@ RUN rm -f ${BB}/hhs_oauth_server/settings/git_release.py \
 
 # Make sure the entrypoint is executable.
 # Default to the production entrypoint.
-RUN chmod 755 ${BB}/ops/containers/bb-web-api/scripts/internal/entrypoint.bash
-CMD [ "/home/boton/bb/ops/containers/bb-web-api/scripts/internal/entrypoint.bash" ]
+RUN chmod 755 ${BB}/ops/containers/bb-api/scripts/internal/entrypoint.bash
+CMD [ "/home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash" ]

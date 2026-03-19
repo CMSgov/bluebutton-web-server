@@ -11,7 +11,7 @@ from apps.wellknown.views.openid import smart_configuration_v1, smart_configurat
 from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
 
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
-from .views import testobject
+from hhs_oauth_server.views import testobject
 
 admin.autodiscover()
 admin.site.enable_nav_sidebar = False

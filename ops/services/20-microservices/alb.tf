@@ -7,7 +7,12 @@ resource "aws_lb" "alb" {
   name               = "${local.app_prefix}-${local.workspace}-${each.key}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg[each.key].id]
+  security_groups    = concat(
+    [aws_security_group.alb_sg[each.key].id],
+    [module.platform.sg_clb_akamai.id],
+    [module.platform.sg_cmscloud_vpn.id],
+    var.alb_security_group_ids
+  )
   subnets            = local.public_subnets
 
   enable_deletion_protection       = var.enable_deletion_protection
