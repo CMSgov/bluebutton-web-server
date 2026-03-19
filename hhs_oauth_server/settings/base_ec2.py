@@ -303,6 +303,30 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "DENY"
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
+# TODO: Uncomment once Fargate migration is complete and we would have a better sense of what allowed origins would be.
+# Once a Fargate post migration ticket is created, this should be addressed then.
+# It is a possible security hardening that can be decided upon later.
+# _CORS_ALLOWED = env("CORS_ALLOWED_ORIGINS", "")
+# CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(",") if o.strip()]
+
+# # Restrict allowed HTTP methods and headers for CORS
+# CORS_ALLOW_METHODS = [
+#     "GET",
+#     "POST",
+#     "PUT",
+#     "PATCH",
+#     "DELETE",
+#     "OPTIONS",
+# ]
+
+# CORS_ALLOW_HEADERS = (
+#     "accept",
+#     "authorization",
+#     "content-type",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# )
 
 ROOT_URLCONF = "hhs_oauth_server.urls"
 
