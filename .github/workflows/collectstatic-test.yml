@@ -4,9 +4,9 @@ on:
   push:
   workflow_dispatch:
 
-# env:
-#   TARGET_ENV: test
-#   ENV: TEST
+env:
+  TARGET_ENV: test
+  ENV: TEST
 
 jobs:
   collectstatic:
@@ -23,4 +23,4 @@ jobs:
           run: |
             cd ops/containers
             ls -la
-            make collectstatic TARGET_ENV=test env=test
+            make collectstatic
