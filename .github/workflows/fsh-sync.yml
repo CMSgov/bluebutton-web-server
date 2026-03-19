@@ -70,12 +70,13 @@ jobs:
       run:  |
         cd beneficiary-fhir-data/apps/bfd-model-idr/sushi/fsh-generated/resources
         ls -la
+        ls -la ../../../../..
         for file in CodeSystem-*.json; do
           [ -e "$file" ] || continue
           filename=$(basename "$file")
           new_filename="${filename#CodeSystem-}"
           echo "Copying $file to bluebutton-site-static/src/content/fhir/CodeSystem/$new_filename"
-          cp "$file" "bluebutton-site-static/src/content/fhir/CodeSystem/$new_filename"
+          cp "$file" "../../../../../../bluebutton-site-static/src/content/fhir/CodeSystem/$new_filename"
         done
 
     - name: Check for changes
