@@ -18,6 +18,8 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: CMSgov/beneficiary-fhir-data
+        path: beneficiary-fhir-data
+        fetch-depth: 0
 
     # Setup Node
     - name: Setup Node
@@ -55,6 +57,8 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: CMSgov/bluebutton-site-static
+        path: bluebutton-site-static
+        fetch-depth: 0
 
     - name: Create and checkout branch
       run: |
