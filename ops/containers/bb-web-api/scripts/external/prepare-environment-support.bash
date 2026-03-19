@@ -64,6 +64,8 @@ check_env_preconditions () {
             echo "Exiting."
             return 1
         fi
+    else
+        echo "no kion checks in AWS env"
     fi
     return 0
 }
