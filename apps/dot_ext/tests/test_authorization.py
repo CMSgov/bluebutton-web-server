@@ -30,6 +30,8 @@ from http import HTTPStatus
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
 
+PATIENT_SCOPE = ['patient/Patient.rs']
+
 
 class TestAuthorizeWithCustomScheme(BaseApiTest):
 
@@ -1537,25 +1539,37 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         """
         mock_pc.objects.filter.return_value \
             .values_list.return_value \
-            .distinct.return_value = ['patient/Patient.rs']
+            .distinct.return_value = PATIENT_SCOPE
+
+        requested_scopes = PATIENT_SCOPE
 
         view = AuthorizationView(version=Versions.V3)
         mock_application = MagicMock()
         request = HttpRequest()
+        request.beneficiary_name = 'Test A User'
         view.request = request
         view.application = mock_application
 
+        mock_form = MagicMock()
+        mock_form.initial = {}
+
+        def mock_super_get_context_data(**kwargs):
+            result = {'form': mock_form, 'scopes': requested_scopes}
+            result.update(kwargs)
+            return result
+
         with patch.object(
-            AuthorizationView.__bases__[0],  # parent class
+            AuthorizationView.__bases__[0],
             'get_context_data',
-            return_value={'form': MagicMock(), 'scopes': ['patient/Patient.rs']},
+            side_effect=mock_super_get_context_data,
         ):
-            context = view.get_context_data()
+            context = view.get_context_data(scopes=requested_scopes)
 
         mock_pc.objects.filter.assert_called_once_with(
             Q(application=mock_application)
         )
-        assert context['scopes'] == ['patient/Patient.rs']
+        assert context['scopes'] == PATIENT_SCOPE
+        assert context['beneficiary_name'] == 'Test A User'
 
     @patch('apps.dot_ext.views.authorization.ProtectedCapability')
     def test_v2_does_not_scopes_in_kwargs(self, mock_pc):
@@ -1564,7 +1578,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         """
         mock_pc.objects.filter.return_value \
             .values_list.return_value \
-            .distinct.return_value = ['patient/Patient.rs']
+            .distinct.return_value = PATIENT_SCOPE
 
         view = AuthorizationView(version=Versions.V2)
         mock_application = MagicMock()
@@ -1602,6 +1616,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         view = AuthorizationView(version=Versions.V3)
         mock_application = MagicMock()
         request = HttpRequest()
+        request.beneficiary_name = 'Test A User'
         view.request = request
         view.application = mock_application
 
@@ -1626,6 +1641,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         # Context scopes should be the intersection, not the full DB or requested list
         assert set(context['scopes']) == expected_scopes
+        assert context['beneficiary_name'] == 'Test A User'
 
         # Form initial scope string should only contain intersected scopes
         form_scopes = set(context['form'].initial['scope'].split())

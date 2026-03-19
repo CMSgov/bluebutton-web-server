@@ -24,6 +24,7 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
     is_operation_outcome,
+    format_patient_name,
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -185,6 +186,67 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
         result = is_operation_outcome({'resourceType': 'patient'})
         assert not result
+
+    def test_format_patient_name_search_result(self):
+        patient_result = {
+            'resourceType': 'Bundle',
+            'entry': [
+                {
+                    'resource': {
+                        'resourceType': 'Patient',
+                        'id': '-444444444',
+                        'name': [
+                            {
+                                'family': 'User',
+                                'given': [
+                                    'Test',
+                                    'A'
+                                ]
+                            }
+                        ],
+                    }
+                }
+            ]
+        }
+        result = format_patient_name(patient_result)
+        assert result == 'Test A User'
+
+    def test_format_patient_name_read_result(self):
+        patient_result = {
+            'resourceType': 'Patient',
+            'id': '-444444444',
+            'name': [
+                {
+                    'family': 'User',
+                    'given': [
+                        'Test',
+                        'A'
+                    ]
+                }
+            ],
+        }
+        result = format_patient_name(patient_result)
+        assert result == 'Test A User'
+
+    def test_format_patient_name_unknown_result(self):
+        result = format_patient_name({})
+        assert result == 'Unknown'
+
+    def test_format_patient_name_unknown_result_bundle(self):
+        patient_result = {
+            'resourceType': 'Bundle',
+            'name': [
+                {
+                    'family': 'User',
+                    'given': [
+                        'Test',
+                        'A'
+                    ]
+                }
+            ],
+        }
+        result = format_patient_name(patient_result)
+        assert result == 'Unknown'
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):

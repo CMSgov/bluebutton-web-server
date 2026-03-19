@@ -836,11 +836,6 @@ def format_patient_name(patient_data: dict) -> str:
     if not names:
         return 'Unknown'
 
-    # Prefer 'usual' use, fall back to first available
-    # name_entry = next(
-    #     (n for n in names if n.get('use') == 'usual'),
-    #     names[0]
-    # )
     name_entry = next(
         (n for n in names),
         names[0]

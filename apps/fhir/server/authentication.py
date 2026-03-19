@@ -106,6 +106,10 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
             response.raise_for_status()
             backend_data = response.json()
 
+            # retrieve the beneficiary name from the response in order to display it
+            # on the v3 permissions page. The AuthorizationViewMiddleware class will read the beneficiary name
+            # from the session and attach it to the request object if the request path is the authorization path,
+            # so it can be accessed in the AuthorizationView get_context_data method.
             beneficiary_name = format_patient_name(backend_data)
             request.session['beneficiary_name'] = beneficiary_name
 
