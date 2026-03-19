@@ -1,0 +1,23 @@
+name: Run Script in ops/containers
+
+on:
+  push:
+  workflow_dispatch:
+
+# env:
+#   TARGET_ENV: test
+#   ENV: TEST
+
+jobs:
+  collectstatic:
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+    
+        - name: Run collectstatic in makefile
+          run: |
+            cd ops/containers
+            ls -la
+            make collectstatic TARGET_ENV=test env=test
