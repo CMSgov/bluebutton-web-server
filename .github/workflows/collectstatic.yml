@@ -15,21 +15,6 @@ jobs:
   collectstatic:
     runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
-    # Use s3 mock for now
-    # Issues with image: ghcr.io/adobe/s3mock:latest
-    # Seems to be trying to pull from docker hub but is reaching a rate limit
-    # I would need to authenticate to docker hub to pull the image, which we currently don't have a license for
-    # Alternatively we can use github repository to push s3mock image from docker hub to
-    # services:
-    #   s3mock:
-    #     image: ghcr.io/adobe/s3mock
-    #     env:
-    #       initialBuckets: django
-    #       retainFilesOnExit: "true"
-    #       root: /s3
-    #     ports:
-    #       - "9090:9090"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,15 +31,6 @@ jobs:
             apt-get update && apt-get install -y nodejs npm
             node --version
             npm --version
-
-    #   - name: Wait for S3 mock to be ready
-    #     run: |
-    #       echo "Waiting for S3 mock to be ready..."
-    #       until curl -s http://localhost:9090/health; do
-    #         echo "S3 mock not ready yet, waiting..."
-    #         sleep 5
-    #       done
-    #       echo "S3 mock is ready!"
 
       - name: Install python dependencies
         run: |
