@@ -10,11 +10,13 @@ from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
+from apps.capabilities.models import ProtectedCapability
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
@@ -138,9 +140,45 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
+        if self.version == Versions.V3:
+            kwargs['beneficiary_name'] = self.request.beneficiary_name
+            scopes_from_request = kwargs.get('scopes', [])
+            application_scopes = list(
+                ProtectedCapability.objects.filter(Q(application=self.application))
+                .values_list('slug', flat=True).distinct()
+            )
+
+            if not application_scopes:
+                raise AccessDeniedTokenCustomError(
+                    description='No scopes provided.'
+                )
+
+            scopes_from_request = set(scopes_from_request)
+            application_scopes_set = set(application_scopes)
+            matching_scopes = application_scopes_set & scopes_from_request
+
+            # Ensure we only populate kwargs['scopes'] with scopes that are both in the request and available to the application
+            # This is what controls what shows on the permissions screen
+            kwargs['scopes'] = list(matching_scopes)
+
+            # Note: scopes_from_request should always have a value if it is a v3 request, including it here is a
+            # precaution. This conditional will need to be modified or expanded in case the request asks for
+            # patient/Coverage.read and in the database, the application has patient/Coverage.rs for example
+            if scopes_from_request and not matching_scopes:
+                raise AccessDeniedTokenCustomError(
+                    description='No scopes provided.'
+                )
+
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
+
+        if 'form' in context and self.version == Versions.V3:
+            # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
+            # for the access token are in the intersection of what the application is allowed to have and
+            # what the request is asking for
+            context['form'].initial['scope'] = ' '.join(list(matching_scopes))
+
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -212,6 +250,9 @@ class AuthorizationView(DotAuthorizationView):
 
         if not switch_is_active("enable_coverage_only"):
             return [default_tpl]
+
+        if self.version == Versions.V3:
+            return ["design_system/authorize_v3.html"]
 
         app = getattr(self, "application", None)
         if app is not None and "coverage-eligibility" in app.get_internal_application_labels():

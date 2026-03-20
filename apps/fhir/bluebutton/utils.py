@@ -810,3 +810,42 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     if response_json.get('resourceType') == OPERATION_OUTCOME:
         return True
     return False
+
+
+def format_patient_name(patient_data: dict) -> str:
+    """
+    Extracts and formats the patient's name from a FHIR Bundle or Patient resource.
+    Handles one or multiple given names.
+
+    Args:
+        patient_data: A FHIR Bundle dict or a Patient resource dict.
+
+    Returns:
+        A formatted full name string, or 'Unknown' if no name is found.
+    """
+    # Support both a raw Patient resource or a Bundle
+    if patient_data.get('resourceType') == 'Bundle':
+        entries = patient_data.get('entry', [])
+        if not entries:
+            return 'Unknown'
+        patient = entries[0].get('resource', {})
+    else:
+        patient = patient_data
+
+    names = patient.get('name', [])
+    if not names:
+        return 'Unknown'
+
+    name_entry = next(
+        (n for n in names),
+        names[0]
+    )
+
+    given_names = name_entry.get('given', [])
+    family_name = name_entry.get('family', '')
+
+    # Join all given names (handles 1 or more)
+    given_str = ' '.join(given_names)
+
+    parts = [p for p in [given_str, family_name] if p]
+    return ' '.join(parts) if parts else 'Unknown'
