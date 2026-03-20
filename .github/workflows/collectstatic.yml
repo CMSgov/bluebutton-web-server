@@ -26,6 +26,14 @@ jobs:
           pyenv global 3.12 || pyenv global 3.12.0
           python3 --version
 
+      - name: Configure AWS credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
       - name: Set up Node
         run:  |
             apt-get update && apt-get install -y nodejs npm
