@@ -46,6 +46,17 @@ jobs:
             npm i 
             npm run gulp
 
+      - name: Mask additional sensitive values
+        run: |
+            # Mask the role ARN
+            echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
+            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
+            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
+            # Get and mask account ID
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            echo "::add-mask::$ACCOUNT_ID"
+            echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+
       - name: Collect static files
         run: |
           ls -la
