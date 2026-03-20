@@ -58,6 +58,26 @@ data "aws_iam_policy_document" "kms" {
   }
 }
 
+data "aws_iam_policy_document" "guardduty_ecr" {
+  statement {
+    sid = "AllowGuardDutyAgentECRPull"
+    actions = [
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "ecr:BatchCheckLayerAvailability"
+    ]
+    resources = [
+      "arn:aws:ecr:us-east-1:593207742271:repository/aws-guardduty-agent-fargate"
+    ]
+  }
+
+  statement {
+    sid       = "AllowGuardDutyECRAuth"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+}
+
 data "aws_iam_policy_document" "ecs_exec" {
   statement {
     sid = "AllowECSExec"
@@ -105,6 +125,12 @@ resource "aws_iam_policy" "kms" {
   name   = "${local.name_prefix}-kms"
   path   = local.iam_path
   policy = data.aws_iam_policy_document.kms[0].json
+}
+
+resource "aws_iam_policy" "guardduty_ecr" {
+  name   = "${local.name_prefix}-guardduty-ecr"
+  path   = local.iam_path
+  policy = data.aws_iam_policy_document.guardduty_ecr.json
 }
 
 resource "aws_iam_policy" "ecs_exec" {
@@ -156,6 +182,12 @@ resource "aws_iam_role_policy_attachment" "execution_kms" {
   for_each   = local.kms_key_arn != null ? nonsensitive(local.service_config) : {}
   role       = aws_iam_role.execution[each.key].name
   policy_arn = aws_iam_policy.kms[0].arn
+}
+
+resource "aws_iam_role_policy_attachment" "execution_guardduty_ecr" {
+  for_each   = nonsensitive(local.service_config)
+  role       = aws_iam_role.execution[each.key].name
+  policy_arn = aws_iam_policy.guardduty_ecr.arn
 }
 
 # ============================================================================

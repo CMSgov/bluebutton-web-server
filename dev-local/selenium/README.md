@@ -30,6 +30,8 @@ Vars specific to Selenium:
 
 When a Selenium test fails, the project captures a screenshot, an HTML dump, and a stack trace so you can inspect what the browser saw at the moment of failure. This is implemented in the `screenshot_on_exception` decorator.
 
+WARNING - This does not work on WSL, only on Macs.
+
 TODO - improve error logging, capture stdout
 
 ---

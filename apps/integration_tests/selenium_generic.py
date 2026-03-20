@@ -26,6 +26,7 @@ from apps.integration_tests.constants import (
     SEQ_LOGIN_SLSX,
     PROD_URL,
     ES_ES,
+    X_PATH_FOR_MEDICARE_LOGIN,
 )
 
 LOG_FILE = './docker-compose/tmp/bb2_email_to_stdout.log'
@@ -156,6 +157,13 @@ class SeleniumGenericTests():
             return elem
 
         except TimeoutException:
+            # This is related to BB2-4503. The new CSPs are available in some environments, but not all. To work around
+            # this we will allow a TimeoutException to be raised without failing the test if the element we are trying to
+            # click is the Medicare login button
+            if by_expr == X_PATH_FOR_MEDICARE_LOGIN:
+                log_step('Element not found but expected for Medicare login, skipping click', 'WARNING')
+                return
+
             log_step('TIMEOUT waiting for clickable element', 'ERROR')
             check_element_state(self.driver, by, by_expr, "after timeout")
             raise

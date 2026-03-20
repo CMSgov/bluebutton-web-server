@@ -1,0 +1,46 @@
+# bb-api dockerignore
+# Context : .
+
+# Version control
+.git/
+.github/
+.gitignore
+
+# Documentation
+apidocs/
+bluebutton-openapi-doc/
+
+# Local dev / CI tooling
+dev-local/
+docker-compose/
+docker-compose*.yml
+Dockerfiles/
+Jenkinsfiles/
+msls-local/
+scripts/
+splunk/
+insights/
+sql/
+media/
+static/
+
+# Infrastructure (only ops/containers/bb-api is needed at runtime)
+ops/modules/
+ops/services/
+ops/containers/bb-requirements/
+ops/containers/bb-css/
+ops/containers/mslsx/
+
+# Test / synthetic data
+synthetic-data/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Wildcards
+**/*.swp
+**/*.swo
+**/Makefile
+**/.*md
+**/.yaml

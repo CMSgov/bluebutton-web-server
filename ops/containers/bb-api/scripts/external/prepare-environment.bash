@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source bb-web-api/scripts/external/prepare-environment-support.bash
+source bb-api/scripts/external/prepare-environment-support.bash
 
 ####################################
 # OPERATING CONDITIONS

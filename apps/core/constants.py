@@ -17,7 +17,6 @@ WAFFLE_FEATURE_SWITCHES = (
     ),
     ('show_testclient_link', True, 'This controls the display of the test client link from the main page.'),
     ('signup', True, 'This enables signup related URLs and code paths. Not active in prod.'),
-    ('splunk_monitor', False, 'This is used in other environments to ensure splunk forwarder is running.'),
     ('v3_endpoints', True, 'This enables v3 endpoints.'),
     ('v3_testclient', True, 'Enables v3 pathways in the testclient.'),
     (
