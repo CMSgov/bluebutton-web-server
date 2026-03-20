@@ -76,7 +76,7 @@ jobs:
           ls -la
           source venv/bin/activate
           echo "TARGET_ENV=$TARGET_ENV"
-          python3 manage.py collectstatic --noinput
+          python3 manage.py collectstatic --noinput --verbosity 2
           ls -la
 
     #   - name: Upload static assets to S3 Dryrun
