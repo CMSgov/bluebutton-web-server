@@ -76,7 +76,7 @@ jobs:
       - name: Delete files in static folder
         run:  |
           echo ${{ github.workspace }}
-          mv ${{ github.workspace }}/static/bluebutton-css ${{ github.workspace }}/bluebutton-css 
+          mv ${{ github.workspace }}/static/bluebutton-css/dist ${{ github.workspace }}/bluebutton-css 
           rm -rf ${{ github.workspace }}/static/*
           mv ${{ github.workspace }}/bluebutton-css ${{ github.workspace }}/static
 
