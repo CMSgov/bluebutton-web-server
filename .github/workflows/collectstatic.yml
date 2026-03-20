@@ -80,12 +80,17 @@ jobs:
           rm -rf ${{ github.workspace }}/static/*
           mv ${{ github.workspace }}/bluebutton-css ${{ github.workspace }}/static
 
+      - name: Print STATIC_ROOT
+        run: |
+          python -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bluebutton-web-server.hhs_oauth_server.settings.base_ec2'); from django.conf import settings; print(f'STATIC_ROOT is: {settings.STATIC_ROOT}')"
+
       - name: Collect static files
         run: |
           ls -la
           source venv/bin/activate
           echo "TARGET_ENV=$TARGET_ENV"
           python3 manage.py collectstatic --noinput --verbosity 2
+          echo STATIC_ROOT=$STATIC_ROOT
           ls -la
 
     #   - name: Upload static assets to S3 Dryrun
