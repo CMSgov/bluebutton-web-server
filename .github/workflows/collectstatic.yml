@@ -10,6 +10,12 @@ env:
   AWS_S3_CUSTOM_DOMAIN: ${{ vars.AWS_S3_CUSTOM_DOMAIN }}
   AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
   TARGET_ENV: test
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write # Required for requ esting the AWS IAM OIDC JWT
+  contents: write # Required for actions/checkout
+  actions: write # Required for GHA cache
 
 jobs:
   collectstatic:
