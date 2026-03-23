@@ -93,7 +93,8 @@ jobs:
           python3 manage.py collectstatic --noinput --verbosity 2
           echo STATIC_ROOT=$STATIC_ROOT
           ls -la collectedstatic/
-
+    
+    # random comment to test workflow
     #   - name: Upload static assets to S3 Dryrun
     #     run: |
     #       aws s3 sync /code/static/ s3://bb-static-assets/ --delete --dryrun
