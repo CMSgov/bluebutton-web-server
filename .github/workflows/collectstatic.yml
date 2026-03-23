@@ -94,7 +94,7 @@ jobs:
           echo STATIC_ROOT=$STATIC_ROOT
           ls -la collectedstatic/
     
-    # random comment to test workflow
+    # random comment to test workflow round 2
     #   - name: Upload static assets to S3 Dryrun
     #     run: |
     #       aws s3 sync /code/static/ s3://bb-static-assets/ --delete --dryrun
