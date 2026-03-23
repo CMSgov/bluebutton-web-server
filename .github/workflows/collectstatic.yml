@@ -92,7 +92,7 @@ jobs:
           echo "TARGET_ENV=$TARGET_ENV"
           python3 manage.py collectstatic --noinput --verbosity 2
           echo STATIC_ROOT=$STATIC_ROOT
-          ls -la
+          ls -la collectedstatic/
 
     #   - name: Upload static assets to S3 Dryrun
     #     run: |
