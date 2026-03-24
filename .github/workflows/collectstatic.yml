@@ -83,7 +83,7 @@ jobs:
       - name: Print STATIC_ROOT
         run: |
           source venv/bin/activate
-          python3 -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bluebutton-web-server.hhs_oauth_server.settings.base_ec2'); from django.conf import settings; print(f'STATIC_ROOT is: {settings.STATIC_ROOT}')"
+          python3 -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bluebutton-web-server.hhs_oauth_server.settings.base_ec2'); from django.conf import settings; print(f'STATIC_ROOT is: {settings.STATIC_ROOT}'); print(f'ABS_PATH is: {os.path.abspath(settings.STATIC_ROOT)}'); print(f'EXISTS is: {os.path.exists(settings.STATIC_ROOT)}');"
 
       - name: Collect static files
         run: |
