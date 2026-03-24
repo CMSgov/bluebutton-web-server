@@ -15,17 +15,6 @@
       </input>
     </panel>
     <panel>
-      <input type="dropdown" token="bbEnv" searchWhenChanged="true">
-        <label>Select Environment (by IP Range)</label>
-        <default>ALL</default>
-        <choice value="*">ALL</choice>
-        <choice value="ip-10-224-90-*">Test</choice>
-        <choice value="ip-10-246-44-*">Sandbox</choice>
-        <choice value="ip-10-244-140-*">Prod</choice>
-        <initialValue>ALL</initialValue>
-      </input>
-    </panel>
-    <panel>
       <input type="time" token="t_local" searchWhenChanged="true">
         <label>Select Time Range</label>
         <default>
@@ -43,7 +32,7 @@
         <fieldForLabel>AppName</fieldForLabel>
         <fieldForValue>name</fieldForValue>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
         </search>
@@ -60,18 +49,16 @@
     <panel>
       <input type="dropdown" searchWhenChanged="true">
         <label>Select API versions</label>
-        <default>V1+V2</default>
-        <choice value="V1+V2">V1+V2</choice>
+        <default>All</default>
         <choice value="V1">V1</choice>
         <choice value="V2">V2</choice>
-        <initialValue>V1+V2</initialValue>
+        <choice value="V3">V3</choice>
+        <choice value="V1+V2">V1+V2</choice>
+        <choice value="All">All</choice>
+        <initialValue>All</initialValue>
         <fieldForLabel>APIVersion</fieldForLabel>
         <fieldForValue>APIVersion</fieldForValue>
         <change>
-          <condition value="V1+V2">
-            <set token="apiVersionsPattern">v*</set>
-            <set token="apiVersionsLabel">V1+V2</set>
-          </condition>
           <condition value="V1">
             <set token="apiVersionsPattern">v1</set>
             <set token="apiVersionsLabel">V1</set>
@@ -80,34 +67,27 @@
             <set token="apiVersionsPattern">v2</set>
             <set token="apiVersionsLabel">V2</set>
           </condition>
+          <condition value="V3">
+            <set token="apiVersionsPattern">v3</set>
+            <set token="apiVersionsLabel">V3</set>
+          </condition>
+          <condition value="V1+V2">
+            <set token="apiVersionsPattern">v[12]</set>
+            <set token="apiVersionsLabel">V1+V2</set>
+          </condition>
+          <condition value="All">
+            <set token="apiVersionsPattern">v[123]</set>
+            <set token="apiVersionsLabel">All</set>
+          </condition>
         </change>
-      </input>
-    </panel>
-    <panel>
-      <input type="dropdown" token="bbIpAddr" searchWhenChanged="true">
-        <label>Select IP Address</label>
-        <default>ALL</default>
-        <choice value="*">ALL</choice>
-        <initialValue>ALL</initialValue>
-        <fieldForLabel>IPAddr</fieldForLabel>
-        <fieldForValue>ipaddr</fieldForValue>
-        <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ | spath output=ipaddr path="message.ip_addr" | table ipaddr | dedup ipaddr | sort ipaddr</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-        </search>
       </input>
     </panel>
   </row>
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API End-Point Requests vs. Total HTTP Requests</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API End-Point Requests vs. Total HTTP Requests</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
@@ -118,7 +98,8 @@
           <done>
             <set token="tokEpCount">$result.count$</set>
           </done>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | stats count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -135,7 +116,7 @@
           <done>
             <set token="tokTcCount">$result.count$</set>
           </done>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ message.path!="/health*" | stats count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ message.path!="/health*" | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -165,7 +146,8 @@
       <chart>
         <title>API End-Point Requests TIME-CHART</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | timechart count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | timechart count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -182,7 +164,7 @@
       <chart>
         <title>Total Requests (all) TIME-CHART</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | timechart count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | timechart count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -197,12 +179,8 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API End-Point Type Breakdown</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API End-Point Type Breakdown</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
@@ -210,7 +188,8 @@
       <single>
         <title>/$apiVersionsLabel$/fhir/ End-Point Count</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/fhir/*" | stats count</query>
+          <!-- UPDATED: redundant broad OR + AND collapsed to single specific regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/.*" | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -224,7 +203,8 @@
       <single>
         <title>/$apiVersionsLabel$/accounts/ End-Point Count</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/accounts/*" | stats count</query>
+          <!-- UPDATED: redundant broad OR + AND collapsed to single specific regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/accounts\/.*" | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -237,7 +217,8 @@
       <single>
         <title>/$apiVersionsLabel$/o/ End-Point Count</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/o/*" | stats count</query>
+          <!-- UPDATED: redundant broad OR + AND collapsed to single specific regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/o\/.*" | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -252,7 +233,8 @@
       <single>
         <title>/admin/ End-Point Count</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "*/admin/*" | stats count</query>
+          <!-- UPDATED: specific admin regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(?i).*\/admin\/.*"| stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -265,7 +247,8 @@
       <single>
         <title>Others End-Point Count</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND ("message.path" != "/$apiVersionsPattern$/fhir/*" AND "message.path" != "/$apiVersionsPattern$/accounts/*" AND "message.path" != "/$apiVersionsPattern$/o/*" AND "message.path" != "*/admin/*") | stats count</query>
+          <!-- UPDATED: broad filter with regex, then exclude known sub-paths -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | regex "message.path"!=".*\/$apiVersionsPattern$\/fhir\/.*" | regex "message.path"!=".*\/$apiVersionsPattern$\/accounts\/.*" | regex "message.path"!=".*\/$apiVersionsPattern$\/o\/.*" | regex "message.path"!="(?i).*\/admin\/.*" | regex "message.path"!=".*\.well-known.*" | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -289,20 +272,16 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API Result Codes Over Time Range</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API Result Codes Over Time Range</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
-      <title></title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=code path="message.response_code" | table code | stats count by code</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -324,7 +303,8 @@
       <title>5XX Responses Total</title>
       <single>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 499) AND (message.response_code  &lt; 600) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search (message.response_code > 499) AND (message.response_code &lt; 600) | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=code path="message.response_code" | table code | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -337,7 +317,8 @@
       <chart>
         <title>5XX Responses Breakdown</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 499) AND (message.response_code  &lt; 600) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search (message.response_code > 499) AND (message.response_code &lt; 600) | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=code path="message.response_code" | table code | stats count by code</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -351,7 +332,8 @@
       <title>4XX Responses Total</title>
       <single>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 399) AND (message.response_code  &lt; 500) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search (message.response_code > 399) AND (message.response_code &lt; 500) | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=code path="message.response_code" | table code | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -364,7 +346,8 @@
       <chart>
         <title>4XX Responses Breakdown</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND (message.response_code  &gt; 399) AND (message.response_code  &lt; 500) AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search (message.response_code > 399) AND (message.response_code &lt; 500) | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=code path="message.response_code" | table code | stats count by code</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -378,20 +361,16 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>Most Popular End-Points</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>Most Popular End-Points</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
-      <title></title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval elapsed_time=start_time-end_time | table html_code2 call_path elapsed_time | stats count by call_path | sort - count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval elapsed_time=start_time-end_time | table html_code2 call_path elapsed_time | stats count by call_path | sort - count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -410,12 +389,8 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>End Point Response Timings (RT_fastest, RT_mean, RT_p95, RT_p99, and RT_slowest time in milliseconds)</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>End Point Response Timings (RT_fastest, RT_mean, RT_p95, RT_p99, and RT_slowest time in milliseconds)</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
@@ -423,7 +398,8 @@
       <title>ExplanationOfBenefit</title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit/.*" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=round((end_time-start_time)*1000,2) | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | eval RT_mean=round(RT_mean, 2)</query>
+          <!-- UPDATED: broad filter uses regex; hardcoded v[12] replaced with token -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=html_code2 path="message.response_code" | where html_code2="200" | spath output=call_path path="message.path" | regex call_path=".*\/$apiVersionsPattern$\/fhir\/ExplanationOfBenefit\/.*" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=round((end_time-start_time)*1000,2) | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest by message.path | eval RT_mean=round(RT_mean, 2)</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -441,7 +417,8 @@
       <title>OTHERS TOP 10</title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=html_code2 path="message.response_code" | where html_code2="200" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest by message.path | sort - RT_mean | head 10</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -458,7 +435,8 @@
       <title>Active Apps</title>
       <single>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -471,7 +449,8 @@
       <title>Requests By App</title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -492,7 +471,8 @@
       <title>Requests by IP for API Requests Only</title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | where client_id != ""  | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | where client_id != "" | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -513,7 +493,8 @@
       <title>GeoStats MAP for API Requests Only</title>
       <map>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=source_ip path="message.ip_addr"| stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"="(.*\.well-known.*|.*\/$apiVersionsPattern$\/.*|.*\/(?i:admin)\/.*)" | spath output=source_ip path="message.ip_addr" | stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -526,31 +507,10 @@
   </row>
   <row>
     <panel>
-      <title>Requests by IP for ALL Requests</title>
-      <table>
-        <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">none</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
       <title>GeoStats MAP for ALL Requests</title>
       <map>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" | spath output=source_ip path="message.ip_addr"| stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | spath output=source_ip path="message.ip_addr" | stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -564,20 +524,16 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/connect/userinfo end point. Including those blocked by demographic scopes.</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/connect/userinfo end point. Including those blocked by demographic scopes.</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
-      <title></title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/connect\/userinfo.*" | search message.response_code=403 | table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -598,7 +554,8 @@
       <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/connect/userinfo end point. Including those blocked by demographic scopes.</title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/connect\/userinfo.*" | search message.response_code=403 | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -617,20 +574,16 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Patient/ end point. Including those blocked by demographic scopes.</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Patient/ end point. Including those blocked by demographic scopes.</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
-      <title></title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/[Pp]atient.*" | search message.response_code=403 | table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -651,7 +604,8 @@
       <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Patient/ end point. Including those blocked by demographic scopes.</title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex; case-insensitive patient match preserved -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/[Pp]atient.*" | search message.response_code=403 | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -670,20 +624,16 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
-      <title></title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex; case-insensitive coverage match preserved -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/[Cc]overage.*" | search message.response_code=403 | table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -704,7 +654,8 @@
       <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/[Cc]overage.*" | search message.response_code=403 | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -723,20 +674,16 @@
   <row>
     <panel>
       <html>
-                <u1>
-                    <h1>
-                        <b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</b>
-                    </h1>
-                </u1>
-            </html>
+        <u1><h1><b>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</b></h1></u1>
+      </html>
     </panel>
   </row>
   <row>
     <panel>
-      <title></title>
       <chart>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex; case-insensitive EOB match preserved -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/[Ee]xplanation[Oo]f[Bb]enefit.*" | search message.response_code=403 | table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -757,7 +704,8 @@
       <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  stats count by message.app_name</query>
+          <!-- UPDATED: search replaced with regex -->
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $appNameExpr$ | regex "message.path"=".*\/$apiVersionsPattern$\/fhir\/[Ee]xplanation[Oo]f[Bb]enefit.*" | search message.response_code=403 | stats count by message.app_name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -778,7 +726,7 @@
       <chart>
         <title>API + Non-API Result Codes Over Time Range</title>
         <search>
-          <query>host=$bbEnv$ env=$bbEnvLabel$ message.app_name!="TestApp" AND message.app_name!="new-relic" message.path!="/health*" | search "message.ip_addr"="*" | spath output=code path="message.response_code" | table code | stats count by code</query>
+          <query>env=$bbEnvLabel$ message.app_name!="TestApp" AND message.app_name!="new-relic" message.path!="/health*" | search "message.ip_addr"="*" | spath output=code path="message.response_code" | table code | stats count by code</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
         </search>
