@@ -83,7 +83,7 @@ load_env_vars () {
         export BB20_ENABLE_REMOTE_DEBUG="${BB20_ENABLE_REMOTE_DEBUG:-true}"
         export BB20_REMOTE_DEBUG_WAIT_ATTACH="${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}"
         export DATABASES_CUSTOM="${DATABASES_CUSTOM:-postgres://postgres:toor@db:5432/bluebutton}"
-        export DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/bfd/certs}"
+        export DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/certstore}"
         export DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
         export DJANGO_SECRET_KEY=$(openssl rand -hex 32)
         export DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"

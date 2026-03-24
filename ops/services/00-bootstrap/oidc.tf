@@ -90,10 +90,12 @@ data "aws_iam_policy_document" "github_actions_ecr" {
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
       "ecr:BatchGetImage",
+      "ecr:BatchDeleteImage",
       "ecr:PutImage",
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload"
+      "ecr:CompleteLayerUpload",
+      "ecr:BatchDeleteImage"
     ]
     resources = [data.aws_ecr_repository.shared.arn]
   }
@@ -508,6 +510,22 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     sid = "Tags"
     actions = [
       "tag:GetResources",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "EventBridge"
+    actions = [
+      "events:DescribeRule",
+      "events:DeleteRule",
+      "events:ListTagsForResource",
+      "events:ListTargetsByRule",
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:TagResource",
+      "events:UntagResource"
     ]
     resources = ["*"]
   }

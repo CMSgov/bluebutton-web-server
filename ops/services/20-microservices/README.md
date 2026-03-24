@@ -158,6 +158,11 @@ tofu apply
 - Verify JSON parameter exists at `/bb/{env}/{service}/config`
 - Set `enable_ssm_config = false` to use defaults while debugging
 
+**Stop and Restart ECS Service**
+- Start Service (force no cache): `aws ecs update-service --cluster bb-test-cluster --service bb-test-api-service --desired-count 1 --force-new-deployment`
+- Stop Service: `aws ecs update-service --cluster bb-test-cluster --service bb-test-api-service --desired-count 0`
+
+
 <!-- BEGIN_TF_DOCS -->
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
      'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
