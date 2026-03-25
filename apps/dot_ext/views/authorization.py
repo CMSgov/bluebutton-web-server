@@ -168,6 +168,8 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             self.application = validate_app_is_active(request)
+            print("APP CHECK 144: ", self.application.__dict__)
+            request.application_id = self.application.id
         except InvalidClientError as error:
             return TemplateResponse(
                 request,

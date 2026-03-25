@@ -551,6 +551,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def log_message(request, response):
+        print("we are in log_message of hhs_oauth_server")
         audit.info(RequestResponseLog(request, response).to_dict())
         request._logging_pass += 1
 

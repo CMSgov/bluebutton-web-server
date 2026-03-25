@@ -77,7 +77,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.dot_ext.throttling.ThrottleMiddleware",
     "waffle.middleware.WaffleMiddleware",
-    "apps.logging.middleware.ITSLogAPIMiddleware",
+    # "apps.logging.middleware.InjectApplicationIdMiddleware",
+    # "apps.logging.middleware.ITSLogAPIMiddleware",
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
     # on failed user authentication attempts from login views.
@@ -206,6 +207,10 @@ LOGGING = {
         }
     },
     'handlers': {
+        'its_log_api': {
+            '()': 'apps.logging.its_log_handler.ITSLogAPIHandler',
+            'level': 'INFO',
+        },
         'console': {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
@@ -230,45 +235,49 @@ LOGGING = {
         #     'handlers': ['console'],
         # },
         "hhs_server": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'DEBUG',
         },
         "hhs_oauth_server.accounts": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'DEBUG',
         },
         "oauth2_provider": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
         "oauthlib": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
         "unsuccessful_logins": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
         "admin_interface": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
         "tests": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'DEBUG',
         },
         "audit": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
         "performance": {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
         'django': {
-            'handlers': ['console'],
+            'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
+        'apps.logging': {
+            'handlers': ['its_log_api'],
+            'level': 'INFO',
+        }
     },
 }
 
