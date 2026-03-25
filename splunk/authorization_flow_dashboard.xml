@@ -15,18 +15,6 @@
       </input>
     </panel>
     <panel>
-      <input type="dropdown" token="bbEnv" searchWhenChanged="true">
-        <label>Select Environment (by IP Range)</label>
-        <default>ALL</default>
-        <choice value="*">ALL</choice>
-        <choice value="ip-10-224-78-*">Dev</choice>
-        <choice value="ip-10-224-90-*">Test</choice>
-        <choice value="ip-10-246-44-*">Sandbox</choice>
-        <choice value="ip-10-244-140-*">Prod</choice>
-        <initialValue>ALL</initialValue>
-      </input>
-    </panel>
-    <panel>
       <input type="time" token="t_local" searchWhenChanged="true">
         <label>Select Time Range</label>
         <default>
@@ -44,7 +32,7 @@
         <fieldForLabel>AppName</fieldForLabel>
         <fieldForValue>name</fieldForValue>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ host=$bbEnv$ |spath output=name path="message.auth_app_name" | table name | dedup name | sort name</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ |spath output=name path="message.auth_app_name" | table name | dedup name | sort name</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
         </search>
@@ -63,28 +51,35 @@
     <panel>
       <input type="dropdown" searchWhenChanged="true">
         <label>Select API versions</label>
-        <default>V1+V2</default>
-        <choice value="V1+V2">V1+V2</choice>
+        <default>All</default>
         <choice value="V1">V1</choice>
         <choice value="V2">V2</choice>
-        <initialValue>V1+V2</initialValue>
+        <choice value="V3">V3</choice>
+        <choice value="V1+V2">V1+V2</choice>
+        <choice value="All">All</choice>
+        <initialValue>All</initialValue>
         <fieldForLabel>APIVersion</fieldForLabel>
         <fieldForValue>APIVersion</fieldForValue>
         <change>
-          <condition value="V1+V2">
-            <set token="apiVersionsPattern">v*</set>
-            <set token="apiVersionsRegex">v[12]</set>
-            <set token="apiVersionsLabel">V1+V2</set>
-          </condition>
           <condition value="V1">
             <set token="apiVersionsPattern">v1</set>
-            <set token="apiVersionsRegex">v1</set>
             <set token="apiVersionsLabel">V1</set>
           </condition>
           <condition value="V2">
             <set token="apiVersionsPattern">v2</set>
-            <set token="apiVersionsRegex">v2</set>
             <set token="apiVersionsLabel">V2</set>
+          </condition>
+          <condition value="V3">
+            <set token="apiVersionsPattern">v3</set>
+            <set token="apiVersionsLabel">V3</set>
+          </condition>
+          <condition value="V1+V2">
+            <set token="apiVersionsPattern">v[12]</set>
+            <set token="apiVersionsLabel">V1+V2</set>
+          </condition>
+          <condition value="All">
+            <set token="apiVersionsPattern">v[123]</set>
+            <set token="apiVersionsLabel">All</set>
           </condition>
         </change>
       </input>
@@ -120,25 +115,25 @@
   </row>
   <!-- Setup of BASE searches to be used in panels -->
   <search id="baseSearch1">
-    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"=".*\/$apiVersionsPattern$\/o\/authorize\/$" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch3">
-    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_hicn_hash message.auth_pkce_method</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_hicn_hash message.auth_pkce_method</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch11">
-    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" "message.auth_app_id"!="null" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" "message.auth_app_id"!="null" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch12">
-    <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ $authApplicationNameExpr$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes</query>
+    <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ $authApplicationNameExpr$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
@@ -1105,7 +1100,7 @@
       <chart>
         <title>Events by response_code</title>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.response_code</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.response_code</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1116,7 +1111,7 @@
     <panel>
       <table>
         <search>
-          <query>index=application source="/bb/*/app/perf_mon.log" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.req_grant_type message.response_code</query>
+          <query>index=application source="/bb/*/app/perf_mon.log" env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.req_grant_type message.response_code</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
