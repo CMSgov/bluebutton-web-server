@@ -42,7 +42,7 @@ resource "aws_lb_target_group" "tg" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    interval            = 30
+    interval            = 120
     matcher             = "200"
     path                = each.value.health_check_path
     port                = "traffic-port"

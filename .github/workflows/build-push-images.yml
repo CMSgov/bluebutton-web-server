@@ -24,14 +24,14 @@ env:
   AWS_REGION: us-east-1
 
 permissions:
-  id-token: write # Required for requ esting the AWS IAM OIDC JWT
+  id-token: write # Required for requesting the AWS IAM OIDC JWT
   contents: write # Required for actions/checkout
   actions: write # Required for GHA cache
 
 jobs:
   build:
     # This runs on CodeBuild, not a public GitHub Action Runner.
-    # TODO - Optimize CodeBuile usage, use public runners when appropriate
+    # TODO - Optimize CodeBuild usage, use public runners when appropriate
     runs-on:
       - codebuild-bb-${{ github.event.inputs.environment || 'test' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
