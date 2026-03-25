@@ -55,4 +55,5 @@ sqlparse == 0.5.4
 typing_extensions == 4.15.0
 urllib3 == 2.6.3
 voluptuous == 0.13.1
+watchtower == 3.4.0
 zipp == 3.19.2
