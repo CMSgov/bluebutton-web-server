@@ -1,12 +1,15 @@
 import logging
 import json
 import threading
+from typing import Any, Dict
 import requests
 
 TYPES_TO_SKIP = ['slsx_token', 'slsx_userinfo', '']
 # Other possibilities:
 # auth_app_data_access_type, auth_app_id, path, req_grant_Type,
-ACCEPTED_LOG_KEYS_LIST = ['app_name', 'app_id', 'type', 'response_code', ]
+ACCEPTED_LOG_KEYS = ['app_name', 'app_id', 'type', 'response_code', 'fhir_id_v2', 'fhir_id_v3']
+GRAB_FHIR_ID_FROM_USER_CROSSWALK = ['Authentication:success', 'Authorization']
+GRAB_FHIR_ID_FROM_CROSSWALK = ['AccessToken']
 
 
 class ITSLogAPIHandler(logging.Handler):
@@ -19,8 +22,17 @@ class ITSLogAPIHandler(logging.Handler):
     API_KEY = "12345678901234561234567890123456"
 
     def emit(self, record):
-        # Extract everything on the calling thread before handing off
-        payload = self._build_payload(record)
+        print("RECORD CHECK INITIAL: ", record.__dict__)
+
+        log_message = self.parse_log_message(record.__dict__)
+        print("type check big dog: ", log_message.get('type'))
+        if (
+            log_message.get('type') not in GRAB_FHIR_ID_FROM_USER_CROSSWALK
+            and log_message.get('type') not in GRAB_FHIR_ID_FROM_CROSSWALK
+        ):
+            print("not a log type to post to ITS-log")
+            return
+        payload = self._build_payload(log_message, record)
         print("PAYLOAD CHECK: ", payload)
 
         # Fire in a background thread — never block the caller
@@ -43,17 +55,20 @@ class ITSLogAPIHandler(logging.Handler):
         # Return None (or the raw string) if it's not valid JSON
         return {}
 
-    def _build_payload(self, record):
+    def _build_payload(self, log_message, record) -> Dict[str, Any]:
         tags = []
-
-        print("record dict: ", record.__dict__)
-        log_message = self.parse_log_message(record.__dict__)
         print("LOG MESSAGE: ", log_message)
 
         if log_message.get('auth_app_id'):
             tags.append(log_message.get('auth_app_id'))
         if log_message.get('type'):
             tags.append(log_message.get('type'))
+            if log_message.get('type') in GRAB_FHIR_ID_FROM_USER_CROSSWALK:
+                print("what was the type: ", log_message.get('type'))
+                log_message['fhir_id_v2'] = log_message.get('user').get('crosswalk').get('fhir_id_v2')
+                log_message['fhir_id_v3'] = log_message.get('user').get('crosswalk').get('fhir_id_v3')
+            elif log_message.get('type') in GRAB_FHIR_ID_FROM_CROSSWALK:
+                log_message['fhir_id_v2'] = log_message.get('crosswalk').get('fhir_id')
 
         # Logger name (e.g. "apps.dot_ext.views.fhir")
         # tags.append(record.name)
@@ -63,19 +78,15 @@ class ITSLogAPIHandler(logging.Handler):
         if app_id:
             tags.append(str(app_id))
 
-        path = getattr(record, 'path', None)
-        if path:
-            path_parts = [p for p in path.strip('/').split('/') if p and p != 'fhir']
-            tags.extend(path_parts)
         print("tag check: ", tags)
 
-        # log_message_list = [f"{k}:{v}" for k, v in log_message.items() if k in ACCEPTED_LOG_KEYS_LIST]
-        log_message_list = [f"{k}:{v}" for k, v in log_message.items()]
+        log_message_list = [f"{k}:{v}" for k, v in log_message.items() if k in ACCEPTED_LOG_KEYS]
+        # log_message_list = [f"{k}:{v}" for k, v in log_message.items()]
         print("log_message_list: ", log_message_list)
         return {
             'tags': tags,
-            # 'value': " ".join(log_message_list),
-            'value': 'test',
+            'value': " ".join(log_message_list),
+            # 'value': 'test',
             'type': 'text'
         }
 
