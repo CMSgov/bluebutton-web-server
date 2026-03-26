@@ -437,13 +437,22 @@ EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", None)
 # Option for local development to pretty print/format JSON logging
 LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
 
-# TODO - this is to pass integration tests, make a note to change this with Fargate
-for log_path in ("/var/log/pyapps", os.path.join(BASE_DIR, "logs")):
+
+LOG_DIR = '/var/log/pyapps'
+READ_ONLY_FS = False
+
+# Added for integration tests (currently, log files are created in some ansible/terraform way)
+# TODO - may ne unnecessary, depending on how our integration tests end up in the fargate migration
+if not os.path.exists(LOG_DIR):
     try:
-        os.makedirs(log_path, exist_ok=True)
-        break
+        os.makedirs(LOG_DIR, exist_ok=True)
     except OSError:
-        pass
+        LOG_DIR = os.path.join(BASE_DIR, 'logs')
+        try:
+            os.makedirs(LOG_DIR, exist_ok=True)
+        except OSError:
+            READ_ONLY_FS = True
+            LOG_DIR = '/tmp'  # Fallback purely so string evaluation doesn't crash prior to intercept
 
 # TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks that aren't being migrated
 LOGGING = env("DJANGO_LOGGING", {
@@ -540,6 +549,14 @@ LOGGING = env("DJANGO_LOGGING", {
         }
     },
 })
+
+if READ_ONLY_FS:
+    # Fargate runs extremely locked-down read-only filesystems which crashes standard logging.
+    # Safely morph any failing local FileHandlers into streaming stdout handlers!
+    for _, handler_config in LOGGING['handlers'].items():
+        if handler_config.get('class') == 'logging.FileHandler':
+            handler_config['class'] = 'logging.StreamHandler'
+            handler_config.pop('filename', None)
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
