@@ -547,3 +547,10 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
     'To refresh Medicare data, end user must re-authenticate '
     'and consent to share their data.'
 )
+
+APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
+    'This application, {}, does not yet have access to this authorization method.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
+)

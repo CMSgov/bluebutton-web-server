@@ -191,6 +191,18 @@ class Application(AbstractApplication):
 
     internal_application_labels = models.ManyToManyField(InternalApplicationLabels, blank=True)
 
+    # New fields for CMS Aligned Networks epic
+    allow_client_credentials = models.BooleanField(default=False)
+    jwks_uri = models.URLField(
+        default=None,
+        blank=True,
+        null=True,
+        # Went with 512 as that is the established pattern we have for URLFields
+        # and to allow for extremely long URLs. 200 is default
+        max_length=512,
+        verbose_name='JSON Web Key Set URI',
+    )
+
     # Text and date must be separated so that built-in Django localization
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
