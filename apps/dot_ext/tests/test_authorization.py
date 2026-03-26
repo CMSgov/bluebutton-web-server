@@ -16,7 +16,7 @@ import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.constants import CODE_CHALLENGE_METHOD_S256
-from apps.dot_ext.constants import APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED
+from apps.dot_ext.constants import APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS
 
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
@@ -1567,7 +1567,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         # I believe we only want to test the token endpoint, without hitting authorize first
         token_request_data = {
-            'grant_type': 'client_credentials',
+            'grant_type': CLIENT_CREDENTIALS,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,

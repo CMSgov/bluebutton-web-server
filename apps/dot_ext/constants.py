@@ -554,3 +554,5 @@ APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
     ' If you are a Medicare Beneficiary and need assistance, please contact'
     ' the support team for the application you are trying to access.'
 )
+
+CLIENT_CREDENTIALS = 'client_credentials'
