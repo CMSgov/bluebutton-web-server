@@ -127,6 +127,7 @@ jobs:
           file: ops/containers/bb-web-api/Dockerfile
           platforms: linux/arm64
           push: true
+          provenance: false
           tags: ${{ steps.prep_tags.outputs.tags }}
           build-args: |
             BUILD_TARGET=production
