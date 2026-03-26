@@ -416,6 +416,7 @@ LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
 
 
 LOG_DIR = '/var/log/pyapps'
+READ_ONLY_FS = False
 
 # Added for integration tests (currently, log files are created in some ansible/terraform way)
 # TODO - may ne unnecessary, depending on how our integration tests end up in the fargate migration
@@ -424,7 +425,11 @@ if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR, exist_ok=True)
     except OSError:
         LOG_DIR = os.path.join(BASE_DIR, 'logs')
-        os.makedirs(LOG_DIR, exist_ok=True)
+        try:
+            os.makedirs(LOG_DIR, exist_ok=True)
+        except OSError:
+            READ_ONLY_FS = True
+            LOG_DIR = '/tmp'  # Fallback purely so string evaluation doesn't crash prior to intercept
 
 LOGGING = {
     "version": 1,
@@ -556,6 +561,14 @@ LOGGING = {
         }
     },
 }
+
+if READ_ONLY_FS:
+    # Fargate runs extremely locked-down read-only filesystems which crashes standard logging.
+    # Safely morph any failing local FileHandlers into streaming stdout handlers!
+    for _, handler_config in LOGGING['handlers'].items():
+        if handler_config.get('class') == 'logging.FileHandler':
+            handler_config['class'] = 'logging.StreamHandler'
+            handler_config.pop('filename', None)
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
