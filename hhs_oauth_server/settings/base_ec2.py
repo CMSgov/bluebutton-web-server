@@ -565,7 +565,7 @@ LOGGING = {
 if READ_ONLY_FS:
     # Fargate runs extremely locked-down read-only filesystems which crashes standard logging.
     # Safely morph any failing local FileHandlers into streaming stdout handlers!
-    for _, handler_config in LOGGING['handlers'].items():
+    for _handler_name, handler_config in LOGGING['handlers'].items():
         if handler_config.get('class') == 'logging.FileHandler':
             handler_config['class'] = 'logging.StreamHandler'
             handler_config.pop('filename', None)
