@@ -36,6 +36,7 @@ import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.mymedicare_cb.models import get_and_update_from_refresh
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
+from apps.dot_ext.constants import APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS
 from apps.versions import Versions
 
 from ..signals import beneficiary_authorized_application
@@ -48,7 +49,7 @@ from ..loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from ..models import Approval
+from apps.dot_ext.models import Application, Approval
 from ..utils import (
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
@@ -473,6 +474,12 @@ class TokenView(DotTokenView):
                 description='Unable to verify permission.'
             )
 
+    def check_if_client_credentials_call_is_allowed(self, app: Application, version: Versions) -> bool:
+        if version != Versions.V3:
+            log.warning(f'A client_credentials token call was made for version: {version}')
+            return False
+        return app.allow_client_credentials
+
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         path_info = self.request.__dict__.get('path_info')
@@ -486,6 +493,17 @@ class TokenView(DotTokenView):
             if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
                 self.validate_v3_token_call(request)
             app = validate_app_is_active(request)
+
+            if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
+                allow_client_credentials_call = self.check_if_client_credentials_call_is_allowed(app, version)
+
+                if allow_client_credentials_call:
+                    # Allow client credentials call to proceed, to be implemented in a later ticket
+                    log.info(f'client_credentials token call was made for app: {app.name}')
+                else:
+                    error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
+                    return JsonResponse({'status_code': 400, 'message': error_message}, status=400)
+
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
         except AccessDeniedTokenCustomError as e:
