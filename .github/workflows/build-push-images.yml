@@ -77,7 +77,19 @@ jobs:
         run: |
           echo "::add-mask::${{ steps.login-ecr-test.outputs.registry }}"
 
+      - name: Check for Prod Configuration
+        id: check_prod
+        env:
+          PROD_ACCOUNT: ${{ secrets.PROD_ACCOUNT }}
+        run: |
+          if [[ -n "$PROD_ACCOUNT" ]]; then
+            echo "has_prod=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_prod=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup AWS credentials (Prod)
+        if: steps.check_prod.outputs.has_prod == 'true'
         uses: ./.github/actions/setup-tofu
         with:
           environment: prod
@@ -86,13 +98,24 @@ jobs:
 
       - name: Login to Amazon ECR (Prod)
         id: login-ecr-prod
+        if: steps.check_prod.outputs.has_prod == 'true'
         uses: aws-actions/amazon-ecr-login@v2
         with:
           mask-password: true
 
       - name: Mask ECR registry (Prod)
+        if: steps.check_prod.outputs.has_prod == 'true'
         run: |
           echo "::add-mask::${{ steps.login-ecr-prod.outputs.registry }}"
+
+      - name: Prepare Image Tags
+        id: prep_tags
+        run: |
+          TAGS="${{ steps.login-ecr-test.outputs.registry }}/bb-test-api:${{ steps.resolve-tag.outputs.image_tag }}"
+          if [[ "${{ steps.check_prod.outputs.has_prod }}" == "true" ]]; then
+            TAGS="${TAGS},${{ steps.login-ecr-prod.outputs.registry }}/bb-prod-api:${{ steps.resolve-tag.outputs.image_tag }}"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
@@ -104,9 +127,7 @@ jobs:
           file: ops/containers/bb-web-api/Dockerfile
           platforms: linux/arm64
           push: true
-          tags: |
-            ${{ steps.login-ecr-test.outputs.registry }}/bb-test-api:${{ steps.resolve-tag.outputs.image_tag }}
-            ${{ steps.login-ecr-prod.outputs.registry }}/bb-prod-api:${{ steps.resolve-tag.outputs.image_tag }}
+          tags: ${{ steps.prep_tags.outputs.tags }}
           build-args: |
             BUILD_TARGET=production
             RELEASE_TAG=${{ steps.resolve-tag.outputs.image_tag }}
