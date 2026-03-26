@@ -45,8 +45,12 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
   }
 }
 
-# IAM Role for GitHub Actions (created per environment)
+# IAM Role for GitHub Actions (one per account, not per environment)
+# test account: bb-test-github-actions
+# prod account: bb-prod-github-actions (sandbox reuses this)
 resource "aws_iam_role" "github_actions" {
+  count = local.create_resources ? 1 : 0
+
   name                 = "bb-${local.env}-github-actions"
   path                 = var.iam_path
   permissions_boundary = local.permissions_boundary
@@ -58,6 +62,23 @@ resource "aws_iam_role" "github_actions" {
   tags = {
     Name = "bb-${local.env}-github-actions"
   }
+}
+
+# Discover the role for all workspaces (sandbox finds prod's role via bucket_env)
+data "aws_iam_role" "github_actions" {
+  name = "bb-${local.bucket_env}-github-actions"
+
+  depends_on = [aws_iam_role.github_actions]
+}
+
+locals {
+  github_actions_role_id   = data.aws_iam_role.github_actions.id
+  github_actions_role_arn  = data.aws_iam_role.github_actions.arn
+  github_actions_role_name = data.aws_iam_role.github_actions.name
+
+  # Environments this role must cover
+  # test account: [test], prod account: [sandbox, prod]
+  role_envs = local.env == "test" ? ["test"] : ["sandbox", "prod"]
 }
 
 # ============================================================================
@@ -90,6 +111,7 @@ data "aws_iam_policy_document" "github_actions_ecr" {
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
       "ecr:BatchGetImage",
+      "ecr:DescribeImages",
       "ecr:PutImage",
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
@@ -100,8 +122,9 @@ data "aws_iam_policy_document" "github_actions_ecr" {
 }
 
 resource "aws_iam_role_policy" "github_actions_ecr" {
+  count  = local.create_resources ? 1 : 0
   name   = "ecr"
-  role   = aws_iam_role.github_actions.id
+  role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.github_actions_ecr.json
 }
 
@@ -126,13 +149,14 @@ data "aws_iam_policy_document" "github_actions_codebuild" {
 resource "aws_iam_role_policy" "github_actions_codebuild" {
   count  = local.create_resources ? 1 : 0
   name   = "codebuild"
-  role   = aws_iam_role.github_actions.id
+  role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.github_actions_codebuild[0].json
 }
 
 # ============================================================================
 # ECS deployment permissions (update services after image push)
-# Scoped to this environment's cluster, services, and task definitions only
+# Covers all environments this role serves:
+#   test account: [test], prod account: [sandbox, prod]
 # ============================================================================
 
 data "aws_iam_policy_document" "github_actions_ecs_deploy" {
@@ -144,10 +168,10 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
       "ecs:DescribeTasks",
       "ecs:ListTasks"
     ]
-    resources = [
-      "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:service/${local.app}-${local.env}-cluster/*",
-      "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:task/${local.app}-${local.env}-cluster/*"
-    ]
+    resources = flatten([for env in local.role_envs : [
+      "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:service/${local.app}-${env}-cluster/*",
+      "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:task/${local.app}-${env}-cluster/*"
+    ]])
   }
 
   statement {
@@ -166,18 +190,18 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
     actions = [
       "ecs:DescribeClusters"
     ]
-    resources = [
-      "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:cluster/${local.app}-${local.env}-cluster"
+    resources = [for env in local.role_envs :
+      "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:cluster/${local.app}-${env}-cluster"
     ]
   }
 
   statement {
     sid     = "AllowPassRole"
     actions = ["iam:PassRole"]
-    resources = [
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${var.iam_path}${local.app}-${local.env}-*-task",
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${var.iam_path}${local.app}-${local.env}-*-execution"
-    ]
+    resources = flatten([for env in local.role_envs : [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${var.iam_path}${local.app}-${env}-*-task",
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${var.iam_path}${local.app}-${env}-*-execution"
+    ]])
     condition {
       test     = "StringEquals"
       variable = "iam:PassedToService"
@@ -187,8 +211,9 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
 }
 
 resource "aws_iam_role_policy" "github_actions_ecs_deploy" {
+  count  = local.create_resources ? 1 : 0
   name   = "ecs-deploy"
-  role   = aws_iam_role.github_actions.id
+  role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.github_actions_ecs_deploy.json
 }
 
@@ -514,7 +539,8 @@ data "aws_iam_policy_document" "github_actions_tofu" {
 }
 
 resource "aws_iam_role_policy" "github_actions_tofu" {
+  count  = local.create_resources ? 1 : 0
   name   = "tofu-plan-apply"
-  role   = aws_iam_role.github_actions.id
+  role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.github_actions_tofu.json
 }

@@ -1,0 +1,114 @@
+# Build and Push Container Image
+
+name: Build and Push Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to build for'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - prod
+      release_tag:
+        description: 'Release tag to build (e.g. r33) — uses master HEAD if empty'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: 'test'
+      release_tag:
+        required: false
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write # Required for requesting the AWS IAM OIDC JWT
+  contents: read  # Required for actions/checkout
+  actions: write  # Required for GHA cache
+
+jobs:
+  build:
+    # This runs on CodeBuild, not a public GitHub Action Runner.
+    # sandbox uses prod CodeBuild runner (same account)
+    runs-on:
+      - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    outputs:
+      image_tag: ${{ steps.resolve-tag.outputs.image_tag }}
+
+    steps:
+      - name: Resolve image tag
+        id: resolve-tag
+        run: |
+          if [[ -n "${{ inputs.release_tag }}" ]]; then
+            echo "image_tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag || github.ref_name }}
+
+      - name: Setup AWS credentials (Test)
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: test
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Login to Amazon ECR (Test)
+        id: login-ecr-test
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Mask ECR registry (Test)
+        run: |
+          echo "::add-mask::${{ steps.login-ecr-test.outputs.registry }}"
+
+      - name: Setup AWS credentials (Prod)
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: prod
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Login to Amazon ECR (Prod)
+        id: login-ecr-prod
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Mask ECR registry (Prod)
+        run: |
+          echo "::add-mask::${{ steps.login-ecr-prod.outputs.registry }}"
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ops/containers/bb-web-api/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.login-ecr-test.outputs.registry }}/bb-test-api:${{ steps.resolve-tag.outputs.image_tag }}
+            ${{ steps.login-ecr-prod.outputs.registry }}/bb-prod-api:${{ steps.resolve-tag.outputs.image_tag }}
+          build-args: |
+            BUILD_TARGET=production
+            RELEASE_TAG=${{ steps.resolve-tag.outputs.image_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
