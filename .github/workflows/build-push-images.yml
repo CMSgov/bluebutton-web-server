@@ -1,77 +1,98 @@
-# Build and Deploy - Test
+# Build and Push Container Image
 
-name: Build Image and Publish to ECR
+name: Build and Push Image
 
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: 'Environment to build for'
         required: true
         default: 'test'
         type: choice
         options:
           - test
-          - impl
           - prod
-      version:
-        description: 'Version to deploy'
-        required: true
-        default: 'none'
+      release_tag:
+        description: 'Release tag to build (e.g. r33) — uses master HEAD if empty'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: 'test'
+      release_tag:
+        required: false
         type: string
 
 env:
   AWS_REGION: us-east-1
 
 permissions:
-  id-token: write # Required for requ esting the AWS IAM OIDC JWT
-  contents: write # Required for actions/checkout
-  actions: write # Required for GHA cache
+  id-token: write # Required for requesting the AWS IAM OIDC JWT
+  contents: read  # Required for actions/checkout
+  actions: write  # Required for GHA cache
 
 jobs:
   build:
     # This runs on CodeBuild, not a public GitHub Action Runner.
-    # TODO - Optimize CodeBuile usage, use public runners when appropriate
+    # sandbox uses prod CodeBuild runner (same account)
     runs-on:
-      - codebuild-bb-${{ github.event.inputs.environment || 'test' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+      - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    outputs:
+      image_tag: ${{ steps.resolve-tag.outputs.image_tag }}
 
     steps:
+      - name: Resolve image tag
+        id: resolve-tag
+        run: |
+          if [[ -n "${{ inputs.release_tag }}" ]]; then
+            echo "image_tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        id: aws-creds
-        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
-          aws-region: ${{ env.AWS_REGION }}
-          mask-aws-account-id: true
+          ref: ${{ inputs.release_tag || github.ref_name }}
 
-      - name: Mask additional sensitive values
-        run: |
-          # Mask the role ARN
-          echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
-          # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
-          # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
+      - name: Setup AWS credentials (Test)
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: test
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
 
-          # Get and mask account ID
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "::add-mask::$ACCOUNT_ID"
-          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
-
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to Amazon ECR (Test)
+        id: login-ecr-test
         uses: aws-actions/amazon-ecr-login@v2
         with:
           mask-password: true
 
-      - name: Mask ECR registry
+      - name: Mask ECR registry (Test)
         run: |
-          echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
+          echo "::add-mask::${{ steps.login-ecr-test.outputs.registry }}"
 
-      - name: Untag previous "latest"
+      - name: Setup AWS credentials (Prod)
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: prod
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Login to Amazon ECR (Prod)
+        id: login-ecr-prod
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Mask ECR registry (Prod)
         run: |
-          aws ecr batch-delete-image --repository-name bb-${{ github.event.inputs.environment || 'test' }}-api --image-ids imageTag="latest"
+          echo "::add-mask::${{ steps.login-ecr-prod.outputs.registry }}"
 
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
@@ -80,14 +101,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ops/containers/bb-api/Dockerfile
+          file: ops/containers/bb-web-api/Dockerfile
           platforms: linux/arm64
           push: true
-          provenance: false
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:${{ github.sha }}
-            ${{ steps.login-ecr.outputs.registry }}/bb-${{ github.event.inputs.environment || 'test' }}-api:latest
+            ${{ steps.login-ecr-test.outputs.registry }}/bb-test-api:${{ steps.resolve-tag.outputs.image_tag }}
+            ${{ steps.login-ecr-prod.outputs.registry }}/bb-prod-api:${{ steps.resolve-tag.outputs.image_tag }}
           build-args: |
             BUILD_TARGET=production
+            RELEASE_TAG=${{ steps.resolve-tag.outputs.image_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

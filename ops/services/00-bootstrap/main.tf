@@ -91,10 +91,10 @@ resource "aws_ecr_lifecycle_policy" "api" {
     rules = [
       {
         rulePriority = 1
-        description  = "Keep last 30 images"
+        description  = "Keep last 30 release images"
         selection = {
           tagStatus     = "tagged"
-          tagPrefixList = ["v"]
+          tagPrefixList = ["r"]
           countType     = "imageCountMoreThan"
           countNumber   = 30
         }

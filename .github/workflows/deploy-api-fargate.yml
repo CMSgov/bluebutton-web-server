@@ -1,0 +1,137 @@
+name: Deploy to Fargate
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - test
+          - sandbox
+          - prod
+      image_tag:
+        description: 'ECR image tag to deploy (e.g. r33)'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.image_tag }} to ${{ inputs.environment }}
+    # sandbox uses prod CodeBuild runner (same account)
+    runs-on:
+      - codebuild-bb-${{ inputs.environment == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: ${{ inputs.environment }}
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Mask ECR registry
+        run: |
+          echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
+
+      - name: Verify image exists in ECR
+        id: verify-image
+        run: |
+          ENV="${{ inputs.environment }}"
+          # sandbox and prod share the same ECR repo (bb-prod-api)
+          BUCKET_ENV="${ENV}"
+          if [[ "$ENV" == "sandbox" ]]; then
+            BUCKET_ENV="prod"
+          fi
+
+          REPO_NAME="bb-${BUCKET_ENV}-api"
+          IMAGE_TAG="${{ inputs.image_tag }}"
+
+          echo "Verifying ${REPO_NAME}:${IMAGE_TAG} exists in ECR..."
+          if ! aws ecr describe-images --repository-name "$REPO_NAME" --image-ids imageTag="$IMAGE_TAG" > /dev/null 2>&1; then
+            echo "::error::Image ${REPO_NAME}:${IMAGE_TAG} not found in ECR. Build it first."
+            exit 1
+          fi
+
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "image=${REGISTRY}/${REPO_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Image verified: ${REPO_NAME}:${IMAGE_TAG}"
+
+      - name: Get current task definition
+        id: current-task
+        run: |
+          ENV="${{ inputs.environment }}"
+          FAMILY="bb-${ENV}-api-family"
+
+          echo "Fetching current task definition for ${FAMILY}..."
+          TASK_DEF=$(aws ecs describe-task-definition --task-definition "$FAMILY" --query 'taskDefinition')
+
+          # Update the image in the container definition
+          UPDATED=$(echo "$TASK_DEF" | jq \
+            --arg IMAGE "${{ steps.verify-image.outputs.image }}" \
+            '.containerDefinitions[0].image = $IMAGE')
+
+          # Strip fields that cannot be included in register-task-definition
+          CLEANED=$(echo "$UPDATED" | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+
+          echo "$CLEANED" > /tmp/task-definition.json
+          echo "Updated image to: ${{ steps.verify-image.outputs.image }}"
+
+      - name: Register new task definition
+        id: register-task
+        run: |
+          NEW_TASK_DEF=$(aws ecs register-task-definition \
+            --cli-input-json file:///tmp/task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "task_definition_arn=$NEW_TASK_DEF" >> "$GITHUB_OUTPUT"
+          echo "Registered: $NEW_TASK_DEF"
+
+      - name: Update ECS service
+        run: |
+          ENV="${{ inputs.environment }}"
+          CLUSTER="bb-${ENV}-cluster"
+          SERVICE="bb-${ENV}-api-service"
+
+          echo "Updating ${SERVICE} on ${CLUSTER}..."
+          aws ecs update-service \
+            --cluster "$CLUSTER" \
+            --service "$SERVICE" \
+            --task-definition "${{ steps.register-task.outputs.task_definition_arn }}" \
+            --force-new-deployment \
+            --query 'service.serviceName' \
+            --output text
+
+      - name: Wait for deployment to stabilize
+        run: |
+          ENV="${{ inputs.environment }}"
+          CLUSTER="bb-${ENV}-cluster"
+          SERVICE="bb-${ENV}-api-service"
+
+          echo "Waiting for ${SERVICE} to stabilize (timeout: 10 minutes)..."
+          aws ecs wait services-stable \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE" || {
+              echo "::warning::Service did not stabilize within timeout. Check ECS console."
+              exit 1
+            }
+
+          echo "Deployment complete and stable."
