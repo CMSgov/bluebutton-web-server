@@ -498,10 +498,6 @@ class TokenView(DotTokenView):
             if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
                 self.validate_v3_token_call(request)
             app = validate_app_is_active(request)
-            print("ALLOWED AUTH NAME 220: ", app.name)
-            print("ALLOWED AUTH ID 220: ", app.id)
-            print("ALLOWED AUTH TYP 220: ", app.allowed_auth_type)
-            print("GRANT_TYPE 220: ", grant_type)
 
             if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
                 allow_client_credentials_call = self.check_if_client_credentials_call_is_allowed(app, version)
@@ -520,7 +516,6 @@ class TokenView(DotTokenView):
                 and grant_type[0] != CLIENT_CREDENTIALS
                 and app.allowed_auth_type == CLIENT_CREDENTIALS.upper()
             ):
-                print("RUH ROH")
                 # If the app is only allowed to use client_credentials, but a different grant type is passed, throw an error
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
                 return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
