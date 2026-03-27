@@ -16,6 +16,7 @@ import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.constants import CODE_CHALLENGE_METHOD_S256
+from apps.dot_ext.constants import APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS
 
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
@@ -1593,3 +1594,53 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
         self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')
+
+    def test_check_if_client_credentials_call_is_allowed(self) -> None:
+        view_instance = TokenView()
+        mock_app = Application(name='TestApp', allow_client_credentials=False)
+
+        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
+        assert not result
+
+        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V2)
+        assert not result
+
+        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
+        assert not result
+
+        mock_app.allow_client_credentials = True
+        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
+        assert result
+
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials(self):
+        """Ensure a bad request is thrown when a v3 token calls is made, with grant_type = client_credentials
+        and the application for the request does not have allow_client_credentials = True
+        """
+        redirect_uri = 'http://localhost'
+        # create a user
+        self._create_user('anna', '123456')
+
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        # I believe we only want to test the token endpoint, without hitting authorize first
+        token_request_data = {
+            'grant_type': CLIENT_CREDENTIALS,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
+        }
+        body = urlencode(token_request_data)
+        response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
+        assert not application.allow_client_credentials
