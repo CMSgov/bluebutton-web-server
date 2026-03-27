@@ -104,6 +104,8 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
             "active",
             "skip_authorization",
             "get_internal_application_labels",
+            "allowed_auth_type",
+            "jwks_uri",
         )
 
     list_filter = (
@@ -178,6 +180,8 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
         "active",
         "skip_authorization",
         "get_internal_application_labels",
+        "allowed_auth_type",
+        "jwks_uri",
     )
     list_filter = (
         "client_type",
