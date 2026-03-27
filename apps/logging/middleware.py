@@ -35,10 +35,10 @@ class InjectApplicationIdMiddleware:
         # Check cache first
         cached = cache.get(cache_key)
         if cached is not None:
-            # print("CACHE RETURN")
+            print("CACHE RETURN")
             return None if cached == "__none__" else cached
 
-        # Cache miss — query the DB
+        # Nothing in cache — query the DB
         try:
             token = AccessToken.objects.get(
                 token=token_string
@@ -53,22 +53,6 @@ class InjectApplicationIdMiddleware:
         cache.set(cache_key, app_id, timeout=300)
         return None if app_id == "__none__" else app_id
 
-        # try:
-        #     # First try to retrieve from meta attribute, indicates authorization has already succeeded
-        #     application = get_application_from_meta(request)
-        #     if application:
-        #         print("app from meta: ", application.__dict__)
-        # except InvalidClientError as error:
-        #     print("WARNING: ", error)
-        #     application = get_application_from_data(request)
-        #     if application:
-        #         print("app from data: ", application.__dict__)
-
-        # if application:
-        #     print("WHAT IS THE APP_ID: ", application.id)
-        #     return application.id
-        # return None
-
 
 class ITSLogAPIMiddleware:
     def __init__(self, get_response):
@@ -76,7 +60,9 @@ class ITSLogAPIMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-
+        if 'testclient' in request.path:
+            # Don't want testclient events being posted to ITS-log
+            return response
         threading.Thread(target=self._ping_api, args=(request,), daemon=True).start()
         return response
 

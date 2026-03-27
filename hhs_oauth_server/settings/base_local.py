@@ -77,8 +77,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.dot_ext.throttling.ThrottleMiddleware",
     "waffle.middleware.WaffleMiddleware",
-    # "apps.logging.middleware.InjectApplicationIdMiddleware",
-    # "apps.logging.middleware.ITSLogAPIMiddleware",
+    "apps.logging.middleware.InjectApplicationIdMiddleware",
+    "apps.logging.middleware.ITSLogAPIMiddleware",
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
     # on failed user authentication attempts from login views.
