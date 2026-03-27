@@ -81,6 +81,8 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             "active",
             "first_active",
             "last_active",
+            "allowed_auth_type",
+            "jwks_uri",
         )
 
     def clean_agree(self):
@@ -153,6 +155,8 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
             "require_demographic_scopes",
             "data_access_type",
             "internal_application_labels",
+            "allowed_auth_type",
+            "jwks_uri",
         )
 
     raw_id_fields = ("user",)
