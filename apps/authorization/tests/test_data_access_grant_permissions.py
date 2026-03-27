@@ -12,6 +12,7 @@ from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
 )
+from apps.dot_ext.models import Application
 from waffle.testutils import override_switch, override_flag
 from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation import (
     get_response_json,
@@ -149,6 +150,29 @@ class TestDataAccessPermissions(BaseApiTest):
         )
         # Setup the RequestFactory
         self.client = Client()
+
+    def test_thirty_minute_dag_has_expired(self):
+        """Ensure DataAccessGrant.has_expired() respects THIRTY_MINUTE expiration."""
+        # create app with THIRTY_MINUTE data access
+        app = self._create_application(
+            'thirty app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://localhost',
+            data_access_type='THIRTY_MINUTE',
+        )
+        user = self._create_user('carol', 'pw')
+        # expired grant
+        expired = datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(hours=+1)
+        dag = DataAccessGrant(beneficiary=user, application=app, expiration_date=expired)
+        dag.save()
+        self.assertTrue(dag.has_expired())
+
+        # unexpired grant
+        future = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+12)
+        dag.expiration_date = future
+        dag.save()
+        self.assertFalse(dag.has_expired())
 
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=True)
@@ -600,6 +624,63 @@ class TestDataAccessPermissions(BaseApiTest):
         # 14. Test that all calls are successful
         self._assert_call_all_fhir_endpoints(
             access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
+        )
+
+    def test_thirty_minute_refresh_within_and_after_dag_window(self):
+        """
+        Test Application.data_access_type="THIRTY_MINUTE" refresh semantics.
+
+        Steps:
+        1. Create app/user and obtain tokens via helper.
+        2. Ensure refresh is allowed while the DataAccessGrant expiration is within 24 hours.
+        3. Expire the DataAccessGrant and ensure refresh is rejected.
+        """
+        # 1. Use helper method to create app, user, authorized grant & access token.
+        user, app, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id_v2="-20140000008325",
+            fhir_id_v3="-30140000008325",
+            app_name="thirty_min_app",
+            app_username="devuser30",
+            app_user_organization="org30",
+            mbi=self._generate_random_mbi(),
+            app_data_access_type="THIRTY_MINUTE",
+        )
+
+        # 2. Test token refresh is enabled while DAG is within 24 hours
+        dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+12)
+        dag.save()
+
+        # Simulate the access token expiring after 30 minutes by setting its
+        # `expires` timestamp to 30 minutes in the past. Refresh should still
+        # be allowed while the DAG expiration is within 24 hours.
+        try:
+            at = AccessToken.objects.get(token=ac["access_token"])
+            at.expires = datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(minutes=35)
+            at.save()
+        except AccessToken.DoesNotExist:
+            pass
+
+        refreshed = self._assert_call_token_refresh_endpoint(
+            application=app,
+            refresh_token=ac["refresh_token"],
+            expected_response_code=HTTPStatus.OK,
+        )
+        # refreshed contains new access_token/refresh_token; use its refresh_token for later calls
+        new_refresh_token = refreshed.get("refresh_token")
+
+        # 3. Expire the DAG and verify refresh is rejected
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(minutes=+1)
+        dag.save()
+
+        self._assert_call_token_refresh_endpoint(
+            application=app,
+            refresh_token=new_refresh_token,
+            expected_response_code=HTTPStatus.UNAUTHORIZED,
+            expected_response_error_mesg="invalid_grant",
+            expected_response_error_description_mesg=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
     def test_data_access_grant_permissions_has_permission(self):

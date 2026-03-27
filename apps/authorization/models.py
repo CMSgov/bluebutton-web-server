@@ -40,14 +40,21 @@ class DataAccessGrant(models.Model):
 
     def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
-        if self.application and self.application.data_access_type == "THIRTEEN_MONTH":
-            self.expiration_date = datetime.now().replace(
-                tzinfo=pytz.UTC
-            ) + relativedelta(months=+13)
-            self.save()
+        if self.application:
+            if self.application.data_access_type == "THIRTEEN_MONTH":
+                self.expiration_date = datetime.now().replace(
+                    tzinfo=pytz.UTC
+                ) + relativedelta(months=+13)
+                self.save()
+            elif self.application.data_access_type == "THIRTY_MINUTE":
+                self.expiration_date = datetime.now().replace(
+                    tzinfo=pytz.UTC
+                ) + relativedelta(hours=+24)
+                self.save()
 
     def has_expired(self):
-        if self.application.data_access_type == "THIRTEEN_MONTH":
+        # Consider DAG expired for types that have an expiration_date set
+        if self.application and self.application.data_access_type in ("THIRTEEN_MONTH", "THIRTY_MINUTE"):
             if self.expiration_date:
                 if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):
                     return True

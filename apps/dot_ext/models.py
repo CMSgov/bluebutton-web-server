@@ -35,6 +35,7 @@ from waffle import switch_is_active
 ONE_HOUR = _("for 1 hour")
 TEN_HOURS = _("for 10 hours")
 THIRTEEN_MONTHS = _("for 13 months, until ")
+THIRTY_MINUTES = _("for 30 minutes, until")
 
 
 class InternalApplicationLabels(models.Model):
@@ -178,6 +179,7 @@ class Application(AbstractApplication):
         ("ONE_TIME", "ONE_TIME - No refresh token needed."),
         ("RESEARCH_STUDY", "RESEARCH_STUDY - No expiration."),
         ("THIRTEEN_MONTH", "THIRTEEN_MONTH - Access expires in 13-months."),
+        ("THIRTY_MINUTE", "THIRTY_MINUTE - Access expires in 30-minutes but can be refreshed for 24 hours."),
     )
 
     # Type related to data access limits.
@@ -200,6 +202,9 @@ class Application(AbstractApplication):
             else:
                 return TEN_HOURS
 
+        if self.data_access_type == "THIRTY_MINUTE":
+            return THIRTY_MINUTES
+
         # no message displayed for RESEARCH_STUDY
         else:
             return THIRTEEN_MONTHS
@@ -208,6 +213,8 @@ class Application(AbstractApplication):
         if self.data_access_type == "THIRTEEN_MONTH":
             end_date = datetime.now() + relativedelta(months=+13)
             return end_date.date
+        if self.data_access_type == "THIRTY_MINUTE":
+            return datetime.now() + relativedelta(minutes=+30)
         else:
             return None
 

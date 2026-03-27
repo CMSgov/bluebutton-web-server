@@ -2,6 +2,8 @@ from http import HTTPStatus
 import json
 import logging
 from datetime import datetime, timedelta
+import pytz
+from dateutil.relativedelta import relativedelta
 from functools import wraps
 from time import strftime
 
@@ -63,7 +65,20 @@ QP_CHECK_LIST = ["client_secret"]
 
 
 def get_grant_expiration(data_access_type):
-    pass
+    """Return a datetime representing the DataAccessGrant expiration for
+    the provided data_access_type.
+
+    - THIRTEEN_MONTH: now + 13 months
+    - THIRTY_MINUTE: now + 24 hours (DAG controls refresh window)
+    - ONE_TIME: None (no DAG)
+    - RESEARCH_STUDY: None
+    """
+    now = datetime.now().replace(tzinfo=pytz.UTC)
+    if data_access_type == "THIRTEEN_MONTH":
+        return now + relativedelta(months=+13)
+    if data_access_type == "THIRTY_MINUTE":
+        return now + timedelta(hours=24)
+    return None
 
 
 def require_post_state_decorator(view_func):
@@ -509,6 +524,16 @@ class TokenView(DotTokenView):
                     token=token)
 
                 if app.data_access_type == "THIRTEEN_MONTH":
+                    try:
+                        dag = DataAccessGrant.objects.get(
+                            beneficiary=token.user,
+                            application=app
+                        )
+                        if dag.expiration_date is not None:
+                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                    except DataAccessGrant.DoesNotExist:
+                        dag_expiry = ""
+                elif app.data_access_type == "THIRTY_MINUTE":
                     try:
                         dag = DataAccessGrant.objects.get(
                             beneficiary=token.user,

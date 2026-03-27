@@ -2,7 +2,7 @@ import json
 import base64
 
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 # from oauth2_provider.compat import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
@@ -717,7 +717,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.scope.add(capability_a)
 
         # create a data access grant
-        expiration_date = datetime.now() + relativedelta(months=+13)
+        expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
         dag = DataAccessGrant(beneficiary=user, application=application, expiration_date=expiration_date)
         dag.save()
 
@@ -750,6 +750,72 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
+        tkn = response.json()
+        dag.refresh_from_db()
+        token_expiration = datetime.strptime(
+            tkn["access_grant_expiration"], "%Y-%m-%dT%H:%M:%SZ"
+        ).replace(tzinfo=pytz.UTC)
+        dag_expiration = dag.expiration_date
+        if dag_expiration.tzinfo is None:
+            dag_expiration = dag_expiration.replace(tzinfo=pytz.UTC)
+        else:
+            dag_expiration = dag_expiration.astimezone(pytz.UTC)
+        self.assertLessEqual(
+            abs((token_expiration - dag_expiration).total_seconds()),
+            60,
+        )
+
+    def test_dag_expiration_exists_thirty_minute(self):
+        redirect_uri = 'http://localhost'
+
+        # create a user
+        user = self._create_user('beth', 'abcdef')
+
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app 30m',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri,
+            data_access_type="THIRTY_MINUTE",
+        )
+        capability_a = self._create_capability('Capability A', [])
+        application.scope.add(capability_a)
+
+        # create a data access grant with 24 hour expiration
+        expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+24)
+        dag = DataAccessGrant(beneficiary=user, application=application, expiration_date=expiration_date)
+        dag.save()
+
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='beth', password='abcdef')
+
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': timedelta(days=1).total_seconds(),
+            'allow': True,
+            "state": "0123456789abcdef",
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.client.logout()
+
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
+        }
+        c = Client()
+        response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
         tkn = response.json()
         dag.refresh_from_db()
         token_expiration = datetime.strptime(
