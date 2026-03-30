@@ -2,10 +2,12 @@ from base64 import b64decode
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http import HttpRequest
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
+from dot_ext.models import Application
 import re
 from apps.constants import (
     APPLICATION_TEMPORARILY_INACTIVE,
@@ -64,7 +66,7 @@ def remove_application_user_pair_tokens_data_access(application, user):
     )
 
 
-def get_application_from_meta(request):
+def get_application_from_meta(request) -> Application | None:
     """
     Utility function to application from auth header.
     This method will pull either the access token
@@ -100,16 +102,23 @@ def get_application_from_meta(request):
     return app
 
 
-def validate_app_is_active(request):
+def validate_app_is_active(request: HttpRequest) -> Application:
     """
-    Utility function to check that an application
-    is an active, valid application.
-    This method will pull the application from the
-    request and then check the active flag and the
-    data access grant (dag) validity.
-    RETURN:
-        application or None
+    Utility function to check that an application is an active, valid application.
+    This method will pull the application from the request and then check the active flag and the
+    data access grant (DA) validity.
+    Args:
+        request (HttpRequest): Django HttpRequest object
+
+    Raises:
+        InvalidClientError: Application can't refresh or isn't active
+        InvalidGrantError: Could not find a corresponding DAG, or DAG has expired
+        InvalidRequestError: Missing refresh token parameter
+
+    Returns:
+        Model: Application model or None
     """
+
     app = get_application_from_meta(request)
     if not app:
         app = get_application_from_data(request)

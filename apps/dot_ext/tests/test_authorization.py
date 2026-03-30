@@ -1304,7 +1304,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         view_instance = TokenView()
 
         with self.assertRaises(AccessDeniedTokenCustomError):
-            view_instance.validate_v3_token_call(request)
+            view_instance._validate_v3_token_call(request)
 
     def test_cancel_button_clicked_flow_thirteen_month_data_access_type(self):
         '''
@@ -1533,17 +1533,17 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         view_instance = TokenView()
         mock_app = Application(name='TestApp', allow_client_credentials=False)
 
-        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
         assert not result
 
-        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V2)
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V2)
         assert not result
 
-        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert not result
 
         mock_app.allow_client_credentials = True
-        result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
     @override_switch('v3_endpoints', active=True)

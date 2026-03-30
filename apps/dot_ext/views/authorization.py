@@ -1,20 +1,23 @@
 from http import HTTPStatus
-import json
-import logging
 from datetime import datetime, timedelta
 from functools import wraps
 from time import strftime
 
+import uuid
+import html
+import json
+import logging
+import jwt
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
@@ -22,26 +25,27 @@ from oauth2_provider.views.base import app_authorized
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
-from oauth2_provider.views.introspect import (
-    IntrospectTokenView as DotIntrospectTokenView,
-)
+from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
 from waffle import switch_is_active, get_waffle_flag_model
 from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
-import uuid
-import html
 from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.fhir.server.settings import fhir_settings
 from apps.mymedicare_cb.models import get_and_update_from_refresh
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.constants import APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS
+from apps.dot_ext.constants import (
+    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, GRANT_TYPE_CLIENT_CREDENTIALS,
+    CLIENT_ASSERTION, CLIENT_ASSERTION_TYPE, CLIENT_ASSERTION_TYPE_VALUE, GRANT_TYPE_REFRESH_TOKEN,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
+)
 from apps.versions import Versions
-
-from ..signals import beneficiary_authorized_application
-from ..forms import SimpleAllowForm
-from ..loggers import (
+from jwt import PyJWKClient
+from apps.dot_ext.signals import beneficiary_authorized_application
+from apps.dot_ext.forms import SimpleAllowForm
+from apps.dot_ext.loggers import (
     create_session_auth_flow_trace,
     cleanup_session_auth_flow_trace,
     get_session_auth_flow_trace,
@@ -50,13 +54,13 @@ from ..loggers import (
     update_instance_auth_flow_trace_with_code,
 )
 from apps.dot_ext.models import Application, Approval
-from ..utils import (
+from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
     json_response_from_oauth2_error,
 )
-from ...authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -156,7 +160,7 @@ class AuthorizationView(DotAuthorizationView):
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
-            except AccessDeniedTokenCustomError as e:
+            except AccessDeniedError as e:
                 return JsonResponse(
                     {'status_code': 403, 'message': str(e)},
                     status=403,
@@ -260,11 +264,11 @@ class AuthorizationView(DotAuthorizationView):
                 # more times than is needed
                 return
             else:
-                raise AccessDeniedTokenCustomError(
+                raise AccessDeniedError(
                     description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            raise AccessDeniedTokenCustomError(
+            raise AccessDeniedError(
                 description='Unable to verify permission.'
             )
 
@@ -453,7 +457,7 @@ class ApprovalView(AuthorizationView):
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
 
-    def validate_v3_token_call(self, request) -> None:
+    def _validate_v3_token_call(self, request: HttpRequest) -> None:
         flag = get_waffle_flag_model().get('v3_early_adopter')
 
         try:
@@ -466,47 +470,90 @@ class TokenView(DotTokenView):
             if flag.id is None or flag.is_active_for_user(application_user):
                 return
             else:
-                raise AccessDeniedTokenCustomError(
+                raise AccessDeniedError(
                     description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            raise AccessDeniedTokenCustomError(
+            raise AccessDeniedError(
                 description='Unable to verify permission.'
             )
 
-    def check_if_client_credentials_call_is_allowed(self, app: Application, version: Versions) -> bool:
+    def _check_if_client_credentials_call_is_allowed(self, app: Application, version: Versions) -> bool:
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
         return app.allow_client_credentials
 
+    def _validate_client_credentials_request(self, request: HttpRequest):
+        """Checks that there is a client assertion type and a client assertion
+
+        Args:
+            request (HttpRequest): the Django request object
+
+        Raises:
+            InvalidRequestError: If missing required attribute or invalid value, reject
+        """
+        if request.POST.get(CLIENT_ASSERTION_TYPE) != CLIENT_ASSERTION_TYPE_VALUE or not request.POST.get(CLIENT_ASSERTION):
+            raise InvalidRequestError
+        return
+
+    def _validate_authorization_jwt(self, jwt):
+        return
+
+    def _validate_clear_jwt(self):
+        return
+
     @method_decorator(sensitive_post_parameters("password"))
-    def post(self, request, *args, **kwargs):
-        path_info = self.request.__dict__.get('path_info')
-        version = get_api_version_number_from_url(path_info)
-        url_query = parse_qs(request._body.decode('utf-8'))
-        grant_type = url_query.get('grant_type', [None])
+    def post(self, request: HttpRequest, *args, **kwargs):
+        version = get_api_version_number_from_url(self.request.path_info)
+        grant_type = request.POST.get('grant_type')
+
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
-            if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
-                self.validate_v3_token_call(request)
+            if version == Versions.V3 and grant_type == GRANT_TYPE_REFRESH_TOKEN:
+                self._validate_v3_token_call(request)
             app = validate_app_is_active(request)
 
-            if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
-                allow_client_credentials_call = self.check_if_client_credentials_call_is_allowed(app, version)
+            if grant_type == GRANT_TYPE_CLIENT_CREDENTIALS:
+                # Check for malformed request
+                self._validate_client_credentials_request(request)
+                allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
+                app_token = request.POST.get(CLIENT_ASSERTION)
 
                 if allow_client_credentials_call:
-                    # Allow client credentials call to proceed, to be implemented in a later ticket
-                    log.info(f'client_credentials token call was made for app: {app.name}')
+                    try:
+                        # Top level (application) JWT decoding
+                        app_jwks_client = PyJWKClient(app.jwks_url)
+                        app_signing_key = app_jwks_client.get_signing_key_from_jwt(app_token)
+                        app_jwt = jwt.decode_complete(
+                            app_token,
+                            app_signing_key,
+                            issuer=app.client_id,
+                            audience=fhir_settings.fhir_url_v3,
+                            options={
+                                'require': ['exp', 'iss', '']
+                            },
+                            algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+                        )
+
+                        print(app_jwt)
+
+                        # Validate cms_smart extension
+
+                        # Check clear or id.me JWT signature (another call)
+
+                        log.info(f'client_credentials token call was made for app: {app.name}')
+                    except Exception as e:
+                        log.error(f'Error validating jwt: {str(e)}')
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': 400, 'message': error_message}, status=400)
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
-        except AccessDeniedTokenCustomError as e:
+        except AccessDeniedError as e:
             return JsonResponse(
                 {'status_code': 403, 'message': str(e)},
                 status=403,
@@ -516,7 +563,7 @@ class TokenView(DotTokenView):
 
         if status == 200:
             body = json.loads(body)
-            access_token = body.get("access_token")
+            access_token = body.get('access_token')
 
             dag_expiry = ""
             if access_token is not None:
@@ -544,7 +591,7 @@ class TokenView(DotTokenView):
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                if grant_type[0] == 'refresh_token':
+                if grant_type == GRANT_TYPE_REFRESH_TOKEN:
                     try:
                         crosswalk = Crosswalk.objects.get(user=token.user)
                         get_and_update_from_refresh(
