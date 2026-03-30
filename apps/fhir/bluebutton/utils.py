@@ -736,7 +736,7 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     payload = {'identifier': search_identifier}
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 
-    response_json = get_response_json(url, payload, headers, http_method="POST")
+    response_json = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
     return response_json
 
 
@@ -805,7 +805,7 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
         return True
     return False
 
-def get_patient_match_response_from_bfd(url: str, json_payload: str, headers: Dict[str, str]) -> Dict[str, Any]:
+def get_patient_match_response_from_bfd(url: str, payload: str, headers: Dict[str, str]) -> Dict[str, Any]:
     """
     This is a utility function to test patient match calls to BFD. 
 
@@ -819,7 +819,7 @@ def get_patient_match_response_from_bfd(url: str, json_payload: str, headers: Di
     """
     url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
 
-    response_json = get_response_json(url, json_payload, headers, http_method="POST")
+    response_json = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
 
     return response_json
 
@@ -855,7 +855,7 @@ def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, An
         logging.log.debug("No patient match found for patient_match call")
         return JsonResponse({'status_code': 403, 'message': 'No patient match found.'}, status=403)
     
-def get_response_json(url: str, json_payload: str, headers: Dict[str, str], http_method: str) -> Dict[str, Any]:
+def get_response_json(url: str, payload: str, headers: Dict[str, str], http_method: str) -> Dict[str, Any]:
     """
     This is a utility function to test calls to BFD. 
 
@@ -874,7 +874,7 @@ def get_response_json(url: str, json_payload: str, headers: Dict[str, str], http
     # to be able to see the prepared request and manipulate if needed before sending, 
     # and to use the same pattern for certs and headers as other calls to BFD
     s = requests.Session()
-    req = requests.Request("POST", url, headers=headers, data=json_payload)
+    req = requests.Request(url=url, payload=payload, headers=headers, http_method=http_method)
     prepped = req.prepare()
     response = s.send(prepped, cert=certs, verify=False)
     response.raise_for_status()
