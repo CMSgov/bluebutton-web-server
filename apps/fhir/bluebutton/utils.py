@@ -17,7 +17,7 @@ from urllib.parse import parse_qs
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from apps.fhir.constants import FHIR_PARAM_FORMAT, REQUEST_EOB_KEEP_ALIVE
+from apps.fhir.constants import FHIR_PARAM_FORMAT, IDI_MATCH_ENDPOINT, REQUEST_EOB_KEEP_ALIVE
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
 from oauth2_provider.models import AccessToken
@@ -812,28 +812,29 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
         return True
     return False
 
-def get_patient_match_response_from_bfd(url: str, json_payload: str) -> Dict[str, Any]:
+def get_patient_match_response_from_bfd(url: str, json_payload: str, headers: Dict[str, str]) -> Dict[str, Any]:
     """
     This is a utility function to test patient match calls to BFD. 
 
     Args:
         url (str): The URL for the patient match endpoint on BFD
         json_file (str): The path to the json file containing the patient match request body
+        headers (Dict[str, str]): The headers for the request
 
     Returns:
         dict: The response from BFD as a json/dict object
     """
     auth_settings = FhirServerAuth()
-    cert = (auth_settings["cert_file"], auth_settings["key_file"])
-    url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
+    certs = (auth_settings["cert_file"], auth_settings["key_file"])
+    url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
 
-    headers = {
-        "X-CLIENT-ID": "test-client-id",
-        "X-CLIENT-NAME": "test-client-name",
-        "X-CLIENT-IP": "test-client-ip"
-    }
-
-    response = requests.post(url, headers=headers, json=json_payload, cert=cert, verify=False)
+    # Can just do a requests.post but this way is useful for debugging and testing, 
+    # to be able to see the prepared request and manipulate if needed before sending, 
+    # and to use the same pattern for certs and headers as other calls to BFD
+    s = requests.Session()
+    req = requests.Request("POST", url, headers=headers, data=json_payload)
+    prepped = req.prepare()
+    response = s.send(prepped, cert=certs, verify=False)
 
     return response
 

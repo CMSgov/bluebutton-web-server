@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timedelta
 from functools import wraps
 from time import strftime
+from token import NAME
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
@@ -16,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import get_patient_match_response_from_bfd
+from apps.fhir.bluebutton.utils import get_patient_match_response_from_bfd, handle_patient_match_response
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -506,7 +507,13 @@ class TokenView(DotTokenView):
                     # What details do we need to pass to BFD? How do we obtain those details at this point in the code?
                     # Assumption is we get json_payload to send to bfd before dcalling the endpoint, but we need to determine what goes in that payload and where it comes from
                     json_payload = {}
-                    response_json = get_patient_match_response_from_bfd(url, json_payload)
+                    # Not sure where we are getting the header details from, but we would need to determine that as well. 
+                    headers = {
+                        "X-CLIENT-ID": X-CLIENT-ID,  # We would need to determine what client id to send in the header for this call
+                        "X-CLIENT-NAME": X-CLIENT-NAME,  # We would need to determine what client name to send in the header for this call
+                        "X-CLIENT-IP": X-CLIENT-IP  # We would need to determine what client ip to send in the header for this call
+                    }
+                    response_json = get_patient_match_response_from_bfd(url, json_payload, headers)
                     token_response = handle_patient_match_response(response_json)
                     return token_response
                 else:
