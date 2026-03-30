@@ -823,16 +823,17 @@ def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, An
     # but for now this is sufficient to determine if a patient match was found or not, 
     # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
     if not response_json_entry:
-        # No 'entry' list in the response, which indicates an issue with the call to BFD or that no patient match was found and no patient resource was returned in the response
+        # No 'entry' list in the response, which indicates there wasn't an entry list in the response_json
         # Throw an error to indicate that there was an issue with the call to BFD or that no patient match was found
         logging.log.debug("No 'entry' list in the response from BFD for patient_match call")
         return JsonResponse({'status_code': 404, 'message': 'No patient match found.'}, status=404)
     elif len(response_json_entry) > 1 and response_json_entry[1]['resource']['resourceType'] == "Patient":
         # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
-        # Return a token to the requester to indicate that a patient match was found
         logging.log.debug("Patient match found for patient_match call")
+        # Return a token to the requester to indicate that a patient match was found
+        
     else:
-        # The length of the 'entry' list is 1, which indicates no patient match was found and no patient resource was returned in the response
+        # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned in the response
         # Throw an error to indicate that no patient match was found
         logging.log.debug("No patient match found for patient_match call")
         return JsonResponse({'status_code': 404, 'message': 'No patient match found.'}, status=404)

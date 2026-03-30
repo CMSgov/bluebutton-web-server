@@ -17,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import get_patient_match_response_from_bfd, get_response_json, handle_patient_match_response
+from apps.fhir.bluebutton.utils import get_response_json, handle_patient_match_response
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
 from oauth2_provider.exceptions import OAuthToolkitError

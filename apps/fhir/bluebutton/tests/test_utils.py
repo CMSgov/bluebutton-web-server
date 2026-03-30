@@ -1,5 +1,7 @@
 import os
 import uuid
+import requests_mock
+import json
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
@@ -24,6 +26,8 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
     is_operation_outcome,
+    get_response_json,
+    handle_patient_match_response
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -419,3 +423,111 @@ class Security_Metadata_test(BaseApiTest):
         expected = "<cors>true</cors>"
 
         self.assertEqual(result[16:33], expected)
+
+class PatientMatchTestCase(BaseApiTest):
+    """
+    Test cases for patient match calls to BFD in the patient match flow in the authorization process
+    """
+
+    def test_patient_match_response_handling(self):
+        """
+        Test handling of different patient match response scenarios from BFD in the patient match flow in the authorization process
+        """
+        # This is just a simple test to simulate the handling of different patient match response scenarios from BFD in the patient match flow in the authorization process by directly calling the handle_patient_match_response function with different sample responses that simulate different scenarios of patient match responses from BFD, such as a patient match found scenario and a no patient match found scenario, and checking that the function returns the expected result for each scenario. More comprehensive tests for this can be added in the future as needed.
+        # Simulate a patient match found scenario by creating a sample response from BFD that contains an 'entry' list with more than 1 entry and the second entry being a patient resource
+        patient_match_response_json = {
+            "entry": [
+                {
+                    "resource": {
+                        "resourceType": "OperationOutcome",
+                        "issue": [
+                            {
+                                "severity": "information",
+                                "code": "informational",
+                                "details": {
+                                    "text": "Patient match found."
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "Patient",
+                        "id": "-20140000008329"
+                    }
+                }
+            ]
+        }
+        result = handle_patient_match_response(patient_match_response_json)
+        # This will fail until the handle_patient_match_response function is updated to return the expected result in the case 
+        # of a patient match found scenario, which is currently being worked on
+        assert result == {'status_code': 200, 'message': 'Patient match found.'}
+
+        # Simulate a no patient match found scenario by creating a sample response from BFD that contains an 'entry' list with only 1 entry
+        # or an 'entry' list that does not contain a patient resource
+        patient_match_response_json = {
+            "entry": [
+                {
+                    "resource": {
+                        "resourceType": "OperationOutcome",
+                        "issue": [
+                            {
+                                "severity": "information",
+                                "code": "informational",
+                                "details": {
+                                    "text": "No patient match found."
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        result = handle_patient_match_response(patient_match_response_json)
+        assert result == {'status_code': 404, 'message': 'No patient match found.'}
+
+class GetResponseJsonTestCase(BaseApiTest):
+    """
+    Test cases for the get_response_json function that is used to make calls to BFD in the patient match flow in the authorization process and handle the responses from those calls
+    """
+
+    def test_get_response_json_successful(self):
+        """
+        Test the mocked get_response_json function with different scenarios of responses from BFD in the patient match flow 
+        in the authorization process, such as a successful response with a patient match found and a successful response with no 
+        patient match found, and check that the function returns the expected result for each scenario.
+        """
+        # Simulate a successful response with a patient match found scenario by creating a sample response from BFD that contains an 'entry' list with more than 1 entry 
+        # and the second entry being a patient resource, and using requests_mock to mock the call to BFD and return this sample response
+        with requests_mock.Mocker() as m:
+            url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
+            headers = {"Content-Type": "application/json"}
+            payload = '{"id": "-20140000008329"}'
+            expected_data = {"id": "Patient/-20140000008329", "resourceType": "Patient"}
+            # Mock the request to BFD to return the sample response for the patient match found scenario
+            m.post(url, json=expected_data, status_code=200)
+            result = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
+
+            assert result == expected_data
+            assert m.called
+            assert m.call_count == 1
+            assert m.request_history[0].method == "POST"
+            assert m.request_history[0].url == url
+            assert m.request_history[0].headers["Content-Type"] == "application/json"
+            assert m.request_history[0].text == payload
+
+        # Simulate an unsuccessful response scenario by using requests_mock to mock the call to BFD and 
+        # return a response with a 500 status code, and check that the function raises an exception or 
+        # returns the expected result for an unsuccessful response scenario
+        with requests_mock.Mocker() as m:
+            url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
+            headers = {"Content-Type": "application/json"}
+            payload = '{"id": "-20140000008329"}'
+            # Mock the request to BFD to return a response with a 500 status code
+            m.post(url, status_code=500)
+            try:
+                result = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
+                assert False, "Expected an exception to be raised for an unsuccessful response scenario"
+            except Exception as e:
+                assert str(e) == "Failed to get a successful response from BFD for patient match call. Status code: 500"
