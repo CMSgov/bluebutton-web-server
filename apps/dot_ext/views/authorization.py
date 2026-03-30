@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.utils import get_patient_match_response_from_bfd
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -500,6 +501,14 @@ class TokenView(DotTokenView):
                 if allow_client_credentials_call:
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
+                    # Connor's code to vailidate client credentials call and return token would go here in a later ticket
+                    # IDI Match
+                    # What details do we need to pass to BFD? How do we obtain those details at this point in the code?
+                    # Assumption is we get json_payload to send to bfd before dcalling the endpoint, but we need to determine what goes in that payload and where it comes from
+                    json_payload = {}
+                    response_json = get_patient_match_response_from_bfd(url, json_payload)
+                    token_response = handle_patient_match_response(response_json)
+                    return token_response
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': 400, 'message': error_message}, status=400)

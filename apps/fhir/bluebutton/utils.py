@@ -16,6 +16,7 @@ from urllib.parse import parse_qs
 
 from django.conf import settings
 from django.contrib import messages
+from django.http import JsonResponse
 from apps.fhir.constants import FHIR_PARAM_FORMAT, REQUEST_EOB_KEEP_ALIVE
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
@@ -810,3 +811,58 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     if response_json.get('resourceType') == OPERATION_OUTCOME:
         return True
     return False
+
+def get_patient_match_response_from_bfd(url: str, json_payload: str) -> Dict[str, Any]:
+    """
+    This is a utility function to test patient match calls to BFD. 
+
+    Args:
+        url (str): The URL for the patient match endpoint on BFD
+        json_file (str): The path to the json file containing the patient match request body
+
+    Returns:
+        dict: The response from BFD as a json/dict object
+    """
+    auth_settings = FhirServerAuth()
+    cert = (auth_settings["cert_file"], auth_settings["key_file"])
+    url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
+
+    headers = {
+        "X-CLIENT-ID": "test-client-id",
+        "X-CLIENT-NAME": "test-client-name",
+        "X-CLIENT-IP": "test-client-ip"
+    }
+
+    response = requests.post(url, headers=headers, json=json_payload, cert=cert, verify=False)
+
+    return response
+
+def handle_patient_match_response(response: Dict[str, Any]) -> Dict[str, Any] | JsonResponse:
+    """
+    This is a utility function to handle the response from a patient match call to BFD. If a patient match is found, 
+    a token will be returned to the requester to indicate that a patient match was found. If no patient match is found, 
+    an error message will be returned to the requester to indicate that no patient match was found. 
+    If there is an issue with the call to BFD, an error message will be returned to the requester to indicate that there was an issue with the call to BFD.
+
+    Args:
+        response_json (Dict[str, Any]): The response from BFD as a json/dict object
+
+    Returns:
+        dict: The response from BFD as a json/dict object
+    """
+    if response.status_code == 200:
+        response_json = response.json()
+        response_json_entry = response_json.get('entry', [])
+        if response_json_entry and len(response_json_entry) > 1 and response_json_entry[1]['resource']['resourceType'] == "Patient":
+            # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
+            # Return a token to the requester to indicate that a patient match was found
+            logging.log.debug("Patient match found for patient_match call")
+        else:
+            # The length of the 'entry' list is 1, which indicates no patient match was found and no patient resource was returned in the response
+            # Throw an error to indicate that no patient match was found
+            logging.log.debug("No patient match found for patient_match call")
+            return JsonResponse({'status_code': 403, 'message': 'No patient match found.'}, status=403)
+    else:
+        # Throw an error to indicate that there was an issue with the call to BFD to validate the client_credentials token call
+        logging.log.error(f"Error response from BFD when attempting to validate client_credentials token call: {response.status_code} - {response.text}")
+        return JsonResponse({'status_code': 502, 'message': 'Error validating client credentials.'}, status=502)
