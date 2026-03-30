@@ -728,8 +728,6 @@ def get_v2_patient_by_id(id, request):
 # of the ticket to remove the user_mbi_hash column from the crosswalk table
 # We can remove this entire function at that point
 def get_patient_by_mbi_hash(mbi_hash, request):
-    auth_settings = FhirServerAuth()
-    certs = (auth_settings["cert_file"], auth_settings["key_file"])
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
@@ -738,13 +736,8 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     payload = {'identifier': search_identifier}
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 
-    s = requests.Session()
-    req = requests.Request("POST", url, headers=headers, data=payload)
-    prepped = req.prepare()
-    response = s.send(prepped, cert=certs, verify=False)
-
-    response.raise_for_status()
-    return response.json()
+    response_json = get_response_json(url, payload, headers, http_method="POST")
+    return response_json
 
 
 def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional[str], query_param: str) -> bool:
@@ -824,20 +817,11 @@ def get_patient_match_response_from_bfd(url: str, json_payload: str, headers: Di
     Returns:
         dict: The response from BFD as a json/dict object
     """
-    auth_settings = FhirServerAuth()
-    certs = (auth_settings["cert_file"], auth_settings["key_file"])
     url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
 
-    # Can just do a requests.post but this way is useful for debugging and testing, 
-    # to be able to see the prepared request and manipulate if needed before sending, 
-    # and to use the same pattern for certs and headers as other calls to BFD
-    s = requests.Session()
-    req = requests.Request("POST", url, headers=headers, data=json_payload)
-    prepped = req.prepare()
-    response = s.send(prepped, cert=certs, verify=False)
-    response.raise_for_status()
+    response_json = get_response_json(url, json_payload, headers, http_method="POST")
 
-    return response.json()
+    return response_json
 
 def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, Any] | JsonResponse:
     """
@@ -870,3 +854,29 @@ def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, An
         # Throw an error to indicate that no patient match was found
         logging.log.debug("No patient match found for patient_match call")
         return JsonResponse({'status_code': 403, 'message': 'No patient match found.'}, status=403)
+    
+def get_response_json(url: str, json_payload: str, headers: Dict[str, str], http_method: str) -> Dict[str, Any]:
+    """
+    This is a utility function to test calls to BFD. 
+
+    Args:
+        url (str): The URL for the endpoint on BFD
+        json_file (str): The path to the json file containing the request body
+        headers (Dict[str, str]): The headers for the request
+        http_method (str): The HTTP method for the request (e.g. 'GET', 'POST', etc.)  
+    Returns:
+        dict: The response from BFD as a json/dict object
+    """
+    auth_settings = FhirServerAuth()
+    certs = (auth_settings["cert_file"], auth_settings["key_file"])
+
+    # Can just do a requests.post but this way is useful for debugging and testing, 
+    # to be able to see the prepared request and manipulate if needed before sending, 
+    # and to use the same pattern for certs and headers as other calls to BFD
+    s = requests.Session()
+    req = requests.Request("POST", url, headers=headers, data=json_payload)
+    prepped = req.prepare()
+    response = s.send(prepped, cert=certs, verify=False)
+    response.raise_for_status()
+
+    return response.json()
