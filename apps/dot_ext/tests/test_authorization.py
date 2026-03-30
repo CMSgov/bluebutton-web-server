@@ -1545,7 +1545,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert not result
 
-        mock_app.allowed_auth_type = 'BOTH'
+        mock_app.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
         result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
@@ -1556,7 +1556,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     def test_client_credentials(self):
         """Ensure a bad request is thrown when a v3 token calls is made, with grant_type = client_credentials
-        and the application for the request does not have allowed_auth_type in ['BOTH', 'CLIENT_CREDENTIALS']
+        and the application for the request does not have allowed_auth_type in
+        ['AUTH_CODE_AND_CLIENT_CREDS', 'CLIENT_CREDENTIALS']
         """
         redirect_uri = 'http://localhost'
         # create a user
@@ -1635,7 +1636,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         }
         response = self.client.post(response['Location'], data=payload)
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
         query_dict = parse_qs(urlparse(response['Location']).query)
         authorization_code = query_dict.pop('code')
         token_request_data = {

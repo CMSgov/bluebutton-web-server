@@ -195,13 +195,16 @@ class Application(AbstractApplication):
     # Type choices related to authorization methods
     # Part of CMS Aligned Networks work
     APPLICATION_AUTH_CHOICES = (
-        ("AUTH_CODE", "AUTH_CODE - Can only authorize via grant_type = authorization_code"),
-        ("CLIENT_CREDENTIALS", "CLIENT_CREDENTIALS - Can only authorize with grant_type = client_credentials"),
-        ("BOTH", "BOTH - Can authorize with grant_type = authorization_code or client_credentials"),
+        ('AUTH_CODE', 'AUTH_CODE - Can only authorize via grant_type = authorization_code'),
+        ('CLIENT_CREDENTIALS', 'CLIENT_CREDENTIALS - Can only authorize with grant_type = client_credentials'),
+        (
+            'AUTH_CODE_AND_CLIENT_CREDS',
+            'AUTH_CODE_AND_CLIENT_CREDS - Can authorize with grant_type = authorization_code or client_credentials'
+        ),
     )
 
     allowed_auth_type = models.CharField(
-        max_length=20,
+        max_length=40,
         choices=APPLICATION_AUTH_CHOICES,
         default='AUTH_CODE',
     )
