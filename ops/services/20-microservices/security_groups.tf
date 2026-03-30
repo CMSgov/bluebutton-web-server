@@ -82,39 +82,9 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https_open" {
   description       = "HTTPS from anywhere"
 }
 
-# ALB ingress: HTTPS from VPN/CDN security groups (restricted mode)
-resource "aws_vpc_security_group_ingress_rule" "alb_from_vpn" {
-  for_each = !var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
-
-  security_group_id            = aws_security_group.alb_sg[each.key].id
-  referenced_security_group_id = module.platform.sg_cmscloud_vpn.id
-  from_port                    = 443
-  to_port                      = 443
-  ip_protocol                  = "tcp"
-  description                  = "HTTPS from cmscloud-vpn"
-}
-
-resource "aws_vpc_security_group_ingress_rule" "alb_from_cms_vpn" {
-  for_each = !var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
-
-  security_group_id            = aws_security_group.alb_sg[each.key].id
-  referenced_security_group_id = module.platform.sg_clb_cms_vpn.id
-  from_port                    = 443
-  to_port                      = 443
-  ip_protocol                  = "tcp"
-  description                  = "HTTPS from clb-cms-vpn"
-}
-
-resource "aws_vpc_security_group_ingress_rule" "alb_from_akamai" {
-  for_each = !var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
-
-  security_group_id            = aws_security_group.alb_sg[each.key].id
-  referenced_security_group_id = module.platform.sg_clb_akamai.id
-  from_port                    = 443
-  to_port                      = 443
-  ip_protocol                  = "tcp"
-  description                  = "HTTPS from clb-akamai-prod"
-}
+# ALB ingress: VPN/CDN access is provided by attaching cmscloud-vpn and akamai
+# security groups directly to the ALB (see alb.tf security_groups list).
+# This matches the legacy EC2 pattern where SGs were attached to the CLB directly.
 
 # ALB ingress: Additional security groups (if any)
 resource "aws_vpc_security_group_ingress_rule" "alb_from_additional" {
