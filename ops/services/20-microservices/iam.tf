@@ -94,7 +94,7 @@ data "aws_iam_policy_document" "ecs_exec" {
 data "aws_iam_policy_document" "ses" {
   statement {
     sid       = "AllowSESSendEmail"
-    actions   = ["ses:SendEmail", "ses:SendRawEmail"]
+    actions   = ["ses:SendEmail", "ses:SendRawEmail", "ses:GetSendQuota", "ses:GetSendStatistics"]
     resources = ["*"]
   }
 }
