@@ -91,6 +91,14 @@ data "aws_iam_policy_document" "ecs_exec" {
   }
 }
 
+data "aws_iam_policy_document" "ses" {
+  statement {
+    sid       = "AllowSESSendEmail"
+    actions   = ["ses:SendEmail", "ses:SendRawEmail"]
+    resources = ["*"]
+  }
+}
+
 data "aws_iam_policy_document" "s3" {
   statement {
     sid     = "AllowS3Access"
@@ -137,6 +145,12 @@ resource "aws_iam_policy" "ecs_exec" {
   name   = "${local.name_prefix}-ecs-exec"
   path   = local.iam_path
   policy = data.aws_iam_policy_document.ecs_exec.json
+}
+
+resource "aws_iam_policy" "ses" {
+  name   = "${local.name_prefix}-ses"
+  path   = local.iam_path
+  policy = data.aws_iam_policy_document.ses.json
 }
 
 resource "aws_iam_policy" "s3" {
@@ -227,6 +241,12 @@ resource "aws_iam_role_policy_attachment" "task_s3" {
   for_each   = nonsensitive(local.service_config)
   role       = aws_iam_role.task[each.key].name
   policy_arn = aws_iam_policy.s3.arn
+}
+
+resource "aws_iam_role_policy_attachment" "task_ses" {
+  for_each   = nonsensitive(local.service_config)
+  role       = aws_iam_role.task[each.key].name
+  policy_arn = aws_iam_policy.ses.arn
 }
 
 resource "aws_iam_role_policy_attachment" "task_ecs_exec" {
