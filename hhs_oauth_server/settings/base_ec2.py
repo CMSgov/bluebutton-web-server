@@ -183,7 +183,7 @@ ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(",")] + [socket.gethost
 # See:
 # * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
 # * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
-DEBUG = env("DEBUG", False)
+DEBUG = True
 
 # apps and middlewares
 INSTALLED_APPS = [
