@@ -70,6 +70,45 @@ resource "aws_security_group" "alb_sg" {
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg" }
 }
 
+# ALB ingress: HTTPS from anywhere (dev/test only)
+resource "aws_vpc_security_group_ingress_rule" "alb_https_open" {
+  for_each = var.alb_allow_all_ingress ? nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : {}
+
+  security_group_id = aws_security_group.alb_sg[each.key].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+  description       = "HTTPS from anywhere"
+}
+
+# ALB ingress: VPN/CDN access is provided by attaching cmscloud-vpn and akamai
+# security groups directly to the ALB (see alb.tf security_groups list).
+# This matches the legacy EC2 pattern where SGs were attached to the CLB directly.
+
+# ALB ingress: Additional security groups (if any)
+resource "aws_vpc_security_group_ingress_rule" "alb_from_additional" {
+  for_each = {
+    for pair in flatten([
+      for svc_key, svc in nonsensitive({ for k, v in local.service_config : k => v if v.alb }) : [
+        for idx, sg_id in var.alb_security_group_ids : {
+          key     = "${svc_key}-additional-${idx}"
+          svc_key = svc_key
+          sg_id   = sg_id
+        }
+      ]
+    ]) : pair.key => pair
+    if !var.alb_allow_all_ingress
+  }
+
+  security_group_id            = aws_security_group.alb_sg[each.value.svc_key].id
+  referenced_security_group_id = each.value.sg_id
+  from_port                    = 443
+  to_port                      = 443
+  ip_protocol                  = "tcp"
+  description                  = "HTTPS from additional security group"
+}
+
 # ALB egress: Allow all outbound
 resource "aws_vpc_security_group_egress_rule" "alb_all" {
   for_each = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
