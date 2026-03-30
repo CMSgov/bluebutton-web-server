@@ -88,6 +88,17 @@ def _smart_configuration(request, version=Versions.NOT_AN_API_VERSION):
             pass
         case Versions.V3:
             data = format_v3_links(data)
+            # v3-only capabilities
+            if "client_credentials" not in data["grant_types_supported"]:
+                data["grant_types_supported"].append("client_credentials")
+            data["capabilities"] = list(data.get("capabilities", [])) + [
+                "client-confidential-asymmetric"
+            ]
+            data["token_endpoint_auth_methods_supported"] = ["private_key_jwt"]
+            data["token_endpoint_auth_signing_alg_values_supported"] = [
+                "RS384",
+                "ES384",
+            ]
 
     return JsonResponse(data)
 
