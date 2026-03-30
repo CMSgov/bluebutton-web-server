@@ -805,24 +805,6 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
         return True
     return False
 
-def get_patient_match_response_from_bfd(url: str, payload: str, headers: Dict[str, str]) -> Dict[str, Any]:
-    """
-    This is a utility function to test patient match calls to BFD. 
-
-    Args:
-        url (str): The URL for the patient match endpoint on BFD
-        json_file (str): The path to the json file containing the patient match request body
-        headers (Dict[str, str]): The headers for the request
-
-    Returns:
-        dict: The response from BFD as a json/dict object
-    """
-    url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
-
-    response_json = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
-
-    return response_json
-
 def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, Any] | JsonResponse:
     """
     This is a utility function to handle the response from a patient match call to BFD. If a patient match is found, 
@@ -831,7 +813,7 @@ def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, An
     If there is an issue with the call to BFD, an error message will be returned to the requester to indicate that there was an issue with the call to BFD.
 
     Args:
-        response_json (Dict[str, Any]): The response from BFD as a json/dict object
+        response_json: The response from BFD as a json/dict object
 
     Returns:
         dict: The response from BFD as a json/dict object
@@ -860,10 +842,10 @@ def get_response_json(url: str, payload: str, headers: Dict[str, str], http_meth
     This is a utility function to test calls to BFD. 
 
     Args:
-        url (str): The URL for the endpoint on BFD
-        json_file (str): The path to the json file containing the request body
-        headers (Dict[str, str]): The headers for the request
-        http_method (str): The HTTP method for the request (e.g. 'GET', 'POST', etc.)  
+        url: The URL for the endpoint on BFD
+        json_file: The path to the json file containing the request body
+        headers: The headers for the request
+        http_method: The HTTP method for the request (e.g. 'GET', 'POST', etc.)  
     Returns:
         dict: The response from BFD as a json/dict object
     """

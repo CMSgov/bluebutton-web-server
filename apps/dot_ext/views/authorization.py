@@ -17,7 +17,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import get_patient_match_response_from_bfd, handle_patient_match_response
+from apps.fhir.bluebutton.utils import get_patient_match_response_from_bfd, get_response_json, handle_patient_match_response
+from apps.fhir.constants import IDI_MATCH_ENDPOINT
+from apps.fhir.server.settings import fhir_settings
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -513,8 +515,9 @@ class TokenView(DotTokenView):
                         "X-CLIENT-NAME": X-CLIENT-NAME,  # We would need to determine what client name to send in the header for this call
                         "X-CLIENT-IP": X-CLIENT-IP  # We would need to determine what client ip to send in the header for this call
                     }
-                    response_json = get_patient_match_response_from_bfd(url, json_payload, headers)
-                    token_response = handle_patient_match_response(response_json)
+                    url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
+                    patient_match_response_json = get_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
+                    token_response = handle_patient_match_response(patient_match_response_json)
                     return token_response
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
