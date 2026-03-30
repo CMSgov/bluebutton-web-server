@@ -11,7 +11,11 @@ django.setup()
 # from apps.fhir.bluebutton.utils import FhirServerAuth
 
 url = "https://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Patient/$idi-match"
-json_file = "sample_requests/patient_match.json"
+# json_file = "sample_requests/patient_match_all.json"
+# json_file = "sample_requests/patient_match_case_1.json"
+# json_file = "sample_requests/patient_match_case_4.json"
+# json_file = "sample_requests/patient_match_case_8.json"
+json_file = "sample_requests/no_patient_match.json" # Just changed the patient name to one that doesn't exist in the test data to simulate no patient match found scenario
 
 headers = {
     "X-CLIENT-ID": "test-client-id",
@@ -35,8 +39,9 @@ response = requests.post(url, headers=headers, json=payload, cert=cert, verify=F
 response_json = response.json()
 print(response_json)
 print(len(response_json['entry']))
+response_json_entry = response_json['entry']
 
-if len(response_json['entry']) > 1 and response_json['entry'][1]['resource']['resourceType'] == "Patient":
+if response_json_entry and len(response_json_entry) > 1 and response_json['entry'][1]['resource']['resourceType'] == "Patient":
     # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
     # Return a token to the requester to indicate that a patient match was found
     # logger.debug("Patient match found")
