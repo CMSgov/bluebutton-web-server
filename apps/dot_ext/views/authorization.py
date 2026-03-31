@@ -562,7 +562,7 @@ class TokenView(DotTokenView):
             access_token = body.get("access_token")
 
             if is_client_credentials:
-                body["expires_in"] = CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+                body["expires_in"] = int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds())
 
             dag_expiry = ""
             if access_token is not None:
