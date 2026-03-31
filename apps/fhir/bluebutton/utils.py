@@ -831,16 +831,16 @@ def handle_patient_match_response(response_json: Dict[str, Any]) -> Dict[str, An
         # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
         logging.log.debug("Patient match found for patient_match call")
         # Return a token to the requester to indicate that a patient match was found
-        
+
     else:
-        # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned in the response
-        # Throw an error to indicate that no patient match was found
+        # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned 
+        # in the response. Throw an error to indicate that no patient match was found
         logging.log.debug("No patient match found for patient_match call")
         return JsonResponse({'status_code': 404, 'message': 'No patient match found.'}, status=404)
     
 def get_response_json(url: str, payload: str, headers: Dict[str, str], http_method: str) -> Dict[str, Any]:
     """
-    This is a utility function to test calls to BFD. 
+    This is a utility function to get the json response from a call to BFD.
 
     Args:
         url: The URL for the endpoint on BFD
@@ -853,7 +853,7 @@ def get_response_json(url: str, payload: str, headers: Dict[str, str], http_meth
     auth_settings = FhirServerAuth()
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
 
-    # Can just do a requests.post but this way is useful for debugging and testing, 
+    # We could just do a requests.post but this way is useful for debugging and testing, 
     # to be able to see the prepared request and manipulate if needed before sending, 
     # and to use the same pattern for certs and headers as other calls to BFD
     s = requests.Session()
