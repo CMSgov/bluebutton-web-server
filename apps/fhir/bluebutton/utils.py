@@ -861,7 +861,7 @@ def get_response_json(url: str, payload: str, headers: Dict[str, str], http_meth
     response.raise_for_status()
     return response.json()
 
-def extract_mbi(self, patient_bundle: Dict[str, Any]) -> Optional[str]:
+def extract_mbi(patient_bundle: Dict[str, Any]) -> Optional[str]:
     # Only proceed if total == 1
     if patient_bundle.get('total') != 1:
         return None
