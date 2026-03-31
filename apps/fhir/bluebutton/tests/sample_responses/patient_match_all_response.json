@@ -23,7 +23,7 @@
                                 "http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization"
                             ]
                         },
-                        "active": True,
+                        "active": true,
                         "type": [
                             {
                                 "coding": [

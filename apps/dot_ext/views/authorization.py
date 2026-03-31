@@ -515,9 +515,9 @@ class TokenView(DotTokenView):
                     }
                     url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
                     patient_bundle = get_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
-                    is_patient_found = is_patient_match_found(patient_bundle)
-                    if is_patient_found:
-                        mbi = extract_mbi(patient_bundle)
+                    patient_found = is_patient_match_found(patient_bundle)
+                    if patient_found:
+                        mbi = extract_mbi(patient_bundle, index=1)
                         # Code to generate token with mbi would go here
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")

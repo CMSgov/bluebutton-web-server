@@ -17,7 +17,7 @@ from urllib.parse import parse_qs
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from apps.fhir.constants import FHIR_PARAM_FORMAT, IDI_MATCH_ENDPOINT, MBI_URL, PATIENT_RESOURCE_TYPE, REQUEST_EOB_KEEP_ALIVE
+from apps.fhir.constants import FHIR_PARAM_FORMAT, MBI_URL, PATIENT_RESOURCE_TYPE, REQUEST_EOB_KEEP_ALIVE
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
 from oauth2_provider.models import AccessToken
@@ -821,28 +821,28 @@ def is_patient_match_found(response_json: Dict[str, Any]) -> bool:
     # but for now this is sufficient to determine if a patient match was found or not, 
     # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
     if not entries:
-        logging.log.debug("No 'entry' list in the response from BFD for patient_match call")
+        logger.debug("No 'entry' list in the response from BFD for patient_match call")
         return False
-    
-    patient = entries[0].get('resource', {})
-    if len(entries) > 1 and patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
-        # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
-        logging.log.debug("Patient match found for patient_match call")
-        return True
+    if len(entries) > 1:
+        patient = entries[1].get('resource', {})
+        if patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
+            # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
+            logger.debug("Patient match found for patient_match call")
+            return True
     else:
         # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned 
-        logging.log.debug("No patient match found for patient_match call")
+        logger.debug("No patient match found for patient_match call")
         return False
     
-def get_response_json(url: str, payload: str, headers: Dict[str, str], http_method: str) -> Dict[str, Any]:
+def get_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
     """
     This is a utility function to get the json response from a call to BFD.
 
     Args:
         url: The URL for the endpoint on BFD
-        payload: The json payload to be sent in the body of the request
+        json: The json payload to be sent in the body of the request
         headers: The headers for the request
-        http_method: The HTTP method for the request (e.g. 'GET', 'POST', etc.)  
+        method: The HTTP method for the request (e.g. 'GET', 'POST', etc.)  
     Returns:
         dict: The response from BFD as a json/dict object
     """
@@ -853,23 +853,24 @@ def get_response_json(url: str, payload: str, headers: Dict[str, str], http_meth
     # to be able to see the prepared request and manipulate if needed before sending, 
     # and to use the same pattern for certs and headers as other calls to BFD
     s = requests.Session()
-    req = requests.Request(url=url, payload=payload, headers=headers, http_method=http_method)
+    req = requests.Request(url=url, json=json, headers=headers, method=method)
     prepped = req.prepare()
     response = s.send(prepped, cert=certs, verify=False)
     
     response.raise_for_status()
     return response.json()
 
-def extract_mbi(patient_bundle: Dict[str, Any]) -> Optional[str]:
-    # Only proceed if total == 1
-    if patient_bundle.get('total') != 1:
-        return None
+def extract_mbi(patient_bundle: Dict[str, Any], index: int) -> Optional[str]:
 
     entries = patient_bundle.get('entry', [])
     if not entries:
         return None
 
-    patient = entries[0].get('resource', {})
+    if index > 0 and index < len(entries):
+        patient = entries[index].get('resource', {})
+    else:
+        patient = entries[0].get('resource', {})
+
     identifiers = patient.get('identifier', [])
 
     # Look for the identifier with the MBI system

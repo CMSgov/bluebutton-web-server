@@ -1,6 +1,6 @@
 
 from apps.authorization.models import DataAccessGrant
-from apps.fhir.bluebutton.constants import DEFAULT_SLEEP, MAX_RETRIES, MBI_URL
+from apps.fhir.constants import DEFAULT_SLEEP, MAX_RETRIES
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash, extract_mbi
 
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                     
                     patient_info = get_patient_by_mbi_hash(user_mbi_hash, request)
 
-                    user_mbi = extract_mbi(patient_info)
+                    user_mbi = extract_mbi(patient_info, index=0)
 
                     print('crosswalk.user_id %s' % (crosswalk.user_id))
                     if user_mbi:

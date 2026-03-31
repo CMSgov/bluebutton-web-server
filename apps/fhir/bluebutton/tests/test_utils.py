@@ -1,6 +1,5 @@
 import os
 import uuid
-import requests_mock
 import json
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -15,6 +14,7 @@ from apps.fhir.server.settings import fhir_settings
 
 
 from apps.fhir.bluebutton.utils import (
+    extract_mbi,
     notNone,
     FhirServerAuth,
     mask_with_this_url,
@@ -27,7 +27,7 @@ from apps.fhir.bluebutton.utils import (
     validate_query_parameters,
     is_operation_outcome,
     get_response_json,
-    handle_patient_match_response
+    is_patient_match_found
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -429,105 +429,92 @@ class PatientMatchTestCase(BaseApiTest):
     Test cases for patient match calls to BFD in the patient match flow in the authorization process
     """
 
-    def test_patient_match_response_handling(self):
+    def test_is_patient_match_found_successful(self):
         """
         Test handling of different patient match response scenarios from BFD in the patient match flow in the authorization process
         """
-        # This is just a simple test to simulate the handling of different patient match response scenarios from BFD in the patient match flow in the authorization process by directly calling the handle_patient_match_response function with different sample responses that simulate different scenarios of patient match responses from BFD, such as a patient match found scenario and a no patient match found scenario, and checking that the function returns the expected result for each scenario. More comprehensive tests for this can be added in the future as needed.
-        # Simulate a patient match found scenario by creating a sample response from BFD that contains an 'entry' list with more than 1 entry and the second entry being a patient resource
-        patient_match_response_json = {
-            "entry": [
-                {
-                    "resource": {
-                        "resourceType": "OperationOutcome",
-                        "issue": [
-                            {
-                                "severity": "information",
-                                "code": "informational",
-                                "details": {
-                                    "text": "Patient match found."
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    "resource": {
-                        "resourceType": "Patient",
-                        "id": "-20140000008329"
-                    }
-                }
-            ]
-        }
-        result = handle_patient_match_response(patient_match_response_json)
-        # This will fail until the handle_patient_match_response function is updated to return the expected result in the case 
-        # of a patient match found scenario, which is currently being worked on
-        assert result == {'status_code': 200, 'message': 'Patient match found.'}
+        # Simulate a patient match found scenario by creating a sample response from BFD that contains an 
+        # 'entry' list with more than 1 entry and the second entry being a patient resource
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            patient_bundle = json.load(f)
+        print(patient_bundle)
+        result = is_patient_match_found(patient_bundle)
 
-        # Simulate a no patient match found scenario by creating a sample response from BFD that contains an 'entry' list with only 1 entry
-        # or an 'entry' list that does not contain a patient resource
-        patient_match_response_json = {
-            "entry": [
-                {
-                    "resource": {
-                        "resourceType": "OperationOutcome",
-                        "issue": [
-                            {
-                                "severity": "information",
-                                "code": "informational",
-                                "details": {
-                                    "text": "No patient match found."
-                                }
-                            }
-                        ]
-                    }
-                }
-            ]
-        }
-        result = handle_patient_match_response(patient_match_response_json)
-        assert result == {'status_code': 404, 'message': 'No patient match found.'}
+        assert result == True
+
+    def test_is_patient_match_found_unsuccessful(self):
+        # Simulate a no patient match found scenario by creating a sample response from BFD that contains an 
+        # 'entry' list with only 1 entry and no patient resources in the response
+        with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
+            patient_bundle = json.load(f)
+
+        result = is_patient_match_found(patient_bundle)
+        assert result == False
+
+class ExtractMBITestCase(BaseApiTest):
+    """
+    Test cases for extract_mbi function that is used to extract the mbi from the patient bundle returned from BFD in the patient match
+    flow in the authorization process
+    """
+
+    def test_extract_mbi_successful(self):
+        """
+        Test successfully extracting the mbi from the patient bundle
+        """
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            patient_bundle = json.load(f)
+
+        result = extract_mbi(patient_bundle, index=1)
+        assert result == '1S00E00DC37'
+
+    def test_extract_mbi_unsuccessful(self):
+        """
+        Test unsuccessfully extracting the mbi from the patient bundle
+        """
+        with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
+            patient_bundle = json.load(f)
+
+        result = extract_mbi(patient_bundle, index=1)
+        assert result == None
 
 class GetResponseJsonTestCase(BaseApiTest):
     """
-    Test cases for the get_response_json function that is used to make calls to BFD in the patient match flow in the authorization process and handle the responses from those calls
+    Test cases for the get_response_json function that is used to make calls to BFD in the patient match flow 
+    in the authorization process and handle the responses from those calls
     """
 
-    def test_get_response_json_successful(self):
+    def test_get_response_json_successful_patient_match(self):
         """
-        Test the mocked get_response_json function with different scenarios of responses from BFD in the patient match flow 
-        in the authorization process, such as a successful response with a patient match found and a successful response with no 
-        patient match found, and check that the function returns the expected result for each scenario.
+       Test the response from a successful call to BFD for patient match in the authorization process and ensure that the function 
+       returns the expected json response
         """
-        # Simulate a successful response with a patient match found scenario by creating a sample response from BFD that contains an 'entry' list with more than 1 entry 
-        # and the second entry being a patient resource, and using requests_mock to mock the call to BFD and return this sample response
-        with requests_mock.Mocker() as m:
-            url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
-            headers = {"Content-Type": "application/json"}
-            payload = '{"id": "-20140000008329"}'
-            expected_data = {"id": "Patient/-20140000008329", "resourceType": "Patient"}
-            # Mock the request to BFD to return the sample response for the patient match found scenario
-            m.post(url, json=expected_data, status_code=200)
-            result = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            patient_bundle = json.load(f)
 
-            assert result == expected_data
-            assert m.called
-            assert m.call_count == 1
-            assert m.request_history[0].method == "POST"
-            assert m.request_history[0].url == url
-            assert m.request_history[0].headers["Content-Type"] == "application/json"
-            assert m.request_history[0].text == payload
+        url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
+        headers = {"Content-Type": "application/json"}
 
-        # Simulate an unsuccessful response scenario by using requests_mock to mock the call to BFD and 
-        # return a response with a 500 status code, and check that the function raises an exception or 
-        # returns the expected result for an unsuccessful response scenario
-        with requests_mock.Mocker() as m:
-            url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
-            headers = {"Content-Type": "application/json"}
-            payload = '{"id": "-20140000008329"}'
-            # Mock the request to BFD to return a response with a 500 status code
-            m.post(url, status_code=500)
-            try:
-                result = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
-                assert False, "Expected an exception to be raised for an unsuccessful response scenario"
-            except Exception as e:
-                assert str(e) == "Failed to get a successful response from BFD for patient match call. Status code: 500"
+        with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
+            payload = json.load(f)
+
+        response = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
+        assert response == patient_bundle
+
+    def test_get_response_json_successful_no_patient_match(self):
+        """
+       Test the response from an unsuccessful call to BFD for patient match in the authorization process and ensure that the function 
+       returns the expected json response
+        """
+        with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
+            patient_bundle = json.load(f)
+
+        url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
+        headers = {"Content-Type": "application/json"}
+
+        with open('apps/fhir/bluebutton/tests/sample_requests/no_patient_match_request.json') as f:
+            payload = json.load(f)
+
+        response = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
+        assert response == patient_bundle
+
+
