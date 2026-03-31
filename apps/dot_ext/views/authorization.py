@@ -504,12 +504,9 @@ class TokenView(DotTokenView):
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     # Connor's code to validate client credentials call and return json payload would go here in another ticket
-                    # IDI Match
-                    # What details do we need to pass to BFD? How do we obtain those details at this point in the code?
-                    # Assumption is we get json_payload to send to bfd before calling the endpoint, 
-                    # but we need to determine what goes in that payload and where it comes from
+                    # IDI Match call to BFD to get mbi for the app's client_id to include in the token response, 
+                    # since there is no user context for client credentials grant type
                     json_payload = {}
-                    # Not sure where we are getting the header details from, but we would need to determine that as well. 
                     headers = {
                         "X-CLIENT-ID": app.client_id,
                         "X-CLIENT-NAME": app.name,
