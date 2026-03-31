@@ -555,15 +555,8 @@ APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
     ' the support team for the application you are trying to access.'
 )
 
-GRANT_TYPE_CLIENT_CREDENTIALS = 'client_credentials'
-GRANT_TYPE_REFRESH_TOKEN = 'refresh_token'
-
 CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS = ['RS384', 'ES384']
-
-CLIENT_ASSERTION = 'client_assertion'
-CLIENT_ASSERTION_TYPE = 'client_assertion_type'
 CLIENT_ASSERTION_TYPE_VALUE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
-
 
 CLEAR_JWKS_URL = ''
 IDME_JWKS_URL = ''

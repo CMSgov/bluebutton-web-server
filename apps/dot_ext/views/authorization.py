@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from time import strftime
 
@@ -37,9 +37,8 @@ from apps.fhir.server.settings import fhir_settings
 from apps.mymedicare_cb.models import get_and_update_from_refresh
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import (
-    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, GRANT_TYPE_CLIENT_CREDENTIALS,
-    CLIENT_ASSERTION, CLIENT_ASSERTION_TYPE, CLIENT_ASSERTION_TYPE_VALUE, GRANT_TYPE_REFRESH_TOKEN,
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
+    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CLIENT_ASSERTION_TYPE_VALUE
 )
 from apps.versions import Versions
 from jwt import PyJWKClient
@@ -479,72 +478,140 @@ class TokenView(DotTokenView):
             )
 
     def _check_if_client_credentials_call_is_allowed(self, app: Application, version: Versions) -> bool:
+        """Checks if the version fo the call is v3 + the app is allowed to do this and has a jwks_uri
+
+        Args:
+            app (Application): model
+            version (Versions): Version constant
+
+        Returns:
+            bool: if the app is allowed to make a client_credential call
+        """
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allow_client_credentials
+        return app.allow_client_credentials and app.jwks_uri is not None
 
     def _validate_client_credentials_request(self, request: HttpRequest):
-        """Checks that there is a client assertion type and a client assertion
+        """Checks required params for a client_credential request and their values
 
         Args:
             request (HttpRequest): the Django request object
 
         Raises:
-            InvalidRequestError: If missing required attribute or invalid value, reject
+            InvalidRequestError: if client_assertion_type is not correct
+
+        Returns:
+            JsonResponse or None: Returns a 400 error response if params are missing, else None
         """
-        if request.POST.get(CLIENT_ASSERTION_TYPE) != CLIENT_ASSERTION_TYPE_VALUE or not request.POST.get(CLIENT_ASSERTION):
+
+        # TODO: grant_type is already implied, but I figured I'd follow the spec
+        required_params = ['grant_type', 'scope', 'client_assertion_type', 'client_assertion']
+        missing_params = [param for param in required_params if not request.POST.get(param)]
+
+        if missing_params:
+            return JsonResponse({
+                'status_code': 400,
+                'message': f"Missing Required Parameter(s): {', '.join(missing_params)}"
+            }, status=400)
+
+        if request.POST.get('client_assertion_type') != CLIENT_ASSERTION_TYPE_VALUE:
+            log.warning(f'client_assertion_type was {request.POST.get('client_assertion_type')}')
             raise InvalidRequestError
-        return
 
-    def _validate_authorization_jwt(self, jwt):
-        return
+        # TODO: do we have a function to validate scopes against BBAPI's well-known config?
+        return None
 
-    def _validate_clear_jwt(self):
-        return
+    def _validate_authorization_jwt(self, token: str | None, jwks_client: PyJWKClient) -> str:
+        """Validates an authorization JWT and returns the id_token if valid
+
+        Args:
+            token (str): the base64 encoded auth jwt
+            jwks_client (PyJWKClient): instantiated client for the authorization jwt
+
+        Raises:
+            InvalidRequestError: any jwt error throws this
+
+        Returns:
+            str: the cms_smart extension's id_token
+        """
+        try:
+            signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
+            # pyjwt handles:
+            # header - alg, kid
+            # payload - iss, aud, exp
+            data = jwt.decode_complete(  # type: ignore
+                token,
+                signing_key,
+                # issuer=app.client_id,
+                audience=fhir_settings.fhir_url_v3,
+                # leeway=timedelta(minutes=5),
+                options={
+                    'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions']
+                },
+                algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+            )
+            payload, header = data.get('payload'), data.get('header')
+
+            # validate header
+            if header.get('typ') != 'JWT':
+                raise InvalidRequestError
+
+            # TODO: combine iss and jti for cache + not allowed duplicates
+
+            # validate payload
+            if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
+                raise InvalidRequestError
+
+            # validate cms_smart extension
+            cms_smart = payload.get('extensions', {}).get('cms_smart')
+            if not cms_smart:
+                raise InvalidRequestError
+            if (
+                cms_smart.get('version') != 1
+                or cms_smart.get('purpose_of_user') != 'PATRQT'
+                or not cms_smart.get('id_token')
+            ):
+                raise InvalidRequestError
+
+            return cms_smart.get('id_token')
+
+        except (jwt.MissingRequiredClaimError, jwt.ExpiredSignatureError, jwt.InvalidIssuerError,
+                jwt.InvalidAudienceError, jwt.InvalidKeyError, jwt.InvalidAlgorithmError):
+            raise InvalidRequestError
+
+    def _validate_ial_jwt(self, id_token: str) -> bool:
+        return True
 
     @method_decorator(sensitive_post_parameters("password"))
-    def post(self, request: HttpRequest, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
-
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
-            if version == Versions.V3 and grant_type == GRANT_TYPE_REFRESH_TOKEN:
+            if version == Versions.V3 and grant_type == 'refresh_token':
                 self._validate_v3_token_call(request)
             app = validate_app_is_active(request)
 
-            if grant_type == GRANT_TYPE_CLIENT_CREDENTIALS:
+            if grant_type == 'client_credentials':
                 # Check for malformed request
-                self._validate_client_credentials_request(request)
+                request_validation_result = self._validate_client_credentials_request(request)
+                if request_validation_result:
+                    return request_validation_result
                 allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
-                app_token = request.POST.get(CLIENT_ASSERTION)
 
                 if allow_client_credentials_call:
                     try:
-                        # Top level (application) JWT decoding
-                        app_jwks_client = PyJWKClient(app.jwks_url)
-                        app_signing_key = app_jwks_client.get_signing_key_from_jwt(app_token)
-                        app_jwt = jwt.decode_complete(
-                            app_token,
-                            app_signing_key,
-                            issuer=app.client_id,
-                            audience=fhir_settings.fhir_url_v3,
-                            options={
-                                'require': ['exp', 'iss', '']
-                            },
-                            algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-                        )
-
-                        print(app_jwt)
-
-                        # Validate cms_smart extension
+                        # Top level (application authorization) JWT validation
+                        id_token = self._validate_authorization_jwt(
+                            request.POST.get('client_assertion'), PyJWKClient(app.jwks_uri))
 
                         # Check clear or id.me JWT signature (another call)
-
-                        log.info(f'client_credentials token call was made for app: {app.name}')
+                        ial_authorization = self._validate_ial_jwt(id_token)
+                        print(ial_authorization)
+                        log.info(f'client_credentials token call was successfully made for app: {app.name}')
                     except Exception as e:
                         log.error(f'Error validating jwt: {str(e)}')
                 else:
@@ -591,7 +658,7 @@ class TokenView(DotTokenView):
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                if grant_type == GRANT_TYPE_REFRESH_TOKEN:
+                if grant_type == 'refresh_token':
                     try:
                         crosswalk = Crosswalk.objects.get(user=token.user)
                         get_and_update_from_refresh(

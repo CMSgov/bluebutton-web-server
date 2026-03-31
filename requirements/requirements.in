@@ -24,6 +24,7 @@ django-storages == 1.13.2
 django-waffle == 3.0.0
 djangorestframework == 3.16.1
 djangorestframework-csv == 3.0.0
+fhir.resources == 8.2.0
 gunicorn == 25.0.3
 idna == 3.7 # via requests, trio
 importlib-metadata == 6.6.0
