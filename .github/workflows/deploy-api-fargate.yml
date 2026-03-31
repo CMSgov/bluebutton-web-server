@@ -26,11 +26,11 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy 9400f369adcea37ada3a96c8315790a5d94a8224 to test
+    name: Deploy ${{ inputs.image_tag || github.sha }} to ${{ inputs.environment || 'test' }}
     # sandbox uses prod CodeBuild runner (same account)
     runs-on:
-      - codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    environment: test
+      - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ inputs.environment || 'test' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
       - name: Verify image exists in ECR
         id: verify-image
         run: |
-          ENV="test"
+          ENV="${{ inputs.environment || 'test' }}"
           # sandbox and prod share the same ECR repo (bb-prod-api)
           BUCKET_ENV="${ENV}"
           if [[ "$ENV" == "sandbox" ]]; then
@@ -63,7 +63,7 @@ jobs:
           fi
 
           REPO_NAME="bb-${BUCKET_ENV}-api"
-          IMAGE_TAG="9400f369adcea37ada3a96c8315790a5d94a8224"
+          IMAGE_TAG="${{ inputs.image_tag || github.sha }}"
 
           echo "Verifying ${REPO_NAME}:${IMAGE_TAG} exists in ECR..."
           if ! aws ecr describe-images --repository-name "$REPO_NAME" --image-ids imageTag="$IMAGE_TAG" > /dev/null 2>&1; then
@@ -78,7 +78,7 @@ jobs:
       - name: Get current task definition
         id: current-task
         run: |
-          ENV="test"
+          ENV="${{ inputs.environment || 'test' }}"
           FAMILY="bb-${ENV}-api-family"
 
           echo "Fetching current task definition for ${FAMILY}..."
@@ -108,7 +108,7 @@ jobs:
 
       - name: Update ECS service
         run: |
-          ENV="test"
+          ENV="${{ inputs.environment || 'test' }}"
           CLUSTER="bb-${ENV}-cluster"
           SERVICE="bb-${ENV}-api-service"
 
@@ -123,7 +123,7 @@ jobs:
 
       - name: Wait for deployment to stabilize
         run: |
-          ENV="test"
+          ENV="${{ inputs.environment || 'test' }}"
           CLUSTER="bb-${ENV}-cluster"
           SERVICE="bb-${ENV}-api-service"
 
