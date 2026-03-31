@@ -124,7 +124,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ops/containers/bb-web-api/Dockerfile
+          file: ops/containers/bb-api/Dockerfile
           platforms: linux/arm64
           push: true
           provenance: false

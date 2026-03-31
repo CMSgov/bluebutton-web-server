@@ -1,7 +1,6 @@
 name: Deploy to Fargate
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       environment:

@@ -8,14 +8,7 @@ echo "TARGET_ENV: $TARGET_ENV"
 # ========== ENV VARS ==========
 # (Re-)export the variables we need for the rest of the launch.
 # Any per-environment choices for vars happens here, too.
-# Makes sure the path is correct in the container for everything we
-# might want to run (nginx, gunicorn, etc.)
-export NGINX_TMP=/tmp/nginx
-export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 export PATH="$PATH:${HOME}/venv/bin/"
-export ENV_S3_STORAGE_BUCKET_NAME=${ENV_S3_STORAGE_BUCKET_NAME:-"MAGIC_ENV_S3_STORAGE_BUCKET_NAME"}
-export DJANGO_ADMIN_REDIRECTOR=${DJANGO_ADMIN_REDIRECTOR:-"MAGIC_DJANGO_ADMIN_REDIRECTOR"}
-export NGINX_PORT=${NGINX_PORT:-8443}
 export GUNICORN_PORT=${GUNICORN_PORT:-8000}
 export GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
 export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
@@ -69,6 +62,8 @@ gonogo "check_bfd_certs_are_not_empty"
 if [[ $TARGET_ENV != "local" ]]; then
     write_tls_certs_to_tmp
     gonogo "write_tls_certs_to_tmp"
+    check_tls_certs_are_not_empty
+    gonogo "check_tls_certs_are_not_empty"
 fi
 
 # Launch our app
