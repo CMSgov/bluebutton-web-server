@@ -19,6 +19,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.utils import get_ip_from_request, get_response_json, handle_patient_match_response, is_patient_match_found
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
+from apps.fhir.bluebutton.management.commands.user_mbi_backfill import extract_mbi
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -516,8 +517,8 @@ class TokenView(DotTokenView):
                     patient_match_response_json = get_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
                     is_patient_match_found = is_patient_match_found(patient_match_response_json)
                     if is_patient_match_found:
-                        mbi = patient_match_response_json['entry'][1]['resource']['identifier'][0]['value']
-                    # Code to generate token with mbi would go here
+                        mbi = extract_mbi(patient_match_response_json)
+                        # Code to generate token with mbi would go here
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': 400, 'message': error_message}, status=400)

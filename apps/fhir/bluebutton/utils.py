@@ -17,7 +17,7 @@ from urllib.parse import parse_qs
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from apps.fhir.constants import FHIR_PARAM_FORMAT, IDI_MATCH_ENDPOINT, REQUEST_EOB_KEEP_ALIVE
+from apps.fhir.constants import FHIR_PARAM_FORMAT, IDI_MATCH_ENDPOINT, MBI_URL, REQUEST_EOB_KEEP_ALIVE
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
 from oauth2_provider.models import AccessToken
@@ -860,3 +860,22 @@ def get_response_json(url: str, payload: str, headers: Dict[str, str], http_meth
     
     response.raise_for_status()
     return response.json()
+
+def extract_mbi(self, patient_bundle: Dict[str, Any]) -> Optional[str]:
+    # Only proceed if total == 1
+    if patient_bundle.get('total') != 1:
+        return None
+
+    entries = patient_bundle.get('entry', [])
+    if not entries:
+        return None
+
+    patient = entries[0].get('resource', {})
+    identifiers = patient.get('identifier', [])
+
+    # Look for the identifier with the MBI system
+    for ident in identifiers:
+        if ident.get('system') == MBI_URL:
+            return ident.get('value')
+
+    return None
