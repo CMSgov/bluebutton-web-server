@@ -805,18 +805,16 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
         return True
     return False
 
-def handle_patient_match_response(response_json: Dict[str, Any]) -> str | JsonResponse:
+def is_patient_match_found(response_json: Dict[str, Any]) -> bool:
     """
-    This is a utility function to handle the response from a patient match call to BFD. If a patient match is found, 
-    a token will be returned to the requester to indicate that a patient match was found. If no patient match is found, 
-    an error message will be returned to the requester to indicate that no patient match was found. 
+    This is a utility function to check if a patient match is found. If a patient match is found, 
+    a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned. 
 
     Args:
         response_json: The response from BFD as a json/dict object
 
     Returns:
-        str | JsonResponse: Either the mbi to indicate a patient match was found, 
-        or an error message to indicate that no patient match was found
+        bool: True if a patient match was found, False otherwise
     """
     response_json_entry = response_json.get('entry', [])
     # The code below can probably be modified in the future to check for other resourceTypes besides patient, 
@@ -826,18 +824,16 @@ def handle_patient_match_response(response_json: Dict[str, Any]) -> str | JsonRe
         # No 'entry' list in the response, which indicates there wasn't an entry list in the response_json
         # Throw an error to indicate that there was an issue with the call to BFD or that no patient match was found
         logging.log.debug("No 'entry' list in the response from BFD for patient_match call")
-        return JsonResponse({'status_code': 404, 'message': 'No patient match found.'}, status=404)
+        return False
     elif len(response_json_entry) > 1 and response_json_entry[1]['resource']['resourceType'] == "Patient":
         # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
         logging.log.debug("Patient match found for patient_match call")
-        # Return the mbi to use for constructing the token
-        mbi = response_json_entry[1]['resource']['identifier'][0]['value']
-        return mbi
+        return True
     else:
         # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned 
         # in the response. Throw an error to indicate that no patient match was found
         logging.log.debug("No patient match found for patient_match call")
-        return JsonResponse({'status_code': 404, 'message': 'No patient match found.'}, status=404)
+        return False
     
 def get_response_json(url: str, payload: str, headers: Dict[str, str], http_method: str) -> Dict[str, Any]:
     """
