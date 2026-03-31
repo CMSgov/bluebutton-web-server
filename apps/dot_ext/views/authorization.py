@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import get_response_json, handle_patient_match_response
+from apps.fhir.bluebutton.utils import get_ip_from_request, get_response_json, handle_patient_match_response
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
 from oauth2_provider.exceptions import OAuthToolkitError
@@ -511,14 +511,14 @@ class TokenView(DotTokenView):
                     json_payload = {}
                     # Not sure where we are getting the header details from, but we would need to determine that as well. 
                     headers = {
-                        "X-CLIENT-ID": X-CLIENT-ID,  # We would need to determine what client id to send in the header for this call
-                        "X-CLIENT-NAME": X-CLIENT-NAME,  # We would need to determine what client name to send in the header for this call
-                        "X-CLIENT-IP": X-CLIENT-IP  # We would need to determine what client ip to send in the header for this call
+                        "X-CLIENT-ID": app.client_id,
+                        "X-CLIENT-NAME": app.name,
+                        "X-CLIENT-IP": get_ip_from_request(request)
                     }
                     url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
                     patient_match_response_json = get_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
-                    token_response = handle_patient_match_response(patient_match_response_json)
-                    return token_response
+                    mbi = handle_patient_match_response(patient_match_response_json)
+                    # Code to generate token with mbi would go here
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': 400, 'message': error_message}, status=400)

@@ -11,7 +11,7 @@ xh -v POST "https://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Patient/\$idi-matc
     X-CLIENT-ID:${X-CLIENT-ID} \
     X-CLIENT-NAME:${X-CLIENT-NAME} \
     X-CLIENT-IP:${X-CLIENT-IP} \
-    @sample_requests/patient_match.json \
+    @apps/fhir/bluebutton/tests/sample_requests/patient_match_all.json \
     --cert ${BB2_CERTSTORE_PATH}/ca.cert.pem \
     --cert-key ${BB2_CERTSTORE_PATH}/ca.key.nocrypt.pem \
     --verify=no

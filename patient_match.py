@@ -3,11 +3,11 @@ import os
 import requests
 
 url = "https://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Patient/$idi-match"
-# json_file = "apps/fhir/bluebutton/tests/sample_requests/sample_requests/patient_match_all.json"
-# json_file = "apps/fhir/bluebutton/tests/sample_requests/sample_requests/patient_match_case_1.json"
-# json_file = "apps/fhir/bluebutton/tests/sample_requests/sample_requests/patient_match_case_4.json"
-# json_file = "apps/fhir/bluebutton/tests/sample_requests/sample_requests/patient_match_case_8.json"
-json_file = "apps/fhir/bluebutton/tests/sample_requests/no_patient_match.json" # Just changed the patient name to one that doesn't exist in the test data to simulate no patient match found scenario
+json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_all.json"
+# json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_1.json"
+# json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_4.json"
+# json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_8.json"
+# json_file = "apps/fhir/bluebutton/tests/sample_requests/no_patient_match.json" # Just changed the patient name to one that doesn't exist in the test data to simulate no patient match found scenario
 
 headers = {
     "X-CLIENT-ID": "test-client-id",
