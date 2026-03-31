@@ -8,6 +8,7 @@ from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
+from apps.constants import USER_TYPE_DEV
 from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS
 from apps.fhir.server.settings import fhir_settings
 
@@ -346,7 +347,7 @@ class Patient_Resource_Test(BaseApiTest):
                                          email=f'billybob-{version}@example.com',
                                          password="foobar", )
             UserProfile.objects.create(user=u,
-                                       user_type="DEV",
+                                       user_type=USER_TYPE_DEV,
                                        create_applications=True)
             x = Crosswalk()
             x.user = u

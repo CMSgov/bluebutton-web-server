@@ -8,6 +8,7 @@ from apps.versions import Versions
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 from apps.accounts.models import UserProfile
+from apps.constants import USER_TYPE_BENEFICIARY
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType
 from apps.dot_ext.utils import get_api_version_number_from_url
@@ -206,7 +207,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # Always pass the discovered fhir_id_v3 when available so the created crosswalk
         # will populate `fhir_id_v3` even if the session/API version was v2.
 
-        user = create_beneficiary_record(
+        user = create_beneficiary_record_from_slsx_client(
             slsx_client,
             fhir_id_v2=bfd_fhir_id_v2,
             fhir_id_v3=bfd_fhir_id_v3,
@@ -276,9 +277,17 @@ def _match_fhir_id_error_should_be_checked(
     return False
 
 
-def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
+def create_beneficiary_record_from_slsx_client(slsx_client: OAuth2ConfigSLSx,
+                                               fhir_id_v2=None, fhir_id_v3=None,
+                                               user_id_type='H', request=None) -> User:
+    return create_beneficiary_record(slsx_client.user_id, slsx_client.mbi, slsx_client.hicn_hash,
+                                     slsx_client.firstname, slsx_client.lastname, slsx_client.email,
+                                     fhir_id_v2, fhir_id_v3, user_id_type, request, USER_TYPE_BENEFICIARY)
+
+
+def create_beneficiary_record(username, user_mbi, hicn_hash, firstname='', lastname='', email='',
                               fhir_id_v2=None, fhir_id_v3=None,
-                              user_id_type='H', request=None) -> User:
+                              user_id_type='H', request=None, user_type=USER_TYPE_BENEFICIARY) -> User:
     """function that takes meta information and creates a User, Crosswalk, and UserProfile
 
     Args:
@@ -295,65 +304,53 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx,
 
     log_dict = {
         'type': 'mymedicare_cb:create_beneficiary_record',
-        'username': slsx_client.user_id,
+        'username': username,
         'fhir_id_v2': fhir_id_v2,
         'fhir_id_v3': fhir_id_v3,
-        'user_hicn_hash': slsx_client.hicn_hash,
+        'user_hicn_hash': hicn_hash,
         'crosswalk': {},
     }
 
     _validate_asserts(logger, log_dict, [
-        (slsx_client.user_id is None or slsx_client.user_id == '',
+        (username is None or username == '',
          'username can not be None or empty string',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (slsx_client.hicn_hash is None,
+        (hicn_hash is None,
          'user_hicn_hash can not be None',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != MAX_HICN_HASH_LENGTH,
+        (hicn_hash is not None and len(hicn_hash) != MAX_HICN_HASH_LENGTH,
          'incorrect user HICN hash format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (slsx_client.mbi is not None and len(slsx_client.mbi) != MAX_MBI_LENGTH,
+        (user_mbi is not None and len(user_mbi) != MAX_MBI_LENGTH,
          'incorrect user MBI format',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (User.objects.filter(username=slsx_client.user_id).exists(),
+        (User.objects.filter(username=username).exists(),
          'user already exists',
-         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.user_id),
-        (Crosswalk.objects.filter(_user_id_hash=slsx_client.hicn_hash).exists(),
-         'user_hicn_hash already exists',
-         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.hicn_hash),
-        (slsx_client.mbi is not None and Crosswalk.objects.filter(_user_mbi=slsx_client.mbi).exists(),
-         'user_mbi already exists',
-         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi),
-        (fhir_id_v2 and Crosswalk.objects.filter(fhir_id_v2=fhir_id_v2).exists(),
-         'fhir_id_v2 already exists', MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v2),
+         MedicareCallbackExceptionType.VALIDATION_ERROR, username),
         (fhir_id_v2 == '', 'fhir_id_v2 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
-        (fhir_id_v3 and Crosswalk.objects.filter(fhir_id_v3=fhir_id_v3).exists(),
-         'fhir_id_v3 already exists',
-         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id_v3),
         (fhir_id_v3 == '', 'fhir_id_v3 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v3),
         (fhir_id_v2 is None and fhir_id_v3 is None, 'a crosswalk must contain at least one valid fhir_id',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2, fhir_id_v3)
     ])
 
     with transaction.atomic():
-        user = User(username=slsx_client.user_id,
-                    first_name=slsx_client.firstname,
-                    last_name=slsx_client.lastname,
-                    email=slsx_client.email)
+        user = User(username=username,
+                    first_name=firstname,
+                    last_name=lastname,
+                    email=email)
         user.set_unusable_password()
         user.save()
         cw = Crosswalk.objects.create(
             user=user,
-            user_hicn_hash=slsx_client.hicn_hash,
-            user_mbi=slsx_client.mbi,
+            user_hicn_hash=hicn_hash,
+            user_mbi=user_mbi,
             fhir_id_v2=fhir_id_v2,
             fhir_id_v3=fhir_id_v3,
             user_id_type=user_id_type,
         )
 
         # Extra user information
-        # TODO: remove the idea of UserProfile
-        UserProfile.objects.create(user=user, user_type='BEN')
+        UserProfile.objects.create(user=user, user_type=user_type)
         # TODO: magic strings are bad
         group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
         user.groups.add(group)

@@ -1,4 +1,4 @@
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, USER_TYPE_BENEFICIARY
 from apps.authorization.models import update_grants
 from apps.testclient.constants import (
     TESTCLIENT_REDIRECT_URI,
@@ -40,7 +40,7 @@ def create_user(the_group):
     last_name = 'Rogers'
     email = 'mrrogers@landofmakebelieve.gov'
     password = uuid4()
-    user_type = 'BEN'
+    user_type = USER_TYPE_BENEFICIARY
 
     # If we don't already exist, then create the user.
     if User.objects.filter(username=username).exists():

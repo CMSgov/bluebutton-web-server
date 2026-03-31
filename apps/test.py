@@ -19,7 +19,13 @@ from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.constants import CODE_CHALLENGE_METHOD_S256, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import (
+    CODE_CHALLENGE_METHOD_S256,
+    DEFAULT_SAMPLE_FHIR_ID_V2,
+    DEFAULT_SAMPLE_FHIR_ID_V3,
+    USER_TYPE_BENEFICIARY,
+    USER_TYPE_DEV,
+)
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 
@@ -94,7 +100,7 @@ class BaseApiTest(TestCase):
                 UserProfile.objects.get(user=user)
             except UserProfile.DoesNotExist:
                 UserProfile.objects.create(user=user,
-                                           user_type="BEN",
+                                           user_type=USER_TYPE_BENEFICIARY,
                                            create_applications=False)
         return user
 
@@ -369,7 +375,7 @@ class BaseApiTest(TestCase):
             user_profile.save()
         except UserProfile.DoesNotExist:
             UserProfile.objects.create(user=user,
-                                       user_type="DEV",
+                                       user_type=USER_TYPE_DEV,
                                        organization_name=organization,
                                        create_applications=True)
         return user
@@ -432,7 +438,7 @@ class BaseApiTest(TestCase):
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
-                                       user_type="BEN",
+                                       user_type=USER_TYPE_BENEFICIARY,
                                        create_applications=False)
 
         access_token = self._get_access_token_authcode_confidential(

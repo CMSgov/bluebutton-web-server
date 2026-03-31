@@ -5,6 +5,7 @@ from django.test.client import Client
 from django.urls import reverse
 
 from ..models import UserProfile
+from apps.constants import USER_TYPE_DEV
 
 
 class CheckCaseInsensitiveUsernameTestCase(TestCase):
@@ -19,7 +20,7 @@ class CheckCaseInsensitiveUsernameTestCase(TestCase):
                                      email='fred@example.com',
                                      password="foobar",)
         UserProfile.objects.create(user=u,
-                                   user_type="DEV",
+                                   user_type=USER_TYPE_DEV,
                                    create_applications=True)
         self.client = Client()
 

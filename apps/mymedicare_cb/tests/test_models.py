@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
+from apps.constants import USER_TYPE_BENEFICIARY
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.constants import (
@@ -16,7 +17,7 @@ from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from waffle.testutils import override_switch
 
 from apps.mymedicare_cb.models import (
-    create_beneficiary_record,
+    create_beneficiary_record_from_slsx_client,
     get_and_update_user_from_initial_auth,
     get_and_update_from_refresh,
     _match_fhir_id_error_should_be_checked,
@@ -80,7 +81,8 @@ class BeneficiaryLoginTest(TestCase):
         }
         slsx_client = OAuth2ConfigSLSx(args)
 
-        bene = create_beneficiary_record(slsx_client, fhir_id_v2=args['fhir_id_v2'], fhir_id_v3=args['fhir_id_v3'])
+        bene = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id_v2=args['fhir_id_v2'],
+                                                          fhir_id_v3=args['fhir_id_v3'])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args['username'])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args['user_hicn_hash'])
@@ -88,7 +90,7 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(bene.crosswalk.user_id_type, args['user_id_type'])
         self.assertEqual(bene.crosswalk.fhir_id(2), args['fhir_id_v2'])
         self.assertEqual(bene.crosswalk.fhir_id(3), args['fhir_id_v3'])
-        self.assertEqual(bene.userprofile.user_type, 'BEN')
+        self.assertEqual(bene.userprofile.user_type, USER_TYPE_BENEFICIARY)
 
     def test_create_beneficiary_record_min(self):
         args = {
@@ -97,7 +99,7 @@ class BeneficiaryLoginTest(TestCase):
             'fhir_id_v2': '00001'
         }
         slsx_client = OAuth2ConfigSLSx(args)
-        bene = create_beneficiary_record(slsx_client, fhir_id_v2=args['fhir_id_v2'])
+        bene = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id_v2=args['fhir_id_v2'])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args['user_hicn_hash'])
         self.assertEqual(bene.crosswalk.fhir_id_v2, args['fhir_id_v2'])
 
@@ -115,13 +117,13 @@ class BeneficiaryLoginTest(TestCase):
             'email': DEFAULT_EMAIL,
         }
         slsx_client = OAuth2ConfigSLSx(args)
-        bene = create_beneficiary_record(slsx_client, fhir_id_v3=args['fhir_id_v3'])
+        bene = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id_v3=args['fhir_id_v3'])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args['username'])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args['user_hicn_hash'])
         self.assertEqual(bene.crosswalk.user_mbi, args['user_mbi'])
         self.assertEqual(bene.crosswalk.user_id_type, args['user_id_type'])
-        self.assertEqual(bene.userprofile.user_type, 'BEN')
+        self.assertEqual(bene.userprofile.user_type, USER_TYPE_BENEFICIARY)
 
     def test_create_beneficiary_record_no_mbi(self):
         # Test creating new record with NO user_mbi value
@@ -136,14 +138,14 @@ class BeneficiaryLoginTest(TestCase):
             'email': DEFAULT_EMAIL,
         }
         slsx_client = OAuth2ConfigSLSx(args)
-        bene = create_beneficiary_record(slsx_client, fhir_id_v2=args['fhir_id_v2'])
+        bene = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id_v2=args['fhir_id_v2'])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args['username'])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args['user_hicn_hash'])
         self.assertEqual(bene.crosswalk.user_mbi, None)
         self.assertEqual(bene.crosswalk.fhir_id_v2, args['fhir_id_v2'])
         self.assertEqual(bene.crosswalk.user_id_type, args['user_id_type'])
-        self.assertEqual(bene.userprofile.user_type, 'BEN')
+        self.assertEqual(bene.userprofile.user_type, USER_TYPE_BENEFICIARY)
 
     def test_fail_create_beneficiary_record(self):
         cases = {
@@ -272,9 +274,9 @@ class BeneficiaryLoginTest(TestCase):
         for name, case in cases.items():
             slsx_client = OAuth2ConfigSLSx(case['args'])
             with self.assertRaisesRegex(case['exception'], case['exception_mesg']):
-                create_beneficiary_record(slsx_client,
-                                          fhir_id_v2=case['args'].get('fhir_id_v2', None),
-                                          fhir_id_v3=case['args'].get('fhir_id_v3', None))
+                create_beneficiary_record_from_slsx_client(slsx_client,
+                                                           fhir_id_v2=case['args'].get('fhir_id_v2', None),
+                                                           fhir_id_v3=case['args'].get('fhir_id_v3', None))
 
     def test_fail_create_multiple_beneficiary_record(self):
         cases = {
@@ -371,15 +373,15 @@ class BeneficiaryLoginTest(TestCase):
         for name, case in cases.items():
             arg0 = case['args'][0]
             slsx_client0 = OAuth2ConfigSLSx(case['args'][0])
-            create_beneficiary_record(slsx_client0,
-                                      fhir_id_v2=arg0.get('fhir_id_v2', None),
-                                      fhir_id_v3=arg0.get('fhir_id_v3', None))
+            create_beneficiary_record_from_slsx_client(slsx_client0,
+                                                       fhir_id_v2=arg0.get('fhir_id_v2', None),
+                                                       fhir_id_v3=arg0.get('fhir_id_v3', None))
             with self.assertRaisesRegex(case['exception'], case['exception_mesg']):
                 arg1 = case['args'][1]
                 slsx_client1 = OAuth2ConfigSLSx(arg1)
-                create_beneficiary_record(slsx_client1,
-                                          fhir_id_v2=arg1.get('fhir_id_v2', None),
-                                          fhir_id_v3=arg1.get('fhir_id_v3', None))
+                create_beneficiary_record_from_slsx_client(slsx_client1,
+                                                           fhir_id_v2=arg1.get('fhir_id_v2', None),
+                                                           fhir_id_v3=arg1.get('fhir_id_v3', None))
 
     @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
                                                                     fhir_id='-20000000002346',

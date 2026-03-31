@@ -505,6 +505,14 @@ class TokenView(DotTokenView):
                 if allow_client_credentials_call:
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
+                    # Assume we get a fhir id v3 and an mbi
+
+                    # create_or_get ANB user with the given mbi TODO HOW DO WE FIGURE A USERNAME
+
+                    # create_or_update dag
+                    # create a token response TODO START HERE
+                    # return token
+
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse(
@@ -557,6 +565,7 @@ class TokenView(DotTokenView):
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
+                # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk

@@ -9,6 +9,8 @@ from django.utils import timezone
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
 
+from apps.constants import USER_TYPE_BENEFICIARY
+
 
 class DataAccessGrant(models.Model):
     beneficiary = models.ForeignKey(
@@ -251,7 +253,7 @@ def get_beneficiary_counts():
     # BB2-4166-TODO: add and OR for fhir_id_v3
     queryset = (
         User.objects.select_related()
-        .filter(userprofile__user_type="BEN")
+        .filter(userprofile__user_type=USER_TYPE_BENEFICIARY)
         .annotate(
             fhir_id_v2=Min("crosswalk__fhir_id_v2"),
             grant_count=Count("dataaccessgrant__application", distinct=True),
