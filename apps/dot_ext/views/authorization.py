@@ -518,13 +518,13 @@ class TokenView(DotTokenView):
                     is_patient_found = is_patient_match_found(patient_bundle)
                     if is_patient_found:
                         mbi = extract_mbi(patient_bundle)
+                        # Code to generate token with mbi would go here
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(
                             {'status_code': HTTPStatus.NOT_FOUND, 'message': 'Patient match not found.'},
                             status=HTTPStatus.NOT_FOUND,
                         )
-                        # Code to generate token with mbi would go here
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': 400, 'message': error_message}, status=400)
