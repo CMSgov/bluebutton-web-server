@@ -17,7 +17,7 @@ from urllib.parse import parse_qs
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from apps.fhir.constants import FHIR_PARAM_FORMAT, IDI_MATCH_ENDPOINT, MBI_URL, REQUEST_EOB_KEEP_ALIVE
+from apps.fhir.constants import FHIR_PARAM_FORMAT, IDI_MATCH_ENDPOINT, MBI_URL, PATIENT_RESOURCE_TYPE, REQUEST_EOB_KEEP_ALIVE
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
 from oauth2_provider.models import AccessToken
@@ -816,22 +816,21 @@ def is_patient_match_found(response_json: Dict[str, Any]) -> bool:
     Returns:
         bool: True if a patient match was found, False otherwise
     """
-    response_json_entry = response_json.get('entry', [])
+    entries = response_json.get('entry', [])
     # The code below can probably be modified in the future to check for other resourceTypes besides patient, 
     # but for now this is sufficient to determine if a patient match was found or not, 
     # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
-    if not response_json_entry:
-        # No 'entry' list in the response, which indicates there wasn't an entry list in the response_json
-        # Throw an error to indicate that there was an issue with the call to BFD or that no patient match was found
+    if not entries:
         logging.log.debug("No 'entry' list in the response from BFD for patient_match call")
         return False
-    elif len(response_json_entry) > 1 and response_json_entry[1]['resource']['resourceType'] == "Patient":
+    
+    patient = entries[0].get('resource', {})
+    if len(entries) > 1 and patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
         # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
         logging.log.debug("Patient match found for patient_match call")
         return True
     else:
         # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned 
-        # in the response. Throw an error to indicate that no patient match was found
         logging.log.debug("No patient match found for patient_match call")
         return False
     
