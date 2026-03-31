@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = ('(^/v[1|2|3]/o/authorize/.*'
@@ -565,3 +566,7 @@ APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE
 CLIENT_CREDENTIALS = 'client_credentials'
 
 JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES = ['CLIENT_CREDENTIALS', 'AUTH_CODE_AND_CLIENT_CREDS']
+
+CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME = timedelta(minutes=30)
+# Time window (as timedelta) during which a refresh token may be used for client_credentials
+CLIENT_CREDENTIALS_REFRESH_WINDOW = timedelta(hours=24)

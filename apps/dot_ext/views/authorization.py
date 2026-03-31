@@ -1,9 +1,10 @@
 from http import HTTPStatus
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import wraps
 from time import strftime
+
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
@@ -11,6 +12,7 @@ from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
@@ -40,9 +42,12 @@ from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_CREDENTIALS,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
+    CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
+    CLIENT_CREDENTIALS_REFRESH_WINDOW
 )
 from apps.versions import Versions
+
 
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
@@ -63,7 +68,9 @@ from ..utils import (
 )
 from ...authorization.models import DataAccessGrant
 
+
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+
 
 QP_CHECK_LIST = ["client_secret"]
 
@@ -281,8 +288,6 @@ class AuthorizationView(DotAuthorizationView):
             "redirect_uri": form.cleaned_data.get("redirect_uri"),
             "response_type": form.cleaned_data.get("response_type", None),
             "state": form.cleaned_data.get("state", None),
-            # "code_challenge": form.cleaned_data.get("code_challenge", None),
-            # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
 
         if form.cleaned_data.get("code_challenge"):
@@ -311,7 +316,6 @@ class AuthorizationView(DotAuthorizationView):
         refresh_token_delete_cnt = 0
 
         try:
-
             if not scopes:
                 # Since the create_authorization_response will re-inject scopes even when none are
                 # valid, we want to pre-emptively treat this as an error case
@@ -485,12 +489,32 @@ class TokenView(DotTokenView):
             return False
         return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
+    def _is_client_credentials_request(self, grant_type):
+        return grant_type and grant_type[0] == CLIENT_CREDENTIALS
+
+    def _client_credentials_refresh_allowed(self, request, app):
+        url_query = parse_qs(request._body.decode('utf-8'))
+        refresh_token_value = url_query.get('refresh_token', [None])[0]
+        if not refresh_token_value:
+            raise InvalidRequestError(description="Missing refresh_token.")
+
+        refresh_token = get_refresh_token_model().objects.get(token=refresh_token_value)
+
+        if refresh_token.application_id != app.id:
+            raise InvalidGrantError(description="Refresh token does not belong to this application.")
+
+        if refresh_token.created + CLIENT_CREDENTIALS_REFRESH_WINDOW < timezone.now():
+            raise InvalidGrantError(description="Refresh window has expired.")
+
+        return refresh_token
+
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         path_info = self.request.__dict__.get('path_info')
         version = get_api_version_number_from_url(path_info)
         url_query = parse_qs(request._body.decode('utf-8'))
         grant_type = url_query.get('grant_type', [None])
+        is_client_credentials = self._is_client_credentials_request(grant_type)
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -520,6 +544,9 @@ class TokenView(DotTokenView):
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
                 return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
+            if grant_type[0] == "refresh_token" and app.allowed_auth_type == CLIENT_CREDENTIALS.upper():
+                self._client_credentials_refresh_allowed(request, app)
+
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
         except AccessDeniedTokenCustomError as e:
@@ -534,6 +561,9 @@ class TokenView(DotTokenView):
             body = json.loads(body)
             access_token = body.get("access_token")
 
+            if is_client_credentials:
+                body["expires_in"] = CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+
             dag_expiry = ""
             if access_token is not None:
                 token = get_access_token_model().objects.get(
@@ -541,6 +571,10 @@ class TokenView(DotTokenView):
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
+
+                if is_client_credentials:
+                    token.expires = timezone.now() + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+                    token.save(update_fields=["expires"])
 
                 if app.data_access_type == "THIRTEEN_MONTH":
                     try:
@@ -553,7 +587,7 @@ class TokenView(DotTokenView):
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ""
                 elif app.data_access_type == "ONE_TIME":
-                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
+                    expires_at = timezone.now() + timedelta(seconds=body['expires_in'])
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""

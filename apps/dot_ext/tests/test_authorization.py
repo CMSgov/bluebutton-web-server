@@ -4,6 +4,9 @@ import base64
 import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+from datetime import timedelta
+from oauthlib.oauth2.rfc6749.errors import InvalidRequestError, InvalidGrantError
 # from oauth2_provider.compat import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
@@ -19,6 +22,7 @@ from apps.constants import CODE_CHALLENGE_METHOD_S256
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    CLIENT_CREDENTIALS_REFRESH_WINDOW,
     CLIENT_CREDENTIALS
 )
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
@@ -1586,6 +1590,79 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         assert response.status_code == HTTPStatus.FORBIDDEN
         assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
         assert application.allowed_auth_type == 'AUTH_CODE'
+
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_refresh_missing_refresh_token(self):
+        """Ensure missing refresh_token in request body raises InvalidRequestError"""
+        # create application
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_CLIENT_CREDENTIALS
+            if hasattr(Application, 'GRANT_CLIENT_CREDENTIALS') else Application.GRANT_PASSWORD,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://localhost'
+        )
+
+        view = TokenView()
+        req = HttpRequest()
+        # No refresh_token provided
+        req._body = urlencode({'grant_type': 'refresh_token'}).encode('utf-8')
+
+        with self.assertRaises(InvalidRequestError):
+            view._client_credentials_refresh_allowed(req, application)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_refresh_token_belongs_to_different_app(self):
+        """Ensure refresh token that does not belong to the requesting app raises InvalidGrantError"""
+        # create a developer user and two applications owned by that developer
+        dev_user = self._create_or_update_development_user('dev_apps', 'org')
+        app_a = self._create_application('app a',
+                                         client_type=Application.CLIENT_CONFIDENTIAL,
+                                         redirect_uris='http://a',
+                                         user=dev_user
+                                         )
+        app_b = self._create_application('app b',
+                                         client_type=Application.CLIENT_CONFIDENTIAL,
+                                         redirect_uris='http://b',
+                                         user=dev_user
+                                         )
+
+        # create a beneficiary user and access token for app_b
+        beneficiary = self._create_user('ben', 'pw')
+        at = AccessToken.objects.create(user=beneficiary, token='atoken-b', application=app_b,
+                                        expires=timezone.now() + timedelta(days=1))
+        rt = RefreshToken.objects.create(user=beneficiary, token='rt-b', application=app_b, access_token=at)
+
+        view = TokenView()
+        req = HttpRequest()
+        req._body = urlencode({'grant_type': 'refresh_token', 'refresh_token': rt.token}).encode('utf-8')
+
+        with self.assertRaises(InvalidGrantError):
+            view._client_credentials_refresh_allowed(req, app_a)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_refresh_window_expired(self):
+        """Ensure refresh token past refresh window raises InvalidGrantError"""
+        app = self._create_application('app c', client_type=Application.CLIENT_CONFIDENTIAL, redirect_uris='http://c')
+        beneficiary = self._create_user('cara', 'pw')
+        at = AccessToken.objects.create(
+            user=beneficiary,
+            token='atoken-c',
+            application=app,
+            expires=timezone.now() + timedelta(days=1)
+        )
+        rt = RefreshToken.objects.create(user=beneficiary, token='rt-c', application=app, access_token=at)
+
+        # Set created older than the allowed refresh window (in seconds)
+        rt.created = timezone.now() - timedelta(seconds=(CLIENT_CREDENTIALS_REFRESH_WINDOW.total_seconds() + 1))
+        rt.save()
+
+        view = TokenView()
+        req = HttpRequest()
+        req._body = urlencode({'grant_type': 'refresh_token', 'refresh_token': rt.token}).encode('utf-8')
+
+        with self.assertRaises(InvalidGrantError):
+            view._client_credentials_refresh_allowed(req, app)
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):
