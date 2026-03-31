@@ -20,18 +20,19 @@ class ITSLogAPIHandler(logging.Handler):
 
     API_URL = "http://host.docker.internal:8888/v1/log"
     API_KEY = "12345678901234561234567890123456"
+    # API_KEY = "1234567890123456123456789012345612345678901234561234567890123456"
 
     def emit(self, record):
         print("RECORD CHECK INITIAL: ", record.__dict__)
 
         log_message = self.parse_log_message(record.__dict__)
         print("type check big dog: ", log_message.get('type'))
-        if (
-            log_message.get('type') not in GRAB_FHIR_ID_FROM_USER_CROSSWALK
-            and log_message.get('type') not in GRAB_FHIR_ID_FROM_CROSSWALK
-        ):
-            print("not a log type to post to ITS-log")
-            return
+        # if (
+        #     log_message.get('type') not in GRAB_FHIR_ID_FROM_USER_CROSSWALK
+        #     and log_message.get('type') not in GRAB_FHIR_ID_FROM_CROSSWALK
+        # ):
+        #     print("not a log type to post to ITS-log")
+        #     return
         payload = self._build_payload(log_message, record)
         print("PAYLOAD CHECK: ", payload)
 
@@ -100,7 +101,8 @@ class ITSLogAPIHandler(logging.Handler):
                 timeout=2
             )
             print("WHAT IS THE RESPONSE: ", response.text)
+            return response
         except Exception as e:
-            print("EXCEPTION FROM ITS-LOG: ", e)
+            print("ERROR FROM ITS-LOG handler 1217: ", e)
             # Do not let ITS-log failures crash BlueButton
             pass

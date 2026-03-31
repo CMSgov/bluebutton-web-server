@@ -72,6 +72,7 @@ class ITSLogAPIMiddleware:
             requests.post(
                 "http://host.docker.internal:8888/v1/log",
                 headers={"x-api-key": "12345678901234561234567890123456"},
+                # headers={"x-api-key", "1234567890123456123456789012345612345678901234561234567890123456"},
                 json={
                     # "source": "my-django-app",
                     "tags": self._build_tags(request),
@@ -80,8 +81,8 @@ class ITSLogAPIMiddleware:
                 },
                 timeout=2
             )
-        except Exception:
-            # print("ERROR from its-log: ", e)
+        except Exception as e:
+            print("ERROR FROM ITS-LOG middleware 1217: ", e)
             pass  # Never let logging failures crash your app
 
     def _build_tags(self, request):

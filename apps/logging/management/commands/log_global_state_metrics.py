@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.core.management.base import BaseCommand
 
-from apps.logging.loggers import log_global_state_metrics
+from apps.logging.loggers import log_global_state_metrics, log_global_state_metrics_to_itslog
 from apps.logging.utils import format_timestamp
 
 
@@ -20,4 +20,4 @@ class Command(BaseCommand):
        
         report_flag = False if options.get("no_report", None) else True
 
-        log_global_state_metrics(group_timestamp, report_flag)
+        log_global_state_metrics_to_itslog(group_timestamp, report_flag)
