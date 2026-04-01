@@ -494,12 +494,14 @@ class TokenView(DotTokenView):
         mbi_hash_user_name = hash_id_value(mbi)
         # check if ANB already exists
         try:
-            user = User.objects.get(username=mbi_hash_user_name)# want to filter or at least confirm that user is an ANB
+            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
         except User.DoesNotExist:
             # If the user does not already exist, create one (and a bluebutton_crosswalk record)
-            user = create_beneficiary_record(mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
-                    fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
-                    user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY)
+            user = create_beneficiary_record(
+                mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
+                fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
+                user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+            )
 
         return user
 
@@ -531,8 +533,8 @@ class TokenView(DotTokenView):
                     request.user = user
 
                     # create_or_update dag
-                    # Do we need to return the dag here? 
-                    data_access_grant = create_or_update_data_access_grant_client_credential_flow(user, app)
+                    # Do we need to return the dag here?
+                    create_or_update_data_access_grant_client_credential_flow(user, app)
 
                     # create a token response TODO START HERE
                     # return token
