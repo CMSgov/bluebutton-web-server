@@ -6,6 +6,7 @@ from functools import wraps
 from time import strftime
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
@@ -33,8 +34,10 @@ from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
 import uuid
 import html
+
+from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.mymedicare_cb.models import get_and_update_from_refresh
+from apps.mymedicare_cb.models import get_and_update_from_refresh, create_beneficiary_record
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
@@ -43,6 +46,7 @@ from apps.dot_ext.constants import (
     JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 )
 from apps.versions import Versions
+from apps.fhir.bluebutton.models import hash_id_value
 
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
@@ -61,7 +65,7 @@ from ..utils import (
     validate_app_is_active,
     json_response_from_oauth2_error,
 )
-from ...authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -485,6 +489,20 @@ class TokenView(DotTokenView):
             return False
         return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
+    def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
+        # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
+        mbi_hash_user_name = hash_id_value(mbi)
+        # check if ANB already exists
+        try:
+            user = User.objects.get(username=mbi_hash_user_name)# want to filter or at least confirm that user is an ANB
+        except User.DoesNotExist:
+            # If the user does not already exist, create one (and a bluebutton_crosswalk record)
+            user = create_beneficiary_record(mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
+                    fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
+                    user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY)
+
+        return user
+
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         path_info = self.request.__dict__.get('path_info')
@@ -505,11 +523,17 @@ class TokenView(DotTokenView):
                 if allow_client_credentials_call:
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
-                    # Assume we get a fhir id v3 and an mbi
 
-                    # create_or_get ANB user with the given mbi TODO HOW DO WE FIGURE A USERNAME
+                    # Assume we get a fhir id v3 and an mbi
+                    mbi = '1S00ABBAA00'
+                    fhir_id_v3 = '-253295997'
+                    user = self._create_or_retrieve_user(mbi, fhir_id_v3)
+                    request.user = user
 
                     # create_or_update dag
+                    # Do we need to return the dag here? 
+                    data_access_grant = create_or_update_data_access_grant_client_credential_flow(user, app)
+
                     # create a token response TODO START HERE
                     # return token
 

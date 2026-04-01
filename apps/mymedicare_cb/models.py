@@ -285,7 +285,7 @@ def create_beneficiary_record_from_slsx_client(slsx_client: OAuth2ConfigSLSx,
                                      fhir_id_v2, fhir_id_v3, user_id_type, request, USER_TYPE_BENEFICIARY)
 
 
-def create_beneficiary_record(username, user_mbi, hicn_hash, firstname='', lastname='', email='',
+def create_beneficiary_record(username, user_mbi, hicn_hash=None, firstname='', lastname='', email='',
                               fhir_id_v2=None, fhir_id_v3=None,
                               user_id_type='H', request=None, user_type=USER_TYPE_BENEFICIARY) -> User:
     """function that takes meta information and creates a User, Crosswalk, and UserProfile
@@ -314,9 +314,6 @@ def create_beneficiary_record(username, user_mbi, hicn_hash, firstname='', lastn
     _validate_asserts(logger, log_dict, [
         (username is None or username == '',
          'username can not be None or empty string',
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (hicn_hash is None,
-         'user_hicn_hash can not be None',
          MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
         (hicn_hash is not None and len(hicn_hash) != MAX_HICN_HASH_LENGTH,
          'incorrect user HICN hash format',
