@@ -7,6 +7,7 @@ from time import strftime
 
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
@@ -35,8 +36,10 @@ from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
 import uuid
 import html
+
+from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.mymedicare_cb.models import get_and_update_from_refresh
+from apps.mymedicare_cb.models import get_and_update_from_refresh, create_beneficiary_record
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
@@ -44,10 +47,9 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS,
     JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
     CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
-    CLIENT_CREDENTIALS_REFRESH_WINDOW
 )
 from apps.versions import Versions
-
+from apps.fhir.bluebutton.models import hash_id_value
 
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
@@ -66,8 +68,7 @@ from ..utils import (
     validate_app_is_active,
     json_response_from_oauth2_error,
 )
-from ...authorization.models import DataAccessGrant
-
+from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -489,24 +490,21 @@ class TokenView(DotTokenView):
             return False
         return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
-    def _is_client_credentials_request(self, grant_type):
-        return grant_type and grant_type[0] == CLIENT_CREDENTIALS
+    def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
+        # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
+        mbi_hash_user_name = hash_id_value(mbi)
+        # check if ANB already exists
+        try:
+            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
+        except User.DoesNotExist:
+            # If the user does not already exist, create one (and a bluebutton_crosswalk record)
+            user = create_beneficiary_record(
+                mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
+                fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
+                user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+            )
 
-    def _client_credentials_refresh_allowed(self, request, app):
-        url_query = parse_qs(request._body.decode('utf-8'))
-        refresh_token_value = url_query.get('refresh_token', [None])[0]
-        if not refresh_token_value:
-            raise InvalidRequestError(description="Missing refresh_token.")
-
-        refresh_token = get_refresh_token_model().objects.get(token=refresh_token_value)
-
-        if refresh_token.application_id != app.id:
-            raise InvalidGrantError(description="Refresh token does not belong to this application.")
-
-        if refresh_token.created + CLIENT_CREDENTIALS_REFRESH_WINDOW < timezone.now():
-            raise InvalidGrantError(description="Refresh window has expired.")
-
-        return refresh_token
+        return user
 
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
@@ -529,6 +527,20 @@ class TokenView(DotTokenView):
                 if allow_client_credentials_call:
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
+
+                    # Assume we get a fhir id v3 and an mbi
+                    mbi = '1S00ABBAA00'
+                    fhir_id_v3 = '-253295997'
+                    user = self._create_or_retrieve_user(mbi, fhir_id_v3)
+                    request.user = user
+
+                    # create_or_update dag
+                    # Do we need to return the dag here?
+                    create_or_update_data_access_grant_client_credential_flow(user, app)
+
+                    # create a token response TODO START HERE
+                    # return token
+
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse(
@@ -591,6 +603,7 @@ class TokenView(DotTokenView):
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
+                # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk

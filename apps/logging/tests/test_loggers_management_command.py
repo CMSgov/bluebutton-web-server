@@ -10,6 +10,7 @@ from jsonschema import validate
 from io import StringIO
 from oauth2_provider.models import get_access_token_model, get_application_model
 
+from apps.constants import USER_TYPE_BENEFICIARY
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
@@ -372,7 +373,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             '-90000000000001',
             'xxxExtraHicnSynth01xxx',
             self._generate_random_mbi(),
-            'BEN',
+            USER_TYPE_BENEFICIARY,
         )
         self._create_user(
             'extra_crosswalk_synth_user02@example.com',
@@ -381,7 +382,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             '-90000000000002',
             'xxxExtraHicnSynth02xxx',
             self._generate_random_mbi(),
-            'BEN',
+            USER_TYPE_BENEFICIARY,
         )
         self._create_user(
             'extra_crosswalk_real_user01@example.com',
@@ -390,7 +391,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             '90000000000001',
             'xxxExtraHicnReal01xxx',
             self._generate_random_mbi(),
-            'BEN',
+            USER_TYPE_BENEFICIARY,
         )
         self._create_user(
             'extra_crosswalk_real_user02@example.com',
@@ -399,7 +400,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             '90000000000002',
             'xxxExtraHicnReal02xxx',
             self._generate_random_mbi(),
-            'BEN',
+            USER_TYPE_BENEFICIARY,
         )
         self._create_user(
             'extra_crosswalk_real_user03@example.com',
@@ -408,7 +409,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             '90000000000003',
             'xxxExtraHicnReal03xxx',
             self._generate_random_mbi(),
-            'BEN',
+            USER_TYPE_BENEFICIARY,
         )
 
         self._call_management_command_log_global_state_metrics()

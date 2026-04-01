@@ -224,6 +224,21 @@ def update_session_auth_flow_trace_from_code(request, code):
         pass
 
 
+def update_session_auth_flow_trace_from_request(request):
+    Application = get_application_model()
+    try:
+        application = Application.objects.get(client_id='test-client-id')
+
+        # Set values in session.
+        request.session['auth_app_id'] = str(application.id)
+        request.session['auth_app_name'] = application.name
+        request.session['auth_app_data_access_type'] = application.data_access_type
+        request.session['auth_require_demographic_scopes'] = str(application.require_demographic_scopes)
+        request.session['auth_client_id'] = application.client_id
+    except Application.DoesNotExist:
+        pass
+
+
 def update_instance_auth_flow_trace_with_state(request, state):
     '''
     Update AuthFlowUuid instance with state value.
