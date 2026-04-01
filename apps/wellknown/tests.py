@@ -3,7 +3,15 @@ from django.test.client import Client
 from django.urls import reverse
 from django.conf import settings
 from waffle.testutils import override_switch
+from http import HTTPStatus
 import json
+from apps.constants import (
+    AUTH_SIGNING_ALG_ES384,
+    AUTH_SIGNING_ALG_RS384,
+    CLIENT_CONFIDENTIAL_ASYMMETRIC,
+    CLIENT_CREDENTIALS,
+    PRIVATE_KEY_JWT,
+)
 
 
 class OpenIDConnectConfigurationTestCase(TestCase):
@@ -20,7 +28,7 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         Valid User can login
         """
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertContains(
             response, reverse('oauth2_provider_v2:token-v2'))
         self.assertContains(response, reverse('openid_connect_userinfo_v2'))
@@ -43,15 +51,15 @@ class SmartConfigurationV3TestCase(TestCase):
     @override_switch("v3_endpoints", active=True)
     def test_v3_config_fields(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         data = response.json()
 
-        self.assertIn("client_credentials", data.get("grant_types_supported", []))
-        self.assertIn("client-confidential-asymmetric", data.get("capabilities", []))
+        self.assertIn(CLIENT_CREDENTIALS, data.get("grant_types_supported", []))
+        self.assertIn(CLIENT_CONFIDENTIAL_ASYMMETRIC, data.get("capabilities", []))
         self.assertEqual(
-            data.get("token_endpoint_auth_methods_supported"), ["private_key_jwt"]
+            data.get("token_endpoint_auth_methods_supported"), [PRIVATE_KEY_JWT]
         )
         self.assertEqual(
             data.get("token_endpoint_auth_signing_alg_values_supported"),
-            ["RS384", "ES384"],
+            [AUTH_SIGNING_ALG_RS384, AUTH_SIGNING_ALG_ES384],
         )
