@@ -560,3 +560,13 @@ CLIENT_ASSERTION_TYPE_VALUE = 'urn:ietf:params:oauth:client-assertion-type:jwt-b
 
 CLEAR_JWKS_URL = ''
 IDME_JWKS_URL = ''
+APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE = (
+    'This authorization call type is not allowed for application, {}.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
+)
+
+CLIENT_CREDENTIALS = 'client_credentials'
+
+JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES = ['CLIENT_CREDENTIALS', 'AUTH_CODE_AND_CLIENT_CREDS']

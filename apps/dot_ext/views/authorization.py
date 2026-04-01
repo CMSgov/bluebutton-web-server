@@ -37,8 +37,12 @@ from apps.fhir.server.settings import fhir_settings
 from apps.mymedicare_cb.models import get_and_update_from_refresh
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import (
-    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-    CLIENT_ASSERTION_TYPE_VALUE
+    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CLIENT_ASSERTION_TYPE_VALUE,
+    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    CLIENT_CREDENTIALS,
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 )
 from apps.versions import Versions
 from jwt import PyJWKClient
@@ -490,7 +494,7 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allow_client_credentials and app.jwks_uri is not None
+        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
     def _validate_client_credentials_request(self, request: HttpRequest):
         """Checks required params for a client_credential request and their values
@@ -516,7 +520,7 @@ class TokenView(DotTokenView):
             }, status=400)
 
         if request.POST.get('client_assertion_type') != CLIENT_ASSERTION_TYPE_VALUE:
-            log.warning(f'client_assertion_type was {request.POST.get('client_assertion_type')}')
+            log.warning(f'client_assertion_type was {request.POST.get("client_assertion_type")}')
             raise InvalidRequestError
 
         # TODO: do we have a function to validate scopes against BBAPI's well-known config?
@@ -616,7 +620,18 @@ class TokenView(DotTokenView):
                         log.error(f'Error validating jwt: {str(e)}')
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
-                    return JsonResponse({'status_code': 400, 'message': error_message}, status=400)
+                    return JsonResponse(
+                        {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
+                        status=HTTPStatus.FORBIDDEN
+                    )
+            elif (
+                grant_type[0]
+                and grant_type[0] != CLIENT_CREDENTIALS
+                and app.allowed_auth_type == CLIENT_CREDENTIALS.upper()
+            ):
+                # If the app is only allowed to use client_credentials, but a different grant type is passed, throw an error
+                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
+                return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
