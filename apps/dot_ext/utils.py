@@ -7,7 +7,7 @@ from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from http import HTTPStatus
-from dot_ext.models import Application
+from apps.dot_ext.models import Application
 import re
 from apps.constants import (
     APPLICATION_TEMPORARILY_INACTIVE,
