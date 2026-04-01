@@ -848,6 +848,7 @@ def get_response_json(url: str, json: str, headers: Dict[str, str], method: str)
     """
     auth_settings = FhirServerAuth()
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
+    # certs=("/certstore/ca.cert.pem", "/certstore/ca.key.nocrypt.pem")
 
     # We could just do a requests.post but this way is useful for debugging and testing, 
     # to be able to see the prepared request and manipulate if needed before sending, 
@@ -860,22 +861,37 @@ def get_response_json(url: str, json: str, headers: Dict[str, str], method: str)
     response.raise_for_status()
     return response.json()
 
-def extract_mbi(patient_bundle: Dict[str, Any], index: int) -> Optional[str]:
-
+def extract_mbi(patient_bundle, index):
+    """Safely extracts the ID from a patient entry in a mbi."""
+    # Would be good to use fhir.resources library to parse the bundle and extract the patient resource and mbi, 
+    # but for now this is a simple way to safely extract the id without risking exceptions being thrown that 
+    # would need to be caught at higher levels in the call stack
     entries = patient_bundle.get('entry', [])
-    if not entries:
+    
+    # Check if index is valid
+    if not(0 <= index < len(entries)):
         return None
-
-    if index > 0 and index < len(entries):
-        patient = entries[index].get('resource', {})
-    else:
-        patient = entries[0].get('resource', {})
-
+    
+    patient = entries[index].get('resource', {})
+    
+    # Look for the identifier with the MBI system and return the value 
+    # (returns None if 'identifier' key is missing or if no identifier with the MBI system is found)
     identifiers = patient.get('identifier', [])
-
-    # Look for the identifier with the MBI system
     for ident in identifiers:
-        if ident.get('system') == MBI_URL:
+        if ident.get('system') == MBI_URL and 'value' in ident:
             return ident.get('value')
+    
+    return None 
 
-    return None
+def extract_fhir_id(patient_bundle, index):
+    """Safely extracts the ID from a patient entry in a FHIR Bundle."""
+    # Would be good to use fhir.resources library to parse the bundle and extract the patient resource and id, 
+    # but for now this is a simple way to safely extract the id without risking exceptions being thrown that 
+    # would need to be caught at higher levels in the call stack
+    entries = patient_bundle.get('entry', [])
+    
+    # Check if index is valid
+    if not(0 <= index < len(entries)):
+        return None
+    
+    return entries[index].get('resource', {}).get('id')

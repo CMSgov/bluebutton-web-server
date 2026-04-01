@@ -19,7 +19,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.utils import get_ip_from_request, get_response_json, is_patient_match_found
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
-from apps.fhir.bluebutton.management.commands.user_mbi_backfill import extract_mbi
+from apps.fhir.bluebutton.utils import extract_mbi, extract_fhir_id
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -526,7 +526,8 @@ class TokenView(DotTokenView):
                     patient_found = is_patient_match_found(patient_bundle)
                     if patient_found:
                         mbi = extract_mbi(patient_bundle, index=1)
-                        # Code to generate token with mbi would go here
+                        fhir_id = extract_fhir_id(patient_bundle, index=1)
+
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(

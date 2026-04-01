@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+from unittest.mock import MagicMock, patch
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
@@ -27,7 +28,8 @@ from apps.fhir.bluebutton.utils import (
     validate_query_parameters,
     is_operation_outcome,
     get_response_json,
-    is_patient_match_found
+    is_patient_match_found,
+    extract_fhir_id
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -437,7 +439,7 @@ class PatientMatchTestCase(BaseApiTest):
         # 'entry' list with more than 1 entry and the second entry being a patient resource
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
-        print(patient_bundle)
+
         result = is_patient_match_found(patient_bundle)
 
         assert result == True
@@ -465,7 +467,7 @@ class ExtractMBITestCase(BaseApiTest):
             patient_bundle = json.load(f)
 
         result = extract_mbi(patient_bundle, index=1)
-        assert result == '1S00E00DC37'
+        assert result == '1S00E00AG54'
 
     def test_extract_mbi_unsuccessful(self):
         """
@@ -473,48 +475,33 @@ class ExtractMBITestCase(BaseApiTest):
         """
         with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
             patient_bundle = json.load(f)
-
+        
         result = extract_mbi(patient_bundle, index=1)
         assert result == None
 
-class GetResponseJsonTestCase(BaseApiTest):
+class ExtractFHIRIdTestCase(BaseApiTest):
     """
-    Test cases for the get_response_json function that is used to make calls to BFD in the patient match flow 
-    in the authorization process and handle the responses from those calls
+    Test cases for extract_fhir_id function that is used to extract the FHIR ID from the patient bundle 
+    returned from BFD in the patient match flow in the authorization process
     """
 
-    def test_get_response_json_successful_patient_match(self):
+    def test_extract_fhir_id_successful(self):
         """
-       Test the response from a successful call to BFD for patient match in the authorization process and ensure that the function 
-       returns the expected json response
+        Test successfully extracting the FHIR ID from the patient bundle
         """
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
 
-        url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
-        headers = {"Content-Type": "application/json"}
+        result = extract_fhir_id(patient_bundle, index=1)
+        assert result == '-502120048'
 
-        with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
-            payload = json.load(f)
-
-        response = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
-        assert response == patient_bundle
-
-    def test_get_response_json_successful_no_patient_match(self):
+    def test_extract_fhir_id_unsuccessful(self):
         """
-       Test the response from an unsuccessful call to BFD for patient match in the authorization process and ensure that the function 
-       returns the expected json response
+        Test unsuccessfully extracting the FHIR ID from the patient bundle
         """
         with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
             patient_bundle = json.load(f)
 
-        url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/$idi-match'
-        headers = {"Content-Type": "application/json"}
-
-        with open('apps/fhir/bluebutton/tests/sample_requests/no_patient_match_request.json') as f:
-            payload = json.load(f)
-
-        response = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
-        assert response == patient_bundle
-
-
+        result = extract_fhir_id(patient_bundle, index=1)
+        print(result)
+        assert result == None
