@@ -15,7 +15,10 @@ def my_token_expires_in(request):
     # first we try to retrieve the expires_in from the ExpiresIn
     # table.
     client_id = request.client.client_id
-    user_id = request.user.pk
+    # TODO: check grant type on request.body, source via request.user.pk if not client_credentials
+    # if client_credentials, use request.client.user.pk
+    # user_id = request.user.pk
+    user_id = request.client.user.pk
     expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
     # if no record is found we default to the value defined in the
     # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
