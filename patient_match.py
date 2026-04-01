@@ -8,8 +8,8 @@ url = "https://sandbox.fhirv3.bfd.cmscloud.local/v3/fhir/Patient/$idi-match"
 # json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json"
 # json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_1.json"
 # json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_4.json"
-# json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_8.json"
-json_file = "apps/fhir/bluebutton/tests/sample_requests/no_patient_match_request.json" # Just changed the patient name to one that doesn't exist in the test data to simulate no patient match found scenario
+json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_case_8.json"
+# json_file = "apps/fhir/bluebutton/tests/sample_requests/no_patient_match_request.json" # Just changed the patient name to one that doesn't exist in the test data to simulate no patient match found scenario
 
 headers = {
     "X-CLIENT-ID": "test-client-id",
@@ -59,7 +59,7 @@ def extract_mbi(patient_bundle, index):
     entries = patient_bundle.get('entry', [])
     
     # Check if index is valid
-    if not(0 <= index < len(entries)):
+    if index < 0 or index >= len(entries):
         return None
     
     patient = entries[index].get('resource', {})
@@ -77,12 +77,6 @@ def extract_mbi(patient_bundle, index):
 mbi = extract_mbi(response_json, index=1)
 print(f"Extracted MBI: {mbi}")
 
-def extract_fhir_id(patient_bundle, index):
-    """Safely extracts the ID from a patient entry in a FHIR Bundle."""
-    # Would be good to use fhir.resources library to parse the bundle and extract the patient resource and id, 
-    # but for now this is a simple way to safely extract the id without risking exceptions being thrown that 
-    # would need to be caught at higher levels in the call stack
-    entries = patient_bundle.get('entry', [])
     
 def extract_fhir_id(patient_bundle, index):
     """Safely extracts the ID from a patient entry in a FHIR Bundle."""
@@ -92,7 +86,7 @@ def extract_fhir_id(patient_bundle, index):
     entries = patient_bundle.get('entry', [])
     
     # Check if index is valid
-    if not(0 <= index < len(entries)):
+    if index < 0 or index >= len(entries):
         return None
     
     return entries[index].get('resource', {}).get('id')

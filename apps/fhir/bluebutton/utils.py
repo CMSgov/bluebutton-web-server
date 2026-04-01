@@ -869,7 +869,7 @@ def extract_mbi(patient_bundle, index):
     entries = patient_bundle.get('entry', [])
     
     # Check if index is valid
-    if not(0 <= index < len(entries)):
+    if index < 0 or index >= len(entries):
         return None
     
     patient = entries[index].get('resource', {})
@@ -891,7 +891,7 @@ def extract_fhir_id(patient_bundle, index):
     entries = patient_bundle.get('entry', [])
     
     # Check if index is valid
-    if not(0 <= index < len(entries)):
+    if index < 0 or index >= len(entries):
         return None
     
     return entries[index].get('resource', {}).get('id')
