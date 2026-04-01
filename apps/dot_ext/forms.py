@@ -252,19 +252,21 @@ class CreateNewApplicationForm(forms.ModelForm):
     class Meta:
         model = get_application_model()
         fields = (
-            "name",
-            "organization_name",
-            "contacts",
-            "redirect_uris",
-            "require_demographic_scopes",
-            "policy_uri",
-            "tos_uri",
-            "website_uri",
-            "support_email",
-            "support_phone_number",
-            "logo_image",
-            "description",
-            "internal_application_labels",
+            'name',
+            'organization_name',
+            'contacts',
+            'redirect_uris',
+            'require_demographic_scopes',
+            'policy_uri',
+            'tos_uri',
+            'website_uri',
+            'support_email',
+            'support_phone_number',
+            'logo_image',
+            'description',
+            'internal_application_labels',
+            'jwks_uri',
+            'allowed_auth_type',
         )
 
     # Duplication of clean_name() from above form, see TODO comment at start of file
