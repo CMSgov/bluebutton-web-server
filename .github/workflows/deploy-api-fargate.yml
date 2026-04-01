@@ -37,7 +37,7 @@ jobs:
       - name: Setup AWS credentials
         uses: ./.github/actions/setup-tofu
         with:
-          environment: test
+          environment: ${{ inputs.environment || 'test' }}
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
           prod-account: ${{ secrets.PROD_ACCOUNT }}
 
