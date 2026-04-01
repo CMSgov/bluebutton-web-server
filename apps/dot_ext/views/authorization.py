@@ -574,9 +574,11 @@ class TokenView(DotTokenView):
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
-            token = get_access_token_model().objects.get(token=access_token)
-            token.user_id = user.id
-            token.save()
+            # TODO: Cleanup
+            if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
+                token = get_access_token_model().objects.get(token=access_token)
+                token.user_id = user.id
+                token.save()
 
             dag_expiry = ""
             if access_token is not None:
