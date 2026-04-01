@@ -291,3 +291,16 @@ def get_api_version_number_from_url(url_path: str) -> int:
             raise VersionNotMatched(f'{version} extracted from {url_path}')
 
     return Versions.NOT_AN_API_VERSION
+
+
+def validate_latin_extended_string(text: str) -> bool:
+    """Checks if a string has all values (and at least one value) that fall within:
+        https://en.wikipedia.org/wiki/Latin_Extended-A
+
+    Args:
+        text (str): the text to check
+
+    Returns:
+        bool: if all strings are encoded less than U+017F (383)
+    """
+    return all(ord(char) <= 383 for char in text) and bool(text)
