@@ -5,7 +5,10 @@ import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 # from oauth2_provider.compat import parse_qs, urlparse
-from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
+from oauthlib.oauth2.rfc6749.errors import (
+    AccessDeniedError as AccessDeniedTokenCustomError,
+    InvalidRequestError
+)
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.http import HttpRequest
 from django.urls import reverse
@@ -15,11 +18,12 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
-    CLIENT_CREDENTIALS
+    CLIENT_CREDENTIALS,
+    CLIENT_ASSERTION_TYPE_VALUE,
 )
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
@@ -1579,6 +1583,9 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'scope': 'patient/ExplanationOfBenefit.rs',
+            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            'client_assertion': 'test',
         }
         body = urlencode(token_request_data)
         response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
@@ -1652,3 +1659,51 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         assert response.json()['message'] == (
             APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(application.name)
         )
+
+    def test_validate_client_credentials_request_raise_missing_params(self) -> None:
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_request.POST = {
+            '_encoding': 'utf-8',
+            '_mutable': False
+        }
+
+        # Pass the mock request to your function
+        result = view_instance._validate_client_credentials_request(mock_request)
+        result_dict = json.loads(result.content)
+        assert result_dict['status_code'] == HTTPStatus.BAD_REQUEST
+        assert result_dict['message'] == (
+            'Missing Required Parameter(s): grant_type, scope, client_assertion_type, client_assertion'
+        )
+
+    def test_validate_client_credentials_request_raise_invalid_request(self) -> None:
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_request.POST = {
+            'grant_type': CLIENT_CREDENTIALS,
+            'redirect_uri': 'test.com',
+            'client_id': TEST_APP_CLIENT_ID,
+            'client_secret': TEST_APP_CLIENT_SECRET,
+            'scope': 'patient/ExplanationOfBenefit.rs',
+            'client_assertion_type': 'incorrect-assertion',
+            'client_assertion': 'test',
+        }
+
+        with self.assertRaises(InvalidRequestError):
+            view_instance._validate_client_credentials_request(mock_request)
+
+    def test_validate_client_credentials_request(self) -> None:
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_request.POST = {
+            'grant_type': CLIENT_CREDENTIALS,
+            'redirect_uri': 'test.com',
+            'client_id': TEST_APP_CLIENT_ID,
+            'client_secret': TEST_APP_CLIENT_SECRET,
+            'scope': 'patient/ExplanationOfBenefit.rs',
+            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            'client_assertion': 'test',
+        }
+
+        result = view_instance._validate_client_credentials_request(mock_request)
+        assert result is None

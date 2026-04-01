@@ -105,3 +105,5 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
 }
 
 OPERATION_OUTCOME = 'OperationOutcome'
+TEST_APP_CLIENT_ID = 'test-client-id'
+TEST_APP_CLIENT_SECRET = 'test-client-secret'
