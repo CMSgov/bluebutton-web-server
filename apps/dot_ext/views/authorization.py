@@ -35,12 +35,15 @@ import uuid
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.mymedicare_cb.models import get_and_update_from_refresh
-from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    CLIENT_CREDENTIALS,
+    HHS_SERVER_LOGNAME_FMT,
+)
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
-    CLIENT_CREDENTIALS,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
 )
 from apps.versions import Versions
 
