@@ -6,6 +6,7 @@ import uuid
 import apps.logging.request_logger as logging
 
 from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.constants import JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -191,8 +192,24 @@ class Application(AbstractApplication):
 
     internal_application_labels = models.ManyToManyField(InternalApplicationLabels, blank=True)
 
+    # Type choices related to authorization methods
+    # Part of CMS Aligned Networks work
+    APPLICATION_AUTH_CHOICES = (
+        ('AUTH_CODE', 'AUTH_CODE - Can only authorize via grant_type = authorization_code'),
+        ('CLIENT_CREDENTIALS', 'CLIENT_CREDENTIALS - Can only authorize with grant_type = client_credentials'),
+        (
+            'AUTH_CODE_AND_CLIENT_CREDS',
+            'AUTH_CODE_AND_CLIENT_CREDS - Can authorize with grant_type = authorization_code or client_credentials'
+        ),
+    )
+
+    allowed_auth_type = models.CharField(
+        max_length=40,
+        choices=APPLICATION_AUTH_CHOICES,
+        default='AUTH_CODE',
+    )
+
     # New fields for CMS Aligned Networks epic
-    allow_client_credentials = models.BooleanField(default=False)
     jwks_uri = models.URLField(
         default=None,
         blank=True,
@@ -298,6 +315,17 @@ class Application(AbstractApplication):
         ):
             raise ValueError("Invalid data_access_type: " + self.data_access_type)
 
+        # Check allowed_auth_type is in choices tuple
+        if not (
+            self.allowed_auth_type in itertools.chain(*self.APPLICATION_AUTH_CHOICES)
+        ):
+            raise ValueError('Invalid allowed_auth_type: ' + self.allowed_auth_type)
+
+        if self.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES and not self.jwks_uri:
+            raise ValueError(
+                'jwks_uri cannot be null when allowed_auth_type is \'client_credentials\' or \'both\'.'
+            )
+
         # Check if data_access_type is changed
         # if so, log and leave existing access grants unchanged
         app_from_db = None
@@ -317,6 +345,19 @@ class Application(AbstractApplication):
                         "data_access_type_new": self.data_access_type,
                     }
                     logger.info(log_dict)
+
+                if self.allowed_auth_type != app_from_db.allowed_auth_type:
+                    logger = logging.getLogger(logging.AUDIT_APPLICATION_TYPE_CHANGE, None)
+
+                    # log audit event: application data access type changed
+                    log_dict = {
+                        'type': 'application_allowed_auth_type_change',
+                        'application_id': self.id,
+                        'application_name': self.name,
+                        'data_access_type_old': app_from_db.allowed_auth_type,
+                        'data_access_type_new': self.allowed_auth_type,
+                    }
+                    logger.info(log_dict)
         except Application.DoesNotExist:
             # new app
             pass
@@ -333,6 +374,20 @@ class Application(AbstractApplication):
         if self.client_secret is not None and len(self.client_secret) == 128:
             # make sure it is a generated hash
             self.client_secret_plain = self.client_secret
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(allowed_auth_type='AUTH_CODE')
+                    | models.Q(
+                        allowed_auth_type__in=JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
+                        jwks_uri__isnull=False,
+                    )
+                ),
+                name='jwks_uri_required_for_client_credentials_or_both',
+            )
+        ]
 
 
 class ApplicationLabel(models.Model):

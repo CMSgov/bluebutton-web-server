@@ -555,4 +555,11 @@ APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
     ' the support team for the application you are trying to access.'
 )
 
-CLIENT_CREDENTIALS = 'client_credentials'
+APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE = (
+    'This authorization call type is not allowed for application, {}.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
+)
+
+JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES = ['CLIENT_CREDENTIALS', 'AUTH_CODE_AND_CLIENT_CREDS']

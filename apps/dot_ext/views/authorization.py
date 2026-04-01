@@ -39,8 +39,16 @@ import uuid
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.mymedicare_cb.models import get_and_update_from_refresh
-from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.constants import APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    CLIENT_CREDENTIALS,
+    HHS_SERVER_LOGNAME_FMT,
+)
+from apps.dot_ext.constants import (
+    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
+    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
+)
 from apps.versions import Versions
 
 from ..signals import beneficiary_authorized_application
@@ -482,7 +490,7 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allow_client_credentials
+        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
@@ -527,7 +535,18 @@ class TokenView(DotTokenView):
                         )
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
-                    return JsonResponse({'status_code': 400, 'message': error_message}, status=400)
+                    return JsonResponse(
+                        {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
+                        status=HTTPStatus.FORBIDDEN
+                    )
+            elif (
+                grant_type[0]
+                and grant_type[0] != CLIENT_CREDENTIALS
+                and app.allowed_auth_type == CLIENT_CREDENTIALS.upper()
+            ):
+                # If the app is only allowed to use client_credentials, but a different grant type is passed, throw an error
+                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
+                return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
