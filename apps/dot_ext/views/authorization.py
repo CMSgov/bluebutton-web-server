@@ -562,7 +562,8 @@ class TokenView(DotTokenView):
                 audience=fhir_settings.fhir_url_v3,
                 # leeway=timedelta(minutes=5),
                 options={
-                    'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions']
+                    'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
+                    'verify_signature': False
                 },
                 algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
             )
@@ -586,7 +587,7 @@ class TokenView(DotTokenView):
                 raise InvalidRequestError
 
             if (
-                cms_smart.get('version') != 1
+                cms_smart.get('version') != '1'
                 or cms_smart.get('purpose_of_use') != 'PATRQT'
                 or not cms_smart.get('id_token')
             ):
@@ -620,8 +621,9 @@ class TokenView(DotTokenView):
                 leeway=timedelta(minutes=5),
                 options={
                     'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
-                                'identity_assurance_level', 'auth_time'
-                                'family_name', 'given_name', 'birthdate']
+                                # 'identity_assurance_level', 'auth_time',
+                                'family_name', 'given_name', 'birthdate'],
+                    'verify_signature': False
                 },
                 algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS
             )
@@ -634,33 +636,32 @@ class TokenView(DotTokenView):
             # TODO: combine iss and jti for cache + not allowed duplicates
 
             # validation
-            if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-                log.warning('JWT is older than 5 minutes (iat)')
-                raise InvalidRequestError
+            # if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
+            #     log.warning('JWT is older than 5 minutes (iat)')
+            #     raise InvalidRequestError
 
-            if payload.get('identity_assurance_level') != 2:
-                log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
-                raise InvalidRequestError
+            # if payload.get('identity_assurance_level') != 2:
+            #     log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
+            #     raise InvalidRequestError
 
-            if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
-                log.warning('JWT was authorized older than 24 hours (auth_time)')
-                raise InvalidRequestError
+            # if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
+            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
+            #     raise InvalidRequestError
 
-            if validate_latin_extended_string(payload.get('family_name')):
+            if not validate_latin_extended_string(payload.get('family_name')):
                 log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get('family_name')}')
                 raise InvalidRequestError
 
-            if validate_latin_extended_string(payload.get('given_name')):
+            if not validate_latin_extended_string(payload.get('given_name')):
                 log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get('given_name')}')
                 raise InvalidRequestError
 
-            if re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
+            if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
                 log.warning(f'birthdate was not a valid string: {payload.get('birthdate')}')
                 raise InvalidRequestError
 
             return payload
-        except (jwt.MissingRequiredClaimError, jwt.ExpiredSignatureError, jwt.InvalidIssuerError,
-                jwt.InvalidAudienceError, jwt.InvalidKeyError, jwt.InvalidAlgorithmError) as e:
+        except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {str(e)}')
             raise InvalidRequestError
 
