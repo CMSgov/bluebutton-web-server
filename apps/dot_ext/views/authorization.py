@@ -43,7 +43,8 @@ from apps.constants import (
 )
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
-    CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER
+    CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 )
 from apps.versions import Versions
 from jwt import PyJWKClient
@@ -504,7 +505,7 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allow_client_credentials and app.jwks_uri is not None
+        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES and app.jwks_uri is not None
 
     def _validate_client_credentials_request(self, request: HttpRequest):
         """Checks required params for a client_credential request and their values
@@ -521,7 +522,7 @@ class TokenView(DotTokenView):
 
         # TODO: grant_type is already implied, but I figured I'd follow the spec
         required_params = ['grant_type', 'scope', 'client_assertion_type', 'client_assertion']
-        missing_params = [param for param in required_params if not request.POST.get(param)]
+        missing_params = [param for param in required_params if not request.GET.get(param)]
 
         if missing_params:
             return JsonResponse({
@@ -529,8 +530,8 @@ class TokenView(DotTokenView):
                 'message': f"Missing Required Parameter(s): {', '.join(missing_params)}"
             }, status=400)
 
-        if request.POST.get('client_assertion_type') != CLIENT_ASSERTION_TYPE_VALUE:
-            log.warning(f'client_assertion_type was {request.POST.get('client_assertion_type')}')
+        if request.GET.get('client_assertion_type') != CLIENT_ASSERTION_TYPE_VALUE:
+            log.warning(f'client_assertion_type was {request.GET.get('client_assertion_type')}')
             raise InvalidRequestError
 
         # TODO: do we have a function to validate scopes against BBAPI's well-known config?
@@ -594,8 +595,7 @@ class TokenView(DotTokenView):
 
             return cms_smart.get('id_token')
 
-        except (jwt.MissingRequiredClaimError, jwt.ExpiredSignatureError, jwt.InvalidIssuerError,
-                jwt.InvalidAudienceError, jwt.InvalidKeyError, jwt.InvalidAlgorithmError) as e:
+        except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {str(e)}')
             raise InvalidRequestError
 
@@ -762,13 +762,14 @@ class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
-        grant_type = request.POST.get('grant_type')
+        grant_type = request.GET.get('grant_type')
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
             if version == Versions.V3 and grant_type == 'refresh_token':
                 self._validate_v3_token_call(request)
+
             app = validate_app_is_active(request)
 
             if grant_type == 'client_credentials':
@@ -782,7 +783,7 @@ class TokenView(DotTokenView):
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
-                            request.POST.get('client_assertion', ''), PyJWKClient(app.jwks_uri))
+                            request.GET.get('client_assertion', ''), PyJWKClient(app.jwks_uri))
 
                         # Determine if this is CLEAR or ID.ME
                         pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
