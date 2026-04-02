@@ -842,7 +842,7 @@ def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
     
 def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
     """
-    This is a utility function to get the json response from a call to BFD.
+    This is a utility function to get the patient match json response from a call to BFD.
 
     Args:
         url: The URL for the endpoint on BFD

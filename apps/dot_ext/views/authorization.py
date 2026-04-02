@@ -524,9 +524,9 @@ class TokenView(DotTokenView):
                     patient_bundle = get_patient_match_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
                     patient_match_found, patient = is_patient_match_found(patient_bundle)
                     if patient_match_found:
+                        log.info(f"Patient match found for client_credentials call for app: {app.name}")
                         mbi = extract_mbi_from_patient_bundle(patient)
                         fhir_id = extract_fhir_id_from_patient_bundle(patient)
-                        log.info(f"Patient match found for client_credentials call for app: {app.name}")
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(

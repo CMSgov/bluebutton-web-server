@@ -1,7 +1,6 @@
 import os
 import uuid
 import json
-from unittest.mock import MagicMock, patch
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
