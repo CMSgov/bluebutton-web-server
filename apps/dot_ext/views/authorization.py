@@ -16,10 +16,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import get_ip_from_request, get_response_json, is_patient_match_found
+from apps.fhir.bluebutton.utils import get_ip_from_request, get_patient_match_response_json, is_patient_match_found, extract_mbi_from_patient_bundle, extract_fhir_id_from_patient_bundle
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
-from apps.fhir.bluebutton.utils import extract_mbi, extract_fhir_id
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -522,12 +521,12 @@ class TokenView(DotTokenView):
                         "X-CLIENT-IP": get_ip_from_request(request)
                     }
                     url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
-                    patient_bundle = get_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
-                    patient_found = is_patient_match_found(patient_bundle)
-                    if patient_found:
-                        mbi = extract_mbi(patient_bundle, index=1)
-                        fhir_id = extract_fhir_id(patient_bundle, index=1)
-
+                    patient_bundle = get_patient_match_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
+                    patient_match_found, patient = is_patient_match_found(patient_bundle)
+                    if patient_match_found:
+                        mbi = extract_mbi_from_patient_bundle(patient)
+                        fhir_id = extract_fhir_id_from_patient_bundle(patient)
+                        log.info(f"Patient match found for client_credentials call for app: {app.name}")
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(

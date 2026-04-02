@@ -728,6 +728,8 @@ def get_v2_patient_by_id(id, request):
 # of the ticket to remove the user_mbi_hash column from the crosswalk table
 # We can remove this entire function at that point
 def get_patient_by_mbi_hash(mbi_hash, request):
+    auth_settings = FhirServerAuth()
+    certs = (auth_settings["cert_file"], auth_settings["key_file"])
     headers = generate_info_headers(request)
     headers["BlueButton-Application"] = "BB2-Tools"
     headers["includeIdentifiers"] = "true"
@@ -736,8 +738,13 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     payload = {'identifier': search_identifier}
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 
-    response_json = get_response_json(url=url, payload=payload, headers=headers, http_method="POST")
-    return response_json
+    s = requests.Session()
+    req = requests.Request("POST", url, headers=headers, data=payload)
+    prepped = req.prepare()
+    response = s.send(prepped, cert=certs, verify=False)
+
+    response.raise_for_status()
+    return response.json()
 
 
 def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional[str], query_param: str) -> bool:
@@ -805,36 +812,35 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
         return True
     return False
 
-def is_patient_match_found(response_json: Dict[str, Any]) -> bool:
+def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
     """
     This is a utility function to check if a patient match is found. If a patient match is found, 
     a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned. 
 
     Args:
         response_json: The response from BFD as a json/dict object
+        index: The index of the patient entry to check
 
     Returns:
         bool: True if a patient match was found, False otherwise
     """
     entries = response_json.get('entry', [])
+
+    if index < 0 or index >= len(entries):
+        return False, None
+    
     # The code below can probably be modified in the future to check for other resourceTypes besides patient, 
     # but for now this is sufficient to determine if a patient match was found or not, 
     # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
-    if not entries:
-        logger.debug("No 'entry' list in the response from BFD for patient_match call")
-        return False
     if len(entries) > 1:
-        patient = entries[1].get('resource', {})
+        # The length of the 'entry' list is greater than 1, which indicates a patient match was found, 
+        # but we want to make sure the resourceType of the entry is patient before returning True
+        patient = entries[index].get('resource', {})
         if patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
-            # The length of the 'entry' list is greater than 1, which indicates a patient match was found and returned in the response
-            logger.debug("Patient match found for patient_match call")
-            return True
-    else:
-        # The length of the 'entry' list is 0 or 1, which indicates no patient match was found and no patient resource was returned 
-        logger.debug("No patient match found for patient_match call")
-        return False
+            return True, patient
+    return False, None
     
-def get_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
+def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
     """
     This is a utility function to get the json response from a call to BFD.
 
@@ -848,7 +854,6 @@ def get_response_json(url: str, json: str, headers: Dict[str, str], method: str)
     """
     auth_settings = FhirServerAuth()
     certs = (auth_settings["cert_file"], auth_settings["key_file"])
-    # certs=("/certstore/ca.cert.pem", "/certstore/ca.key.nocrypt.pem")
 
     # We could just do a requests.post but this way is useful for debugging and testing, 
     # to be able to see the prepared request and manipulate if needed before sending, 
@@ -861,18 +866,10 @@ def get_response_json(url: str, json: str, headers: Dict[str, str], method: str)
     response.raise_for_status()
     return response.json()
 
-def extract_mbi(patient_bundle, index):
-    """Safely extracts the ID from a patient entry in a mbi."""
-    # Would be good to use fhir.resources library to parse the bundle and extract the patient resource and mbi, 
-    # but for now this is a simple way to safely extract the id without risking exceptions being thrown that 
-    # would need to be caught at higher levels in the call stack
-    entries = patient_bundle.get('entry', [])
-    
-    # Check if index is valid
-    if index < 0 or index >= len(entries):
+def extract_mbi_from_patient_bundle(patient: Dict[str, Any]) -> Optional[str]:
+    """Extracts the MBI from a patient entry in a FHIR Bundle."""
+    if not patient:
         return None
-    
-    patient = entries[index].get('resource', {})
     
     # Look for the identifier with the MBI system and return the value 
     # (returns None if 'identifier' key is missing or if no identifier with the MBI system is found)
@@ -883,15 +880,9 @@ def extract_mbi(patient_bundle, index):
     
     return None 
 
-def extract_fhir_id(patient_bundle, index):
-    """Safely extracts the ID from a patient entry in a FHIR Bundle."""
-    # Would be good to use fhir.resources library to parse the bundle and extract the patient resource and id, 
-    # but for now this is a simple way to safely extract the id without risking exceptions being thrown that 
-    # would need to be caught at higher levels in the call stack
-    entries = patient_bundle.get('entry', [])
-    
-    # Check if index is valid
-    if index < 0 or index >= len(entries):
+def extract_fhir_id_from_patient_bundle(patient: Dict[str, Any]) -> Optional[str]:
+    """Extracts the FHIR ID from a patient entry in a FHIR Bundle."""
+    if not patient:
         return None
-    
-    return entries[index].get('resource', {}).get('id')
+
+    return patient.get('id')

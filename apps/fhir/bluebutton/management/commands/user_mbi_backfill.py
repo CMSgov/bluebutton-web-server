@@ -1,8 +1,8 @@
 
 from apps.authorization.models import DataAccessGrant
-from apps.fhir.constants import DEFAULT_SLEEP, MAX_RETRIES
+from apps.fhir.bluebutton.constants import DEFAULT_SLEEP, MAX_RETRIES, MBI_URL
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash, extract_mbi
+from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash
 
 from django.core.management.base import BaseCommand
 from django.db.models import Q, Exists, OuterRef
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                     
                     patient_info = get_patient_by_mbi_hash(user_mbi_hash, request)
 
-                    user_mbi = extract_mbi(patient_info, index=0)
+                    user_mbi = self.extract_mbi(patient_info)
 
                     print('crosswalk.user_id %s' % (crosswalk.user_id))
                     if user_mbi:
@@ -135,6 +135,25 @@ class Command(BaseCommand):
                     print('error in process: %s' % (e))
                     # if it's a non requests exception, move to next record
                     break
+
+    def extract_mbi(self, patient_bundle: Dict[str, Any]) -> Optional[str]:
+        # Only proceed if total == 1
+        if patient_bundle.get('total') != 1:
+            return None
+
+        entries = patient_bundle.get('entry', [])
+        if not entries:
+            return None
+
+        patient = entries[0].get('resource', {})
+        identifiers = patient.get('identifier', [])
+
+        # Look for the identifier with the MBI system
+        for ident in identifiers:
+            if ident.get('system') == MBI_URL:
+                return ident.get('value')
+
+        return None
     
     def update_mbi(self, user_mbi: str, crosswalk: Crosswalk) -> None:
         crosswalk._user_mbi = user_mbi
