@@ -812,6 +812,7 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
         return True
     return False
 
+
 def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
     """
     This is a utility function to check if a patient match is found. If a patient match is found, 
@@ -828,7 +829,7 @@ def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
 
     if index < 0 or index >= len(entries):
         return False, None
-    
+
     # The code below can probably be modified in the future to check for other resourceTypes besides patient, 
     # but for now this is sufficient to determine if a patient match was found or not, 
     # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
@@ -839,7 +840,8 @@ def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
         if patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
             return True, patient
     return False, None
-    
+
+
 def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
     """
     This is a utility function to get the patient match json response from a call to BFD.
@@ -862,14 +864,15 @@ def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str]
     req = requests.Request(url=url, json=json, headers=headers, method=method)
     prepped = req.prepare()
     response = s.send(prepped, cert=certs, verify=False)
-    
+
     response.raise_for_status()
     return response.json()
+
 
 def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
     """
     Extracts the MBI from a patient entry in a FHIR Bundle.
-    
+
     Args:
         patient: A patient entry from a FHIR Bundle as a json/dict object
 
@@ -878,20 +881,21 @@ def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
     """
     if not patient:
         return None
-    
+
     # Look for the identifier with the MBI system and return the value 
     # (returns None if 'identifier' key is missing or if no identifier with the MBI system is found)
     identifiers = patient.get('identifier', [])
     for ident in identifiers:
         if ident.get('system') == MBI_URL and 'value' in ident:
             return ident.get('value')
-    
-    return None 
+
+    return None
+
 
 def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
     """
     Extracts the FHIR ID from a patient entry in a FHIR Bundle.
-    
+
     Args:
         patient: A patient entry from a FHIR Bundle as a json/dict object
 

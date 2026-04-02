@@ -424,6 +424,7 @@ class Security_Metadata_test(BaseApiTest):
 
         self.assertEqual(result[16:33], expected)
 
+
 class PatientMatchTestCase(BaseApiTest):
     """
     Test cases for patient match calls to BFD in the patient match flow in the authorization process
@@ -442,9 +443,8 @@ class PatientMatchTestCase(BaseApiTest):
 
         patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
 
-        assert patient_match_found == True
+        assert patient_match_found is True
         assert patient == expected_patient
-
 
     def test_is_patient_match_found_unsuccessful(self):
         # Simulate a no patient match found scenario by creating a sample response from BFD that contains an 
@@ -453,8 +453,9 @@ class PatientMatchTestCase(BaseApiTest):
             patient_bundle = json.load(f)
 
         patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
-        assert patient_match_found == False
-        assert patient == None
+        assert patient_match_found is False
+        assert patient is None
+
 
 class ExtractMBITestCase(BaseApiTest):
     """
@@ -481,7 +482,8 @@ class ExtractMBITestCase(BaseApiTest):
         """
         patient = None
         result = extract_mbi_from_patient_bundle(patient)
-        assert result == None
+        assert result is None
+
 
 class ExtractFHIRIdTestCase(BaseApiTest):
     """
@@ -496,7 +498,7 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
         patient = patient_bundle.get('entry', [])[1].get('resource', {})
-        
+
         result = extract_fhir_id_from_patient_bundle(patient)
         assert result == '-502120048'
 
@@ -507,4 +509,4 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         """
         patient = None
         result = extract_fhir_id_from_patient_bundle(patient)
-        assert result == None
+        assert result is None
