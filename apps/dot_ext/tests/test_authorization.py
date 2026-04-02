@@ -19,7 +19,10 @@ from apps.constants import CODE_CHALLENGE_METHOD_S256
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
-    CLIENT_CREDENTIALS
+    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_TYPE,
+    CLIENT_CREDENTIALS,
+    CLIENT_CREDENTIALS_TYPE
 )
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
@@ -1534,7 +1537,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
     def test_check_if_client_credentials_call_is_allowed(self) -> None:
         view_instance = TokenView()
-        mock_app = Application(name='TestApp', allowed_auth_type='AUTH_CODE')
+        mock_app = Application(name='TestApp', allowed_auth_type=AUTH_CODE_TYPE)
 
         result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
         assert not result
@@ -1545,11 +1548,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert not result
 
-        mock_app.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
+        mock_app.allowed_auth_type = AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE
         result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
-        mock_app.allowed_auth_type = 'CLIENT_CREDENTIALS'
+        mock_app.allowed_auth_type = CLIENT_CREDENTIALS_TYPE
         result = view_instance.check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
@@ -1585,7 +1588,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         assert response.status_code == HTTPStatus.FORBIDDEN
         assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
-        assert application.allowed_auth_type == 'AUTH_CODE'
+        assert application.allowed_auth_type == AUTH_CODE_TYPE
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):

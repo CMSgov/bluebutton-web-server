@@ -43,7 +43,7 @@ from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_CREDENTIALS,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES
 )
 from apps.versions import Versions
 from apps.fhir.bluebutton.models import hash_id_value
@@ -487,7 +487,7 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+        return app.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES
 
     def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
         # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
