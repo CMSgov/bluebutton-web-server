@@ -9,13 +9,13 @@ from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
-from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS
+from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS, IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
+from deepdiff import DeepDiff
 
 
 from apps.fhir.bluebutton.utils import (
-    extract_mbi_from_patient_bundle,
-    extract_fhir_id_from_patient_bundle,
+    get_patient_match_response_json,
     notNone,
     FhirServerAuth,
     mask_with_this_url,
@@ -28,6 +28,8 @@ from apps.fhir.bluebutton.utils import (
     validate_query_parameters,
     is_operation_outcome,
     is_patient_match_found,
+    extract_fhir_id_from_patient,
+    extract_mbi_from_patient
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -424,6 +426,34 @@ class Security_Metadata_test(BaseApiTest):
 
         self.assertEqual(result[16:33], expected)
 
+class PatientMatchResponseJsonTestCase(BaseApiTest):
+    """
+    Test cases for get_patient_match_response_json function that is used to make the patient match call to BFD in the
+    patient match flow in the authorization process
+    """
+
+    def test_get_patient_match_response_json_successful(self):
+        """
+        Test successfully getting a response from BFD for the patient match call in the patient match flow in the
+        authorization process
+        """
+        # Simulate a successful response from BFD by creating a sample response and mocking the get_patient_match_response_json function to return it
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            expected = json.load(f)
+
+        url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
+        with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
+            json_payload = json.load(f)
+
+        headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}
+        actual = get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
+        # The fullUrl field will be different in the expected vs actual response, 
+        # so we can remove it from both before comparing
+        del actual['entry'][1]['fullUrl']
+        del expected['entry'][1]['fullUrl']
+
+        assert actual == expected
+
 
 class PatientMatchTestCase(BaseApiTest):
     """
@@ -473,7 +503,7 @@ class ExtractMBITestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
         patient = patient_bundle.get('entry', [])[1].get('resource', {})
-        result = extract_mbi_from_patient_bundle(patient)
+        result = extract_mbi_from_patient(patient)
         assert result == '1S00E00AG54'
 
     def test_extract_mbi_unsuccessful(self):
@@ -482,7 +512,7 @@ class ExtractMBITestCase(BaseApiTest):
         which results in extract_mbi returning None
         """
         patient = None
-        result = extract_mbi_from_patient_bundle(patient)
+        result = extract_mbi_from_patient(patient)
         assert result is None
 
 
@@ -500,7 +530,7 @@ class ExtractFHIRIdTestCase(BaseApiTest):
             patient_bundle = json.load(f)
         patient = patient_bundle.get('entry', [])[1].get('resource', {})
 
-        result = extract_fhir_id_from_patient_bundle(patient)
+        result = extract_fhir_id_from_patient(patient)
         assert result == '-502120048'
 
     def test_extract_fhir_id_unsuccessful(self):
@@ -509,5 +539,5 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         which results in extract_fhir_id returning None
         """
         patient = None
-        result = extract_fhir_id_from_patient_bundle(patient)
+        result = extract_fhir_id_from_patient(patient)
         assert result is None
