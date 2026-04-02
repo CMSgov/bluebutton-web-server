@@ -563,7 +563,7 @@ class TokenView(DotTokenView):
                 # leeway=timedelta(minutes=5),
                 options={
                     'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
-                    'verify_signature': False
+                    'verify_signature': False,  # TODO - remove when we have test providers
                 },
                 algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
             )
@@ -623,7 +623,7 @@ class TokenView(DotTokenView):
                     'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
                                 # 'identity_assurance_level', 'auth_time',
                                 'family_name', 'given_name', 'birthdate'],
-                    'verify_signature': False
+                    'verify_signature': False,  # TODO - remove when we have test providers
                 },
                 algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS
             )
@@ -635,6 +635,7 @@ class TokenView(DotTokenView):
 
             # TODO: combine iss and jti for cache + not allowed duplicates
 
+            # TODO - reimplement when we have actual JWT creation impelmented or with test providers
             # validation
             # if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
             #     log.warning('JWT is older than 5 minutes (iat)')
