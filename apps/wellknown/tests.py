@@ -6,8 +6,7 @@ from waffle.testutils import override_switch
 from http import HTTPStatus
 import json
 from apps.constants import (
-    AUTH_SIGNING_ALG_ES384,
-    AUTH_SIGNING_ALG_RS384,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CLIENT_CONFIDENTIAL_ASYMMETRIC,
     CLIENT_CREDENTIALS,
     PRIVATE_KEY_JWT,
@@ -61,5 +60,5 @@ class SmartConfigurationV3TestCase(TestCase):
         )
         self.assertEqual(
             data.get("token_endpoint_auth_signing_alg_values_supported"),
-            [AUTH_SIGNING_ALG_RS384, AUTH_SIGNING_ALG_ES384],
+            CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
         )

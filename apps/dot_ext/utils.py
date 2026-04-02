@@ -198,10 +198,10 @@ def validate_app_is_active(request: HttpRequest) -> Application:
     Returns:
         Model: Application model or None
     """
-    if request.GET.get('grant_type') == 'client_credentials':
+    if request.POST.get('grant_type') == 'client_credentials':
         # TODO: some of this is duplicated work, refactor authorization token flow to get app after
         # validating request
-        if not (token := request.GET.get('client_assertion')):
+        if not (token := request.POST.get('client_assertion')):
             raise InvalidRequestError
         try:
             auth_jwt = jwt.decode(

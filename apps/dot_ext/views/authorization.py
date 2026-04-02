@@ -44,7 +44,7 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES, APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE
 )
 from apps.versions import Versions
 from jwt import PyJWKClient
@@ -492,7 +492,7 @@ class TokenView(DotTokenView):
                 description='Unable to verify permission.'
             )
 
-    def _check_if_client_credentials_call_is_allowed(self, app: Application, version: Versions) -> bool:
+    def _check_if_client_credentials_call_is_allowed(self, app: Application, version: int) -> bool:
         """Checks if the version fo the call is v3 + the app is allowed to do this and has a jwks_uri
 
         Args:
@@ -505,7 +505,7 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES and app.jwks_uri is not None
+        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
     def _validate_client_credentials_request(self, request: HttpRequest):
         """Checks required params for a client_credential request and their values
@@ -522,7 +522,7 @@ class TokenView(DotTokenView):
 
         # TODO: grant_type is already implied, but I figured I'd follow the spec
         required_params = ['grant_type', 'scope', 'client_assertion_type', 'client_assertion']
-        missing_params = [param for param in required_params if not request.GET.get(param)]
+        missing_params = [param for param in required_params if not request.POST.get(param)]
 
         if missing_params:
             return JsonResponse({
@@ -530,9 +530,9 @@ class TokenView(DotTokenView):
                 'message': f"Missing Required Parameter(s): {', '.join(missing_params)}"
             }, status=400)
 
-        if request.GET.get('client_assertion_type') != CLIENT_ASSERTION_TYPE_VALUE:
-            log.warning(f'client_assertion_type was {request.GET.get('client_assertion_type')}')
-            raise InvalidRequestError
+        if (client_assertion_type := request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
+            log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
+            raise InvalidRequestError('client_assertion_type was wrong')
 
         # TODO: do we have a function to validate scopes against BBAPI's well-known config?
         return None
@@ -762,7 +762,7 @@ class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
-        grant_type = request.GET.get('grant_type')
+        grant_type = request.POST.get('grant_type')
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -771,6 +771,9 @@ class TokenView(DotTokenView):
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
+
+            # TODO : validate that app is allowed to make the type of request it is making
+            # TODO : consider conditional branching based on grant_type
 
             if grant_type == 'client_credentials':
                 # Check for malformed request
@@ -783,7 +786,7 @@ class TokenView(DotTokenView):
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
-                            request.GET.get('client_assertion', ''), PyJWKClient(app.jwks_uri))
+                            request.POST.get('client_assertion', ''), PyJWKClient(app.jwks_uri))
 
                         # Determine if this is CLEAR or ID.ME
                         pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
@@ -807,13 +810,16 @@ class TokenView(DotTokenView):
                         log.error(f'Error validating jwt: {str(e)}')
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
-                    return JsonResponse({'status_code': 400, 'message': error_message}, status=400)
+                    return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=403)
+            elif grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
+                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
+                return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
         except AccessDeniedError as e:
             return JsonResponse(
-                {'status_code': 403, 'message': str(e)},
+                {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
                 status=403,
             )
 
