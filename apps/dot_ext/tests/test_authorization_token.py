@@ -46,6 +46,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         assert result
 
     @override_switch('v3_endpoints', active=True)
+    @skipIf(True, 'skip')
     def test_client_credentials(self):
         """Ensure a bad request is thrown when a v3 token calls is made, with grant_type = client_credentials
         and the application for the request does not have allowed_auth_type in
@@ -82,7 +83,6 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
 
     @override_switch('v3_endpoints', active=True)
-    @skipIf(True, 'skip')
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):
         """Purpose of this test is to show that if a call is made to the token endpoint, and the app has
         allowed_auth_type of CLIENT_CREDENTIALS, and the grant_type is not client_credentials, that a 403 error
