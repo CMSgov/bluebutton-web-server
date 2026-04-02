@@ -432,9 +432,10 @@ class PatientMatchTestCase(BaseApiTest):
 
     def test_is_patient_match_found_successful(self):
         """
-        Test handling of different patient match response scenarios from BFD in the patient match flow in the authorization process
+        Test handling of different patient match response scenarios from BFD in the
+        patient match flow in the authorization process
         """
-        # Simulate a patient match found scenario by creating a sample response from BFD that contains an 
+        # Simulate a patient match found scenario by creating a sample response from BFD that contains an
         # 'entry' list with more than 1 entry and the second entry being a patient resource
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
@@ -447,7 +448,7 @@ class PatientMatchTestCase(BaseApiTest):
         assert patient == expected_patient
 
     def test_is_patient_match_found_unsuccessful(self):
-        # Simulate a no patient match found scenario by creating a sample response from BFD that contains an 
+        # Simulate a no patient match found scenario by creating a sample response from BFD that contains an
         # 'entry' list with only 1 entry and no patient resources in the response
         with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
             patient_bundle = json.load(f)
@@ -459,9 +460,9 @@ class PatientMatchTestCase(BaseApiTest):
 
 class ExtractMBITestCase(BaseApiTest):
     """
-    Test cases for extract_mbi function that is used to extract the mbi from the patient bundle returned 
-    from BFD in the patient match flow in the authorization process. Should only need to test a successful 
-    case since is_patient_match_found should be used to determine if a patient match was found and thus 
+    Test cases for extract_mbi function that is used to extract the mbi from the patient bundle returned
+    from BFD in the patient match flow in the authorization process. Should only need to test a successful
+    case since is_patient_match_found should be used to determine if a patient match was found and thus
     whether it's appropriate to call extract_mbi.
     """
 
@@ -477,7 +478,7 @@ class ExtractMBITestCase(BaseApiTest):
 
     def test_extract_mbi_unsuccessful(self):
         """
-        Test handling of a patient bundle that does not contain an identifier with the MBI system url, 
+        Test handling of a patient bundle that does not contain an identifier with the MBI system url,
         which results in extract_mbi returning None
         """
         patient = None
@@ -487,7 +488,7 @@ class ExtractMBITestCase(BaseApiTest):
 
 class ExtractFHIRIdTestCase(BaseApiTest):
     """
-    Test cases for extract_fhir_id function that is used to extract the FHIR ID from the patient bundle 
+    Test cases for extract_fhir_id function that is used to extract the FHIR ID from the patient bundle
     returned from BFD in the patient match flow in the authorization process
     """
 
@@ -504,7 +505,7 @@ class ExtractFHIRIdTestCase(BaseApiTest):
 
     def test_extract_fhir_id_unsuccessful(self):
         """
-        Test handling of a patient bundle that does not contain a patient resource, 
+        Test handling of a patient bundle that does not contain a patient resource,
         which results in extract_fhir_id returning None
         """
         patient = None

@@ -17,10 +17,10 @@ from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.utils import (
-    extract_fhir_id_from_patient, 
-    get_ip_from_request, 
-    get_patient_match_response_json, 
-    is_patient_match_found, 
+    extract_fhir_id_from_patient,
+    get_ip_from_request,
+    get_patient_match_response_json,
+    is_patient_match_found,
     extract_mbi_from_patient
 )
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
@@ -518,7 +518,7 @@ class TokenView(DotTokenView):
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     # Connor's code to validate client credentials call and return json payload would go here in another ticket
-                    # IDI Match call to BFD to get mbi for the app's client_id to include in the token response, 
+                    # IDI Match call to BFD to get mbi for the app's client_id to include in the token response,
                     # since there is no user context for client credentials grant type
                     json_payload = {}
                     headers = {
@@ -527,7 +527,7 @@ class TokenView(DotTokenView):
                         "X-CLIENT-IP": get_ip_from_request(request)
                     }
                     url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
-                    patient_bundle = get_patient_match_response_json(url=url, payload=json_payload, headers=headers, http_method="POST")
+                    patient_bundle = get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
                     patient_match_found, patient = is_patient_match_found(patient_bundle)
                     if patient_match_found:
                         log.info(f"Patient match found for client_credentials call for app: {app.name}")
