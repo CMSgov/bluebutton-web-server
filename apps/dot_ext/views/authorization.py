@@ -526,7 +526,7 @@ class TokenView(DotTokenView):
                         "X-CLIENT-NAME": app.name,
                         "X-CLIENT-IP": get_ip_from_request(request)
                     }
-                    url = f'{fhir_settings.fhir_url}/{Versions.as_str(3)}/{IDI_MATCH_ENDPOINT}'
+                    url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
                     patient_bundle = get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
                     patient_match_found, patient = is_patient_match_found(patient_bundle)
                     if patient_match_found:

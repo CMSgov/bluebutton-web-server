@@ -145,5 +145,5 @@ USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
 
 USER_ID_TYPE_DEFAULT = "H"
 
-IDI_MATCH_ENDPOINT = "fhir/Patient/$idi-match"
+IDI_MATCH_ENDPOINT = "$idi-match"
 PATIENT_RESOURCE_TYPE = "Patient"
