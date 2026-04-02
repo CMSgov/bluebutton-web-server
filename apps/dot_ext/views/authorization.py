@@ -520,19 +520,25 @@ class TokenView(DotTokenView):
                     # Connor's code to validate client credentials call and return json payload would go here in another ticket
                     # IDI Match call to BFD to get mbi for the app's client_id to include in the token response,
                     # since there is no user context for client credentials grant type
-                    json_payload = {}
+                    json_file = "apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json"
+                    with open(json_file) as f:
+                        json_payload = json.load(f)
                     headers = {
                         "X-CLIENT-ID": app.client_id,
                         "X-CLIENT-NAME": app.name,
                         "X-CLIENT-IP": get_ip_from_request(request)
                     }
-                    url = f'{fhir_settings.fhir_url}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
+                    url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
                     patient_bundle = get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
-                    patient_match_found, patient = is_patient_match_found(patient_bundle)
+                    print(patient_bundle)
+                    patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+                    print(f"Patient match found: {patient_match_found}, patient: {patient}")
                     if patient_match_found:
                         log.info(f"Patient match found for client_credentials call for app: {app.name}")
                         mbi = extract_mbi_from_patient(patient)
+                        print(f"Extracted MBI from patient match response: {mbi}")
                         fhir_id = extract_fhir_id_from_patient(patient)
+                        print(f"Extracted FHIR ID from patient match response: {fhir_id}")
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(
