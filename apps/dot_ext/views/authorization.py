@@ -16,7 +16,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import get_ip_from_request, get_patient_match_response_json, is_patient_match_found, extract_mbi_from_patient_bundle, extract_fhir_id_from_patient_bundle
+from apps.fhir.bluebutton.utils import (
+    extract_fhir_id_from_patient, 
+    get_ip_from_request, 
+    get_patient_match_response_json, 
+    is_patient_match_found, 
+    extract_mbi_from_patient
+)
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
 from oauth2_provider.exceptions import OAuthToolkitError
@@ -525,8 +531,8 @@ class TokenView(DotTokenView):
                     patient_match_found, patient = is_patient_match_found(patient_bundle)
                     if patient_match_found:
                         log.info(f"Patient match found for client_credentials call for app: {app.name}")
-                        mbi = extract_mbi_from_patient_bundle(patient)
-                        fhir_id = extract_fhir_id_from_patient_bundle(patient)
+                        mbi = extract_mbi_from_patient(patient)
+                        fhir_id = extract_fhir_id_from_patient(patient)
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(

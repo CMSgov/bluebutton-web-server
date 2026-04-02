@@ -822,7 +822,7 @@ def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
         index: The index of the patient entry to check
 
     Returns:
-        bool: True if a patient match was found, False otherwise
+        bool: True and the patient resource if a patient match is found, False and None otherwise
     """
     entries = response_json.get('entry', [])
 
@@ -866,8 +866,16 @@ def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str]
     response.raise_for_status()
     return response.json()
 
-def extract_mbi_from_patient_bundle(patient: Dict[str, Any]) -> Optional[str]:
-    """Extracts the MBI from a patient entry in a FHIR Bundle."""
+def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+    """
+    Extracts the MBI from a patient entry in a FHIR Bundle.
+    
+    Args:
+        patient: A patient entry from a FHIR Bundle as a json/dict object
+
+    Returns:
+        str: The MBI if found, None otherwise
+    """
     if not patient:
         return None
     
@@ -880,8 +888,16 @@ def extract_mbi_from_patient_bundle(patient: Dict[str, Any]) -> Optional[str]:
     
     return None 
 
-def extract_fhir_id_from_patient_bundle(patient: Dict[str, Any]) -> Optional[str]:
-    """Extracts the FHIR ID from a patient entry in a FHIR Bundle."""
+def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+    """
+    Extracts the FHIR ID from a patient entry in a FHIR Bundle.
+    
+    Args:
+        patient: A patient entry from a FHIR Bundle as a json/dict object
+
+    Returns:
+        str: The FHIR ID if found, None otherwise
+    """
     if not patient:
         return None
 
