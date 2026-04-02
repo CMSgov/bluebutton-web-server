@@ -10,7 +10,8 @@ import re
 from apps.constants import (
     APPLICATION_TEMPORARILY_INACTIVE,
     APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
-    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
 from apps.versions import Versions, VersionNotMatched
@@ -282,3 +283,20 @@ def get_api_version_number_from_url(url_path: str) -> int:
             raise VersionNotMatched(f'{version} extracted from {url_path}')
 
     return Versions.NOT_AN_API_VERSION
+
+
+def is_user_anb(user):
+    """
+    Utility function to check if a user is an Aligned Networks Beneficiary (ANB).
+
+    Args:
+        user: Django User instance
+
+    Returns:
+        bool: True if the user is ANB, False otherwise
+    """
+    try:
+        return user.userprofile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+    except AttributeError:
+        # User might not have a userprofile
+        return False

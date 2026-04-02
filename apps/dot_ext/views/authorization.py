@@ -47,6 +47,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS,
     JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
     CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
+    CLIENT_CREDENTIALS_REFRESH_WINDOW,
 )
 from apps.versions import Versions
 from apps.fhir.bluebutton.models import hash_id_value
@@ -67,6 +68,7 @@ from ..utils import (
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
     json_response_from_oauth2_error,
+    is_user_anb,
 )
 from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
 
@@ -490,6 +492,81 @@ class TokenView(DotTokenView):
             return False
         return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
 
+    def _client_credentials_refresh_allowed(self, request, app):
+        """
+        Check if a refresh token request for a client_credentials app is allowed.
+        The user must be an Aligned Networks Beneficiary (ANB).
+        """
+        refresh_token_value = request.POST.get('refresh_token')
+        if not refresh_token_value:
+            raise InvalidRequestError(
+                description='Missing refresh token parameter',
+                status_code=HTTPStatus.BAD_REQUEST
+            )
+
+        try:
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_value)
+        except get_refresh_token_model().DoesNotExist:
+            raise InvalidGrantError(
+                description='Invalid refresh token',
+                status_code=HTTPStatus.BAD_REQUEST
+            )
+
+        if refresh_token.application_id != app.id:
+            raise InvalidGrantError(
+                description='Invalid refresh token',
+                status_code=HTTPStatus.BAD_REQUEST
+            )
+
+        # For client_credentials refresh window, use the creation time of the access token
+        # associated with the refresh token (if available), so the refresh window is anchored
+        # to the original token generation for that user/token flow.
+        access_token_creation = None
+        try:
+            access_token_creation = refresh_token.access_token.created
+        except ObjectDoesNotExist:
+            access_token_creation = None
+
+        window_start = access_token_creation if access_token_creation else refresh_token.created
+
+        if window_start + CLIENT_CREDENTIALS_REFRESH_WINDOW < timezone.now():
+            raise InvalidGrantError(
+                description='Refresh token has expired',
+                status_code=HTTPStatus.BAD_REQUEST
+            )
+
+        user = refresh_token.user
+
+        if not is_user_anb(user):
+            raise InvalidGrantError(
+                description='Refresh not allowed: user is not an Aligned Networks Beneficiary',
+                status_code=HTTPStatus.FORBIDDEN
+            )
+
+        if not self._has_client_credentials_data_access_for_user(user):
+            raise InvalidGrantError(
+                description='Refresh not allowed: user does not have a client_credentials data access grant',
+                status_code=HTTPStatus.FORBIDDEN
+            )
+
+    def _has_client_credentials_data_access_for_user(self, user: User) -> bool:
+        return DataAccessGrant.objects.filter(
+            beneficiary=user,
+            application__allowed_auth_type=CLIENT_CREDENTIALS.upper(),
+        ).exists()
+
+    def _get_refresh_token_from_request(self, request):
+        url_query = parse_qs(request._body.decode('utf-8'))
+        refresh_token_value = url_query.get('refresh_token', [None])[0]
+
+        if not refresh_token_value:
+            return None
+
+        try:
+            return get_refresh_token_model().objects.get(token=refresh_token_value)
+        except get_refresh_token_model().DoesNotExist:
+            return None
+
     def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
         # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
         mbi_hash_user_name = hash_id_value(mbi)
@@ -556,8 +633,10 @@ class TokenView(DotTokenView):
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
                 return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
-            if grant_type[0] == "refresh_token" and app.allowed_auth_type == CLIENT_CREDENTIALS.upper():
-                self._client_credentials_refresh_allowed(request, app)
+            if grant_type[0] == "refresh_token":
+                refresh_token_obj = self._get_refresh_token_from_request(request)
+                if refresh_token_obj and self._has_client_credentials_data_access_for_user(refresh_token_obj.user):
+                    self._client_credentials_refresh_allowed(request, app)
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
@@ -587,6 +666,17 @@ class TokenView(DotTokenView):
                 if is_client_credentials:
                     token.expires = timezone.now() + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
                     token.save(update_fields=["expires"])
+
+                # For client_credentials grant_type with ANB user, set refresh token expiration to 24 hours
+                if grant_type[0] == CLIENT_CREDENTIALS and is_user_anb(request.user):
+                    if token.refresh_token:
+                        token.refresh_token.expires = timezone.now() + CLIENT_CREDENTIALS_REFRESH_WINDOW
+                        token.refresh_token.save()
+
+                if grant_type[0] == 'refresh_token' and self._has_client_credentials_data_access_for_user(token.user):
+                    token.expires = timezone.now() + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+                    token.save(update_fields=["expires"])
+                    body["expires_in"] = int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds())
 
                 if app.data_access_type == "THIRTEEN_MONTH":
                     try:

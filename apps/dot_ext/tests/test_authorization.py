@@ -6,9 +6,12 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from datetime import timedelta
-from oauthlib.oauth2.rfc6749.errors import InvalidRequestError, InvalidGrantError
 # from oauth2_provider.compat import parse_qs, urlparse
-from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
+from oauthlib.oauth2.rfc6749.errors import (
+    AccessDeniedError as AccessDeniedTokenCustomError,
+    InvalidRequestError,
+    InvalidGrantError,
+)
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.http import HttpRequest
 from django.urls import reverse
@@ -18,13 +21,18 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import (
+    CODE_CHALLENGE_METHOD_S256,
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
+)
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_CREDENTIALS_REFRESH_WINDOW,
+    CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
     CLIENT_CREDENTIALS
 )
+from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.dot_ext.views import AuthorizationView, TokenView
@@ -1653,8 +1661,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         )
         rt = RefreshToken.objects.create(user=beneficiary, token='rt-c', application=app, access_token=at)
 
-        # Set created older than the allowed refresh window (in seconds)
-        rt.created = timezone.now() - timedelta(seconds=(CLIENT_CREDENTIALS_REFRESH_WINDOW.total_seconds() + 1))
+        # Set access token created older than the allowed refresh window (in seconds), but refresh token itself maybe fresh
+        at.created = timezone.now() - timedelta(seconds=(CLIENT_CREDENTIALS_REFRESH_WINDOW.total_seconds() + 1))
+        at.save()
+        rt.created = timezone.now()
         rt.save()
 
         view = TokenView()
@@ -1663,6 +1673,65 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         with self.assertRaises(InvalidGrantError):
             view._client_credentials_refresh_allowed(req, app)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_refresh_token_allowed_based_on_user_data_access_grant(self):
+        """Ensure refresh for ANB user with client_credentials DAG is allowed regardless of requesting app auth_type."""
+        app_cc = self._create_application(
+            'app cc',
+            grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://cc'
+        )
+        app_cc.allowed_auth_type = CLIENT_CREDENTIALS.upper()
+        app_cc.save()
+
+        user = self._create_user('anb_user', 'pw')
+        user_profile, _ = UserProfile.objects.get_or_create(user=user)
+        user_profile.user_type = USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+        user_profile.save()
+
+        DataAccessGrant.objects.create(beneficiary=user, application=app_cc)
+
+        app_other = self._create_application(
+            'app other',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://other'
+        )
+
+        at = AccessToken.objects.create(
+            user=user,
+            token='atoken-other',
+            application=app_other,
+            expires=timezone.now() + timedelta(days=1),
+        )
+        rt = RefreshToken.objects.create(
+            user=user,
+            token='rtoken-other',
+            application=app_other,
+            access_token=at,
+        )
+
+        view = TokenView()
+        req = HttpRequest()
+        req._body = urlencode({'grant_type': 'refresh_token', 'refresh_token': rt.token}).encode('utf-8')
+
+        view._client_credentials_refresh_allowed(req, app_other)
+
+        response = self.client.post(
+            f'/v{Versions.V3}/o/token/',
+            data={
+                'grant_type': 'refresh_token',
+                'refresh_token': rt.token,
+                'redirect_uri': app_other.redirect_uris,
+                'client_id': app_other.client_id,
+                'client_secret': app_other.client_secret_plain,
+            },
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.json()['expires_in'], int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds()))
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):
