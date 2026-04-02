@@ -1,4 +1,4 @@
-# import io
+from http import HTTPStatus
 import json
 import random
 import re
@@ -249,7 +249,7 @@ class BaseApiTest(TestCase):
         data.update(extra_fields)
         # Request the access token
         response = self.client.post(reverse("oauth2_provider:token"), data=data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         DataAccessGrant.objects.update_or_create(
             beneficiary=User.objects.get(username=username), application=application
         )
@@ -335,7 +335,7 @@ class BaseApiTest(TestCase):
             "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response["Location"], data=payload)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
         # now extract the authorization code and use it to request an access_token
         query_dict = parse_qs(urlparse(response["Location"]).query)
@@ -355,7 +355,7 @@ class BaseApiTest(TestCase):
         response = self.client.post(
             reverse("oauth2_provider:token"), data=token_request_data
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
         content = json.loads(response.content.decode("utf-8"))
 

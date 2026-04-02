@@ -115,3 +115,8 @@ USER_CHOICES = (
     (USER_TYPE_DEV, 'Developer'),
     (USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, 'Aligned Network Beneficiary')
 )
+CLIENT_CREDENTIALS = 'client_credentials'
+CLIENT_CONFIDENTIAL_ASYMMETRIC = 'client-confidential-asymmetric'
+PRIVATE_KEY_JWT = 'private_key_jwt'
+AUTH_SIGNING_ALG_RS384 = 'RS384'
+AUTH_SIGNING_ALG_ES384 = 'ES384'
