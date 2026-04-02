@@ -11,7 +11,8 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
 from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS, IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
-from deepdiff import DeepDiff
+import pytest
+import requests
 
 
 from apps.fhir.bluebutton.utils import (
@@ -453,6 +454,21 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
         del expected['entry'][1]['fullUrl']
 
         assert actual == expected
+    
+    def test_get_patient_match_response_json_raise_for_status(self):
+        """
+        Test handling of an unsuccessful response from BFD for the patient match call in the patient match flow in the
+        authorization process, such as a 500 error or a response that does not contain the expected fields
+        """
+        url = f'http://this_endpoint_should_fail.com/{IDI_MATCH_ENDPOINT}'
+        with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
+            json_payload = json.load(f)
+
+        headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}   
+        # Simulate an unsuccessful response from BFD by mocking the get_patient_match_response_json function to return a 
+        # response with a 500 status code or missing fields
+        with pytest.raises(Exception):
+            get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
 
 
 class PatientMatchTestCase(BaseApiTest):
