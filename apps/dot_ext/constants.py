@@ -555,7 +555,6 @@ APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
     ' the support team for the application you are trying to access.'
 )
 
-CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS = ['RS384', 'ES384']
 CSP_IAL_ACCEPTED_JWT_ALGORITHMS = ['RS256']
 CLIENT_ASSERTION_TYPE_VALUE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
 
@@ -581,8 +580,6 @@ APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE
     ' If you are a Medicare Beneficiary and need assistance, please contact'
     ' the support team for the application you are trying to access.'
 )
-
-CLIENT_CREDENTIALS = 'client_credentials'
 
 JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES = ['CLIENT_CREDENTIALS', 'AUTH_CODE_AND_CLIENT_CREDS']
 

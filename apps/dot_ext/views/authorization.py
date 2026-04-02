@@ -36,11 +36,14 @@ from urllib.parse import urlparse, parse_qs
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.fhir.server.settings import fhir_settings
 from apps.mymedicare_cb.models import get_and_update_from_refresh
-from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    HHS_SERVER_LOGNAME_FMT,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+)
 from apps.dot_ext.constants import (
-    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-    CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS, CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM,
-    CC_SYSTEM_SOCIAL_SECURITY_NUMBER
+    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
+    CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER
 )
 from apps.versions import Versions
 from jwt import PyJWKClient

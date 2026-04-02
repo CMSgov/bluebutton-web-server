@@ -18,11 +18,10 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.constants import CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
+from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
-    CLIENT_CREDENTIALS,
     CLIENT_ASSERTION_TYPE_VALUE,
 )
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
