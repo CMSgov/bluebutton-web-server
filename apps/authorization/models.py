@@ -48,6 +48,12 @@ class DataAccessGrant(models.Model):
             ) + relativedelta(months=+13)
             self.save()
 
+    def update_expiration_date_one_day(self) -> None:
+        self.expiration_date = datetime.now().replace(
+            tzinfo=pytz.UTC
+        ) + relativedelta(hours=+24)
+        self.save()
+
     def has_expired(self):
         if self.application.data_access_type == "THIRTEEN_MONTH":
             if self.expiration_date:
@@ -106,10 +112,16 @@ def create_or_update_data_access_grant_client_credential_flow(user, application)
 
     Return the data_access_grant for use in post function of TokenView
     """
-    data_access_grant = DataAccessGrant.objects.update_or_create(
+    # data_access_grant = DataAccessGrant.objects.update_or_create(
+    #     beneficiary=user,
+    #     application=application,
+    #     expiration_date=expiration_date,
+    # )
+    data_access_grant, created = DataAccessGrant.objects.get_or_create(
         beneficiary=user,
         application=application,
     )
+    data_access_grant.update_expiration_date_one_day()
     return data_access_grant
 
 

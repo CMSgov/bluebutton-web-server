@@ -226,8 +226,9 @@ def update_session_auth_flow_trace_from_code(request, code):
 
 def update_session_auth_flow_trace_from_request(request):
     Application = get_application_model()
+    client_id = request.POST.get('client_id')
     try:
-        application = Application.objects.get(client_id='test-client-id')
+        application = Application.objects.get(client_id=client_id)
 
         # Set values in session.
         request.session['auth_app_id'] = str(application.id)

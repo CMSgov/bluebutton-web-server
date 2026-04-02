@@ -608,6 +608,12 @@ class TokenView(DotTokenView):
                     # Assume we get a fhir id v3 and an mbi
                     mbi = '1S00ABBAA00'
                     fhir_id_v3 = '-253295997'
+
+                    # THINGS TO FIX:
+                    # allow_grant_type override (OAUTH Toolkit, something like grant_type_allowed)
+                    # that is so we don't have to set the allowed_grant_type on the application table
+                    # make sure
+
                     user = self._create_or_retrieve_user(mbi, fhir_id_v3)
                     request.user = user
 
@@ -648,9 +654,15 @@ class TokenView(DotTokenView):
 
         url, headers, body, status = self.create_token_response(request)
 
+        # retrieve the access token, update user_id with the user.id sourced above
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
+            # TODO: Cleanup
+            if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
+                token = get_access_token_model().objects.get(token=access_token)
+                token.user_id = user.id
+                token.save()
 
             if is_client_credentials:
                 body["expires_in"] = int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds())
