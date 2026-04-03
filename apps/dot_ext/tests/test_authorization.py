@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.dot_ext.views import AuthorizationView, TokenView
@@ -237,6 +237,41 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
+
+    def test_authorize_rejects_authorization_code_when_app_only_allows_client_credentials(self):
+        redirect_uri = 'http://localhost'
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+        application.jwks_uri = 'https://test.com'
+        application.allowed_auth_type = CLIENT_CREDENTIALS.upper()
+        application.save()
+
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        self.assertEqual(query_dict.get('error'), ['unauthorized_client'])
+        self.assertEqual(query_dict.get('state'), ['0123456789abcdef'])
+        self.assertNotIn('code', query_dict)
 
     @override_switch('v3_endpoints', active=True)
     def test_refresh_token(self):
