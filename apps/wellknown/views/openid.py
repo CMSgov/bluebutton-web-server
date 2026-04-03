@@ -7,8 +7,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from apps.constants import (
-    AUTH_SIGNING_ALG_ES384,
-    AUTH_SIGNING_ALG_RS384,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CLIENT_CONFIDENTIAL_ASYMMETRIC,
     CLIENT_CREDENTIALS,
     HHS_SERVER_LOGNAME_FMT,
@@ -102,10 +101,7 @@ def _smart_configuration(request, version=Versions.NOT_AN_API_VERSION):
                 CLIENT_CONFIDENTIAL_ASYMMETRIC
             ]
             data["token_endpoint_auth_methods_supported"] = [PRIVATE_KEY_JWT]
-            data["token_endpoint_auth_signing_alg_values_supported"] = [
-                AUTH_SIGNING_ALG_RS384,
-                AUTH_SIGNING_ALG_ES384,
-            ]
+            data["token_endpoint_auth_signing_alg_values_supported"] = CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
 
     return JsonResponse(data)
 
