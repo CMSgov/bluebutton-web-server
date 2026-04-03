@@ -534,7 +534,9 @@ class TokenView(DotTokenView):
                     if patient_match_found:
                         log.info(f"Patient match found for client_credentials call for app: {app.name}")
                         mbi = extract_mbi_from_patient(patient)
+                        print(f"MBI for app {app.name}: {mbi}")
                         fhir_id = extract_fhir_id_from_patient(patient)
+                        print(f"FHIR ID for app {app.name}: {fhir_id}")
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(
