@@ -812,7 +812,7 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     return False
 
 
-def is_patient_match_found(response_json: Dict[str, Any], index: int) -> bool:
+def is_patient_match_found(response_json: Dict[str, Any], index: int):
     """
     This is a utility function to check if a patient match is found. If a patient match is found,
     a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned.
