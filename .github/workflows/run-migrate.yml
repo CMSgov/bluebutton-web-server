@@ -1,0 +1,130 @@
+name: Run Django Management Command
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run against'
+        required: true
+        type: choice
+        options:
+          - test
+          - sandbox
+          - prod
+      command:
+        description: 'Django manage.py command (e.g. migrate --noinput, showmigrations, check)'
+        required: true
+        default: 'migrate --noinput'
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  migrate:
+    name: Run "${{ inputs.command }}" on ${{ inputs.environment }}
+    runs-on:
+      - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: ${{ inputs.environment }}
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+
+      - name: Get network configuration
+        id: network
+        run: |
+          ENV="${{ inputs.environment }}"
+          CLUSTER="bb-${ENV}-cluster"
+          SERVICE="bb-${ENV}-api-service"
+
+          # Get network config from the running service
+          NET_CONFIG=$(aws ecs describe-services \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE" \
+            --query 'services[0].networkConfiguration' \
+            --output json)
+
+          echo "net_config=$NET_CONFIG" >> "$GITHUB_OUTPUT"
+          echo "cluster=$CLUSTER" >> "$GITHUB_OUTPUT"
+
+          # Get the task definition family
+          FAMILY=$(aws ecs describe-services \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE" \
+            --query 'services[0].taskDefinition' \
+            --output text | awk -F/ '{print $NF}' | awk -F: '{print $1}')
+
+          echo "family=$FAMILY" >> "$GITHUB_OUTPUT"
+          echo "Using cluster=$CLUSTER family=$FAMILY"
+
+      - name: Run migration task
+        id: run-task
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${{ steps.network.outputs.cluster }}" \
+            --task-definition "${{ steps.network.outputs.family }}" \
+            --launch-type FARGATE \
+            --platform-version LATEST \
+            --network-configuration '${{ steps.network.outputs.net_config }}' \
+            --overrides '{
+              "containerOverrides": [{
+                "name": "bb-${{ inputs.environment }}-api",
+                "command": ["bash", "-c", "export DATABASES_CUSTOM=\"postgres://${DB_USER_NAME}:${DB_USER_PW}@${DB_HOST}:15432/${DB_NAME}?sslmode=require&options=-c+role%3D${DB_ROLE}\" && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base && export PATH=\"${HOME}/venv/bin:${PATH}\" && echo \"Running: manage.py ${{ inputs.command }} on ${DB_HOST}:15432/${DB_NAME} as ${DB_ROLE}\" && python manage.py ${{ inputs.command }} 2>&1"]
+              }]
+            }' \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          TASK_ID=$(echo "$TASK_ARN" | awk -F/ '{print $NF}')
+          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
+          echo "Started task: $TASK_ID"
+
+      - name: Wait for task to complete
+        run: |
+          echo "Waiting for task to finish..."
+          aws ecs wait tasks-stopped \
+            --cluster "${{ steps.network.outputs.cluster }}" \
+            --tasks "${{ steps.run-task.outputs.task_arn }}"
+
+          # Check exit code
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster "${{ steps.network.outputs.cluster }}" \
+            --tasks "${{ steps.run-task.outputs.task_arn }}" \
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
+
+          echo "Exit code: $EXIT_CODE"
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "::error::Command failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+          echo "Command completed successfully."
+
+      - name: Show task logs
+        if: always()
+        run: |
+          sleep 5  # Wait for logs to propagate
+          LOG_GROUP="/aws/ecs/fargate/bb-${{ inputs.environment }}-api"
+          LOG_STREAM="ecs/bb-${{ inputs.environment }}-api/${{ steps.run-task.outputs.task_id }}"
+
+          echo "Fetching logs from $LOG_GROUP / $LOG_STREAM"
+          aws logs get-log-events \
+            --log-group-name "$LOG_GROUP" \
+            --log-stream-name "$LOG_STREAM" \
+            --start-from-head \
+            --query 'events[*].message' \
+            --output text || echo "Could not fetch logs"
