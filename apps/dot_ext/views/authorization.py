@@ -538,7 +538,7 @@ class TokenView(DotTokenView):
                     else:
                         log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                         return JsonResponse(
-                            {'status_code': HTTPStatus.NOT_FOUND, 'message': 'Patient match not found.'},
+                            {'status_code': HTTPStatus.NOT_FOUND, 'message': f'Patient match NOT found for app {app.name}.'},
                             status=HTTPStatus.NOT_FOUND,
                         )
                 else:
