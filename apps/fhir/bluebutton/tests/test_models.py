@@ -1,4 +1,3 @@
-from django.db.utils import IntegrityError
 
 from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException
 from apps.test import BaseApiTest
@@ -7,20 +6,18 @@ from ..models import Crosswalk, get_crosswalk_bene_counts, hash_hicn
 
 class TestModels(BaseApiTest):
 
-    def test_require_user_hicn_hash(self):
+    def test_user_hicn_hash_not_required(self):
         # NOTE: The user_hicn_hash's DB field name is still user_id_hash in regex below.
-        with self.assertRaisesRegex(
-            IntegrityError, "[NOT NULL constraint|null value in column].*user_id_hash.*"
-        ):
-            self._create_user(
-                "john",
-                "password",
-                first_name="John",
-                last_name="Smith",
-                email="john@smith.net",
-                fhir_id_v2="-20000000000001",
-                user_hicn_hash=None,
-            )
+        user = self._create_user(
+            "john",
+            "password",
+            first_name="John",
+            last_name="Smith",
+            email="john@smith.net",
+            fhir_id_v2="-20000000000001",
+            user_hicn_hash=None,
+        )
+        assert user is not None
 
     def test_not_require_user_mbi(self):
         """

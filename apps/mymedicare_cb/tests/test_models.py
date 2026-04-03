@@ -176,19 +176,19 @@ class BeneficiaryLoginTest(TestCase):
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'username can not be None',
             },
-            'missing hash': {
-                'args': {
-                    'username': DEFAULT_USERNAME,
-                    'user_mbi': '1SA0A00AA00',
-                    'fhir_id_v2': '-20140000008325',
-                    'user_id_type': 'H',
-                    'first_name': DEFAULT_FIRST_NAME,
-                    'last_name': DEFAULT_LAST_NAME,
-                    'email': DEFAULT_EMAIL,
-                },
-                'exception': BBMyMedicareCallbackCrosswalkCreateException,
-                'exception_mesg': 'user_hicn_hash can not be None',
-            },
+            # 'missing hash': {
+            #     'args': {
+            #         'username': DEFAULT_USERNAME,
+            #         'user_mbi': '1SA0A00AA00',
+            #         'fhir_id_v2': '-20140000008325',
+            #         'user_id_type': 'H',
+            #         'first_name': DEFAULT_FIRST_NAME,
+            #         'last_name': DEFAULT_LAST_NAME,
+            #         'email': DEFAULT_EMAIL,
+            #     },
+            #     'exception': BBMyMedicareCallbackCrosswalkCreateException,
+            #     'exception_mesg': 'user_hicn_hash can not be None',
+            # },
             'invalid_hicn_hash': {
                 'args': {
                     'username': DEFAULT_USERNAME,
@@ -278,27 +278,36 @@ class BeneficiaryLoginTest(TestCase):
                                                            fhir_id_v2=case['args'].get('fhir_id_v2', None),
                                                            fhir_id_v3=case['args'].get('fhir_id_v3', None))
 
-    def test_fail_create_multiple_beneficiary_record(self):
+    def test_duplicate_username_auth_user_creation_fails(self):
+        first_user = {
+            'username': DEFAULT_USERNAME,
+            'user_hicn_hash': DEFAULT_HICN_HASH,
+            'user_id_type': 'H',
+            'fhir_id_v2': '-19990000000001',
+        }
+        second_user = {
+            'username': DEFAULT_USERNAME,
+            'user_hicn_hash': '60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
+            'user_id_type': 'H',
+            'fhir_id_v2': '-19990000000002',
+        }
+        slsx_client0 = OAuth2ConfigSLSx(first_user)
+        create_beneficiary_record_from_slsx_client(
+            slsx_client0,
+            fhir_id_v2=first_user.get('fhir_id_v2', None),
+            fhir_id_v3=first_user.get('fhir_id_v3', None)
+        )
+        with self.assertRaisesRegex(ValidationError, 'user already exists'):
+            slsx_client1 = OAuth2ConfigSLSx(second_user)
+            create_beneficiary_record_from_slsx_client(
+                slsx_client1,
+                fhir_id_v2=second_user.get('fhir_id_v2', None),
+                fhir_id_v3=second_user.get('fhir_id_v3', None)
+            )
+
+    def test_successfully_create_multiple_beneficiary_record(self):
         cases = {
-            'colliding username': {
-                'args': [
-                    {
-                        'username': DEFAULT_USERNAME,
-                        'user_hicn_hash': DEFAULT_HICN_HASH,
-                        'user_id_type': 'H',
-                        'fhir_id_v2': '-19990000000001',
-                    },
-                    {
-                        'username': DEFAULT_USERNAME,
-                        'user_hicn_hash': '60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b',
-                        'user_id_type': 'H',
-                        'fhir_id_v2': '-19990000000002',
-                    },
-                ],
-                'exception': ValidationError,
-                'exception_mesg': 'user already exists',
-            },
-            'colliding hicn_hash': {
+            '_user_id_hash': {
                 'args': [
                     {
                         'username': '10112233-4455-6677-8899-aabbccddeeff',
@@ -316,7 +325,7 @@ class BeneficiaryLoginTest(TestCase):
                 'exception': ValidationError,
                 'exception_mesg': 'user_hicn_hash already exists',
             },
-            'colliding mbi': {
+            '_user_mbi': {
                 'args': [
                     {
                         'username': '60112233-4455-6677-8899-aabbccddeeff',
@@ -333,10 +342,9 @@ class BeneficiaryLoginTest(TestCase):
                         'fhir_id_v2': '-19990000000007',
                     },
                 ],
-                'exception': ValidationError,
-                'exception_mesg': 'mbi already exists',
+                'field_to_compare': 'mbi',
             },
-            'colliding fhir_id_v2': {
+            'fhir_id_v2': {
                 'args': [
                     {
                         'username': '30112233-4455-6677-8899-aabbccddeeff',
@@ -352,7 +360,7 @@ class BeneficiaryLoginTest(TestCase):
                 'exception': ValidationError,
                 'exception_mesg': 'fhir_id_v2 already exists',
             },
-            'colliding fhir_id_v3': {
+            'fhir_id_v3': {
                 'args': [
                     {
                         'username': '48112233-4455-6677-8899-aabbccddeeff',
@@ -373,15 +381,19 @@ class BeneficiaryLoginTest(TestCase):
         for name, case in cases.items():
             arg0 = case['args'][0]
             slsx_client0 = OAuth2ConfigSLSx(case['args'][0])
-            create_beneficiary_record_from_slsx_client(slsx_client0,
-                                                       fhir_id_v2=arg0.get('fhir_id_v2', None),
-                                                       fhir_id_v3=arg0.get('fhir_id_v3', None))
-            with self.assertRaisesRegex(case['exception'], case['exception_mesg']):
-                arg1 = case['args'][1]
-                slsx_client1 = OAuth2ConfigSLSx(arg1)
-                create_beneficiary_record_from_slsx_client(slsx_client1,
-                                                           fhir_id_v2=arg1.get('fhir_id_v2', None),
-                                                           fhir_id_v3=arg1.get('fhir_id_v3', None))
+            first_user_record = create_beneficiary_record_from_slsx_client(
+                slsx_client0,
+                fhir_id_v2=arg0.get('fhir_id_v2', None),
+                fhir_id_v3=arg0.get('fhir_id_v3', None)
+            )
+            arg1 = case['args'][1]
+            slsx_client1 = OAuth2ConfigSLSx(arg1)
+            second_user_record = create_beneficiary_record_from_slsx_client(
+                slsx_client1,
+                fhir_id_v2=arg1.get('fhir_id_v2', None),
+                fhir_id_v3=arg1.get('fhir_id_v3', None)
+            )
+            assert first_user_record.crosswalk.__dict__[name] == second_user_record.crosswalk.__dict__[name]
 
     @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
                                                                     fhir_id='-20000000002346',

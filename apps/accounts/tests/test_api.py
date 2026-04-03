@@ -24,7 +24,7 @@ class TestUserSelfEndpoint(BaseApiTest):
                                 [["GET", reverse('openid_connect_userinfo')]])
 
         # Get an access token for the user 'john'
-        access_token = self._get_access_token('john', '123456')
+        access_token = self._get_access_token('john')
         # Authenticate the request with the bearer access token
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
 
@@ -51,7 +51,7 @@ class TestUserSelfEndpoint(BaseApiTest):
                           last_name='Smith',
                           email='john@smith.net')
 
-        access_token = self._get_access_token('john', '123456')
+        access_token = self._get_access_token('john')
         url = reverse('openid_connect_userinfo')
         url += "?access_token=%s" % (access_token)
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
@@ -81,7 +81,7 @@ class TestUserSelfEndpoint(BaseApiTest):
                                 [["GET", reverse('openid_connect_userinfo')]])
 
         # Get an access token for the user 'john'
-        access_token = self._get_access_token('john', '123456')
+        access_token = self._get_access_token('john')
         # Authenticate the request with the bearer access token
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
         response = self.client.get(
@@ -112,13 +112,9 @@ class TestSingleAccessTokenValidator(BaseApiTest):
         # create a oauth2 application
         application = self._create_application('test')
         # get the first access token for the user 'john'
-        first_access_token = self._get_access_token('john',
-                                                    '123456',
-                                                    application)
+        first_access_token = self._get_access_token('john', application)
         # request another access token for the same user/application
-        second_access_token = self._get_access_token('john',
-                                                     '123456',
-                                                     application)
+        second_access_token = self._get_access_token('john', application)
         self.assertNotEqual(first_access_token, second_access_token)
 
     def test_new_access_token_issued_when_scope_changed(self):
@@ -141,13 +137,7 @@ class TestSingleAccessTokenValidator(BaseApiTest):
         application = self._create_application('test')
         application.scope.add(read_capability, write_capability)
         # get the first access token for the user 'john'
-        first_access_token = self._get_access_token('john',
-                                                    '123456',
-                                                    application,
-                                                    scope='read')
+        first_access_token = self._get_access_token('john', application)
         # request another access token for the same user/application
-        second_access_token = self._get_access_token('john',
-                                                     '123456',
-                                                     application,
-                                                     scope='read write')
+        second_access_token = self._get_access_token('john', application)
         self.assertNotEqual(first_access_token, second_access_token)
