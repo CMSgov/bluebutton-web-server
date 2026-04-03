@@ -809,25 +809,6 @@ class TokenView(DotTokenView):
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
 
-                    # Assume we get a fhir id v3 and an mbi
-                    mbi = '1S00ABBAA00'
-                    fhir_id_v3 = '-253295997'
-
-                    # THINGS TO FIX:
-                    # allow_grant_type override (OAUTH Toolkit, something like grant_type_allowed)
-                    # that is so we don't have to set the allowed_grant_type on the application table
-                    # make sure
-
-                    user = self._create_or_retrieve_user(mbi, fhir_id_v3)
-                    request.user = user
-
-                    # create_or_update dag
-                    # Do we need to return the dag here?
-                    create_or_update_data_access_grant_client_credential_flow(user, app)
-
-                    # create a token response TODO START HERE
-                    # return token
-
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
@@ -851,6 +832,18 @@ class TokenView(DotTokenView):
 
                         log.info(id_match_payload.model_dump_json())
                         log.info(f'client_credentials token call was successfully made for app: {app.name}')
+
+                        # Assume we get a fhir id v3 and an mbi
+                        mbi = '1S00ABBAA00'
+                        fhir_id_v3 = '-253295997'
+
+                        user = self._create_or_retrieve_user(mbi, fhir_id_v3)
+                        request.user = user
+
+                        # create_or_update dag
+                        # Do we need to return the dag here?
+                        create_or_update_data_access_grant_client_credential_flow(user, app)
+
                     except Exception as e:
                         log.error(f'Error validating jwt: {str(e)}')
                 else:
@@ -874,8 +867,8 @@ class TokenView(DotTokenView):
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
-            # TODO: Cleanup
-            if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
+            # TODO: Cleanup - move to a separate function?
+            if grant_type and grant_type == CLIENT_CREDENTIALS:
                 token = get_access_token_model().objects.get(token=access_token)
                 token.user_id = user.id
                 token.save()
