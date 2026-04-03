@@ -11,6 +11,8 @@ from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_ASSERTION_TYPE_VALUE,
+    CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_TYPE,
 )
 from apps.dot_ext.models import Application
 from apps.dot_ext.views import TokenView
@@ -83,10 +85,6 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
 
     @override_switch('v3_endpoints', active=True)
-    @skipIf(
-        True,
-        'skipping for now as 4699 throws an error in the authorize of post if the grant_type is not allowed for the app'
-    )
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):
         """Purpose of this test is to show that if a call is made to the token endpoint, and the app has
         allowed_auth_type of CLIENT_CREDENTIALS, and the grant_type is not client_credentials, that a 403 error
@@ -105,7 +103,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         application.jwks_uri = 'https://test.com'
-        application.allowed_auth_type = CLIENT_CREDENTIALS.upper()
+        application.allowed_auth_type = AUTH_CODE_TYPE   # need to set this to be able to generate auth code initially
         application.save()
         # user logs in
         request = HttpRequest()
@@ -145,6 +143,10 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             'client_id': application.client_id,
         }
         body = urlencode(token_request_data)
+
+        application.allowed_auth_type = CLIENT_CREDENTIALS_TYPE  # update to disable auth code based token
+        application.save()
+
         response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         assert response.json()['message'] == (
