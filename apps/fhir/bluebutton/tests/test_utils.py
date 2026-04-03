@@ -438,7 +438,7 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
         Test successfully getting a response from BFD for the patient match call in the patient match flow in the
         authorization process
         """
-        # Simulate a successful response from BFD by creating a sample response and mocking the 
+        # Simulate a successful response from BFD by creating a sample response and mocking the
         # get_patient_match_response_json function to return it
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             expected = json.load(f)
