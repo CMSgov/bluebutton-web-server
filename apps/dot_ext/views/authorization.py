@@ -846,6 +846,10 @@ class TokenView(DotTokenView):
 
                     except Exception as e:
                         log.error(f'Error validating jwt: {str(e)}')
+                        return JsonResponse(
+                            {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Bad request'},
+                            status=HTTPStatus.BAD_REQUEST
+                        )
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=403)
