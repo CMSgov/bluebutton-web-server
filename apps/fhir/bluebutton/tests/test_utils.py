@@ -12,7 +12,6 @@ from apps.versions import Versions
 from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS, IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
 import pytest
-import requests
 
 
 from apps.fhir.bluebutton.utils import (
@@ -427,6 +426,7 @@ class Security_Metadata_test(BaseApiTest):
 
         self.assertEqual(result[16:33], expected)
 
+
 class PatientMatchResponseJsonTestCase(BaseApiTest):
     """
     Test cases for get_patient_match_response_json function that is used to make the patient match call to BFD in the
@@ -438,7 +438,8 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
         Test successfully getting a response from BFD for the patient match call in the patient match flow in the
         authorization process
         """
-        # Simulate a successful response from BFD by creating a sample response and mocking the get_patient_match_response_json function to return it
+        # Simulate a successful response from BFD by creating a sample response and mocking the 
+        # get_patient_match_response_json function to return it
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             expected = json.load(f)
 
@@ -448,13 +449,13 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
 
         headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}
         actual = get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
-        # The fullUrl field will be different in the expected vs actual response, 
+        # The fullUrl field will be different in the expected vs actual response,
         # so we can remove it from both before comparing
         del actual['entry'][1]['fullUrl']
         del expected['entry'][1]['fullUrl']
 
         assert actual == expected
-    
+
     def test_get_patient_match_response_json_raise_for_status(self):
         """
         Test handling of an unsuccessful response from BFD for the patient match call in the patient match flow in the
@@ -464,8 +465,8 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
             json_payload = json.load(f)
 
-        headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}   
-        # Simulate an unsuccessful response from BFD by mocking the get_patient_match_response_json function to return a 
+        headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}
+        # Simulate an unsuccessful response from BFD by mocking the get_patient_match_response_json function to return a
         # response with a 500 status code or missing fields
         with pytest.raises(Exception):
             get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
