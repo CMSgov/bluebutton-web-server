@@ -21,6 +21,14 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.utils import (
+    extract_fhir_id_from_patient,
+    get_ip_from_request,
+    get_patient_match_response_json,
+    is_patient_match_found,
+    extract_mbi_from_patient
+)
+from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -81,6 +89,7 @@ from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.meta import Meta
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -680,7 +689,7 @@ class TokenView(DotTokenView):
                 raise InvalidRequestError
 
             if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
-                log.warning(f'birthdate was not a valid string: {payload.get("birthdate")}')
+                log.warning('birthdate was not a valid string')
                 raise InvalidRequestError
 
             return payload
@@ -688,100 +697,117 @@ class TokenView(DotTokenView):
             log.warning(f'jwt.decode_complete() failed because {str(e)}')
             raise InvalidRequestError
 
-    def _parse_ial_into_parameter(self, payload: dict) -> Parameters:
+    def _parse_ial_into_parameter(self, payload: dict) -> dict:
         """Parses an IAL token into a Patient and Parameters resource
 
         Args:
             payload (dict): the IAL token
 
         Returns:
-            Parameters: a Parameters object containing the Patient
+            Parameters: a json dump of the Parameters object
         """
-        patient = Patient.model_construct()
-        patient.active = True
 
-        patient_name = HumanName.model_construct()
-        patient_name.use = 'official'
-        patient_name.family = payload.get('family_name')
-        patient_name.given = [payload.get('given_name')]
-
-        patient.name = [patient_name]
+        patient_name = HumanName(
+            use='official',
+            family=payload.get('family_name'),
+            given=[payload.get('given_name')]
+        )
 
         telecoms = []
         if payload.get('phone_number') and payload.get('phone_number_verified'):
-            phone = ContactPoint.model_construct()
-            phone.system = 'phone'
-            phone.value = payload.get('phone_number')
-            phone.use = 'mobile'
-            phone.rank = 1
-            telecoms.append(phone)
+            telecoms.append(ContactPoint(
+                system='phone',
+                value=payload.get('phone_number'),
+                use='mobile',
+                rank=1
+            ))
 
         if payload.get('email'):
-            email = ContactPoint.model_construct()
-            email.system = 'email'
-            email.value = payload.get('email')
-            email.use = 'home'
-            email.rank = 2
-            telecoms.append(email)
-
-        patient.telecom = telecoms
+            telecoms.append(ContactPoint(
+                system='email',
+                value=payload.get('email'),
+                use='home',
+                rank=2
+            ))
 
         gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
         if payload.get('gender'):
-            patient.gender = gender_map.get(payload.get('gender', 'u'))
+            patient_gender = gender_map.get(payload.get('gender', 'u'))
 
-        patient.birthDate = payload.get('birthdate')
+        patient_birthdate = payload.get('birthdate')
 
         addresses = []
-        # Home Address
         if (home := payload.get('address')):
-            home_address = Address.model_construct()
-            home_address.use = 'home'
-            home_address.type = 'both'
-            home_address.text = home.get('formatted')
-            home_address.line = [street_address] if (street_address := home.get('street_address')) else None
-            home_address.city = home.get('locality')
-            home_address.state = home.get('region')
-            home_address.postalCode = home.get('postal_code')
-            home_address.country = home.get('country')
-            addresses.append(home_address)
+            street_address = home.get('street_address')
+            addresses.append(Address(
+                use='home',
+                type='both',
+                text=home.get('formatted'),
+                line=[street_address] if street_address else None,
+                city=home.get('locality'),
+                state=home.get('region'),
+                postalCode=home.get('postal_code'),
+                country=home.get('country')
+            ))
 
-        # Historical Addresses
         for historical in payload.get('historical_address', []):
-            hist_address = Address.model_construct()
-            hist_address.use = 'old'
-            hist_address.type = 'both'
-            hist_address.text = historical.get('formatted')
-            hist_address.line = [street_address] if (street_address := historical.get('street_address')) else None
-            hist_address.city = historical.get('locality')
-            hist_address.state = historical.get('region')
-            hist_address.postalCode = historical.get('postal_code')
-            hist_address.country = 'US'
-            addresses.append(historical)
+            street_address = historical.get('street_address')
+            addresses.append(Address(
+                use='old',
+                type='both',
+                text=historical.get('formatted'),
+                line=[street_address] if street_address else None,
+                city=historical.get('locality'),
+                state=historical.get('region'),
+                postalCode=historical.get('postal_code'),
+                country='US'
+            ))
 
-        patient.address = addresses
+        identifiers = []
+        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) == 4:
+            ssn_coding = Coding(
+                system=CC_SYSTEM_CODING_SYSTEM,
+                code='SS',
+                display='Social Security Number'
+            )
+            ssn_type = CodeableConcept(
+                coding=[ssn_coding]
+            )
+            identifiers.append(Identifier(
+                use='official',
+                type=ssn_type,
+                system=CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+                value=ssn
+            ))
 
-        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) > 4:
-            ssn_identifier = Identifier.model_construct()
-            ssn_identifier.use = 'official'
-            ssn_type = CodeableConcept.model_construct()
-            ssn_coding = Coding.model_construct()
-            ssn_coding.system = CC_SYSTEM_CODING_SYSTEM
-            ssn_coding.code = 'SS'
-            ssn_coding.display = 'Social Security Number'
-            ssn_type.coding = [ssn_coding]
-            ssn_identifier.type = ssn_type
-            ssn_identifier.system = CC_SYSTEM_SOCIAL_SECURITY_NUMBER
-            ssn_identifier.value = ssn
-            patient.identifier = [ssn_identifier]
+        patient_meta = Meta(
+            profile=['http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient']
+        )
 
-        id_match_payload = Parameters.model_construct()
-        id_match_payload.parameter = [ParametersParameter(**{
-            'name': 'IDIPatient',
-            'resource': patient
-        })]
+        patient = Patient(
+            name=[patient_name],
+            telecom=telecoms if telecoms else None,
+            gender=patient_gender,
+            birthDate=patient_birthdate,
+            address=addresses if addresses else None,
+            identifier=identifiers if identifiers else None,
+            meta=patient_meta
+        )
 
-        return id_match_payload
+        id_match_meta = Meta(
+            profile=['http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters']
+        )
+
+        id_match_payload = Parameters(
+            id='IDIMatchInputParameters',
+            meta=id_match_meta,
+            parameter=[ParametersParameter(
+                name='IDIPatient',
+                resource=patient
+            )]
+        )
+
+        return id_match_payload.model_dump(mode='json', exclude_none=True)
 
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -808,7 +834,6 @@ class TokenView(DotTokenView):
                 if allow_client_credentials_call:
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
-
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
@@ -819,7 +844,7 @@ class TokenView(DotTokenView):
                         csp_jwks = JWKS_URLS.get(pre_verified_ial.get('iss', ''))
 
                         if not csp_jwks:
-                            log.warning(f'id_token did not have a valid iss: {pre_verified_ial.get("iss")}')
+                            log.warning('id_token did not have a valid iss')
                             raise InvalidGrantError
 
                         ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
@@ -829,21 +854,38 @@ class TokenView(DotTokenView):
                             raise InvalidRequestError
 
                         id_match_payload = self._parse_ial_into_parameter(ial_valid)
+                        # log.info(id_match_payload)
+                        headers = {
+                            'X-CLIENT-ID': app.client_id,
+                            'X-CLIENT-NAME': app.name,
+                            'X-CLIENT-IP': get_ip_from_request(request)
+                        }
+                        url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
 
-                        log.info(id_match_payload.model_dump_json())
-                        log.info(f'client_credentials token call was successfully made for app: {app.name}')
+                        patient_bundle = get_patient_match_response_json(
+                            url=url,
+                            json=id_match_payload,
+                            headers=headers,
+                            method='POST'
+                        )
+                        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+                        if patient_match_found:
+                            mbi = extract_mbi_from_patient(patient)
+                            fhir_id = extract_fhir_id_from_patient(patient)
+                            user = self._create_or_retrieve_user(mbi, fhir_id)
 
-                        # Assume we get a fhir id v3 and an mbi
-                        mbi = '1S00ABBAA00'
-                        fhir_id_v3 = '-253295997'
+                            # TODO: Double check that this is 100% needed
+                            request.user = user
 
-                        user = self._create_or_retrieve_user(mbi, fhir_id_v3)
-                        request.user = user
-
-                        # create_or_update dag
-                        # Do we need to return the dag here?
-                        create_or_update_data_access_grant_client_credential_flow(user, app)
-
+                            # create_or_update dag
+                            # Do we need to return the dag here?
+                            create_or_update_data_access_grant_client_credential_flow(user, app)
+                        else:
+                            log.debug(f"No patient match found for client_credentials call for app: {app.name}")
+                            return JsonResponse(
+                                {'status_code': HTTPStatus.NOT_FOUND, 'message': f'Patient match NOT found for app {app.name}.'},
+                                status=HTTPStatus.NOT_FOUND,
+                            )
                     except Exception as e:
                         log.error(f'Error validating jwt: {str(e)}')
                         return JsonResponse(

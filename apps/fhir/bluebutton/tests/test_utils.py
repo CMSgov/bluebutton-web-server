@@ -1,5 +1,6 @@
 import os
 import uuid
+import json
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
@@ -9,11 +10,13 @@ from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.versions import Versions
 from apps.constants import USER_TYPE_DEV
-from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS
+from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS, IDI_MATCH_ENDPOINT
 from apps.fhir.server.settings import fhir_settings
+import pytest
 
 
 from apps.fhir.bluebutton.utils import (
+    get_patient_match_response_json,
     notNone,
     FhirServerAuth,
     mask_with_this_url,
@@ -25,6 +28,9 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
     is_operation_outcome,
+    is_patient_match_found,
+    extract_fhir_id_from_patient,
+    extract_mbi_from_patient
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -420,3 +426,113 @@ class Security_Metadata_test(BaseApiTest):
         expected = "<cors>true</cors>"
 
         self.assertEqual(result[16:33], expected)
+
+
+class PatientMatchResponseJsonTestCase(BaseApiTest):
+    """
+    Test cases for get_patient_match_response_json function that is used to make the patient match call to BFD in the
+    patient match flow in the authorization process
+    """
+
+    def test_get_patient_match_response_json_raise_for_status(self):
+        """
+        Test handling of an unsuccessful response from BFD for the patient match call in the patient match flow in the
+        authorization process, such as a 500 error or a response that does not contain the expected fields
+        """
+        url = f'http://this_endpoint_should_fail.com/{IDI_MATCH_ENDPOINT}'
+        with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
+            json_payload = json.load(f)
+
+        headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}
+        # Simulate an unsuccessful response from BFD by mocking the get_patient_match_response_json function to return a
+        # response with a 500 status code or missing fields
+        with pytest.raises(Exception):
+            get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
+
+
+class PatientMatchTestCase(BaseApiTest):
+    """
+    Test cases for patient match calls to BFD in the patient match flow in the authorization process
+    """
+
+    def test_is_patient_match_found_successful(self):
+        """
+        Test handling of different patient match response scenarios from BFD in the
+        patient match flow in the authorization process
+        """
+        # Simulate a patient match found scenario by creating a sample response from BFD that contains an
+        # 'entry' list with more than 1 entry and the second entry being a patient resource
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            patient_bundle = json.load(f)
+
+        expected_patient = patient_bundle.get('entry', [])[1].get('resource', {})
+
+        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+
+        assert patient_match_found is True
+        assert patient == expected_patient
+
+    def test_is_patient_match_found_unsuccessful(self):
+        # Simulate a no patient match found scenario by creating a sample response from BFD that contains an
+        # 'entry' list with only 1 entry and no patient resources in the response
+        with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
+            patient_bundle = json.load(f)
+
+        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+        assert patient_match_found is False
+        assert patient is None
+
+
+class ExtractMBITestCase(BaseApiTest):
+    """
+    Test cases for extract_mbi function that is used to extract the mbi from the patient bundle returned
+    from BFD in the patient match flow in the authorization process. Should only need to test a successful
+    case since is_patient_match_found should be used to determine if a patient match was found and thus
+    whether it's appropriate to call extract_mbi.
+    """
+
+    def test_extract_mbi_successful(self):
+        """
+        Test successfully extracting the mbi from the patient bundle
+        """
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            patient_bundle = json.load(f)
+        patient = patient_bundle.get('entry', [])[1].get('resource', {})
+        result = extract_mbi_from_patient(patient)
+        assert result == '1S00E00AG54'
+
+    def test_extract_mbi_unsuccessful(self):
+        """
+        Test handling of a patient bundle that does not contain an identifier with the MBI system url,
+        which results in extract_mbi returning None
+        """
+        patient = None
+        result = extract_mbi_from_patient(patient)
+        assert result is None
+
+
+class ExtractFHIRIdTestCase(BaseApiTest):
+    """
+    Test cases for extract_fhir_id function that is used to extract the FHIR ID from the patient bundle
+    returned from BFD in the patient match flow in the authorization process
+    """
+
+    def test_extract_fhir_id_successful(self):
+        """
+        Test successfully extracting the FHIR ID from the patient bundle
+        """
+        with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
+            patient_bundle = json.load(f)
+        patient = patient_bundle.get('entry', [])[1].get('resource', {})
+
+        result = extract_fhir_id_from_patient(patient)
+        assert result == '-502120048'
+
+    def test_extract_fhir_id_unsuccessful(self):
+        """
+        Test handling of a patient bundle that does not contain a patient resource,
+        which results in extract_fhir_id returning None
+        """
+        patient = None
+        result = extract_fhir_id_from_patient(patient)
+        assert result is None
