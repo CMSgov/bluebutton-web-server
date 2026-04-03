@@ -101,7 +101,7 @@ class Crosswalk(models.Model):
     fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
-        unique=True,
+        unique=False,
         db_column='fhir_id_v2',
         db_index=True,
         validators=[MinLengthValidator(1)],
@@ -109,7 +109,7 @@ class Crosswalk(models.Model):
     fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
-        unique=True,
+        unique=False,
         db_column='fhir_id_v3',
         db_index=True,
         validators=[MinLengthValidator(1)],
@@ -124,8 +124,8 @@ class Crosswalk(models.Model):
     _user_id_hash = models.CharField(
         max_length=64,
         verbose_name='HASH of User HICN ID',
-        unique=True,
-        null=False,
+        unique=False,
+        null=True,
         default=None,
         db_column='user_id_hash',
         db_index=True,
@@ -133,7 +133,7 @@ class Crosswalk(models.Model):
     _user_mbi_hash = models.CharField(
         max_length=64,
         verbose_name='HASH of User MBI ID',
-        unique=True,
+        unique=False,
         null=True,
         default=None,
         db_column='user_mbi_hash',
@@ -142,6 +142,7 @@ class Crosswalk(models.Model):
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name='Unhashed MBI',
+        unique=False,
         null=True,
         default=None,
         db_column='user_mbi',

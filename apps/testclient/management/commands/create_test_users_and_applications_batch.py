@@ -16,12 +16,13 @@ from django.conf import settings
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, RefreshToken
 
+from apps.constants import USER_TYPE_DEV
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import update_grants, ArchivedDataAccessGrant
-from apps.mymedicare_cb.models import create_beneficiary_record
+from apps.mymedicare_cb.models import create_beneficiary_record_from_slsx_client
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 from apps.fhir.bluebutton.models import hash_hicn
@@ -109,7 +110,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                 'email': f'{fn}.{ln}@xyz.com'
             }
             slsx_client = OAuth2ConfigSLSx(args)
-            user = create_beneficiary_record(slsx_client, fhir_id)
+            user = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id)
             bene_pk_list.append(user.pk)
     else:
         files = [f for f in listdir('./synthetic-data') if re.match(r'synthetic-beneficiary-.*\.rif', f)]
@@ -146,7 +147,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                         }
                         slsx_client = OAuth2ConfigSLSx(args)
                         try:
-                            u = create_beneficiary_record(slsx_client, fhir_id)
+                            u = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id)
                             date_picked = datetime.now(timezone.utc) - timedelta(days=randrange(700))
                             u.date_joined = date_picked.replace(tzinfo=pytz.utc)
                             u.save()
@@ -157,7 +158,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                             synthetic_bene_cnt += 1
                             count += 1
                         except ValidationError:
-                            # If there is something wrong during 'create_beneficiary_record'
+                            # If there is something wrong during 'create_beneficiary_record_from_slsx_client'
                             # i.e. 'user already exists', just try the next .rif record
                             continue
             bene_rif.close()
@@ -179,7 +180,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                                      email='{}.{}@example.com'.format(dev_u_fn, dev_u_ln),
                                      password='THEP@ssw0rd{}'.format(i),)
         UserProfile.objects.create(user=u,
-                                   user_type='DEV',
+                                   user_type=USER_TYPE_DEV,
                                    create_applications=True,
                                    organization_name=u.username + 'ACME Inc.',
                                    password_reset_question_1='1',

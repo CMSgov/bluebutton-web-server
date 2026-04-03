@@ -6,7 +6,13 @@ import uuid
 import apps.logging.request_logger as logging
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.constants import JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+from apps.dot_ext.constants import (
+    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_SUPPORTED_TYPES,
+    AUTH_CODE_TYPE,
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    CLIENT_CREDENTIALS_TYPE,
+)
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -195,10 +201,10 @@ class Application(AbstractApplication):
     # Type choices related to authorization methods
     # Part of CMS Aligned Networks work
     APPLICATION_AUTH_CHOICES = (
-        ('AUTH_CODE', 'AUTH_CODE - Can only authorize via grant_type = authorization_code'),
-        ('CLIENT_CREDENTIALS', 'CLIENT_CREDENTIALS - Can only authorize with grant_type = client_credentials'),
+        (AUTH_CODE_TYPE, 'AUTH_CODE - Can only authorize via grant_type = authorization_code'),
+        (CLIENT_CREDENTIALS_TYPE, 'CLIENT_CREDENTIALS - Can only authorize with grant_type = client_credentials'),
         (
-            'AUTH_CODE_AND_CLIENT_CREDS',
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             'AUTH_CODE_AND_CLIENT_CREDS - Can authorize with grant_type = authorization_code or client_credentials'
         ),
     )
@@ -206,7 +212,7 @@ class Application(AbstractApplication):
     allowed_auth_type = models.CharField(
         max_length=40,
         choices=APPLICATION_AUTH_CHOICES,
-        default='AUTH_CODE',
+        default=AUTH_CODE_TYPE,
     )
 
     # New fields for CMS Aligned Networks epic
@@ -265,6 +271,14 @@ class Application(AbstractApplication):
 
         return resource_scopes.issubset(provided_scopes)
 
+    def allows_grant_type(self, *grant_types):
+        allowed = []
+        if self.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES:
+            allowed.append(self.GRANT_CLIENT_CREDENTIALS)
+        if self.allowed_auth_type in AUTH_CODE_SUPPORTED_TYPES:
+            allowed.append(self.GRANT_AUTHORIZATION_CODE)
+        return any(gt in grant_types for gt in allowed)
+
     def get_absolute_url(self):
         return reverse("oauth2_provider:detail", args=[str(self.id)])
 
@@ -321,7 +335,7 @@ class Application(AbstractApplication):
         ):
             raise ValueError('Invalid allowed_auth_type: ' + self.allowed_auth_type)
 
-        if self.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES and not self.jwks_uri:
+        if self.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.jwks_uri:
             raise ValueError(
                 'jwks_uri cannot be null when allowed_auth_type is \'client_credentials\' or \'both\'.'
             )
@@ -379,9 +393,9 @@ class Application(AbstractApplication):
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    models.Q(allowed_auth_type='AUTH_CODE')
+                    models.Q(allowed_auth_type=AUTH_CODE_TYPE)
                     | models.Q(
-                        allowed_auth_type__in=JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES,
+                        allowed_auth_type__in=CLIENT_CREDENTIALS_SUPPORTED_TYPES,
                         jwks_uri__isnull=False,
                     )
                 ),

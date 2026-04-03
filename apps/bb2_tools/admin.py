@@ -6,6 +6,7 @@ from django.utils.html import format_html
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.models import get_application_model
 
+from apps.constants import USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 from apps.accounts.models import UserProfile
 from apps.dot_ext.models import ArchivedToken
 from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, SPLUNK_DASHBOARDS, TOKEN_VIEWERS
@@ -619,15 +620,15 @@ class UserCountByCreateDateAdmin(ReadOnlyAdmin):
 
         clazz_model = UserProfile
         total = clazz_model.objects.all().count()
-        total_dev = clazz_model.objects.all().filter(user_type="DEV").count()
-        total_ben = clazz_model.objects.all().filter(user_type="BEN").count()
+        total_dev = clazz_model.objects.all().filter(user_type=USER_TYPE_DEV).count()
+        total_ben = clazz_model.objects.all().filter(user_type=USER_TYPE_BENEFICIARY).count()
         panels = []
 
         ben_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld(
             request,
             response,
             "id",
-            {"user_type": "BEN"},
+            {"user_type": USER_TYPE_BENEFICIARY},
             "user__date_joined",
             clazz_model,
             self.date_hierarchy,
@@ -648,7 +649,7 @@ class UserCountByCreateDateAdmin(ReadOnlyAdmin):
             request,
             response,
             "id",
-            {"user_type": "DEV"},
+            {"user_type": USER_TYPE_DEV},
             "user__date_joined",
             clazz_model,
             self.date_hierarchy,
@@ -666,7 +667,7 @@ class UserCountByCreateDateAdmin(ReadOnlyAdmin):
         panels.append(center_panel)
 
         dev_user_list = (
-            clazz_model.objects.filter(user_type="DEV")
+            clazz_model.objects.filter(user_type=USER_TYPE_DEV)
             .values(
                 "user__username",
                 "user__first_name",
@@ -800,8 +801,8 @@ class UserTypeFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            ("BEN", "Beneficiary"),
-            ("DEV", "Developer"),
+            (USER_TYPE_BENEFICIARY, "Beneficiary"),
+            (USER_TYPE_DEV, "Developer"),
         ]
 
     def queryset(self, request, queryset):
