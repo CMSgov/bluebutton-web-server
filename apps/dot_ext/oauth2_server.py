@@ -4,7 +4,7 @@ from waffle import switch_is_active
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 from oauth2_provider.settings import oauth2_settings
 
-from apps.dot_ext.constants import CLIENT_CREDENTIALS
+from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.models import ExpiresIn
 from apps.pkce.oauth2_server import PKCEServerMixin
 

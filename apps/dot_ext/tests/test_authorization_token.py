@@ -21,6 +21,8 @@ from apps.dot_ext.constants import (
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
     CLIENT_CREDENTIALS_REFRESH_WINDOW,
+    CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_TYPE,
 )
 from apps.dot_ext.models import Application
 from apps.dot_ext.views import TokenView
@@ -108,7 +110,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         application.jwks_uri = 'https://test.com'
-        application.allowed_auth_type = CLIENT_CREDENTIALS.upper()
+        application.allowed_auth_type = AUTH_CODE_TYPE   # need to set this to be able to generate auth code initially
         application.save()
         token_request_data = {
             'grant_type': 'authorization_code',
@@ -117,6 +119,10 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             'client_id': application.client_id,
         }
         body = urlencode(token_request_data)
+
+        application.allowed_auth_type = CLIENT_CREDENTIALS_TYPE  # update to disable auth code based token
+        application.save()
+
         response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         assert response.json()['message'] == (
