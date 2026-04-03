@@ -51,7 +51,10 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
-    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE, CLIENT_CREDENTIALS_SUPPORTED_TYPES
+    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
+    CLIENT_CREDENTIALS_REFRESH_WINDOW,
 )
 from jwt import PyJWKClient
 from apps.dot_ext.signals import beneficiary_authorized_application
@@ -529,6 +532,108 @@ class TokenView(DotTokenView):
 
         return user
 
+    def _is_anb_user(self, user) -> bool:
+        """Detect ANB users via profile type, with crosswalk fallback for legacy records."""
+        if user is None:
+            return False
+
+        try:
+            if user.userprofile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
+                return True
+        except (AttributeError, ObjectDoesNotExist):
+            pass
+
+        # Fallback for older records that may not have ANB user profile values populated yet.
+        try:
+            return user.crosswalk.user_id_type == 'M'
+        except (AttributeError, ObjectDoesNotExist):
+            return False
+
+    def _has_client_credentials_lifetime(self, access_token) -> bool:
+        """Use token timestamps to determine if a token was issued with client_credentials TTL."""
+        created_at = getattr(access_token, 'created', None)
+        expires_at = getattr(access_token, 'expires', None)
+        if created_at is None or expires_at is None:
+            return False
+
+        lifetime_seconds = int((expires_at - created_at).total_seconds())
+        expected_seconds = int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds())
+        return abs(lifetime_seconds - expected_seconds) <= 5
+
+    def _get_oldest_access_token(self, access_token):
+        """Walk the refresh chain to determine the original access token."""
+        oldest_access_token = access_token
+        current_access_token = access_token
+
+        while getattr(current_access_token, 'source_refresh_token', None):
+            previous_refresh_token = current_access_token.source_refresh_token
+            previous_access_token = getattr(previous_refresh_token, 'access_token', None)
+            if previous_access_token is None:
+                break
+            oldest_access_token = previous_access_token
+            current_access_token = previous_access_token
+
+        return oldest_access_token
+
+    def _is_client_credentials_access_token(self, access_token, request_grant_type: str) -> bool:
+        """Determine whether the token should use client_credentials token lifetimes."""
+        if access_token is None:
+            return False
+
+        if request_grant_type == 'client_credentials':
+            return True
+
+        oldest_access_token = self._get_oldest_access_token(access_token)
+        token_user = getattr(oldest_access_token, 'user', None)
+
+        return self._is_anb_user(token_user) and self._has_client_credentials_lifetime(oldest_access_token)
+
+    def _get_oldest_access_token_created_at(self, access_token):
+        """Walk the refresh chain to determine the original token creation time."""
+        return self._get_oldest_access_token(access_token).created
+
+    def _validate_client_credentials_refresh_window(self, refresh_token) -> None:
+        """Enforce a total 24-hour refresh window for client_credentials token chains."""
+        access_token = getattr(refresh_token, 'access_token', None)
+        if not self._is_client_credentials_access_token(access_token, 'refresh_token'):
+            return
+
+        oldest_created_at = self._get_oldest_access_token_created_at(access_token)
+        if oldest_created_at + CLIENT_CREDENTIALS_REFRESH_WINDOW < datetime.now(timezone.utc):
+            raise InvalidGrantError(
+                description='Refresh token has expired',
+                status_code=HTTPStatus.BAD_REQUEST,
+            )
+
+    def _get_active_refresh_token_from_request(self, request: HttpRequest):
+        """Return the active refresh token for this request, if one exists."""
+        refresh_token_value = request.POST.get('refresh_token')
+        if not refresh_token_value:
+            return None
+
+        return get_refresh_token_model().objects.filter(
+            token=refresh_token_value,
+            revoked__isnull=True,
+        ).select_related('access_token').first()
+
+    def _validate_refresh_window_if_client_credentials_anb(self, request: HttpRequest) -> None:
+        """Enforce client_credentials refresh window only when the refresh chain qualifies."""
+        refresh_token = self._get_active_refresh_token_from_request(request)
+        if refresh_token is None:
+            return
+
+        access_token = getattr(refresh_token, 'access_token', None)
+        if not self._is_client_credentials_access_token(access_token, 'refresh_token'):
+            return
+
+        self._validate_client_credentials_refresh_window(refresh_token)
+
+    def _apply_client_credentials_access_token_lifetime(self, access_token, body: dict) -> None:
+        """Apply client_credentials access token lifetime to DB and token response body."""
+        access_token.expires = datetime.now(timezone.utc) + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+        access_token.save(update_fields=['expires'])
+        body['expires_in'] = int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds())
+
     def _validate_client_credentials_request(self, request: HttpRequest):
         """Checks required params for a client_credential request and their values
 
@@ -688,7 +793,7 @@ class TokenView(DotTokenView):
             log.warning(f'jwt.decode_complete() failed because {str(e)}')
             raise InvalidRequestError
 
-    def _parse_ial_into_parameter(self, payload: dict) -> Parameters:
+    def _parse_ial_into_parameter(self, payload: dict):
         """Parses an IAL token into a Patient and Parameters resource
 
         Args:
@@ -860,6 +965,9 @@ class TokenView(DotTokenView):
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
                 return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
+            if grant_type == 'refresh_token':
+                self._validate_refresh_window_if_client_credentials_anb(request)
+
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
         except AccessDeniedError as e:
@@ -887,6 +995,9 @@ class TokenView(DotTokenView):
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
+
+                if self._is_client_credentials_access_token(token, grant_type):
+                    self._apply_client_credentials_access_token_lifetime(token, body)
 
                 if app.data_access_type == "THIRTEEN_MONTH":
                     try:

@@ -1,16 +1,26 @@
 import json
+from datetime import timedelta
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
-from django.http import HttpRequest
+from django.utils import timezone
 from unittest.mock import MagicMock
 from unittest import skipIf
-from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.parse import urlencode
 from waffle.testutils import override_switch
-from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
+from apps.constants import (
+    CLIENT_CREDENTIALS,
+    TEST_APP_CLIENT_ID,
+    TEST_APP_CLIENT_SECRET,
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
+)
+from apps.accounts.models import UserProfile
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_ASSERTION_TYPE_VALUE,
+    CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
+    CLIENT_CREDENTIALS_REFRESH_WINDOW,
 )
 from apps.dot_ext.models import Application
 from apps.dot_ext.views import TokenView
@@ -103,40 +113,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         application.jwks_uri = 'https://test.com'
         application.allowed_auth_type = CLIENT_CREDENTIALS.upper()
         application.save()
-        # user logs in
-        request = HttpRequest()
-        self.client.login(request=request, username='anna', password='123456')
-
-        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
-
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'code_challenge': code_challenge,
-            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        }
-        response = self.client.get('/v3/o/authorize', data=payload)
-        # post the authorization form with only one scope selected
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['capability-a'],
-            'expires_in': 86400,
-            'allow': True,
-            "state": "0123456789abcdef",
-            'code_challenge': code_challenge,
-            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        }
-        response = self.client.post(response['Location'], data=payload)
-
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        query_dict = parse_qs(urlparse(response['Location']).query)
-        authorization_code = query_dict.pop('code')
         token_request_data = {
             'grant_type': 'authorization_code',
-            'code': authorization_code,
+            'code': 'dummy-auth-code',
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
         }
@@ -194,3 +173,125 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
 
         result = view_instance._validate_client_credentials_request(mock_request)
         assert result is None
+
+    def test_apply_client_credentials_access_token_lifetime(self) -> None:
+        view_instance = TokenView()
+
+        application = self._create_application(
+            'cc app lifetime',
+            grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://localhost',
+        )
+        user = self._create_user('cc_lifetime_user', 'pw')
+
+        token = AccessToken.objects.create(
+            user=user,
+            token='cc-lifetime-token',
+            application=application,
+            expires=timezone.now() + timedelta(days=1),
+        )
+
+        body = {'expires_in': 36000}
+        view_instance._apply_client_credentials_access_token_lifetime(token, body)
+        token.refresh_from_db()
+
+        self.assertEqual(body['expires_in'], int(CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME.total_seconds()))
+        expected_expires = timezone.now() + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+        self.assertLessEqual(abs((token.expires - expected_expires).total_seconds()), 5)
+
+    def test_validate_client_credentials_refresh_window_expired(self) -> None:
+        view_instance = TokenView()
+
+        application = self._create_application(
+            'cc app refresh',
+            grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://localhost',
+        )
+        user = self._create_user('cc_refresh_user', 'pw')
+        UserProfile.objects.update_or_create(
+            user=user,
+            defaults={'user_type': USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY},
+        )
+        user.crosswalk.user_id_type = 'M'
+        user.crosswalk.save(update_fields=['user_id_type'])
+
+        access_token = AccessToken.objects.create(
+            user=user,
+            token='cc-refresh-token',
+            application=application,
+            expires=timezone.now() + timedelta(hours=1),
+        )
+        refresh_token = RefreshToken.objects.create(
+            user=user,
+            token='cc-refresh-token-value',
+            application=application,
+            access_token=access_token,
+        )
+
+        access_token.created = timezone.now() - CLIENT_CREDENTIALS_REFRESH_WINDOW - timedelta(seconds=1)
+        access_token.expires = access_token.created + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+        access_token.save(update_fields=['created', 'expires'])
+
+        with self.assertRaises(InvalidGrantError):
+            view_instance._validate_client_credentials_refresh_window(refresh_token)
+
+    def test_validate_client_credentials_refresh_window_ignores_non_anb_user(self) -> None:
+        view_instance = TokenView()
+
+        application = self._create_application(
+            'cc app refresh non anb',
+            grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://localhost',
+        )
+        user = self._create_user('cc_non_anb_refresh_user', 'pw')
+
+        access_token = AccessToken.objects.create(
+            user=user,
+            token='cc-refresh-token-non-anb',
+            application=application,
+            expires=timezone.now() + timedelta(hours=1),
+        )
+        refresh_token = RefreshToken.objects.create(
+            user=user,
+            token='cc-refresh-token-value-non-anb',
+            application=application,
+            access_token=access_token,
+        )
+
+        access_token.created = timezone.now() - CLIENT_CREDENTIALS_REFRESH_WINDOW - timedelta(seconds=1)
+        access_token.expires = access_token.created + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME
+        access_token.save(update_fields=['created', 'expires'])
+
+        # Non-ANB beneficiaries should not use client_credentials refresh-chain expiration checks.
+        view_instance._validate_client_credentials_refresh_window(refresh_token)
+
+    def test_is_client_credentials_access_token_uses_token_lifetime_for_refresh(self) -> None:
+        view_instance = TokenView()
+
+        application = self._create_application(
+            'cc token-tied refresh app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris='http://localhost',
+        )
+        user = self._create_user('cc_token_tied_user', 'pw')
+        UserProfile.objects.update_or_create(
+            user=user,
+            defaults={'user_type': USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY},
+        )
+        user.crosswalk.user_id_type = 'M'
+        user.crosswalk.save(update_fields=['user_id_type'])
+
+        access_token = AccessToken.objects.create(
+            user=user,
+            token='cc-token-tied-refresh-token',
+            application=application,
+            expires=timezone.now() + CLIENT_CREDENTIALS_ACCESS_TOKEN_LIFETIME,
+        )
+
+        self.assertTrue(
+            view_instance._is_client_credentials_access_token(access_token, 'refresh_token')
+        )
