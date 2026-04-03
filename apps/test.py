@@ -1,7 +1,10 @@
+# import io
+from datetime import timedelta, datetime
 from http import HTTPStatus
 import json
 import random
 import re
+import secrets
 import string
 
 from django.contrib.auth.models import User, Group
@@ -9,6 +12,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
+from oauth2_provider.models import get_access_token_model
 from urllib.parse import parse_qs, urlparse
 
 
@@ -19,7 +23,13 @@ from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.constants import CODE_CHALLENGE_METHOD_S256, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import (
+    CODE_CHALLENGE_METHOD_S256,
+    DEFAULT_SAMPLE_FHIR_ID_V2,
+    DEFAULT_SAMPLE_FHIR_ID_V3,
+    USER_TYPE_BENEFICIARY,
+    USER_TYPE_DEV,
+)
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle import get_waffle_flag_model
 
@@ -94,7 +104,7 @@ class BaseApiTest(TestCase):
                 UserProfile.objects.get(user=user)
             except UserProfile.DoesNotExist:
                 UserProfile.objects.create(user=user,
-                                           user_type="BEN",
+                                           user_type=USER_TYPE_BENEFICIARY,
                                            create_applications=False)
         return user
 
@@ -228,28 +238,30 @@ class BaseApiTest(TestCase):
 
         return cw
 
-    def _get_access_token(self, username, password, application=None, **extra_fields):
+    def _get_access_token(self, username, application=None, **extra_fields):
         """
-        Helper method that creates an access_token using the password grant.
+        To move the CAN work along, this test was repurposed to just create the access token and
+        data access grant records, rather than post to the token endpoint.
         """
-        # Create an application that supports password grant.
+        AccessToken = get_access_token_model()
+        user = User.objects.get(username=username)
         application = application or self._create_application("test")
-        data = {
-            "grant_type": "password",
-            "username": username,
-            "password": password,
-            "client_id": application.client_id,
-        }
-        data.update(extra_fields)
-        # Request the access token
-        response = self.client.post(reverse("oauth2_provider:token"), data=data)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-        DataAccessGrant.objects.update_or_create(
-            beneficiary=User.objects.get(username=username), application=application
+
+        # Create the AccessToken object directly in the DB
+        access_token = AccessToken.objects.create(
+            user=user,
+            application=application,
+            token=secrets.token_hex(32),
+            expires=datetime.now() + timedelta(seconds=36000),
+            scope="patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs profile",
         )
-        # Unpack the response and return the token string
-        content = json.loads(response.content.decode("utf-8"))
-        return content["access_token"]
+
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=user,
+            application=application,
+        )
+
+        return access_token.token
 
     def _get_user_application(self, username, app_name):
         """
@@ -369,7 +381,7 @@ class BaseApiTest(TestCase):
             user_profile.save()
         except UserProfile.DoesNotExist:
             UserProfile.objects.create(user=user,
-                                       user_type="DEV",
+                                       user_type=USER_TYPE_DEV,
                                        organization_name=organization,
                                        create_applications=True)
         return user
@@ -432,7 +444,7 @@ class BaseApiTest(TestCase):
             )
             # Create bene user profile, if it doesn't exist
             UserProfile.objects.create(user=user,
-                                       user_type="BEN",
+                                       user_type=USER_TYPE_BENEFICIARY,
                                        create_applications=False)
 
         access_token = self._get_access_token_authcode_confidential(
@@ -515,7 +527,7 @@ class BaseApiTest(TestCase):
         )
         application.scope.add(self.read_capability, self.write_capability)
         # get the first access token for the user 'john'
-        return self._get_access_token(first_name, passwd, application)
+        return self._get_access_token(first_name, application)
 
     def _generate_random_mbi(self) -> str:
         """

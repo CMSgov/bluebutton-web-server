@@ -11,6 +11,7 @@ import logging
 import jwt
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse, HttpRequest
 from django.http.response import HttpResponse, HttpResponseBadRequest
@@ -28,7 +29,6 @@ from apps.fhir.bluebutton.utils import (
     extract_mbi_from_patient
 )
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
-from apps.fhir.server.settings import fhir_settings
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -42,20 +42,25 @@ from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
+
+from apps.mymedicare_cb.models import get_and_update_from_refresh, create_beneficiary_record
+from apps.versions import Versions
+from apps.fhir.bluebutton.models import hash_id_value
+
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.fhir.server.settings import fhir_settings
-from apps.mymedicare_cb.models import get_and_update_from_refresh
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     HHS_SERVER_LOGNAME_FMT,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CLIENT_CREDENTIALS,
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
 )
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES, APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE
+    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE, CLIENT_CREDENTIALS_SUPPORTED_TYPES
 )
-from apps.versions import Versions
 from jwt import PyJWKClient
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.forms import SimpleAllowForm
@@ -75,7 +80,7 @@ from apps.dot_ext.utils import (
     json_response_from_oauth2_error,
     validate_latin_extended_string
 )
-from apps.authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
 from fhir.resources.R4B.parameters import Parameters, ParametersParameter
 from fhir.resources.R4B.patient import Patient
 from fhir.resources.R4B.humanname import HumanName
@@ -515,7 +520,23 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+        return app.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES
+
+    def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
+        # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
+        mbi_hash_user_name = hash_id_value(mbi)
+        # check if ANB already exists
+        try:
+            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
+        except User.DoesNotExist:
+            # If the user does not already exist, create one (and a bluebutton_crosswalk record)
+            user = create_beneficiary_record(
+                mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
+                fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
+                user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+            )
+
+        return user
 
     def _validate_client_credentials_request(self, request: HttpRequest):
         """Checks required params for a client_credential request and their values
@@ -660,15 +681,15 @@ class TokenView(DotTokenView):
             #     raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
-                log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get('family_name')}')
+                log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}')
                 raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('given_name')):
-                log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get('given_name')}')
+                log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}')
                 raise InvalidRequestError
 
             if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
-                log.warning(f'birthdate was not a valid string: {payload.get('birthdate')}')
+                log.warning('birthdate was not a valid string')
                 raise InvalidRequestError
 
             return payload
@@ -800,7 +821,6 @@ class TokenView(DotTokenView):
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
-
             # TODO : validate that app is allowed to make the type of request it is making
             # TODO : consider conditional branching based on grant_type
 
@@ -842,11 +862,24 @@ class TokenView(DotTokenView):
                         }
                         url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
 
-                        patient_bundle = get_patient_match_response_json(url=url, json=id_match_payload, headers=headers, method='POST')
+                        patient_bundle = get_patient_match_response_json(
+                            url=url,
+                            json=id_match_payload,
+                            headers=headers,
+                            method='POST'
+                        )
                         patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
                         if patient_match_found:
                             mbi = extract_mbi_from_patient(patient)
                             fhir_id = extract_fhir_id_from_patient(patient)
+                            user = self._create_or_retrieve_user(mbi, fhir_id)
+
+                            # TODO: Double check that this is 100% needed
+                            request.user = user
+
+                            # create_or_update dag
+                            # Do we need to return the dag here?
+                            create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
                             log.debug(f"No patient match found for client_credentials call for app: {app.name}")
                             return JsonResponse(
@@ -855,6 +888,10 @@ class TokenView(DotTokenView):
                             )
                     except Exception as e:
                         log.error(f'Error validating jwt: {str(e)}')
+                        return JsonResponse(
+                            {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Bad request'},
+                            status=HTTPStatus.BAD_REQUEST
+                        )
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=403)
@@ -872,9 +909,15 @@ class TokenView(DotTokenView):
 
         url, headers, body, status = self.create_token_response(request)
 
+        # retrieve the access token, update user_id with the user.id sourced above
         if status == 200:
             body = json.loads(body)
-            access_token = body.get('access_token')
+            access_token = body.get("access_token")
+            # TODO: Cleanup - move to a separate function?
+            if grant_type and grant_type == CLIENT_CREDENTIALS:
+                token = get_access_token_model().objects.get(token=access_token)
+                token.user_id = user.id
+                token.save()
 
             dag_expiry = ""
             if access_token is not None:
@@ -899,6 +942,7 @@ class TokenView(DotTokenView):
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
+                # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk

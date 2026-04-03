@@ -562,7 +562,7 @@ class TestTokenView(BaseApiTest):
         anna_application.scope.add(capability_a)
         bob_application = self._create_application(
             'another app',
-            grant_type=Application.GRANT_IMPLICIT,
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_PUBLIC,
             redirect_uris='http://example.it',
             user=anna_application.user,

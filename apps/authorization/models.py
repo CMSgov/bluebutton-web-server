@@ -9,6 +9,8 @@ from django.utils import timezone
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
 
+from apps.constants import USER_TYPE_BENEFICIARY
+
 
 class DataAccessGrant(models.Model):
     beneficiary = models.ForeignKey(
@@ -45,6 +47,12 @@ class DataAccessGrant(models.Model):
                 tzinfo=pytz.UTC
             ) + relativedelta(months=+13)
             self.save()
+
+    def update_expiration_date_one_day(self) -> None:
+        self.expiration_date = datetime.now().replace(
+            tzinfo=pytz.UTC
+        ) + relativedelta(hours=+24)
+        self.save()
 
     def has_expired(self):
         if self.application.data_access_type == "THIRTEEN_MONTH":
@@ -97,6 +105,24 @@ def update_grants(*args, **kwargs):
                 beneficiary=token.user,
                 application=token.application,
             )
+
+
+def create_or_update_data_access_grant_client_credential_flow(user, application) -> None:
+    """Create or update a data access grant specifically for the client_credential auth flow (CMS Aligned Networks project)
+
+    Return the data_access_grant for use in post function of TokenView
+    """
+    # data_access_grant = DataAccessGrant.objects.update_or_create(
+    #     beneficiary=user,
+    #     application=application,
+    #     expiration_date=expiration_date,
+    # )
+    data_access_grant, created = DataAccessGrant.objects.get_or_create(
+        beneficiary=user,
+        application=application,
+    )
+    data_access_grant.update_expiration_date_one_day()
+    return data_access_grant
 
 
 def check_grants():
@@ -251,7 +277,7 @@ def get_beneficiary_counts():
     # BB2-4166-TODO: add and OR for fhir_id_v3
     queryset = (
         User.objects.select_related()
-        .filter(userprofile__user_type="BEN")
+        .filter(userprofile__user_type=USER_TYPE_BENEFICIARY)
         .annotate(
             fhir_id_v2=Min("crosswalk__fhir_id_v2"),
             grant_count=Count("dataaccessgrant__application", distinct=True),

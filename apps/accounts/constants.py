@@ -65,11 +65,6 @@ QUESTION_3_CHOICES = (
     ('3', 'What was your paternal grandmother\'s maiden name?'),
 )
 
-USER_CHOICES = (
-    ('BEN', 'Beneficiary'),
-    ('DEV', 'Developer'),
-)
-
 # password rules used by validator: PasswordComplexityValidator,
 # this is part of the validation logic, exercise caution when make changes
 PASSWORD_RULES = [

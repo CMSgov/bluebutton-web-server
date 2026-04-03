@@ -1,3 +1,4 @@
+from apps.constants import USER_CHOICES, USER_TYPE_DEV
 from apps.accounts.constants import (
     AAL_CHOICES,
     ADDITION,
@@ -8,7 +9,6 @@ from apps.accounts.constants import (
     QUESTION_1_CHOICES,
     QUESTION_2_CHOICES,
     QUESTION_3_CHOICES,
-    USER_CHOICES,
 )
 import apps.logging.request_logger as logging
 
@@ -76,7 +76,7 @@ class UserProfile(models.Model):
         help_text="See NIST SP 800 63 3 B for definitions.",
     )
 
-    user_type = models.CharField(default="DEV", choices=USER_CHOICES, max_length=5)
+    user_type = models.CharField(default=USER_TYPE_DEV, choices=USER_CHOICES, max_length=5)
 
     remaining_user_invites = models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20, blank=True)
@@ -387,7 +387,7 @@ def get_developer_counts():
 
     queryset = (
         User.objects.select_related()
-        .filter(userprofile__user_type="DEV")
+        .filter(userprofile__user_type=USER_TYPE_DEV)
         .annotate(
             app_count=Count("dot_ext_application"),
             first_active=Min("dot_ext_application__first_active"),
