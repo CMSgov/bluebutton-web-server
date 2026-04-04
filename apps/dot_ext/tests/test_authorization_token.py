@@ -1,9 +1,9 @@
 import json
+import jwt
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.http import HttpRequest
 from unittest.mock import MagicMock
-from unittest import skipIf
 from urllib.parse import parse_qs, urlencode, urlparse
 from waffle.testutils import override_switch
 from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
@@ -47,8 +47,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
-    @override_switch('v3_endpoints', active=True)
-    @skipIf(True, 'skip')
+    @override_switch("v3_endpoints", active=True)
     def test_client_credentials(self):
         """Ensure a bad request is thrown when a v3 token calls is made, with grant_type = client_credentials
         and the application for the request does not have allowed_auth_type in
@@ -70,19 +69,21 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
 
         # I believe we only want to test the token endpoint, without hitting authorize first
         token_request_data = {
-            'grant_type': CLIENT_CREDENTIALS,
-            'redirect_uri': redirect_uri,
-            'client_id': application.client_id,
-            'client_secret': application.client_secret_plain,
-            'scope': 'patient/ExplanationOfBenefit.rs',
-            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
-            'client_assertion': 'test',
+            "grant_type": CLIENT_CREDENTIALS,
+            "redirect_uri": redirect_uri,
+            "scope": "patient/ExplanationOfBenefit.rs",
+            "client_assertion_type": CLIENT_ASSERTION_TYPE_VALUE,
+            "client_assertion": "test",
         }
         body = urlencode(token_request_data)
         response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
 
         assert response.status_code == HTTPStatus.FORBIDDEN
-        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
+        assert response.json()[
+            "message"
+        ] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
+            application.name
+        )
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):

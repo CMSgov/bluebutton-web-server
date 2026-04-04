@@ -123,12 +123,22 @@ def get_application_from_data(request):
     # up the application via the client_id. If we find it, return it.
     # If not, we have a bad request, because a client_id was present,
     # but malformed in some way.
-    if request.GET.get('client_id', None):
-        client_id = request.GET.get('client_id', None)
-    elif request.POST.get('client_id', None):
-        client_id = request.POST.get('client_id', None)
+    if request.GET.get("client_id"):
+        client_id = request.GET.get("client_id")
+    elif request.POST.get("client_id"):
+        client_id = request.POST.get("client_id")
+    elif request.POST.get("client_assertion"):
+        # for client credentials flow, we need to get the client_id from the client_assertion
+        try:
+            token = request.POST.get("client_assertion")
+            auth_jwt = jwt.decode(token, options={"verify_signature": False})
+            client_id = auth_jwt.get("iss")
+        except jwt.PyJWTError:
+            log.warning("Malformed client_assertion")
+            pass
+
     try:
-        if client_id is not None:
+        if client_id:
             app = Application.objects.get(client_id=client_id)
             return app
     except Application.DoesNotExist:
@@ -198,28 +208,18 @@ def validate_app_is_active(request: HttpRequest) -> Application:
     Returns:
         Model: Application model or None
     """
-    if request.POST.get('grant_type') == 'client_credentials':
-        # TODO: some of this is duplicated work, refactor authorization token flow to get app after
-        # validating request
-        if not (token := request.POST.get('client_assertion')):
-            raise InvalidRequestError
-        try:
-            auth_jwt = jwt.decode(
-                token,
-                options={'verify_signature': False}
+    app = get_application_from_meta(request)
+    if not app:
+        app = get_application_from_data(request)
+
+    # client_creds/CAN-specific (for now) validation
+    if request.POST.get("grant_type") == "client_credentials":
+        if not request.POST.get("client_assertion"):
+            raise InvalidRequestError(
+                "Missing client_assertion for client_credentials grant"
             )
-            client_id = auth_jwt.get('iss')
-            app = Application.objects.get(client_id=client_id)
-        except jwt.PyJWTError as e:
-            log.warning(f'Error parsing jwt: {str(e)}')
-            raise InvalidRequestError('client_id was not present')
-        except Application.DoesNotExist as e:
-            log.warning(f'Error: client_id does not exist: {str(e)}')
-            raise InvalidClientError
-    else:
-        app = get_application_from_meta(request)
         if not app:
-            app = get_application_from_data(request)
+            raise InvalidClientError("App id failed")
 
     # revoked access and expired auth period to a 401 error
     if app and app.active:

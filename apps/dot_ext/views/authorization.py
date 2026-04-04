@@ -913,20 +913,26 @@ class TokenView(DotTokenView):
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
-            # TODO: Cleanup - move to a separate function?
-            if grant_type and grant_type == CLIENT_CREDENTIALS:
+            if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
-                token.user_id = user.id
-                token.save()
 
-            dag_expiry = ""
-            if access_token is not None:
-                token = get_access_token_model().objects.get(
-                    token=access_token)
+                if grant_type == CLIENT_CREDENTIALS:
+                    token.user_id = user.id
+                    token.save()
+
+                # Add patient id to response
+                if "patient" not in body and token.user:
+                    try:
+                        crosswalk = Crosswalk.objects.get(user=token.user)
+                        body["patient"] = crosswalk.fhir_id(version)
+                    except Crosswalk.DoesNotExist:
+                        pass
+
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
 
+                dag_expiry = ""
                 if app.data_access_type == "THIRTEEN_MONTH":
                     try:
                         dag = DataAccessGrant.objects.get(
@@ -976,7 +982,7 @@ class TokenView(DotTokenView):
                         )
 
                 body['access_grant_expiration'] = dag_expiry
-                body = json.dumps(body)
+            body = json.dumps(body)
 
         response = HttpResponse(content=body, status=status)
         for k, v in headers.items():
