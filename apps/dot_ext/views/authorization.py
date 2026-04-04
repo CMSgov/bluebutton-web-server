@@ -730,9 +730,8 @@ class TokenView(DotTokenView):
                 rank=2
             ))
 
-        gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
-        if payload.get('gender'):
-            patient_gender = gender_map.get(payload.get('gender', 'u'))
+        gender_map = {"f": "female", "m": "male", "o": "other", "u": "unknown"}
+        patient_gender = gender_map.get(payload.get("gender", "u"))
 
         patient_birthdate = payload.get('birthdate')
 
@@ -832,6 +831,16 @@ class TokenView(DotTokenView):
                 allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
 
                 if allow_client_credentials_call:
+                    # since we're not getting the user info from SLS, don't return openid scope in this flow
+                    if version == Versions.V3:
+                        scopes_from_request = request.POST.get("scope", "").split(" ")
+                        if "openid" in scopes_from_request:
+                            while "openid" in scopes_from_request:
+                                scopes_from_request.remove("openid")
+                            request.POST._mutable = True
+                            request.POST["scope"] = " ".join(scopes_from_request)
+                            request.POST._mutable = False
+
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
