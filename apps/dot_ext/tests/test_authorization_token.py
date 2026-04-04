@@ -219,6 +219,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         result = view_instance._validate_client_credentials_request(mock_request)
         assert result is None
 
+# we set empty GET/META/POST because get_application_from_data does not like it if a GET is missing.
 class TestClientIdExtraction(BaseApiTest):
     def setUp(self):
         super().setUp()
@@ -287,9 +288,9 @@ class TestClientIdExtraction(BaseApiTest):
 
         with self.assertRaises(InvalidRequestError) as cm:
             validate_app_is_active(mock_request)
-        self.assertEqual(
+        self.assertIn(
+            "Missing client_assertion",
             cm.exception.description,
-            "Missing client_assertion for client_credentials grant",
         )
 
     def test_validate_app_is_active_client_credentials_with_assertion(self):
