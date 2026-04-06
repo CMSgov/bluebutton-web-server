@@ -832,12 +832,10 @@ class TokenView(DotTokenView):
 
                 if allow_client_credentials_call:
                     # since we're not getting the user info from SLS, don't return openid scope in this flow
-                    scopes_from_request = request.POST.get("scope", "").split(" ")
-                    if "openid" in scopes_from_request:
-                        while "openid" in scopes_from_request:
-                            scopes_from_request.remove("openid")
+                    scopes = request.POST.get("scope", "").split()
+                    if "openid" in scopes:
                         request.POST._mutable = True
-                        request.POST["scope"] = " ".join(scopes_from_request)
+                        request.POST["scope"] = " ".join(s for s in scopes if s != "openid")
                         request.POST._mutable = False
 
                     # Allow client credentials call to proceed, to be implemented in a later ticket
