@@ -33,6 +33,10 @@ class OAuth2Validator(DotOAuth2Validator):
         return auth_string
 
     def authenticate_client(self, request, *args, **kwargs):
+        # Ensure that a client_secret can not be passed along with a client_assertion_type
+        # Will throw a 401 invalid_client error
+        if getattr(request, 'client_assertion_type', None) and getattr(request, 'client_secret', None):
+            return False
         if getattr(request, "grant_type", None) == "client_credentials":
             if getattr(request, "client_assertion_type", None) and getattr(
                 request, "client_assertion", None
