@@ -1,7 +1,7 @@
 import json
 import jwt
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
-from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+from oauth2_provider.models import get_access_token_model
 from django.http import HttpRequest
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -35,9 +35,10 @@ from apps.versions import Versions
 from http import HTTPStatus
 
 AccessToken = get_access_token_model()
-RefreshToken = get_refresh_token_model()
 
 # Note: HS256 is used in the JWTs here, despite it not being allowed by the actual endpoint, because we do not have a sample .pem
+
+
 class TestAuthorizeTokenEndpoint(BaseApiTest):
 
     def test_check_if_client_credentials_call_is_allowed(self) -> None:
@@ -218,6 +219,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
 
         result = view_instance._validate_client_credentials_request(mock_request)
         assert result is None
+
 
 # we set empty GET/META/POST because get_application_from_data does not like it if a GET is missing.
 class TestClientIdExtraction(BaseApiTest):
