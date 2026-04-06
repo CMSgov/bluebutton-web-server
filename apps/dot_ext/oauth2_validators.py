@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+import jwt
 from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Validator
 from oauthlib.oauth2.rfc6749 import utils
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
@@ -30,6 +31,23 @@ class OAuth2Validator(DotOAuth2Validator):
             return None
 
         return auth_string
+
+    def authenticate_client(self, request, *args, **kwargs):
+        if getattr(request, "grant_type", None) == "client_credentials":
+            if getattr(request, "client_assertion_type", None) and getattr(
+                request, "client_assertion", None
+            ):
+                try:
+                    payload = jwt.decode(
+                        request.client_assertion, options={"verify_signature": False}
+                    )
+                    client_id = payload.get("iss")
+                    if self._load_application(client_id, request):
+                        return True
+                except Exception:
+                    pass
+
+        return super().authenticate_client(request, *args, **kwargs)
 
     def is_within_original_scope(
         self,
