@@ -26,7 +26,6 @@ from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
 
 from apps.logging.constants import (
-    ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA,
     AUTHENTICATION_START_LOG_SCHEMA,
     AUTHENTICATION_SUCCESS_LOG_SCHEMA,
     AUTHORIZATION_LOG_SCHEMA,
@@ -166,11 +165,14 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertIsNotNone(token_log_content)
             log_entries = token_log_content.splitlines()
 
-            self.assertTrue(
-                self._validateJsonSchema(
-                    ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, json.loads(log_entries[0])
-                )
-            )
+            # commenting out as part of 4699, as the call to create_token at the start of this test
+            # just creates DB records for the test, and does not go through post of TokenView where the log
+            # this assertion is looking for would be output
+            # self.assertTrue(
+            #     self._validateJsonSchema(
+            #         ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, json.loads(log_entries[0])
+            #     )
+            # )
 
     @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_slsx_logger(self):

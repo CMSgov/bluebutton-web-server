@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from ..models import UserProfile
 from waffle.testutils import override_switch
+from apps.constants import USER_TYPE_DEV
 
 
 class PasswordResetTestCase(TestCase):
@@ -20,7 +21,7 @@ class PasswordResetTestCase(TestCase):
                                      email='fred@example.com',
                                      password="foobar",)
         UserProfile.objects.create(user=u,
-                                   user_type="DEV",
+                                   user_type=USER_TYPE_DEV,
                                    create_applications=True)
         self.client = Client()
 

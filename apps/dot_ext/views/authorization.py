@@ -12,6 +12,7 @@ import jwt
 import waffle
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.http import JsonResponse, HttpRequest
 from django.http.response import HttpResponse, HttpResponseBadRequest
@@ -21,6 +22,14 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.utils import (
+    extract_fhir_id_from_patient,
+    get_ip_from_request,
+    get_patient_match_response_json,
+    is_patient_match_found,
+    extract_mbi_from_patient
+)
+from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
@@ -34,6 +43,11 @@ from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
+
+from apps.mymedicare_cb.models import get_and_update_from_refresh, create_beneficiary_record
+from apps.versions import Versions
+from apps.fhir.bluebutton.models import hash_id_value
+
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.fhir.server.settings import fhir_settings
 from apps.mymedicare_cb.models import get_and_update_from_refresh
@@ -41,6 +55,8 @@ from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     HHS_SERVER_LOGNAME_FMT,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CLIENT_CREDENTIALS,
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
 )
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
@@ -48,7 +64,6 @@ from apps.dot_ext.constants import (
     JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES, APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     PARAMETERS_ID_MATCH_META, PATIENT_ID_MATCH_META
 )
-from apps.versions import Versions
 from jwt import PyJWKClient
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.forms import SimpleAllowForm
@@ -509,7 +524,23 @@ class TokenView(DotTokenView):
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+        return app.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES
+
+    def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
+        # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
+        mbi_hash_user_name = hash_id_value(mbi)
+        # check if ANB already exists
+        try:
+            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
+        except User.DoesNotExist:
+            # If the user does not already exist, create one (and a bluebutton_crosswalk record)
+            user = create_beneficiary_record(
+                mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
+                fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
+                user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+            )
+
+        return user
 
     def _validate_client_credentials_request(self, request: HttpRequest):
         """Checks required params for a client_credential request and their values
@@ -524,6 +555,7 @@ class TokenView(DotTokenView):
             JsonResponse or None: Returns a 400 error response if params are missing, else None
         """
 
+        # TODO: grant_type is already implied, but I figured I'd follow the spec
         required_params = ['grant_type', 'scope', 'client_assertion_type', 'client_assertion']
         missing_params = [param for param in required_params if not request.POST.get(param)]
 
@@ -537,6 +569,7 @@ class TokenView(DotTokenView):
             log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
             raise InvalidRequestError('client_assertion_type was wrong')
 
+        # TODO: do we have a function to validate scopes against BBAPI's well-known config?
         return None
 
     def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
@@ -565,7 +598,8 @@ class TokenView(DotTokenView):
                     audience=fhir_settings.fhir_url_v3,
                     leeway=timedelta(minutes=5),
                     options={
-                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions']
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
+                        'verify_signature': False,  # TODO - remove when we have test providers
                     },
                     algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
                 )
@@ -642,13 +676,12 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
 
                 # TODO: combine iss and jti for cache + not allowed duplicates
-
                 if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
                     log.warning('JWT is older than 5 minutes (iat)')
                     raise InvalidRequestError
 
                 if payload.get('identity_assurance_level') != 2:
-                    log.warning('identity_assurance_level was not 2')
+                    log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
                     raise InvalidRequestError
 
                 if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
@@ -656,17 +689,16 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('family_name')):
-                    log.warning('family_name is empty or has encoded characters greater than 383')
+                    log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}')
                     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('given_name')):
-                    log.warning('given_name is empty or has encoded characters greater than 383')
+                    log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}')
                     raise InvalidRequestError
 
                 if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
                     log.warning('birthdate was not a valid string')
                     raise InvalidRequestError
-
             else:
                 payload = jwt.decode(id_token, options={'verify_signature': False})
 
@@ -675,113 +707,117 @@ class TokenView(DotTokenView):
             log.warning(f'jwt.decode_complete() failed because {str(e)}')
             raise InvalidRequestError
 
-    def _parse_ial_into_parameter(self, payload: dict) -> Parameters:
+    def _parse_ial_into_parameter(self, payload: dict) -> dict:
         """Parses an IAL token into a Patient and Parameters resource
 
         Args:
             payload (dict): the IAL token
 
         Returns:
-            Parameters: a Parameters object containing the Patient
+            Parameters: a json dump of the Parameters object
         """
-        patient = Patient.model_construct()
-        patient_meta = Meta.model_construct()
-        patient_meta.profile = [PATIENT_ID_MATCH_META]
-        patient.meta = patient_meta
 
-        patient_name = HumanName.model_construct()
-        patient_name.use = 'official'
-        patient_name.family = payload.get('family_name')
-        patient_name.given = [payload.get('given_name')]
-
-        patient.name = [patient_name]
+        patient_name = HumanName(
+            use='official',
+            family=payload.get('family_name'),
+            given=[payload.get('given_name')]
+        )
 
         telecoms = []
         if payload.get('phone_number') and payload.get('phone_number_verified'):
-            phone = ContactPoint.model_construct()
-            phone.system = 'phone'
-            phone.value = payload.get('phone_number')
-            phone.use = 'mobile'
-            phone.rank = 1
-            telecoms.append(phone)
+            telecoms.append(ContactPoint(
+                system='phone',
+                value=payload.get('phone_number'),
+                use='mobile',
+                rank=1
+            ))
 
         if payload.get('email'):
-            email = ContactPoint.model_construct()
-            email.system = 'email'
-            email.value = payload.get('email')
-            email.use = 'home'
-            email.rank = 2
-            telecoms.append(email)
-
-        patient.telecom = telecoms
+            telecoms.append(ContactPoint(
+                system='email',
+                value=payload.get('email'),
+                use='home',
+                rank=2
+            ))
 
         gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
         if payload.get('gender'):
-            patient.gender = gender_map.get(payload.get('gender', 'u'))
+            patient_gender = gender_map.get(payload.get('gender', 'u'))
 
-        patient.birthDate = payload.get('birthdate')
+        patient_birthdate = payload.get('birthdate')
 
         addresses = []
-        # Home Address
         if (home := payload.get('address')):
-            home_address = Address.model_construct()
-            home_address.use = 'home'
-            home_address.type = 'both'
+            street_address = home.get('street_address')
+            addresses.append(Address(
+                use='home',
+                type='both',
+                text=home.get('formatted'),
+                line=[street_address] if street_address else None,
+                city=home.get('locality'),
+                state=home.get('region'),
+                postalCode=home.get('postal_code'),
+                country=home.get('country')
+            ))
 
-            address_parts = [
-                home.get('street_address'),
-                f'{home.get('locality')} {home.get('region')} {home.get('postal_code')}'
-            ]
-            formatted_input = '\n'.join([line for line in address_parts if line and line.strip()])
-            home_address.text = normalize_address(formatted_input)
-
-            home_address.text = home.get('formatted')
-            home_address.line = [street_address] if (street_address := home.get('street_address')) else None
-            home_address.city = home.get('locality')
-            home_address.state = home.get('region')
-            home_address.postalCode = home.get('postal_code')
-            home_address.country = home.get('country')
-            addresses.append(home_address)
-
-        # Historical Addresses
         for historical in payload.get('historical_address', []):
-            hist_address = Address.model_construct()
-            hist_address.use = 'old'
-            hist_address.type = 'both'
-            hist_address.text = historical.get('formatted')
-            hist_address.line = [street_address] if (street_address := historical.get('street_address')) else None
-            hist_address.city = historical.get('locality')
-            hist_address.state = historical.get('region')
-            hist_address.postalCode = historical.get('postal_code')
-            hist_address.country = 'US'
-            addresses.append(historical)
+            street_address = historical.get('street_address')
+            addresses.append(Address(
+                use='old',
+                type='both',
+                text=historical.get('formatted'),
+                line=[street_address] if street_address else None,
+                city=historical.get('locality'),
+                state=historical.get('region'),
+                postalCode=historical.get('postal_code'),
+                country='US'
+            ))
 
-        patient.address = addresses
+        identifiers = []
+        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) == 4:
+            ssn_coding = Coding(
+                system=CC_SYSTEM_CODING_SYSTEM,
+                code='SS',
+                display='Social Security Number'
+            )
+            ssn_type = CodeableConcept(
+                coding=[ssn_coding]
+            )
+            identifiers.append(Identifier(
+                use='official',
+                type=ssn_type,
+                system=CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+                value=ssn
+            ))
 
-        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) > 4:
-            ssn_identifier = Identifier.model_construct()
-            ssn_identifier.use = 'official'
-            ssn_type = CodeableConcept.model_construct()
-            ssn_coding = Coding.model_construct()
-            ssn_coding.system = CC_SYSTEM_CODING_SYSTEM
-            ssn_coding.code = 'SS'
-            ssn_coding.display = 'Social Security Number'
-            ssn_type.coding = [ssn_coding]
-            ssn_identifier.type = ssn_type
-            ssn_identifier.system = CC_SYSTEM_SOCIAL_SECURITY_NUMBER
-            ssn_identifier.value = ssn
-            patient.identifier = [ssn_identifier]
+        patient_meta = Meta(
+            profile=['http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient']
+        )
 
-        id_match_payload = Parameters.model_construct()
-        id_match_meta = Meta.model_construct()
-        id_match_meta.profile = [PARAMETERS_ID_MATCH_META]
-        id_match_payload.meta = id_match_meta
-        id_match_payload.parameter = [ParametersParameter(**{
-            'name': 'IDIPatient',
-            'resource': patient
-        })]
+        patient = Patient(
+            name=[patient_name],
+            telecom=telecoms if telecoms else None,
+            gender=patient_gender,
+            birthDate=patient_birthdate,
+            address=addresses if addresses else None,
+            identifier=identifiers if identifiers else None,
+            meta=patient_meta
+        )
 
-        return id_match_payload
+        id_match_meta = Meta(
+            profile=['http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters']
+        )
+
+        id_match_payload = Parameters(
+            id='IDIMatchInputParameters',
+            meta=id_match_meta,
+            parameter=[ParametersParameter(
+                name='IDIPatient',
+                resource=patient
+            )]
+        )
+
+        return id_match_payload.model_dump(mode='json', exclude_none=True)
 
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -795,7 +831,6 @@ class TokenView(DotTokenView):
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
-
             # TODO : validate that app is allowed to make the type of request it is making
             # TODO : consider conditional branching based on grant_type
 
@@ -807,6 +842,8 @@ class TokenView(DotTokenView):
                 allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
 
                 if allow_client_credentials_call:
+                    # Allow client credentials call to proceed, to be implemented in a later ticket
+                    log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
@@ -817,7 +854,7 @@ class TokenView(DotTokenView):
                         csp_jwks = JWKS_URLS.get(pre_verified_ial.get('iss', ''))
 
                         if not csp_jwks:
-                            log.warning(f'id_token did not have a valid iss: {pre_verified_ial.get('iss')}')
+                            log.warning('id_token did not have a valid iss')
                             raise InvalidGrantError
 
                         ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
@@ -827,11 +864,44 @@ class TokenView(DotTokenView):
                             raise InvalidRequestError
 
                         id_match_payload = self._parse_ial_into_parameter(ial_valid)
+                        # log.info(id_match_payload)
+                        headers = {
+                            'X-CLIENT-ID': app.client_id,
+                            'X-CLIENT-NAME': app.name,
+                            'X-CLIENT-IP': get_ip_from_request(request)
+                        }
+                        url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
 
-                        log.info(id_match_payload.model_dump_json())
-                        log.info(f'client_credentials token call was successfully made for app: {app.name}')
+                        patient_bundle = get_patient_match_response_json(
+                            url=url,
+                            json=id_match_payload,
+                            headers=headers,
+                            method='POST'
+                        )
+                        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+                        if patient_match_found:
+                            mbi = extract_mbi_from_patient(patient)
+                            fhir_id = extract_fhir_id_from_patient(patient)
+                            user = self._create_or_retrieve_user(mbi, fhir_id)
+
+                            # TODO: Double check that this is 100% needed
+                            request.user = user
+
+                            # create_or_update dag
+                            # Do we need to return the dag here?
+                            create_or_update_data_access_grant_client_credential_flow(user, app)
+                        else:
+                            log.debug(f"No patient match found for client_credentials call for app: {app.name}")
+                            return JsonResponse(
+                                {'status_code': HTTPStatus.NOT_FOUND, 'message': f'Patient match NOT found for app {app.name}.'},
+                                status=HTTPStatus.NOT_FOUND,
+                            )
                     except Exception as e:
                         log.error(f'Error validating jwt: {str(e)}')
+                        return JsonResponse(
+                            {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Bad request'},
+                            status=HTTPStatus.BAD_REQUEST
+                        )
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=403)
@@ -849,9 +919,15 @@ class TokenView(DotTokenView):
 
         url, headers, body, status = self.create_token_response(request)
 
+        # retrieve the access token, update user_id with the user.id sourced above
         if status == 200:
             body = json.loads(body)
-            access_token = body.get('access_token')
+            access_token = body.get("access_token")
+            # TODO: Cleanup - move to a separate function?
+            if grant_type and grant_type == CLIENT_CREDENTIALS:
+                token = get_access_token_model().objects.get(token=access_token)
+                token.user_id = user.id
+                token.save()
 
             dag_expiry = ""
             if access_token is not None:
@@ -876,6 +952,7 @@ class TokenView(DotTokenView):
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
+                # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
