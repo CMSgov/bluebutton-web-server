@@ -1,9 +1,9 @@
 from http import HTTPStatus
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-import re
 from time import strftime
 
+import re
 import uuid
 import html
 import json
@@ -80,9 +80,9 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
     json_response_from_oauth2_error,
-    validate_latin_extended_string
+    validate_latin_extended_string,
+    normalize_street_addresss
 )
-from apps.dot_ext.parser import normalize_address
 from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
 from fhir.resources.R4B.parameters import Parameters, ParametersParameter
 from fhir.resources.R4B.patient import Patient
@@ -748,17 +748,13 @@ class TokenView(DotTokenView):
         if (home := payload.get('address')):
             street_address = home.get('street_address')
 
-            address_parts = [
-                street_address,
-                f'{home.get('locality')} {home.get('region')} {home.get('postal_code')}'
-            ]
-            formatted_input = ' '.join([line for line in address_parts if line and line.strip()])
-            normalized_address = normalize_address(street_address)
+            address_parts = f'{street_address} {home.get('locality')} {home.get('region')} {home.get('postal_code')}'
+            street = normalize_street_addresss(address_parts)
 
             addresses.append(Address(
                 use='home',
                 type='both',
-                text=normalized_address,
+                text=street,
                 line=[street_address] if street_address else None,
                 city=home.get('locality'),
                 state=home.get('region'),
@@ -769,17 +765,14 @@ class TokenView(DotTokenView):
         for historical in payload.get('historical_address', []):
             street_address = historical.get('street_address')
 
-            address_parts = [
-                street_address,
-                f'{historical.get('locality')} {historical.get('region')} {historical.get('postal_code')}'
-            ]
-            formatted_input = '\n'.join([line for line in address_parts if line and line.strip()])
-            normalized_address = normalize_address(formatted_input)
+            address_parts = f'{street_address} {historical.get('locality')} \
+                {historical.get('region')} {historical.get('postal_code')}'
+            street = normalize_street_addresss(address_parts)
 
             addresses.append(Address(
                 use='old',
                 type='both',
-                text=normalized_address,
+                text=street,
                 line=[street_address] if street_address else None,
                 city=historical.get('locality'),
                 state=historical.get('region'),
