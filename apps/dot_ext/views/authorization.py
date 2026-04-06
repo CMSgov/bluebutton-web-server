@@ -29,6 +29,8 @@ from apps.fhir.bluebutton.utils import (
     is_patient_match_found,
     extract_mbi_from_patient
 )
+from django.urls import reverse
+from django.conf import settings
 from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
@@ -53,9 +55,9 @@ from apps.fhir.server.settings import fhir_settings
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     HHS_SERVER_LOGNAME_FMT,
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CLIENT_CREDENTIALS,
-    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
 )
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
@@ -590,15 +592,19 @@ class TokenView(DotTokenView):
                 # pyjwt handles:
                 # header - alg, kid
                 # payload - iss, aud, exp
-                data = jwt.decode_complete(  # type: ignore
+
+                # TODO: fix this string concat
+                hostname = settings.HOSTNAME_URL
+                environment_audience = reverse('oauth2_provider_v3:token-v3')
+                combined_audience = hostname + environment_audience
+                data = jwt.decode_complete(
                     token,
                     signing_key,
                     issuer=client_id,
-                    audience=fhir_settings.fhir_url_v3,
+                    audience=combined_audience,
                     leeway=timedelta(minutes=5),
                     options={
                         'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
-                        'verify_signature': False,  # TODO - remove when we have test providers
                     },
                     algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
                 )
@@ -660,9 +666,9 @@ class TokenView(DotTokenView):
                 data = jwt.decode_complete(
                     id_token,
                     signing_key,
-                    leeway=timedelta(minutes=5),
+                    # leeway=timedelta(minutes=5),
                     options={
-                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp',  # 'iat',
                                     'identity_assurance_level', 'auth_time',
                                     'family_name', 'given_name', 'birthdate'],
                     },
@@ -675,9 +681,11 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
 
                 # TODO: combine iss and jti for cache + not allowed duplicates
-                if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-                    log.warning('JWT is older than 5 minutes (iat)')
-                    raise InvalidRequestError
+
+                # TODO: this will be added back in in the future after a standard is established
+                # if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
+                #     log.warning('JWT is older than 5 minutes (iat)')
+                #     raise InvalidRequestError
 
                 if payload.get('identity_assurance_level') != 2:
                     log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
