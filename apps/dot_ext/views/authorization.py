@@ -739,9 +739,8 @@ class TokenView(DotTokenView):
                 rank=2
             ))
 
-        gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
-        if payload.get('gender'):
-            patient_gender = gender_map.get(payload.get('gender', 'u'))
+        gender_map = {"f": "female", "m": "male", "o": "other", "u": "unknown"}
+        patient_gender = gender_map.get(payload.get("gender", "u"))
 
         patient_birthdate = payload.get('birthdate')
 
@@ -857,6 +856,13 @@ class TokenView(DotTokenView):
                 allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
 
                 if allow_client_credentials_call:
+                    # since we're not getting the user info from SLS, don't return openid scope in this flow
+                    scopes = request.POST.get("scope", "").split()
+                    if "openid" in scopes:
+                        request.POST._mutable = True
+                        request.POST["scope"] = " ".join(s for s in scopes if s != "openid")
+                        request.POST._mutable = False
+
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
@@ -935,23 +941,29 @@ class TokenView(DotTokenView):
         url, headers, body, status = self.create_token_response(request)
 
         # retrieve the access token, update user_id with the user.id sourced above
-        if status == 200:
+        if status == HTTPStatus.OK:
             body = json.loads(body)
             access_token = body.get("access_token")
-            # TODO: Cleanup - move to a separate function?
-            if grant_type and grant_type == CLIENT_CREDENTIALS:
+            if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
-                token.user_id = user.id
-                token.save()
 
-            dag_expiry = ""
-            if access_token is not None:
-                token = get_access_token_model().objects.get(
-                    token=access_token)
+                if grant_type == CLIENT_CREDENTIALS:
+                    token.user_id = user.id
+                    token.save()
+
+                # Add patient id to response
+                if "patient" not in body and token.user:
+                    try:
+                        crosswalk = Crosswalk.objects.get(user=token.user)
+                        body["patient"] = crosswalk.fhir_id(version)
+                    except Crosswalk.DoesNotExist:
+                        pass
+
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
 
+                dag_expiry = ""
                 if app.data_access_type == "THIRTEEN_MONTH":
                     try:
                         dag = DataAccessGrant.objects.get(
@@ -1001,7 +1013,7 @@ class TokenView(DotTokenView):
                         )
 
                 body['access_grant_expiration'] = dag_expiry
-                body = json.dumps(body)
+            body = json.dumps(body)
 
         response = HttpResponse(content=body, status=status)
         for k, v in headers.items():
