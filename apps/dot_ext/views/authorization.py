@@ -9,6 +9,7 @@ import html
 import json
 import logging
 import jwt
+import waffle
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import redirect_to_login
@@ -44,7 +45,8 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES, APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE
+    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES, APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    PARAMETERS_ID_MATCH_META, PATIENT_ID_MATCH_META
 )
 from apps.versions import Versions
 from jwt import PyJWKClient
@@ -66,6 +68,7 @@ from apps.dot_ext.utils import (
     json_response_from_oauth2_error,
     validate_latin_extended_string
 )
+from apps.dot_ext.parser import normalize_address
 from apps.authorization.models import DataAccessGrant
 from fhir.resources.R4B.parameters import Parameters, ParametersParameter
 from fhir.resources.R4B.patient import Patient
@@ -75,6 +78,7 @@ from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.meta import Meta
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -520,7 +524,6 @@ class TokenView(DotTokenView):
             JsonResponse or None: Returns a 400 error response if params are missing, else None
         """
 
-        # TODO: grant_type is already implied, but I figured I'd follow the spec
         required_params = ['grant_type', 'scope', 'client_assertion_type', 'client_assertion']
         missing_params = [param for param in required_params if not request.POST.get(param)]
 
@@ -534,10 +537,9 @@ class TokenView(DotTokenView):
             log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
             raise InvalidRequestError('client_assertion_type was wrong')
 
-        # TODO: do we have a function to validate scopes against BBAPI's well-known config?
         return None
 
-    def _validate_authorization_jwt(self, token: str, jwks_client: PyJWKClient) -> str:
+    def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
         """Validates an authorization JWT and returns the id_token if valid
 
         Args:
@@ -551,50 +553,56 @@ class TokenView(DotTokenView):
             str: the cms_smart extension's id_token
         """
         try:
-            signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
-            # pyjwt handles:
-            # header - alg, kid
-            # payload - iss, aud, exp
-            data = jwt.decode_complete(  # type: ignore
-                token,
-                signing_key,
-                # issuer=app.client_id,
-                audience=fhir_settings.fhir_url_v3,
-                # leeway=timedelta(minutes=5),
-                options={
-                    'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
-                    'verify_signature': False,  # TODO - remove when we have test providers
-                },
-                algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-            )
-            payload, header = data.get('payload'), data.get('header')
+            if waffle.switch_is_active('client_credentials_validation'):
+                signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
+                # pyjwt handles:
+                # header - alg, kid
+                # payload - iss, aud, exp
+                data = jwt.decode_complete(  # type: ignore
+                    token,
+                    signing_key,
+                    issuer=client_id,
+                    audience=fhir_settings.fhir_url_v3,
+                    leeway=timedelta(minutes=5),
+                    options={
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions']
+                    },
+                    algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+                )
+                payload, header = data.get('payload'), data.get('header')
 
-            if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed JWT')
-                raise InvalidRequestError
+                if not payload or not header or header.get('typ') != 'JWT':
+                    log.warning('Malformed JWT')
+                    raise InvalidRequestError
 
-            # TODO: combine iss and jti for cache + not allowed duplicates
+                # TODO: combine iss and jti for cache + not allowed duplicates
 
-            # payload
-            if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-                log.warning('JWT exp is longer than 5 minutes away')
-                raise InvalidRequestError
+                # payload
+                if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
+                    log.warning('JWT exp is longer than 5 minutes away')
+                    raise InvalidRequestError
 
-            # cms_smart extension
-            cms_smart = payload.get('extensions', {}).get('cms_smart')
-            if not cms_smart:
-                log.warning('No CMS_Smart extension')
-                raise InvalidRequestError
+                # cms_smart extension
+                cms_smart = payload.get('extensions', {}).get('cms_smart')
+                if not cms_smart:
+                    log.warning('No CMS_Smart extension')
+                    raise InvalidRequestError
 
-            if (
-                cms_smart.get('version') != '1'
-                or cms_smart.get('purpose_of_use') != 'PATRQT'
-                or not cms_smart.get('id_token')
-            ):
-                log.warning('Malformed CMS_Smart extension')
-                raise InvalidRequestError
+                if (
+                    cms_smart.get('version') != '1'
+                    or cms_smart.get('purpose_of_use') != 'PATRQT'
+                    or not cms_smart.get('id_token')
+                ):
+                    log.warning('Malformed CMS_Smart extension')
+                    raise InvalidRequestError
 
-            return cms_smart.get('id_token')
+                id_token = cms_smart.get('id_token')
+            else:
+                id_token = jwt.decode(
+                    token, options={'verify_signature': False}
+                ).get('extensions', {}).get('cms_smart', {}).get('id_token')
+
+            return id_token
 
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {str(e)}')
@@ -614,52 +622,53 @@ class TokenView(DotTokenView):
             str: the decoded payload of the IAL JWT
         """
         try:
-            signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-            data = jwt.decode_complete(
-                id_token,
-                signing_key,
-                leeway=timedelta(minutes=5),
-                options={
-                    'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
-                                # 'identity_assurance_level', 'auth_time',
-                                'family_name', 'given_name', 'birthdate'],
-                    'verify_signature': False,  # TODO - remove when we have test providers
-                },
-                algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS
-            )
-            payload, header = data.get('payload'), data.get('header')
+            if waffle.switch_is_active('client_credentials_validation'):
+                signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+                data = jwt.decode_complete(
+                    id_token,
+                    signing_key,
+                    leeway=timedelta(minutes=5),
+                    options={
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
+                                    'identity_assurance_level', 'auth_time',
+                                    'family_name', 'given_name', 'birthdate'],
+                    },
+                    algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS
+                )
+                payload, header = data.get('payload'), data.get('header')
 
-            if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed header / payload')
-                raise InvalidRequestError
+                if not payload or not header or header.get('typ') != 'JWT':
+                    log.warning('Malformed header / payload')
+                    raise InvalidRequestError
 
-            # TODO: combine iss and jti for cache + not allowed duplicates
+                # TODO: combine iss and jti for cache + not allowed duplicates
 
-            # TODO - reimplement when we have actual JWT creation impelmented or with test providers
-            # validation
-            # if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-            #     log.warning('JWT is older than 5 minutes (iat)')
-            #     raise InvalidRequestError
+                if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
+                    log.warning('JWT is older than 5 minutes (iat)')
+                    raise InvalidRequestError
 
-            # if payload.get('identity_assurance_level') != 2:
-            #     log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
-            #     raise InvalidRequestError
+                if payload.get('identity_assurance_level') != 2:
+                    log.warning('identity_assurance_level was not 2')
+                    raise InvalidRequestError
 
-            # if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
-            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
-            #     raise InvalidRequestError
+                if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
+                    log.warning('JWT was authorized older than 24 hours (auth_time)')
+                    raise InvalidRequestError
 
-            if not validate_latin_extended_string(payload.get('family_name')):
-                log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get('family_name')}')
-                raise InvalidRequestError
+                if not validate_latin_extended_string(payload.get('family_name')):
+                    log.warning('family_name is empty or has encoded characters greater than 383')
+                    raise InvalidRequestError
 
-            if not validate_latin_extended_string(payload.get('given_name')):
-                log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get('given_name')}')
-                raise InvalidRequestError
+                if not validate_latin_extended_string(payload.get('given_name')):
+                    log.warning('given_name is empty or has encoded characters greater than 383')
+                    raise InvalidRequestError
 
-            if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
-                log.warning(f'birthdate was not a valid string: {payload.get('birthdate')}')
-                raise InvalidRequestError
+                if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
+                    log.warning('birthdate was not a valid string')
+                    raise InvalidRequestError
+
+            else:
+                payload = jwt.decode(id_token, options={'verify_signature': False})
 
             return payload
         except jwt.PyJWTError as e:
@@ -676,7 +685,9 @@ class TokenView(DotTokenView):
             Parameters: a Parameters object containing the Patient
         """
         patient = Patient.model_construct()
-        patient.active = True
+        patient_meta = Meta.model_construct()
+        patient_meta.profile = [PATIENT_ID_MATCH_META]
+        patient.meta = patient_meta
 
         patient_name = HumanName.model_construct()
         patient_name.use = 'official'
@@ -716,6 +727,14 @@ class TokenView(DotTokenView):
             home_address = Address.model_construct()
             home_address.use = 'home'
             home_address.type = 'both'
+
+            address_parts = [
+                home.get('street_address'),
+                f'{home.get('locality')} {home.get('region')} {home.get('postal_code')}'
+            ]
+            formatted_input = '\n'.join([line for line in address_parts if line and line.strip()])
+            home_address.text = normalize_address(formatted_input)
+
             home_address.text = home.get('formatted')
             home_address.line = [street_address] if (street_address := home.get('street_address')) else None
             home_address.city = home.get('locality')
@@ -754,6 +773,9 @@ class TokenView(DotTokenView):
             patient.identifier = [ssn_identifier]
 
         id_match_payload = Parameters.model_construct()
+        id_match_meta = Meta.model_construct()
+        id_match_meta.profile = [PARAMETERS_ID_MATCH_META]
+        id_match_payload.meta = id_match_meta
         id_match_payload.parameter = [ParametersParameter(**{
             'name': 'IDIPatient',
             'resource': patient
@@ -788,7 +810,7 @@ class TokenView(DotTokenView):
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
-                            request.POST.get('client_assertion', ''), PyJWKClient(app.jwks_uri))
+                            request.POST.get('client_assertion', ''), app.client_id, PyJWKClient(app.jwks_uri))
 
                         # Determine if this is CLEAR or ID.ME
                         pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
