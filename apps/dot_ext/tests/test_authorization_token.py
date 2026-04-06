@@ -194,8 +194,6 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         mock_request.POST = {
             'grant_type': CLIENT_CREDENTIALS,
             'redirect_uri': 'test.com',
-            'client_id': TEST_APP_CLIENT_ID,
-            'client_secret': TEST_APP_CLIENT_SECRET,
             'scope': 'patient/ExplanationOfBenefit.rs',
             'client_assertion_type': 'incorrect-assertion',
             'client_assertion': 'test',
@@ -210,8 +208,6 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         mock_request.POST = {
             'grant_type': CLIENT_CREDENTIALS,
             'redirect_uri': 'test.com',
-            'client_id': TEST_APP_CLIENT_ID,
-            'client_secret': TEST_APP_CLIENT_SECRET,
             'scope': 'patient/ExplanationOfBenefit.rs',
             'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
             'client_assertion': 'test',
@@ -408,8 +404,6 @@ class TestTokenResponseFields(BaseApiTest):
 
         token_request_data = {
             "grant_type": CLIENT_CREDENTIALS,
-            "client_id": self.application.client_id,
-            "client_secret": TEST_APP_CLIENT_SECRET,
             "client_assertion_type": CLIENT_ASSERTION_TYPE_VALUE,
             "client_assertion": assertion,
             "scope": "patient/ExplanationOfBenefit.rs openid",
