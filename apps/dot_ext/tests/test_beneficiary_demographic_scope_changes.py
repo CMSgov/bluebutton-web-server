@@ -11,6 +11,7 @@ from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import ArchivedToken, Application
 from http import HTTPStatus
+from unittest import mock
 
 
 class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
@@ -50,7 +51,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
             self.assertEqual(response.status_code, 403)
 
     @override_switch('require-scopes', active=True)
-    def test_bene_demo_scopes_change(self):
+    @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    def test_bene_demo_scopes_change(self, mock_get_and_update):
         """
         Test authorization related to different, beneficiary "share_demographic_scopes"
         choices made on subsequent authorizations.
@@ -59,6 +61,10 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         beneficiary's sharing choice. Tokens should be deleted when the choices is to
         NOT share demographic scopes.
         """
+
+        # Configure mocks
+        mock_get_and_update.return_value = None
+
         call_command('create_blue_button_scopes')
         # create a user
         self._create_user('anna', '123456')

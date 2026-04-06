@@ -5,7 +5,8 @@ from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
 
-from ..models import UserProfile
+from apps.accounts.models import UserProfile
+from apps.constants import USER_TYPE_DEV
 
 
 class DeveloperAccountTestCase(TestCase):
@@ -20,7 +21,7 @@ class DeveloperAccountTestCase(TestCase):
                                      email='fred@example.com',
                                      password="foobar",)
         UserProfile.objects.create(user=u,
-                                   user_type="DEV",
+                                   user_type=USER_TYPE_DEV,
                                    create_applications=True)
         Group.objects.create(name='BlueButton')
         self.client = Client()

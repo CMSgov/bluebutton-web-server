@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
+from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, USER_TYPE_DEV
+
 from .models import (
     ValidPasswordResetKey,
     UserProfile,
@@ -20,8 +22,9 @@ class UserTypeFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            ("BEN", "Beneficiary"),
-            ("DEV", "Developer"),
+            (USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, "Beneficiary"),
+            (USER_TYPE_DEV, "Developer"),
+            (USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, "Aligned Network Beneficiary")
         ]
 
     def queryset(self, request, queryset):

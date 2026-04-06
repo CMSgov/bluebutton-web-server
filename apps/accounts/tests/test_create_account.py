@@ -6,6 +6,7 @@ from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from apps.constants import USER_TYPE_DEV
 from apps.accounts.constants import (
     ACCT_MAIL_LOGGER_NAME,
     DOT_EXT_SIGNAL_LOGGER_NAME,
@@ -312,4 +313,4 @@ class CreateDeveloperAccountTestCase(TestCase):
         }
         self.client.post(self.url, form_data, follow=True)
         up = UserProfile.objects.get(user__email='hank@example.com')
-        self.assertEqual(up.user_type, 'DEV')
+        self.assertEqual(up.user_type, USER_TYPE_DEV)

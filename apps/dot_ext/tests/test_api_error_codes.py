@@ -23,7 +23,12 @@ class TestDataAccessPermissions(BaseApiTest):
 
     # In this test, we should get back a `HTTPStatus.UNAUTHORIZED` when we try
     # and refresh the token on a ONE_TIME application.
-    def test_one_time_access_unauthorized_to_refresh(self):
+    @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    def test_one_time_access_unauthorized_to_refresh(self, mock_get_and_update):
+
+        # Configure mocks
+        mock_get_and_update.return_value = None
+
         refresh_responses = [
             {
                 'app_data_access_type': AccessType.ONE_TIME,

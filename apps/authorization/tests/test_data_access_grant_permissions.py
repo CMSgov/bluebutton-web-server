@@ -283,12 +283,17 @@ class TestDataAccessPermissions(BaseApiTest):
             )
         return content
 
-    def test_revoked_data_access_grant(self):
+    @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    def test_revoked_data_access_grant(self, mock_get_and_update):
         """
         Test data access grant deleted / revoked
 
         Test data access for FHIR and profile end points.
         """
+
+        # Configure mocks
+        mock_get_and_update.return_value = None
+
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
@@ -352,12 +357,17 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_detail_mesg="Authentication credentials were not provided.",
         )
 
-    def test_research_study_app_type(self):
+    @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    def test_research_study_app_type(self, mock_get_and_update):
         """
         Test Application.data_access_type="RESEARCH_STUDY".
 
         Test data access for FHIR and profile end points
         """
+
+        # Configure mocks
+        mock_get_and_update.return_value = None
+
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
@@ -480,10 +490,15 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
     @mock.patch("apps.authorization.models.datetime", StubDate)
-    def test_thirteen_month_app_type(self):
+    @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    def test_thirteen_month_app_type(self, mock_get_and_update):
         """
         Test Application.data_access_type="THIRTEEN_MONTH"
         """
+
+        # Configure mocks
+        mock_get_and_update.return_value = None
+
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",

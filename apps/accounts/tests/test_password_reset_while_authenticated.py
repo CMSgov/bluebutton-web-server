@@ -11,6 +11,7 @@ from waffle.testutils import override_switch
 
 from ..models import UserProfile
 from ..validators import PasswordReuseAndMinAgeValidator
+from apps.constants import USER_TYPE_DEV
 
 
 class StubDate(datetime):
@@ -29,7 +30,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                                      email='fred@example.com',
                                      password="foobarfoobarfoobar",)
         UserProfile.objects.create(user=u,
-                                   user_type="DEV",
+                                   user_type=USER_TYPE_DEV,
                                    create_applications=True,
                                    password_reset_question_1='1',
                                    password_reset_answer_1='blue',
@@ -44,7 +45,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                                            email='staff@example.com',
                                            password="foobarfoobarfoobar",)
         UserProfile.objects.create(user=u_staff,
-                                   user_type="DEV",
+                                   user_type=USER_TYPE_DEV,
                                    create_applications=True,
                                    password_reset_question_1='1',
                                    password_reset_answer_1='blue',

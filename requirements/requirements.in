@@ -24,6 +24,7 @@ django-storages == 1.13.2
 django-waffle == 3.0.0
 djangorestframework == 3.16.1
 djangorestframework-csv == 3.0.0
+fhir.resources == 8.2.0
 gunicorn == 25.0.3
 idna == 3.7 # via requests, trio
 importlib-metadata == 6.6.0
@@ -40,7 +41,7 @@ psycopg2-binary == 2.9.11
 py == 1.11.0
 pybind11 == 3.0.1
 pycparser == 2.21
-pyjwt == 2.7.0
+pyjwt == 2.12.0
 pyrsistent == 0.19.3
 python-dateutil == 2.8.2
 python-dotenv == 1.0.0
