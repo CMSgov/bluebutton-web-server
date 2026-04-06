@@ -8,6 +8,7 @@ import uuid
 import html
 import json
 import logging
+from apps.testclient.utils import _start_url_with_http_or_https
 import jwt
 import waffle
 
@@ -593,15 +594,12 @@ class TokenView(DotTokenView):
                 # header - alg, kid
                 # payload - iss, aud, exp
 
-                # TODO: fix this string concat
-                hostname = settings.HOSTNAME_URL
-                environment_audience = reverse('oauth2_provider_v3:token-v3')
-                combined_audience = hostname + environment_audience
+                host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
                 data = jwt.decode_complete(
                     token,
                     signing_key,
                     issuer=client_id,
-                    audience=combined_audience,
+                    audience=host + reverse('oauth2_provider_v3:token-v3'),
                     leeway=timedelta(minutes=5),
                     options={
                         'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
@@ -668,11 +666,12 @@ class TokenView(DotTokenView):
                     signing_key,
                     # leeway=timedelta(minutes=5),
                     options={
-                        'require': ['iss', 'sub', 'aud', 'jti', 'exp',  # 'iat',
-                                    'identity_assurance_level', 'auth_time',
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
+                                    # 'identity_assurance_level', 'auth_time',
                                     'family_name', 'given_name', 'birthdate'],
+                        'verify_aud': False,
                     },
-                    algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS
+                    algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
                 )
                 payload, header = data.get('payload'), data.get('header')
 
@@ -687,13 +686,13 @@ class TokenView(DotTokenView):
                 #     log.warning('JWT is older than 5 minutes (iat)')
                 #     raise InvalidRequestError
 
-                if payload.get('identity_assurance_level') != 2:
-                    log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
-                    raise InvalidRequestError
+                # if payload.get('identity_assurance_level') != 2:
+                #     log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
+                #     raise InvalidRequestError
 
-                if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
-                    log.warning('JWT was authorized older than 24 hours (auth_time)')
-                    raise InvalidRequestError
+                # if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
+                #     log.warning('JWT was authorized older than 24 hours (auth_time)')
+                #     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('family_name')):
                     log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}')

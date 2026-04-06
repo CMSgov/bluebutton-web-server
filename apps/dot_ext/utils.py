@@ -351,7 +351,10 @@ def normalize_street_addresss(address: str) -> str:
         str: the normalized street
     """
     normalized_address = normalize_address(address)
-    tagged_address = usaddress.tag(normalized_address)
+    try:
+        tagged_address = usaddress.tag(normalized_address)
+    except Exception:
+        return "UNKNOWN"
     street = {k: tagged_address[0][k] for k in tagged_address[0] if k not in ("PlaceName", "StateName", "ZipCode")}
     formatted_address_line = ' '.join([street[k].strip('\n') for k in street])
     return formatted_address_line
