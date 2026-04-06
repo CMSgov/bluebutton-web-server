@@ -37,7 +37,7 @@ from apps.fhir.bluebutton.models import (
     Crosswalk,
     get_crosswalk_bene_counts)
 
-from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.constants import HHS_SERVER_LOGNAME_FMT, USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -201,7 +201,7 @@ class BeneMetricsView(APIView):
 
     def get(self, request, format=None):
         content = {
-            'count': UserProfile.objects.filter(user_type='BEN').count()
+            'count': UserProfile.objects.filter(user_type=USER_TYPE_BENEFICIARY).count()
         }
         return Response(content)
 
@@ -476,7 +476,7 @@ class DevelopersView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
+    queryset = User.objects.select_related().filter(userprofile__user_type=USER_TYPE_DEV).annotate(
         app_count=Count('dot_ext_application'),
         first_active=Min('dot_ext_application__first_active'),
         active_app_count=Count('dot_ext_application__first_active'),
@@ -495,7 +495,7 @@ class DevelopersStreamView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
+    queryset = User.objects.select_related().filter(userprofile__user_type=USER_TYPE_DEV).annotate(
         app_count=Count('dot_ext_application'),
         first_active=Min('dot_ext_application__first_active'),
         active_app_count=Count('dot_ext_application__first_active'),

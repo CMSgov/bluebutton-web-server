@@ -240,17 +240,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/aaronerussell">
-                    <img src="https://avatars.githubusercontent.com/u/147522282?v=4" width="100;" alt="aaronerussell"/>
-                    <br />
-                    <sub><b>Aaron Russell</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/alex-dzeda">
                     <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
                     <br />
                     <sub><b>alex-dzeda</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/aaronerussell">
+                    <img src="https://avatars.githubusercontent.com/u/147522282?v=4" width="100;" alt="aaronerussell"/>
+                    <br />
+                    <sub><b>Aaron Russell</b></sub>
                 </a>
             </td>
             <td align="center">

@@ -1,52 +1,75 @@
 from http import HTTPStatus
-import json
-import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from time import strftime
 
+import re
+import uuid
+import html
+import json
+import logging
+from apps.testclient.utils import _start_url_with_http_or_https
+import jwt
+import waffle
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.utils import (
+    extract_fhir_id_from_patient,
+    get_ip_from_request,
+    get_patient_match_response_json,
+    is_patient_match_found,
+    extract_mbi_from_patient
+)
+from django.urls import reverse
+from django.conf import settings
+from apps.fhir.constants import IDI_MATCH_ENDPOINT
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.views.base import app_authorized
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
-from oauth2_provider.views.introspect import (
-    IntrospectTokenView as DotIntrospectTokenView,
-)
+from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
 from waffle import switch_is_active, get_waffle_flag_model
 from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlparse, parse_qs
-import uuid
-import html
-from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.mymedicare_cb.models import get_and_update_from_refresh
-from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.constants import (
-    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
-    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
-    CLIENT_CREDENTIALS,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
-)
-from apps.versions import Versions
 
-from ..signals import beneficiary_authorized_application
-from ..forms import SimpleAllowForm
-from ..loggers import (
+from apps.mymedicare_cb.models import get_and_update_from_refresh, create_beneficiary_record
+from apps.versions import Versions
+from apps.fhir.bluebutton.models import hash_id_value
+
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.fhir.server.settings import fhir_settings
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    HHS_SERVER_LOGNAME_FMT,
+    CLIENT_CREDENTIALS,
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
+)
+from apps.dot_ext.constants import (
+    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
+    CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    PARAMETERS_ID_MATCH_META, PATIENT_ID_MATCH_META, CLIENT_CREDENTIALS_SUPPORTED_TYPES
+)
+from jwt import PyJWKClient
+from apps.dot_ext.signals import beneficiary_authorized_application
+from apps.dot_ext.forms import SimpleAllowForm
+from apps.dot_ext.loggers import (
     create_session_auth_flow_trace,
     cleanup_session_auth_flow_trace,
     get_session_auth_flow_trace,
@@ -55,13 +78,24 @@ from ..loggers import (
     update_instance_auth_flow_trace_with_code,
 )
 from apps.dot_ext.models import Application, Approval
-from ..utils import (
+from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
     json_response_from_oauth2_error,
+    validate_latin_extended_string,
+    normalize_street_addresss
 )
-from ...authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
+from fhir.resources.R4B.parameters import Parameters, ParametersParameter
+from fhir.resources.R4B.patient import Patient
+from fhir.resources.R4B.humanname import HumanName
+from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.address import Address
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.meta import Meta
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -161,7 +195,7 @@ class AuthorizationView(DotAuthorizationView):
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
-            except AccessDeniedTokenCustomError as e:
+            except AccessDeniedError as e:
                 return JsonResponse(
                     {'status_code': 403, 'message': str(e)},
                     status=403,
@@ -267,11 +301,11 @@ class AuthorizationView(DotAuthorizationView):
                 # more times than is needed
                 return
             else:
-                raise AccessDeniedTokenCustomError(
+                raise AccessDeniedError(
                     description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            raise AccessDeniedTokenCustomError(
+            raise AccessDeniedError(
                 description='Unable to verify permission.'
             )
 
@@ -460,7 +494,7 @@ class ApprovalView(AuthorizationView):
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
 
-    def validate_v3_token_call(self, request) -> None:
+    def _validate_v3_token_call(self, request: HttpRequest) -> None:
         flag = get_waffle_flag_model().get('v3_early_adopter')
 
         try:
@@ -473,77 +507,465 @@ class TokenView(DotTokenView):
             if flag.id is None or flag.is_active_for_user(application_user):
                 return
             else:
-                raise AccessDeniedTokenCustomError(
+                raise AccessDeniedError(
                     description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
                 )
         except ObjectDoesNotExist:
-            raise AccessDeniedTokenCustomError(
+            raise AccessDeniedError(
                 description='Unable to verify permission.'
             )
 
-    def check_if_client_credentials_call_is_allowed(self, app: Application, version: Versions) -> bool:
+    def _check_if_client_credentials_call_is_allowed(self, app: Application, version: int) -> bool:
+        """Checks if the version fo the call is v3 + the app is allowed to do this and has a jwks_uri
+
+        Args:
+            app (Application): model
+            version (Versions): Version constant
+
+        Returns:
+            bool: if the app is allowed to make a client_credential call
+        """
         if version != Versions.V3:
             log.warning(f'A client_credentials token call was made for version: {version}')
             return False
-        return app.allowed_auth_type in JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES
+        return app.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES
 
-    @method_decorator(sensitive_post_parameters("password"))
-    def post(self, request, *args, **kwargs):
-        path_info = self.request.__dict__.get('path_info')
-        version = get_api_version_number_from_url(path_info)
-        url_query = parse_qs(request._body.decode('utf-8'))
-        grant_type = url_query.get('grant_type', [None])
+    def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str) -> User:
+        # create_or_get ANB user with the given mbi TODO is MBI hash an okay user name
+        mbi_hash_user_name = hash_id_value(mbi)
+        # check if ANB already exists
+        try:
+            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
+        except User.DoesNotExist:
+            # If the user does not already exist, create one (and a bluebutton_crosswalk record)
+            user = create_beneficiary_record(
+                mbi_hash_user_name, mbi, hicn_hash=None, firstname='', lastname='', email='',
+                fhir_id_v2=None, fhir_id_v3=fhir_id_v3,
+                user_id_type='M', request=None, user_type=USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+            )
+
+        return user
+
+    def _validate_client_credentials_request(self, request: HttpRequest):
+        """Checks required params for a client_credential request and their values
+
+        Args:
+            request (HttpRequest): the Django request object
+
+        Raises:
+            InvalidRequestError: if client_assertion_type is not correct
+
+        Returns:
+            JsonResponse or None: Returns a 400 error response if params are missing, else None
+        """
+
+        # TODO: grant_type is already implied, but I figured I'd follow the spec
+        required_params = ['grant_type', 'scope', 'client_assertion_type', 'client_assertion']
+        missing_params = [param for param in required_params if not request.POST.get(param)]
+
+        if missing_params:
+            return JsonResponse({
+                'status_code': 400,
+                'message': f"Missing Required Parameter(s): {', '.join(missing_params)}"
+            }, status=400)
+
+        if (client_assertion_type := request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
+            log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
+            raise InvalidRequestError('client_assertion_type was wrong')
+
+        # TODO: do we have a function to validate scopes against BBAPI's well-known config?
+        return None
+
+    def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
+        """Validates an authorization JWT and returns the id_token if valid
+
+        Args:
+            token (str): the base64 encoded auth jwt
+            jwks_client (PyJWKClient): instantiated client for the authorization jwt
+
+        Raises:
+            InvalidRequestError: any jwt error throws this
+
+        Returns:
+            str: the cms_smart extension's id_token
+        """
+        try:
+            if waffle.switch_is_active('client_credentials_validation'):
+                signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
+                # pyjwt handles:
+                # header - alg, kid
+                # payload - iss, aud, exp
+
+                host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
+                data = jwt.decode_complete(
+                    token,
+                    signing_key,
+                    issuer=client_id,
+                    audience=host + reverse('oauth2_provider_v3:token-v3'),
+                    leeway=timedelta(minutes=5),
+                    options={
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
+                    },
+                    algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+                )
+                payload, header = data.get('payload'), data.get('header')
+
+                if not payload or not header or header.get('typ') != 'JWT':
+                    log.warning('Malformed JWT')
+                    raise InvalidRequestError
+
+                # TODO: combine iss and jti for cache + not allowed duplicates
+
+                # payload
+                if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
+                    log.warning('JWT exp is longer than 5 minutes away')
+                    raise InvalidRequestError
+
+                # cms_smart extension
+                cms_smart = payload.get('extensions', {}).get('cms_smart')
+                if not cms_smart:
+                    log.warning('No CMS_Smart extension')
+                    raise InvalidRequestError
+
+                if (
+                    cms_smart.get('version') != '1'
+                    or cms_smart.get('purpose_of_use') != 'PATRQT'
+                    or not cms_smart.get('id_token')
+                ):
+                    log.warning('Malformed CMS_Smart extension')
+                    raise InvalidRequestError
+
+                id_token = cms_smart.get('id_token')
+            else:
+                id_token = jwt.decode(
+                    token, options={'verify_signature': False}
+                ).get('extensions', {}).get('cms_smart', {}).get('id_token')
+
+            return id_token
+
+        except jwt.PyJWTError as e:
+            log.warning(f'jwt.decode_complete() failed because {str(e)}')
+            raise InvalidRequestError
+
+    def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient) -> dict:
+        """Validates an IAL JWT from a trusted CSP
+
+        Args:
+            id_token (str): base64 encoded id_token jwt from cms_smart extension
+            jwks_client (PyJWKClient): instantiated client for the authorization jwt
+
+        Raises:
+            InvalidRequestError: if any validation step fails, log and raise
+
+        Returns:
+            str: the decoded payload of the IAL JWT
+        """
+        try:
+            if waffle.switch_is_active('client_credentials_validation'):
+                signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+                data = jwt.decode_complete(
+                    id_token,
+                    signing_key,
+                    # leeway=timedelta(minutes=5),
+                    options={
+                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'iat',
+                                    # 'identity_assurance_level', 'auth_time',
+                                    'family_name', 'given_name', 'birthdate'],
+                        'verify_aud': False,
+                    },
+                    algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
+                )
+                payload, header = data.get('payload'), data.get('header')
+
+                if not payload or not header or header.get('typ') != 'JWT':
+                    log.warning('Malformed header / payload')
+                    raise InvalidRequestError
+
+                # TODO: combine iss and jti for cache + not allowed duplicates
+
+                # TODO: this will be added back in in the future after a standard is established
+                # if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
+                #     log.warning('JWT is older than 5 minutes (iat)')
+                #     raise InvalidRequestError
+
+                # if payload.get('identity_assurance_level') != 2:
+                #     log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
+                #     raise InvalidRequestError
+
+                # if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
+                #     log.warning('JWT was authorized older than 24 hours (auth_time)')
+                #     raise InvalidRequestError
+
+                if not validate_latin_extended_string(payload.get('family_name')):
+                    log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}')
+                    raise InvalidRequestError
+
+                if not validate_latin_extended_string(payload.get('given_name')):
+                    log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}')
+                    raise InvalidRequestError
+
+                if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
+                    log.warning('birthdate was not a valid string')
+                    raise InvalidRequestError
+            else:
+                payload = jwt.decode(id_token, options={'verify_signature': False})
+
+            return payload
+        except jwt.PyJWTError as e:
+            log.warning(f'jwt.decode_complete() failed because {str(e)}')
+            raise InvalidRequestError
+
+    def _parse_ial_into_parameter(self, payload: dict) -> dict:
+        """Parses an IAL token into a Patient and Parameters resource
+
+        Args:
+            payload (dict): the IAL token
+
+        Returns:
+            Parameters: a json dump of the Parameters object
+        """
+
+        patient_name = HumanName(
+            use='official',
+            family=payload.get('family_name'),
+            given=[payload.get('given_name')]
+        )
+
+        telecoms = []
+        if payload.get('phone_number') and payload.get('phone_number_verified'):
+            telecoms.append(ContactPoint(
+                system='phone',
+                value=payload.get('phone_number'),
+                use='mobile',
+                rank=1
+            ))
+
+        if payload.get('email'):
+            telecoms.append(ContactPoint(
+                system='email',
+                value=payload.get('email'),
+                use='home',
+                rank=2
+            ))
+
+        gender_map = {"f": "female", "m": "male", "o": "other", "u": "unknown"}
+        patient_gender = gender_map.get(payload.get("gender", "u"))
+
+        patient_birthdate = payload.get('birthdate')
+
+        addresses = []
+        if (home := payload.get('address')):
+            street_address = home.get('street_address')
+
+            address_parts = f'{street_address} {home.get('locality')} {home.get('region')} {home.get('postal_code')}'
+            street = normalize_street_addresss(address_parts)
+
+            addresses.append(Address(
+                use='home',
+                type='both',
+                text=street,
+                line=[street_address] if street_address else None,
+                city=home.get('locality'),
+                state=home.get('region'),
+                postalCode=home.get('postal_code'),
+                country=home.get('country')
+            ))
+
+        for historical in payload.get('historical_address', []):
+            street_address = historical.get('street_address')
+
+            address_parts = f'{street_address} {historical.get('locality')} \
+                {historical.get('region')} {historical.get('postal_code')}'
+            street = normalize_street_addresss(address_parts)
+
+            addresses.append(Address(
+                use='old',
+                type='both',
+                text=street,
+                line=[street_address] if street_address else None,
+                city=historical.get('locality'),
+                state=historical.get('region'),
+                postalCode=historical.get('postal_code'),
+                country='US'
+            ))
+
+        identifiers = []
+        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) == 4:
+            ssn_coding = Coding(
+                system=CC_SYSTEM_CODING_SYSTEM,
+                code='SS',
+                display='Social Security Number'
+            )
+            ssn_type = CodeableConcept(
+                coding=[ssn_coding]
+            )
+            identifiers.append(Identifier(
+                use='official',
+                type=ssn_type,
+                system=CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+                value=ssn
+            ))
+
+        patient_meta = Meta(
+            profile=[PATIENT_ID_MATCH_META]
+        )
+
+        patient = Patient(
+            name=[patient_name],
+            telecom=telecoms if telecoms else None,
+            gender=patient_gender,
+            birthDate=patient_birthdate,
+            address=addresses if addresses else None,
+            identifier=identifiers if identifiers else None,
+            meta=patient_meta
+        )
+
+        id_match_meta = Meta(
+            profile=[PARAMETERS_ID_MATCH_META]
+        )
+
+        id_match_payload = Parameters(
+            id='IDIMatchInputParameters',
+            meta=id_match_meta,
+            parameter=[ParametersParameter(
+                name='IDIPatient',
+                resource=patient
+            )]
+        )
+
+        return id_match_payload.model_dump(mode='json', exclude_none=True)
+
+    @method_decorator(sensitive_post_parameters('password'))
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        version = get_api_version_number_from_url(self.request.path_info)
+        grant_type = request.POST.get('grant_type')
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
-            if version == Versions.V3 and grant_type[0] and grant_type[0] == 'refresh_token':
-                self.validate_v3_token_call(request)
-            app = validate_app_is_active(request)
+            if version == Versions.V3 and grant_type == 'refresh_token':
+                self._validate_v3_token_call(request)
 
-            if grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS:
-                allow_client_credentials_call = self.check_if_client_credentials_call_is_allowed(app, version)
+            app = validate_app_is_active(request)
+            # TODO : validate that app is allowed to make the type of request it is making
+            # TODO : consider conditional branching based on grant_type
+
+            if grant_type == 'client_credentials':
+                # Check for malformed request
+                request_validation_result = self._validate_client_credentials_request(request)
+                if request_validation_result:
+                    return request_validation_result
+                allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
 
                 if allow_client_credentials_call:
+                    # since we're not getting the user info from SLS, don't return openid scope in this flow
+                    scopes = request.POST.get("scope", "").split()
+                    if "openid" in scopes:
+                        request.POST._mutable = True
+                        request.POST["scope"] = " ".join(s for s in scopes if s != "openid")
+                        request.POST._mutable = False
+
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
+                    try:
+                        # Top level (application authorization) JWT validation
+                        id_token = self._validate_authorization_jwt(
+                            request.POST.get('client_assertion', ''), app.client_id, PyJWKClient(app.jwks_uri))
+
+                        # Determine if this is CLEAR or ID.ME
+                        pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
+                        csp_jwks = JWKS_URLS.get(pre_verified_ial.get('iss', ''))
+
+                        if not csp_jwks:
+                            log.warning('id_token did not have a valid iss')
+                            raise InvalidGrantError
+
+                        ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
+                        if not ial_valid:
+                            # at the moment, any validation error raises the exception inside
+                            # probably refactor moment
+                            raise InvalidRequestError
+
+                        id_match_payload = self._parse_ial_into_parameter(ial_valid)
+                        # log.info(id_match_payload)
+                        headers = {
+                            'X-CLIENT-ID': app.client_id,
+                            'X-CLIENT-NAME': app.name,
+                            'X-CLIENT-IP': get_ip_from_request(request)
+                        }
+                        url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
+
+                        patient_bundle = get_patient_match_response_json(
+                            url=url,
+                            json=id_match_payload,
+                            headers=headers,
+                            method='POST'
+                        )
+                        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+                        if patient_match_found:
+                            mbi = extract_mbi_from_patient(patient)
+                            fhir_id = extract_fhir_id_from_patient(patient)
+                            user = self._create_or_retrieve_user(mbi, fhir_id)
+
+                            # TODO: Double check that this is 100% needed
+                            request.user = user
+
+                            # create_or_update dag
+                            # Do we need to return the dag here?
+                            create_or_update_data_access_grant_client_credential_flow(user, app)
+                        else:
+                            log.debug(f"No patient match found for client_credentials call for app: {app.name}")
+                            return JsonResponse(
+                                {'status_code': HTTPStatus.NOT_FOUND, 'message': f'Patient match NOT found for app {app.name}.'},
+                                status=HTTPStatus.NOT_FOUND,
+                            )
+                    except Exception as e:
+                        log.error(f'Error validating jwt: {str(e)}')
+                        return JsonResponse(
+                            {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Bad request'},
+                            status=HTTPStatus.BAD_REQUEST
+                        )
                 else:
                     error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
-                    return JsonResponse(
-                        {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
-                        status=HTTPStatus.FORBIDDEN
-                    )
-            elif (
-                grant_type[0]
-                and grant_type[0] != CLIENT_CREDENTIALS
-                and app.allowed_auth_type == CLIENT_CREDENTIALS.upper()
-            ):
-                # If the app is only allowed to use client_credentials, but a different grant type is passed, throw an error
+                    return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=403)
+            elif grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
                 return JsonResponse({'status_code': HTTPStatus.FORBIDDEN, 'message': error_message}, status=HTTPStatus.FORBIDDEN)
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
-        except AccessDeniedTokenCustomError as e:
+        except AccessDeniedError as e:
             return JsonResponse(
-                {'status_code': 403, 'message': str(e)},
+                {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
                 status=403,
             )
 
         url, headers, body, status = self.create_token_response(request)
 
-        if status == 200:
+        # retrieve the access token, update user_id with the user.id sourced above
+        if status == HTTPStatus.OK:
             body = json.loads(body)
             access_token = body.get("access_token")
+            if access_token:
+                token = get_access_token_model().objects.get(token=access_token)
 
-            dag_expiry = ""
-            if access_token is not None:
-                token = get_access_token_model().objects.get(
-                    token=access_token)
+                if grant_type == CLIENT_CREDENTIALS:
+                    token.user_id = user.id
+                    token.save()
+
+                # Add patient id to response
+                if "patient" not in body and token.user:
+                    try:
+                        crosswalk = Crosswalk.objects.get(user=token.user)
+                        body["patient"] = crosswalk.fhir_id(version)
+                    except Crosswalk.DoesNotExist:
+                        pass
+
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
 
+                dag_expiry = ""
                 if app.data_access_type == "THIRTEEN_MONTH":
                     try:
                         dag = DataAccessGrant.objects.get(
@@ -559,10 +981,11 @@ class TokenView(DotTokenView):
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
+                # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                if grant_type[0] == 'refresh_token':
+                if grant_type == 'refresh_token':
                     try:
                         crosswalk = Crosswalk.objects.get(user=token.user)
                         get_and_update_from_refresh(
@@ -592,7 +1015,7 @@ class TokenView(DotTokenView):
                         )
 
                 body['access_grant_expiration'] = dag_expiry
-                body = json.dumps(body)
+            body = json.dumps(body)
 
         response = HttpResponse(content=body, status=status)
         for k, v in headers.items():

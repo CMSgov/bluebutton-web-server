@@ -1,8 +1,10 @@
 from datetime import timedelta
+from urllib.parse import parse_qs
 from waffle import switch_is_active
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 from oauth2_provider.settings import oauth2_settings
 
+from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.models import ExpiresIn
 from apps.pkce.oauth2_server import PKCEServerMixin
 
@@ -15,7 +17,14 @@ def my_token_expires_in(request):
     # first we try to retrieve the expires_in from the ExpiresIn
     # table.
     client_id = request.client.client_id
-    user_id = request.user.pk
+    request_body = parse_qs(request.body)
+    grant_type = request_body.get('grant_type', [None])
+
+    if grant_type[0] and grant_type[0] != CLIENT_CREDENTIALS:
+        user_id = request.user.pk
+    else:
+        user_id = request.client.user.pk
+
     expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
     # if no record is found we default to the value defined in the
     # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS

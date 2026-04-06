@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from .models import UserProfile, create_activation_key, UserIdentificationLabel
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
+from apps.constants import USER_TYPE_DEV
 
 
 class IdentificationModelChoiceField(forms.ModelChoiceField):
@@ -71,7 +72,7 @@ class SignupForm(UserCreationForm):
         UserProfile.objects.create(
             user=user,
             organization_name=self.cleaned_data["organization_name"],
-            user_type="DEV",
+            user_type=USER_TYPE_DEV,
             create_applications=True,
         )
 
