@@ -24,5 +24,6 @@ WAFFLE_FEATURE_SWITCHES = (
         True,
         'This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test.'
     ),
-    ('one_hour_token_expiry', False, 'This makes OAuth2 access tokens expire in one hour.')
+    ('one_hour_token_expiry', False, 'This makes OAuth2 access tokens expire in one hour.'),
+    ('client_credentials_validation', True, 'Are we verifying JWT properties and signatures on client_credentials flow')
 )

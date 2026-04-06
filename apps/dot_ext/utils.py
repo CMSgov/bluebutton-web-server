@@ -10,6 +10,7 @@ from http import HTTPStatus
 import re
 import logging
 import jwt
+import usaddress
 from apps.dot_ext.models import Application
 
 from apps.constants import (
@@ -19,6 +20,7 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
+from apps.dot_ext.parser import normalize_address
 from apps.versions import Versions, VersionNotMatched
 from apps.authorization.models import DataAccessGrant
 
@@ -337,3 +339,22 @@ def validate_latin_extended_string(text: str) -> bool:
         bool: if all strings are encoded less than U+017F (383) and it is not empty
     """
     return all(ord(char) <= 383 for char in text) and bool(text)
+
+
+def normalize_street_addresss(address: str) -> str:
+    """takes a street address, locality, region, and zip code and returns a normalized street
+
+    Args:
+        address (str): the full address
+
+    Returns:
+        str: the normalized street
+    """
+    normalized_address = normalize_address(address)
+    try:
+        tagged_address = usaddress.tag(normalized_address)
+    except Exception:
+        return "UNKNOWN"
+    street = {k: tagged_address[0][k] for k in tagged_address[0] if k not in ("PlaceName", "StateName", "ZipCode")}
+    formatted_address_line = ' '.join([street[k].strip('\n') for k in street])
+    return formatted_address_line
