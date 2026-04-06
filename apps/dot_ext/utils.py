@@ -127,15 +127,26 @@ def get_application_from_data(request):
         client_id = request.GET.get("client_id")
     elif request.POST.get("client_id"):
         client_id = request.POST.get("client_id")
-    elif request.POST.get("client_assertion"):
+    if request.POST.get("client_assertion"):
         # for client credentials flow, we need to get the client_id from the client_assertion
         try:
             token = request.POST.get("client_assertion")
             auth_jwt = jwt.decode(token, options={"verify_signature": False})
-            client_id = auth_jwt.get("iss")
+            client_assertion_client_id = auth_jwt.get("iss")
+
+            if client_id:
+                if client_id != client_assertion_client_id:
+                    raise InvalidRequestError(
+                        description='client_id param did not match client_id in JWT',
+                        status_code=HTTPStatus.BAD_REQUEST
+                    )
+            else:
+                client_id = client_assertion_client_id
         except jwt.PyJWTError:
-            log.warning("Malformed client_assertion")
-            pass
+            raise InvalidRequestError(
+                description='Malformed client_assertion',
+                status_code=HTTPStatus.BAD_REQUEST
+            )
 
     try:
         if client_id:

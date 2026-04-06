@@ -916,7 +916,7 @@ class TokenView(DotTokenView):
         url, headers, body, status = self.create_token_response(request)
 
         # retrieve the access token, update user_id with the user.id sourced above
-        if status == 200:
+        if status == HTTPStatus.OK:
             body = json.loads(body)
             access_token = body.get("access_token")
             if access_token:
