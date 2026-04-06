@@ -50,7 +50,6 @@ from apps.fhir.bluebutton.models import hash_id_value
 
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.fhir.server.settings import fhir_settings
-from apps.mymedicare_cb.models import get_and_update_from_refresh
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     HHS_SERVER_LOGNAME_FMT,
@@ -61,8 +60,8 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED, CLIENT_ASSERTION_TYPE_VALUE, JWKS_URLS,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS, YYYY_MM_DD_REGEX, CC_SYSTEM_CODING_SYSTEM, CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
-    JWKS_URI_CAN_NOT_BE_NULL_ALLOWED_AUTH_TYPES, APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
-    PARAMETERS_ID_MATCH_META, PATIENT_ID_MATCH_META
+    APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    PARAMETERS_ID_MATCH_META, PATIENT_ID_MATCH_META, CLIENT_CREDENTIALS_SUPPORTED_TYPES
 )
 from jwt import PyJWKClient
 from apps.dot_ext.signals import beneficiary_authorized_application
@@ -84,7 +83,7 @@ from apps.dot_ext.utils import (
     validate_latin_extended_string
 )
 from apps.dot_ext.parser import normalize_address
-from apps.authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, create_or_update_data_access_grant_client_credential_flow
 from fhir.resources.R4B.parameters import Parameters, ParametersParameter
 from fhir.resources.R4B.patient import Patient
 from fhir.resources.R4B.humanname import HumanName
@@ -749,10 +748,18 @@ class TokenView(DotTokenView):
         addresses = []
         if (home := payload.get('address')):
             street_address = home.get('street_address')
+
+            address_parts = [
+                street_address,
+                f'{home.get('locality')} {home.get('region')} {home.get('postal_code')}'
+            ]
+            formatted_input = ' '.join([line for line in address_parts if line and line.strip()])
+            normalized_address = normalize_address(street_address)
+
             addresses.append(Address(
                 use='home',
                 type='both',
-                text=home.get('formatted'),
+                text=normalized_address,
                 line=[street_address] if street_address else None,
                 city=home.get('locality'),
                 state=home.get('region'),
@@ -762,10 +769,18 @@ class TokenView(DotTokenView):
 
         for historical in payload.get('historical_address', []):
             street_address = historical.get('street_address')
+
+            address_parts = [
+                street_address,
+                f'{historical.get('locality')} {historical.get('region')} {historical.get('postal_code')}'
+            ]
+            formatted_input = '\n'.join([line for line in address_parts if line and line.strip()])
+            normalized_address = normalize_address(formatted_input)
+
             addresses.append(Address(
                 use='old',
                 type='both',
-                text=historical.get('formatted'),
+                text=normalized_address,
                 line=[street_address] if street_address else None,
                 city=historical.get('locality'),
                 state=historical.get('region'),
@@ -791,7 +806,7 @@ class TokenView(DotTokenView):
             ))
 
         patient_meta = Meta(
-            profile=['http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient']
+            profile=[PATIENT_ID_MATCH_META]
         )
 
         patient = Patient(
@@ -805,7 +820,7 @@ class TokenView(DotTokenView):
         )
 
         id_match_meta = Meta(
-            profile=['http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters']
+            profile=[PARAMETERS_ID_MATCH_META]
         )
 
         id_match_payload = Parameters(
