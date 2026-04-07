@@ -228,9 +228,12 @@ class AuthorizationView(DotAuthorizationView):
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
-            except AccessDeniedError as e:
+            except AccessDeniedError:
                 return JsonResponse(
-                    {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
+                    {
+                        'status_code': HTTPStatus.FORBIDDEN,
+                        'message': 'Unable to verify permission',
+                    },
                     status=HTTPStatus.FORBIDDEN,
                 )
 
@@ -754,7 +757,7 @@ class TokenView(DotTokenView):
             return id_token
 
         except jwt.PyJWTError as e:
-            log.warning(f'jwt.decode_complete() failed because {str(e)}')
+            log.warning(f'jwt.decode_complete() failed because {type(e)}')
             raise InvalidRequestError
 
     def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient) -> dict:
@@ -840,7 +843,7 @@ class TokenView(DotTokenView):
 
             return payload
         except jwt.PyJWTError as e:
-            log.warning(f'jwt.decode_complete() failed because {str(e)}')
+            log.warning(f'jwt.decode_complete() failed because {type(e)}')
             raise InvalidRequestError
 
     def _parse_ial_into_parameter(self, payload: dict) -> dict:
@@ -1005,7 +1008,7 @@ class TokenView(DotTokenView):
 
                 if allow_client_credentials_call:
                     # since we're not getting the user info from SLS, don't return openid scope in this flow
-                    scopes = request.POST.get("scope", "").split()
+                    scopes = request.POST.get('scope', '').split()
                     if OPENID_SCOPE in scopes or LAUNCH_SCOPE in scopes:
                         request.POST._mutable = True
                         request.POST['scope'] = ' '.join(
@@ -1086,7 +1089,7 @@ class TokenView(DotTokenView):
                                 status=HTTPStatus.NOT_FOUND,
                             )
                     except Exception as e:
-                        log.error(f'Error validating jwt: {str(e)}')
+                        log.error(f'Error validating jwt: {type(e)}')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
@@ -1118,9 +1121,9 @@ class TokenView(DotTokenView):
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
-        except AccessDeniedError as e:
+        except AccessDeniedError:
             return JsonResponse(
-                {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
+                {'status_code': HTTPStatus.FORBIDDEN, 'message': 'Request denied'},
                 status=HTTPStatus.FORBIDDEN,
             )
 
