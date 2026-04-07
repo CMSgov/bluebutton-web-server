@@ -7,7 +7,26 @@ import requests
 TYPES_TO_SKIP = ['slsx_token', 'slsx_userinfo', '']
 # Other possibilities:
 # auth_app_data_access_type, auth_app_id, path, req_grant_Type,
-ACCEPTED_LOG_KEYS = ['app_name', 'app_id', 'type', 'response_code', 'fhir_id_v2', 'fhir_id_v3']
+ACCEPTED_LOG_KEYS = [
+    'app_name',
+    'app_id',
+    'type',
+    'response_code',
+    'fhir_id_v2',
+    'fhir_id_v3',
+    'allow',
+    'auth_status',
+    'auth_require_demographic_scopes',
+    'share_demographic_scopes',
+    'path',
+    'request_method',
+    'auth_grant_type',
+    'action',
+    'sls_userinfo_status_code',
+    'auth_crosswalk_action',
+    'crosswalk_fhir_id',
+    'auth_path'
+]
 GRAB_FHIR_ID_FROM_USER_CROSSWALK = ['Authentication:success', 'Authorization']
 GRAB_FHIR_ID_FROM_CROSSWALK = ['AccessToken']
 
@@ -70,9 +89,15 @@ class ITSLogAPIHandler(logging.Handler):
                 log_message['fhir_id_v3'] = log_message.get('user').get('crosswalk').get('fhir_id_v3')
             elif log_message.get('type') in GRAB_FHIR_ID_FROM_CROSSWALK:
                 log_message['fhir_id_v2'] = log_message.get('crosswalk').get('fhir_id')
-
-        # Logger name (e.g. "apps.dot_ext.views.fhir")
-        # tags.append(record.name)
+        if log_message.get('code'):
+            log_message['response_code'] = log_message.get('code')
+        if (
+            '?' in log_message.get('location', '')
+            and 'authorize' in log_message.get('location', '')
+            and log_message.get('location', '').startswith('/v')
+        ):
+            print("GRABBING LOCATION: ", log_message.get('location').split('?')[0])
+            log_message['auth_path'] = log_message.get('location').split('?')[0]
 
         # Extra fields passed via extra={} in the log call
         app_id = getattr(record, 'application_id', None)

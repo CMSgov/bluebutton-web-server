@@ -757,7 +757,7 @@ class TokenView(DotTokenView):
         if (home := payload.get('address')):
             street_address = home.get('street_address')
 
-            address_parts = f'{street_address} {home.get('locality')} {home.get('region')} {home.get('postal_code')}'
+            address_parts = f"{street_address} {home.get('locality')} {home.get('region')} {home.get('postal_code')}"
             street = normalize_street_addresss(address_parts)
 
             addresses.append(Address(
@@ -774,8 +774,8 @@ class TokenView(DotTokenView):
         for historical in payload.get('historical_address', []):
             street_address = historical.get('street_address')
 
-            address_parts = f'{street_address} {historical.get('locality')} \
-                {historical.get('region')} {historical.get('postal_code')}'
+            address_parts = f"{street_address} {historical.get('locality')} \
+                {historical.get('region')} {historical.get('postal_code')}"
             street = normalize_street_addresss(address_parts)
 
             addresses.append(Address(

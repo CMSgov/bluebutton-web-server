@@ -60,6 +60,7 @@ class ITSLogAPIMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+        print("MW request check: ", request.__dict__)
         if 'testclient' in request.path:
             # Don't want testclient events being posted to ITS-log
             return response
@@ -69,7 +70,7 @@ class ITSLogAPIMiddleware:
     def _ping_api(self, request):
         try:
             # print('about to post')
-            requests.post(
+            middleware_result = requests.post(
                 "http://host.docker.internal:8888/v1/log",
                 headers={"x-api-key": "12345678901234561234567890123456"},
                 # headers={"x-api-key", "1234567890123456123456789012345612345678901234561234567890123456"},
@@ -81,6 +82,7 @@ class ITSLogAPIMiddleware:
                 },
                 timeout=2
             )
+            print("RESULT FROM MIDDLEWARE: ", middleware_result)
         except Exception as e:
             print("ERROR FROM ITS-LOG middleware 1217: ", e)
             pass  # Never let logging failures crash your app
