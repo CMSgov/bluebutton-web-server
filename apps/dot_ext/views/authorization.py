@@ -997,11 +997,11 @@ class TokenView(DotTokenView):
 
                 if allow_client_credentials_call:
                     # since we're not getting the user info from SLS, don't return openid scope in this flow
-                    scopes = request.POST.get('scope', '').split()
-                    if 'openid' in scopes:
+                    scopes = request.POST.get("scope", "").split()
+                    if 'openid' in scopes or 'launch/patient' in scopes:
                         request.POST._mutable = True
                         request.POST['scope'] = ' '.join(
-                            s for s in scopes if s != 'openid'
+                            s for s in scopes if s != 'openid' and s != 'launch/patient'
                         )
                         request.POST._mutable = False
 
