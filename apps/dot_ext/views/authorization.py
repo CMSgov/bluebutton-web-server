@@ -795,18 +795,22 @@ class TokenView(DotTokenView):
 
                 # TODO: combine iss and jti for cache + not allowed duplicates
 
-                # TODO: this will be added back in in the future after a standard is established
-                # if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-                #     log.warning('JWT is older than 5 minutes (iat)')
-                #     raise InvalidRequestError
+                if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
+                    log.warning('JWT is older than 5 minutes (iat)')
+                    raise InvalidRequestError
 
-                # if payload.get('identity_assurance_level') != 2:
-                #     log.warning(f'identity_assurance_level was invalid: {payload.get('identity_assurance_level')}')
-                #     raise InvalidRequestError
+                if payload.get('identity_assurance_level') != 2:
+                    log.warning(
+                        f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}'
+                    )
+                    raise InvalidRequestError
 
-                # if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 86400:
-                #     log.warning('JWT was authorized older than 24 hours (auth_time)')
-                #     raise InvalidRequestError
+                if (
+                    datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
+                    > 86400
+                ):
+                    log.warning('JWT was authorized older than 24 hours (auth_time)')
+                    raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('family_name')):
                     log.warning(
