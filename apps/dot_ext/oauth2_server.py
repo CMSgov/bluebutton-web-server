@@ -30,7 +30,7 @@ def my_token_expires_in(request):
     # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
     # or one hour if the one_hour_token_expiry switch is active
     if expires_in is None:
-        if switch_is_active("one_hour_token_expiry"):
+        if switch_is_active("one_hour_token_expiry") or (grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS):
             one_hour_delta = timedelta(hours=1)
             seconds_in_one_hour = int(one_hour_delta.total_seconds())
             expires_in = seconds_in_one_hour

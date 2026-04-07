@@ -1,4 +1,5 @@
 import re
+from apps.constants import LAUNCH_SCOPE, OPENID_SCOPE
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = ('(^/v[1|2|3]/o/authorize/.*'
@@ -83,15 +84,15 @@ V2_SCOPES_ALL = [
     'patient/Coverage.r',
     'patient/Coverage.s',
     'patient/Coverage.rs',
-    'launch/patient',
-    'openid'
+    LAUNCH_SCOPE,
+    OPENID_SCOPE
 ]
 V2_SCOPES_ALL_CONDENSED = [
     'patient/Patient.rs',
     'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.rs',
-    'launch/patient',
-    'openid'
+    LAUNCH_SCOPE,
+    OPENID_SCOPE
 ]
 V2_SCOPES_NON_DEMOGRAPHIC = [
     'patient/ExplanationOfBenefit.r',
@@ -100,14 +101,14 @@ V2_SCOPES_NON_DEMOGRAPHIC = [
     'patient/Coverage.r',
     'patient/Coverage.s',
     'patient/Coverage.rs',
-    'launch/patient',
-    'openid'
+    LAUNCH_SCOPE,
+    OPENID_SCOPE
 ]
 V2_SCOPES_NON_DEMOGRAPHIC_CONDENSED = [
     'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.rs',
-    'launch/patient',
-    'openid'
+    LAUNCH_SCOPE,
+    OPENID_SCOPE
 ]
 
 # Scope to base URL PATH mapping.
