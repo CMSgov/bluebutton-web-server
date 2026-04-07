@@ -747,45 +747,52 @@ class TokenView(DotTokenView):
             ))
 
         gender_map = {"f": "female", "m": "male", "o": "other", "u": "unknown"}
-        patient_gender = gender_map.get(payload.get("gender", "u"))
+        gender = payload.get("gender", "u").lower()
+        patient_gender = gender_map.get(gender[0], "unknown")
 
         patient_birthdate = payload.get('birthdate')
 
         addresses = []
-        if (home := payload.get('address')):
+        if (home := payload.get("address")) and home.get("street_address"):
             street_address = home.get('street_address')
 
             address_parts = f'{street_address} {home.get('locality')} {home.get('region')} {home.get('postal_code')}'
             street = normalize_street_addresss(address_parts)
 
-            addresses.append(Address(
-                use='home',
-                type='both',
-                text=street,
-                line=[street_address] if street_address else None,
-                city=home.get('locality'),
-                state=home.get('region'),
-                postalCode=home.get('postal_code'),
-                country=home.get('country')
-            ))
+            if street:
+                addresses.append(
+                    Address(
+                        use="home",
+                        type="both",
+                        text=street,
+                        line=[street_address],
+                        city=home.get("locality"),
+                        state=home.get("region"),
+                        postalCode=home.get("postal_code"),
+                        country=home.get("country"),
+                    )
+                )
 
         for historical in payload.get('historical_address', []):
-            street_address = historical.get('street_address')
+            if not (street_address := historical.get("street_address")):
+                continue
 
-            address_parts = f'{street_address} {historical.get('locality')} \
-                {historical.get('region')} {historical.get('postal_code')}'
+            address_parts = f"{street_address} {historical.get('locality', '')} {historical.get('region', '')} {historical.get('postal_code', '')}"
             street = normalize_street_addresss(address_parts)
 
-            addresses.append(Address(
-                use='old',
-                type='both',
-                text=street,
-                line=[street_address] if street_address else None,
-                city=historical.get('locality'),
-                state=historical.get('region'),
-                postalCode=historical.get('postal_code'),
-                country='US'
-            ))
+            if street:
+                addresses.append(
+                    Address(
+                        use="old",
+                        type="both",
+                        text=street,
+                        line=[street_address],
+                        city=historical.get("locality"),
+                        state=historical.get("region"),
+                        postalCode=historical.get("postal_code"),
+                        country="US",
+                    )
+                )
 
         identifiers = []
         if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) == 4:
