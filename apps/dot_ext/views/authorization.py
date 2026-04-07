@@ -136,8 +136,11 @@ def require_post_state_decorator(view_func):
         if request.method == 'POST' and rm and 'uuid' not in getattr(rm, 'kwargs', {}):
             if not request.POST.get('state'):
                 return JsonResponse(
-                    {'status_code': 401, 'message': 'State required in POST body.'},
-                    status=401,
+                    {
+                        'status_code': HTTPStatus.UNAUTHORIZED,
+                        'message': 'State required in POST body.',
+                    },
+                    status=HTTPStatus.UNAUTHORIZED,
                 )
         return view_func(request, *args, **kwargs)
 
@@ -186,7 +189,8 @@ class AuthorizationView(DotAuthorizationView):
         elif len(request.GET.get('state', None)) < 16:
             error_message = 'State parameter should have a minimum of 16 characters'
             return JsonResponse(
-                {'status_code': 400, 'message': error_message}, status=400
+                {'status_code': HTTPStatus.BAD_REQUEST, 'message': error_message},
+                status=HTTPStatus.BAD_REQUEST,
             )
 
         # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
@@ -198,10 +202,10 @@ class AuthorizationView(DotAuthorizationView):
         if missing_params:
             return JsonResponse(
                 {
-                    'status_code': 400,
+                    'status_code': HTTPStatus.BAD_REQUEST,
                     'message': f'Missing Required Parameter(s): {", ".join(missing_params)}',
                 },
-                status=400,
+                status=HTTPStatus.BAD_REQUEST,
             )
         else:
             return None
@@ -226,8 +230,8 @@ class AuthorizationView(DotAuthorizationView):
                 self.validate_v3_authorization_request()
             except AccessDeniedError as e:
                 return JsonResponse(
-                    {'status_code': 403, 'message': str(e)},
-                    status=403,
+                    {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
+                    status=HTTPStatus.FORBIDDEN,
                 )
 
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
@@ -500,8 +504,8 @@ class ApprovalView(AuthorizationView):
         # BB2-4326: If we do not receive a valid uuid in the authorize call, throw a 404
         if not self.is_valid_uuid(uuid):
             return JsonResponse(
-                {'status_code': 404, 'message': 'Not found.'},
-                status=404,
+                {'status_code': HTTPStatus.NOT_FOUND, 'message': 'Not found.'},
+                status=HTTPStatus.NOT_FOUND,
             )
 
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
@@ -534,7 +538,8 @@ class ApprovalView(AuthorizationView):
             and 'invalid_scope' in result.headers['Location']
         ):
             return JsonResponse(
-                {'status_code': 400, 'message': 'Invalid scopes.'}, status=400
+                {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Invalid scopes.'},
+                status=HTTPStatus.BAD_REQUEST,
             )
 
         if hasattr(self, 'oauth2_data'):
@@ -658,10 +663,10 @@ class TokenView(DotTokenView):
         if missing_params:
             return JsonResponse(
                 {
-                    'status_code': 400,
+                    'status_code': HTTPStatus.BAD_REQUEST,
                     'message': f'Missing Required Parameter(s): {", ".join(missing_params)}',
                 },
-                status=400,
+                status=HTTPStatus.BAD_REQUEST,
             )
 
         if (
@@ -780,7 +785,8 @@ class TokenView(DotTokenView):
                             'jti',
                             'exp',
                             'iat',
-                            # 'identity_assurance_level', 'auth_time',
+                            'identity_assurance_level',
+                            'auth_time',
                             'family_name',
                             'given_name',
                             'birthdate',
@@ -1096,7 +1102,7 @@ class TokenView(DotTokenView):
                     )
                     return JsonResponse(
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
-                        status=403,
+                        status=HTTPStatus.FORBIDDEN,
                     )
             elif (
                 grant_type == 'authorization_code'
@@ -1115,7 +1121,7 @@ class TokenView(DotTokenView):
         except AccessDeniedError as e:
             return JsonResponse(
                 {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
-                status=403,
+                status=HTTPStatus.FORBIDDEN,
             )
 
         url, headers, body, status = self.create_token_response(request)
