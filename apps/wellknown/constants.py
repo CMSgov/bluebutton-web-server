@@ -1,3 +1,5 @@
+from apps.constants import LAUNCH_SCOPE, OPENID_SCOPE
+
 CAPABILITIES = [
     'client-confidential-symmetric',
     'context-standalone-patient',
@@ -11,9 +13,9 @@ CAPABILITIES = [
 CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
 
 SCOPES_SUPPORTED = [
-    'openid',
+    OPENID_SCOPE,
     'profile',
-    'launch/patient',
+    LAUNCH_SCOPE,
     'patient/Patient.read',
     'patient/ExplanationOfBenefit.read',
     'patient/Coverage.read',
