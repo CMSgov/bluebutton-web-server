@@ -48,10 +48,10 @@ class DataAccessGrant(models.Model):
             ) + relativedelta(months=+13)
             self.save()
 
-    def update_expiration_date_one_day(self) -> None:
+    def update_expiration_date_one_hour(self) -> None:
         self.expiration_date = datetime.now().replace(
             tzinfo=pytz.UTC
-        ) + relativedelta(hours=+24)
+        ) + relativedelta(hours=+1)
         self.save()
 
     def has_expired(self):
@@ -121,7 +121,7 @@ def create_or_update_data_access_grant_client_credential_flow(user, application)
         beneficiary=user,
         application=application,
     )
-    data_access_grant.update_expiration_date_one_day()
+    data_access_grant.update_expiration_date_one_hour()
     return data_access_grant
 
 

@@ -376,6 +376,7 @@ class TestTokenResponseFields(BaseApiTest):
             "family_name": "Smith",
             "given_name": "John",
             "birthdate": "1970-01-01",
+            "gender": "Male",
         }
 
         # Mock patient match result
