@@ -2,6 +2,13 @@ import os
 from enum import Enum
 import http.client
 from selenium.webdriver.common.by import By
+from apps.constants import (
+    COVERAGE_SCOPE,
+    PATIENT_SCOPE,
+    EOB_SCOPE,
+    OPENID_SCOPE,
+    LAUNCH_SCOPE
+)
 
 
 '''
@@ -966,11 +973,6 @@ ES_ES = "es_es"
 
 # v2 SMART APP scope constants
 X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
-COVERAGE_SCOPE = "patient/Coverage.rs"
-PATIENT_SCOPE = "patient/Patient.rs"
-EOB_SCOPE = "patient/ExplanationOfBenefit.rs"
-OPENID_SCOPE = "openid"
-LAUNCH_SCOPE = "launch/patient"
 
 # New login screen upon clicking Authorize as a Beneficiary button on TestClient home page
 X_PATH_FOR_MEDICARE_LOGIN = '//*[@id="App"]/div/div[5]/button/div/div[2]/h2'

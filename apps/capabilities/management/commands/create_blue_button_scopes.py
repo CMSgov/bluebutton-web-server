@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES
 from apps.capabilities.models import ProtectedCapability
 
-from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.constants import HHS_SERVER_LOGNAME_FMT, LAUNCH_SCOPE, OPENID_SCOPE
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -45,7 +45,7 @@ def create_openid_capability(group, title='Openid profile permissions.'):
     # Currently inert, but should be required with profile for profile information
     c = None
     description = 'Enables user authentication and provides a unique identifier with basic profile info.'
-    scope_string = 'openid'
+    scope_string = OPENID_SCOPE
     pr = []
 
     if not ProtectedCapability.objects.filter(slug=scope_string).exists():
@@ -269,7 +269,7 @@ def create_launch_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title
 
     c = None
     description = 'Launch with FHIR Patient context.'
-    smart_scope_string = 'launch/patient'
+    smart_scope_string = LAUNCH_SCOPE
     pr = []
 
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():

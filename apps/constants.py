@@ -104,6 +104,12 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
     ],
 }
 
+COVERAGE_SCOPE = "patient/Coverage.rs"
+PATIENT_SCOPE = "patient/Patient.rs"
+EOB_SCOPE = "patient/ExplanationOfBenefit.rs"
+OPENID_SCOPE = "openid"
+LAUNCH_SCOPE = "launch/patient"
+
 OPERATION_OUTCOME = 'OperationOutcome'
 
 USER_TYPE_BENEFICIARY = 'BEN'
