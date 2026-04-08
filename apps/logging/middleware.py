@@ -71,9 +71,9 @@ class ITSLogAPIMiddleware:
         try:
             # print('about to post')
             middleware_result = requests.post(
-                "http://host.docker.internal:8888/v1/log",
-                headers={"x-api-key": "12345678901234561234567890123456"},
-                # headers={"x-api-key", "1234567890123456123456789012345612345678901234561234567890123456"},
+                "http://host.docker.internal:8888/v1/log/create",
+                # headers={"x-api-key": "12345678901234561234567890123456"},
+                headers={"x-api-key", "1234567890123456123456789012345612345678901234561234567890123456"},
                 json={
                     # "source": "my-django-app",
                     "tags": self._build_tags(request),
