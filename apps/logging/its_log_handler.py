@@ -5,7 +5,7 @@ from typing import Any, Dict
 import requests
 import uuid
 
-TYPES_TO_SKIP = ['slsx_token', 'slsx_userinfo']
+TYPES_TO_SKIP = ['fhir_post_fetch', 'fhir_pre_fetch', 'fhir_auth_post_fetch']
 # Other possibilities:
 # auth_app_data_access_type, auth_app_id, path, req_grant_Type,
 ACCEPTED_LOG_KEYS = [
@@ -43,27 +43,18 @@ class ITSLogAPIHandler(logging.Handler):
     API_KEY = "1234567890123456123456789012345612345678901234561234567890123456"
 
     def emit(self, record):
-        print("RECORD CHECK INITIAL: ", record.__dict__)
-
         log_message = self.parse_log_message(record.__dict__)
-        print("type check big dog: ", log_message.get('type'))
-        # if (
-        #     log_message.get('type') not in GRAB_FHIR_ID_FROM_USER_CROSSWALK
-        #     and log_message.get('type') not in GRAB_FHIR_ID_FROM_CROSSWALK
-        # ):
-        #     print("not a log type to post to ITS-log")
-        #     return
+        if log_message.get('type') in TYPES_TO_SKIP or 'testclient' in log_message.get('path', ''):
+            return
+
         cluster_uuid = str(uuid.uuid4())
         updated_log_message = self._format_log_message(log_message)
         app_id = getattr(record, 'application_id', None)
-        print("app_id: ", app_id)
 
         for key, value in updated_log_message.items():
-            print("key/val in loop: ", key, value)
             if key in ACCEPTED_LOG_KEYS:
                 payload = self._build_payload(key, value, app_id)
                 payload['cluster'] = cluster_uuid
-                print("payload: ", payload)
                 threading.Thread(
                     target=self._post_to_api,
                     args=(payload,),
@@ -97,7 +88,6 @@ class ITSLogAPIHandler(logging.Handler):
     def _format_log_message(self, log_message: Dict[str, Any]) -> Dict[str, Any]:
         if log_message.get('type'):
             if log_message.get('type') in GRAB_FHIR_ID_FROM_USER_CROSSWALK:
-                print("what was the type: ", log_message.get('type'))
                 log_message['fhir_id_v2'] = log_message.get('user').get('crosswalk').get('fhir_id_v2')
                 log_message['fhir_id_v3'] = log_message.get('user').get('crosswalk').get('fhir_id_v3')
             elif log_message.get('type') in GRAB_FHIR_ID_FROM_CROSSWALK:
@@ -114,7 +104,6 @@ class ITSLogAPIHandler(logging.Handler):
         return log_message
 
     def _post_to_api(self, payload):
-        print("WHAT ARE WE POSTING: ", payload)
         try:
             response = requests.post(
                 self.API_URL,
@@ -122,9 +111,7 @@ class ITSLogAPIHandler(logging.Handler):
                 json=payload,
                 timeout=2
             )
-            print("WHAT IS THE RESPONSE: ", response.text)
             return response
-        except Exception as e:
-            print("ERROR FROM ITS-LOG handler 1217: ", e)
+        except Exception:
             # Do not let ITS-log failures crash BlueButton
             pass
