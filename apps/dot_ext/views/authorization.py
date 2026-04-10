@@ -1014,7 +1014,7 @@ class TokenView(DotTokenView):
                             s for s in scopes if s != OPENID_SCOPE
                         )
                         request.POST._mutable = False
-                    print("what are the scopes now 22: ", request.POST)
+
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(
                         f'client_credentials token call was made for app: {app.name}'
@@ -1089,7 +1089,6 @@ class TokenView(DotTokenView):
                             )
                     except Exception as e:
                         log.error(f'Error validating jwt: {type(e)}')
-                        log.error(f'Error was : {str(e)}')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
