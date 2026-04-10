@@ -26,7 +26,8 @@ ENV VENVPATH="${BASE}/venv"
 # path we have to bring into the environment.
 ENV BOTONBIN="${VENVPATH}/bin"
 # We run nginx in front of the app for HTTPS termination.
-EXPOSE ${GUNICORN_PORT}
+ENV PORT=8000
+EXPOSE ${PORT}
 
 # shadow-utils: for useradd
 RUN dnf install -y \
