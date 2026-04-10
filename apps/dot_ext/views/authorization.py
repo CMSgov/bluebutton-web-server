@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
@@ -720,7 +721,11 @@ class TokenView(DotTokenView):
                     log.warning('Malformed JWT')
                     raise InvalidRequestError
 
-                # TODO: combine iss and jti for cache + not allowed duplicates
+                if not cache.add(
+                    f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300
+                ):
+                    log.warning('jti/iss combo replay')
+                    raise InvalidRequestError
 
                 # payload
                 if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
@@ -804,7 +809,11 @@ class TokenView(DotTokenView):
                     log.warning('Malformed header / payload')
                     raise InvalidRequestError
 
-                # TODO: combine iss and jti for cache + not allowed duplicates
+                if not cache.add(
+                    f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300
+                ):
+                    log.warning('jti/iss combo replay')
+                    raise InvalidRequestError
 
                 if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
                     log.warning('JWT is older than 5 minutes (iat)')
