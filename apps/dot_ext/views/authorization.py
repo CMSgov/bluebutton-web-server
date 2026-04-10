@@ -64,7 +64,6 @@ from apps.constants import (
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
-    LAUNCH_SCOPE,
     OPENID_SCOPE,
     USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
 )
@@ -1009,10 +1008,10 @@ class TokenView(DotTokenView):
                 if allow_client_credentials_call:
                     # since we're not getting the user info from SLS, don't return openid scope in this flow
                     scopes = request.POST.get('scope', '').split()
-                    if OPENID_SCOPE in scopes or LAUNCH_SCOPE in scopes:
+                    if OPENID_SCOPE in scopes:
                         request.POST._mutable = True
                         request.POST['scope'] = ' '.join(
-                            s for s in scopes if s != OPENID_SCOPE and s != LAUNCH_SCOPE
+                            s for s in scopes if s != OPENID_SCOPE
                         )
                         request.POST._mutable = False
 
