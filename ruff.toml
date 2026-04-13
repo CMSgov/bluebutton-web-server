@@ -16,8 +16,8 @@ indent-width = 4
 target-version = "py312"
 
 [lint]
-select = ["E", # Default PEP8 and Pyflakes
-          "F", # Default PEP8 and Pyflakes.
+select = ["E", # pycodestyle
+          "F", # Pyflakes
           "W",
           "B", # flake8-bugbear - highly recommended for finding likely bugs.
           "UP", # pyupgrade - upgrades syntax for newer Python versions.
@@ -30,8 +30,6 @@ ignore = ["F403",
           "E111", # Indentation with invalid multiple, handled by formatter
           "E114", # Indentation with invalid multiple, in comments handled by formatter
           "E117", # Over-indented code, handled by formatter
-          "D206", # Doc-string tab indentation, handled by formatter
-          "D300", # Triple Single Quotes, handled by formatter
           "Q000", # Bad Quotes in inline strings, handled by formatter
           "Q001", # Bad Quotes in multiline strings, handled by formatter
           "Q002", # Bad Quotes in  docstrings, handled by formatter
@@ -43,10 +41,12 @@ ignore = ["F403",
           "ISC002", # Multi-line implicit string concatenation, handled by formatter
           "D203", # One blank line before class, handled by formatter
           "E501", # Line too long, handled by formatter
-          ] # Same as codebase, having issues with including W503
+          ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
+# Do not automatically fix unsafe fixes
+unsafe-fixes = false
 unfixable = []
 
 # Allow unused variables when underscore-prefixed.
