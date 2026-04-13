@@ -54,6 +54,8 @@ gonogo "run_socat_locally"
 #
 # Must come after socat, so we can talk to the s3mock.
 possibly_migrate_or_collectstatic_if_local
+# Setup the database and users.
+setup_database_and_users
 
 # ========== BFD ==========
 # We need certs to talk to BFD. These are grabbed
