@@ -1,6 +1,6 @@
 # Exclude a variety of commonly ignored directories.
 exclude = [
-	"migrations",
+	"*/migrations/*",
 	"docs",
 	"examples",
 	"static",
@@ -9,38 +9,31 @@ exclude = [
 	"*/management/*"
 ]
 
-line-length = 130
+line-length = 120
 indent-width = 4
 
-# Assume Python 3.12
+# Python 3.12
 target-version = "py312"
 
 [lint]
-select = ["E", # pycodestyle
+# These are recommended by Ruff documentation: https://docs.astral.sh/ruff/linter/
+select = [
+          "E", # pycodestyle errors
           "F", # Pyflakes
-          "W",
+          "W", # pycodestyle warnings
           "B", # flake8-bugbear - highly recommended for finding likely bugs.
           "UP", # pyupgrade - upgrades syntax for newer Python versions.
           "SIM", # flake8-simplify - simplifies code structures
           "I" # isort - sorts imports
           ]
-ignore = ["F403", 
+ignore = [
+          "F403", 
           "F405",
           "W191", # Tab indentation, handled by formatter
           "E111", # Indentation with invalid multiple, handled by formatter
           "E114", # Indentation with invalid multiple, in comments handled by formatter
           "E117", # Over-indented code, handled by formatter
-          "Q000", # Bad Quotes in inline strings, handled by formatter
-          "Q001", # Bad Quotes in multiline strings, handled by formatter
-          "Q002", # Bad Quotes in  docstrings, handled by formatter
-          "Q003", # Avoidable escaped quotes, handled by formatter
-          "Q004", # Unnecessary escaped quotes, handled by formatter
-          "COM812", # Missing trailing comma, handled by formatter
-          "COM819", # Prohibited trailing comma, handled by formatter
-          "ISC001", # Single-line implicit string concatenation (may conflict with formatter's quote handling).
-          "ISC002", # Multi-line implicit string concatenation, handled by formatter
-          "D203", # One blank line before class, handled by formatter
-          "E501", # Line too long, handled by formatter
+          "E501" # Line too long, handled by formatter
           ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -48,9 +41,6 @@ fixable = ["ALL"]
 # Do not automatically fix unsafe fixes
 unsafe-fixes = false
 unfixable = []
-
-# Allow unused variables when underscore-prefixed.
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [format]
 # Like Black, use double quotes for strings.
@@ -64,17 +54,3 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
-
-# Enable auto-formatting of code examples in docstrings. Markdown,
-# reStructuredText code/literal blocks and doctests are all supported.
-#
-# This is currently disabled by default, but it is planned for this
-# to be opt-out in the future.
-docstring-code-format = true
-
-# Set the line length limit used when formatting code snippets in
-# docstrings.
-#
-# This only has an effect when the `docstring-code-format` setting is
-# enabled.
-docstring-code-line-length = "dynamic"
