@@ -460,6 +460,92 @@ class TestTokenResponseFields(BaseApiTest):
 
 
 class TestTokenPrivateMethods(BaseApiTest):
+    def setUp(self):
+        super().setUp()
+        self.mock_jwks_client = MagicMock()
+        self.mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+        self.token_view = TokenView()
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_authorization_jwt_success(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_authorization_jwt succeeds on first cache hit"""
+
+        mock_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_authorization_jwt_cache_success',
+            'sub': 'test_iss',
+            'exp': datetime.datetime.now().timestamp(),
+            'extensions': {
+                'cms_smart': {
+                    'version': '1',
+                    'purpose_of_use': 'PATRQT',
+                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                }
+            },
+        }
+        mock_decode_complete.return_value = {
+            'payload': mock_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        result = self.token_view._validate_authorization_jwt(
+            'token', 'test_iss', self.mock_jwks_client
+        )
+        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get(
+            'id_token'
+        )
+
+        # Assert cache has the key we'd expect and that the result is what we'd expect
+        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+        assert cache.get(cache_key) == 'sentinel'
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_authorization_jwt_cache_replay(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_authorization_jwt succeeds on first cache hit"""
+
+        mock_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_authorization_jwt_cache_replay',
+            'sub': 'test_iss',
+            'exp': datetime.datetime.now().timestamp(),
+            'extensions': {
+                'cms_smart': {
+                    'version': '1',
+                    'purpose_of_use': 'PATRQT',
+                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                }
+            },
+        }
+        mock_decode_complete.return_value = {
+            'payload': mock_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        result = self.token_view._validate_authorization_jwt(
+            'token', 'test_iss', self.mock_jwks_client
+        )
+        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get(
+            'id_token'
+        )
+
+        # Assert cache has the key we'd expect and that the result is what we'd expect
+        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+        assert cache.get(cache_key) == 'sentinel'
+
+        # Second call with same jti/iss fails
+        with pytest.raises(InvalidRequestError):
+            self.token_view._validate_authorization_jwt(
+                'token', 'test_iss', self.mock_jwks_client
+            )
+
     @override_switch('client_credentials_validation', active=True)
     @patch('jwt.decode_complete')
     def test_validate_ial_jwt_success(
@@ -467,13 +553,10 @@ class TestTokenPrivateMethods(BaseApiTest):
         mock_decode_complete,
     ):
         """Test _validate_ial_jwt succeeds on first call (cache accepts)."""
-        mock_jwks_client = MagicMock()
-        mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
 
-        token_view = TokenView()
         mock_payload = {
             'iss': 'test_iss',
-            'jti': 'test_jti',
+            'jti': 'test_validate_ial_jwt_cache_success',
             'iat': datetime.datetime.now().timestamp(),
             'identity_assurance_level': 2,
             'family_name': 'Doe',
@@ -486,27 +569,24 @@ class TestTokenPrivateMethods(BaseApiTest):
         }
 
         # Call succeeds
-        result = token_view._validate_ial_jwt('token', mock_jwks_client)
+        result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+        assert result == mock_payload
 
         # Assert cache has the key we'd expect and that the result is what we'd expect
-        assert result == mock_payload
         cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
         assert cache.get(cache_key) == 'sentinel'
 
     @override_switch('client_credentials_validation', active=True)
     @patch('jwt.decode_complete')
-    def test_validate_ial_jwt_cache_replay_detected(
+    def test_validate_ial_jwt_cache_replay(
         self,
         mock_decode_complete,
     ):
         """Test _validate_ial_jwt fails on second call with same jti (replay detected)."""
-        mock_jwks_client = MagicMock()
-        mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
 
-        token_view = TokenView()
         mock_payload = {
             'iss': 'test_iss',
-            'jti': 'test_jti_2',
+            'jti': 'test_validate_ial_jwt_cache_replay',
             'iat': datetime.datetime.now().timestamp(),
             'identity_assurance_level': 2,
             'family_name': 'Doe',
@@ -519,7 +599,7 @@ class TestTokenPrivateMethods(BaseApiTest):
         }
 
         # First call succeeds
-        token_view._validate_ial_jwt('token', mock_jwks_client)
+        self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
 
         # Assert cache contains expected key
         cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
@@ -527,4 +607,4 @@ class TestTokenPrivateMethods(BaseApiTest):
 
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
-            token_view._validate_ial_jwt('token', mock_jwks_client)
+            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
