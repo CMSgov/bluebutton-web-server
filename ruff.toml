@@ -16,11 +16,13 @@ indent-width = 4
 target-version = "py312"
 
 [lint]
-# Enable Pyflakes (`F`) and pycodestyle (`E`, `W`) codes by default.
-select = ["E", 
-          "F", 
+select = ["E", # Default PEP8 and Pyflakes
+          "F", # Default PEP8 and Pyflakes.
           "W",
-          "B" # flake8-bugbear
+          "B", # flake8-bugbear - highly recommended for finding likely bugs.
+          "UP", # pyupgrade - upgrades syntax for newer Python versions.
+          "SIM", # flake8-simplify - simplifies code structures
+          "I" # isort - sorts imports
           ]
 ignore = ["F403", 
           "F405",
