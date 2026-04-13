@@ -28,10 +28,9 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertContains(
-            response, reverse('oauth2_provider_v2:token-v2'))
+        self.assertContains(response, reverse('oauth2_provider_v2:token-v2'))
         self.assertContains(response, reverse('openid_connect_userinfo_v2'))
-        self.assertContains(response, "response_types_supported")
+        self.assertContains(response, 'response_types_supported')
         self.assertContains(response, getattr(settings, 'HOSTNAME_URL'))
         response_content = response.content
         response_content = str(response_content, encoding='utf8')
@@ -45,20 +44,18 @@ class SmartConfigurationV3TestCase(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.url = reverse("smart_configuration_v3")
+        self.url = reverse('smart_configuration_v3')
 
-    @override_switch("v3_endpoints", active=True)
+    @override_switch('v3_endpoints', active=True)
     def test_v3_config_fields(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         data = response.json()
 
-        self.assertIn(CLIENT_CREDENTIALS, data.get("grant_types_supported", []))
-        self.assertIn(CLIENT_CONFIDENTIAL_ASYMMETRIC, data.get("capabilities", []))
+        self.assertIn(CLIENT_CREDENTIALS, data.get('grant_types_supported', []))
+        self.assertIn(CLIENT_CONFIDENTIAL_ASYMMETRIC, data.get('capabilities', []))
+        self.assertEqual(data.get('token_endpoint_auth_methods_supported'), [PRIVATE_KEY_JWT])
         self.assertEqual(
-            data.get("token_endpoint_auth_methods_supported"), [PRIVATE_KEY_JWT]
-        )
-        self.assertEqual(
-            data.get("token_endpoint_auth_signing_alg_values_supported"),
+            data.get('token_endpoint_auth_signing_alg_values_supported'),
             CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
         )

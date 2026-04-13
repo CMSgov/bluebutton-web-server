@@ -17,7 +17,6 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 # custom_storages
 class StaticStorage(S3Boto3Storage):
-
     location = settings.STATICFILES_LOCATION
 
     def _clean_name(self, name):
@@ -30,7 +29,6 @@ class StaticStorage(S3Boto3Storage):
 
 # media storages
 class MediaStorage(S3Boto3Storage):
-
     location = settings.MEDIAFILES_LOCATION
 
     def _clean_name(self, name):

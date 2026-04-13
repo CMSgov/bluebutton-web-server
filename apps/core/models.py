@@ -2,7 +2,8 @@ from waffle.models import AbstractUserFlag
 
 
 class Flag(AbstractUserFlag):
-    """ Custom version of waffle feature Flag model """
+    """Custom version of waffle feature Flag model"""
+
     """ This makes future extensions nicer """
 
     def is_active_for_user(self, user):

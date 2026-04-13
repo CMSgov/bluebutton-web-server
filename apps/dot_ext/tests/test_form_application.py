@@ -12,8 +12,7 @@ from apps.dot_ext.admin import CustomAdminApplicationForm
 
 class TestRegisterApplicationForm(BaseApiTest):
     def test_update_form_edit(self):
-        """
-        """
+        """ """
         read_group = self._create_group('read')
         self._create_capability('Read-Scope', [], read_group)
         # create user and add it to the read group
@@ -54,19 +53,19 @@ class TestRegisterApplicationForm(BaseApiTest):
         data = {'name': 'BB2-1666-test-app w trade mark®'}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
+        self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
 
         # Test form with invalid app name has error (app name contains en dashes).
         data = {'name': 'BB2–2993–en–dash'}
         form = CreateNewApplicationForm(data)  # don't include user, this form auto creates one
         form.is_valid()
-        self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
+        self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
 
         # Test form with invalid app name has error (app name contains em dashes).
         data = {'name': 'BB2—2993—em—dash'}
         form = CreateNewApplicationForm(data)
         form.is_valid()
-        self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
+        self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
 
         # Test form with website_uri valid URI.
         data = {'website_uri': 'https://www.example.org'}
@@ -134,13 +133,10 @@ class TestRegisterApplicationForm(BaseApiTest):
 
         # Testing valid logo_image with max dimensions
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
-                          int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
         image.save(file, 'jpeg')
         file.seek(0)
-        image = InMemoryUploadedFile(
-            file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None
-        )
+        image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
@@ -149,13 +145,10 @@ class TestRegisterApplicationForm(BaseApiTest):
 
         # Testing logo_image exceeding max width
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1,
-                          int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
         image.save(file, 'jpeg')
         file.seek(0)
-        image = InMemoryUploadedFile(
-            file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None
-        )
+        image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
@@ -168,13 +161,10 @@ class TestRegisterApplicationForm(BaseApiTest):
 
         # Testing logo_image exceeding max height
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
-                          int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red')
+        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red')
         image.save(file, 'jpeg')
         file.seek(0)
-        image = InMemoryUploadedFile(
-            file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None
-        )
+        image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
@@ -190,9 +180,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         image = Image.new('RGB', size=(50, 50), color='red')
         image.save(file, 'png')
         file.seek(0)
-        image = InMemoryUploadedFile(
-            file, None, 'test.png', 'image/png', len(file.getvalue()), None
-        )
+        image = InMemoryUploadedFile(file, None, 'test.png', 'image/png', len(file.getvalue()), None)
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
@@ -239,21 +227,23 @@ class TestRegisterApplicationForm(BaseApiTest):
         self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
 
         # Base set of passing data fields
-        passing_app_fields = {'name': 'john_app_new',
-                              'client_type': 'confidential',
-                              'authorization_grant_type': 'authorization-code',
-                              'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
-                              'logo_uri': '',
-                              'logo_image': '',
-                              'website_uri': '',
-                              'description': '',
-                              'policy_uri': '',
-                              'tos_uri': '',
-                              'support_email': '',
-                              'support_phone_number': '',
-                              'contacts': '',
-                              'require_demographic_scopes': True,
-                              'agree': True}
+        passing_app_fields = {
+            'name': 'john_app_new',
+            'client_type': 'confidential',
+            'authorization_grant_type': 'authorization-code',
+            'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
+            'logo_uri': '',
+            'logo_image': '',
+            'website_uri': '',
+            'description': '',
+            'policy_uri': '',
+            'tos_uri': '',
+            'support_email': '',
+            'support_phone_number': '',
+            'contacts': '',
+            'require_demographic_scopes': True,
+            'agree': True,
+        }
 
         # Test that passing_app_fields are OK/valid.
         form = CustomRegisterApplicationForm(user, passing_app_fields)
@@ -268,9 +258,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         """
         file.write(test_svg)
         file.seek(0)
-        image = InMemoryUploadedFile(
-            file, None, 'test.svg', 'image/svg+xml', len(file.getvalue()), None
-        )
+        image = InMemoryUploadedFile(file, None, 'test.svg', 'image/svg+xml', len(file.getvalue()), None)
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
@@ -286,9 +274,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         image = Image.new('RGB', size=(550, 550), color='red')
         image.save(file, 'png')
         file.seek(0)
-        image = InMemoryUploadedFile(
-            file, None, 'test.png', 'image/png', len(file.getvalue()), None
-        )
+        image = InMemoryUploadedFile(file, None, 'test.png', 'image/png', len(file.getvalue()), None)
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)

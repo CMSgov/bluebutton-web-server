@@ -39,21 +39,15 @@ from urllib.parse import urlparse
 from waffle import switch_is_active
 
 
-ONE_HOUR = _("for 1 hour")
-TEN_HOURS = _("for 10 hours")
-THIRTEEN_MONTHS = _("for 13 months, until ")
+ONE_HOUR = _('for 1 hour')
+TEN_HOURS = _('for 10 hours')
+THIRTEEN_MONTHS = _('for 13 months, until ')
 
 
 class InternalApplicationLabels(models.Model):
-    label = models.CharField(max_length=255,
-                             default='',
-                             unique=True)
-    slug = models.CharField(max_length=1024,
-                            default='',
-                            unique=True)
-    description = models.TextField(max_length=10240,
-                                   blank=True,
-                                   default='')
+    label = models.CharField(max_length=255, default='', unique=True)
+    slug = models.CharField(max_length=1024, default='', unique=True)
+    description = models.TextField(max_length=10240, blank=True, default='')
 
     def __str__(self):
         return self.label
@@ -69,8 +63,8 @@ class InternalApplicationLabels(models.Model):
 class InternalApplicationLabelsProxy(InternalApplicationLabels):
     class Meta:
         proxy = True
-        verbose_name = "Internal Category"
-        verbose_name_plural = "Internal Categories"
+        verbose_name = 'Internal Category'
+        verbose_name_plural = 'Internal Categories'
 
 
 class Application(AbstractApplication):
@@ -79,96 +73,92 @@ class Application(AbstractApplication):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
-    op_policy_uri = models.CharField(default="", blank=True, max_length=512)
+    op_policy_uri = models.CharField(default='', blank=True, max_length=512)
     # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
     # where the client_secret is hashed ireversible
-    client_secret_plain = models.CharField(default="", blank=True, max_length=255)
+    client_secret_plain = models.CharField(default='', blank=True, max_length=255)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
     client_uri = models.URLField(
-        default="",
+        default='',
         blank=True,
         null=True,
         max_length=512,
-        verbose_name="Client URI",
-        help_text="This is typically a home/download website for the application. "
-        "For example, https://www.example.org or http://www.example.org .",
+        verbose_name='Client URI',
+        help_text='This is typically a home/download website for the application. '
+        'For example, https://www.example.org or http://www.example.org .',
     )
 
     website_uri = models.URLField(
-        default="",
+        default='',
         blank=True,
         null=True,
         max_length=512,
-        verbose_name="Website URI",
-        help_text="This is typically a home/download website for the application. "
-        "For example, https://www.example.org or http://www.example.org .",
+        verbose_name='Website URI',
+        help_text='This is typically a home/download website for the application. '
+        'For example, https://www.example.org or http://www.example.org .',
     )
 
     help_text = _(
-        "Multiple redirect URIs can"
-        " be separated by a space or on"
-        " a separate line. Read more"
-        " about implementing redirect"
-        " URIs in our documentation."
+        'Multiple redirect URIs can'
+        ' be separated by a space or on'
+        ' a separate line. Read more'
+        ' about implementing redirect'
+        ' URIs in our documentation.'
     )
 
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
-    logo_uri = models.CharField(
-        default="", blank=True, max_length=512, verbose_name="Logo URI"
-    )
+    logo_uri = models.CharField(default='', blank=True, max_length=512, verbose_name='Logo URI')
 
     tos_uri = models.CharField(
-        default="",
+        default='',
         blank=True,
         max_length=512,
         verbose_name="Client's Terms of Service URI",
     )
 
     policy_uri = models.CharField(
-        default="",
+        default='',
         blank=True,
         max_length=512,
         verbose_name="Client's Policy URI",
-        help_text="This can be a model privacy notice or other policy document.",
+        help_text='This can be a model privacy notice or other policy document.',
     )
 
     software_id = models.CharField(
-        default="",
+        default='',
         blank=True,
         max_length=128,
-        help_text="A unique identifier for an application defined by its creator.",
+        help_text='A unique identifier for an application defined by its creator.',
     )
 
     contacts = models.TextField(
-        default="",
+        default='',
         blank=True,
         max_length=512,
         verbose_name="Client's Contacts",
-        help_text="This is typically an email",
+        help_text='This is typically an email',
     )
 
     support_email = models.EmailField(blank=True, null=True)
 
     # FROM https://stackoverflow.com/questions/19130942/whats-the-best-way-to-store-phone-number-in-django-models
     phone_regex = RegexValidator(
-        regex=r"^\+?1?\d{9,15}$",
+        regex=r'^\+?1?\d{9,15}$',
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
     )
 
-    support_phone_number = models.CharField(
-        validators=[phone_regex], max_length=17, blank=True, null=True
-    )
+    support_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
 
     description = models.TextField(
-        default="",
+        default='',
         blank=True,
         null=True,
-        verbose_name="Application Description",
-        help_text="This is plain-text up to 1000 characters in length.",
+        verbose_name='Application Description',
+        help_text='This is plain-text up to 1000 characters in length.',
     )
 
     active = models.BooleanField(default=True)
@@ -176,24 +166,22 @@ class Application(AbstractApplication):
     last_active = models.DateTimeField(blank=True, null=True)
 
     # Does this application need to collect beneficiary demographic information? YES = True/Null NO = False
-    require_demographic_scopes = models.BooleanField(
-        default=True, null=True, verbose_name="Are demographic scopes required?"
-    )
+    require_demographic_scopes = models.BooleanField(default=True, null=True, verbose_name='Are demographic scopes required?')
 
     # Type choices related to data access limits.
     APPLICATION_TYPE_CHOICES = (
-        ("ONE_TIME", "ONE_TIME - No refresh token needed."),
-        ("RESEARCH_STUDY", "RESEARCH_STUDY - No expiration."),
-        ("THIRTEEN_MONTH", "THIRTEEN_MONTH - Access expires in 13-months."),
+        ('ONE_TIME', 'ONE_TIME - No refresh token needed.'),
+        ('RESEARCH_STUDY', 'RESEARCH_STUDY - No expiration.'),
+        ('THIRTEEN_MONTH', 'THIRTEEN_MONTH - Access expires in 13-months.'),
     )
 
     # Type related to data access limits.
     data_access_type = models.CharField(
-        default="THIRTEEN_MONTH",
+        default='THIRTEEN_MONTH',
         choices=APPLICATION_TYPE_CHOICES,
         max_length=16,
         null=True,
-        verbose_name="Data Access Type:",
+        verbose_name='Data Access Type:',
     )
 
     internal_application_labels = models.ManyToManyField(InternalApplicationLabels, blank=True)
@@ -205,7 +193,7 @@ class Application(AbstractApplication):
         (CLIENT_CREDENTIALS_TYPE, 'CLIENT_CREDENTIALS - Can only authorize with grant_type = client_credentials'),
         (
             AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
-            'AUTH_CODE_AND_CLIENT_CREDS - Can authorize with grant_type = authorization_code or client_credentials'
+            'AUTH_CODE_AND_CLIENT_CREDS - Can authorize with grant_type = authorization_code or client_credentials',
         ),
     )
 
@@ -230,7 +218,7 @@ class Application(AbstractApplication):
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
         if self.has_one_time_only_data_access():
-            if switch_is_active("one_hour_token_expiry"):
+            if switch_is_active('one_hour_token_expiry'):
                 return ONE_HOUR
             else:
                 return TEN_HOURS
@@ -240,7 +228,7 @@ class Application(AbstractApplication):
             return THIRTEEN_MONTHS
 
     def access_end_date(self):
-        if self.data_access_type == "THIRTEEN_MONTH":
+        if self.data_access_type == 'THIRTEEN_MONTH':
             end_date = datetime.now() + relativedelta(months=+13)
             return end_date.date
         else:
@@ -250,10 +238,10 @@ class Application(AbstractApplication):
         scope_list = []
         for s in self.scope.all():
             scope_list.append(s.slug)
-        return " ".join(scope_list).strip()
+        return ' '.join(scope_list).strip()
 
     def get_internal_application_labels(self):
-        return "\n".join([lb.slug for lb in self.internal_application_labels.all()])
+        return '\n'.join([lb.slug for lb in self.internal_application_labels.all()])
 
     def is_valid(self, scopes=None):
         return self.active and self.allow_scopes(scopes)
@@ -280,7 +268,7 @@ class Application(AbstractApplication):
         return any(gt in grant_types for gt in allowed)
 
     def get_absolute_url(self):
-        return reverse("oauth2_provider:detail", args=[str(self.id)])
+        return reverse('oauth2_provider:detail', args=[str(self.id)])
 
     def get_allowed_schemes(self):
         allowed_schemes = []
@@ -304,12 +292,7 @@ class Application(AbstractApplication):
                 file_name_to_save = 'logo.jpg'
 
             if getattr(file, 'name', False):
-                file_path = (
-                    'applications/'
-                    + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest()
-                    + '/'
-                    + file_name_to_save
-                )
+                file_path = 'applications/' + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest() + '/' + file_name_to_save
                 if default_storage.exists(file_path):
                     default_storage.delete(file_path)
                 default_storage.save(file_path, file)
@@ -319,26 +302,20 @@ class Application(AbstractApplication):
 
     # Has one time only type data access?
     def has_one_time_only_data_access(self):
-        return self.data_access_type == "ONE_TIME"
+        return self.data_access_type == 'ONE_TIME'
 
     # Save override to restrict invalid field combos.
     def save(self, *args, **kwargs):
         # Check data_access_type is in choices tuple
-        if not (
-            self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)
-        ):
-            raise ValueError("Invalid data_access_type: " + self.data_access_type)
+        if self.data_access_type not in itertools.chain(*self.APPLICATION_TYPE_CHOICES):
+            raise ValueError('Invalid data_access_type: ' + self.data_access_type)
 
         # Check allowed_auth_type is in choices tuple
-        if not (
-            self.allowed_auth_type in itertools.chain(*self.APPLICATION_AUTH_CHOICES)
-        ):
+        if self.allowed_auth_type not in itertools.chain(*self.APPLICATION_AUTH_CHOICES):
             raise ValueError('Invalid allowed_auth_type: ' + self.allowed_auth_type)
 
         if self.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.jwks_uri:
-            raise ValueError(
-                'jwks_uri cannot be null when allowed_auth_type is \'client_credentials\' or \'both\'.'
-            )
+            raise ValueError("jwks_uri cannot be null when allowed_auth_type is 'client_credentials' or 'both'.")
 
         # Check if data_access_type is changed
         # if so, log and leave existing access grants unchanged
@@ -352,11 +329,11 @@ class Application(AbstractApplication):
 
                     # log audit event: application data access type changed
                     log_dict = {
-                        "type": "application_data_access_type_change",
-                        "application_id": self.id,
-                        "application_name": self.name,
-                        "data_access_type_old": app_from_db.data_access_type,
-                        "data_access_type_new": self.data_access_type,
+                        'type': 'application_data_access_type_change',
+                        'application_id': self.id,
+                        'application_name': self.name,
+                        'data_access_type_old': app_from_db.data_access_type,
+                        'data_access_type_new': self.data_access_type,
                     }
                     logger.info(log_dict)
 
@@ -426,11 +403,11 @@ class ExpiresInManager(models.Manager):
         """
         Generate a unique key using client_id and user_id args.
         """
-        arg = "%s_%s" % (client_id, user_id)
+        arg = '%s_%s' % (client_id, user_id)
         # Python 3 - avoid TypeError: Unicode-objects
         # must be encoded before hashing
         if sys.version_info > (3, 2):
-            arg = arg.encode("utf-8")
+            arg = arg.encode('utf-8')
         return hashlib.sha256(arg).hexdigest()
 
     def set_expires_in(self, client_id, user_id, expires_in):
@@ -439,9 +416,7 @@ class ExpiresInManager(models.Manager):
         client_id and user_id.
         """
         key = self.make_key(client_id, user_id)
-        instance, _ = self.update_or_create(
-            key=key, defaults={"expires_in": expires_in}
-        )
+        instance, _ = self.update_or_create(key=key, defaults={'expires_in': expires_in})
 
     def get_expires_in(self, client_id, user_id):
         """
@@ -468,13 +443,12 @@ class Approval(models.Model):
             self.created_at
             + parse_duration(
                 # Default to 600 seconds, 10 min
-                getattr(settings, "AUTHORIZATION_EXPIRATION", "600")
+                getattr(settings, 'AUTHORIZATION_EXPIRATION', '600')
             )
         ).timestamp() < datetime.now().timestamp()
 
 
 class ArchivedToken(models.Model):
-
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -482,7 +456,7 @@ class ArchivedToken(models.Model):
         blank=True,
         null=True,
         db_constraint=False,
-        related_name="%(app_label)s_%(class)s",
+        related_name='%(app_label)s_%(class)s',
     )
     token = models.CharField(
         max_length=255,
@@ -548,9 +522,7 @@ class AuthFlowUuid(models.Model):
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
     state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
-    code = models.CharField(
-        max_length=255, null=True, unique=True, db_index=True
-    )  # code comes from oauthlib
+    code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
     client_id = models.CharField(max_length=100, null=True)
     auth_pkce_method = models.CharField(max_length=16, null=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
@@ -580,9 +552,7 @@ class AuthFlowUuidCopy(models.Model):
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
     state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
-    code = models.CharField(
-        max_length=255, null=True, unique=True, db_index=True
-    )  # code comes from oauthlib
+    code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
     client_id = models.CharField(max_length=100, null=True)
     auth_pkce_method = models.CharField(max_length=16, null=True)
     created = models.DateTimeField(null=True)
@@ -603,8 +573,8 @@ def get_application_counts():
         active_cnt = Application.objects.filter(active=True).count()
         inactive_cnt = Application.objects.filter(active=False).count()
         return {
-            "active_cnt": active_cnt,
-            "inactive_cnt": inactive_cnt,
+            'active_cnt': active_cnt,
+            'inactive_cnt': inactive_cnt,
         }
     except ValueError:
         pass
@@ -612,8 +582,8 @@ def get_application_counts():
         pass
 
     return {
-        "active_cnt": None,
-        "inactive_cnt": None,
+        'active_cnt': None,
+        'inactive_cnt': None,
     }
 
 
@@ -624,9 +594,7 @@ def get_application_require_demographic_scopes_count():
     Application = get_application_model()
 
     try:
-        cnt = Application.objects.filter(
-            Q(active=True) & Q(require_demographic_scopes=True)
-        ).count()
+        cnt = Application.objects.filter(Q(active=True) & Q(require_demographic_scopes=True)).count()
         return cnt
     except ValueError:
         pass
@@ -655,46 +623,40 @@ def get_token_bene_counts(application=None):
 
     if application:
         token_queryset = token_queryset.filter(application=application)
-        archived_token_queryset = archived_token_queryset.filter(
-            application=application
-        )
+        archived_token_queryset = archived_token_queryset.filter(application=application)
 
     # Get AccessToken and ArchivedTokentable count
-    counts_returned["total"] = token_queryset.count()
-    counts_returned["archived_total"] = archived_token_queryset.count()
+    counts_returned['total'] = token_queryset.count()
+    counts_returned['archived_total'] = archived_token_queryset.count()
 
-    token_queryset = token_queryset.order_by("user__id").values("user__id")
+    token_queryset = token_queryset.order_by('user__id').values('user__id')
 
     # real/synth bene distinct counts (excludes granted to multiple apps)
     real_token_queryset = token_queryset.filter(
-        ~Q(user__crosswalk__fhir_id_v2__startswith="-")
-        & ~Q(user__crosswalk__fhir_id_v2="")
+        ~Q(user__crosswalk__fhir_id_v2__startswith='-')
+        & ~Q(user__crosswalk__fhir_id_v2='')
         & Q(user__crosswalk__fhir_id_v2__isnull=False)
     )
 
     synthetic_token_queryset = token_queryset.filter(
-        Q(user__crosswalk__fhir_id_v2__startswith="-")
-        & ~Q(user__crosswalk__fhir_id_v2="")
+        Q(user__crosswalk__fhir_id_v2__startswith='-')
+        & ~Q(user__crosswalk__fhir_id_v2='')
         & Q(user__crosswalk__fhir_id_v2__isnull=False)
     )
 
-    counts_returned["real_deduped"] = real_token_queryset.distinct().count()
-    counts_returned["synthetic_deduped"] = synthetic_token_queryset.distinct().count()
+    counts_returned['real_deduped'] = real_token_queryset.distinct().count()
+    counts_returned['synthetic_deduped'] = synthetic_token_queryset.distinct().count()
 
     # Global real/synth bene and app pair counts. This should match grant counts.
     if not application:
-        counts_returned["real_bene_app_pair_deduped"] = (
-            real_token_queryset.values("user", "application").distinct().count()
-        )
-        counts_returned["synthetic_bene_app_pair_deduped"] = (
-            synthetic_token_queryset.values("user", "application").distinct().count()
+        counts_returned['real_bene_app_pair_deduped'] = real_token_queryset.values('user', 'application').distinct().count()
+        counts_returned['synthetic_bene_app_pair_deduped'] = (
+            synthetic_token_queryset.values('user', 'application').distinct().count()
         )
 
-    counts_returned["deduped_elapsed"] = round(
-        datetime.utcnow().timestamp() - start_time, 3
-    )
+    counts_returned['deduped_elapsed'] = round(datetime.utcnow().timestamp() - start_time, 3)
 
     return counts_returned
 
 
-post_delete.connect(archive_token, sender="oauth2_provider.AccessToken")
+post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')

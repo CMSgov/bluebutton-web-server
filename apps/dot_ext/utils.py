@@ -52,20 +52,14 @@ def remove_application_user_pair_tokens_data_access(application, user):
     """
     with transaction.atomic():
         # Get count of access tokens to be deleted.
-        access_token_delete_cnt = AccessToken.objects.filter(
-            application=application, user=user
-        ).count()
+        access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
-            application=application, beneficiary=user
-        ).delete()[0]
+        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(application=application, beneficiary=user).delete()[0]
 
         # Delete refresh token records
-        refresh_token_delete_cnt = RefreshToken.objects.filter(
-            application=application, user=user
-        ).delete()[0]
+        refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
 
     return (
         data_access_grant_delete_cnt,
@@ -95,12 +89,8 @@ def get_application_from_meta(request) -> Application | None:
             if 'Bearer' in auth_header:
                 ac = AccessToken.objects.get(token=auth_header.split(' ')[1])
             else:
-                encoded_credentials = auth_header.split(' ')[
-                    1
-                ]  # Removes 'Basic ' to isolate credentials
-                decoded_credentials = (
-                    b64decode(encoded_credentials).decode('utf-8').split(':')
-                )
+                encoded_credentials = auth_header.split(' ')[1]  # Removes 'Basic ' to isolate credentials
+                decoded_credentials = b64decode(encoded_credentials).decode('utf-8').split(':')
                 client_id = decoded_credentials[0]
     try:
         if client_id is not None:
@@ -232,9 +222,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
     # client_creds/CAN-specific (for now) validation
     if request.POST.get('grant_type') == 'client_credentials':
         if not request.POST.get('client_assertion'):
-            raise InvalidRequestError(
-                'Missing client_assertion for client_credentials grant'
-            )
+            raise InvalidRequestError('Missing client_assertion for client_credentials grant')
         if not app:
             raise InvalidClientError('App id failed')
 
@@ -256,9 +244,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
             refresh_code = request.POST.get('refresh_token', None)
             try:
                 refresh_token = RefreshToken.objects.get(token=refresh_code)
-                dag = DataAccessGrant.objects.get(
-                    beneficiary=refresh_token.user, application=app
-                )
+                dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
 
                 if dag:
                     # If we get a DAG, but it has expired, we pass back a message (again)

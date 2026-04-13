@@ -10,7 +10,6 @@ PATIENT_COVERAGE_SCOPES = 'patient/Patient.rs patient/Coverage.rs'
 
 
 class TestOauth2Validators(TestCase):
-
     def test_validate_uris(self):
         with self.assertRaises(ValidationError):
             validate_uris('ftp://example.com/redirect')
@@ -33,11 +32,7 @@ class TestOauth2Validators(TestCase):
     def test_is_within_original_scope_invalid_request(self):
         validator = OAuth2Validator()
         request = HttpRequest()
-        with patch.object(
-            validator,
-            'get_original_scopes',
-            return_value=PATIENT_COVERAGE_SCOPES
-        ):
+        with patch.object(validator, 'get_original_scopes', return_value=PATIENT_COVERAGE_SCOPES):
             result = validator.is_within_original_scope(['patient/ExplanationOfBenefit.rs'], object(), request)
 
         assert not result
@@ -45,11 +40,7 @@ class TestOauth2Validators(TestCase):
     def test_is_within_original_scope_valid_request_sub_scope(self):
         validator = OAuth2Validator()
         request = HttpRequest()
-        with patch.object(
-            validator,
-            'get_original_scopes',
-            return_value=PATIENT_COVERAGE_SCOPES
-        ):
+        with patch.object(validator, 'get_original_scopes', return_value=PATIENT_COVERAGE_SCOPES):
             result = validator.is_within_original_scope(['patient/Coverage.s'], object(), request)
 
         assert result
@@ -57,11 +48,7 @@ class TestOauth2Validators(TestCase):
     def test_is_within_original_scope_valid_request_multi_scope_refresh_request(self):
         validator = OAuth2Validator()
         request = HttpRequest()
-        with patch.object(
-            validator,
-            'get_original_scopes',
-            return_value=PATIENT_COVERAGE_SCOPES
-        ):
+        with patch.object(validator, 'get_original_scopes', return_value=PATIENT_COVERAGE_SCOPES):
             result = validator.is_within_original_scope(['patient/Coverage.s', 'patient/Patient.s'], object(), request)
 
         assert result
@@ -69,11 +56,7 @@ class TestOauth2Validators(TestCase):
     def test_is_within_original_scope_invalid_request_profile(self):
         validator = OAuth2Validator()
         request = HttpRequest()
-        with patch.object(
-            validator,
-            'get_original_scopes',
-            return_value=PATIENT_COVERAGE_SCOPES
-        ):
+        with patch.object(validator, 'get_original_scopes', return_value=PATIENT_COVERAGE_SCOPES):
             result = validator.is_within_original_scope(['profile'], object(), request)
 
         assert not result
@@ -81,11 +64,7 @@ class TestOauth2Validators(TestCase):
     def test_is_within_original_scope_valid_request_profile(self):
         validator = OAuth2Validator()
         request = HttpRequest()
-        with patch.object(
-            validator,
-            'get_original_scopes',
-            return_value='profile patient/Patient.rs patient/Coverage.rs'
-        ):
+        with patch.object(validator, 'get_original_scopes', return_value='profile patient/Patient.rs patient/Coverage.rs'):
             result = validator.is_within_original_scope(['profile'], object(), request)
 
         assert result
@@ -96,12 +75,10 @@ class TestOauth2Validators(TestCase):
         with patch.object(
             validator,
             'get_original_scopes',
-            return_value='patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs'
+            return_value='patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs',
         ):
             result = validator.is_within_original_scope(
-                ['patient/ExplanationOfBenefit.r', 'patient/Coverage.s', 'patient/Patient.rs'],
-                object(),
-                request
+                ['patient/ExplanationOfBenefit.r', 'patient/Coverage.s', 'patient/Patient.rs'], object(), request
             )
 
         assert result
@@ -109,11 +86,7 @@ class TestOauth2Validators(TestCase):
     def test_is_within_original_scope_invalid_request_read_when_access_token_had_search(self):
         validator = OAuth2Validator()
         request = HttpRequest()
-        with patch.object(
-            validator,
-            'get_original_scopes',
-            return_value='patient/ExplanationOfBenefit.s'
-        ):
+        with patch.object(validator, 'get_original_scopes', return_value='patient/ExplanationOfBenefit.s'):
             result = validator.is_within_original_scope(['patient/ExplanationOfBenefit.r'], object(), request)
 
         assert not result
