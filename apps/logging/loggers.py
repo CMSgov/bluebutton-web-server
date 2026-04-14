@@ -214,7 +214,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
 
     if report_flag:
         print('---')
-        print('---    Wrote top level log entry: ', log_dict)
+        print('---    Wrote top level log entry: [REDACTED]')
         print('---')
         print(
             '---    Top level (global_state_metrics) metrics elapsed time:  ',
