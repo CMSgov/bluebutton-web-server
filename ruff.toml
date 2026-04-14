@@ -39,7 +39,6 @@ ignore = [
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 # Do not automatically fix unsafe fixes
-unsafe-fixes = false
 unfixable = []
 
 [format]
