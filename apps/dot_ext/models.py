@@ -2,20 +2,10 @@ import hashlib
 import itertools
 import sys
 import uuid
-
-import apps.logging.request_logger as logging
-
-from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.constants import (
-    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
-    AUTH_CODE_SUPPORTED_TYPES,
-    AUTH_CODE_TYPE,
-    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
-    CLIENT_CREDENTIALS_TYPE,
-)
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from urllib.parse import urlparse
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
@@ -35,9 +25,17 @@ from oauth2_provider.models import (
     get_application_model,
 )
 from oauth2_provider.settings import oauth2_settings
-from urllib.parse import urlparse
 from waffle import switch_is_active
 
+import apps.logging.request_logger as logging
+from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.constants import (
+    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_SUPPORTED_TYPES,
+    AUTH_CODE_TYPE,
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    CLIENT_CREDENTIALS_TYPE,
+)
 
 ONE_HOUR = _('for 1 hour')
 TEN_HOURS = _('for 10 hours')
@@ -53,7 +51,7 @@ class InternalApplicationLabels(models.Model):
         return self.label
 
     def save(self, *args, **kwargs):
-        super(InternalApplicationLabels, self).save(**kwargs)
+        super().save(**kwargs)
 
     class Meta:
         verbose_name_plural = 'Internal Application Labels'
@@ -166,7 +164,9 @@ class Application(AbstractApplication):
     last_active = models.DateTimeField(blank=True, null=True)
 
     # Does this application need to collect beneficiary demographic information? YES = True/Null NO = False
-    require_demographic_scopes = models.BooleanField(default=True, null=True, verbose_name='Are demographic scopes required?')
+    require_demographic_scopes = models.BooleanField(
+        default=True, null=True, verbose_name='Are demographic scopes required?'
+    )
 
     # Type choices related to data access limits.
     APPLICATION_TYPE_CHOICES = (
@@ -292,7 +292,9 @@ class Application(AbstractApplication):
                 file_name_to_save = 'logo.jpg'
 
             if getattr(file, 'name', False):
-                file_path = 'applications/' + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest() + '/' + file_name_to_save
+                file_path = (
+                    'applications/' + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest() + '/' + file_name_to_save
+                )
                 if default_storage.exists(file_path):
                     default_storage.delete(file_path)
                 default_storage.save(file_path, file)
@@ -649,7 +651,9 @@ def get_token_bene_counts(application=None):
 
     # Global real/synth bene and app pair counts. This should match grant counts.
     if not application:
-        counts_returned['real_bene_app_pair_deduped'] = real_token_queryset.values('user', 'application').distinct().count()
+        counts_returned['real_bene_app_pair_deduped'] = (
+            real_token_queryset.values('user', 'application').distinct().count()
+        )
         counts_returned['synthetic_bene_app_pair_deduped'] = (
             synthetic_token_queryset.values('user', 'application').distinct().count()
         )
