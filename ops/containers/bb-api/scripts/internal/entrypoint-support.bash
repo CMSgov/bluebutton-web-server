@@ -111,31 +111,34 @@ launch_blue_button () {
     return $RESULT
 }
 
-setup_database_and_users () {
-    echo "🟦 Setup database and users"
+setup_database_and_users_if_local () {
+    echo "🟦 Setup database and users if local"
 
-    # Only create the root user if it doesn't exist.
-    result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")
-    if [[ "$result" == "0" ]]; then
-        echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
-        echo "🆗 created ${SUPER_USER_NAME} user."
-    else
-        echo "🆗 ${SUPER_USER_NAME} already exists."
+    if [[ $TARGET_ENV == "local" ]]; then
+
+        # Only create the root user if it doesn't exist.
+        result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")
+        if [[ "$result" == "0" ]]; then
+            echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
+            echo "🆗 created ${SUPER_USER_NAME} user."
+        else
+            echo "🆗 ${SUPER_USER_NAME} already exists."
+        fi
+
+        python manage.py create_test_feature_switches
+        echo "🆗 create_test_feature_switches"
+
+        python manage.py create_admin_groups
+        echo "🆗 create_admin_groups"
+
+        python manage.py create_blue_button_scopes
+        echo "🆗 create_blue_button_scopes"
+
+        python manage.py create_test_user_and_application
+
+        echo "🆗 create_test_user_and_application"
+
+        python manage.py create_user_identification_label_selection
+        echo "🆗 create_user_identification_label_selection"
     fi
-
-    python manage.py create_test_feature_switches
-    echo "🆗 create_test_feature_switches"
-
-    python manage.py create_admin_groups
-    echo "🆗 create_admin_groups"
-
-    python manage.py create_blue_button_scopes
-    echo "🆗 create_blue_button_scopes"
-
-    python manage.py create_test_user_and_application
-
-    echo "🆗 create_test_user_and_application"
-
-    python manage.py create_user_identification_label_selection
-    echo "🆗 create_user_identification_label_selection"
 }
