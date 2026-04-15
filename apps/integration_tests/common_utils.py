@@ -20,6 +20,7 @@ def screenshot_on_exception(func):
     Returns:
         _type_: N/A
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
@@ -29,7 +30,7 @@ def screenshot_on_exception(func):
             # Make sure there is a webdriver and we are not in an AWS environment
             if webdriver and os.getenv('TARGET_ENV') == 'local':
                 try:
-                    print(f"{'=' * 80}")
+                    print(f'{"=" * 80}')
                     print(f'Current URL: {webdriver.current_url}')
                     print(f'Page Title: {webdriver.title}')
 
@@ -59,17 +60,13 @@ def screenshot_on_exception(func):
                 except Exception as save_error:
                     print(f'Failed to capture test failure: {save_error}')
             raise outer_exception
+
     return wrapper
 
 
 def log_step(message, level='INFO'):
     """Log a step with consistent formatting"""
-    prefix = {
-        'INFO': 'ℹ️',
-        'SUCCESS': '✅',
-        'ERROR': '❌',
-        'WARNING': '⚠️'
-    }.get(level, '•')
+    prefix = {'INFO': 'ℹ️', 'SUCCESS': '✅', 'ERROR': '❌', 'WARNING': '⚠️'}.get(level, '•')
 
     print(f'{prefix} {message}')
 
@@ -98,8 +95,8 @@ def check_element_state(driver, by, by_expr, state):
         if not visible:
             print(f'       Size: {elem.size}')
             print(f'       Location: {elem.location}')
-            print(f"       CSS display: {elem.value_of_css_property('display')}")
-            print(f"       CSS visibility: {elem.value_of_css_property('visibility')}")
+            print(f'       CSS display: {elem.value_of_css_property("display")}')
+            print(f'       CSS visibility: {elem.value_of_css_property("visibility")}')
         if exists and not visible:
             print('    ⚠️  Element EXISTS but is NOT VISIBLE')
         elif exists and visible and not enabled:

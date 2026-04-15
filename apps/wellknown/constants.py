@@ -8,9 +8,9 @@ CAPABILITIES = [
     'permission-patient',
     'permission-v1',
     'permission-v2',
-    'authorize-post'
+    'authorize-post',
 ]
-CODE_CHALLENGE_METHODS_SUPPORTED = ["S256"]
+CODE_CHALLENGE_METHODS_SUPPORTED = ['S256']
 
 SCOPES_SUPPORTED = [
     OPENID_SCOPE,

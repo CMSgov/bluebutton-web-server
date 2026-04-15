@@ -30,7 +30,7 @@ def my_token_expires_in(request):
     # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
     # or one hour if the one_hour_token_expiry switch is active
     if expires_in is None:
-        if switch_is_active("one_hour_token_expiry") or (grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS):
+        if switch_is_active('one_hour_token_expiry') or (grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS):
             one_hour_delta = timedelta(hours=1)
             seconds_in_one_hour = int(one_hour_delta.total_seconds())
             expires_in = seconds_in_one_hour
@@ -41,12 +41,14 @@ def my_token_expires_in(request):
 
 
 class Server(PKCEServerMixin, OAuthLibServer):
-    def __init__(self, request_validator, token_expires_in=None,
-                 token_generator=None, refresh_token_generator=None,
-                 *args, **kwargs):
+    def __init__(
+        self, request_validator, token_expires_in=None, token_generator=None, refresh_token_generator=None, *args, **kwargs
+    ):
         super(Server, self).__init__(
             request_validator,
             token_expires_in=my_token_expires_in,  # add custom expires_in callable
             token_generator=token_generator,
             refresh_token_generator=refresh_token_generator,
-            *args, **kwargs)
+            *args,
+            **kwargs,
+        )

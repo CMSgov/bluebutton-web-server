@@ -8,9 +8,9 @@ DEFAULT_FIRST_NAME = 'Hello'
 DEFAULT_LAST_NAME = 'World'
 DEFAULT_EMAIL = 'oscar@sesamestreet.gov'
 
-ERR_MSG_HICN_EMPTY_OR_NONE = "User info HICN cannot be empty or None."
-ERR_MSG_HICN_NOT_STR = "User info HICN must be str."
-ERR_MSG_MBI_NOT_STR = "User info MBI must be str."
+ERR_MSG_HICN_EMPTY_OR_NONE = 'User info HICN cannot be empty or None.'
+ERR_MSG_HICN_NOT_STR = 'User info HICN must be str.'
+ERR_MSG_MBI_NOT_STR = 'User info MBI must be str.'
 
 NETLOC_REGEX = r'dev\.accounts\.cms\.gov|test\.accounts\.cms\.gov|msls'
 NETLOC_REGEX_SSO_SESSION = r'dev\.accounts\.cms\.gov|test\.medicare\.gov|msls'
@@ -18,14 +18,10 @@ NETLOC_REGEX_SSO_SESSION = r'dev\.accounts\.cms\.gov|test\.medicare\.gov|msls'
 MAX_HICN_HASH_LENGTH = 64
 MAX_MBI_LENGTH = 11
 
-MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
-MSG_SLS_RESP_MISSING_USERID = "Exchange user_id is missing in response error"
-MSG_SLS_RESP_MISSING_USERINFO_USERID = (
-    "SLSx userinfo user_id is missing in response error"
-)
-MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = (
-    "SLSx userinfo user_id is not equal in response error"
-)
+MSG_SLS_RESP_MISSING_AUTHTOKEN = 'Exchange auth_token is missing in response error'
+MSG_SLS_RESP_MISSING_USERID = 'Exchange user_id is missing in response error'
+MSG_SLS_RESP_MISSING_USERINFO_USERID = 'SLSx userinfo user_id is missing in response error'
+MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = 'SLSx userinfo user_id is not equal in response error'
 
 
 class MedicareCallbackExceptionType(Enum):

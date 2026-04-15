@@ -20,13 +20,12 @@ AccessToken = get_access_token_model()
 
 
 class BlueButtonTestEndpoints(BaseApiTest):
-
     def setUp(self):
         self.client = Client()
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=False)
     def test_userinfo_returns_403(self):
@@ -34,13 +33,11 @@ class BlueButtonTestEndpoints(BaseApiTest):
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 
-        response = self.client.get(
-            f'{BASEURL}/v3/connect/userinfo',
-            Authorization='Bearer %s' % (first_access_token))
+        response = self.client.get(f'{BASEURL}/v3/connect/userinfo', Authorization='Bearer %s' % (first_access_token))
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()['detail'], APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format('John_Smith_test'))
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=True)
     def test_userinfo_returns_200(self):
@@ -48,9 +45,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
         ac = AccessToken.objects.get(token=first_access_token)
         ac.save()
 
-        response = self.client.get(
-            f'{BASEURL}/v3/connect/userinfo',
-            Authorization='Bearer %s' % (first_access_token))
+        response = self.client.get(f'{BASEURL}/v3/connect/userinfo', Authorization='Bearer %s' % (first_access_token))
         self.assertEqual(response.status_code, 200)
 
     # This makes sure URLs return 200s.
@@ -79,11 +74,13 @@ class BlueButtonTestEndpoints(BaseApiTest):
                     else:
                         version = test.version
 
-                    for field in ['authorization_endpoint',
-                                  'revocation_endpoint',
-                                  'token_endpoint',
-                                  'userinfo_endpoint',
-                                  'fhir_metadata_uri']:
+                    for field in [
+                        'authorization_endpoint',
+                        'revocation_endpoint',
+                        'token_endpoint',
+                        'userinfo_endpoint',
+                        'fhir_metadata_uri',
+                    ]:
                         self.assertIn(version, the_json[field])
                 else:
                     self.fail('Failed to connect with a good status code.')
@@ -136,7 +133,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 for e in ext['extension']:
                     self.assertIn('v3', e['valueUri'])
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), 'Can\'t reach external sites.')
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=False)
     def test_page_not_found_when_waffle_switch_disabled(self):
         for test in PAGE_NOT_FOUND_TESTS:
