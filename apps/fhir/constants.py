@@ -147,3 +147,11 @@ USER_ID_TYPE_DEFAULT = "H"
 
 IDI_MATCH_ENDPOINT = "$idi-match"
 PATIENT_RESOURCE_TYPE = "Patient"
+
+ACCEPTABLE_TAGS = [
+    'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|SharedSystem',
+    'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory',
+    'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|DDPS',
+    'https://bluebutton.cms.gov/fhir/CodeSystem/Final-Action|FinalAction',
+    'https://bluebutton.cms.gov/fhir/CodeSystem/Final-Action|NotFinalAction',
+]

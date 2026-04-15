@@ -1,3 +1,4 @@
+from apps.fhir.constants import ACCEPTABLE_TAGS
 import waffle
 
 from voluptuous import (
@@ -129,10 +130,11 @@ class SearchViewExplanationOfBenefit(SearchView):
     # customized validator for better error reporting
     def validate_tag(self):
         def validator(value):
-            for v in value:
-                if not (v in ['Adjudicated', 'PartiallyAdjudicated']):
-                    msg = f"Invalid _tag value (='{v}'), 'PartiallyAdjudicated' or 'Adjudicated' expected."
-                    raise Invalid(msg)
+            for entry in value:
+                for v in entry.split(','):
+                    if v not in ACCEPTABLE_TAGS:
+                        msg = f"Invalid _tag value ('{v}')."
+                        raise Invalid(msg)
             return value
         return validator
 

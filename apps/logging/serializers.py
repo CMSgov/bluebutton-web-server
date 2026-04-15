@@ -166,7 +166,7 @@ class FHIRRequest(Request):
         return {
             'type': 'fhir_pre_fetch',
             'uuid': self.uuid(),
-            'fhir_id_v2': self.fhir_id(),
+            'fhir_id_v3' if self.api_ver == 'v3' else 'fhir_id_v2': self.fhir_id(),
             'api_ver': self.api_ver if self.api_ver is not None else 'v1',
             'includeAddressFields': self.includeAddressFields(),
             'user': self.user(),
@@ -240,6 +240,12 @@ class FHIRResponse(Response):
         super_dict = super().to_dict()
         # add fhir version info
         super_dict.update({'api_ver': self.api_ver if self.api_ver is not None else 'v1'})
+        if self.api_ver == 'v3':
+            if "fhir_id_v2" in super_dict:
+                super_dict["fhir_id_v3"] = super_dict.pop("fhir_id_v2")
+        else:
+            if "fhir_id_v3" in super_dict:
+                super_dict["fhir_id_v2"] = super_dict.pop("fhir_id_v3")
         # over write type
         super_dict.update({'type': 'fhir_post_fetch'})
         return super_dict
