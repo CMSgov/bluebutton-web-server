@@ -1,4 +1,3 @@
-# flake8: noqa
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 
 """
@@ -12,198 +11,165 @@ from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
     See apps.dot_ext.tests.test_views.TestAuthorizationView() for example usage.
 """
 mock_fhir_responses = {
-    "success_patient_searchview": {
-        "status_code": 200,
-        "content": {
-            "resourceType": "Bundle",
-            "id": "09377c85-f54f-49ff-b23c-270ce0074b7b",
-            "meta": {
-              "lastUpdated": "2020-07-07T20:40:21.347+00:00"
-            },
-            "type": "searchset",
-            "link": [
-              {
-                "relation": "first",
-                "url": "http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "last",
-                "url": "http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "self",
-                "url": "http://localhost:8000/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=" + DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
-              }
+    'success_patient_searchview': {
+        'status_code': 200,
+        'content': {
+            'resourceType': 'Bundle',
+            'id': '09377c85-f54f-49ff-b23c-270ce0074b7b',
+            'meta': {'lastUpdated': '2020-07-07T20:40:21.347+00:00'},
+            'type': 'searchset',
+            'link': [
+                {
+                    'relation': 'first',
+                    'url': 'http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'last',
+                    'url': 'http://localhost:8000/v1/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'self',
+                    'url': 'http://localhost:8000/v1/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2
+                    + '&startIndex=0',
+                },
             ],
-            "entry": [
-              {
-                "resource": {
-                  "resourceType": "Patient",
-                  "id": DEFAULT_SAMPLE_FHIR_ID_V2,
-                  "meta": {
-                    "lastUpdated": "2020-07-07T20:40:20.685+00:00"
-                  },
-                  "extension": [
-                    {
-                      "url": "https://bluebutton.cms.gov/resources/variables/race",
-                      "valueCoding": {
-                        "system": "https://bluebutton.cms.gov/resources/variables/race",
-                        "code": "1",
-                        "display": "White"
-                      }
-                    },
-                  ],
-                  "identifier": [
-                    {
-                      "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                      "value": DEFAULT_SAMPLE_FHIR_ID_V2
-                    },
-                    {
-                      "system": "https://bluebutton.cms.gov/resources/identifier/mbi-hash",
-                      "value": "abadf57ff8dc94610ca0d479feadb1743c9cd3c77caf1eafde5719a154379fb6"
+            'entry': [
+                {
+                    'resource': {
+                        'resourceType': 'Patient',
+                        'id': DEFAULT_SAMPLE_FHIR_ID_V2,
+                        'meta': {'lastUpdated': '2020-07-07T20:40:20.685+00:00'},
+                        'extension': [
+                            {
+                                'url': 'https://bluebutton.cms.gov/resources/variables/race',
+                                'valueCoding': {
+                                    'system': 'https://bluebutton.cms.gov/resources/variables/race',
+                                    'code': '1',
+                                    'display': 'White',
+                                },
+                            },
+                        ],
+                        'identifier': [
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': DEFAULT_SAMPLE_FHIR_ID_V2,
+                            },
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
+                                'value': 'abadf57ff8dc94610ca0d479feadb1743c9cd3c77caf1eafde5719a154379fb6',
+                            },
+                        ],
+                        'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}],
+                        'gender': 'female',
+                        'birthDate': '2014-06-01',
+                        'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
                     }
-                  ],
-                  "name": [
-                    {
-                      "use": "usual",
-                      "family": "Doe",
-                      "given": [
-                        "Jane",
-                        "X"
-                      ]
-                    }
-                  ],
-                  "gender": "female",
-                  "birthDate": "2014-06-01",
-                  "address": [
-                    {
-                      "district": "999",
-                      "state": "15",
-                      "postalCode": "99999"
-                    }
-                  ]
                 }
-              }
-            ]
+            ],
         },
     },
-    "success_patient_readview": {
-        "status_code": 200,
-        "content": {
-            "resourceType": "Patient",
-            "id": "-20140000008325",
-            "meta": {
-              "lastUpdated": "2020-07-07T20:40:20.685+00:00"
-            },
-            "identifier": [
-              {
-                "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                "value": "-20140000008325"
-              },
-              {
-                "system": "https://bluebutton.cms.gov/resources/identifier/mbi-hash",
-                "value": "abadf57ff8dc94610ca0d479feadb1743c9cd3c77caf1eafde5719a154379fb6"
-              }
+    'success_patient_readview': {
+        'status_code': 200,
+        'content': {
+            'resourceType': 'Patient',
+            'id': '-20140000008325',
+            'meta': {'lastUpdated': '2020-07-07T20:40:20.685+00:00'},
+            'identifier': [
+                {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20140000008325'},
+                {
+                    'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
+                    'value': 'abadf57ff8dc94610ca0d479feadb1743c9cd3c77caf1eafde5719a154379fb6',
+                },
             ],
-            "name": [
-              {
-                "use": "usual",
-                "family": "Doe",
-                "given": [
-                  "Jane",
-                  "X"
-                ]
-              }
-            ],
-            "gender": "female",
-            "birthDate": "2014-06-01",
-            "address": [
-              {
-                "district": "999",
-                "state": "15",
-                "postalCode": "99999"
-              }
-            ]
-          }
-    },
-    "success_eob": {
-        "status_code": 200,
-        "content": {
-            "resourceType": "Bundle",
-            "id": "09377c85-f54f-49ff-b23c-270ce0074b7b",
-            "meta": {
-              "lastUpdated": "2020-07-07T20:40:21.347+00:00"
-            },
-            "type": "searchset",
-            "link": [
-              {
-                "relation": "first",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "next",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "last",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "self",
-                "url": "http://localhost:8000/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
-              }
-            ],
-            "entry": [
-              {
-                "resource": {
-                  "resourceType": "ExplanationOfBenefit",
-                  "id": "carrier--20587716665",
-                  "meta": {
-                    "lastUpdated": "2020-01-01T00:00:00.000+00:00"
-                  },
-              }
-            }
-            ]
+            'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}],
+            'gender': 'female',
+            'birthDate': '2014-06-01',
+            'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
         },
     },
-    "success_coverage": {
-        "status_code": 200,
-        "content": {
-            "resourceType": "Bundle",
-            "id": "09377c85-f54f-49ff-b23c-270ce0074b7b",
-            "meta": {
-              "lastUpdated": "2020-07-07T20:40:21.347+00:00"
-            },
-            "type": "searchset",
-            "link": [
-              {
-                "relation": "first",
-                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "next",
-                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "last",
-                "url": "http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2
-              },
-              {
-                "relation": "self",
-                "url": "http://localhost:8000/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&patient=" + DEFAULT_SAMPLE_FHIR_ID_V2 + "&startIndex=0"
-              }
+    'success_eob': {
+        'status_code': 200,
+        'content': {
+            'resourceType': 'Bundle',
+            'id': '09377c85-f54f-49ff-b23c-270ce0074b7b',
+            'meta': {'lastUpdated': '2020-07-07T20:40:21.347+00:00'},
+            'type': 'searchset',
+            'link': [
+                {
+                    'relation': 'first',
+                    'url': 'http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'next',
+                    'url': 'http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'last',
+                    'url': 'http://localhost:8000/v1/fhir/ExplanationOfBenefit?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'self',
+                    'url': 'http://localhost:8000/v1/fhir/ExplanationOfBenefit/?_count=10&_format=application%2Fjson%2Bfhir&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2
+                    + '&startIndex=0',
+                },
             ],
-            "entry": [
-              {
-                "resource": {
-                  "resourceType": "Coverage",
-                  "id": "carrier--20587716665",
-                  "meta": {
-                    "lastUpdated": "2020-01-01T00:00:00.000+00:00"
-                  },
-              }
-            }
-            ]
+            'entry': [
+                {
+                    'resource': {
+                        'resourceType': 'ExplanationOfBenefit',
+                        'id': 'carrier--20587716665',
+                        'meta': {'lastUpdated': '2020-01-01T00:00:00.000+00:00'},
+                    }
+                }
+            ],
+        },
+    },
+    'success_coverage': {
+        'status_code': 200,
+        'content': {
+            'resourceType': 'Bundle',
+            'id': '09377c85-f54f-49ff-b23c-270ce0074b7b',
+            'meta': {'lastUpdated': '2020-07-07T20:40:21.347+00:00'},
+            'type': 'searchset',
+            'link': [
+                {
+                    'relation': 'first',
+                    'url': 'http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'next',
+                    'url': 'http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=10&_count=10&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'last',
+                    'url': 'http://localhost:8000/v1/fhir/Coverage?_format=application%2Fjson%2Bfhir&startIndex=30&_count=10&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2,
+                },
+                {
+                    'relation': 'self',
+                    'url': 'http://localhost:8000/v1/fhir/Coverage/?_count=10&_format=application%2Fjson%2Bfhir&patient='
+                    + DEFAULT_SAMPLE_FHIR_ID_V2
+                    + '&startIndex=0',
+                },
+            ],
+            'entry': [
+                {
+                    'resource': {
+                        'resourceType': 'Coverage',
+                        'id': 'carrier--20587716665',
+                        'meta': {'lastUpdated': '2020-01-01T00:00:00.000+00:00'},
+                    }
+                }
+            ],
         },
     },
 }

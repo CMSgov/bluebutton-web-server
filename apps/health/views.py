@@ -24,7 +24,6 @@ class ServiceUnavailable(APIException):
 
 
 class Check(APIView):
-
     def get(self, request, format=None):
         try:
             for check in self.get_services():
@@ -34,19 +33,19 @@ class Check(APIView):
         except ServiceUnavailable:
             raise
         except Exception as e:
-            logger.exception("health check raised exception. {reason}".format(reason=e))
-            raise ServiceUnavailable(detail="Service temporarily unavailable, try again later."
-                                            " There is an issue with the - {svc}"
-                                            " - service check. Reason: {reason}".
-                                            format(svc=check.__name__, reason=e.args[0]))
-        return Response({'message': 'all\'s well'})
+            logger.exception('health check raised exception. {reason}'.format(reason=e))
+            raise ServiceUnavailable(
+                detail='Service temporarily unavailable, try again later.'
+                ' There is an issue with the - {svc}'
+                ' - service check. Reason: {reason}'.format(svc=check.__name__, reason=e.args[0])
+            )
+        return Response({'message': "all's well"})
 
     def get_services(self):
-        if not hasattr(self, "services"):
+        if not hasattr(self, 'services'):
             raise ImproperlyConfigured
         if len(self.services) < 1:
-            raise ImproperlyConfigured(
-                "please specify at least one service to check")
+            raise ImproperlyConfigured('please specify at least one service to check')
         return self.services
 
 

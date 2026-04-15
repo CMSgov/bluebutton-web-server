@@ -11,10 +11,7 @@ from oauth2_provider.signals import app_authorized
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.admin import MyAccessToken
 from apps.dot_ext.signals import beneficiary_authorized_application
-from apps.fhir.bluebutton.signals import (
-    pre_fetch,
-    post_fetch
-)
+from apps.fhir.bluebutton.signals import pre_fetch, post_fetch
 
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.fhir.bluebutton.utils import FhirServerAuth
@@ -34,24 +31,30 @@ from apps.logging.serializers import (
 def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow dict from session for logging
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
-    token_dict = Token(token, action="authorized").to_dict()
-    token_dict["path"] = request.path
+    token_dict = Token(token, action='authorized').to_dict()
+    token_dict['path'] = request.path
     token_logger.info(token_dict)
 
 
 @receiver(beneficiary_authorized_application)
-def handle_app_authorized(sender, request, auth_status, auth_status_code, user, application,
-                          share_demographic_scopes, scopes, allow, access_token_delete_cnt,
-                          refresh_token_delete_cnt, data_access_grant_delete_cnt, **kwargs):
+def handle_app_authorized(
+    sender,
+    request,
+    auth_status,
+    auth_status_code,
+    user,
+    application,
+    share_demographic_scopes,
+    scopes,
+    allow,
+    access_token_delete_cnt,
+    refresh_token_delete_cnt,
+    data_access_grant_delete_cnt,
+    **kwargs,
+):
 
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
-    crosswalk_log = {
-        'id': None,
-        'user_hicn_hash': None,
-        'fhir_id_v2': None,
-        'fhir_id_v3': None,
-        'user_id_type': None
-    }
+    crosswalk_log = {'id': None, 'user_hicn_hash': None, 'fhir_id_v2': None, 'fhir_id_v3': None, 'user_id_type': None}
 
     try:
         crosswalk_log = {
@@ -59,7 +62,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
             'user_hicn_hash': user.crosswalk.user_hicn_hash,
             'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
             'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
-            'user_id_type': user.crosswalk.user_id_type
+            'user_id_type': user.crosswalk.user_id_type,
         }
     except Exception:
         # TODO consider logging exception name here
@@ -97,31 +100,31 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
-    token_logger.info(Token(instance, action="revoked").to_dict())
+    token_logger.info(Token(instance, action='revoked').to_dict())
 
 
 @receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
-    token_logger.info(DataAccessGrantSerializer(instance, action="revoked").to_dict())
+    token_logger.info(DataAccessGrantSerializer(instance, action='revoked').to_dict())
 
 
 @receiver(pre_fetch, sender=FhirDataView)
 @receiver(pre_fetch, sender=FhirServerAuth)
 def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
-    fhir_logger.info(FHIRRequest(request, api_ver).to_dict()
-                     if sender == FhirDataView
-                     else FHIRRequestForAuth(request, api_ver).to_dict())
+    fhir_logger.info(
+        FHIRRequest(request, api_ver).to_dict() if sender == FhirDataView else FHIRRequestForAuth(request, api_ver).to_dict()
+    )
 
 
 @receiver(post_fetch, sender=FhirDataView)
 @receiver(post_fetch, sender=FhirServerAuth)
 def fetched_data(sender, request=None, auth_request=None, response=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
-    fhir_logger.info(FHIRResponse(response, api_ver).to_dict()
-                     if sender == FhirDataView
-                     else FHIRResponseForAuth(response, api_ver).to_dict())
+    fhir_logger.info(
+        FHIRResponse(response, api_ver).to_dict() if sender == FhirDataView else FHIRResponseForAuth(response, api_ver).to_dict()
+    )
 
 
 def sls_hook(sender, response=None, request=None, **kwargs):

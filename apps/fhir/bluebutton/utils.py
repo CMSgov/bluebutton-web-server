@@ -163,13 +163,9 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         # TODO: As we move to v2/v3, v3 does not use the hicnHash. We will want to refactor.
         if crosswalk.fhir_id(version) != '':
-            result['BlueButton-BeneficiaryId'] = 'patientId:' + crosswalk.fhir_id(
-                version
-            )
+            result['BlueButton-BeneficiaryId'] = 'patientId:' + crosswalk.fhir_id(version)
         else:
-            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(
-                crosswalk.user_hicn_hash
-            )
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(crosswalk.user_hicn_hash)
     else:
         # Set to empty
         result['BlueButton-BeneficiaryId'] = ''
@@ -177,16 +173,12 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     if user:
         result['BlueButton-UserId'] = str(user.id)
         result['BlueButton-User'] = str(user)
-        if AccessToken.objects.filter(
-            token=get_access_token_from_request(request)
-        ).exists():
+        if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
             at = AccessToken.objects.get(token=get_access_token_from_request(request))
             result['BlueButton-Application'] = str(at.application.name)
             result['BlueButton-ApplicationId'] = str(at.application.id)
             # BB2-2011 update logging w.r.t new fields application data_access_type
-            result['BlueButton-ApplicationDataAccessType'] = str(
-                at.application.data_access_type
-            )
+            result['BlueButton-ApplicationDataAccessType'] = str(at.application.data_access_type)
             result['BlueButton-DeveloperId'] = str(at.application.user.id)
             result['BlueButton-Developer'] = str(at.application.user)
         else:
@@ -352,12 +344,8 @@ def FhirServerAuth() -> dict:
 
     if auth_settings['client_auth']:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
-        cert_file_path = os.path.join(
-            settings.FHIR_CLIENT_CERTSTORE, auth_settings['cert_file']
-        )
-        key_file_path = os.path.join(
-            settings.FHIR_CLIENT_CERTSTORE, auth_settings['key_file']
-        )
+        cert_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE, auth_settings['cert_file'])
+        key_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE, auth_settings['key_file'])
         auth_settings['cert_file'] = cert_file_path
         auth_settings['key_file'] = key_file_path
 
@@ -608,9 +596,7 @@ def get_response_text(fhir_response=None):
         return text_in
 
 
-def build_oauth_resource(
-    request, version=Versions.NOT_AN_API_VERSION, format_type='json'
-) -> dict | str:
+def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_type='json') -> dict | str:
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
@@ -620,12 +606,8 @@ def build_oauth_resource(
     endpoints = build_endpoint_info(OrderedDict(), issuer=base_issuer(request))
     if version == Versions.V3:
         endpoints['token_endpoint'] = endpoints['token_endpoint'].replace('v2', 'v3')
-        endpoints['authorization_endpoint'] = endpoints[
-            'authorization_endpoint'
-        ].replace('v2', 'v3')
-        endpoints['revocation_endpoint'] = endpoints['revocation_endpoint'].replace(
-            'v2', 'v3'
-        )
+        endpoints['authorization_endpoint'] = endpoints['authorization_endpoint'].replace('v2', 'v3')
+        endpoints['revocation_endpoint'] = endpoints['revocation_endpoint'].replace('v2', 'v3')
 
     if format_type.lower() == 'xml':
         security = """
@@ -741,9 +723,7 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     headers['BlueButton-Application'] = 'BB2-Tools'
     headers['includeIdentifiers'] = 'true'
 
-    search_identifier = (
-        f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
-    )
+    search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
     payload = {'identifier': search_identifier}
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 
@@ -756,9 +736,7 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     return response.json()
 
 
-def valid_patient_read_or_search_call(
-    beneficiary_id: str, resource_id: Optional[str], query_param: str
-) -> bool:
+def valid_patient_read_or_search_call(beneficiary_id: str, resource_id: Optional[str], query_param: str) -> bool:
     """Determine if a read or search Patient call is valid, based on what was passed for the resource_id (read call)
     or the query_parameter (search call)
 
@@ -788,9 +766,7 @@ def valid_patient_read_or_search_call(
     return True
 
 
-def validate_query_parameters(
-    accepted_query_params: Dict[str, Any], api_query_params: str
-) -> ValidateSearchParams:
+def validate_query_parameters(accepted_query_params: Dict[str, Any], api_query_params: str) -> ValidateSearchParams:
     """Determine if search parameters for a given call are valid or not.
     If they are not valid, return a list of the invalid parameters
 
@@ -811,11 +787,7 @@ def validate_query_parameters(
         # that is transformed to _count before making the call to BFD. We do not manipulate the
         # actual query parameter string to be _count instead of count though, so we do not fail
         # a request if it includes count
-        if (
-            key not in accepted_query_params.keys()
-            and key != 'count'
-            and key != '_format'
-        ):
+        if key not in accepted_query_params.keys() and key != 'count' and key != '_format':
             valid = False
             invalid_params.append(key)
     return ValidateSearchParams(valid=valid, invalid_params=invalid_params)
@@ -827,9 +799,7 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     return False
 
 
-def is_patient_match_found(
-    response_json: Dict[str, Any], index: int
-) -> tuple[bool, dict | None]:
+def is_patient_match_found(response_json: Dict[str, Any], index: int) -> tuple[bool, dict | None]:
     """
     This is a utility function to check if a patient match is found. If a patient match is found,
     a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned.
@@ -858,9 +828,7 @@ def is_patient_match_found(
     return False, None
 
 
-def get_patient_match_response_json(
-    url: str, json: str, headers: Dict[str, str], method: str
-) -> Dict[str, Any]:
+def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
     """
     This is a utility function to get the patient match json response from a call to BFD.
 

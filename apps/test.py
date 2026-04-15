@@ -62,7 +62,7 @@ class BaseApiTest(TestCase):
         user_hicn_hash: str | None = test_hicn_hash,
         user_mbi: str | None = test_mbi,
         user_type=None,  # TODO: This is not used currently, consider removing
-        **extra_fields
+        **extra_fields,
     ) -> User:
         """Helper method that creates a User instance with associated Crosswalk data
 
@@ -103,9 +103,7 @@ class BaseApiTest(TestCase):
             try:
                 UserProfile.objects.get(user=user)
             except UserProfile.DoesNotExist:
-                UserProfile.objects.create(user=user,
-                                           user_type=USER_TYPE_BENEFICIARY,
-                                           create_applications=False)
+                UserProfile.objects.create(user=user, user_type=USER_TYPE_BENEFICIARY, create_applications=False)
         return user
 
     def _create_group(self, name):
@@ -117,14 +115,7 @@ class BaseApiTest(TestCase):
         return group
 
     def _create_application(
-        self,
-        name,
-        client_type=None,
-        grant_type=None,
-        capability=None,
-        user=None,
-        data_access_type=None,
-        **kwargs
+        self, name, client_type=None, grant_type=None, capability=None, user=None, data_access_type=None, **kwargs
     ):
         """
         Helper method that creates an application instance
@@ -136,19 +127,14 @@ class BaseApiTest(TestCase):
         client_type = client_type or Application.CLIENT_PUBLIC
         grant_type = grant_type or Application.GRANT_PASSWORD
         # This is the user to whom the application is bound.
-        dev_user = user or User.objects.create_user("dev", password="123456")
+        dev_user = user or User.objects.create_user('dev', password='123456')
         application = Application.objects.create(
-            name=name,
-            user=dev_user,
-            client_type=client_type,
-            authorization_grant_type=grant_type,
-            **kwargs
+            name=name, user=dev_user, client_type=client_type, authorization_grant_type=grant_type, **kwargs
         )
 
         label = self._create_internal_application_labels(
-            label="Research app - multiple studies",
-            slug="research-app-multiple-studies",
-            description="Desc: place holder")
+            label='Research app - multiple studies', slug='research-app-multiple-studies', description='Desc: place holder'
+        )
 
         application.internal_application_labels.add(label)
 
@@ -175,7 +161,7 @@ class BaseApiTest(TestCase):
         except ProtectedCapability.DoesNotExist:
             pass
 
-        group = group or self._create_group("test")
+        group = group or self._create_group('test')
         capability = ProtectedCapability.objects.create(
             default=default,
             title=name,
@@ -245,7 +231,7 @@ class BaseApiTest(TestCase):
         """
         AccessToken = get_access_token_model()
         user = User.objects.get(username=username)
-        application = application or self._create_application("test")
+        application = application or self._create_application('test')
 
         # Create the AccessToken object directly in the DB
         access_token = AccessToken.objects.create(
@@ -253,7 +239,7 @@ class BaseApiTest(TestCase):
             application=application,
             token=secrets.token_hex(32),
             expires=datetime.now() + timedelta(seconds=36000),
-            scope="patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs profile",
+            scope='patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs profile',
         )
 
         DataAccessGrant.objects.update_or_create(
@@ -267,14 +253,10 @@ class BaseApiTest(TestCase):
         """
         Helper method that retrieve application with given user and app name.
         """
-        apps_qs = Application.objects.filter(name__exact=app_name).filter(
-            user__username=username
-        )
+        apps_qs = Application.objects.filter(name__exact=app_name).filter(user__username=username)
         return apps_qs.first()
 
-    def assert_log_entry_valid(
-        self, entry_dict, compare_dict, attrexist_list, hasvalue_list
-    ):
+    def assert_log_entry_valid(self, entry_dict, compare_dict, attrexist_list, hasvalue_list):
         """
         Method for validating a log entry has the expected structure and values
         """
@@ -301,15 +283,13 @@ class BaseApiTest(TestCase):
             self.assertTrue(key in copy_dict)
             if hasvalue_list is not None and key in hasvalue_list:
                 self.assertIsNotNone(copy_dict[key])
-                self.assertNotEqual(copy_dict[key], "")
+                self.assertNotEqual(copy_dict[key], '')
             copy_dict.pop(key)
 
         # Compare dictionaries for expected values
         self.assertDictEqual(copy_dict, compare_dict)
 
-    def _get_access_token_authcode_confidential(
-        self, username, user_passwd, application
-    ):
+    def _get_access_token_authcode_confidential(self, username, user_passwd, application):
         """
         Helper method that creates an access_token using the confidential client and auth_code grant.
         """
@@ -318,52 +298,48 @@ class BaseApiTest(TestCase):
         self.client.login(request=request, username=username, password=user_passwd)
 
         # Authorize
-        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": application.redirect_uris,
-            "code_challenge": code_challenge,
-            "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.get("/v1/o/authorize", data=payload)
+        response = self.client.get('/v1/o/authorize', data=payload)
 
         # post the authorization form with only one scope selected
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": application.redirect_uris,
-            "scope": ["capability-a"],
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
-            "code_challenge": code_challenge,
-            "code_challenge_method": CODE_CHALLENGE_METHOD_S256,
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.post(response["Location"], data=payload)
+        response = self.client.post(response['Location'], data=payload)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
         # now extract the authorization code and use it to request an access_token
-        query_dict = parse_qs(urlparse(response["Location"]).query)
-        authorization_code = query_dict.pop("code")
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
         token_request_data = {
-            "grant_type": "authorization_code",
-            "code": authorization_code,
-            "redirect_uri": application.redirect_uris,
-            "client_id": application.client_id,
-            "client_secret": application.client_secret_plain,
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': application.redirect_uris,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
         }
 
         # Test that request is successful WITH the client_secret and GOOD code_verifier
-        token_request_data.update(
-            {"code_verifier": "test123456789123456789123456789123456789123456789"}
-        )
-        response = self.client.post(
-            reverse("oauth2_provider:token"), data=token_request_data
-        )
+        token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-        content = json.loads(response.content.decode("utf-8"))
+        content = json.loads(response.content.decode('utf-8'))
 
         return content
 
@@ -372,7 +348,7 @@ class BaseApiTest(TestCase):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            user = User.objects.create_user(username, password="xxx123")
+            user = User.objects.create_user(username, password='xxx123')
 
         # Create dev user profile, if it doesn't exist
         try:
@@ -380,15 +356,22 @@ class BaseApiTest(TestCase):
             user_profile.organization_name = organization
             user_profile.save()
         except UserProfile.DoesNotExist:
-            UserProfile.objects.create(user=user,
-                                       user_type=USER_TYPE_DEV,
-                                       organization_name=organization,
-                                       create_applications=True)
+            UserProfile.objects.create(
+                user=user, user_type=USER_TYPE_DEV, organization_name=organization, create_applications=True
+            )
         return user
 
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id_v2, fhir_id_v3, app_name, app_username, app_user_organization,
-        mbi: str, app_data_access_type=None
+        self,
+        first_name,
+        last_name,
+        fhir_id_v2,
+        fhir_id_v3,
+        app_name,
+        app_username,
+        app_user_organization,
+        mbi: str,
+        app_data_access_type=None,
     ):
         """
         Helper method that creates a user connected to an application
@@ -405,9 +388,9 @@ class BaseApiTest(TestCase):
                 app_name,
                 client_type=Application.CLIENT_CONFIDENTIAL,
                 grant_type=Application.GRANT_AUTHORIZATION_CODE,
-                redirect_uris="com.custom.bluebutton://example.it",
+                redirect_uris='com.custom.bluebutton://example.it',
                 user=app_user,
-                active=True
+                active=True,
             )
 
             # Set data access type
@@ -415,51 +398,41 @@ class BaseApiTest(TestCase):
                 application.data_access_type = app_data_access_type
 
             # Add a few capabilities
-            capability_a = self._create_capability("Capability A", [])
-            capability_b = self._create_capability("Capability B", [])
+            capability_a = self._create_capability('Capability A', [])
+            capability_b = self._create_capability('Capability B', [])
             application.scope.add(capability_a, capability_b)
             application.save()
         if not mbi:
             mbi = self.test_mbi
         # Create beneficiary user, if it doesn't exist
         try:
-            username = first_name + last_name + "@example.com"
+            username = first_name + last_name + '@example.com'
 
             # Create unique hashes using FHIR_ID
             # Eventually, we will be getting rid of the hicn hash. We can leave this v2 reference for now.
             # This is "just" creating a unique value.
-            hicn_hash = re.sub(
-                "[^A-Za-z0-9]+", "a", fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2):]
-            )
+            hicn_hash = re.sub('[^A-Za-z0-9]+', 'a', fhir_id_v2 + self.test_hicn_hash[len(fhir_id_v2) :])
 
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             user = self._create_user(
                 username=username,
-                password="xxx123",
+                password='xxx123',
                 fhir_id_v2=fhir_id_v2,
                 fhir_id_v3=fhir_id_v3,
                 user_hicn_hash=hicn_hash,
                 user_mbi=mbi,
             )
             # Create bene user profile, if it doesn't exist
-            UserProfile.objects.create(user=user,
-                                       user_type=USER_TYPE_BENEFICIARY,
-                                       create_applications=False)
+            UserProfile.objects.create(user=user, user_type=USER_TYPE_BENEFICIARY, create_applications=False)
 
         access_token = self._get_access_token_authcode_confidential(
-            username=username, user_passwd="xxx123", application=application
+            username=username, user_passwd='xxx123', application=application
         )
 
         return user, application, access_token
 
-    def _create_range_users_app_token_grant(
-        self,
-        start_fhir_id: str,
-        count: int,
-        app_name: str,
-        app_user_organization
-    ):
+    def _create_range_users_app_token_grant(self, start_fhir_id: str, count: int, app_name: str, app_user_organization):
         """Helper method that creates a range of users
 
         Calls create_user_app_token_grant in a loop, which creates Users, Applications,
@@ -487,7 +460,7 @@ class BaseApiTest(TestCase):
                 app_name=app_name,
                 app_username='user_' + app_name,
                 app_user_organization=app_user_organization,
-                mbi=self._generate_random_mbi()
+                mbi=self._generate_random_mbi(),
             )
 
             user_dict[fhir_id_v2] = user
@@ -504,10 +477,8 @@ class BaseApiTest(TestCase):
             app = Application.objects.get(name=app_name)
             remove_application_user_pair_tokens_data_access(app, cw.user)
 
-    def create_token(
-        self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None
-    ):
-        passwd = "123456"
+    def create_token(self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None):
+        passwd = '123456'
 
         user = self._create_user(
             first_name,
@@ -518,13 +489,11 @@ class BaseApiTest(TestCase):
             fhir_id_v3=fhir_id_v3,
             user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
             user_mbi=mbi if mbi is not None else self.test_mbi,
-            email="%s@%s.notanagency.gov" % (first_name, last_name),
+            email='%s@%s.notanagency.gov' % (first_name, last_name),
         )
 
         # create a oauth2 application and add capabilities
-        application = self._create_application(
-            "%s_%s_test" % (first_name, last_name), user=user
-        )
+        application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
         application.scope.add(self.read_capability, self.write_capability)
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, application)
