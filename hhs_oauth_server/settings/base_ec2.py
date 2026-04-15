@@ -3,18 +3,19 @@
 # We have a base_local.py that sources env vars in the way that we want to moving forward, and eventually that will apply to
 # deployed environments as well.
 
-import os
-import dj_database_url
-import socket
 import datetime
+import os
+import socket
+from urllib.parse import urlparse
 
-from apps.logging.sensitive_logging_filters import SensitiveDataFilter
+import dj_database_url
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from getenv import env
-from hhs_oauth_server.settings.themes import THEMES, THEME_SELECTED
+
+from apps.logging.sensitive_logging_filters import SensitiveDataFilter
+from hhs_oauth_server.settings.themes import THEME_SELECTED, THEMES
 from hhs_oauth_server.utils import bool_env, int_env
-from urllib.parse import urlparse
 
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
 # We want the launch to generally be quiet, and only tell us things
@@ -419,13 +420,22 @@ EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 # Option for local development to pretty print/format JSON logging
 LOG_JSON_FORMAT_PRETTY = env('DJANGO_LOG_JSON_FORMAT_PRETTY', False)
 
-# TODO - this is to pass integration tests, make a note to change this with Fargate
-for log_path in ('/var/log/pyapps', os.path.join(BASE_DIR, 'logs')):
+
+LOG_DIR = '/var/log/pyapps'
+READ_ONLY_FS = False
+
+# Added for integration tests (currently, log files are created in some ansible/terraform way)
+# TODO - may ne unnecessary, depending on how our integration tests end up in the fargate migration
+if not os.path.exists(LOG_DIR):
     try:
-        os.makedirs(log_path, exist_ok=True)
-        break
+        os.makedirs(LOG_DIR, exist_ok=True)
     except OSError:
-        pass
+        LOG_DIR = os.path.join(BASE_DIR, 'logs')
+        try:
+            os.makedirs(LOG_DIR, exist_ok=True)
+        except OSError:
+            READ_ONLY_FS = True
+            LOG_DIR = '/tmp'  # Fallback purely so string evaluation doesn't crash prior to intercept
 
 # TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks that aren't being migrated
 LOGGING = env(
@@ -525,6 +535,14 @@ LOGGING = env(
     },
 )
 
+if READ_ONLY_FS:
+    # Fargate runs extremely locked-down read-only filesystems which crashes standard logging.
+    # Safely morph any failing local FileHandlers into streaming stdout handlers!
+    for _handler_name, handler_config in LOGGING['handlers'].items():
+        if handler_config.get('class') == 'logging.FileHandler':
+            handler_config['class'] = 'logging.StreamHandler'
+            handler_config.pop('filename', None)
+
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
 # Django Oauth Tookit settings and customizations
@@ -587,7 +605,9 @@ TOS_URI = env('DJANGO_TOS_URI', 'https://bluebutton.cms.gov/terms')
 TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
 TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
 TAG_LINE_2 = env('DJANGO_TAG_LINE_2', 'with applications, organizations, and people you trust.')
-EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+EXPLAINATION_LINE = (
+    'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+)
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
 # Application model settings
@@ -641,17 +661,11 @@ APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
     'If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov.'
 )
 
-APPLICATION_NOT_AUTHENTICATED = (
-    'Application not authenticated. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
-)
+APPLICATION_NOT_AUTHENTICATED = 'Application not authenticated. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    'User access has timed out. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
-)
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = 'User access has timed out. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
-    'User access cannot be found. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
-)
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = 'User access cannot be found. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
 APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
     'This application, {}, does not yet have access to v3 endpoints.'
