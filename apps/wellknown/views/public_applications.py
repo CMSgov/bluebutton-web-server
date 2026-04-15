@@ -15,26 +15,28 @@ class ProviderPagination(PageNumberPagination):
     max_page_size = 10000
 
     def get_paginated_response(self, data):
-        return Response({
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'count': self.page.paginator.count,
-            'publisher': self.get_publisher_data(),
-            'results': data,
-        })
+        return Response(
+            {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'count': self.page.paginator.count,
+                'publisher': self.get_publisher_data(),
+                'results': data,
+            }
+        )
 
     def get_publisher_data(self):
         try:
             return {
-                "organization": settings.ORGANIZATION["NAME"],
-                "endpoints": {
-                    "name": "metadata",
-                    "address": reverse_lazy("fhir_conformance_metadata"),
+                'organization': settings.ORGANIZATION['NAME'],
+                'endpoints': {
+                    'name': 'metadata',
+                    'address': reverse_lazy('fhir_conformance_metadata'),
                 },
-                "contacts": [
+                'contacts': [
                     {
-                        "system": "email",
-                        "value": settings.ORGANIZATION["EMAIL"],
+                        'system': 'email',
+                        'value': settings.ORGANIZATION['EMAIL'],
                     },
                 ],
             }
@@ -47,7 +49,7 @@ class ApplicationListSerializer(serializers.ModelSerializer):
     description = serializers.CharField()
     website_uri = serializers.URLField()
     tos_uri = serializers.URLField()
-    privacy_policy_uri = serializers.URLField(source="policy_uri")
+    privacy_policy_uri = serializers.URLField(source='policy_uri')
     contacts = serializers.SerializerMethodField()
 
     class Meta:
@@ -62,16 +64,7 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         )
 
     def get_contacts(self, obj):
-        contacts = [
-            {
-                "system": "phone",
-                "value": obj.support_phone_number
-            },
-            {
-                "system": "email",
-                "value": obj.support_email
-            }
-        ]
+        contacts = [{'system': 'phone', 'value': obj.support_phone_number}, {'system': 'email', 'value': obj.support_email}]
         return contacts
 
 
@@ -82,12 +75,16 @@ class ApplicationListView(ListAPIView):
     An application that has active=False or with a label slug in the APP_LIST_EXCLUDE
     list will be excluded from this view.
     """
+
     permission_classes = (AllowAny,)
     renderer_classes = (JSONRenderer,)
     serializer_class = ApplicationListSerializer
     pagination_class = ProviderPagination
 
     def get_queryset(self):
-        queryset = Application.objects.exclude(active=False).exclude(
-            applicationlabel__slug__in=settings.APP_LIST_EXCLUDE).order_by('name')
+        queryset = (
+            Application.objects.exclude(active=False)
+            .exclude(applicationlabel__slug__in=settings.APP_LIST_EXCLUDE)
+            .order_by('name')
+        )
         return queryset

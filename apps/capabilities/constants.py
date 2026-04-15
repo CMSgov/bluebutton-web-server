@@ -16,4 +16,4 @@ SUPPORTED_RESOURCES = [
     'DocumentReference',
 ]
 
-URL_BIT_PATTERN = re.compile(r"\[.*\]")
+URL_BIT_PATTERN = re.compile(r'\[.*\]')

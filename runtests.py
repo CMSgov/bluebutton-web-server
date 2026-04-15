@@ -9,7 +9,7 @@ from io import StringIO
 from django.conf import settings
 from django.test.utils import get_runner
 
-'''
+"""
     Reference: https://docs.djangoproject.com/en/3.0/topics/testing/advanced/#defining-a-test-runner
 
     Command line arguments:
@@ -38,7 +38,7 @@ from django.test.utils import get_runner
         For multiple arguments:
 
         $ docker compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
-'''
+"""
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
@@ -50,20 +50,34 @@ args = parser.parse_args()
 
 if args.integration:
     # Unset ENV variables for integration type tests so default values get set.
-    for env_var in ['DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
-                    'DJANGO_SLSX_USERINFO_ENDPOINT', 'DJANGO_SLSX_TOKEN_ENDPOINT',
-                    'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', "DJANGO_SLSX_SIGNOUT_ENDPOINT",
-                    'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY']:
+    for env_var in [
+        'DJANGO_MEDICARE_SLSX_LOGIN_URI',
+        'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
+        'DJANGO_SLSX_USERINFO_ENDPOINT',
+        'DJANGO_SLSX_TOKEN_ENDPOINT',
+        'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT',
+        'DJANGO_SLSX_SIGNOUT_ENDPOINT',
+        'DATABASES_CUSTOM',
+        'DJANGO_LOG_JSON_FORMAT_PRETTY',
+    ]:
         if env_var in os.environ:
             del os.environ[env_var]
 elif not args.selenium:
     # Unset ENV variables for Django unit type tests so default values get set.
     # 20251022 Removed 'FHIR_URL' from the list of env vars that are deleted.
-    for env_var in ['DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
-                    'DJANGO_SLSX_USERINFO_ENDPOINT', 'DJANGO_SLSX_TOKEN_ENDPOINT',
-                    'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', "DJANGO_SLSX_SIGNOUT_ENDPOINT",
-                    'DJANGO_FHIR_CERTSTORE', 'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY',
-                    'DJANGO_USER_ID_ITERATIONS', 'DJANGO_USER_ID_SALT']:
+    for env_var in [
+        'DJANGO_MEDICARE_SLSX_LOGIN_URI',
+        'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
+        'DJANGO_SLSX_USERINFO_ENDPOINT',
+        'DJANGO_SLSX_TOKEN_ENDPOINT',
+        'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT',
+        'DJANGO_SLSX_SIGNOUT_ENDPOINT',
+        'DJANGO_FHIR_CERTSTORE',
+        'DATABASES_CUSTOM',
+        'DJANGO_LOG_JSON_FORMAT_PRETTY',
+        'DJANGO_USER_ID_ITERATIONS',
+        'DJANGO_USER_ID_SALT',
+    ]:
         if env_var in os.environ:
             del os.environ[env_var]
 
@@ -86,27 +100,27 @@ if __name__ == '__main__':
         failures = test_runner.run_tests(None)
 
     if captured_output and failures and args.report_file:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open(args.report_file, 'w') as report:
-            report.write(f"Test Report Generated: {timestamp}\n")
-            report.write("=" * 60 + "\n\n")
+            report.write(f'Test Report Generated: {timestamp}\n')
+            report.write('=' * 60 + '\n\n')
 
             if args.integration:
-                report.write("Mode: Integration\n")
+                report.write('Mode: Integration\n')
             elif args.selenium:
-                report.write("Mode: Selenium\n")
+                report.write('Mode: Selenium\n')
             else:
-                report.write("Mode: Unit\n")
+                report.write('Mode: Unit\n')
 
-            report.write(f"Tests run: {' '.join(args.test)}\n\n")
+            report.write(f'Tests run: {" ".join(args.test)}\n\n')
 
-            report.write(f"Failures/Errors: {failures}\n\n")
-            report.write("=" * 60 + "\n")
-            report.write("DETAILED OUTPUT:\n")
-            report.write("=" * 60 + "\n")
+            report.write(f'Failures/Errors: {failures}\n\n')
+            report.write('=' * 60 + '\n')
+            report.write('DETAILED OUTPUT:\n')
+            report.write('=' * 60 + '\n')
             report.write(captured_output.getvalue())
 
-        print(f"Test report written to: {args.report_file}")
+        print(f'Test report written to: {args.report_file}')
 
     if failures > 0 and 'JENKINS_URL' in os.environ:
         sys.exit(1)

@@ -9,7 +9,7 @@ from apps.constants import HHS_SERVER_LOGNAME_FMT
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
 from requests import Session, Request
-from rest_framework import (exceptions, permissions)
+from rest_framework import exceptions, permissions
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
@@ -26,16 +26,13 @@ from apps.fhir.server.settings import fhir_settings
 from apps.fhir.server import connection as backend_connection
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
-from apps.fhir.bluebutton.permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
-from apps.fhir.bluebutton.signals import (
-    pre_fetch,
-    post_fetch
-)
+from apps.fhir.bluebutton.permissions import HasCrosswalk, ResourcePermission, ApplicationActivePermission
+from apps.fhir.bluebutton.signals import pre_fetch, post_fetch
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_fhir_response,
     valid_patient_read_or_search_call,
-    validate_query_parameters
+    validate_query_parameters,
 )
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -53,7 +50,7 @@ class FhirDataView(APIView):
         ApplicationActivePermission,
         HasCrosswalk,
         ResourcePermission,
-        DataAccessGrantPermission
+        DataAccessGrantPermission,
     ]
 
     def __init__(self, version=1):
@@ -83,9 +80,7 @@ class FhirDataView(APIView):
         # Get list from _lastUpdated QueryDict(), since it can have multi params
         params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
 
-        schema = voluptuous.Schema(
-            getattr(self, 'QUERY_SCHEMA', {}),
-            extra=voluptuous.REMOVE_EXTRA)
+        schema = voluptuous.Schema(getattr(self, 'QUERY_SCHEMA', {}), extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
 
     def initial(self, request, resource_type, *args, **kwargs):
@@ -126,9 +121,7 @@ class FhirDataView(APIView):
         return Response(out_data)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
-        target_url = self.build_url(fhir_settings,
-                                    resource_type,
-                                    *args, **kwargs)
+        target_url = self.build_url(fhir_settings, resource_type, *args, **kwargs)
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
@@ -137,15 +130,11 @@ class FhirDataView(APIView):
         except voluptuous.error.Invalid as e:
             raise exceptions.ParseError(detail=e.msg)
 
-        logger.debug('Here is the URL to send, %s now add '
-                     'GET parameters %s' % (target_url, get_parameters))
+        logger.debug('Here is the URL to send, %s now add GET parameters %s' % (target_url, get_parameters))
         request.session.version = self.version
 
         # Now make the call to the backend API
-        req = Request('GET',
-                      target_url,
-                      params=get_parameters,
-                      headers=backend_connection.headers(request, url=target_url))
+        req = Request('GET', target_url, params=get_parameters, headers=backend_connection.headers(request, url=target_url))
         s = Session()
 
         # BB2-1544 request header url encode if header value (app name) contains char (>256)
@@ -160,22 +149,15 @@ class FhirDataView(APIView):
         accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
         request_prefer_header = request.META.get('HTTP_PREFER')
 
-        if (
-            request_prefer_header == ENFORCE_PARAM_VALIDATAION
-            and query_param
-            and self.version == Versions.V3
-        ):
+        if request_prefer_header == ENFORCE_PARAM_VALIDATAION and query_param and self.version == Versions.V3:
             accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
             validation_result = validate_query_parameters(accepted_query_parameters, query_param)
             if not validation_result.valid:
                 # We are raising a ValidationError here so that, even when DEBUG = False, a developer
                 # making the request can see what the invalid parameters were so they can fix the request
-                raise ValidationError({
-                    'error': f'Invalid parameters: {validation_result.invalid_params}'
-                })
+                raise ValidationError({'error': f'Invalid parameters: {validation_result.invalid_params}'})
 
         if resource_type == 'Patient':
-
             resource_id = kwargs.get('resource_id')
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 
@@ -212,7 +194,7 @@ class FhirDataView(APIView):
             prepped,
             cert=(fhir_server_auth['cert_file'], fhir_server_auth['key_file']),
             timeout=fhir_settings.wait_time,
-            verify=fhir_settings.verify_server
+            verify=fhir_settings.verify_server,
         )
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)

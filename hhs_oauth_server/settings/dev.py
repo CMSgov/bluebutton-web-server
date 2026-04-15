@@ -25,8 +25,7 @@ TEMPLATES = [
                 'hhs_oauth_server.settings.context_processors.export_settings',
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
-            'builtins': [
-            ],
+            'builtins': [],
         },
     },
 ]
@@ -36,4 +35,4 @@ TEMPLATES = [
 # REQUIRE_HTTPS_REDIRECT_URIS = True
 BLOCK_HTTP_REDIRECT_URIS = False
 
-APPLICATION_TITLE = "Blue Button 2.0 DEV"
+APPLICATION_TITLE = 'Blue Button 2.0 DEV'

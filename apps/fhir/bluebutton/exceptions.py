@@ -66,7 +66,7 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
                 issue = issues[0] if issues else None
                 diagnostics = issue.get('diagnostics') if issue else None
                 if diagnostics is not None:
-                    err = BadRequestToBackendError("{}:{}".format(msg, diagnostics))
+                    err = BadRequestToBackendError('{}:{}'.format(msg, diagnostics))
         except JSONDecodeError:
             # Do nothing here; fall through and return `err`
             pass
@@ -95,12 +95,7 @@ class BadRequestToBackendError(APIException):
 
 
 class OperationOutcomeException(APIException):
-
-    def __init__(
-        self,
-        status_code: int,
-        issue: List[Dict[str, Any]]
-    ):
+    def __init__(self, status_code: int, issue: List[Dict[str, Any]]):
         self.status_code = status_code
         self.detail = {
             'resourceType': OPERATION_OUTCOME,

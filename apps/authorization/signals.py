@@ -11,7 +11,7 @@ RefreshToken = get_refresh_token_model()
 
 def app_authorized_record_grant(sender, request, user, application, **kwargs):
     auth_status = kwargs.get('auth_status', None)
-    if auth_status == "OK":
+    if auth_status == 'OK':
         dag, was_created = DataAccessGrant.objects.get_or_create(
             beneficiary=user,
             application=application,
@@ -41,7 +41,8 @@ def archive_removed_grant(sender, instance=None, **kwargs):
         created_at=instance.created_at,
         expiration_date=instance.expiration_date,
         application=instance.application,
-        beneficiary=instance.beneficiary)
+        beneficiary=instance.beneficiary,
+    )
 
 
 post_delete.connect(revoke_associated_tokens, sender='authorization.DataAccessGrant')

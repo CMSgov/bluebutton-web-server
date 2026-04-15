@@ -30,7 +30,7 @@ from apps.fhir.bluebutton.utils import (
     is_operation_outcome,
     is_patient_match_found,
     extract_fhir_id_from_patient,
-    extract_mbi_from_patient
+    extract_mbi_from_patient,
 )
 from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
 from voluptuous import (
@@ -43,43 +43,41 @@ from voluptuous import (
 # Leaving this here to avoid a circular import issue
 ACCEPTED_EOB_QUERY_PARAMS = {
     'startIndex': Coerce(int, msg=None),
-    '_count': All(
-        Coerce(int, msg=None),
-        Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
-    ),
+    '_count': All(Coerce(int, msg=None), Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None),
     '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
-    'type': Match('(?i)^(((carrier)|(pde)|(dme)|(hha)|(hospice)|(inpatient)|(outpatient)|(snf)|(https://bluebutton.cms.gov/'
-                  'resources/codesystem/eob-type\\|)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|carrier)|('
-                  'https://bluebutton.cms.gov/resources/codesystem/eob-type\\|pde)|(https://bluebutton.cms.gov/resources/co'
-                  'desystem/eob-type\\|dme)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|hha)|(https://blueb'
-                  'utton.cms.gov/resources/codesystem/eob-type\\|hospice)|(https://bluebutton.cms.gov/resources/codesystem/'
-                  'eob-type\\|inpatient)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|outpatient)|(https://b'
-                  'luebutton.cms.gov/resources/codesystem/eob-type\\|snf))\\s*,*\\s*)+$',
-                  msg='the type parameter value is not valid'),
+    'type': Match(
+        '(?i)^(((carrier)|(pde)|(dme)|(hha)|(hospice)|(inpatient)|(outpatient)|(snf)|(https://bluebutton.cms.gov/'
+        'resources/codesystem/eob-type\\|)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|carrier)|('
+        'https://bluebutton.cms.gov/resources/codesystem/eob-type\\|pde)|(https://bluebutton.cms.gov/resources/co'
+        'desystem/eob-type\\|dme)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|hha)|(https://blueb'
+        'utton.cms.gov/resources/codesystem/eob-type\\|hospice)|(https://bluebutton.cms.gov/resources/codesystem/'
+        'eob-type\\|inpatient)|(https://bluebutton.cms.gov/resources/codesystem/eob-type\\|outpatient)|(https://b'
+        'luebutton.cms.gov/resources/codesystem/eob-type\\|snf))\\s*,*\\s*)+$',
+        msg='the type parameter value is not valid',
+    ),
     'service-date': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the service-date operator is not valid')],
     'patient': str,
-    '_tag': SearchViewExplanationOfBenefit.validate_tag
+    '_tag': SearchViewExplanationOfBenefit.validate_tag,
 }
 
 
 class BluebuttonUtilsSimpleTestCase(BaseApiTest):
     # Load fixtures
-    fixtures = ['fhir_bluebutton_test_rt.json',
-                'fhir_bluebutton_new_testdata.json']
+    fixtures = ['fhir_bluebutton_test_rt.json', 'fhir_bluebutton_new_testdata.json']
 
     def test_notNone(self):
-        """ Test notNone return values """
+        """Test notNone return values"""
 
-        response = notNone("MATCH", "MATCH")
-        self.assertEqual(response, "MATCH")
+        response = notNone('MATCH', 'MATCH')
+        self.assertEqual(response, 'MATCH')
 
         # Empty is not NONE
-        response = notNone("", "MATCH")
-        self.assertNotEqual(response, "MATCH")
+        response = notNone('', 'MATCH')
+        self.assertNotEqual(response, 'MATCH')
 
         # None returns "Default"
-        response = notNone(None, "Default")
-        self.assertEqual(response, "Default")
+        response = notNone(None, 'Default')
+        self.assertEqual(response, 'Default')
 
         # No values
         response = notNone()
@@ -90,22 +88,22 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         self.assertEqual(response, None)
 
         # No Default supplied - Match Returns Match
-        response = notNone("Match")
-        self.assertEqual(response, "Match")
+        response = notNone('Match')
+        self.assertEqual(response, 'Match')
 
         # 1 returns 1
         value = 1
-        response = notNone(value, "number")
+        response = notNone(value, 'number')
         self.assertEqual(response, 1)
 
         # undefined returns default
         undefinedvalue = None
-        response = notNone(undefinedvalue, "default")
-        self.assertEqual(response, "default")
+        response = notNone(undefinedvalue, 'default')
+        self.assertEqual(response, 'default')
 
         # List returns list
         listing = [1, 2, 3]
-        response = notNone(listing, "number")
+        response = notNone(listing, 'number')
         self.assertEqual(response, listing)
 
     def test_valid_patient_read_or_search_call_valid_read_calls(self):
@@ -127,16 +125,12 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         assert result is True
 
         result = valid_patient_read_or_search_call(
-            'PatientId:-99140000008329',
-            None,
-            '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-99140000008329'
+            'PatientId:-99140000008329', None, '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-99140000008329'
         )
         assert result is True
 
         result = valid_patient_read_or_search_call(
-            'PatientId:-99140000008329',
-            None,
-            '_id=-99140000008329&_lastUpdated=lt2024-06-15&startIndex=0&cursor=0'
+            'PatientId:-99140000008329', None, '_id=-99140000008329&_lastUpdated=lt2024-06-15&startIndex=0&cursor=0'
         )
         assert result is True
 
@@ -145,15 +139,12 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         assert result is False
 
         result = valid_patient_read_or_search_call(
-            'PatientId:-99140000008329',
-            None,
-            '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-20140000008329'
+            'PatientId:-99140000008329', None, '_lastUpdated=lt2024-06-15&startIndex=0&cursor=0&_id=-20140000008329'
         )
         assert result is False
 
     def test_validate_query_parameters_valid_calls(self):
-        """Ensure validate_query_parameters returns the expected result with given parameters
-        """
+        """Ensure validate_query_parameters returns the expected result with given parameters"""
         patient_query_param = '_id=-425664833&count=5&_format=application/fhir+json'
         result = validate_query_parameters(ACCEPTED_PATIENT_QUERY_PARAMS, patient_query_param)
         assert result.valid
@@ -170,8 +161,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         assert not result.invalid_params
 
     def test_validate_query_parameters_invalid_calls(self):
-        """Ensure validate_query_parameters returns the expected result with given parameters
-        """
+        """Ensure validate_query_parameters returns the expected result with given parameters"""
         query_param = 'hello=world'
 
         result = validate_query_parameters(ACCEPTED_PATIENT_QUERY_PARAMS, query_param)
@@ -195,39 +185,36 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
-
     fixtures = ['fhir_bluebutton_new_testdata.json']
 
     def test_FhirServerAuth(self):
-        """  Check FHIR Server ClientAuth settings """
+        """Check FHIR Server ClientAuth settings"""
 
         """ Test 1: pass nothing"""
 
         expected = {}
         expected['client_auth'] = fhir_settings.client_auth
-        expected['cert_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             fhir_settings.cert_file)
-        expected['key_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                            fhir_settings.key_file)
+        expected['cert_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE, fhir_settings.cert_file)
+        expected['key_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE, fhir_settings.key_file)
 
         response = FhirServerAuth()
 
         self.assertDictEqual(response, expected)
 
     def test_prepend_q_yes(self):
-        """ Check that ? is added to front of parameters if required """
+        """Check that ? is added to front of parameters if required"""
 
-        pass_params = "test=one&test=2&test=3"
+        pass_params = 'test=one&test=2&test=3'
         response = prepend_q(pass_params)
 
-        expected = "?" + pass_params
+        expected = '?' + pass_params
 
         self.assertEqual(response, expected)
 
     def test_prepend_q_no(self):
-        """ Check that ? is not added to front of parameters if required """
+        """Check that ? is not added to front of parameters if required"""
 
-        pass_params = "?test=one&test=2&test=3"
+        pass_params = '?test=one&test=2&test=3'
         response = prepend_q(pass_params)
 
         expected = pass_params
@@ -236,7 +223,6 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
 
 class BlueButtonUtilRequestTest(TestCase):
-
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def setUp(self):
@@ -244,17 +230,15 @@ class BlueButtonUtilRequestTest(TestCase):
         self.factory = RequestFactory()
 
     def test_mask_with_this_url(self):
-        """ Replace one url with another in a text string """
+        """Replace one url with another in a text string"""
 
         """ Test 1: No text to replace. No changes """
 
-        input_text = 'dddd anything http://www.example.com:8000 ' \
-                     'will get replaced'
+        input_text = 'dddd anything http://www.example.com:8000 will get replaced'
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_with_this_url(request,
-                                      host_path='http://www.replaced.com',
-                                      in_text='',
-                                      find_url='http://www.example.com:8000')
+        response = mask_with_this_url(
+            request, host_path='http://www.replaced.com', in_text='', find_url='http://www.example.com:8000'
+        )
 
         expected = ''
 
@@ -262,13 +246,9 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 2: No text to replace with. No changes """
 
-        input_text = 'dddd anything http://www.example.com:8000 ' \
-                     'will get replaced'
+        input_text = 'dddd anything http://www.example.com:8000 will get replaced'
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_with_this_url(request,
-                                      host_path='http://www.replaced.com',
-                                      in_text=input_text,
-                                      find_url='')
+        response = mask_with_this_url(request, host_path='http://www.replaced.com', in_text=input_text, find_url='')
 
         expected = input_text
 
@@ -276,13 +256,11 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 3: Replace text removing slash from end of replaced text """
 
-        input_text = 'dddd anything http://www.example.com:8000 ' \
-                     'will get replaced'
+        input_text = 'dddd anything http://www.example.com:8000 will get replaced'
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_with_this_url(request,
-                                      host_path='http://www.replaced.com/',
-                                      in_text=input_text,
-                                      find_url='http://www.example.com:8000')
+        response = mask_with_this_url(
+            request, host_path='http://www.replaced.com/', in_text=input_text, find_url='http://www.example.com:8000'
+        )
 
         expected = 'dddd anything http://www.replaced.com will get replaced'
 
@@ -290,13 +268,11 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 4: Replace text """
 
-        input_text = 'dddd anything http://www.example.com:8000 ' \
-                     'will get replaced'
+        input_text = 'dddd anything http://www.example.com:8000 will get replaced'
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_with_this_url(request,
-                                      host_path='http://www.replaced.com',
-                                      in_text=input_text,
-                                      find_url='http://www.example.com:8000')
+        response = mask_with_this_url(
+            request, host_path='http://www.replaced.com', in_text=input_text, find_url='http://www.example.com:8000'
+        )
 
         expected = 'dddd anything http://www.replaced.com will get replaced'
 
@@ -326,38 +302,36 @@ class BlueButtonUtilRequestTest(TestCase):
 
 
 class Patient_Resource_Test(BaseApiTest):
-
-    """ Testing for Patient/id DT resource from Crosswalk """
+    """Testing for Patient/id DT resource from Crosswalk"""
 
     def setUp(self):
         # Setup the RequestFactory
         # I could probably update this to use a Mock()
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(
-            username='fred4', email='fred4@...', password='top_secret')
+        self.user = User.objects.create_user(username='fred4', email='fred4@...', password='top_secret')
 
         xwalk = Crosswalk()
         xwalk.user = self.user
-        xwalk.set_fhir_id("Patient/12345", 2)
+        xwalk.set_fhir_id('Patient/12345', 2)
         xwalk.user_hicn_hash = uuid.uuid4()
         xwalk.user_mbi = '1SA0A00AA00'
         xwalk.save()
 
     def test_crosswalk_fhir_id(self):
-        """ Get the Crosswalk FHIR_Id """
+        """Get the Crosswalk FHIR_Id"""
 
         for version in Versions.latest_versions():
-            u = User.objects.create_user(username=f"billybob-{version}",
-                                         first_name="Billybob",
-                                         last_name="Button",
-                                         email=f'billybob-{version}@example.com',
-                                         password="foobar", )
-            UserProfile.objects.create(user=u,
-                                       user_type=USER_TYPE_DEV,
-                                       create_applications=True)
+            u = User.objects.create_user(
+                username=f'billybob-{version}',
+                first_name='Billybob',
+                last_name='Button',
+                email=f'billybob-{version}@example.com',
+                password='foobar',
+            )
+            UserProfile.objects.create(user=u, user_type=USER_TYPE_DEV, create_applications=True)
             x = Crosswalk()
             x.user = u
-            x.set_fhir_id("Patient/23456", version)
+            x.set_fhir_id('Patient/23456', version)
             x.user_hicn_hash = uuid.uuid4()
             x.save()
             result = crosswalk_patient_id(u, version)
@@ -368,13 +342,15 @@ class Patient_Resource_Test(BaseApiTest):
             self.assertEqual(result, expect)
 
     def test_crosswalk_not_fhir_id(self):
-        """ Get no Crosswalk id """
+        """Get no Crosswalk id"""
         for version in Versions.latest_versions():
-            u = User.objects.create_user(username=f"bobnobob-{version}",
-                                         first_name="bob",
-                                         last_name="Button",
-                                         email=f'billybob-{version}@example.com',
-                                         password="foobar", )
+            u = User.objects.create_user(
+                username=f'bobnobob-{version}',
+                first_name='bob',
+                last_name='Button',
+                email=f'billybob-{version}@example.com',
+                password='foobar',
+            )
             result = crosswalk_patient_id(u, version)
             self.assertEqual(result, None)
             # Test the dt_reference for Patient returning None
@@ -409,7 +385,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, Versions.V1, "json")
+        result = build_oauth_resource(request, Versions.V1, 'json')
 
         expected = True
 
@@ -421,9 +397,9 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, Versions.V1, "xml")
+        result = build_oauth_resource(request, Versions.V1, 'xml')
 
-        expected = "<cors>true</cors>"
+        expected = '<cors>true</cors>'
 
         self.assertEqual(result[16:33], expected)
 
@@ -443,11 +419,11 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_requests/patient_match_all_request.json') as f:
             json_payload = json.load(f)
 
-        headers = {"X-CLIENT-ID": "test-client-id", "X-CLIENT-NAME": "test-client-name", "X-CLIENT-IP": "127.0.0.1"}
+        headers = {'X-CLIENT-ID': 'test-client-id', 'X-CLIENT-NAME': 'test-client-name', 'X-CLIENT-IP': '127.0.0.1'}
         # Simulate an unsuccessful response from BFD by mocking the get_patient_match_response_json function to return a
         # response with a 500 status code or missing fields
         with pytest.raises(Exception):
-            get_patient_match_response_json(url=url, json=json_payload, headers=headers, method="POST")
+            get_patient_match_response_json(url=url, json=json_payload, headers=headers, method='POST')
 
 
 class PatientMatchTestCase(BaseApiTest):

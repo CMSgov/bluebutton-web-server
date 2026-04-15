@@ -24,17 +24,17 @@ try:
         permission_classes = (permissions.IsAuthenticated,)
 
         def get(self, request):
-            return HttpResponse({"a": 1, "b": 2, "c": 3})
+            return HttpResponse({'a': 1, 'b': 2, 'c': 3})
 
         def post(self, request):
-            return HttpResponse({"a": 1, "b": 2, "c": 3})
+            return HttpResponse({'a': 1, 'b': 2, 'c': 3})
 
     class SLSAuthView(MockView):
         authentication_classes = [SLSAuthentication]
 
     urlpatterns = [
-        path("oauth2/", include("oauth2_provider.urls")),
-        path("oauth2-test/", SLSAuthView.as_view()),
+        path('oauth2/', include('oauth2_provider.urls')),
+        path('oauth2-test/', SLSAuthView.as_view()),
     ]
 
     rest_framework_installed = True
@@ -46,103 +46,79 @@ except ImportError:
 class TestOAuth2Authentication(TestCase):
     def setUp(self):
 
-        self.test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
-        self.test_user = UserModel.objects.create_user(
-            "0123456789abcdefghijklmnopqrstuvwxyz", "test@example.com", "123456"
-        )
-        self.dev_user = UserModel.objects.create_user(
-            "dev_user", "dev@example.com", "123456"
-        )
+        self.test_username = '0123456789abcdefghijklmnopqrstuvwxyz'
+        self.test_user = UserModel.objects.create_user('0123456789abcdefghijklmnopqrstuvwxyz', 'test@example.com', '123456')
+        self.dev_user = UserModel.objects.create_user('dev_user', 'dev@example.com', '123456')
 
         self.application = Application.objects.create(
-            name="Test Application",
-            redirect_uris="http://localhost http://example.com http://example.org",
+            name='Test Application',
+            redirect_uris='http://localhost http://example.com http://example.org',
             user=self.dev_user,
             client_type=Application.CLIENT_CONFIDENTIAL,
             authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
         )
 
     def _create_authorization_header(self, client_id, client_secret):
-        return "Basic {0}".format(
-            base64.b64encode(
-                "{0}:{1}".format(client_id, client_secret).encode("utf-8")
-            ).decode("utf-8")
-        )
+        return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
     def _create_authentication_header(self, username):
-        return "SLS {0}".format(
-            base64.b64encode(username.encode("utf-8")).decode("utf-8")
-        )
+        return 'SLS {0}'.format(base64.b64encode(username.encode('utf-8')).decode('utf-8'))
 
-    @unittest.skipUnless(rest_framework_installed, "djangorestframework not installed")
+    @unittest.skipUnless(rest_framework_installed, 'djangorestframework not installed')
     def test_authentication_allow(self):
-        auth = self._create_authorization_header(
-            self.application.client_id, self.application.client_secret_plain
-        )
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get(
-            "/oauth2-test/",
+            '/oauth2-test/',
             headers={
-                "authorization": auth,
-                "x-authentication": self._create_authentication_header(
-                    self.test_username
-                ),
+                'authorization': auth,
+                'x-authentication': self._create_authentication_header(self.test_username),
             },
         )
         self.assertEqual(response.status_code, 200)
 
-    @unittest.skipUnless(rest_framework_installed, "djangorestframework not installed")
+    @unittest.skipUnless(rest_framework_installed, 'djangorestframework not installed')
     def test_authentication_denied(self):
-        auth = self._create_authorization_header(12345, "bogus")
+        auth = self._create_authorization_header(12345, 'bogus')
         response = self.client.get(
-            "/oauth2-test/",
+            '/oauth2-test/',
             headers={
-                "authorization": auth,
-                "x-authentication": self._create_authentication_header(
-                    self.test_username
-                ),
+                'authorization': auth,
+                'x-authentication': self._create_authentication_header(self.test_username),
             },
         )
         self.assertEqual(response.status_code, 403)
 
     def test_user_dne(self):
-        auth = self._create_authorization_header(
-            self.application.client_id, self.application.client_secret_plain
-        )
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get(
-            "/oauth2-test/",
+            '/oauth2-test/',
             headers={
-                "authorization": auth,
-                "x-authentication": self._create_authentication_header("bogus"),
+                'authorization': auth,
+                'x-authentication': self._create_authentication_header('bogus'),
             },
         )
         self.assertEqual(response.status_code, 404)
 
     def test_no_authentication(self):
-        auth = self._create_authorization_header(
-            self.application.client_id, self.application.client_secret_plain
-        )
-        response = self.client.get("/oauth2-test/", headers={"authorization": auth})
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
+        response = self.client.get('/oauth2-test/', headers={'authorization': auth})
         self.assertEqual(response.status_code, 403)
 
     def test_bad_authentication(self):
-        auth = self._create_authorization_header(
-            self.application.client_id, self.application.client_secret_plain
-        )
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get(
-            "/oauth2-test/",
-            headers={"authorization": auth, "x-authentication": "thisisabadheader"},
+            '/oauth2-test/',
+            headers={'authorization': auth, 'x-authentication': 'thisisabadheader'},
         )
         self.assertEqual(response.status_code, 404)
 
     def test_unknown_authentication(self):
-        auth = self._create_authorization_header(
-            self.application.client_id, self.application.client_secret_plain
-        )
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get(
-            "/oauth2-test/",
+            '/oauth2-test/',
             headers={
-                "authorization": auth,
-                "x-authentication": "UUID thisisabadheader",
+                'authorization': auth,
+                'x-authentication': 'UUID thisisabadheader',
             },
         )
         self.assertEqual(response.status_code, 404)

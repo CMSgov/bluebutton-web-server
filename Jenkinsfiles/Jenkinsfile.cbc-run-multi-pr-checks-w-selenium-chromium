@@ -71,10 +71,10 @@ pipeline {
       }
     }
 
-    stage("CHECK Flake8 Python Lint/Style") {
+    stage("CHECK Ruff Python Lint/Style") {
       steps{
         sh """
-          flake8
+          ruff check
         """
       }
     }
