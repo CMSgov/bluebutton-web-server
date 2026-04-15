@@ -13,11 +13,11 @@ def text_to_list(t_in='[]'):
     :return: list_out
 
     """
-    logger.debug("text_to_list %s[%s]" % (t_in, type(t_in)))
+    logger.debug('text_to_list %s[%s]' % (t_in, type(t_in)))
     if type(t_in) is list:
-        return (t_in)
+        return t_in
     else:
-        logger.debug("decoding with text_to_list %s[%s]" % (t_in, type(t_in)))
+        logger.debug('decoding with text_to_list %s[%s]' % (t_in, type(t_in)))
         if t_in:
             # list_out = eval('t_in')
             # replace eval with re.compile to convert text to list.
@@ -27,8 +27,7 @@ def text_to_list(t_in='[]'):
             list_out = strip_out.sub('', t_in).split(',')
         else:
             list_out = []
-        logger.debug("decoded with json.decoder %s[%s]" % (list_out,
-                                                           type(list_out)))
+        logger.debug('decoded with json.decoder %s[%s]' % (list_out, type(list_out)))
         return list_out
 
 
@@ -39,7 +38,7 @@ def list_to_text(l_in=[]):
     :type l_in:list
     """
 
-    logger.debug("list_to_text %s[%s]" % (l_in, type(l_in)))
+    logger.debug('list_to_text %s[%s]' % (l_in, type(l_in)))
 
     return repr(l_in)
 
@@ -55,11 +54,12 @@ def init_text_list(replace_with=''):
 
     """
 
-    logger.debug("init_text_list %s[%s] " % (replace_with,
-                                             type(replace_with)))
+    logger.debug('init_text_list %s[%s] ' % (replace_with, type(replace_with)))
 
     if type(replace_with) is list:
-        return (list_to_text(replace_with))
+        return list_to_text(replace_with)
 
-    new_text_list = [replace_with, ]
-    return (list_to_text(new_text_list))
+    new_text_list = [
+        replace_with,
+    ]
+    return list_to_text(new_text_list)

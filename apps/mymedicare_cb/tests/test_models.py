@@ -46,24 +46,13 @@ def search_fhir_id_by_identifier_side_effect(search_identifier, request, version
 
 def match_fhir_id_side_effect_fail_v3(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION) -> MatchFhirIdResult:
     if version == Versions.V2:
-        return MatchFhirIdResult(
-            fhir_id='-20140000008325',
-            lookup_type=MatchFhirIdLookupType.MBI
-        )
+        return MatchFhirIdResult(fhir_id='-20140000008325', lookup_type=MatchFhirIdLookupType.MBI)
     elif version == Versions.V3:
-        return MatchFhirIdResult(
-            error='Failure',
-            error_type=MatchFhirIdErrorType.UPSTREAM,
-            lookup_type=MatchFhirIdLookupType.MBI
-        )
-    return MatchFhirIdResult(
-        fhir_id='-20140000008325',
-        lookup_type=MatchFhirIdLookupType.MBI
-    )
+        return MatchFhirIdResult(error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI)
+    return MatchFhirIdResult(fhir_id='-20140000008325', lookup_type=MatchFhirIdLookupType.MBI)
 
 
 class BeneficiaryLoginTest(TestCase):
-
     def setUp(self):
         Group.objects.create(name='BlueButton')
 
@@ -81,8 +70,9 @@ class BeneficiaryLoginTest(TestCase):
         }
         slsx_client = OAuth2ConfigSLSx(args)
 
-        bene = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id_v2=args['fhir_id_v2'],
-                                                          fhir_id_v3=args['fhir_id_v3'])
+        bene = create_beneficiary_record_from_slsx_client(
+            slsx_client, fhir_id_v2=args['fhir_id_v2'], fhir_id_v3=args['fhir_id_v3']
+        )
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args['username'])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args['user_hicn_hash'])
@@ -93,11 +83,7 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(bene.userprofile.user_type, USER_TYPE_BENEFICIARY)
 
     def test_create_beneficiary_record_min(self):
-        args = {
-            'username': '001010101010110',
-            'user_hicn_hash': DEFAULT_HICN_HASH,
-            'fhir_id_v2': '00001'
-        }
+        args = {'username': '001010101010110', 'user_hicn_hash': DEFAULT_HICN_HASH, 'fhir_id_v2': '00001'}
         slsx_client = OAuth2ConfigSLSx(args)
         bene = create_beneficiary_record_from_slsx_client(slsx_client, fhir_id_v2=args['fhir_id_v2'])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args['user_hicn_hash'])
@@ -269,14 +255,14 @@ class BeneficiaryLoginTest(TestCase):
                 },
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'a crosswalk must contain at least one valid fhir_id',
-            }
+            },
         }
         for name, case in cases.items():
             slsx_client = OAuth2ConfigSLSx(case['args'])
             with self.assertRaisesRegex(case['exception'], case['exception_mesg']):
-                create_beneficiary_record_from_slsx_client(slsx_client,
-                                                           fhir_id_v2=case['args'].get('fhir_id_v2', None),
-                                                           fhir_id_v3=case['args'].get('fhir_id_v3', None))
+                create_beneficiary_record_from_slsx_client(
+                    slsx_client, fhir_id_v2=case['args'].get('fhir_id_v2', None), fhir_id_v3=case['args'].get('fhir_id_v3', None)
+                )
 
     def test_duplicate_username_auth_user_creation_fails(self):
         first_user = {
@@ -293,16 +279,12 @@ class BeneficiaryLoginTest(TestCase):
         }
         slsx_client0 = OAuth2ConfigSLSx(first_user)
         create_beneficiary_record_from_slsx_client(
-            slsx_client0,
-            fhir_id_v2=first_user.get('fhir_id_v2', None),
-            fhir_id_v3=first_user.get('fhir_id_v3', None)
+            slsx_client0, fhir_id_v2=first_user.get('fhir_id_v2', None), fhir_id_v3=first_user.get('fhir_id_v3', None)
         )
         with self.assertRaisesRegex(ValidationError, 'user already exists'):
             slsx_client1 = OAuth2ConfigSLSx(second_user)
             create_beneficiary_record_from_slsx_client(
-                slsx_client1,
-                fhir_id_v2=second_user.get('fhir_id_v2', None),
-                fhir_id_v3=second_user.get('fhir_id_v3', None)
+                slsx_client1, fhir_id_v2=second_user.get('fhir_id_v2', None), fhir_id_v3=second_user.get('fhir_id_v3', None)
             )
 
     def test_successfully_create_multiple_beneficiary_record(self):
@@ -375,44 +357,34 @@ class BeneficiaryLoginTest(TestCase):
                 ],
                 'exception': ValidationError,
                 'exception_mesg': 'fhir_id_v3 already exists',
-            }
+            },
         }
 
         for name, case in cases.items():
             arg0 = case['args'][0]
             slsx_client0 = OAuth2ConfigSLSx(case['args'][0])
             first_user_record = create_beneficiary_record_from_slsx_client(
-                slsx_client0,
-                fhir_id_v2=arg0.get('fhir_id_v2', None),
-                fhir_id_v3=arg0.get('fhir_id_v3', None)
+                slsx_client0, fhir_id_v2=arg0.get('fhir_id_v2', None), fhir_id_v3=arg0.get('fhir_id_v3', None)
             )
             arg1 = case['args'][1]
             slsx_client1 = OAuth2ConfigSLSx(arg1)
             second_user_record = create_beneficiary_record_from_slsx_client(
-                slsx_client1,
-                fhir_id_v2=arg1.get('fhir_id_v2', None),
-                fhir_id_v3=arg1.get('fhir_id_v3', None)
+                slsx_client1, fhir_id_v2=arg1.get('fhir_id_v2', None), fhir_id_v3=arg1.get('fhir_id_v3', None)
             )
             assert first_user_record.crosswalk.__dict__[name] == second_user_record.crosswalk.__dict__[name]
 
-    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
-                                                                    fhir_id='-20000000002346',
-                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
+    @patch(
+        'apps.mymedicare_cb.models.match_fhir_id',
+        return_value=(MatchFhirIdResult(fhir_id='-20000000002346', lookup_type=MatchFhirIdLookupType.MBI)),
+    )
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
     def test_user_mbi_updated_from_null(self, mock_archive, mock_match_fhir) -> None:
         """Test that user_mbi gets updated when previously null"""
-        fake_user = User.objects.create_user(
-            username=DEFAULT_USERNAME,
-            email=DEFAULT_EMAIL
-        )
+        fake_user = User.objects.create_user(username=DEFAULT_USERNAME, email=DEFAULT_EMAIL)
         slsx_mbi = '1S00EU7JH82'
 
         crosswalk = Crosswalk.objects.create(
-            user=fake_user,
-            fhir_id_v2='-20000000002346',
-            user_hicn_hash=DEFAULT_HICN_HASH,
-            user_mbi=None,
-            user_id_type='M'
+            user=fake_user, fhir_id_v2='-20000000002346', user_hicn_hash=DEFAULT_HICN_HASH, user_mbi=None, user_id_type='M'
         )
 
         slsx_client = Mock(spec=OAuth2ConfigSLSx)
@@ -427,16 +399,14 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(user.crosswalk.user_mbi, slsx_mbi)
         mock_archive.assert_called_once()
 
-    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
-                                                                    fhir_id='-20000000002346',
-                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
+    @patch(
+        'apps.mymedicare_cb.models.match_fhir_id',
+        return_value=(MatchFhirIdResult(fhir_id='-20000000002346', lookup_type=MatchFhirIdLookupType.MBI)),
+    )
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
     def test_user_mbi_updated_from_different_value(self, mock_archive, mock_match_fhir) -> None:
         """Test that user_mbi gets updated when previously a different value"""
-        fake_user = User.objects.create_user(
-            username=DEFAULT_USERNAME,
-            email=DEFAULT_EMAIL
-        )
+        fake_user = User.objects.create_user(username=DEFAULT_USERNAME, email=DEFAULT_EMAIL)
         slsx_mbi = '1S00EU7JH82'
 
         crosswalk = Crosswalk.objects.create(
@@ -444,7 +414,7 @@ class BeneficiaryLoginTest(TestCase):
             fhir_id_v2='-20000000002346',
             user_hicn_hash=DEFAULT_HICN_HASH,
             user_mbi='1S00EU7JH00',
-            user_id_type='M'
+            user_id_type='M',
         )
 
         slsx_client = Mock(spec=OAuth2ConfigSLSx)
@@ -471,17 +441,10 @@ class BeneficiaryLoginTest(TestCase):
         fhir_id_v2 = '-20140000008325'
         username = DEFAULT_USERNAME
 
-        fake_user = User.objects.create_user(
-            username=username,
-            email='fu@bar.bar'
-        )
+        fake_user = User.objects.create_user(username=username, email='fu@bar.bar')
 
         crosswalk = Crosswalk.objects.create(
-            user=fake_user,
-            fhir_id_v2=fhir_id_v2,
-            user_hicn_hash=user_hicn_hash,
-            user_mbi=user_mbi,
-            user_id_type='M'
+            user=fake_user, fhir_id_v2=fhir_id_v2, user_hicn_hash=user_hicn_hash, user_mbi=user_mbi, user_id_type='M'
         )
         # Confirm fhir_id_v3 is None before calling the function
         assert crosswalk.fhir_id_v3 is None
@@ -501,17 +464,10 @@ class BeneficiaryLoginTest(TestCase):
         fhir_id_v3 = '-30250000008325'
         username = DEFAULT_USERNAME
 
-        fake_user = User.objects.create_user(
-            username=username,
-            email='fu@bar.bar'
-        )
+        fake_user = User.objects.create_user(username=username, email='fu@bar.bar')
 
         crosswalk = Crosswalk.objects.create(
-            user=fake_user,
-            fhir_id_v3=fhir_id_v3,
-            user_hicn_hash=user_hicn_hash,
-            user_mbi=user_mbi,
-            user_id_type='M'
+            user=fake_user, fhir_id_v3=fhir_id_v3, user_hicn_hash=user_hicn_hash, user_mbi=user_mbi, user_id_type='M'
         )
         # Confirm fhir_id_v3 is None before calling the function
         assert crosswalk.fhir_id_v2 is None

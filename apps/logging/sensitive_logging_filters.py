@@ -16,7 +16,7 @@ MBI_WITHOUT_HYPHEN_PATTERN = r"""\b
     \b"""
 
 MBI_PATTERN = f'({MBI_WITH_HYPHEN_PATTERN}|{MBI_WITHOUT_HYPHEN_PATTERN})'
-SENSITIVE_DATA_FILTER = "sensitive_data_filter"
+SENSITIVE_DATA_FILTER = 'sensitive_data_filter'
 
 
 def mask_if_has_mbi(text):
@@ -41,7 +41,6 @@ def mask_mbi(value_to_mask):
 
 
 class SensitiveDataFilter(logging.Filter):
-
     def filter(self, record):
         try:
             record.args = mask_mbi(record.args)

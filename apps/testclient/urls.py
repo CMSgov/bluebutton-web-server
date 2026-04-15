@@ -5,7 +5,6 @@ from apps.testclient.views import (
     callback,
     restart,
     test_links,
-
     # v1
     authorize_link_v1,
     test_coverage_v1,
@@ -14,7 +13,6 @@ from apps.testclient.views import (
     test_openid_config_v1,
     test_patient_v1,
     test_userinfo_v1,
-
     # v2
     authorize_link_v2,
     test_coverage_v2,
@@ -23,7 +21,6 @@ from apps.testclient.views import (
     test_openid_config_v2,
     test_patient_v2,
     test_userinfo_v2,
-
     # v3
     authorize_link_v3,
     test_coverage_v3,
@@ -32,10 +29,8 @@ from apps.testclient.views import (
     test_openid_config_v3,
     test_patient_v3,
     test_userinfo_v3,
-
     # c4dic
-    test_digital_insurance_card_v3
-
+    test_digital_insurance_card_v3,
 )
 
 urlpatterns_unversioned = [

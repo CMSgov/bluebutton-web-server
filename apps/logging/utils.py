@@ -12,11 +12,7 @@ def format_timestamp(dt):
     """
     Returns an ISO 6801 format string in UTC that works well with AWS Glue/Athena
     """
-    return (
-        dt.replace(microsecond=0).isoformat().replace("+00:00", "")
-        if dt is not None
-        else None
-    )
+    return dt.replace(microsecond=0).isoformat().replace('+00:00', '') if dt is not None else None
 
 
 def redirect_loggers_custom(custom_loggers):
@@ -80,10 +76,10 @@ def construct_quicksuite_logging_path(request: HttpRequest) -> str:
         A string that represents the path to be used in QuickSuite.
     """
     if not request:
-        return ""
+        return ''
 
-    version_number = getattr(request, "session", {}).get('version', "")
-    path_param = getattr(request, "path", "")
+    version_number = getattr(request, 'session', {}).get('version', '')
+    path_param = getattr(request, 'path', '')
     path = f'v{version_number}{path_param}'
 
     return path

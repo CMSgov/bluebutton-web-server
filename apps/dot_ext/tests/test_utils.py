@@ -17,24 +17,18 @@ class TestDOTUtils(TestCase):
             get_api_version_number_from_url('/v4/fhir/Coverage/')
 
     def test_latin_extended_success(self):
-        valid_inputs = [
-            "HelloWorld123!",
-            "naïve café über",
-            chr(383),
-            f"valid{chr(383)}"
-        ]
+        valid_inputs = ['HelloWorld123!', 'naïve café über', chr(383), f'valid{chr(383)}']
 
         for text in valid_inputs:
             assert validate_latin_extended_string(text)
 
     def test_latin_extended_failure(self):
         invalid_inputs = [
-            "Hello 🌍",
-            "Привет",
-            "こんにちは"
-            "",
+            'Hello 🌍',
+            'Привет',
+            'こんにちは',
             chr(384),
-            f"invalid{chr(384)}",
+            f'invalid{chr(384)}',
         ]
 
         for text in invalid_inputs:

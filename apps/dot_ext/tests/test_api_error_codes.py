@@ -20,7 +20,6 @@ class StubDate(datetime):
 # In particular, they cover whether or not we get the right error
 # codes back for a given call/situation.
 class TestDataAccessPermissions(BaseApiTest):
-
     # In this test, we should get back a `HTTPStatus.UNAUTHORIZED` when we try
     # and refresh the token on a ONE_TIME application.
     @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
@@ -33,20 +32,16 @@ class TestDataAccessPermissions(BaseApiTest):
             {
                 'app_data_access_type': AccessType.ONE_TIME,
                 'status_code': HTTPStatus.FORBIDDEN,
-                'expected_in': 'not allowed to refresh tokens'
+                'expected_in': 'not allowed to refresh tokens',
             },
             {
                 'app_data_access_type': AccessType.RESEARCH_STUDY,
                 'status_code': HTTPStatus.OK,
                 # These will not generate an error message, so we
                 # use None here.
-                'expected_in': None
+                'expected_in': None,
             },
-            {
-                'app_data_access_type': AccessType.THIRTEEN_MONTH,
-                'status_code': HTTPStatus.OK,
-                'expected_in': None
-            }
+            {'app_data_access_type': AccessType.THIRTEEN_MONTH, 'status_code': HTTPStatus.OK, 'expected_in': None},
         ]
         for test in refresh_responses:
             # Create a random suffix, so we're not testing repeatedly against
@@ -67,7 +62,7 @@ class TestDataAccessPermissions(BaseApiTest):
                 application=app,
                 refresh_token=ac['refresh_token'],
                 expected_response_code=test['status_code'],
-                expected_in_err_mesg=test['expected_in']
+                expected_in_err_mesg=test['expected_in'],
             )
 
     def test_not_found_on_dag_revocation(self):
@@ -95,7 +90,7 @@ class TestDataAccessPermissions(BaseApiTest):
             application=app,
             refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_in_err_mesg='User access cannot be found'
+            expected_in_err_mesg='User access cannot be found',
         )
 
     @mock.patch('apps.authorization.models.datetime', StubDate)
@@ -116,16 +111,13 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         #    Mock future date 13 months and 2-days in future.
-        StubDate.now = classmethod(
-            lambda cls: datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+13, days=+2)
-        )
+        StubDate.now = classmethod(lambda cls: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, days=+2))
         # Now, we should get back a 401 because we are in the future soon
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
-            expected_in_err_mesg='User access has timed out'
+            expected_in_err_mesg='User access has timed out',
         )
 
     def test_app_not_active(self):
@@ -151,7 +143,7 @@ class TestDataAccessPermissions(BaseApiTest):
             application=app,
             refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_in_err_mesg='is temporarily inactive'
+            expected_in_err_mesg='is temporarily inactive',
         )
 
     # It seems like error reporting here is dependent on various aspects of the request.
@@ -196,13 +188,7 @@ class TestDataAccessPermissions(BaseApiTest):
             'client_secret': app.client_secret_plain,
         }
 
-        self._assert_call_with_broken_data(
-            '/v2/o/token',
-            base_data,
-            HTTPStatus.BAD_REQUEST,
-            'invalid_request',
-            'Missing refresh'
-        )
+        self._assert_call_with_broken_data('/v2/o/token', base_data, HTTPStatus.BAD_REQUEST, 'invalid_request', 'Missing refresh')
 
     def _assert_call_with_broken_data(self, url, data, expected_status, error_contains=None, desc_contains=None):
         response = self.client.post(url, data=data)
@@ -221,7 +207,7 @@ class TestDataAccessPermissions(BaseApiTest):
         refresh_token=None,
         expected_response_code=None,
         expected_response_error_mesg=None,
-        expected_in_err_mesg=None
+        expected_in_err_mesg=None,
     ):
         refresh_post_data = {
             'grant_type': 'refresh_token',

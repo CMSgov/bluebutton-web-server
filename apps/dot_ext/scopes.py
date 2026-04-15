@@ -30,10 +30,12 @@ class CapabilitiesScopes(BaseScopes):
         # Get list of all available scopes
         app_scopes_avail = list(
             ProtectedCapability.objects.filter(Q(default=True) | Q(application=application))
-                                       .values_list('slug', flat=True).distinct())
+            .values_list('slug', flat=True)
+            .distinct()
+        )
 
-        if switch_is_active("enable_coverage_only"):
-            if "coverage-eligibility" in application.get_internal_application_labels():
+        if switch_is_active('enable_coverage_only'):
+            if 'coverage-eligibility' in application.get_internal_application_labels():
                 app_scopes_avail = self.remove_eob_scopes(app_scopes_avail)
 
         # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
@@ -53,11 +55,10 @@ class CapabilitiesScopes(BaseScopes):
             return []
 
         # at the moment we assume that the default scopes are all those availables
-        app_scopes_default = list(ProtectedCapability.objects.filter(default=True)
-                                                             .values_list('slug', flat=True))
+        app_scopes_default = list(ProtectedCapability.objects.filter(default=True).values_list('slug', flat=True))
 
-        if switch_is_active("enable_coverage_only"):
-            if "coverage-eligibility" in application.get_internal_application_labels():
+        if switch_is_active('enable_coverage_only'):
+            if 'coverage-eligibility' in application.get_internal_application_labels():
                 app_scopes_default = self.remove_eob_scopes(app_scopes_default)
 
         # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
@@ -74,19 +75,20 @@ class CapabilitiesScopes(BaseScopes):
         out_scopes = set(scopes)
 
         # Consolidate v2 resource scopes
-        if "patient/Patient.rs" in scopes or ("patient/Patient.r" in scopes and "patient/Patient.s" in scopes):
-            out_scopes.add("patient/Patient.rs")
-            out_scopes.discard("patient/Patient.r")
-            out_scopes.discard("patient/Patient.s")
-        if "patient/Coverage.rs" in scopes or ("patient/Coverage.r" in scopes and "patient/Coverage.s" in scopes):
-            out_scopes.add("patient/Coverage.rs")
-            out_scopes.discard("patient/Coverage.r")
-            out_scopes.discard("patient/Coverage.s")
-        if "patient/ExplanationOfBenefit.rs" in scopes or \
-                ("patient/ExplanationOfBenefit.r" in scopes and "patient/ExplanationOfBenefit.s" in scopes):
-            out_scopes.add("patient/ExplanationOfBenefit.rs")
-            out_scopes.discard("patient/ExplanationOfBenefit.r")
-            out_scopes.discard("patient/ExplanationOfBenefit.s")
+        if 'patient/Patient.rs' in scopes or ('patient/Patient.r' in scopes and 'patient/Patient.s' in scopes):
+            out_scopes.add('patient/Patient.rs')
+            out_scopes.discard('patient/Patient.r')
+            out_scopes.discard('patient/Patient.s')
+        if 'patient/Coverage.rs' in scopes or ('patient/Coverage.r' in scopes and 'patient/Coverage.s' in scopes):
+            out_scopes.add('patient/Coverage.rs')
+            out_scopes.discard('patient/Coverage.r')
+            out_scopes.discard('patient/Coverage.s')
+        if 'patient/ExplanationOfBenefit.rs' in scopes or (
+            'patient/ExplanationOfBenefit.r' in scopes and 'patient/ExplanationOfBenefit.s' in scopes
+        ):
+            out_scopes.add('patient/ExplanationOfBenefit.rs')
+            out_scopes.discard('patient/ExplanationOfBenefit.r')
+            out_scopes.discard('patient/ExplanationOfBenefit.s')
 
         return list(out_scopes)
 
@@ -106,10 +108,10 @@ class CapabilitiesScopes(BaseScopes):
         Returns a list based on the provided list of scopes with eob scopes removed
         """
         out_scopes = set(scopes)
-        out_scopes.discard("patient/ExplanationOfBenefit.r")
-        out_scopes.discard("patient/ExplanationOfBenefit.s")
-        out_scopes.discard("patient/ExplanationOfBenefit.rs")
-        out_scopes.discard("patient/ExplanationOfBenefit.read")
+        out_scopes.discard('patient/ExplanationOfBenefit.r')
+        out_scopes.discard('patient/ExplanationOfBenefit.s')
+        out_scopes.discard('patient/ExplanationOfBenefit.rs')
+        out_scopes.discard('patient/ExplanationOfBenefit.read')
         return out_scopes
 
     def is_smart_subscope(

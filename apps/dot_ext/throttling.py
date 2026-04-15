@@ -10,6 +10,7 @@ class TokenRateThrottle(SimpleRateThrottle):
     For anonymous requests, the IP address of the request will
     be used.
     """
+
     scope = 'token'
 
     def get_cache_key(self, request, view):
