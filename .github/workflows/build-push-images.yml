@@ -26,6 +26,10 @@ on:
       release_tag:
         required: false
         type: string
+    outputs:
+      image_tag:
+        description: 'The image tag that was built and pushed'
+        value: ${{ jobs.build.outputs.image_tag }}
 
 env:
   AWS_REGION: us-east-1

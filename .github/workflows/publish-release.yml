@@ -21,12 +21,11 @@ jobs:
 
       - name: Verify on master branch
         run: |
-          echo "Temporarily skipping master branch check for testing"
-          # CURRENT_BRANCH="${{ github.ref_name }}"
-          # if [[ "$CURRENT_BRANCH" != "master" ]]; then
-          #   echo "::error::Release must be created from master branch. Current branch: $CURRENT_BRANCH"
-          #   exit 1
-          # fi
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          if [[ "$CURRENT_BRANCH" != "master" ]]; then
+            echo "::error::Release must be created from master branch. Current branch: $CURRENT_BRANCH"
+            exit 1
+          fi
 
       - name: Determine new release tag
         id: tag
@@ -34,7 +33,7 @@ jobs:
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "r0")
           PREV_NUM=${PREV_TAG#r}
           NEW_NUM=$((PREV_NUM + 1))
-          NEW_TAG="r${NEW_NUM}-test2"
+          NEW_TAG="r${NEW_NUM}"
           echo "prev=$PREV_TAG" >> "$GITHUB_OUTPUT"
           echo "new=$NEW_TAG" >> "$GITHUB_OUTPUT"
           echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -112,7 +111,7 @@ jobs:
           gh release create "$NEW_TAG" \
             --title "$NEW_TAG" \
             --notes-file /tmp/release_notes.md \
-            --prerelease
+            --latest
 
           echo "Release created: https://github.com/${{ github.repository }}/releases/tag/$NEW_TAG"
 
