@@ -1,4 +1,3 @@
-# flake8: noqa
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 
 """

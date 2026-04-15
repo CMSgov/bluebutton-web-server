@@ -1,5 +1,3 @@
-# flake8: noqa
-
 responses = {
     'success': {
         'status_code': 200,
@@ -38,7 +36,10 @@ responses = {
                             }
                         ],
                         'identifier': [
-                            {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20000000002346'},
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': '-20000000002346',
+                            },
                             {
                                 'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
                                 'value': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321',
@@ -116,7 +117,10 @@ responses = {
                             }
                         ],
                         'identifier': [
-                            {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20000000002346'},
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': '-20000000002346',
+                            },
                             {
                                 'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
                                 'value': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321',
@@ -143,7 +147,10 @@ responses = {
                             }
                         ],
                         'identifier': [
-                            {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20000000002346'},
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': '-20000000002346',
+                            },
                             {
                                 'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
                                 'value': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321',
@@ -195,7 +202,10 @@ responses = {
                             }
                         ],
                         'identifier': [
-                            {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20000000002346'},
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': '-20000000002346',
+                            },
                             {
                                 'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
                                 'value': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321',
@@ -247,7 +257,10 @@ responses = {
                             }
                         ],
                         'identifier': [
-                            {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20000000002346'},
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': '-20000000002346',
+                            },
                             {
                                 'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
                                 'value': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321',
@@ -274,7 +287,10 @@ responses = {
                             }
                         ],
                         'identifier': [
-                            {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': '-20000000002346'},
+                            {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                                'value': '-20000000002346',
+                            },
                             {
                                 'system': 'https://bluebutton.cms.gov/resources/identifier/mbi-hash',
                                 'value': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321',
