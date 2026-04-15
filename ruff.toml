@@ -17,14 +17,15 @@ target-version = "py312"
 
 [lint]
 # These are recommended by Ruff documentation: https://docs.astral.sh/ruff/linter/
+# TO DO: Consider adding more rulesets in the future like ISort.
 select = [
           "E", # pycodestyle errors
           "F", # Pyflakes
           "W", # pycodestyle warnings
           ]
 ignore = [
-          "F403", 
-          "F405",
+          "F403", # undefined-local-with-import-star, carried over from flake8 config
+          "F405", # undefined-local-with-import-star-usage, carried over from flake8 config
           "W191", # Tab indentation, handled by formatter
           "E111", # Indentation with invalid multiple, handled by formatter
           "E114", # Indentation with invalid multiple, in comments handled by formatter

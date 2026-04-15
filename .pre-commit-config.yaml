@@ -5,5 +5,7 @@ repos:
     hooks:
       # Run the linter
       - id: ruff-check
+        exclude: 'migrations|docs|examples|vendor|venv|management|static'
       # Run the formatter
       - id: ruff-format
+        exclude: 'migrations|docs|examples|vendor|venv|management|static'
