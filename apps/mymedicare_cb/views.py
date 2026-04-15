@@ -16,10 +16,12 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound
 from apps.versions import Versions
 
-from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
-                                  set_session_auth_flow_trace_value,
-                                  update_session_auth_flow_trace_from_state,
-                                  update_instance_auth_flow_trace_with_state)
+from apps.dot_ext.loggers import (
+    clear_session_auth_flow_trace,
+    set_session_auth_flow_trace_value,
+    update_session_auth_flow_trace_from_state,
+    update_instance_auth_flow_trace_with_state,
+)
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
@@ -47,9 +49,11 @@ def authenticate(request):
 
     request_token = request.GET.get('req_token', None)
 
-    slsx_client.validate_asserts(request, [
-        (request_token is None, "SLSx request_token is missing in callback error.")
-    ], MedicareCallbackExceptionType.VALIDATION_ERROR)
+    slsx_client.validate_asserts(
+        request,
+        [(request_token is None, 'SLSx request_token is missing in callback error.')],
+        MedicareCallbackExceptionType.VALIDATION_ERROR,
+    )
 
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)
@@ -75,19 +79,22 @@ def authenticate(request):
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
 
     # Log successful authentication with beneficiary when we return back here.
-    slsx_client.log_authn_success(request, {
-        'user': {
-            'id': user.id,
-            'username': user.username,
-            'crosswalk': {
-                'id': user.crosswalk.id,
-                'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
-                'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
-                'user_id_type': user.crosswalk.user_id_type,
+    slsx_client.log_authn_success(
+        request,
+        {
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'crosswalk': {
+                    'id': user.crosswalk.id,
+                    'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                    'fhir_id_v2': user.crosswalk.fhir_id(Versions.V2),
+                    'fhir_id_v3': user.crosswalk.fhir_id(Versions.V3),
+                    'user_id_type': user.crosswalk.user_id_type,
+                },
             },
         },
-    })
+    )
 
     # Update request user.
     request.user = user
@@ -97,11 +104,11 @@ def authenticate(request):
 def callback(request):
     state = request.GET.get('relay')
     if not state:
-        return JsonResponse({"error": 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'error': 'The state parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         anon_user_state = AnonUserState.objects.get(state=state)
     except AnonUserState.DoesNotExist:
-        return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'error': 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
     # We don't have a `version` coming back from auth. Therefore, we check
@@ -109,7 +116,7 @@ def callback(request):
     version = Versions.NOT_AN_API_VERSION
 
     for supported_version in Versions.supported_versions():
-        if f"/v{supported_version}/o/authorize" in next_uri:
+        if f'/v{supported_version}/o/authorize' in next_uri:
             version = supported_version
             break
     request.session['version'] = version
@@ -118,37 +125,47 @@ def callback(request):
     try:
         authenticate(request)
     except ValidationError as e:
-        return JsonResponse({
-            "error": e.message,
-        }, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(
+            {
+                'error': e.message,
+            },
+            status=HTTPStatus.BAD_REQUEST,
+        )
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
-        return JsonResponse({
-            "error": e.detail,
-        }, status=HTTPStatus.CONFLICT)
+        return JsonResponse(
+            {
+                'error': e.detail,
+            },
+            status=HTTPStatus.CONFLICT,
+        )
     except BBMyMedicareCallbackCrosswalkCreateException as e:
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
-        return JsonResponse({
-            "error": e.detail,
-        }, status=HTTPStatus.CONFLICT)
+        return JsonResponse(
+            {
+                'error': e.detail,
+            },
+            status=HTTPStatus.CONFLICT,
+        )
     except BBMyMedicareCallbackCrosswalkUpdateException as e:
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
-        return JsonResponse({
-            "error": e.detail,
-        }, status=HTTPStatus.CONFLICT)
+        return JsonResponse(
+            {
+                'error': e.detail,
+            },
+            status=HTTPStatus.CONFLICT,
+        )
     except UpstreamServerException:
         # Elsewhere in the code we take upstream errors and turn them into
         # 502 errors (Bad Gateway), because we are operating as a gateway and
         # encounter an error not-in-our-code. Hence, this should also become a 502.
-        return JsonResponse({
-            "error": "Failed to retrieve data from data source."
-        }, status=HTTPStatus.BAD_GATEWAY)
+        return JsonResponse({'error': 'Failed to retrieve data from data source.'}, status=HTTPStatus.BAD_GATEWAY)
 
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
 
@@ -156,18 +173,19 @@ def callback(request):
         qs_dict = parse_qs(query_string)
         if 'redirect_uri' in qs_dict:
             redirect_uri = unquote(qs_dict['redirect_uri'][0])
-            error_uri = f"{redirect_uri}?error=not_found"
+            error_uri = f'{redirect_uri}?error=not_found'
         else:
             error_uri = None
         return TemplateResponse(
             request,
-            "bene_404.html",
+            'bene_404.html',
             context={
-                "error_uri": error_uri,
-                "error": user_not_found_error.detail,
-                "request_id": request._logging_uuid,
+                'error_uri': error_uri,
+                'error': user_not_found_error.detail,
+                'request_id': request._logging_uuid,
             },
-            status=status.HTTP_404_NOT_FOUND)
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     approval = Approval.objects.create(user=request.user)
 
@@ -211,21 +229,20 @@ def mymedicare_login(request):
             else:
                 raise e
 
-    relay_param_name = "relay"
+    relay_param_name = 'relay'
     redirect = urllib_request.pathname2url(redirect)
     state = generate_nonce()
     state = urllib_request.pathname2url(state)
     request.session[relay_param_name] = state
-    mymedicare_login_url = "%s&%s=%s&redirect_uri=%s" % (
-        mymedicare_login_url, relay_param_name, state, redirect)
+    mymedicare_login_url = '%s&%s=%s&redirect_uri=%s' % (mymedicare_login_url, relay_param_name, state, redirect)
     # Check if language was saved server-side for this session
     language = request.session.get('auth_language', None)
     if language is not None:
         # Modify the Medicare login url according to the stored language
         if language == 'es':
-            mymedicare_login_url += "&lang=es-mx"
+            mymedicare_login_url += '&lang=es-mx'
         elif language == 'en':
-            mymedicare_login_url += "&lang=en-us"
+            mymedicare_login_url += '&lang=en-us'
     next_uri = request.GET.get('next', '')
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)

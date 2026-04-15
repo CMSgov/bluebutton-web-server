@@ -43,14 +43,7 @@ class RealCrosswalkManager(models.Manager):
 # Synthetic fhir_id Manager subclass
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(
-                Q(fhir_id_v2__startswith='-')
-                | Q(fhir_id_v3__startswith='-')
-            )
-        )
+        return super().get_queryset().filter(Q(fhir_id_v2__startswith='-') | Q(fhir_id_v3__startswith='-'))
 
 
 def hash_id_value(hicn):
@@ -59,9 +52,7 @@ def hash_id_value(hicn):
     Both currently use the same hash salt ENV values.
     https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
     """
-    return binascii.hexlify(
-        pbkdf2(hicn, get_user_id_salt(), settings.USER_ID_ITERATIONS)
-    ).decode('ascii')
+    return binascii.hexlify(pbkdf2(hicn, get_user_id_salt(), settings.USER_ID_ITERATIONS)).decode('ascii')
 
 
 def hash_hicn(hicn):
@@ -94,6 +85,7 @@ class Crosswalk(models.Model):
         real_objects: manager for real bene crosswalks
         synth_objects: manager for synthetic bene crosswalks
     """
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
@@ -155,8 +147,7 @@ class Crosswalk(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False),
-                name='at_least_one_fhir_id_required'
+                condition=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False), name='at_least_one_fhir_id_required'
             )
         ]
 

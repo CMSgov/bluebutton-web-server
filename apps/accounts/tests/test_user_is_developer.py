@@ -15,14 +15,14 @@ class DeveloperAccountTestCase(TestCase):
     """
 
     def setUp(self):
-        u = User.objects.create_user(username="fred",
-                                     first_name="Fred",
-                                     last_name="Flinstone",
-                                     email='fred@example.com',
-                                     password="foobar",)
-        UserProfile.objects.create(user=u,
-                                   user_type=USER_TYPE_DEV,
-                                   create_applications=True)
+        u = User.objects.create_user(
+            username='fred',
+            first_name='Fred',
+            last_name='Flinstone',
+            email='fred@example.com',
+            password='foobar',
+        )
+        UserProfile.objects.create(user=u, user_type=USER_TYPE_DEV, create_applications=True)
         Group.objects.create(name='BlueButton')
         self.client = Client()
         self.url = reverse('home')
@@ -30,7 +30,7 @@ class DeveloperAccountTestCase(TestCase):
     @override_switch('show_testclient_link', active=True)
     def test_developer_can_register_apps(self):
         request = HttpRequest()
-        self.client.login(request=request, username="fred", password="foobar")
+        self.client.login(request=request, username='fred', password='foobar')
         response = self.client.get(self.url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')

@@ -19,6 +19,7 @@ class ApplicationRegistration(CustomFormMixin, oauth2_views.ApplicationRegistrat
     """
     View used to register a new Application for the request.user
     """
+
     def get_form_class(self):
         """
         Returns the form class for the application model
@@ -30,6 +31,7 @@ class ApplicationUpdate(CustomFormMixin, oauth2_views.ApplicationUpdate):
     """
     View used to update an application owned by the request.user
     """
+
     fields = None
 
     def get_form_class(self):
@@ -40,5 +42,4 @@ class ApplicationUpdate(CustomFormMixin, oauth2_views.ApplicationUpdate):
 
 
 class ApplicationDelete(oauth2_views.ApplicationDelete):
-
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy('home')

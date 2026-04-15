@@ -8,21 +8,20 @@ from apps.constants import USER_TYPE_DEV
 
 
 class PasswordResetTestCase(TestCase):
-
     """
     Test Password Reset FunctionalityDeveloper Account Can Create Applications
     """
 
     def setUp(self):
 
-        u = User.objects.create_user(username="fred",
-                                     first_name="Fred",
-                                     last_name="Flinstone",
-                                     email='fred@example.com',
-                                     password="foobar",)
-        UserProfile.objects.create(user=u,
-                                   user_type=USER_TYPE_DEV,
-                                   create_applications=True)
+        u = User.objects.create_user(
+            username='fred',
+            first_name='Fred',
+            last_name='Flinstone',
+            email='fred@example.com',
+            password='foobar',
+        )
+        UserProfile.objects.create(user=u, user_type=USER_TYPE_DEV, create_applications=True)
         self.client = Client()
 
     @override_switch('login', active=True)
@@ -37,5 +36,11 @@ class PasswordResetTestCase(TestCase):
         url = reverse('forgot_password')
         form_data = {'email': 'derf@example.com'}
         response = self.client.post(url, form_data, follow=True)
-        self.assertRedirects(response, "/v1/accounts/password-reset-done", status_code=302, target_status_code=200,
-                             msg_prefix='', fetch_redirect_response=True)
+        self.assertRedirects(
+            response,
+            '/v1/accounts/password-reset-done',
+            status_code=302,
+            target_status_code=200,
+            msg_prefix='',
+            fetch_redirect_response=True,
+        )

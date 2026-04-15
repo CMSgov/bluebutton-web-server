@@ -20,14 +20,8 @@ User = get_user_model()
 class ResourcePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.resource_type not in ALLOWED_RESOURCE_TYPES:
-            logger.info(
-                "User requested read access to the %s resource type"
-                % request.resource_type
-            )
-            raise exceptions.NotFound(
-                "The requested resource type, %s, is not supported"
-                % request.resource_type
-            )
+            logger.info('User requested read access to the %s resource type' % request.resource_type)
+            raise exceptions.NotFound('The requested resource type, %s, is not supported' % request.resource_type)
 
         return True
 
@@ -38,7 +32,7 @@ class HasCrosswalk(permissions.BasePermission):
             return request.user and request.user.crosswalk and request.user.crosswalk.fhir_id(view.version)
         else:
             # this should not happen where we'd get an unsupported version
-            raise VersionNotMatched("Version not matched in has_permission")
+            raise VersionNotMatched('Version not matched in has_permission')
 
 
 class ReadCrosswalkPermission(HasCrosswalk):
@@ -49,27 +43,27 @@ class ReadCrosswalkPermission(HasCrosswalk):
         if view.version in Versions.supported_versions():
             fhir_id = request.crosswalk.fhir_id(view.version)
         else:
-            raise VersionNotMatched("Version not matched in has_object_permission in ReadCrosswalkPermission")
+            raise VersionNotMatched('Version not matched in has_object_permission in ReadCrosswalkPermission')
         try:
-            if request.resource_type == "Coverage":
-                reference = obj["beneficiary"]["reference"]
-                reference_id = reference.split("/")[1]
+            if request.resource_type == 'Coverage':
+                reference = obj['beneficiary']['reference']
+                reference_id = reference.split('/')[1]
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
-            elif request.resource_type == "ExplanationOfBenefit":
-                reference = obj["patient"]["reference"]
-                reference_id = reference.split("/")[1]
+            elif request.resource_type == 'ExplanationOfBenefit':
+                reference = obj['patient']['reference']
+                reference_id = reference.split('/')[1]
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
             else:
-                reference_id = obj["id"]
+                reference_id = obj['id']
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
 
         except exceptions.NotFound:
             raise
         except Exception:
-            logger.exception("An error occurred fetching beneficiary id")
+            logger.exception('An error occurred fetching beneficiary id')
             return False
         return True
 
@@ -79,14 +73,11 @@ class SearchCrosswalkPermission(HasCrosswalk):
         if view.version in Versions.supported_versions():
             patient_id = request.crosswalk.fhir_id(view.version)
         else:
-            raise VersionNotMatched("Version not matched in has_object_permission in SearchCrosswalkPermission")
-        if "patient" in request.GET and request.GET["patient"] != patient_id:
+            raise VersionNotMatched('Version not matched in has_object_permission in SearchCrosswalkPermission')
+        if 'patient' in request.GET and request.GET['patient'] != patient_id:
             return False
 
-        if (
-            "beneficiary" in request.GET
-            and patient_id not in request.GET["beneficiary"]
-        ):
+        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
             return False
         return True
 
@@ -94,19 +85,13 @@ class SearchCrosswalkPermission(HasCrosswalk):
 class ApplicationActivePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         app_is_active = request.auth and request.auth.application.active
-        app_name = (
-            request.auth.application.name
-            if request.auth and request.auth.application.name
-            else "Unknown"
-        )
+        app_name = request.auth.application.name if request.auth and request.auth.application.name else 'Unknown'
 
         # Check for application enabled/active
         if app_is_active is False:
             # in order to generate application specific message, short circuit base
             # permission's error raise flow
-            raise AuthenticationFailed(
-                APPLICATION_TEMPORARILY_INACTIVE.format(app_name)
-            )
+            raise AuthenticationFailed(APPLICATION_TEMPORARILY_INACTIVE.format(app_name))
 
         return True
 
@@ -125,6 +110,4 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
         if flag.id is None or flag.is_active_for_user(application_user):
             return True
         else:
-            raise PermissionDenied(
-                APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
-            )
+            raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))

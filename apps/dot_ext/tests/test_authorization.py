@@ -4,6 +4,7 @@ import base64
 import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
 # from oauth2_provider.compat import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
@@ -30,10 +31,8 @@ RefreshToken = get_refresh_token_model()
 
 
 class TestAuthorizeWithCustomScheme(BaseApiTest):
-
     def _create_authorization_header(self, client_id, client_secret):
-        return "Basic {0}".format(
-            base64.b64encode("{0}:{1}".format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
+        return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
     def test_post_with_valid_non_standard_scheme_granttype_authcode_clienttype_public(self):
         # Test with application setup as grant_type=authorization_code and client_type=public
@@ -47,14 +46,15 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_PUBLIC,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
 
         # user logs in
         request = HttpRequest()
         self.client.login(request=request, username='anna', password='123456')
 
-        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
         payload = {
             'client_id': application.client_id,
@@ -72,7 +72,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
@@ -114,7 +114,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_PUBLIC,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -127,7 +128,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
@@ -144,14 +145,15 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
 
         # user logs in
         request = HttpRequest()
         self.client.login(request=request, username='anna', password='123456')
 
-        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
         payload = {
             'client_id': application.client_id,
@@ -169,7 +171,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
@@ -220,7 +222,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -233,7 +236,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
@@ -252,7 +255,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -265,7 +269,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -302,13 +306,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         crosswalk.save()
 
         with patch(
-            'apps.fhir.server.authentication.search_fhir_id_by_identifier',
-            side_effect=search_fhir_id_by_identifier_side_effect
+            'apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect
         ):
             response = self.client.post(
-                reverse('oauth2_provider:token'),
-                data=body,
-                content_type='application/x-www-form-urlencoded'
+                reverse('oauth2_provider:token'), data=body, content_type='application/x-www-form-urlencoded'
             )
 
         # refresh crosswalk to see if it was properly updated
@@ -330,7 +331,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -343,7 +345,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -387,7 +389,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -400,7 +403,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -422,13 +425,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
         at = AccessToken.objects.get(token=tkn)
-        dag = DataAccessGrant.objects.get(
-            beneficiary=at.user,
-            application=application
-        )
-        dag.expiration_date = datetime.now().replace(
-            tzinfo=pytz.UTC
-        ) + relativedelta(months=-1)
+        dag = DataAccessGrant.objects.get(beneficiary=at.user, application=application)
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=-1)
         dag.save()
         at.delete()
         refresh_request_data = {
@@ -452,7 +450,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -465,7 +464,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -508,7 +507,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -521,7 +521,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -571,7 +571,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -584,7 +585,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a capability-b'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -616,13 +617,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         body = urlencode(refresh_request_data)
 
         with patch(
-            'apps.fhir.server.authentication.search_fhir_id_by_identifier',
-            side_effect=search_fhir_id_by_identifier_side_effect
+            'apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect
         ):
             response = self.client.post(
-                reverse('oauth2_provider:token'),
-                data=body,
-                content_type='application/x-www-form-urlencoded'
+                reverse('oauth2_provider:token'), data=body, content_type='application/x-www-form-urlencoded'
             )
 
         assert response.status_code == HTTPStatus.OK
@@ -641,7 +639,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -654,7 +653,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a', 'capability-b'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -686,13 +685,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         body = urlencode(refresh_request_data)
 
         with patch(
-            'apps.fhir.server.authentication.search_fhir_id_by_identifier',
-            side_effect=search_fhir_id_by_identifier_side_effect
+            'apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect
         ):
             response = self.client.post(
-                reverse('oauth2_provider:token'),
-                data=body,
-                content_type='application/x-www-form-urlencoded'
+                reverse('oauth2_provider:token'), data=body, content_type='application/x-www-form-urlencoded'
             )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -710,7 +706,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
             redirect_uris=redirect_uri,
-            data_access_type="THIRTEEN_MONTH",
+            data_access_type='THIRTEEN_MONTH',
         )
         capability_a = self._create_capability('Capability A', [])
         application.scope.add(capability_a)
@@ -732,7 +728,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -751,9 +747,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = c.post('/v1/o/token/', data=token_request_data)
         tkn = response.json()
         dag.refresh_from_db()
-        token_expiration = datetime.strptime(
-            tkn["access_grant_expiration"], "%Y-%m-%dT%H:%M:%SZ"
-        ).replace(tzinfo=pytz.UTC)
+        token_expiration = datetime.strptime(tkn['access_grant_expiration'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.UTC)
         dag_expiration = dag.expiration_date
         if dag_expiration.tzinfo is None:
             dag_expiration = dag_expiration.replace(tzinfo=pytz.UTC)
@@ -775,7 +769,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -788,7 +783,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -808,8 +803,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         # extract token and use it to make a revoke request
         tkn = response.json()['access_token']
-        revoke_request_data = f"token={tkn}&client_id={application.client_id}&client_secret={application.client_secret_plain}"
-        content_type = "application/x-www-form-urlencoded"
+        revoke_request_data = f'token={tkn}&client_id={application.client_id}&client_secret={application.client_secret_plain}'
+        content_type = 'application/x-www-form-urlencoded'
         c = Client()
         rev_response = c.post('/v1/o/revoke/', data=revoke_request_data, content_type=content_type)
         self.assertEqual(rev_response.status_code, 200)
@@ -831,7 +826,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -844,7 +840,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -898,7 +894,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -911,7 +908,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -955,7 +952,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -968,7 +966,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -1001,11 +999,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         self.assertTrue(ArchivedDataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())
 
     def test_revoked_token_on_inactive_app(self):
-        '''
+        """
         BB2-149:
         adapted from existing token revoke test
         to test revoke on an inactive app
-        '''
+        """
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
@@ -1016,7 +1014,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -1029,7 +1028,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -1058,11 +1057,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.active = False
         application.save()
 
-        msg_expected = "invalid_client"
+        msg_expected = 'invalid_client'
         response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
         # assert FORBIDDEN and content json is expected message
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
-        content = json.loads(response.content.decode("utf-8"))
+        content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['error'], msg_expected)
 
         # revert app to active in case not to impact other tests
@@ -1070,11 +1069,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.save()
 
     def test_introspect_token_on_inactive_app(self):
-        '''
+        """
         BB2-149:
         adapted from token auth test but test token introspect on a inactive app,
         403 customized permission denied message expected.
-        '''
+        """
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
@@ -1086,7 +1085,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b, capability_introspect)
         # user logs in
         request = HttpRequest()
@@ -1099,7 +1099,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a', 'capability-b', 'introspection'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -1131,10 +1131,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.active = False
         application.save()
 
-        msg_expected = "invalid_client"
+        msg_expected = 'invalid_client'
         response = c.post('/v1/o/introspect/', data=introspect_request_data, **auth_headers)
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
-        content = json.loads(response.content.decode("utf-8"))
+        content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['error'], msg_expected)
 
         # revert app to active in case not to impact other tests
@@ -1172,7 +1172,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
@@ -1185,7 +1186,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.client.logout()
@@ -1208,10 +1209,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
     @patch('apps.dot_ext.views.authorization.get_application_model')
     @patch('apps.dot_ext.views.authorization.get_waffle_flag_model')
     def test_permission_denied_raised_for_authorize_app_not_in_flag(
-        self,
-        mock_get_flag_model,
-        mock_get_application_model,
-        mock_get_user_model
+        self, mock_get_flag_model, mock_get_application_model, mock_get_user_model
     ):
         # Unit test to show that we will raise an AccessDeniedTokenCustomError
         # when the validate_v3_authorization_request of AuthorizationView function is called
@@ -1255,11 +1253,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
     @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
     @patch('apps.dot_ext.views.authorization.get_waffle_flag_model')
     def test_permission_denied_raised_for_refresh_token_app_not_in_flag(
-        self,
-        mock_get_flag_model,
-        mock_get_refresh_token_model,
-        mock_get_application_model,
-        mock_get_user_model
+        self, mock_get_flag_model, mock_get_refresh_token_model, mock_get_application_model, mock_get_user_model
     ):
         # BB2-4250Unit test to show that we will raise an PermissionDenied
         # when the validate_v3_token_call of TokenView function is called
@@ -1305,11 +1299,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             view_instance._validate_v3_token_call(request)
 
     def test_cancel_button_clicked_flow_thirteen_month_data_access_type(self):
-        '''
+        """
         BB2-4270:
         Ensure that when the cancel button is clicked on the authorization page (sets allow = False)
         That we do not delete the associated data_access_grant, access_token, and refresh_token
-        '''
+        """
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
@@ -1323,7 +1317,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
 
         application.scope.add(capability_patient, capability_profile, capability_eob, capability_coverage)
         # user logs in
@@ -1338,7 +1333,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['patient/Patient.rs profile patient/Coverage.rs patient/ExplanationOfBenefit.rs'],
             'expires_in': 86400,
             'allow': False,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 302)
@@ -1352,11 +1347,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             assert not mock_remove_dag_and_tokens.called
 
     def test_cancel_button_clicked_flow_one_time_data_access_type(self):
-        '''
+        """
         BB2-4270:
         Ensure that when the cancel button is clicked on the authorization page (sets allow = False)
         That we do not delete the associated data_access_grant, access_token, and refresh_token
-        '''
+        """
         redirect_uri = 'http://localhost'
         # create a user
         self._create_user('anna', '123456')
@@ -1371,7 +1366,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_CONFIDENTIAL,
             data_access_type='ONE_TIME',
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
 
         application.scope.add(capability_patient, capability_profile, capability_eob, capability_coverage)
         # user logs in
@@ -1386,7 +1382,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['profile patient/Coverage.rs patient/ExplanationOfBenefit.rs'],
             'expires_in': 86400,
             'allow': False,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 302)
@@ -1400,11 +1396,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             assert not mock_remove_dag_and_tokens.called
 
     def test_invalid_uuid_authorize_call(self):
-        """BB2-4326: Ensure a 404 is thrown if a non-UUID is passed to an authorize endpoint
-        """
-        auth_uri_v1 = reverse("oauth2_provider:authorize-instance", args=['jolokia'])
-        auth_uri_v2 = reverse("oauth2_provider_v2:authorize-instance-v2", args=['jolokia'])
-        auth_uri_v3 = reverse("oauth2_provider_v3:authorize-instance-v3", args=['jolokia'])
+        """BB2-4326: Ensure a 404 is thrown if a non-UUID is passed to an authorize endpoint"""
+        auth_uri_v1 = reverse('oauth2_provider:authorize-instance', args=['jolokia'])
+        auth_uri_v2 = reverse('oauth2_provider_v2:authorize-instance-v2', args=['jolokia'])
+        auth_uri_v3 = reverse('oauth2_provider_v3:authorize-instance-v3', args=['jolokia'])
 
         response_v1 = self.client.get(auth_uri_v1)
         response_v2 = self.client.get(auth_uri_v2)
@@ -1416,11 +1411,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
     @override_switch('v3_endpoints', active=True)
     def test_valid_uuid_authorize_call(self):
-        """BB2-4326: Ensure a 302 is thrown if a valid UUID is passed to an authorize endpoint
-        """
-        auth_uri_v1 = reverse("oauth2_provider:authorize-instance", args=[uuid.uuid4()])
-        auth_uri_v2 = reverse("oauth2_provider_v2:authorize-instance-v2", args=[uuid.uuid4()])
-        auth_uri_v3 = reverse("oauth2_provider_v3:authorize-instance-v3", args=[uuid.uuid4()])
+        """BB2-4326: Ensure a 302 is thrown if a valid UUID is passed to an authorize endpoint"""
+        auth_uri_v1 = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
+        auth_uri_v2 = reverse('oauth2_provider_v2:authorize-instance-v2', args=[uuid.uuid4()])
+        auth_uri_v3 = reverse('oauth2_provider_v3:authorize-instance-v3', args=[uuid.uuid4()])
 
         response_v1 = self.client.get(auth_uri_v1)
         response_v2 = self.client.get(auth_uri_v2)
@@ -1433,10 +1427,12 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # such that the authorize call will return a 302 for v3, v3 in this test throws a 403
         assert response_v3.status_code == HTTPStatus.FORBIDDEN
 
-    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
-                                                                    error='Failure',
-                                                                    error_type=MatchFhirIdErrorType.UPSTREAM,
-                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
+    @patch(
+        'apps.mymedicare_cb.models.match_fhir_id',
+        return_value=(
+            MatchFhirIdResult(error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI)
+        ),
+    )
     def test_failure_response_v1_refresh_token_flow_match_fhir_id_failure(self, mock_match_fhir):
         """During v1 refresh token flow, if we fail to retrieve the fhir_id for v2 from match_fhir_id,
         a 500 error should be thrown with a message of 'Failed to retrieve data from data source.'
@@ -1452,7 +1448,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_PUBLIC,
-            redirect_uris=redirect_uri)
+            redirect_uris=redirect_uri,
+        )
         application.scope.add(capability_a, capability_b)
 
         # user logs in
@@ -1477,7 +1474,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
-            "state": "0123456789abcdef",
+            'state': '0123456789abcdef',
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
@@ -1493,7 +1490,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
-            'code_verifier': 'test123456789123456789123456789123456789123456789'
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
 
@@ -1518,11 +1515,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         session['version'] = Versions.V1
         session.save()
 
-        response = self.client.post(
-            reverse('oauth2_provider:token'),
-            data=body,
-            content_type='application/x-www-form-urlencoded'
-        )
+        response = self.client.post(reverse('oauth2_provider:token'), data=body, content_type='application/x-www-form-urlencoded')
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
         self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')
