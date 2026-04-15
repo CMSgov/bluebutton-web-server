@@ -55,13 +55,13 @@ output "github_oidc_provider_arn" {
 
 output "github_actions_role_arn" {
   description = "ARN of GitHub Actions deployment role"
-  value       = aws_iam_role.github_actions.arn
+  value       = local.github_actions_role_arn
   sensitive   = true
 }
 
 output "github_actions_role_name" {
   description = "Name of GitHub Actions deployment role"
-  value       = aws_iam_role.github_actions.name
+  value       = local.github_actions_role_name
 }
 
 # GitHub Connection Output

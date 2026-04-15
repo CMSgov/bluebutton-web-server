@@ -17,10 +17,12 @@ run_socat_locally () {
 }
 
 write_bfd_certs_to_tmp () {
+    set -o pipefail
     echo "🟦 Writing Certs to ${DJANGO_FHIR_CERTSTORE}"
-    mkdir -p ${DJANGO_FHIR_CERTSTORE}
-    echo "${BFD_KEY_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem
-    echo "${BFD_CERT_PEM_B64}" | base64 --decode > ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem
+    mkdir -p "${DJANGO_FHIR_CERTSTORE}"
+    echo "${BFD_KEY_PEM_B64}" | base64 --decode > "${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem" || return 1
+    echo "${BFD_CERT_PEM_B64}" | base64 --decode > "${DJANGO_FHIR_CERTSTORE}/ca.cert.pem" || return 1
+    set +o pipefail
     return 0
 }
 
@@ -28,12 +30,12 @@ write_bfd_certs_to_tmp () {
 check_bfd_certs_are_not_empty () {
     echo "🟦 Check BFD certs are at ${DJANGO_FHIR_CERTSTORE}"
     # Make sure the files are not empty
-    if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem) ]]; then
+    if [[ -z $(grep '[^[:space:]]' "${DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem") ]]; then
         echo "⛔ BFD ca.key.nocrypt.pem is empty"
         return 1
     fi
 
-    if [[ -z $(grep '[^[:space:]]' ${DJANGO_FHIR_CERTSTORE}/ca.cert.pem) ]]; then
+    if [[ -z $(grep '[^[:space:]]' "${DJANGO_FHIR_CERTSTORE}/ca.cert.pem") ]]; then
         echo "⛔ BFD cert.pem is empty"
         return 1
     fi
@@ -68,16 +70,32 @@ write_tls_certs_to_tmp () {
     # Fargate: certs injected as env vars from SM auto-discovery
     # SM /bb2/{env}/app/www_key_file → WWW_KEY_FILE
     # SM /bb2/{env}/app/www_combined_crt → WWW_COMBINED_CRT
+    set -o pipefail
     mkdir -p /tmp/certstore/tls
-    echo "${WWW_KEY_FILE}" | base64 --decode > /tmp/certstore/tls/key.pem
-    echo "${WWW_COMBINED_CRT}" | base64 --decode > /tmp/certstore/tls/cert.pem
+    echo "${WWW_KEY_FILE}" | base64 --decode > /tmp/certstore/tls/key.pem || return 1
+    echo "${WWW_COMBINED_CRT}" | base64 --decode > /tmp/certstore/tls/cert.pem || return 1
+    set +o pipefail
+    return 0
+}
+
+check_tls_certs_are_not_empty () {
+    echo "🟦 Check TLS certs are at /tmp/certstore/tls"
+    if [[ -z $(grep '[^[:space:]]' "/tmp/certstore/tls/key.pem") ]]; then
+        echo "⛔ TLS key.pem is empty"
+        return 1
+    fi
+
+    if [[ -z $(grep '[^[:space:]]' "/tmp/certstore/tls/cert.pem") ]]; then
+        echo "⛔ TLS cert.pem is empty"
+        return 1
+    fi
+    echo "🔵 TLS certs are in place"
     return 0
 }
 
 launch_blue_button () {
     echo "🟦 Launch Blue Button"
     mkdir -p /tmp/gunicorn
-    LAUNCH_RESULT=1
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
         # --bind 0.0.0.0:${GUNICORN_PORT} \
