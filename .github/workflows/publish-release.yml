@@ -34,7 +34,7 @@ jobs:
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "r0")
           PREV_NUM=${PREV_TAG#r}
           NEW_NUM=$((PREV_NUM + 1))
-          NEW_TAG="r${NEW_NUM}-test"
+          NEW_TAG="r${NEW_NUM}-test2"
           echo "prev=$PREV_TAG" >> "$GITHUB_OUTPUT"
           echo "new=$NEW_TAG" >> "$GITHUB_OUTPUT"
           echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
