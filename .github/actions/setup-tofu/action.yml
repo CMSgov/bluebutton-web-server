@@ -72,8 +72,20 @@ runs:
           echo "yq $(yq --version) already installed"
         fi
 
+    - name: Resolve role environment
+      id: role-env
+      shell: bash
+      run: |
+        # One role per account: sandbox reuses prod's role
+        ENV="${{ inputs.environment }}"
+        if [ "$ENV" = "sandbox" ]; then
+          echo "env=prod" >> "$GITHUB_OUTPUT"
+        else
+          echo "env=$ENV" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ steps.account.outputs.account }}:role/delegatedadmin/developer/bb-${{ inputs.environment }}-github-actions
+        role-to-assume: arn:aws:iam::${{ steps.account.outputs.account }}:role/delegatedadmin/developer/bb-${{ steps.role-env.outputs.env }}-github-actions
         aws-region: us-east-1
