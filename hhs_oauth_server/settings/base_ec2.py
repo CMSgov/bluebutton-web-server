@@ -796,7 +796,7 @@ IS_MEDIA_URL_LOCAL = False
 our_target_env = env('TARGET_ENV', '')
 if our_target_env in ['dev', 'test', 'impl', 'prod']:
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
-    STATICFILES_LOCATION = 'static/'
+    STATICFILES_LOCATION = 'static/dist/'
     MEDIAFILES_LOCATION = 'media/'
     STATIC_URL = 'https://%s%s' % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
     AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
