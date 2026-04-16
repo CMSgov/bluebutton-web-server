@@ -9,6 +9,7 @@ import jwt
 import pytest
 from django.core.cache import cache
 from django.http import HttpRequest
+from freezegun import freeze_time
 from oauth2_provider.models import get_access_token_model
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
@@ -472,36 +473,41 @@ class TestTokenPrivateMethods(BaseApiTest):
         self,
         mock_decode_complete,
     ):
-        """Test _validate_authorization_jwt succeeds on first cache hit"""
+        """Test _validate_authorization_jwt succeeds with basic validation"""
 
-        mock_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_authorization_jwt_cache_success',
-            'sub': 'test_iss',
-            'exp': datetime.datetime.now().timestamp(),
-            'extensions': {
-                'cms_smart': {
-                    'version': '1',
-                    'purpose_of_use': 'PATRQT',
-                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
-                }
-            },
-        }
-        mock_decode_complete.return_value = {
-            'payload': mock_payload,
-            'header': {'typ': 'JWT'},
-        }
+        with freeze_time() as frozen_time:
+            mock_payload = {
+                'iss': 'test_iss',
+                'jti': 'test_validate_authorization_jwt_cache_success',
+                'sub': 'test_iss',
+                'exp': datetime.datetime.now().timestamp(),
+                'extensions': {
+                    'cms_smart': {
+                        'version': '1',
+                        'purpose_of_use': 'PATRQT',
+                        'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                    }
+                },
+            }
+            mock_decode_complete.return_value = {
+                'payload': mock_payload,
+                'header': {'typ': 'JWT'},
+            }
 
-        result = self.token_view._validate_authorization_jwt(
-            'token', 'test_iss', self.mock_jwks_client
-        )
-        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get(
-            'id_token'
-        )
+            result = self.token_view._validate_authorization_jwt(
+                'token', 'test_iss', self.mock_jwks_client
+            )
+            assert result == mock_payload.get('extensions', {}).get(
+                'cms_smart', {}
+            ).get('id_token')
 
-        # Assert cache has the key we'd expect and that the result is what we'd expect
-        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
-        assert cache.get(cache_key) == 'sentinel'
+            # Assert cache has the key we'd expect and that the result is what we'd expect
+            cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+            assert cache.get(cache_key) == 'sentinel'
+
+            # Advance time by 300 seconds and assert cache no longer has key
+            frozen_time.tick(delta=datetime.timedelta(seconds=300))
+            assert cache.get(cache_key) is None
 
     @override_switch('client_credentials_validation', active=True)
     @patch('jwt.decode_complete')
@@ -552,29 +558,34 @@ class TestTokenPrivateMethods(BaseApiTest):
         self,
         mock_decode_complete,
     ):
-        """Test _validate_ial_jwt succeeds on first call (cache accepts)."""
+        """Test _validate_ial_jwt succeeds with basic validation."""
 
-        mock_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_ial_jwt_cache_success',
-            'iat': datetime.datetime.now().timestamp(),
-            'identity_assurance_level': 2,
-            'family_name': 'Doe',
-            'given_name': 'John',
-            'birthdate': '1990-01-01',
-        }
-        mock_decode_complete.return_value = {
-            'payload': mock_payload,
-            'header': {'typ': 'JWT'},
-        }
+        with freeze_time() as frozen_time:
+            mock_payload = {
+                'iss': 'test_iss',
+                'jti': 'test_validate_ial_jwt_cache_success',
+                'iat': datetime.datetime.now().timestamp(),
+                'identity_assurance_level': 2,
+                'family_name': 'Doe',
+                'given_name': 'John',
+                'birthdate': '1990-01-01',
+            }
+            mock_decode_complete.return_value = {
+                'payload': mock_payload,
+                'header': {'typ': 'JWT'},
+            }
 
-        # Call succeeds
-        result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
-        assert result == mock_payload
+            # Call succeeds
+            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            assert result == mock_payload
 
-        # Assert cache has the key we'd expect and that the result is what we'd expect
-        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
-        assert cache.get(cache_key) == 'sentinel'
+            # Assert cache has the key we'd expect and that the result is what we'd expect
+            cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+            assert cache.get(cache_key) == 'sentinel'
+
+            # Advance time by 300 seconds and assert cache no longer has key
+            frozen_time.tick(delta=datetime.timedelta(seconds=300))
+            assert cache.get(cache_key) is None
 
     @override_switch('client_credentials_validation', active=True)
     @patch('jwt.decode_complete')
