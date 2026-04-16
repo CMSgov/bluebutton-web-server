@@ -118,6 +118,10 @@ jobs:
   trigger-build:
     name: Trigger Build Image
     needs: release
+    permissions:
+      contents: read
+      id-token: write
+      actions: write
     uses: ./.github/workflows/build-push-images.yml
     with:
       environment: test
