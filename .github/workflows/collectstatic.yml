@@ -73,17 +73,22 @@ jobs:
             echo "::add-mask::$ACCOUNT_ID"
             echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
 
-      - name: Delete files in static folder
-        run:  |
-          echo ${{ github.workspace }}
-          mv ${{ github.workspace }}/static/bluebutton-css/dist ${{ github.workspace }}/bluebutton-css 
-          rm -rf ${{ github.workspace }}/static/*
-          mv ${{ github.workspace }}/bluebutton-css ${{ github.workspace }}/static
+      # - name: Delete files in static folder
+      #   run:  |
+      #     echo ${{ github.workspace }}
+      #     mv ${{ github.workspace }}/static/bluebutton-css/dist ${{ github.workspace }}/bluebutton-css 
+      #     rm -rf ${{ github.workspace }}/static/*
+      #     mv ${{ github.workspace }}/bluebutton-css ${{ github.workspace }}/static
 
-      - name: Print STATIC_ROOT
+      # - name: Print STATIC_ROOT
+      #   run: |
+      #     source venv/bin/activate
+      #     python3 -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bluebutton-web-server.hhs_oauth_server.settings.base_ec2'); from django.conf import settings; print(f'STATIC_ROOT is: {settings.STATIC_ROOT}'); print(f'ABS_PATH is: {os.path.abspath(settings.STATIC_ROOT)}'); print(f'EXISTS is: {os.path.exists(settings.STATIC_ROOT)}');"
+
+      - name: Print AWS_BUCKET_NAME
         run: |
           source venv/bin/activate
-          python3 -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bluebutton-web-server.hhs_oauth_server.settings.base_ec2'); from django.conf import settings; print(f'STATIC_ROOT is: {settings.STATIC_ROOT}'); print(f'ABS_PATH is: {os.path.abspath(settings.STATIC_ROOT)}'); print(f'EXISTS is: {os.path.exists(settings.STATIC_ROOT)}');"
+          python3 -c "from django.conf import settings; bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None); print(f'AWS_BUCKET_NAME is: {bucket}');"
 
       - name: Collect static files
         run: |
@@ -92,7 +97,6 @@ jobs:
           echo "TARGET_ENV=$TARGET_ENV"
           python3 manage.py collectstatic --noinput --verbosity 2
           echo STATIC_ROOT=$STATIC_ROOT
-          ls -la $STATIC_ROOT
     
     # random comment to test workflow round 3
     #   - name: Upload static assets to S3 Dryrun
