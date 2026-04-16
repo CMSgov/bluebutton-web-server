@@ -43,11 +43,12 @@ fi
 
 # Get network configuration from the running service
 # Subnets and security groups are managed by CMS Cloud — we read them at runtime
+# Use jq -c to compact to a single line — required for GitHub Actions $GITHUB_OUTPUT
 ECS_NET_CONFIG=$(aws ecs describe-services \
   --cluster "${ECS_CLUSTER}" \
   --services "${ECS_SERVICE}" \
   --query 'services[0].networkConfiguration' \
-  --output json)
+  --output json | jq -c .)
 
 if [[ "${ECS_NET_CONFIG}" == "null" || -z "${ECS_NET_CONFIG}" ]]; then
   echo "ERROR: Service ${ECS_SERVICE} not found in cluster ${ECS_CLUSTER}" >&2
