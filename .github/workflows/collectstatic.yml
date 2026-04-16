@@ -89,6 +89,7 @@ jobs:
         run: |
           ls -la
           source venv/bin/activate
+          cd ops/containers
           echo "TARGET_ENV=$TARGET_ENV"
           python3 manage.py collectstatic --noinput --verbosity 2
           echo STATIC_ROOT=$STATIC_ROOT
