@@ -167,8 +167,7 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
       "ecs:UpdateService",
       "ecs:DescribeServices",
       "ecs:DescribeTasks",
-      "ecs:ListTasks",
-      "ecs:RunTask"
+      "ecs:ListTasks"
     ]
     resources = flatten([for env in local.role_envs : [
       "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:service/${local.app}-${env}-cluster/*",
@@ -182,7 +181,8 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
       "ecs:RegisterTaskDefinition",
       "ecs:DescribeTaskDefinition",
       "ecs:ListTaskDefinitions",
-      "ecs:DeregisterTaskDefinition"
+      "ecs:DeregisterTaskDefinition",
+      "ecs:RunTask"
     ]
     resources = ["*"]
   }
