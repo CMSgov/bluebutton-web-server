@@ -167,7 +167,8 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
       "ecs:UpdateService",
       "ecs:DescribeServices",
       "ecs:DescribeTasks",
-      "ecs:ListTasks"
+      "ecs:ListTasks",
+      "ecs:RunTask"
     ]
     resources = flatten([for env in local.role_envs : [
       "arn:aws:ecs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:service/${local.app}-${env}-cluster/*",
@@ -272,6 +273,9 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "logs:CreateLogStream",
       "logs:DeleteLogGroup",
       "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:FilterLogEvents",
+      "logs:GetLogEvents",
       "logs:ListTagsForResource",
       "logs:PutLogEvents",
       "logs:PutRetentionPolicy",
