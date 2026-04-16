@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from waffle.testutils import override_switch
 from ..models import UserProfile
+from apps.constants import USER_TYPE_DEV
 
 
 class ChangePasswordResetQuestionsTestCase(TestCase):
@@ -12,14 +13,14 @@ class ChangePasswordResetQuestionsTestCase(TestCase):
     """
 
     def setUp(self):
-        u = User.objects.create_user(username="fred",
-                                     first_name="Fred",
-                                     last_name="Flinstone",
-                                     email='fred@example.com',
-                                     password="foobar",)
-        UserProfile.objects.create(user=u,
-                                   user_type="DEV",
-                                   create_applications=True)
+        u = User.objects.create_user(
+            username='fred',
+            first_name='Fred',
+            last_name='Flinstone',
+            email='fred@example.com',
+            password='foobar',
+        )
+        UserProfile.objects.create(user=u, user_type=USER_TYPE_DEV, create_applications=True)
         self.client = Client()
 
     @override_switch('login', active=True)

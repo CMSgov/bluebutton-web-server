@@ -15,33 +15,31 @@ class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
 
 
 class TokenHasProtectedCapability(permissions.BasePermission):
-
     def has_permission(self, request, view) -> bool:  # type: ignore
         token = request.auth
-        access_token_query_param = request.GET.get("access_token", None)
+        access_token_query_param = request.GET.get('access_token', None)
 
         if access_token_query_param is not None:
             raise ParseError(
-                "Using the access token in the query parameters is not supported. "
-                "Use the Authorization header instead"
+                'Using the access token in the query parameters is not supported. Use the Authorization header instead'
             )
 
         if not token:
             return False
 
-        if not switch_is_active("require-scopes"):
+        if not switch_is_active('require-scopes'):
             return True
 
-        if hasattr(token, "scope"):  # OAuth 2
+        if hasattr(token, 'scope'):  # OAuth 2
             token_scopes = token.scope.split()
 
-            if switch_is_active("enable_coverage_only"):
-                if "coverage-eligibility" in request.auth.application.get_internal_application_labels():
+            if switch_is_active('enable_coverage_only'):
+                if 'coverage-eligibility' in request.auth.application.get_internal_application_labels():
                     token_scopes = CapabilitiesScopes().remove_eob_scopes(token_scopes)
 
-            scopes = list(ProtectedCapability.objects.filter(
-                slug__in=token_scopes
-            ).values_list('protected_resources', flat=True).all())
+            scopes = list(
+                ProtectedCapability.objects.filter(slug__in=token_scopes).values_list('protected_resources', flat=True).all()
+            )
 
             for scope in scopes:
                 for method, path in json.loads(scope):
@@ -55,6 +53,8 @@ class TokenHasProtectedCapability(permissions.BasePermission):
             return False
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
-            mesg = ("TokenHasScope requires the `oauth2_provider.rest_framework.OAuth2Authentication`"
-                    " authentication class to be used.")
+            mesg = (
+                'TokenHasScope requires the `oauth2_provider.rest_framework.OAuth2Authentication`'
+                ' authentication class to be used.'
+            )
             raise BBCapabilitiesPermissionTokenScopeMissingException(mesg)

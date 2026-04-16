@@ -26,11 +26,11 @@ logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 class CustomRegisterApplicationForm(forms.ModelForm):
     logo_image = forms.ImageField(
-        label="Logo URI Image Upload",
+        label='Logo URI Image Upload',
         required=False,
-        help_text="Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! "
-        "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
-        "This will update the Logo URI after saving."
+        help_text='Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! '
+        'The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. '
+        'This will update the Logo URI after saving.'
         % (
             settings.APP_LOGO_SIZE_MAX,
             settings.APP_LOGO_WIDTH_MAX,
@@ -39,10 +39,10 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     )
 
     description = forms.CharField(
-        label="Application Description",
-        help_text="This is plain-text up to 1000 characters in length.",
+        label='Application Description',
+        help_text='This is plain-text up to 1000 characters in length.',
         widget=forms.Textarea,
-        empty_value="",
+        empty_value='',
         required=False,
         max_length=1000,
         validators=[validate_notags],
@@ -70,61 +70,56 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     )
 
     def __init__(self, user, *args, **kwargs):
-        agree_label = (
-            'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*'
-            % (settings.TOS_URI)
+        agree_label = 'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
+            settings.TOS_URI
         )
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
-        self.fields["authorization_grant_type"].choices = settings.GRANT_TYPES
-        self.fields["client_type"].initial = "confidential"
-        self.fields["agree"].label = mark_safe(agree_label)
-        self.fields["name"].label = "Name*"
-        self.fields["name"].required = True
-        self.fields["client_type"].label = "Client Type*"
-        self.fields["client_type"].required = False
-        self.fields["authorization_grant_type"].label = "Authorization Grant Type*"
-        self.fields["authorization_grant_type"].required = False
-        self.fields["redirect_uris"].label = "Redirect URIs*"
-        self.fields["logo_uri"].disabled = True
+        self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
+        self.fields['client_type'].initial = 'confidential'
+        self.fields['agree'].label = mark_safe(agree_label)
+        self.fields['name'].label = 'Name*'
+        self.fields['name'].required = True
+        self.fields['client_type'].label = 'Client Type*'
+        self.fields['client_type'].required = False
+        self.fields['authorization_grant_type'].label = 'Authorization Grant Type*'
+        self.fields['authorization_grant_type'].required = False
+        self.fields['redirect_uris'].label = 'Redirect URIs*'
+        self.fields['logo_uri'].disabled = True
         self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
-            queryset=InternalApplicationLabels.objects.all(),
-            widget=forms.SelectMultiple)
-        self.fields["internal_application_labels"].required = False
+            queryset=InternalApplicationLabels.objects.all(), widget=forms.SelectMultiple
+        )
+        self.fields['internal_application_labels'].required = False
 
     class Meta:
         model = get_application_model()
         fields = (
-            "name",
-            "client_type",
-            "authorization_grant_type",
-            "redirect_uris",
-            "logo_uri",
-            "logo_image",
-            "website_uri",
-            "description",
-            "policy_uri",
-            "tos_uri",
-            "support_email",
-            "support_phone_number",
-            "contacts",
-            "agree",
-            "require_demographic_scopes",
-            "internal_application_labels",
+            'name',
+            'client_type',
+            'authorization_grant_type',
+            'redirect_uris',
+            'logo_uri',
+            'logo_image',
+            'website_uri',
+            'description',
+            'policy_uri',
+            'tos_uri',
+            'support_email',
+            'support_phone_number',
+            'contacts',
+            'agree',
+            'require_demographic_scopes',
+            'internal_application_labels',
         )
 
-    required_css_class = "required"
+    required_css_class = 'required'
 
     def clean(self):
         return self.cleaned_data
 
     def clean_name(self):
-        name = self.cleaned_data.get("name")
+        name = self.cleaned_data.get('name')
         app_model = get_application_model()
-        if (
-            app_model.objects.filter(name__iexact=name)
-            .exclude(pk=self.instance.pk)
-            .exists()
-        ):
+        if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError(
                 """
                                         It looks like this application name
@@ -143,51 +138,47 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                             Allowed characters:
                                             Alphanumeric characters 0 to 9, a to z, A to Z, space character,
                                             Special characters {}
-                                            """.format(
-                        name, PRINTABLE_SPECIAL_ASCII
-                    )
+                                            """.format(name, PRINTABLE_SPECIAL_ASCII)
                 )
         return name
 
     def clean_agree(self):
-        agree = self.cleaned_data.get("agree")
+        agree = self.cleaned_data.get('agree')
         if not agree:
-            msg = _("You must agree to the API Terms of Service Agreement")
+            msg = _('You must agree to the API Terms of Service Agreement')
             raise forms.ValidationError(msg)
         return agree
 
     def clean_redirect_uris(self):
-        redirect_uris = self.cleaned_data.get("redirect_uris")
-        if getattr(settings, "BLOCK_HTTP_REDIRECT_URIS", True):
+        redirect_uris = self.cleaned_data.get('redirect_uris')
+        if getattr(settings, 'BLOCK_HTTP_REDIRECT_URIS', True):
             if redirect_uris:
                 for u in redirect_uris.split():
-                    if u.startswith("http://"):
-                        msg = _("Redirect URIs must not use http.")
+                    if u.startswith('http://'):
+                        msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
 
     def clean_logo_image(self):
-        logo_image = self.cleaned_data.get("logo_image")
-        if getattr(logo_image, "name", False):
+        logo_image = self.cleaned_data.get('logo_image')
+        if getattr(logo_image, 'name', False):
             validate_logo_image(logo_image)
         return logo_image
 
     def clean_require_demographic_scopes(self):
-        require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
+        require_demographic_scopes = self.cleaned_data.get('require_demographic_scopes')
         if not isinstance(require_demographic_scopes, bool):
-            msg = _(
-                "Does your application need to collect beneficiary demographic information must be (Yes/No)."
-            )
+            msg = _('Does your application need to collect beneficiary demographic information must be (Yes/No).')
             raise forms.ValidationError(msg)
         return require_demographic_scopes
 
     def save(self, *args, **kwargs):
-        self.instance.client_type = "confidential"
-        self.instance.authorization_grant_type = "authorization-code"
+        self.instance.client_type = 'confidential'
+        self.instance.authorization_grant_type = 'authorization-code'
         app = self.instance
         # Only log agreement from a Register form
         if app.agree and isinstance(self, CustomRegisterApplicationForm):
-            logmsg = "%s agreed to %s for the application %s" % (
+            logmsg = '%s agreed to %s for the application %s' % (
                 app.user,
                 app.op_tos_uri,
                 app.name,
@@ -195,9 +186,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
         app.save()
-        uri = app.store_media_file(
-            self.cleaned_data.pop('logo_image', None)
-        )
+        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
             app.logo_uri = uri
             app.save()
@@ -206,11 +195,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
 class CreateNewApplicationForm(forms.ModelForm):
     logo_image = forms.ImageField(
-        label="Logo URI Image Upload",
+        label='Logo URI Image Upload',
         required=False,
-        help_text="Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! "
-        "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
-        "This will update the Logo URI after saving."
+        help_text='Upload your logo image file here in JPG, JPEG, or PNG (.jpg, .jpeg, .png) format! '
+        'The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. '
+        'This will update the Logo URI after saving.'
         % (
             settings.APP_LOGO_SIZE_MAX,
             settings.APP_LOGO_WIDTH_MAX,
@@ -218,10 +207,10 @@ class CreateNewApplicationForm(forms.ModelForm):
         ),
     )
     description = forms.CharField(
-        label="Application Description",
-        help_text="This is plain-text up to 1000 characters in length.",
+        label='Application Description',
+        help_text='This is plain-text up to 1000 characters in length.',
         widget=forms.Textarea,
-        empty_value="",
+        empty_value='',
         required=False,
         max_length=1000,
         validators=[validate_notags],
@@ -252,32 +241,30 @@ class CreateNewApplicationForm(forms.ModelForm):
     class Meta:
         model = get_application_model()
         fields = (
-            "name",
-            "organization_name",
-            "contacts",
-            "redirect_uris",
-            "require_demographic_scopes",
-            "policy_uri",
-            "tos_uri",
-            "website_uri",
-            "support_email",
-            "support_phone_number",
-            "logo_image",
-            "description",
-            "internal_application_labels",
+            'name',
+            'organization_name',
+            'contacts',
+            'redirect_uris',
+            'require_demographic_scopes',
+            'policy_uri',
+            'tos_uri',
+            'website_uri',
+            'support_email',
+            'support_phone_number',
+            'logo_image',
+            'description',
+            'internal_application_labels',
+            'jwks_uri',
+            'allowed_auth_type',
         )
 
     # Duplication of clean_name() from above form, see TODO comment at start of file
     # about candidate for refactoring
     def clean_name(self):
 
-        name = self.cleaned_data.get("name")
+        name = self.cleaned_data.get('name')
         app_model = get_application_model()
-        if (
-            app_model.objects.filter(name__iexact=name)
-            .exclude(pk=self.instance.pk)
-            .exists()
-        ):
+        if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError(
                 """
                                         It looks like this application name
@@ -296,37 +283,33 @@ class CreateNewApplicationForm(forms.ModelForm):
                             Allowed characters:
                             Alphanumeric characters 0 to 9, a to z, A to Z, space character,
                             Special characters {}
-                            """.format(
-                        name, PRINTABLE_SPECIAL_ASCII
-                    )
+                            """.format(name, PRINTABLE_SPECIAL_ASCII)
                 )
         return name
 
     def clean_logo_image(self):
 
-        logo_image = self.cleaned_data.get("logo_image")
-        if getattr(logo_image, "name", False):
+        logo_image = self.cleaned_data.get('logo_image')
+        if getattr(logo_image, 'name', False):
             validate_logo_image(logo_image)
         return logo_image
 
     def clean_redirect_uris(self):
 
-        redirect_uris = self.cleaned_data.get("redirect_uris")
-        if getattr(settings, "BLOCK_HTTP_REDIRECT_URIS", True):
+        redirect_uris = self.cleaned_data.get('redirect_uris')
+        if getattr(settings, 'BLOCK_HTTP_REDIRECT_URIS', True):
             if redirect_uris:
                 for u in redirect_uris.split():
-                    if u.startswith("http://"):
-                        msg = _("Redirect URIs must not use http.")
+                    if u.startswith('http://'):
+                        msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
 
     def clean_require_demographic_scopes(self):
 
-        require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
+        require_demographic_scopes = self.cleaned_data.get('require_demographic_scopes')
         if not isinstance(require_demographic_scopes, bool):
-            msg = _(
-                "Does your application need to collect beneficiary demographic information must be (Yes/No)."
-            )
+            msg = _('Does your application need to collect beneficiary demographic information must be (Yes/No).')
             raise forms.ValidationError(msg)
         return require_demographic_scopes
 
@@ -334,17 +317,17 @@ class CreateNewApplicationForm(forms.ModelForm):
         app = self.instance
 
         new_user_model = User.objects.create(
-            username=self.cleaned_data.get("name") + "@example.com",
+            username=self.cleaned_data.get('name') + '@example.com',
             password=str(uuid.uuid4()),
             is_active=True,
         )
-        group = Group.objects.get(name="BlueButton")
+        group = Group.objects.get(name='BlueButton')
         new_user_model.groups.add(group)
         new_user_model.save()
 
         UserProfile.objects.create(
             user=new_user_model,
-            organization_name=self.cleaned_data.get("organization_name"),
+            organization_name=self.cleaned_data.get('organization_name'),
         )
 
         app = super().save(*args, **kwargs)
@@ -353,17 +336,9 @@ class CreateNewApplicationForm(forms.ModelForm):
         app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
         app.client_type = Application.CLIENT_CONFIDENTIAL
         app.save()
-        app.scope.add(
-            *list(
-                ProtectedCapability.objects.filter(default=True).values_list(
-                    "id", flat=True
-                )
-            )
-        )
+        app.scope.add(*list(ProtectedCapability.objects.filter(default=True).values_list('id', flat=True)))
         app.save()
-        uri = app.store_media_file(
-            self.cleaned_data.pop('logo_image', None)
-        )
+        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
             app.logo_uri = uri
             app.save()
@@ -377,16 +352,16 @@ class SimpleAllowForm(DotAllowForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        scope = cleaned_data.get("scope", None)
+        scope = cleaned_data.get('scope', None)
 
         if scope is None:
-            cleaned_data["scope"] = ""
-            scope = ""
+            cleaned_data['scope'] = ''
+            scope = ''
         else:
-            cleaned_scope_list = CapabilitiesScopes().condense_scopes(scope.split(" "))
+            cleaned_scope_list = CapabilitiesScopes().condense_scopes(scope.split(' '))
             # Remove demographic information scopes, if beneficiary is not sharing
-            if cleaned_data.get("share_demographic_scopes") != "True":
+            if cleaned_data.get('share_demographic_scopes') != 'True':
                 cleaned_scope_list = CapabilitiesScopes().remove_demographic_scopes(cleaned_scope_list)
-            cleaned_data["scope"] = " ".join(cleaned_scope_list)
+            cleaned_data['scope'] = ' '.join(cleaned_scope_list)
 
         return cleaned_data

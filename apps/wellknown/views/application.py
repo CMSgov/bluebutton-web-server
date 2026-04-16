@@ -16,22 +16,21 @@ class ApplicationListPagination(PageNumberPagination):
 
 
 def label_slug_exists(value):
-    """ Validate slug exists for value """
+    """Validate slug exists for value"""
     if value:
         if not ApplicationLabel.objects.filter(slug=value).exists():
             raise ValidationError('Invalid slug name for label parameter:  %s' % (value), code=400)
 
 
 def label_slug_excluded(value):
-    """ Validate slug is not excluded for value """
+    """Validate slug is not excluded for value"""
     if value:
         if value in settings.APP_LIST_EXCLUDE:
             raise ValidationError('Invalid slug name for label parameter:  %s' % (value), code=400)
 
 
 class ApplicationListFilter(FilterSet):
-    label = BaseInFilter(field_name="applicationlabel__slug", distinct=True,
-                         validators=[label_slug_exists, label_slug_excluded])
+    label = BaseInFilter(field_name='applicationlabel__slug', distinct=True, validators=[label_slug_exists, label_slug_excluded])
 
     class Meta:
         model = Application
@@ -45,6 +44,7 @@ class ApplicationListView(ListAPIView):
     An application that has active=False or with a label slug in the APP_LIST_EXCLUDE
     list will be excluded from this view.
     """
+
     permission_classes = (AllowAny,)
     renderer_classes = (JSONRenderer,)
     serializer_class = ApplicationListSerializer
@@ -53,8 +53,11 @@ class ApplicationListView(ListAPIView):
     filterset_class = ApplicationListFilter
 
     def get_queryset(self):
-        queryset = Application.objects.exclude(active=False).exclude(
-            applicationlabel__slug__in=settings.APP_LIST_EXCLUDE).order_by('name')
+        queryset = (
+            Application.objects.exclude(active=False)
+            .exclude(applicationlabel__slug__in=settings.APP_LIST_EXCLUDE)
+            .order_by('name')
+        )
         return queryset
 
 
@@ -65,11 +68,11 @@ class ApplicationLabelView(ListAPIView):
     An application label that has a label slug in the APP_LIST_EXCLUDE
     list will be excluded from this view.
     """
+
     permission_classes = (AllowAny,)
     renderer_classes = (JSONRenderer,)
     serializer_class = ApplicationLabelSerializer
 
     def get_queryset(self):
-        queryset = ApplicationLabel.objects.exclude(
-            slug__in=settings.APP_LIST_EXCLUDE).order_by('name')
+        queryset = ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).order_by('name')
         return queryset

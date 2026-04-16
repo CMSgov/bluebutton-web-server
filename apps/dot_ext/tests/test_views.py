@@ -33,71 +33,66 @@ from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 class TestApplicationUpdateView(BaseApiTest):
     def test_update_form_show(self):
         """ """
-        read_group = self._create_group("read")
-        self._create_capability("Read-Scope", [], read_group)
-        write_group = self._create_group("write")
-        self._create_capability("Write-Scope", [], write_group)
+        read_group = self._create_group('read')
+        self._create_capability('Read-Scope', [], read_group)
+        write_group = self._create_group('write')
+        self._create_capability('Write-Scope', [], write_group)
         # create user and add it to the read group
-        user = self._create_user("john", "123456")
+        user = self._create_user('john', '123456')
         user.groups.add(read_group)
         # create an application
-        app = self._create_application("john_app", user=user)
+        app = self._create_application('john_app', user=user)
         # render the edit view for the app
         request = HttpRequest()
-        self.client.login(request=request, username=user.username, password="123456")
-        uri = reverse("oauth2_provider:update", args=[app.pk])
+        self.client.login(request=request, username=user.username, password='123456')
+        uri = reverse('oauth2_provider:update', args=[app.pk])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
 
 
 class TestAuthorizationView(BaseApiTest):
-
     MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME  # "fhir.backend.bluebutton.hhsdevcloud.us"
-    MOCK_FHIR_PATIENT_READVIEW_PATH = r"/v1/fhir/Patient/[-]?\d+[/]?"
-    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH = r"/v1/fhir/Patient[/]?"
-    MOCK_FHIR_EOB_PATH = r"/v1/fhir/ExplanationOfBenefit[/]?"
-    MOCK_FHIR_COVERAGE_PATH = r"/v1/fhir/Coverage[/]?"
+    MOCK_FHIR_PATIENT_READVIEW_PATH = r'/v1/fhir/Patient/[-]?\d+[/]?'
+    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH = r'/v1/fhir/Patient[/]?'
+    MOCK_FHIR_EOB_PATH = r'/v1/fhir/ExplanationOfBenefit[/]?'
+    MOCK_FHIR_COVERAGE_PATH = r'/v1/fhir/Coverage[/]?'
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH)
     def fhir_request_patient_readview_success_mock(self, url, request):
         # Return successful respose for Patient FHIR requests
-        return mock_fhir_responses["success_patient_readview"]
+        return mock_fhir_responses['success_patient_readview']
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH)
     def fhir_request_patient_searchview_success_mock(self, url, request):
         # Return successful respose for Patient FHIR requests
-        return mock_fhir_responses["success_patient_searchview"]
+        return mock_fhir_responses['success_patient_searchview']
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_PATH)
     def fhir_request_eob_success_mock(self, url, request):
         # Return successful respose for EOB FHIR requests
-        return mock_fhir_responses["success_eob"]
+        return mock_fhir_responses['success_eob']
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_PATH)
     def fhir_request_coverage_success_mock(self, url, request):
         # Return successful respose for coverage FHIR requests
-        return mock_fhir_responses["success_coverage"]
+        return mock_fhir_responses['success_coverage']
 
-    @override_switch("require-scopes", active=True)
+    @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
-        response = self.client.post(reverse("oauth2_provider:authorize"), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
-        query_dict = parse_qs(urlparse(response["Location"]).query)
-        authorization_code = query_dict.pop("code")
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
         token_request_data = {
-            "grant_type": "authorization_code",
-            "code": authorization_code,
-            "redirect_uri": "http://example.it",
-            "client_id": application.client_id,
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': 'http://example.it',
+            'client_id': application.client_id,
         }
-        return self.client.post(
-            reverse("oauth2_provider:token"), data=token_request_data
-        )
+        return self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
 
-    def _assertScopeResponse(
-        self, scope, scopes_granted_access_token, response, content
-    ):
+    def _assertScopeResponse(self, scope, scopes_granted_access_token, response, content):
         # Assert expected response and content for scope vs. what is granted.
         if scope in scopes_granted_access_token:
             # Path is allowed by scopes.
@@ -107,29 +102,29 @@ class TestAuthorizationView(BaseApiTest):
             self.assertEqual(response.status_code, 403)
 
     def test_start_authorization_flow(self):
-        redirect_uri = "http://localhost"
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        redirect_uri = 'http://localhost'
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri,
         )
         application.scope.add(capability_a, capability_b)
 
         payload = {
-            "client_id": application.client_id,
-            "client_secret": "1234567890",
-            "response_type": "code",
-            "redirect_uri": redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': '1234567890',
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
         }
 
-        response = self.client.get("/v1/o/authorize", data=payload, follow=True)
+        response = self.client.get('/v1/o/authorize', data=payload, follow=True)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.content.decode("utf-8"),
-            "Illegal query parameter [client_secret] detected",
+            response.content.decode('utf-8'),
+            'Illegal query parameter [client_secret] detected',
         )
 
     def test_post_with_restricted_scopes_issues_token_with_same_scopes(self):
@@ -138,37 +133,37 @@ class TestAuthorizationView(BaseApiTest):
         with the checked scopes only.
         """
         # create a user
-        self._create_user("anna", "123456")
+        self._create_user('anna', '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         # create an application and add capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         application.scope.add(capability_a, capability_b)
         # user logs in
         request = HttpRequest()
-        self.client.login(request=request, username="anna", password="123456")
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": "http://example.it",
-            "scope": ["capability-a"],
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': 'http://example.it',
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
         }
         response = self._authorize_and_request_token(payload, application)
         self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
+        content = json.loads(response.content.decode('utf-8'))
         # and here we test that only the capability-a scope has been issued
-        self.assertEqual(content["scope"], "capability-a")
+        self.assertEqual(content['scope'], 'capability-a')
 
-    @override_switch("require-scopes", active=True)
+    @override_switch('require-scopes', active=True)
     def test_post_with_share_demographic_scopes(self):
         """
         Test authorization related to different, beneficiary "share_demographic_scopes",
@@ -179,63 +174,49 @@ class TestAuthorizationView(BaseApiTest):
         """
         call_command('create_blue_button_scopes')
         # create a user
-        self._create_user("anna", "123456")
+        self._create_user('anna', '123456')
 
         # create an application and add some extra capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
 
         # Give the app some additional scopes.
-        capability_a = self._create_capability("Capability A", [])
-        capability_b = self._create_capability("Capability B", [])
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
         application.scope.add(capability_a, capability_b)
 
         # user logs in
         request = HttpRequest()
-        self.client.login(request=request, username="anna", password="123456")
+        self.client.login(request=request, username='anna', password='123456')
 
         # Loop through test cases in dictionary
         cases = VIEW_OAUTH2_SCOPES_TEST_CASES
         for case in cases:
             # Setup request parameters for test case
-            request_bene_share_demographic_scopes = cases[case][
-                "request_bene_share_demographic_scopes"
-            ]
-            request_app_requires_demographic = cases[case][
-                "request_app_requires_demographic"
-            ]
-            request_scopes = cases[case]["request_scopes"]
+            request_bene_share_demographic_scopes = cases[case]['request_bene_share_demographic_scopes']
+            request_app_requires_demographic = cases[case]['request_app_requires_demographic']
+            request_scopes = cases[case]['request_scopes']
 
             # Setup expected results for test case
-            result_has_error = cases[case]["result_has_error"]
-            result_raises_exception = cases[case].get("result_raises_exception", None)
-            result_exception_mesg = cases[case].get("result_exception_mesg", None)
-            result_token_scopes_granted = cases[case].get(
-                "result_token_scopes_granted", None
-            )
-            result_access_token_count = cases[case].get(
-                "result_access_token_count", None
-            )
-            result_refresh_token_count = cases[case].get(
-                "result_refresh_token_count", None
-            )
-            result_archived_token_count = cases[case].get(
-                "result_archived_token_count", None
-            )
-            result_archived_data_access_grant_count = cases[case].get(
-                "result_archived_data_access_grant_count", None
-            )
+            result_has_error = cases[case]['result_has_error']
+            result_raises_exception = cases[case].get('result_raises_exception', None)
+            result_exception_mesg = cases[case].get('result_exception_mesg', None)
+            result_token_scopes_granted = cases[case].get('result_token_scopes_granted', None)
+            result_access_token_count = cases[case].get('result_access_token_count', None)
+            result_refresh_token_count = cases[case].get('result_refresh_token_count', None)
+            result_archived_token_count = cases[case].get('result_archived_token_count', None)
+            result_archived_data_access_grant_count = cases[case].get('result_archived_data_access_grant_count', None)
 
             payload = {
-                "client_id": application.client_id,
-                "response_type": "code",
-                "redirect_uri": "http://example.it",
-                "expires_in": 86400,
-                "allow": True,
-                "state": "0123456789abcdef",
+                'client_id': application.client_id,
+                'response_type': 'code',
+                'redirect_uri': 'http://example.it',
+                'expires_in': 86400,
+                'allow': True,
+                'state': '0123456789abcdef',
             }
 
             # Does the application choose to require demographic info?
@@ -244,20 +225,16 @@ class TestAuthorizationView(BaseApiTest):
 
             # Does the beneficiary choose to block demographic info?
             if request_bene_share_demographic_scopes is not None:
-                payload[
-                    "share_demographic_scopes"
-                ] = request_bene_share_demographic_scopes
+                payload['share_demographic_scopes'] = request_bene_share_demographic_scopes
 
             # Scopes to be requested in the authorization request
             if request_scopes is not None:
-                payload["scope"] = " ".join(request_scopes)
+                payload['scope'] = ' '.join(request_scopes)
 
             # Perform authorization request
             if result_has_error:
                 # Expecting an error with request
-                with self.assertRaisesRegex(
-                    result_raises_exception, result_exception_mesg
-                ):
+                with self.assertRaisesRegex(result_raises_exception, result_exception_mesg):
                     response = self._authorize_and_request_token(payload, application)
                 # Continue to next test case
                 continue
@@ -267,31 +244,23 @@ class TestAuthorizationView(BaseApiTest):
 
             # Assert auth request was successful
             self.assertEqual(response.status_code, 200)
-            content = json.loads(response.content.decode("utf-8"))
+            content = json.loads(response.content.decode('utf-8'))
 
             # Test scope in response content
-            self.assertEqual(
-                sorted(content["scope"].split()), sorted(result_token_scopes_granted)
-            )
+            self.assertEqual(sorted(content['scope'].split()), sorted(result_token_scopes_granted))
 
             # Test scope in access_token
-            at = AccessToken.objects.get(token=content["access_token"])
+            at = AccessToken.objects.get(token=content['access_token'])
             scopes_granted_access_token = sorted(at.scope.split())
-            self.assertEqual(
-                scopes_granted_access_token, sorted(result_token_scopes_granted)
-            )
+            self.assertEqual(scopes_granted_access_token, sorted(result_token_scopes_granted))
 
             # Verify token counts expected.
             if result_access_token_count:
                 self.assertEqual(AccessToken.objects.count(), result_access_token_count)
             if result_refresh_token_count:
-                self.assertEqual(
-                    RefreshToken.objects.count(), result_refresh_token_count
-                )
+                self.assertEqual(RefreshToken.objects.count(), result_refresh_token_count)
             if result_archived_token_count:
-                self.assertEqual(
-                    ArchivedToken.objects.count(), result_archived_token_count
-                )
+                self.assertEqual(ArchivedToken.objects.count(), result_archived_token_count)
             if result_archived_data_access_grant_count:
                 self.assertEqual(
                     ArchivedDataAccessGrant.objects.count(),
@@ -305,15 +274,13 @@ class TestAuthorizationView(BaseApiTest):
             # Test that resource end points are limited by scopes
             # Loop through all scope paths.
             for scope in SCOPES_TO_URL_BASE_PATH:
-                base_path = SCOPES_TO_URL_BASE_PATH[scope]["base_path"]
-                is_fhir_url = SCOPES_TO_URL_BASE_PATH[scope]["is_fhir_url"]
-                test_readview = SCOPES_TO_URL_BASE_PATH[scope].get(
-                    "test_readview", False
-                )
+                base_path = SCOPES_TO_URL_BASE_PATH[scope]['base_path']
+                is_fhir_url = SCOPES_TO_URL_BASE_PATH[scope]['is_fhir_url']
+                test_readview = SCOPES_TO_URL_BASE_PATH[scope].get('test_readview', False)
 
                 # Setup token in APIClient
                 client = APIClient()
-                client.credentials(HTTP_AUTHORIZATION="Bearer " + at.token)
+                client.credentials(HTTP_AUTHORIZATION='Bearer ' + at.token)
 
                 # Mock back end FHIR resource calls
                 with HTTMock(
@@ -322,93 +289,78 @@ class TestAuthorizationView(BaseApiTest):
                     self.fhir_request_eob_success_mock,
                     self.fhir_request_coverage_success_mock,
                 ):
-
                     # Is this a FHIR type URL?
                     if is_fhir_url:
                         # Test SearchView for base path
                         response = client.get(base_path)
                         content = json.loads(response.content)
-                        self._assertScopeResponse(
-                            scope, scopes_granted_access_token, response, content
-                        )
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
 
                         # Test Searchiew for base path with ending "/"
-                        response = client.get(base_path + "/")
+                        response = client.get(base_path + '/')
                         content = json.loads(response.content)
-                        self._assertScopeResponse(
-                            scope, scopes_granted_access_token, response, content
-                        )
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
 
                         # Test ReadView for base path with FHIR_ID
                         if test_readview:
-                            response = client.get(
-                                base_path + "/" + DEFAULT_SAMPLE_FHIR_ID_V2
-                            )
+                            response = client.get(base_path + '/' + DEFAULT_SAMPLE_FHIR_ID_V2)
                             content = json.loads(response.content)
-                            self._assertScopeResponse(
-                                scope, scopes_granted_access_token, response, content
-                            )
+                            self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
 
                         # Test SearchView for base path with FHIR_ID
-                        response = client.get(
-                            base_path + "?" + DEFAULT_SAMPLE_FHIR_ID_V2
-                        )
+                        response = client.get(base_path + '?' + DEFAULT_SAMPLE_FHIR_ID_V2)
                         content = json.loads(response.content)
-                        self._assertScopeResponse(
-                            scope, scopes_granted_access_token, response, content
-                        )
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
                     else:
                         # Test base path.
                         response = client.get(base_path)
                         content = json.loads(response.content)
-                        self._assertScopeResponse(
-                            scope, scopes_granted_access_token, response, content
-                        )
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
 
 
 class TestTokenView(BaseApiTest):
-    test_uuid = "0123456789abcdefghijklmnopqrstuvwxyz"
-    test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
+    test_uuid = '0123456789abcdefghijklmnopqrstuvwxyz'
+    test_username = '0123456789abcdefghijklmnopqrstuvwxyz'
 
     def _create_test_token(self, user: User, application: Application):
         # user logs in
         self.client.force_login(user)
         # post the authorization form with only one scope selected
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": application.redirect_uris,
-            "scope": application.scopes().split(" "),
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'scope': application.scopes().split(' '),
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
-            payload["response_type"] = "token"
-        response = self.client.post("/v1/o/authorize/", data=payload)
+            payload['response_type'] = 'token'
+        response = self.client.post('/v1/o/authorize/', data=payload)
         self.client.logout()
         if response.status_code != 302:
             raise Exception(response.context_data)
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
-            fragment = parse_qs(urlparse(response["Location"]).fragment)
-            tkn = fragment.pop("access_token")[0]
+            fragment = parse_qs(urlparse(response['Location']).fragment)
+            tkn = fragment.pop('access_token')[0]
         else:
-            query_dict = parse_qs(urlparse(response["Location"]).query)
-            authorization_code = query_dict.pop("code")
+            query_dict = parse_qs(urlparse(response['Location']).query)
+            authorization_code = query_dict.pop('code')
             token_request_data = {
-                "grant_type": "authorization_code",
-                "code": authorization_code,
-                "redirect_uri": application.redirect_uris,
-                "client_id": application.client_id,
-                "client_secret": application.client_secret_plain,
+                'grant_type': 'authorization_code',
+                'code': authorization_code,
+                'redirect_uri': application.redirect_uris,
+                'client_id': application.client_id,
+                'client_secret': application.client_secret_plain,
             }
 
-            response = self.client.post("/v1/o/token/", data=token_request_data)
+            response = self.client.post('/v1/o/token/', data=token_request_data)
             self.assertEqual(response.status_code, 200)
             # Now we have a token and refresh token
-            tkn = response.json()["access_token"]
+            tkn = response.json()['access_token']
 
         t = AccessToken.objects.get(token=tkn)
         t.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
@@ -416,38 +368,28 @@ class TestTokenView(BaseApiTest):
         return t
 
     def _create_authorization_header(self, client_id, client_secret):
-        return "Basic {0}".format(
-            base64.b64encode(
-                "{0}:{1}".format(client_id, client_secret).encode("utf-8")
-            ).decode("utf-8")
-        )
+        return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
     def _create_authentication_header(self, username):
-        return "SLS {0}".format(
-            base64.b64encode(username.encode("utf-8")).decode("utf-8")
-        )
+        return 'SLS {0}'.format(base64.b64encode(username.encode('utf-8')).decode('utf-8'))
 
     def test_get_tokens_success(self):
-        anna = self._create_user(self.test_username, "123456")
+        anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability(
-            "token_management", [["GET", "/v1/o/tokens/"]], default=False
-        )
+        capability_a = self._create_capability('token_management', [['GET', '/v1/o/tokens/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         application.scope.add(capability_a)
         self._create_test_token(anna, application)
         response = self.client.get(
-            reverse("token_management:token-list"),
+            reverse('token_management:token-list'),
             headers={
-                "authorization": self._create_authorization_header(
-                    application.client_id, application.client_secret_plain
-                ),
-                "x-authentication": self._create_authentication_header(self.test_uuid),
+                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
         self.assertEqual(response.status_code, 200)
@@ -455,15 +397,15 @@ class TestTokenView(BaseApiTest):
         expected = [
             {
                 # can't predict the id in this case
-                "id": result[0]["id"],
-                "user": anna.id,
-                "application": {
-                    "id": application.id,
-                    "name": "an app",
-                    "logo_uri": "",
-                    "tos_uri": "",
-                    "policy_uri": "",
-                    "contacts": "",
+                'id': result[0]['id'],
+                'user': anna.id,
+                'application': {
+                    'id': application.id,
+                    'name': 'an app',
+                    'logo_uri': '',
+                    'tos_uri': '',
+                    'policy_uri': '',
+                    'contacts': '',
                 },
             }
         ]
@@ -471,52 +413,45 @@ class TestTokenView(BaseApiTest):
 
         # Check tokens endpoint doesn't return expired
         application2 = self._create_application(
-            "an expired app",
-            grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
-            user=anna
+            'an expired app', grant_type=Application.GRANT_AUTHORIZATION_CODE, redirect_uris='http://example.it', user=anna
         )
         DataAccessGrant.objects.update_or_create(
             beneficiary=anna, application=application2, expiration_date=date.today() - timedelta(days=1)
         )
         response = self.client.get(
-            "/v1/o/tokens/",
+            '/v1/o/tokens/',
             headers={
-                "authorization": self._create_authorization_header(
-                    application.client_id, application.client_secret_plain
-                ),
-                "x-authentication": self._create_authentication_header(self.test_uuid),
+                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
         self.assertEqual(response.status_code, 200)
         result = response.json()
         expected = [
             {
-                "id": result[0]["id"],
-                "user": anna.id,
-                "application": {
-                    "id": application.id,
-                    "name": "an app",
-                    "logo_uri": "",
-                    "tos_uri": "",
-                    "policy_uri": "",
-                    "contacts": "",
+                'id': result[0]['id'],
+                'user': anna.id,
+                'application': {
+                    'id': application.id,
+                    'name': 'an app',
+                    'logo_uri': '',
+                    'tos_uri': '',
+                    'policy_uri': '',
+                    'contacts': '',
                 },
             }
         ]
         self.assertEqual(result, expected)
 
     def test_get_tokens_on_inactive_app(self):
-        anna = self._create_user(self.test_username, "123456")
+        anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability(
-            "token_management", [["GET", "/v1/o/tokens/"]], default=False
-        )
+        capability_a = self._create_capability('token_management', [['GET', '/v1/o/tokens/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         application.scope.add(capability_a)
         application.active = False
@@ -525,7 +460,7 @@ class TestTokenView(BaseApiTest):
         with self.assertRaises(Exception) as e:
             self._create_test_token(anna, application)
 
-        msg_expected = "invalid_client"
+        msg_expected = 'invalid_client'
         err_msg = str(e.exception)
         found = True
         index = -1
@@ -550,9 +485,7 @@ class TestTokenView(BaseApiTest):
             user_mbi='1SA0A00AA02',
         )
         # create a couple of capabilities
-        capability_a = self._create_capability(
-            'token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False
-        )
+        capability_a = self._create_capability('token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
         anna_application = self._create_application(
             'an app',
@@ -562,7 +495,7 @@ class TestTokenView(BaseApiTest):
         anna_application.scope.add(capability_a)
         bob_application = self._create_application(
             'another app',
-            grant_type=Application.GRANT_IMPLICIT,
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
             client_type=Application.CLIENT_PUBLIC,
             redirect_uris='http://example.it',
             user=anna_application.user,
@@ -581,13 +514,9 @@ class TestTokenView(BaseApiTest):
         # so that the fhir fetch data is called and hence generate cert file not found error.
         # 20251120 This test is now gated on a variable; if the variable does not exist, or
         # is not set, the test will run. This is the desired behavior.
-        if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
-            with self.assertRaisesRegex(
-                OSError, 'Could not find the TLS certificate file'
-            ):
-                response = self.client.get(
-                    '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
-                )
+        if os.getenv('RUNNING_IN_LOCAL_STACK', None) != 'true':
+            with self.assertRaisesRegex(OSError, 'Could not find the TLS certificate file'):
+                response = self.client.get('/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token})
 
         bob_tkn = self._create_test_token(bob, bob_application)
         self.assertTrue(
@@ -608,9 +537,7 @@ class TestTokenView(BaseApiTest):
         )
         grant_list = response.json()
         self.assertEqual(1, len(grant_list))
-        http_authz = self._create_authorization_header(
-            anna_application.client_id, anna_application.client_secret_plain
-        )
+        http_authz = self._create_authorization_header(anna_application.client_id, anna_application.client_secret_plain)
         http_authn = self._create_authentication_header(self.test_uuid)
         response = self.client.delete(
             reverse('token_management:token-detail', args=[grant_list[0]['id']]),
@@ -618,17 +545,11 @@ class TestTokenView(BaseApiTest):
         )
         self.assertEqual(response.status_code, 204)
         url_1 = reverse('token_management:token-detail', args=[grant_list[0]['id']])
-        http_authz = self._create_authorization_header(
-            anna_application.client_id, anna_application.client_secret_plain
-        )
+        http_authz = self._create_authorization_header(anna_application.client_id, anna_application.client_secret_plain)
         http_authn = self._create_authentication_header(self.test_uuid)
-        failed_response = self.client.delete(
-            url_1, headers={'authorization': http_authz, 'x-authentication': http_authn}
-        )
+        failed_response = self.client.delete(url_1, headers={'authorization': http_authz, 'x-authentication': http_authn})
         self.assertEqual(failed_response.status_code, 404)
-        response = self.client.get(
-            '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token}
-        )
+        response = self.client.get('/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token})
         self.assertEqual(response.status_code, 401)
 
         self.assertFalse(
@@ -640,22 +561,16 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
-            with self.assertRaisesRegex(
-                OSError, 'Could not find the TLS certificate file'
-            ):
-                response = self.client.get(
-                    '/v1/fhir/Patient', headers={'authorization': 'Bearer ' + bob_tkn.token}
-                )
+        if os.getenv('RUNNING_IN_LOCAL_STACK', None) != 'true':
+            with self.assertRaisesRegex(OSError, 'Could not find the TLS certificate file'):
+                response = self.client.get('/v1/fhir/Patient', headers={'authorization': 'Bearer ' + bob_tkn.token})
 
         next_tkn = self._create_test_token(anna, anna_application)
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        if os.getenv("RUNNING_IN_LOCAL_STACK", None) != "true":
-            with self.assertRaisesRegex(
-                OSError, 'Could not find the TLS certificate file'
-            ):
+        if os.getenv('RUNNING_IN_LOCAL_STACK', None) != 'true':
+            with self.assertRaisesRegex(OSError, 'Could not find the TLS certificate file'):
                 response = self.client.get(
                     '/v1/fhir/Patient',
                     headers={'authorization': 'Bearer ' + next_tkn.token},
@@ -670,78 +585,66 @@ class TestTokenView(BaseApiTest):
         )
 
     def test_create_token_fail(self):
-        self._create_user(self.test_username, "123456")
+        self._create_user(self.test_username, '123456')
 
         # create a couple of capabilities
-        capability_a = self._create_capability(
-            "token_management", [["POST", "/v1/o/tokens/"]], default=False
-        )
+        capability_a = self._create_capability('token_management', [['POST', '/v1/o/tokens/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         application.scope.add(capability_a)
         response = self.client.post(
-            reverse("token_management:token-list"),
+            reverse('token_management:token-list'),
             headers={
-                "authorization": self._create_authorization_header(
-                    application.client_id, application.client_secret_plain
-                ),
-                "x-authentication": self._create_authentication_header(self.test_uuid),
+                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
         self.assertEqual(response.status_code, 405)
 
     def test_update_token_fail(self):
-        anna = self._create_user(self.test_username, "123456")
+        anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability(
-            "token_management", [["PUT", r"/v1/o/tokens/\d+/"]], default=False
-        )
+        capability_a = self._create_capability('token_management', [['PUT', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         application.scope.add(capability_a)
         tkn = self._create_test_token(anna, application)
         response = self.client.put(
-            reverse("token_management:token-detail", args=[tkn.pk]),
+            reverse('token_management:token-detail', args=[tkn.pk]),
             headers={
-                "authorization": self._create_authorization_header(
-                    application.client_id, application.client_secret_plain
-                ),
-                "x-authentication": self._create_authentication_header(self.test_uuid),
+                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
         self.assertEqual(response.status_code, 405)
 
     def test_unauthorized_fail(self):
-        anna = self._create_user(self.test_username, "123456")
+        anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        self._create_capability(
-            "token_management", [["GET", "/v1/o/tokens/"]], default=False
-        )
-        capability = self._create_capability("test", [], default=True)
+        self._create_capability('token_management', [['GET', '/v1/o/tokens/']], default=False)
+        capability = self._create_capability('test', [], default=True)
         # create an application and add capabilities
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
         application.scope.add(capability)
         self._create_test_token(anna, application)
 
         response = self.client.get(
-            reverse("token_management:token-list"),
+            reverse('token_management:token-list'),
             headers={
-                "authorization": self._create_authorization_header(
-                    application.client_id, application.client_secret_plain
-                ),
-                "x-authentication": self._create_authentication_header(self.test_uuid),
+                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
         self.assertEqual(response.status_code, 403)

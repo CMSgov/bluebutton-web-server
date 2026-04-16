@@ -138,6 +138,13 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
 		</tr>
 		<tr>
             <td align="center">
+                <a href="https://github.com/clewellyn-nava">
+                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
+                    <br />
+                    <sub><b>Connor Lewellyn</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/loganbertram">
                     <img src="https://avatars.githubusercontent.com/u/11063141?v=4" width="100;" alt="loganbertram"/>
                     <br />
@@ -156,13 +163,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/25191356?v=4" width="100;" alt="jzulim"/>
                     <br />
                     <sub><b>John Zulim</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/clewellyn-nava">
-                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
-                    <br />
-                    <sub><b>Connor Lewellyn</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -226,6 +226,13 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
 		</tr>
 		<tr>
             <td align="center">
+                <a href="https://github.com/alex-dzeda">
+                    <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
+                    <br />
+                    <sub><b>alex-dzeda</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/micahtaylor">
                     <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
                     <br />
@@ -244,13 +251,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/147522282?v=4" width="100;" alt="aaronerussell"/>
                     <br />
                     <sub><b>Aaron Russell</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/alex-dzeda">
-                    <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
-                    <br />
-                    <sub><b>alex-dzeda</b></sub>
                 </a>
             </td>
             <td align="center">

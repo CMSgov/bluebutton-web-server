@@ -1,4 +1,3 @@
-
 WAFFLE_FEATURE_FLAGS = ()
 
 WAFFLE_FEATURE_SWITCHES = (
@@ -13,7 +12,7 @@ WAFFLE_FEATURE_SWITCHES = (
     (
         'show_django_message_sdk',
         True,
-        'This controls whether or not the \'what\'s new\' message is shown in developer sandbox home.'
+        "This controls whether or not the 'what's new' message is shown in developer sandbox home.",
     ),
     ('show_testclient_link', True, 'This controls the display of the test client link from the main page.'),
     ('signup', True, 'This enables signup related URLs and code paths. Not active in prod.'),
@@ -22,7 +21,8 @@ WAFFLE_FEATURE_SWITCHES = (
     (
         'wellknown_applications',
         True,
-        'This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test.'
+        'This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test.',
     ),
-    ('one_hour_token_expiry', False, 'This makes OAuth2 access tokens expire in one hour.')
+    ('one_hour_token_expiry', False, 'This makes OAuth2 access tokens expire in one hour.'),
+    ('client_credentials_validation', True, 'Are we verifying JWT properties and signatures on client_credentials flow'),
 )

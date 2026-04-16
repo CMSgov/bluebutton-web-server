@@ -4,65 +4,68 @@ from apps.versions import Versions
 from apps.integration_tests.common_utils import screenshot_on_exception
 
 
-USE_NEW_PERM_SCREEN = "true"
+USE_NEW_PERM_SCREEN = 'true'
 
-'''
+"""
 For running against an actual SlSx server (i.e. TEST, SBX),
 not for the mock SLSx implementation
-'''
+"""
 
 
 class TestPermissionScreenSpanish(SeleniumGenericTests):
-    '''
+    """
     Test Spanish permission screen flow through the built in testclient by
     leveraging selenium web driver (chrome is used)
-    '''
+    """
+
     @screenshot_on_exception
     def test_toggle_language_and_date_format(self):
         step = [0]
-        test_name = "toggle_language"
+        test_name = 'toggle_language'
         api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         if not self.use_mslsx:
             self._play(SPANISH_TESTS[test_name], step, api_ver=api_ver)
             self._testclient_home()
         else:
-            assert True, "Skip test " + test_name + " - does not applicable to mslsx (mock login)."
+            assert True, 'Skip test ' + test_name + ' - does not applicable to mslsx (mock login).'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
-    '''
+    """
     Test lang param support on the authorize end point via the built in
     testclient using the Selenium web driver (Chrome)
     inject lang=es before direct to login url
-    '''
+    """
+
     @screenshot_on_exception
     def test_authorize_lang_param(self):
         step = [0]
-        test_name = "authorize_lang_param"
+        test_name = 'authorize_lang_param'
         api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         if not self.use_mslsx:
             self._play(SPANISH_TESTS[test_name], step, api_ver=api_ver)
             self._testclient_home()
         else:
-            assert True, "Skip test " + test_name + " - does not applicable to mslsx (mock login)."
+            assert True, 'Skip test ' + test_name + ' - does not applicable to mslsx (mock login).'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
-    '''
+    """
     Test lang param support on the authorize end point via the built in
     testclient using the Selenium web driver (Chrome)
     direct to login url with lang=es by click on "Authorize as beneficiary (Spanish)" button
-    '''
+    """
+
     @screenshot_on_exception
     def test_authorize_lang_spanish_button(self):
         step = [0]
-        test_name = "authorize_lang_spanish_button"
+        test_name = 'authorize_lang_spanish_button'
         api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
-        if USE_NEW_PERM_SCREEN == "true":
+        if USE_NEW_PERM_SCREEN == 'true':
             # the validation of expire date etc. only applicable to new perm screen
             self._play(SPANISH_TESTS[test_name], step, api_ver=api_ver)
         else:
-            print("Skip test " + test_name + " - only for new perm screen.")
+            print('Skip test ' + test_name + ' - only for new perm screen.')
         self._testclient_home()
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)

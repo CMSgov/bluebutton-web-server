@@ -1,4 +1,3 @@
-
 from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock
@@ -41,7 +40,7 @@ class InsuranceCardTest(BaseApiTest):
             with self.subTest(tt=tt):
                 token = self.create_token('Annie', 'User', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
                 ac = AccessToken.objects.get(token=token)
-                ac.scope = " ".join(tt['scope'])
+                ac.scope = ' '.join(tt['scope'])
                 ac.save()
 
                 @all_requests
@@ -50,11 +49,9 @@ class InsuranceCardTest(BaseApiTest):
                         'status_code': 200,
                         'content': {
                             'doesnot': 'matter',
-                        }
+                        },
                     }
+
                 with HTTMock(catchall):
-                    response = self.client.get(
-                        reverse('bb_oauth_fhir_dic_read'),
-                        Authorization='Bearer %s' % (token)
-                    )
+                    response = self.client.get(reverse('bb_oauth_fhir_dic_read'), Authorization='Bearer %s' % (token))
                     self.assertEqual(response.status_code, tt['status'])

@@ -19,21 +19,21 @@ from apps.dot_ext.models import AuthFlowUuid
 
 
 def is_path_part_of_auth_flow_trace(path):
-    '''
+    """
     Check if provided path is related to the authorization flow logging.
 
     CALLED FROM: hhs_oauth_server.request_logging.RequestResponseLog.__str__()
-    '''
+    """
     return re.match(AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, path)
 
 
 def cleanup_session_auth_flow_trace(request):
-    '''
+    """
     Clean up auth flow related items in a session.
 
     CALLED FROM:  apps.testclient.views.callback()
                   apps.dot_ext.views.authorization.AuthorizationView.form_valid()
-    '''
+    """
     for k in SESSION_AUTH_FLOW_TRACE_KEYS:
         try:
             del request.session[k]
@@ -42,14 +42,14 @@ def cleanup_session_auth_flow_trace(request):
 
 
 def create_session_auth_flow_trace(request):
-    '''
+    """
     Create auth flow log tracing related items.
 
     - Create a new AuthFlowUuid instance.
     - Set new auth flow values in session.
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.dispatch()
-    '''
+    """
     Application = get_application_model()
 
     # Create new authorization flow trace UUID.
@@ -60,55 +60,57 @@ def create_session_auth_flow_trace(request):
 
     request.session['auth_uuid'] = new_auth_uuid
 
-    client_id_param = request.GET.get("client_id", None)
-    auth_pkce_method = request.GET.get("code_challenge_method", None)
+    client_id_param = request.GET.get('client_id', None)
+    auth_pkce_method = request.GET.get('code_challenge_method', None)
 
     if client_id_param:
         try:
             application = Application.objects.get(client_id=client_id_param)
 
             # Set values in session.
-            auth_flow_dict = {"auth_uuid": new_auth_uuid,
-                              "auth_app_id": str(application.id),
-                              "auth_app_name": application.name,
-                              "auth_app_data_access_type": application.data_access_type,
-                              "auth_require_demographic_scopes": str(application.require_demographic_scopes),
-                              "auth_client_id": application.client_id,
-                              "auth_pkce_method": auth_pkce_method,
-                              }
+            auth_flow_dict = {
+                'auth_uuid': new_auth_uuid,
+                'auth_app_id': str(application.id),
+                'auth_app_name': application.name,
+                'auth_app_data_access_type': application.data_access_type,
+                'auth_require_demographic_scopes': str(application.require_demographic_scopes),
+                'auth_client_id': application.client_id,
+                'auth_pkce_method': auth_pkce_method,
+            }
             set_session_auth_flow_trace(request, auth_flow_dict)
 
             try:
                 # Create and return AuthFlowUuid instance for tracking.
                 with transaction.atomic():
-                    AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
-                                                client_id=application.client_id,
-                                                auth_pkce_method=auth_pkce_method)
+                    AuthFlowUuid.objects.create(
+                        auth_uuid=new_auth_uuid, client_id=application.client_id, auth_pkce_method=auth_pkce_method
+                    )
             except IntegrityError:
                 pass
         except Application.DoesNotExist:
             # Clear values in session. Set to empty value to denote not found.
-            auth_flow_dict = {"auth_uuid": new_auth_uuid,
-                              "auth_app_id": "",
-                              "auth_app_name": "",
-                              "auth_app_data_access_type": "",
-                              "auth_require_demographic_scopes": "",
-                              "auth_client_id": "",
-                              "auth_pkce_method": "",
-                              }
+            auth_flow_dict = {
+                'auth_uuid': new_auth_uuid,
+                'auth_app_id': '',
+                'auth_app_name': '',
+                'auth_app_data_access_type': '',
+                'auth_require_demographic_scopes': '',
+                'auth_client_id': '',
+                'auth_pkce_method': '',
+            }
             set_session_auth_flow_trace(request, auth_flow_dict)
 
 
 def get_session_auth_flow_trace(request):
-    '''
+    """
     Get auth flow related items from the session.
 
     Returns a auth_flow_dict type DICT of values for logging.
-    '''
+    """
     auth_flow_dict = {}
 
     # Some unit test calls to this have request=None, or request without session attribute, so return empty dict.
-    if request and hasattr(request, "session") and request.session:
+    if request and hasattr(request, 'session') and request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
             if k in request.session:
                 auth_flow_dict[k] = request.session.get(k)
@@ -117,9 +119,9 @@ def get_session_auth_flow_trace(request):
 
 
 def set_session_auth_flow_trace(request, auth_flow_dict):
-    '''
+    """
     Set auth flow related items in the session from a dictionary.
-    '''
+    """
     if request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
             if k in auth_flow_dict:
@@ -127,18 +129,18 @@ def set_session_auth_flow_trace(request, auth_flow_dict):
 
 
 def clear_session_auth_flow_trace(request):
-    '''
+    """
     Clear auth flow related keys from the session.
-    '''
+    """
     if request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
             request.session.pop(k, None)
 
 
 def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
-    '''
+    """
     Set auth flow related items in the session given an AuthFlowUuid instance.
-    '''
+    """
     Application = get_application_model()
 
     if auth_flow_uuid:
@@ -164,19 +166,19 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
 
 
 def set_session_auth_flow_trace_value(request, key, value):
-    '''
+    """
     Set auth flow key value in the session.
-    '''
+    """
     if request.session:
         request.session[key] = value
 
 
 def update_instance_auth_flow_trace_with_code(auth_dict, code):
-    '''
+    """
     Update AuthFlowUuid instance with code, crosswalk_action and share_demographic_scopes values.
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
-    '''
+    """
     auth_uuid = auth_dict.get('auth_uuid', None)
     auth_crosswalk_action = auth_dict.get('auth_crosswalk_action', None)
     auth_share_demographic_scopes = auth_dict.get('auth_share_demographic_scopes', None)
@@ -193,9 +195,9 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
                     auth_flow_uuid.auth_crosswalk_action = auth_crosswalk_action
 
                 if auth_share_demographic_scopes:
-                    if auth_share_demographic_scopes == "True":
+                    if auth_share_demographic_scopes == 'True':
                         auth_flow_uuid.auth_share_demographic_scopes = True
-                    elif auth_share_demographic_scopes == "False":
+                    elif auth_share_demographic_scopes == 'False':
                         auth_flow_uuid.auth_share_demographic_scopes = False
                 auth_flow_uuid.save()
     except AuthFlowUuid.DoesNotExist:
@@ -205,11 +207,11 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
 
 
 def update_session_auth_flow_trace_from_code(request, code):
-    '''
+    """
     Update session values from AuthFlowUuid instance from code.
 
     CALLED FROM:  apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR.create_token_response()
-    '''
+    """
     # Get session values from AuthFlowUuid via code.
     try:
         # Get previously created AuthFlowUuid with code.
@@ -224,12 +226,28 @@ def update_session_auth_flow_trace_from_code(request, code):
         pass
 
 
+def update_session_auth_flow_trace_from_request(request):
+    Application = get_application_model()
+    client_id = request.POST.get('client_id')
+    try:
+        application = Application.objects.get(client_id=client_id)
+
+        # Set values in session.
+        request.session['auth_app_id'] = str(application.id)
+        request.session['auth_app_name'] = application.name
+        request.session['auth_app_data_access_type'] = application.data_access_type
+        request.session['auth_require_demographic_scopes'] = str(application.require_demographic_scopes)
+        request.session['auth_client_id'] = application.client_id
+    except Application.DoesNotExist:
+        pass
+
+
 def update_instance_auth_flow_trace_with_state(request, state):
-    '''
+    """
     Update AuthFlowUuid instance with state value.
 
     CALLED FROM:  apps.mymedicare_cb.views.mymedicare_login()
-    '''
+    """
     # Update AuthFlowUuid instance to pass along auth_uuid using state.
     auth_uuid = request.session.get('auth_uuid', None)
 
@@ -248,11 +266,11 @@ def update_instance_auth_flow_trace_with_state(request, state):
 
 
 def update_session_auth_flow_trace_from_state(request, state):
-    '''
+    """
     Update session values from AuthFlowUuid instance from state.
 
     CALLED FROM:  apps.mymedicare_cb.views.authenticate()
-    '''
+    """
     # Retreive auth flow session values using previous state in AuthFlowUuid.
     try:
         if state and len(state.strip()) != 0:

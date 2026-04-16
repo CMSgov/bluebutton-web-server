@@ -1,3 +1,4 @@
+from apps.constants import USER_CHOICES, USER_TYPE_DEV
 from apps.accounts.constants import (
     AAL_CHOICES,
     ADDITION,
@@ -8,7 +9,6 @@ from apps.accounts.constants import (
     QUESTION_1_CHOICES,
     QUESTION_2_CHOICES,
     QUESTION_3_CHOICES,
-    USER_CHOICES,
 )
 import apps.logging.request_logger as logging
 
@@ -39,8 +39,8 @@ from django.utils.translation import gettext
 from .emails import send_activation_key_via_email
 
 
-logger = logging.getLogger("hhs_oauth_server.accounts")
-admin_logger = logging.getLogger("admin_interface")
+logger = logging.getLogger('hhs_oauth_server.accounts')
+admin_logger = logging.getLogger('admin_interface')
 
 
 class UserProfile(models.Model):
@@ -50,33 +50,33 @@ class UserProfile(models.Model):
     )
     organization_name = models.TextField(blank=True, default='')
     loa = models.CharField(
-        default="2",
+        default='2',
         choices=LOA_CHOICES,
         max_length=1,
         blank=True,
-        verbose_name="Level of Assurance",
-        help_text="Legacy and Deprecated. Using IAL AAL is recommended.",
+        verbose_name='Level of Assurance',
+        help_text='Legacy and Deprecated. Using IAL AAL is recommended.',
     )
 
     ial = models.CharField(
-        default="2",
+        default='2',
         choices=IAL_CHOICES,
         max_length=1,
         blank=True,
-        verbose_name="Identity Assurance Level",
-        help_text="See NIST SP 800 63 3A for definitions.",
+        verbose_name='Identity Assurance Level',
+        help_text='See NIST SP 800 63 3A for definitions.',
     )
 
     aal = models.CharField(
-        default="1",
+        default='1',
         choices=AAL_CHOICES,
         max_length=1,
         blank=True,
-        verbose_name="Authenticator Assurance Level",
-        help_text="See NIST SP 800 63 3 B for definitions.",
+        verbose_name='Authenticator Assurance Level',
+        help_text='See NIST SP 800 63 3 B for definitions.',
     )
 
-    user_type = models.CharField(default="DEV", choices=USER_CHOICES, max_length=5)
+    user_type = models.CharField(default=USER_TYPE_DEV, choices=USER_CHOICES, max_length=5)
 
     remaining_user_invites = models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20, blank=True)
@@ -84,45 +84,36 @@ class UserProfile(models.Model):
     access_key_reset = models.BooleanField(
         blank=True,
         default=False,
-        help_text=_(
-            "Check this box to issue a new access key. "
-            "Doing so invalidates the existing key."
-        ),
+        help_text=_('Check this box to issue a new access key. Doing so invalidates the existing key.'),
     )
 
     create_applications = models.BooleanField(
         blank=True,
         default=False,
-        help_text=_("Check this to allow the account to register applications."),
+        help_text=_('Check this to allow the account to register applications.'),
     )
 
     authorize_applications = models.BooleanField(
         blank=True,
         default=False,
-        help_text=_("Check this to allow the account to authorize applications."),
+        help_text=_('Check this to allow the account to authorize applications.'),
     )
 
     mobile_phone_number = models.CharField(
         max_length=12,
         blank=True,
-        help_text=_("US numbers only."),
+        help_text=_('US numbers only.'),
     )
 
-    password_reset_question_1 = models.CharField(
-        default="1", choices=QUESTION_1_CHOICES, max_length=1
-    )
+    password_reset_question_1 = models.CharField(default='1', choices=QUESTION_1_CHOICES, max_length=1)
     password_reset_answer_1 = models.TextField(default='', blank=True)
-    password_reset_question_2 = models.CharField(
-        default="1", choices=QUESTION_2_CHOICES, max_length=1
-    )
+    password_reset_question_2 = models.CharField(default='1', choices=QUESTION_2_CHOICES, max_length=1)
     password_reset_answer_2 = models.TextField(default='', blank=True)
-    password_reset_question_3 = models.CharField(
-        default="1", choices=QUESTION_3_CHOICES, max_length=1
-    )
+    password_reset_question_3 = models.CharField(default='1', choices=QUESTION_3_CHOICES, max_length=1)
     password_reset_answer_3 = models.TextField(default='', blank=True)
 
     def __str__(self):
-        name = "%s %s (%s)" % (
+        name = '%s %s (%s)' % (
             self.user.first_name,
             self.user.last_name,
             self.user.username,
@@ -133,15 +124,15 @@ class UserProfile(models.Model):
         if self.organization_name:
             return self.organization_name
         else:
-            name = "%s %s" % (self.user.first_name, self.user.last_name)
+            name = '%s %s' % (self.user.first_name, self.user.last_name)
         return name
 
     def vot(self):
-        r = "P%s" % (self.ial)
-        if self.aal in ("1", "2"):
-            r = r + "Cc"
-        if self.aal == "2":
-            r = r + "Cb"
+        r = 'P%s' % (self.ial)
+        if self.aal in ('1', '2'):
+            r = r + 'Cc'
+        if self.aal == '2':
+            r = r + 'Cb'
         return r
 
     def save(self, **kwargs):
@@ -160,23 +151,19 @@ class ActivationKey(models.Model):
     key = models.CharField(default=uuid.uuid4, max_length=40)
     expires = models.DateTimeField(blank=True)
     # introduced to track the user account life cycle events: "created" -> "activated" / "expired"
-    key_status = models.CharField(max_length=10, blank=True, default="created")
+    key_status = models.CharField(max_length=10, blank=True, default='created')
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     expired_at = models.DateTimeField(blank=True, null=True)
     activated_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return "Key for %s expires at %s" % (self.user.username, self.expires)
+        return 'Key for %s expires at %s' % (self.user.username, self.expires)
 
     def save(self, **kwargs):
         now = pytz.utc.localize(datetime.utcnow())
         # need to pop the custom arg out since it is not accepted by super
-        expires_override = kwargs.pop("expires", None)
-        self.expires = (
-            expires_override
-            if expires_override
-            else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
-        )
+        expires_override = kwargs.pop('expires', None)
+        self.expires = expires_override if expires_override else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
         super(ActivationKey, self).save(**kwargs)
 
 
@@ -191,7 +178,7 @@ class ValidPasswordResetKey(models.Model):
     expires = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return "%s for user %s expires at %s" % (
+        return '%s for user %s expires at %s' % (
             self.reset_password_key,
             self.user.username,
             self.expires,
@@ -215,28 +202,23 @@ class UserIdentificationLabel(models.Model):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(db_index=True, unique=True)
     weight = models.IntegerField(
-        verbose_name="List Weight",
+        verbose_name='List Weight',
         null=False,
         default=0,
-        help_text="Integer value controlling the position of the label in lists.",
+        help_text='Integer value controlling the position of the label in lists.',
     )
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
 
     def __str__(self):
-        return self.slug + " - " + self.name
+        return self.slug + ' - ' + self.name
 
 
 def random_key_id(y=20):
-    return "".join(random.choice("ABCDEFGHIJKLM" "NOPQRSTUVWXYZ") for x in range(y))
+    return ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for x in range(y))
 
 
 def random_secret(y=40):
-    return "".join(
-        random.choice(
-            "abcdefghijklmnopqrstuvwxyz" "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "0123456789"
-        )
-        for x in range(y)
-    )
+    return ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for x in range(y))
 
 
 def create_activation_key(user):
@@ -249,37 +231,31 @@ def create_activation_key(user):
 @receiver(post_save)
 def export_admin_log(sender, instance, **kwargs):
 
-    msg = ""
+    msg = ''
     if isinstance(instance, LogEntry):
         if instance.action_flag == ADDITION:
-            msg = gettext(
-                'User "%(user)s" added %(content_type)s object. "%(object)s" added at %(action_time)s'
-            ) % {
-                "user": instance.user,
-                "content_type": instance.get_edited_object,
-                "object": instance.object_repr,
-                "action_time": instance.action_time,
+            msg = gettext('User "%(user)s" added %(content_type)s object. "%(object)s" added at %(action_time)s') % {
+                'user': instance.user,
+                'content_type': instance.get_edited_object,
+                'object': instance.object_repr,
+                'action_time': instance.action_time,
             }
 
         elif instance.action_flag == CHANGE:
-            msg = gettext(
-                'User "%(user)s" changed %(content_type)s object. "%(object)s" - %(changes)s at %(action_time)s'
-            ) % {
-                "user": instance.user,
-                "content_type": instance.content_type,
-                "object": instance.object_repr,
-                "changes": instance.change_message,
-                "action_time": instance.action_time,
+            msg = gettext('User "%(user)s" changed %(content_type)s object. "%(object)s" - %(changes)s at %(action_time)s') % {
+                'user': instance.user,
+                'content_type': instance.content_type,
+                'object': instance.object_repr,
+                'changes': instance.change_message,
+                'action_time': instance.action_time,
             }
 
         elif instance.action_flag == DELETION:
-            msg = gettext(
-                'User  "%(user)s" deleted %(content_type)s object. "%(object)s" deleted at %(action_time)s'
-            ) % {
-                "user": instance.user,
-                "content_type": instance.content_type,
-                "object": instance.object_repr,
-                "action_time": instance.action_time,
+            msg = gettext('User  "%(user)s" deleted %(content_type)s object. "%(object)s" deleted at %(action_time)s') % {
+                'user': instance.user,
+                'content_type': instance.content_type,
+                'object': instance.object_repr,
+                'action_time': instance.action_time,
             }
 
         admin_logger.info(msg)
@@ -297,33 +273,27 @@ def get_user_id_salt(salt=settings.USER_ID_SALT):
 
 
 class UserPasswordDescriptor(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False
-    )
-    date = models.DateTimeField(
-        _("Descriptor Created On"), auto_now_add=True, editable=False
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False)
+    date = models.DateTimeField(_('Descriptor Created On'), auto_now_add=True, editable=False)
     salt = models.CharField(
-        verbose_name=_("Salt"),
+        verbose_name=_('Salt'),
         max_length=120,
         editable=False,
     )
-    iterations = models.IntegerField(
-        _("Iterations"), default=None, editable=False, blank=True, null=True
-    )
+    iterations = models.IntegerField(_('Iterations'), default=None, editable=False, blank=True, null=True)
 
     class Meta:
-        verbose_name = _("Password Descriptor")
-        verbose_name_plural = _("Password Descriptors")
+        verbose_name = _('Password Descriptor')
+        verbose_name_plural = _('Password Descriptors')
         unique_together = (
             (
-                "user",
-                "iterations",
+                'user',
+                'iterations',
             ),
         )
         ordering = [
-            "-user",
-            "iterations",
+            '-user',
+            'iterations',
         ]
 
     def create_hash(self, password):
@@ -331,7 +301,7 @@ class UserPasswordDescriptor(models.Model):
         return PasswordHasher().encode(password, self.salt, self.iterations)
 
     def _gen_salt(self):
-        self.salt = get_random_string(length=self._meta.get_field("salt").max_length)
+        self.salt = get_random_string(length=self._meta.get_field('salt').max_length)
 
     def save(self, *args, **kwargs):
         if not self.salt:
@@ -341,29 +311,25 @@ class UserPasswordDescriptor(models.Model):
         return super(UserPasswordDescriptor, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "{} [{}]".format(self.user, self.iterations)
+        return '{} [{}]'.format(self.user, self.iterations)
 
 
 class PastPassword(models.Model):
-    userpassword_desc = models.ForeignKey(
-        UserPasswordDescriptor, on_delete=models.CASCADE, editable=False
-    )
-    password = models.CharField(_("Password Hash"), max_length=255, editable=False)
-    date_created = models.DateTimeField(
-        _("Date Created"), auto_now_add=True, editable=False
-    )
+    userpassword_desc = models.ForeignKey(UserPasswordDescriptor, on_delete=models.CASCADE, editable=False)
+    password = models.CharField(_('Password Hash'), max_length=255, editable=False)
+    date_created = models.DateTimeField(_('Date Created'), auto_now_add=True, editable=False)
 
     class Meta:
-        verbose_name = "Past Password"
-        verbose_name_plural = "Past Passwords"
-        unique_together = (("userpassword_desc", "password", "date_created"),)
+        verbose_name = 'Past Password'
+        verbose_name_plural = 'Past Passwords'
+        unique_together = (('userpassword_desc', 'password', 'date_created'),)
         ordering = [
-            "-userpassword_desc",
-            "password",
+            '-userpassword_desc',
+            'password',
         ]
 
     def __str__(self):
-        return "{} [{}]".format(self.userpassword_desc, self.date_created)
+        return '{} [{}]'.format(self.userpassword_desc, self.date_created)
 
 
 class PasswordHasher(PBKDF2PasswordHasher):
@@ -387,25 +353,21 @@ def get_developer_counts():
 
     queryset = (
         User.objects.select_related()
-        .filter(userprofile__user_type="DEV")
+        .filter(userprofile__user_type=USER_TYPE_DEV)
         .annotate(
-            app_count=Count("dot_ext_application"),
-            first_active=Min("dot_ext_application__first_active"),
-            active_app_count=Count("dot_ext_application__first_active"),
-            last_active=Max("dot_ext_application__last_active"),
-            organization_name=Min("userprofile__organization_name"),
+            app_count=Count('dot_ext_application'),
+            first_active=Min('dot_ext_application__first_active'),
+            active_app_count=Count('dot_ext_application__first_active'),
+            last_active=Max('dot_ext_application__last_active'),
+            organization_name=Min('userprofile__organization_name'),
         )
         .all()
     )
 
-    counts_returned["total"] = queryset.count()
-    counts_returned["with_registered_app"] = queryset.filter(app_count__gt=0).count()
-    counts_returned["with_first_api_call"] = queryset.filter(
-        active_app_count__gt=0
-    ).count()
-    counts_returned["distinct_organization_name"] = (
-        queryset.values("organization_name").distinct().count()
-    )
-    counts_returned["elapsed"] = round(datetime.utcnow().timestamp() - start_time, 3)
+    counts_returned['total'] = queryset.count()
+    counts_returned['with_registered_app'] = queryset.filter(app_count__gt=0).count()
+    counts_returned['with_first_api_call'] = queryset.filter(active_app_count__gt=0).count()
+    counts_returned['distinct_organization_name'] = queryset.values('organization_name').distinct().count()
+    counts_returned['elapsed'] = round(datetime.utcnow().timestamp() - start_time, 3)
 
     return counts_returned

@@ -3,26 +3,24 @@ from .dev import *  # lgtm [py/polluting-import]
 # Override audit logging handler with a file handler
 logging_handlers = LOGGING['handlers']
 
-logfile_path = os.path.abspath(os.getcwd() + "/docker-compose/tmp/bb2_logging_sink.log")
-logdir_path = os.path.abspath(os.getcwd() + "/docker-compose/tmp/")
+logfile_path = os.path.abspath(os.getcwd() + '/docker-compose/tmp/bb2_logging_sink.log')
+logdir_path = os.path.abspath(os.getcwd() + '/docker-compose/tmp/')
 
 try:
     # remove left over just in case
     os.remove(logfile_path)
 except FileNotFoundError as err:
-    print("Error removing left over log file: {}".format(err))
+    print('Error removing left over log file: {}'.format(err))
 
 try:
     os.mkdir(logdir_path)
 except FileExistsError as err:
-    print("Warning os.mkdir: {}".format(err))
+    print('Warning os.mkdir: {}'.format(err))
 
 if logging_handlers is None:
-    raise ValueError("Bad settings, expecting handlers defined in settings.LOGGING")
+    raise ValueError('Bad settings, expecting handlers defined in settings.LOGGING')
 
-logging_handlers['file'] = {'class': 'logging.FileHandler',
-                            'filename': logfile_path,
-                            "filters": [SENSITIVE_DATA_FILTER]}
+logging_handlers['file'] = {'class': 'logging.FileHandler', 'filename': logfile_path, 'filters': [SENSITIVE_DATA_FILTER]}
 
 loggers = LOGGING.get('loggers')
 
