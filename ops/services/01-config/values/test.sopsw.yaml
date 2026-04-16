@@ -74,7 +74,7 @@
 /bb/test/app/sensitive/email_host: ENC[AES256_GCM,data:CVNcxQnS5/SiQ9voSrMbEjPUKTNidIdRCfD82ZsjYUGc9A==,iv:dwntutbR0E3duGIi6AKg6+Q3lO31jEPlI3IuJ27V0J8=,tag:h7xAQHFZzK32e1b42cp5vw==,type:str]
 /bb/test/app/sensitive/email_port: ENC[AES256_GCM,data:PxgF,iv:L4g95pm9lqxwbSnxJ3MyBXB1OsE96Czn5uG4X+71JZY=,tag:Bi4y7sEIQRTwhRNMud82nw==,type:str]
 /bb/test/app/sensitive/email_use_tls: ENC[AES256_GCM,data:2l+G6w==,iv:IAXI7Aa32QmyP94AxS/Gj9dkwkPSlPTWpuTeAAvhiMA=,tag:29pPTVeNMw6KgsO+MSuL9Q==,type:str]
-/bb/test/app/sensitive/email_backend: ENC[AES256_GCM,data:Go5bW9l1WNPr9lQekNaoyFDkYuRW,iv:5iZ2h/hfUeZXAN4lLo2uUI6/Z7O1kkmK3kjuI+tv9oY=,tag:WUoFudlJCs0q344cTnrMJw==,type:str]
+/bb/test/app/nonsensitive/django_email_backend: django_ses.SESBackend
 /bb/test/app/nonsensitive/django_from_email: BlueButtonAPI@cms.hhs.gov
 /bb/test/app/nonsensitive/django_admin_email: BlueButtonAPI@cms.hhs.gov
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
@@ -95,4 +95,4 @@ sops:
       enc: AQICAHjCRjpjjspeLLDbz5d7MRwUBQRNyInOggSiHCDqEVlZ/wE4H5UweLFUDz/VMIDE6ifJAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMuTJ8Z3WucM46W/mCAgEQgDuN3a/FEApHY6J/ndbv5qyYgmv8E60QifMuIuzRFCPsI3OBhema9+jYidohHCI0JBh/BBXzGfBPK/+FIg==
       aws_profile: ""
   unencrypted_regex: /nonsensitive/
-  version: 3.11.0
+  version: 3.12.2

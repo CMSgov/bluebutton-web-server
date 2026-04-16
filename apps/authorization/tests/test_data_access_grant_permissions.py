@@ -20,9 +20,10 @@ from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation imp
 from apps.constants import (
     APPLICATION_TEMPORARILY_INACTIVE,
     APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
-    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
 )
 from apps.versions import Versions
+
 # TODO 4430 comes back to this
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
@@ -50,28 +51,28 @@ class TestDataAccessPermissions(BaseApiTest):
     """
 
     APPLICATION_SCOPES_FULL = [
-        "patient/Patient.read",
-        "profile",
-        "patient/ExplanationOfBenefit.read",
-        "patient/Coverage.read",
+        'patient/Patient.read',
+        'profile',
+        'patient/ExplanationOfBenefit.read',
+        'patient/Coverage.read',
     ]
 
     """
     Setup mocks for back-end server FHIR end point responses.
     """
     MOCK_FHIR_URL = MOCK_FHIR_ENDPOINT_HOSTNAME  # "fhir.backend.bluebutton.hhsdevcloud.us"
-    MOCK_FHIR_PATIENT_READVIEW_PATH_V1 = r"/v1/fhir/Patient/[-]?\d+[/]?"
-    MOCK_FHIR_PATIENT_READVIEW_PATH_V2 = r"/v2/fhir/Patient/[-]?\d+[/]?"
-    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V1 = r"/v1/fhir/Patient[/]?"
-    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V2 = r"/v2/fhir/Patient[/]?"
-    MOCK_FHIR_COVERAGE_READVIEW_PATH_V1 = r"/v1/fhir/Coverage/[-]?\d+[/]?"
-    MOCK_FHIR_COVERAGE_READVIEW_PATH_V2 = r"/v2/fhir/Coverage/[-]?\d+[/]?"
-    MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V1 = r"/v1/fhir/Coverage[/]?"
-    MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V2 = r"/v2/fhir/Coverage[/]?"
-    MOCK_FHIR_EOB_READVIEW_PATH_V1 = r"/v1/fhir/ExplanationOfBenefit/[-]?\d+[/]?"
-    MOCK_FHIR_EOB_READVIEW_PATH_V2 = r"/v2/fhir/ExplanationOfBenefit/[-]?\d+[/]?"
-    MOCK_FHIR_EOB_SEARCHVIEW_PATH_V1 = r"/v1/fhir/ExplanationOfBenefit[/]?"
-    MOCK_FHIR_EOB_SEARCHVIEW_PATH_V2 = r"/v2/fhir/ExplanationOfBenefit[/]?"
+    MOCK_FHIR_PATIENT_READVIEW_PATH_V1 = r'/v1/fhir/Patient/[-]?\d+[/]?'
+    MOCK_FHIR_PATIENT_READVIEW_PATH_V2 = r'/v2/fhir/Patient/[-]?\d+[/]?'
+    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V1 = r'/v1/fhir/Patient[/]?'
+    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH_V2 = r'/v2/fhir/Patient[/]?'
+    MOCK_FHIR_COVERAGE_READVIEW_PATH_V1 = r'/v1/fhir/Coverage/[-]?\d+[/]?'
+    MOCK_FHIR_COVERAGE_READVIEW_PATH_V2 = r'/v2/fhir/Coverage/[-]?\d+[/]?'
+    MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V1 = r'/v1/fhir/Coverage[/]?'
+    MOCK_FHIR_COVERAGE_SEARCHVIEW_PATH_V2 = r'/v2/fhir/Coverage[/]?'
+    MOCK_FHIR_EOB_READVIEW_PATH_V1 = r'/v1/fhir/ExplanationOfBenefit/[-]?\d+[/]?'
+    MOCK_FHIR_EOB_READVIEW_PATH_V2 = r'/v2/fhir/ExplanationOfBenefit/[-]?\d+[/]?'
+    MOCK_FHIR_EOB_SEARCHVIEW_PATH_V1 = r'/v1/fhir/ExplanationOfBenefit[/]?'
+    MOCK_FHIR_EOB_SEARCHVIEW_PATH_V2 = r'/v2/fhir/ExplanationOfBenefit[/]?'
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH_V1)
     def fhir_request_patient_readview_v1_success_mock(self, url, request):
@@ -123,28 +124,28 @@ class TestDataAccessPermissions(BaseApiTest):
 
     def setUp(self):
         # create read and write capabilities
-        self.read_capability = self._create_capability("Read", [])
-        self.write_capability = self._create_capability("Write", [])
+        self.read_capability = self._create_capability('Read', [])
+        self.write_capability = self._create_capability('Write', [])
         self.patient_capability = self._create_capability(
-            "patient",
+            'patient',
             [
-                ["GET", r"\/v[1,2]\/fhir\/Patient\/\-\d+"],
-                ["GET", r"\/v[1,2]\/fhir\/Patient\/\d+"],
-                ["GET", r"/v[1,2]/fhir/Patient"],
+                ['GET', r'\/v[1,2]\/fhir\/Patient\/\-\d+'],
+                ['GET', r'\/v[1,2]\/fhir\/Patient\/\d+'],
+                ['GET', r'/v[1,2]/fhir/Patient'],
             ],
         )
         self._create_capability(
-            "coverage",
+            'coverage',
             [
-                ["GET", r"\/v[1,2]\/fhir\/Coverage\/.+"],
-                ["GET", r"/v[1,2]/fhir/Coverage"],
+                ['GET', r'\/v[1,2]\/fhir\/Coverage\/.+'],
+                ['GET', r'/v[1,2]/fhir/Coverage'],
             ],
         )
         self._create_capability(
-            "eob",
+            'eob',
             [
-                ["GET", r"\/v[1,2]\/fhir\/ExplanationOfBenefit\/.+"],
-                ["GET", r"/v[1,2]/fhir/ExplanationOfBenefit"],
+                ['GET', r'\/v[1,2]\/fhir\/ExplanationOfBenefit\/.+'],
+                ['GET', r'/v[1,2]/fhir/ExplanationOfBenefit'],
             ],
         )
         # Setup the RequestFactory
@@ -173,31 +174,25 @@ class TestDataAccessPermissions(BaseApiTest):
             pass
 
         # Test profile/userinfo v1
-        response = self.client.get(
-            "/v1/connect/userinfo", headers={"authorization": "Bearer " + access_token}
-        )
+        response = self.client.get('/v1/connect/userinfo', headers={'authorization': 'Bearer ' + access_token})
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
             content = json.loads(response.content)
-            self.assertEqual(content["detail"], expected_response_detail_mesg)
+            self.assertEqual(content['detail'], expected_response_detail_mesg)
 
         # Test profile/userinfo v2
-        response = self.client.get(
-            "/v2/connect/userinfo", headers={"authorization": "Bearer " + access_token}
-        )
+        response = self.client.get('/v2/connect/userinfo', headers={'authorization': 'Bearer ' + access_token})
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
             content = json.loads(response.content)
-            self.assertEqual(content["detail"], expected_response_detail_mesg)
+            self.assertEqual(content['detail'], expected_response_detail_mesg)
 
         # Test profile/userinfo v3
-        response = self.client.get(
-            "/v3/connect/userinfo", headers={"authorization": "Bearer " + access_token}
-        )
+        response = self.client.get('/v3/connect/userinfo', headers={'authorization': 'Bearer ' + access_token})
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
             content = json.loads(response.content)
-            self.assertEqual(content["detail"], expected_response_detail_mesg)
+            self.assertEqual(content['detail'], expected_response_detail_mesg)
 
         # Test FHIR read views
         with HTTMock(
@@ -209,20 +204,18 @@ class TestDataAccessPermissions(BaseApiTest):
             self.fhir_request_eob_readview_v2_success_mock,
         ):
             for path in [
-                "/v1/fhir/Patient/-20140000008325",
-                "/v1/fhir/Coverage/-20140000008325",
-                "/v1/fhir/ExplanationOfBenefit/-20140000008325",
-                "/v2/fhir/Patient/-20140000008325",
-                "/v2/fhir/Coverage/-20140000008325",
-                "/v2/fhir/ExplanationOfBenefit/-20140000008325",
+                '/v1/fhir/Patient/-20140000008325',
+                '/v1/fhir/Coverage/-20140000008325',
+                '/v1/fhir/ExplanationOfBenefit/-20140000008325',
+                '/v2/fhir/Patient/-20140000008325',
+                '/v2/fhir/Coverage/-20140000008325',
+                '/v2/fhir/ExplanationOfBenefit/-20140000008325',
             ]:
-                response = self.client.get(
-                    path, headers={"authorization": "Bearer " + access_token}
-                )
+                response = self.client.get(path, headers={'authorization': 'Bearer ' + access_token})
                 self.assertEqual(response.status_code, expected_response_code)
                 if expected_response_detail_mesg is not None:
                     content = json.loads(response.content)
-                    self.assertEqual(content["detail"], expected_response_detail_mesg)
+                    self.assertEqual(content['detail'], expected_response_detail_mesg)
 
         # Test FHIR search views
         with HTTMock(
@@ -234,20 +227,18 @@ class TestDataAccessPermissions(BaseApiTest):
             self.fhir_request_eob_searchview_v2_success_mock,
         ):
             for path in [
-                "/v1/fhir/Patient?identifier=-20140000008325",
-                "/v1/fhir/Coverage?beneficiary=-20140000008325",
-                "/v1/fhir/Patient",
-                "/v2/fhir/Patient?identifier=-20140000008325",
-                "/v2/fhir/Coverage?beneficiary=-20140000008325",
-                "/v2/fhir/Patient",
+                '/v1/fhir/Patient?identifier=-20140000008325',
+                '/v1/fhir/Coverage?beneficiary=-20140000008325',
+                '/v1/fhir/Patient',
+                '/v2/fhir/Patient?identifier=-20140000008325',
+                '/v2/fhir/Coverage?beneficiary=-20140000008325',
+                '/v2/fhir/Patient',
             ]:
-                response = self.client.get(
-                    path, headers={"authorization": "Bearer " + access_token}
-                )
+                response = self.client.get(path, headers={'authorization': 'Bearer ' + access_token})
                 self.assertEqual(response.status_code, expected_response_code)
                 if expected_response_detail_mesg is not None:
                     content = json.loads(response.content)
-                    self.assertEqual(content["detail"], expected_response_detail_mesg)
+                    self.assertEqual(content['detail'], expected_response_detail_mesg)
 
     def _assert_call_token_refresh_endpoint(
         self,
@@ -265,22 +256,20 @@ class TestDataAccessPermissions(BaseApiTest):
         expected_response_error_mesg and expected_response_error_description_mesg to match.
         """
         refresh_post_data = {
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
-            "redirect_uri": application.redirect_uris,
-            "client_id": application.client_id,
-            "client_secret": application.client_secret_plain,
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'redirect_uri': application.redirect_uris,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(f'/v{Versions.V2}/o/token/', data=refresh_post_data)
         content = json.loads(response.content)
 
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_error_mesg is not None:
-            self.assertEqual(content["error"], expected_response_error_mesg)
+            self.assertEqual(content['error'], expected_response_error_mesg)
         if expected_response_error_description_mesg is not None:
-            self.assertEqual(
-                content["error_description"], expected_response_error_description_mesg
-            )
+            self.assertEqual(content['error_description'], expected_response_error_description_mesg)
         return content
 
     @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
@@ -296,19 +285,19 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id_v2="-20140000008325",
-            fhir_id_v3="-30140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
+            first_name='first',
+            last_name='last1',
+            fhir_id_v2='-20140000008325',
+            fhir_id_v3='-30140000008325',
+            app_name='test_app1',
+            app_username='devuser1',
+            app_user_organization='org1',
             mbi=self._generate_random_mbi(),
-            app_data_access_type="RESEARCH_STUDY",
+            app_data_access_type='RESEARCH_STUDY',
         )
 
         # 2. Test application data access type
-        self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
+        self.assertEqual(app.data_access_type, 'RESEARCH_STUDY')
 
         # 3. Test grant obj created OK.
         dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
@@ -321,40 +310,38 @@ class TestDataAccessPermissions(BaseApiTest):
         # 4. Test token refresh is enabled for app
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.OK,
         )
 
         # 5. Test access & refresh tokens exist
-        self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
-        self.assertTrue(RefreshToken.objects.filter(token=ac["refresh_token"]).exists())
+        self.assertTrue(AccessToken.objects.filter(token=ac['access_token']).exists())
+        self.assertTrue(RefreshToken.objects.filter(token=ac['refresh_token']).exists())
 
         # 6. Test that all FHIR calls are successful
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
 
         # 7. Delete /revoke data access grant
         dag.delete()
 
         # 8. Test access and refresh tokens are removed
         #    per delete signal on DataAccessGrant
-        self.assertFalse(AccessToken.objects.filter(token=ac["access_token"]).exists())
+        self.assertFalse(AccessToken.objects.filter(token=ac['access_token']).exists())
         #    Note: refresh token exists still? But doesn't work per #9
-        self.assertTrue(RefreshToken.objects.filter(token=ac["refresh_token"]).exists())
+        self.assertTrue(RefreshToken.objects.filter(token=ac['refresh_token']).exists())
 
         # 9. Test token refresh gets an invalid_grant response
         self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_response_error_mesg="invalid_grant",
+            expected_response_error_mesg='invalid_grant',
         )
         # 10. Test that FHIR calls fail
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
+            access_token=ac['access_token'],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
-            expected_response_detail_mesg="Authentication credentials were not provided.",
+            expected_response_detail_mesg='Authentication credentials were not provided.',
         )
 
     @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
@@ -370,17 +357,17 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id_v2="-20140000008325",
-            fhir_id_v3="-30140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
+            first_name='first',
+            last_name='last1',
+            fhir_id_v2='-20140000008325',
+            fhir_id_v3='-30140000008325',
+            app_name='test_app1',
+            app_username='devuser1',
+            app_user_organization='org1',
             mbi=self._generate_random_mbi(),
-            app_data_access_type="RESEARCH_STUDY",
+            app_data_access_type='RESEARCH_STUDY',
         )
-        self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
+        self.assertEqual(app.data_access_type, 'RESEARCH_STUDY')
 
         #     Test grant exists.
         self.assertTrue(
@@ -391,14 +378,12 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 2. Test that all calls are successful
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=200
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=200)
 
         # 3. Test token refresh is successful
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.OK,
         )
 
@@ -408,22 +393,18 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 5. Test FHIR end point while app in-active/disabled
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
+            access_token=ac['access_token'],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
-            expected_response_detail_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(
-                app.name
-            ),
+            expected_response_detail_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
         )
 
         # 6. Test token refresh after applciation in-active/disabled
         self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_response_error_mesg="invalid_client",
-            expected_response_error_description_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(
-                app.name
-            ),
+            expected_response_error_mesg='invalid_client',
+            expected_response_error_description_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
         )
 
         # 7. Set application to active/endabled
@@ -431,17 +412,15 @@ class TestDataAccessPermissions(BaseApiTest):
         app.save()
 
         # 8. Re-test with RESEARCH_STUDY active
-        app.data_access_type = "RESEARCH_STUDY"
+        app.data_access_type = 'RESEARCH_STUDY'
         app.save()
 
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
 
         # 9. Test app not expired token refresh
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.OK,
         )
 
@@ -453,19 +432,19 @@ class TestDataAccessPermissions(BaseApiTest):
         """
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id_v2="-20140000008325",
-            fhir_id_v3="-30140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
+            first_name='first',
+            last_name='last1',
+            fhir_id_v2='-20140000008325',
+            fhir_id_v3='-30140000008325',
+            app_name='test_app1',
+            app_username='devuser1',
+            app_user_organization='org1',
             mbi=self._generate_random_mbi(),
-            app_data_access_type="ONE_TIME",
+            app_data_access_type='ONE_TIME',
         )
 
         #     Test application default data access type
-        self.assertEqual(app.data_access_type, "ONE_TIME")
+        self.assertEqual(app.data_access_type, 'ONE_TIME')
 
         #     Test grant exists.
         self.assertTrue(
@@ -478,18 +457,16 @@ class TestDataAccessPermissions(BaseApiTest):
         # 2. Test token refresh is disabled for app
         self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_response_error_mesg="invalid_client",
+            expected_response_error_mesg='invalid_client',
             expected_response_error_description_mesg=APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
         )
 
         # 3. Test that all calls are successful
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
 
-    @mock.patch("apps.authorization.models.datetime", StubDate)
+    @mock.patch('apps.authorization.models.datetime', StubDate)
     @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
     def test_thirteen_month_app_type(self, mock_get_and_update):
         """
@@ -501,19 +478,19 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id_v2="-20140000008325",
-            fhir_id_v3="-30140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
+            first_name='first',
+            last_name='last1',
+            fhir_id_v2='-20140000008325',
+            fhir_id_v3='-30140000008325',
+            app_name='test_app1',
+            app_username='devuser1',
+            app_user_organization='org1',
             mbi=self._generate_random_mbi(),
-            app_data_access_type="THIRTEEN_MONTH",
+            app_data_access_type='THIRTEEN_MONTH',
         )
 
         # 2. Test application data access type
-        self.assertEqual(app.data_access_type, "THIRTEEN_MONTH")
+        self.assertEqual(app.data_access_type, 'THIRTEEN_MONTH')
 
         # 3. Test grant obj created OK.
         dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
@@ -526,24 +503,19 @@ class TestDataAccessPermissions(BaseApiTest):
         # 4. Test token refresh is enabled for app
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.OK,
         )
 
         # 5. Test that all calls are successful
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
 
         # 6. Mock a future date to test data access grant expiration.
         #    Test has_expired() is false before time change
         self.assertFalse(dag.has_expired())
 
         #    Mock future date 13 months and 2-days in future.
-        StubDate.now = classmethod(
-            lambda cls: datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+13, days=+2)
-        )
+        StubDate.now = classmethod(lambda cls: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, days=+2))
 
         #    Test has_expired() is true after time change
         self.assertTrue(dag.has_expired())
@@ -551,22 +523,21 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Test expiration_date is +13 months in future
         self.assertGreater(
             dag.expiration_date,
-            datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+13, hours=-1),
+            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, hours=-1),
         )
 
         # 7. Test token refresh is disabled when data access expired
         self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
-            expected_response_error_mesg="invalid_grant",
+            expected_response_error_mesg='invalid_grant',
             expected_response_error_description_mesg=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
         # 8. Test that all calls fail when data access expired
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
+            access_token=ac['access_token'],
             expected_response_code=HTTPStatus.UNAUTHORIZED,
             expected_response_detail_mesg=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
@@ -576,19 +547,19 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 10. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id_v2="-20140000008325",
-            fhir_id_v3="-30140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
+            first_name='first',
+            last_name='last1',
+            fhir_id_v2='-20140000008325',
+            fhir_id_v3='-30140000008325',
+            app_name='test_app1',
+            app_username='devuser1',
+            app_user_organization='org1',
             mbi=self._generate_random_mbi(),
-            app_data_access_type="THIRTEEN_MONTH",
+            app_data_access_type='THIRTEEN_MONTH',
         )
 
         # 11. Test application data access type
-        self.assertEqual(app.data_access_type, "THIRTEEN_MONTH")
+        self.assertEqual(app.data_access_type, 'THIRTEEN_MONTH')
 
         # 12. Test grant obj created OK.
         dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
@@ -601,21 +572,18 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Test expiration_date is +26 months in future
         self.assertGreater(
             dag.expiration_date,
-            datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+26, days=-2),
+            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+26, days=-2),
         )
 
         # 13. Test token refresh is enabled for app
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
-            refresh_token=ac["refresh_token"],
+            refresh_token=ac['refresh_token'],
             expected_response_code=HTTPStatus.OK,
         )
 
         # 14. Test that all calls are successful
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
 
     def test_data_access_grant_permissions_has_permission(self):
         """
@@ -629,13 +597,13 @@ class TestDataAccessPermissions(BaseApiTest):
         """
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
-            first_name="first",
-            last_name="last1",
-            fhir_id_v2="-20140000008325",
-            fhir_id_v3="-30140000008325",
-            app_name="test_app1",
-            app_username="devuser1",
-            app_user_organization="org1",
+            first_name='first',
+            last_name='last1',
+            fhir_id_v2='-20140000008325',
+            fhir_id_v3='-30140000008325',
+            app_name='test_app1',
+            app_username='devuser1',
+            app_user_organization='org1',
             mbi=self._generate_random_mbi(),
         )
 
@@ -645,15 +613,13 @@ class TestDataAccessPermissions(BaseApiTest):
         self.assertNotEqual(dag, None)
 
         # 3. Copy access token
-        copy_ac = AccessToken.objects.filter(token=ac["access_token"]).get()
+        copy_ac = AccessToken.objects.filter(token=ac['access_token']).get()
 
         # 4. Test access token exist
-        self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
+        self.assertTrue(AccessToken.objects.filter(token=ac['access_token']).exists())
 
         # 5. Test that all FHIR calls are successful
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac['access_token'], expected_response_code=HTTPStatus.OK
-        )
+        self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
 
         # 6. Delete /revoke data access grant
         dag.delete()
@@ -662,11 +628,11 @@ class TestDataAccessPermissions(BaseApiTest):
         copy_ac.save()
 
         # 8. Test access token is restored.
-        self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
+        self.assertTrue(AccessToken.objects.filter(token=ac['access_token']).exists())
 
         # 9. Test that FHIR calls fail
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
+            access_token=ac['access_token'],
             expected_response_code=HTTPStatus.FORBIDDEN,
-            expected_response_detail_mesg="You do not have permission to perform this action.",
+            expected_response_detail_mesg='You do not have permission to perform this action.',
         )

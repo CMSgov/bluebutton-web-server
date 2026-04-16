@@ -103,9 +103,13 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # Identification from client_assertion (Private Key JWT)
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
         assertion = jwt.encode(
             {'iss': application.client_id}, 'secret', algorithm='HS256'
         )
+=======
+        assertion = jwt.encode({'iss': application.client_id}, 'secret', algorithm='HS256')
+>>>>>>> master
         token_request_data = {
             'grant_type': CLIENT_CREDENTIALS,
             'redirect_uri': redirect_uri,
@@ -121,11 +125,15 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         )
 
         assert response.status_code == HTTPStatus.FORBIDDEN
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
         assert response.json()[
             'message'
         ] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
             application.name
         )
+=======
+        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
+>>>>>>> master
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(
@@ -262,9 +270,13 @@ class TestClientIdExtraction(BaseApiTest):
 
     def test_get_client_id_from_client_assertion(self):
         """Verify client_id extraction from JWT client_assertion (client_credentials path)."""
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
         assertion = jwt.encode(
             {'iss': self.application.client_id}, 'secret', algorithm='HS256'
         )
+=======
+        assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
+>>>>>>> master
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {'client_assertion': assertion}
         mock_request.GET = {}
@@ -325,9 +337,13 @@ class TestClientIdExtraction(BaseApiTest):
 
     def test_validate_app_is_active_client_credentials_with_assertion(self):
         """Verify validate_app_is_active succeeds for client_credentials with valid-looking assertion."""
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
         assertion = jwt.encode(
             {'iss': self.application.client_id}, 'secret', algorithm='HS256'
         )
+=======
+        assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
+>>>>>>> master
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
             'grant_type': 'client_credentials',
@@ -345,9 +361,13 @@ class TestTokenResponseFields(BaseApiTest):
         super().setUp()
         # Create a patient user with a crosswalk
         self.patient_fhir_v3 = 'patient-123-v3'
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
         self.user = self._create_user(
             'patient_user', 'password123', fhir_id_v3=self.patient_fhir_v3
         )
+=======
+        self.user = self._create_user('patient_user', 'password123', fhir_id_v3=self.patient_fhir_v3)
+>>>>>>> master
 
         # Since we care about exact capabilities, define it here explicitly
         capability_a, _ = ProtectedCapability.objects.get_or_create(
@@ -431,9 +451,13 @@ class TestTokenResponseFields(BaseApiTest):
             ]
         }
 
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
         assertion = jwt.encode(
             {'iss': self.application.client_id}, 'secret', algorithm='HS256'
         )
+=======
+        assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
+>>>>>>> master
 
         token_request_data = {
             'grant_type': CLIENT_CREDENTIALS,
@@ -458,6 +482,7 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertNotIn('openid', data['scope'])
         # other scopes ought to be fine, however.
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
+<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
 
 
 class TestTokenPrivateMethods(BaseApiTest):
@@ -619,3 +644,5 @@ class TestTokenPrivateMethods(BaseApiTest):
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+=======
+>>>>>>> master

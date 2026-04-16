@@ -21,7 +21,7 @@ from apps.fhir.bluebutton.utils import (
     get_access_token_from_request,
 )
 
-audit = logging.getLogger("audit.%s" % __name__)
+audit = logging.getLogger('audit.%s' % __name__)
 
 
 class RequestResponseLog(object):
@@ -127,14 +127,14 @@ class RequestResponseLog(object):
         The convention for newly added items is to set empty values to None.
         """
         self.log_msg = {}
-        self.log_msg["type"] = "request_response_middleware"
-        self.log_msg["access_token_hash"] = ""
-        self.log_msg["app_id"] = ""
-        self.log_msg["app_name"] = ""
-        self.log_msg["dev_id"] = ""
-        self.log_msg["dev_name"] = ""
-        self.log_msg["location"] = ""
-        self.log_msg["size"] = 0
+        self.log_msg['type'] = 'request_response_middleware'
+        self.log_msg['access_token_hash'] = ''
+        self.log_msg['app_id'] = ''
+        self.log_msg['app_name'] = ''
+        self.log_msg['dev_id'] = ''
+        self.log_msg['dev_name'] = ''
+        self.log_msg['location'] = ''
+        self.log_msg['size'] = 0
 
     def _log_msg_update_from_dict(self, from_dict, key, dict_key):
         # Log message update from a passed in dictionary
@@ -144,13 +144,9 @@ class RequestResponseLog(object):
                 if len(str(value)) > 0:
                     self.log_msg[key] = value
         except ObjectDoesNotExist:
-            self.log_msg[key] = (
-                "ObjectDoesNotExist exception for key " + key + ":" + dict_key
-            )
+            self.log_msg[key] = 'ObjectDoesNotExist exception for key ' + key + ':' + dict_key
         except AttributeError:
-            self.log_msg[key] = (
-                "AttributeError exception for key " + key + ":" + dict_key
-            )
+            self.log_msg[key] = 'AttributeError exception for key ' + key + ':' + dict_key
 
     def _log_msg_update_from_object(self, obj, key, obj_key):
         # Log message update from a passed in object
@@ -163,13 +159,9 @@ class RequestResponseLog(object):
                 if len(str(value)) > 0:
                     self.log_msg[key] = value
         except ObjectDoesNotExist:
-            self.log_msg[key] = (
-                "ObjectDoesNotExist exception for key " + key + ":" + obj_key
-            )
+            self.log_msg[key] = 'ObjectDoesNotExist exception for key ' + key + ':' + obj_key
         except AttributeError:
-            self.log_msg[key] = (
-                "AttributeError exception for key " + key + ":" + obj_key
-            )
+            self.log_msg[key] = 'AttributeError exception for key ' + key + ':' + obj_key
 
     def _log_msg_update_from_querydict(self, key, qp_key):
         # Log message update from request QueryDict HTTP query parameters
@@ -181,133 +173,95 @@ class RequestResponseLog(object):
                 elif len(value_list) > 1:
                     self.log_msg[key] = value_list
         except ObjectDoesNotExist:
-            self.log_msg[key] = (
-                "ObjectDoesNotExist exception for key " + key + ":" + qp_key
-            )
+            self.log_msg[key] = 'ObjectDoesNotExist exception for key ' + key + ':' + qp_key
         except AttributeError:
-            self.log_msg[key] = "AttributeError exception for key " + key + ":" + qp_key
+            self.log_msg[key] = 'AttributeError exception for key ' + key + ':' + qp_key
 
     def _sync_app_name(self):
-        if self.log_msg.get("app_id") is not None and self.log_msg.get("app_name") is not None \
-           and not self.log_msg.get("app_id") and not self.log_msg.get("app_name") \
-           and self.log_msg.get("auth_app_id") and self.log_msg.get("auth_app_name"):
-            self.log_msg["app_id"] = self.log_msg["auth_app_id"]
-            self.log_msg["app_name"] = self.log_msg["auth_app_name"]
+        if (
+            self.log_msg.get('app_id') is not None
+            and self.log_msg.get('app_name') is not None
+            and not self.log_msg.get('app_id')
+            and not self.log_msg.get('app_name')
+            and self.log_msg.get('auth_app_id')
+            and self.log_msg.get('auth_app_name')
+        ):
+            self.log_msg['app_id'] = self.log_msg['auth_app_id']
+            self.log_msg['app_name'] = self.log_msg['auth_app_name']
 
     def to_dict(self):
         """
         --- Logging custom items ---
         """
-        self.log_msg["start_time"] = self.request._logging_start_dt.timestamp()
-        self.log_msg["end_time"] = datetime.datetime.utcnow().timestamp()
-        self.log_msg["elapsed"] = (
-            datetime.datetime.utcnow().timestamp()
-            - self.request._logging_start_dt.timestamp()
-        )
-        self.log_msg["ip_addr"] = get_ip_from_request(self.request)
-        self.log_msg["request_uuid"] = str(self.request._logging_uuid)
+        self.log_msg['start_time'] = self.request._logging_start_dt.timestamp()
+        self.log_msg['end_time'] = datetime.datetime.utcnow().timestamp()
+        self.log_msg['elapsed'] = datetime.datetime.utcnow().timestamp() - self.request._logging_start_dt.timestamp()
+        self.log_msg['ip_addr'] = get_ip_from_request(self.request)
+        self.log_msg['request_uuid'] = str(self.request._logging_uuid)
 
         """
         --- Logging items from request.POST ---
         """
-        if getattr(self.request, "POST", False):
-            self._log_msg_update_from_dict(
-                self.request.POST, "req_post_grant_type", "grant_type"
-            )
+        if getattr(self.request, 'POST', False):
+            self._log_msg_update_from_dict(self.request.POST, 'req_post_grant_type', 'grant_type')
 
         """
         --- Logging items from request.headers ---
         """
-        if getattr(self.request, "headers", False):
-            request_headers = getattr(self.request, "headers")
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_accept_encoding", "Accept-Encoding"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_content_length", "Content-Length"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_content_type", "Content-Type"
-            )
-            self._log_msg_update_from_dict(request_headers, "req_header_host", "Host")
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_referrer", "Referer"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_user_agent", "User-Agent"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_bluebutton_sdk", "X-BLUEBUTTON-SDK"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_bluebutton_sdk_version", "X-BLUEBUTTON-SDK-VERSION"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_bluebutton_app", "X-BLUEBUTTON-APP"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_bluebutton_app_version", "X-BLUEBUTTON-APP-VERSION"
-            )
-            self._log_msg_update_from_dict(
-                request_headers, "data_facilitator_end_user", "DATA-END-USER"
-            )
+        if getattr(self.request, 'headers', False):
+            request_headers = getattr(self.request, 'headers')
+            self._log_msg_update_from_dict(request_headers, 'req_header_accept_encoding', 'Accept-Encoding')
+            self._log_msg_update_from_dict(request_headers, 'req_header_content_length', 'Content-Length')
+            self._log_msg_update_from_dict(request_headers, 'req_header_content_type', 'Content-Type')
+            self._log_msg_update_from_dict(request_headers, 'req_header_host', 'Host')
+            self._log_msg_update_from_dict(request_headers, 'req_header_referrer', 'Referer')
+            self._log_msg_update_from_dict(request_headers, 'req_header_user_agent', 'User-Agent')
+            self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_sdk', 'X-BLUEBUTTON-SDK')
+            self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_sdk_version', 'X-BLUEBUTTON-SDK-VERSION')
+            self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_app', 'X-BLUEBUTTON-APP')
+            self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_app_version', 'X-BLUEBUTTON-APP-VERSION')
+            self._log_msg_update_from_dict(request_headers, 'data_facilitator_end_user', 'DATA-END-USER')
 
         """
         --- Logging items from request.body ---
         """
-        if getattr(self.request, "body", False):
-            req_body = self.request.body.decode("utf-8", "ignore")
+        if getattr(self.request, 'body', False):
+            req_body = self.request.body.decode('utf-8', 'ignore')
             try:
-                request_body_dict = dict(
-                    item.split("=") for item in req_body.split("&")
-                )
-                self._log_msg_update_from_dict(
-                    request_body_dict, "req_client_id", "client_id"
-                )
+                request_body_dict = dict(item.split('=') for item in req_body.split('&'))
+                self._log_msg_update_from_dict(request_body_dict, 'req_client_id', 'client_id')
 
-                if self.log_msg.get("req_client_id", False):
+                if self.log_msg.get('req_client_id', False):
                     try:
-                        application = get_application_model().objects.get(
-                            client_id=self.log_msg.get("req_client_id")
-                        )
-                        self._log_msg_update_from_object(application, "req_app_name", "name")
-                        self._log_msg_update_from_object(application, "req_app_id", "id")
+                        application = get_application_model().objects.get(client_id=self.log_msg.get('req_client_id'))
+                        self._log_msg_update_from_object(application, 'req_app_name', 'name')
+                        self._log_msg_update_from_object(application, 'req_app_id', 'id')
                     except ObjectDoesNotExist:
-                        self.log_msg["req_app_name"] = ""
-                        self.log_msg["req_app_id"] = ""
+                        self.log_msg['req_app_name'] = ''
+                        self.log_msg['req_app_id'] = ''
 
-                refresh_token = request_body_dict.get("refresh_token", None)
+                refresh_token = request_body_dict.get('refresh_token', None)
                 if refresh_token is not None:
-                    self.log_msg["req_refresh_token_hash"] = hashlib.sha256(
-                        str(refresh_token).encode("utf-8")
-                    ).hexdigest()
+                    self.log_msg['req_refresh_token_hash'] = hashlib.sha256(str(refresh_token).encode('utf-8')).hexdigest()
 
                 # Log AC passed from RequestTimeLoggingMiddleware.process_request() pre-response
-                self._log_msg_update_from_object(
-                    self.request, "req_access_token_hash", "_req_access_token_hash"
-                )
+                self._log_msg_update_from_object(self.request, 'req_access_token_hash', '_req_access_token_hash')
 
-                self._log_msg_update_from_dict(
-                    request_body_dict, "req_response_type", "response_type"
-                )
+                self._log_msg_update_from_dict(request_body_dict, 'req_response_type', 'response_type')
                 self._log_msg_update_from_dict(
                     request_body_dict,
-                    "req_code_challenge_method",
-                    "code_challenge_method",
+                    'req_code_challenge_method',
+                    'code_challenge_method',
                 )
-                self._log_msg_update_from_dict(
-                    request_body_dict, "req_grant_type", "grant_type"
-                )
-                self._log_msg_update_from_dict(
-                    request_body_dict, "req_redirect_uri", "redirect_uri"
-                )
-                self._log_msg_update_from_dict(request_body_dict, "req_scope", "scope")
+                self._log_msg_update_from_dict(request_body_dict, 'req_grant_type', 'grant_type')
+                self._log_msg_update_from_dict(request_body_dict, 'req_redirect_uri', 'redirect_uri')
+                self._log_msg_update_from_dict(request_body_dict, 'req_scope', 'scope')
                 self._log_msg_update_from_dict(
                     request_body_dict,
-                    "req_share_demographic_scopes",
-                    "share_demographic_scopes",
+                    'req_share_demographic_scopes',
+                    'share_demographic_scopes',
                 )
-                self._log_msg_update_from_dict(request_body_dict, "req_allow", "allow")
+                self._log_msg_update_from_dict(request_body_dict, 'req_allow', 'allow')
             except ObjectDoesNotExist:
                 pass
             except ValueError:
@@ -316,23 +270,17 @@ class RequestResponseLog(object):
         """
         --- Logging items from request.user ---
         """
-        if getattr(self.request, "user", False):
-            self._log_msg_update_from_object(self.request.user, "req_user_id", "id")
-            self._log_msg_update_from_object(
-                self.request.user, "req_user_username", "username"
-            )
-            if getattr(self.request.user, "crosswalk", False):
-                self._log_msg_update_from_object(
-                    self.request.user.crosswalk, 'req_fhir_id_v2', 'fhir_id_v2'
-                )
-                self._log_msg_update_from_object(
-                    self.request.user.crosswalk, 'req_fhir_id_v3', 'fhir_id_v3'
-                )
+        if getattr(self.request, 'user', False):
+            self._log_msg_update_from_object(self.request.user, 'req_user_id', 'id')
+            self._log_msg_update_from_object(self.request.user, 'req_user_username', 'username')
+            if getattr(self.request.user, 'crosswalk', False):
+                self._log_msg_update_from_object(self.request.user.crosswalk, 'req_fhir_id_v2', 'fhir_id_v2')
+                self._log_msg_update_from_object(self.request.user.crosswalk, 'req_fhir_id_v3', 'fhir_id_v3')
 
         """
         --- Logging items from request.session for Auth Flow Tracing ---
         """
-        if getattr(self.request, "session", False) and is_path_part_of_auth_flow_trace(self.request.path):
+        if getattr(self.request, 'session', False) and is_path_part_of_auth_flow_trace(self.request.path):
             auth_flow_dict = get_session_auth_flow_trace(self.request)
             for k in SESSION_AUTH_FLOW_TRACE_KEYS:
                 if auth_flow_dict.get(k, None):
@@ -341,192 +289,153 @@ class RequestResponseLog(object):
         """
         --- Logging items from request.GET for query params ---
         """
-        if getattr(self.request, "GET", False):
+        if getattr(self.request, 'GET', False):
             # Log selected query params only
-            self._log_msg_update_from_querydict("req_qparam__count", "_count")
-            self._log_msg_update_from_querydict("req_qparam__id", "_id")
-            self._log_msg_update_from_querydict("req_qparam_beneficiary", "beneficiary")
-            self._log_msg_update_from_querydict("req_qparam_beneficiary", "Beneficiary")
-            self._log_msg_update_from_querydict("req_qparam_client_id", "client_id")
-            self._log_msg_update_from_querydict("req_qparam_lang", "lang")
-            self._log_msg_update_from_querydict("req_qparam_count", "count")
-            self._log_msg_update_from_querydict("req_qparam_format", "_format")
-            self._log_msg_update_from_querydict(
-                "req_qparam_lastupdated", "_lastUpdated"
-            )
+            self._log_msg_update_from_querydict('req_qparam__count', '_count')
+            self._log_msg_update_from_querydict('req_qparam__id', '_id')
+            self._log_msg_update_from_querydict('req_qparam_beneficiary', 'beneficiary')
+            self._log_msg_update_from_querydict('req_qparam_beneficiary', 'Beneficiary')
+            self._log_msg_update_from_querydict('req_qparam_client_id', 'client_id')
+            self._log_msg_update_from_querydict('req_qparam_lang', 'lang')
+            self._log_msg_update_from_querydict('req_qparam_count', 'count')
+            self._log_msg_update_from_querydict('req_qparam_format', '_format')
+            self._log_msg_update_from_querydict('req_qparam_lastupdated', '_lastUpdated')
 
-            self._log_msg_update_from_querydict("req_qparam_patient", "patient")
-            self._log_msg_update_from_querydict("req_qparam_patient", "Patient")
-            self._log_msg_update_from_querydict(
-                "req_qparam_response_type", "response_type"
-            )
+            self._log_msg_update_from_querydict('req_qparam_patient', 'patient')
+            self._log_msg_update_from_querydict('req_qparam_patient', 'Patient')
+            self._log_msg_update_from_querydict('req_qparam_response_type', 'response_type')
 
-            self._log_msg_update_from_querydict("req_qparam_startindex", "startIndex")
-            self._log_msg_update_from_querydict("req_qparam_type", "type")
+            self._log_msg_update_from_querydict('req_qparam_startindex', 'startIndex')
+            self._log_msg_update_from_querydict('req_qparam_type', 'type')
 
-            if self.log_msg.get("req_qparam_client_id", False):
+            if self.log_msg.get('req_qparam_client_id', False):
                 try:
-                    application = get_application_model().objects.get(
-                        client_id=self.log_msg.get("req_qparam_client_id")
-                    )
-                    self._log_msg_update_from_object(application, "req_app_name", "name")
-                    self._log_msg_update_from_object(application, "req_app_id", "id")
+                    application = get_application_model().objects.get(client_id=self.log_msg.get('req_qparam_client_id'))
+                    self._log_msg_update_from_object(application, 'req_app_name', 'name')
+                    self._log_msg_update_from_object(application, 'req_app_id', 'id')
                 except ObjectDoesNotExist:
-                    self.log_msg["req_app_name"] = ""
-                    self.log_msg["req_app_id"] = ""
+                    self.log_msg['req_app_name'] = ''
+                    self.log_msg['req_app_id'] = ''
 
         """
         --- Logging items from request ---
         """
-        self._log_msg_update_from_object(self.request, "path", "path")
-        self._log_msg_update_from_object(self.request, "request_method", "method")
-        self._log_msg_update_from_object(self.request, "request_scheme", "scheme")
+        self._log_msg_update_from_object(self.request, 'path', 'path')
+        self._log_msg_update_from_object(self.request, 'request_method', 'method')
+        self._log_msg_update_from_object(self.request, 'request_scheme', 'scheme')
 
         """
         --- Logging items from get_user_from_request() ---
         """
         user = get_user_from_request(self.request)
         if user:
-            self.log_msg["user"] = str(user)
+            self.log_msg['user'] = str(user)
             try:
-                self.log_msg["fhir_id_v2"] = user.crosswalk.fhir_id(Versions.V2)
-                self.log_msg["fhir_id_v3"] = user.crosswalk.fhir_id(Versions.V3)
+                self.log_msg['fhir_id_v2'] = user.crosswalk.fhir_id(Versions.V2)
+                self.log_msg['fhir_id_v3'] = user.crosswalk.fhir_id(Versions.V3)
             except ObjectDoesNotExist:
                 pass
 
         """
         --- Logging items from request access token ---
         """
-        access_token = getattr(
-            self.request, "auth", get_access_token_from_request(self.request)
-        )
+        access_token = getattr(self.request, 'auth', get_access_token_from_request(self.request))
 
         if access_token:
             try:
                 at = AccessToken.objects.get(token=access_token)
 
-                self.log_msg["access_token_hash"] = hashlib.sha256(
-                    str(access_token).encode("utf-8")
-                ).hexdigest()
-                self.log_msg["access_token_scopes"] = " ".join([s for s in at.scopes])
-                self._log_msg_update_from_object(
-                    at, "access_token_id", "id"
-                )
+                self.log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
+                self.log_msg['access_token_scopes'] = ' '.join([s for s in at.scopes])
+                self._log_msg_update_from_object(at, 'access_token_id', 'id')
 
-                self._log_msg_update_from_object(at.application, "app_name", "name")
-                self._log_msg_update_from_object(at.application, "app_id", "id")
+                self._log_msg_update_from_object(at.application, 'app_name', 'name')
+                self._log_msg_update_from_object(at.application, 'app_id', 'id')
                 self._log_msg_update_from_object(
                     at.application,
-                    "app_require_demographic_scopes",
-                    "require_demographic_scopes",
+                    'app_require_demographic_scopes',
+                    'require_demographic_scopes',
                 )
-                self._log_msg_update_from_object(at.application.user, "dev_id", "id")
-                self._log_msg_update_from_object(
-                    at.application.user, "dev_name", "username"
-                )
+                self._log_msg_update_from_object(at.application.user, 'dev_id', 'id')
+                self._log_msg_update_from_object(at.application.user, 'dev_name', 'username')
 
-                self._log_msg_update_from_object(at.user, "user_id", "id")
-                self._log_msg_update_from_object(at.user, "user_username", "username")
+                self._log_msg_update_from_object(at.user, 'user_id', 'id')
+                self._log_msg_update_from_object(at.user, 'user_username', 'username')
             except ObjectDoesNotExist:
                 pass
 
         """
         --- Logging items from response ---
         """
-        self.log_msg["response_code"] = getattr(self.response, "status_code", 0)
-        if self.log_msg["response_code"] in (300, 301, 302, 307):
-            self.log_msg["location"] = self.response.get("Location", "?")
-        elif getattr(self.response, "content", False):
-            self.log_msg["size"] = len(self.response.content)
+        self.log_msg['response_code'] = getattr(self.response, 'status_code', 0)
+        if self.log_msg['response_code'] in (300, 301, 302, 307):
+            self.log_msg['location'] = self.response.get('Location', '?')
+        elif getattr(self.response, 'content', False):
+            self.log_msg['size'] = len(self.response.content)
 
         """
         --- Logging items from a FHIR type response ---
         """
         if isinstance(self.response, Response) and isinstance(self.response.data, dict):
-            self.log_msg["fhir_bundle_type"] = self.response.data.get("type", None)
-            self.log_msg["fhir_resource_id"] = self.response.data.get("id", None)
-            self.log_msg["fhir_resource_type"] = self.response.data.get(
-                "resourceType", None
-            )
-            self.log_msg["fhir_attribute_count"] = len(self.response.data)
-            if self.response.data.get("entry", False):
-                self.log_msg["fhir_entry_count"] = len(self.response.data.get("entry"))
+            self.log_msg['fhir_bundle_type'] = self.response.data.get('type', None)
+            self.log_msg['fhir_resource_id'] = self.response.data.get('id', None)
+            self.log_msg['fhir_resource_type'] = self.response.data.get('resourceType', None)
+            self.log_msg['fhir_attribute_count'] = len(self.response.data)
+            if self.response.data.get('entry', False):
+                self.log_msg['fhir_entry_count'] = len(self.response.data.get('entry'))
             else:
-                self.log_msg["fhir_entry_count"] = None
+                self.log_msg['fhir_entry_count'] = None
 
         """
         --- Logging items from response content (refresh_token)
         """
         if (
-            getattr(self.response, "content", False)
-            and self.log_msg.get("req_post_grant_type", False)
-            and self.log_msg.get("request_method", False)
+            getattr(self.response, 'content', False)
+            and self.log_msg.get('req_post_grant_type', False)
+            and self.log_msg.get('request_method', False)
         ):
-
-            if (
-                self.log_msg["req_post_grant_type"] == "refresh_token"
-                and self.log_msg["request_method"] == "POST"
-            ):
+            if self.log_msg['req_post_grant_type'] == 'refresh_token' and self.log_msg['request_method'] == 'POST':
                 try:
                     response_content = json.loads(self.response.content)
                 except json.decoder.JSONDecodeError:
                     response_content = {}  # Set to empty DICT
 
-                self._log_msg_update_from_dict(
-                    response_content, "resp_fhir_id", "patient"
-                )
-                self._log_msg_update_from_dict(
-                    response_content, "resp_expires_in", "expires_in"
-                )
-                self._log_msg_update_from_dict(
-                    response_content, "resp_token_type", "token_type"
-                )
-                self._log_msg_update_from_dict(response_content, "resp_scope", "scope")
+                self._log_msg_update_from_dict(response_content, 'resp_fhir_id', 'patient')
+                self._log_msg_update_from_dict(response_content, 'resp_expires_in', 'expires_in')
+                self._log_msg_update_from_dict(response_content, 'resp_token_type', 'token_type')
+                self._log_msg_update_from_dict(response_content, 'resp_scope', 'scope')
 
-                self.log_msg["resp_refresh_token_hash"] = hashlib.sha256(
-                    str(response_content.get("refresh_token", None)).encode("utf-8")
+                self.log_msg['resp_refresh_token_hash'] = hashlib.sha256(
+                    str(response_content.get('refresh_token', None)).encode('utf-8')
                 ).hexdigest()
 
-                resp_access_token = response_content.get("access_token", None)
+                resp_access_token = response_content.get('access_token', None)
 
                 if resp_access_token:
                     try:
                         at = AccessToken.objects.get(token=resp_access_token)
 
-                        self.log_msg["resp_access_token_hash"] = hashlib.sha256(
-                            str(at).encode("utf-8")
-                        ).hexdigest()
+                        self.log_msg['resp_access_token_hash'] = hashlib.sha256(str(at).encode('utf-8')).hexdigest()
 
-                        self.log_msg["resp_access_token_scopes"] = " ".join(
-                            [s for s in at.scopes]
-                        )
+                        self.log_msg['resp_access_token_scopes'] = ' '.join([s for s in at.scopes])
 
-                        self._log_msg_update_from_object(
-                            at.application, "resp_app_id", "id"
-                        )
-                        self._log_msg_update_from_object(
-                            at.application, "resp_app_name", "name"
-                        )
+                        self._log_msg_update_from_object(at.application, 'resp_app_id', 'id')
+                        self._log_msg_update_from_object(at.application, 'resp_app_name', 'name')
                         self._log_msg_update_from_object(
                             at.application,
-                            "resp_app_require_demographic_scopes",
-                            "require_demographic_scopes",
+                            'resp_app_require_demographic_scopes',
+                            'require_demographic_scopes',
                         )
-                        self._log_msg_update_from_object(
-                            at.application.user, "resp_dev_id", "id"
-                        )
-                        self._log_msg_update_from_object(
-                            at.application.user, "resp_dev_name", "username"
-                        )
+                        self._log_msg_update_from_object(at.application.user, 'resp_dev_id', 'id')
+                        self._log_msg_update_from_object(at.application.user, 'resp_dev_name', 'username')
 
-                        self._log_msg_update_from_object(at.user, "resp_user_id", "id")
-                        self._log_msg_update_from_object(
-                            at.user, "resp_user_username", "username"
-                        )
+                        self._log_msg_update_from_object(at.user, 'resp_user_id', 'id')
+                        self._log_msg_update_from_object(at.user, 'resp_user_username', 'username')
                     except ObjectDoesNotExist:
                         pass
         self._sync_app_name()
         return self.log_msg
+
 
 ##############################################################################
 #
@@ -564,20 +473,16 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
         request._logger = audit
 
         # Get access token to be refreshed pre-response, since it is removed
-        if getattr(request, "body", False):
-            req_body = request.body.decode("utf-8", "ignore")
+        if getattr(request, 'body', False):
+            req_body = request.body.decode('utf-8', 'ignore')
             try:
-                request_body_dict = dict(
-                    item.split("=") for item in req_body.split("&")
-                )
+                request_body_dict = dict(item.split('=') for item in req_body.split('&'))
 
-                refresh_token = request_body_dict.get("refresh_token", None)
+                refresh_token = request_body_dict.get('refresh_token', None)
                 if refresh_token is not None:
                     rt = RefreshToken.objects.get(token=refresh_token)
                     if rt:
-                        request._req_access_token_hash = hashlib.sha256(
-                            str(rt.access_token).encode("utf-8")
-                        ).hexdigest()
+                        request._req_access_token_hash = hashlib.sha256(str(rt.access_token).encode('utf-8')).hexdigest()
             except ValueError:
                 pass
             except ObjectDoesNotExist:

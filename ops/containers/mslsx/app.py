@@ -49,7 +49,7 @@ def _encode(usr='', name='', first_name='', last_name='', email='', hicn='', mbi
         _base64_encode(last_name.encode(ENCODE_NAME)).decode(ENCODE_NAME),
         _base64_encode(email.encode(ENCODE_NAME)).decode(ENCODE_NAME),
         _base64_encode(hicn.encode(ENCODE_NAME)).decode(ENCODE_NAME),
-        _base64_encode(mbi.encode(ENCODE_NAME)).decode(ENCODE_NAME)
+        _base64_encode(mbi.encode(ENCODE_NAME)).decode(ENCODE_NAME),
     )
 
 
@@ -75,17 +75,19 @@ def _load_user_data():
             with open(csv_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    users.append({
-                        'username': row.get('username', '').strip(),
-                        'hicn': row.get('hicn', '').strip(),
-                        'mbi': row.get('mbi', '').strip(),
-                        'name': row.get('name', '').strip(),
-                        'first_name': row.get('first_name', '').strip(),
-                        'last_name': row.get('last_name', '').strip(),
-                        'email': row.get('email', '').strip()
-                    })
+                    users.append(
+                        {
+                            'username': row.get('username', '').strip(),
+                            'hicn': row.get('hicn', '').strip(),
+                            'mbi': row.get('mbi', '').strip(),
+                            'name': row.get('name', '').strip(),
+                            'first_name': row.get('first_name', '').strip(),
+                            'last_name': row.get('last_name', '').strip(),
+                            'email': row.get('email', '').strip(),
+                        }
+                    )
         except Exception as e:
-            print(f"Error loading CSV: {e}")
+            print(f'Error loading CSV: {e}')
 
     return users
 
@@ -109,13 +111,10 @@ def login():
         request.form.get(LAST_NAME_FIELD, ''),
         request.form.get(EMAIL_FIELD, ''),
         request.form.get(HICN_FIELD, ''),
-        request.form.get(MBI_FIELD, '')
+        request.form.get(MBI_FIELD, ''),
     )
 
-    qparams = {
-        'req_token': req_token,
-        'relay': request.form.get('relay', '')
-    }
+    qparams = {'req_token': req_token, 'relay': request.form.get('relay', '')}
 
     print('redirect={}?{}'.format(redirect_url, urlencode(qparams)))
     return redirect('{}?{}'.format(redirect_url, urlencode(qparams)))
@@ -152,21 +151,21 @@ def userinfo(usr):
     if signed_in is True:
         tkn = request.headers.get(AUTH_HEADER, None)
         if tkn is None:
-            return make_response(jsonify({"message": "Bad Request, missing request token."}), 400)
-        if not tkn.startswith("Bearer "):
-            return make_response(jsonify({"message": "Bad Request, malformed bearer token."}), 400)
+            return make_response(jsonify({'message': 'Bad Request, missing request token.'}), 400)
+        if not tkn.startswith('Bearer '):
+            return make_response(jsonify({'message': 'Bad Request, malformed bearer token.'}), 400)
         tkn = tkn.split()[1]
         user_info = _decode(tkn)
         slsx_userinfo = {
-            "data": {
-                "user": {
-                    "id": user_info["usr"],
-                    "username": user_info["name"],
-                    "email": user_info["email"],
-                    "firstName": user_info["first_name"],
-                    "lastName": user_info["last_name"],
-                    "hicn": user_info["hicn"],
-                    "mbi": user_info["mbi"],
+            'data': {
+                'user': {
+                    'id': user_info['usr'],
+                    'username': user_info['name'],
+                    'email': user_info['email'],
+                    'firstName': user_info['first_name'],
+                    'lastName': user_info['last_name'],
+                    'hicn': user_info['hicn'],
+                    'mbi': user_info['mbi'],
                 },
             },
         }
@@ -174,7 +173,7 @@ def userinfo(usr):
         return make_response(jsonify(slsx_userinfo))
     else:
         signed_in = True
-        return make_response(jsonify({"message": "not signed in."}), 403)
+        return make_response(jsonify({'message': 'not signed in.'}), 403)
 
 
 @app.route('/sso/signout', methods=['GET'])

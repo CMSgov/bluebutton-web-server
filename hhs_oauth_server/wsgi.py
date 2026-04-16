@@ -1,5 +1,6 @@
 import os
 import newrelic.agent
+
 # import dotenv
 from dotenv import load_dotenv
 from django.core.wsgi import get_wsgi_application
@@ -16,6 +17,6 @@ if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'newrelic.ini')):
 if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env')):
     load_dotenv(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env'))
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hhs_oauth_server.settings.base")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.base')
 
 application = get_wsgi_application()

@@ -10,7 +10,7 @@ from voluptuous import (
     Invalid,
     REMOVE_EXTRA,
 )
-from rest_framework import (permissions)
+from rest_framework import permissions
 
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
@@ -19,7 +19,7 @@ from apps.fhir.bluebutton.permissions import (
     SearchCrosswalkPermission,
     ResourcePermission,
     ApplicationActivePermission,
-    V3EarlyAdopterPermission
+    V3EarlyAdopterPermission,
 )
 
 
@@ -62,7 +62,7 @@ class SearchView(FhirDataView):
     QUERY_SCHEMA = {
         'startIndex': Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),  # type: ignore
-        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg='the _lastUpdated operator is not valid')]
+        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg='the _lastUpdated operator is not valid')],
     }
 
     def __init__(self, version=1):
@@ -90,11 +90,7 @@ class SearchView(FhirDataView):
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
     required_scopes = ['patient/Patient.read', 'patient/Patient.rs', 'patient/Patient.s']
-    QUERY_SCHEMA = {
-        **SearchView.QUERY_SCHEMA,
-        '_id': str,
-        'identifier': str
-    }
+    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA, '_id': str, 'identifier': str}
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -109,20 +105,14 @@ class SearchViewPatient(SearchView):
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
     required_scopes = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
-    QUERY_SCHEMA = {
-        **SearchView.QUERY_SCHEMA,
-        'beneficiary': str
-    }
+    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA, 'beneficiary': str}
 
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = 'Coverage'
 
     def build_parameters(self, request, *args, **kwargs):
-        return {
-            '_format': 'application/fhir+json',
-            'beneficiary': 'Patient/' + request.crosswalk.fhir_id(self.version)
-        }
+        return {'_format': 'application/fhir+json', 'beneficiary': 'Patient/' + request.crosswalk.fhir_id(self.version)}
 
 
 class SearchViewExplanationOfBenefit(SearchView):
@@ -130,33 +120,36 @@ class SearchViewExplanationOfBenefit(SearchView):
     def validate_tag(self):
         def validator(value):
             for v in value:
-                if not (v in ['Adjudicated', 'PartiallyAdjudicated']):
+                if v not in ['Adjudicated', 'PartiallyAdjudicated']:
                     msg = f"Invalid _tag value (='{v}'), 'PartiallyAdjudicated' or 'Adjudicated' expected."
                     raise Invalid(msg)
             return value
+
         return validator
 
     # Class used for ExplanationOfBenefit resource search view
     required_scopes = ['patient/ExplanationOfBenefit.read', 'patient/ExplanationOfBenefit.rs', 'patient/ExplanationOfBenefit.s']
 
     # Regex to match a valid type value
-    REGEX_TYPE_VALUE = r'(carrier)|' + \
-        r'(pde)|' + \
-        r'(dme)|' + \
-        r'(hha)|' + \
-        r'(hospice)|' + \
-        r'(inpatient)|' + \
-        r'(outpatient)|' + \
-        r'(snf)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|' + \
-        r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)'
+    REGEX_TYPE_VALUE = (
+        r'(carrier)|'
+        + r'(pde)|'
+        + r'(dme)|'
+        + r'(hha)|'
+        + r'(hospice)|'
+        + r'(inpatient)|'
+        + r'(outpatient)|'
+        + r'(snf)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|'
+        + r'(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)'
+    )
 
     # Regex to match a list of comma separated type values with IGNORECASE
     REGEX_TYPE_VALUES_LIST = r'(?i)^((' + REGEX_TYPE_VALUE + r')\s*,*\s*)+$'
@@ -165,11 +158,12 @@ class SearchViewExplanationOfBenefit(SearchView):
     REGEX_SERVICE_DATE_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
 
     # Add type parameter to schema only for EOB
-    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
-                    'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
-                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
-                    'patient': str,
-                    }
+    QUERY_SCHEMA = {
+        **SearchView.QUERY_SCHEMA,
+        'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
+        'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
+        'patient': str,
+    }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -199,8 +193,6 @@ class SearchViewExplanationOfBenefit(SearchView):
             # _tag if presents, is a string value
             params['_tag'] = request.query_params.getlist('_tag')
 
-        schema = Schema(
-            query_schema,
-            extra=REMOVE_EXTRA)
+        schema = Schema(query_schema, extra=REMOVE_EXTRA)
 
         return schema(params)

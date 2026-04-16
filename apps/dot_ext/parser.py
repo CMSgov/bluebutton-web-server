@@ -101,10 +101,7 @@ def _apply_highway_fixes(text: str) -> str:
             words = before.split()
             if words:
                 last_word = words[-1].upper()
-                if (
-                    last_word in SECONDARY_UNITS
-                    or last_word in SECONDARY_UNITS.values()
-                ):
+                if last_word in SECONDARY_UNITS or last_word in SECONDARY_UNITS.values():
                     # Likely a secondary unit ID (eg APT I1), not an Interstate highway
                     return full
         return f'INTERSTATE {match.group(1)}'
@@ -221,9 +218,7 @@ def _apply_canada_fixes(lines: list[str]) -> list[str]:
             if j != postal_idx:
                 line_upper = line.upper()
                 if any(
-                    f' {prov}' in line_upper
-                    or line_upper == prov
-                    or line_upper.startswith(prov + ' ')
+                    f' {prov}' in line_upper or line_upper == prov or line_upper.startswith(prov + ' ')
                     for prov in CANADIAN_PROVINCES
                 ):
                     # Combine with double space
@@ -275,9 +270,7 @@ def normalize_address(address_str: str) -> str:
     for line in lines:
         try:
             if line.startswith(highway_keywords) or (
-                is_pr
-                and re.search(r'\b(STA|STATION)\b', line.upper())
-                and 'PO BOX' not in line.upper()
+                is_pr and re.search(r'\b(STA|STATION)\b', line.upper()) and 'PO BOX' not in line.upper()
             ):
                 raw_parsed: list[tuple[str, str]] = usaddress.parse(line)
                 formatted_lines.append(_format_from_raw(raw_parsed))
@@ -313,11 +306,7 @@ def normalize_address(address_str: str) -> str:
             else:
                 formatted_lines.append(line)
 
-    normalized_lines = [
-        line
-        for line in formatted_lines
-        if line.strip() and line.strip().upper() not in COUNTRIES
-    ]
+    normalized_lines = [line for line in formatted_lines if line.strip() and line.strip().upper() not in COUNTRIES]
 
     res = '\n'.join(normalized_lines)
 
@@ -347,11 +336,7 @@ def _format_state(word: str) -> str:
 def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
     """Format an address from a dictionary of usaddress tags."""
     # Standardize dictionary bad tags for non-unit strings ending with digits
-    if (
-        'OccupancyType' in tokens
-        and 'OccupancyIdentifier' in tokens
-        and 'AddressNumber' not in tokens
-    ):
+    if 'OccupancyType' in tokens and 'OccupancyIdentifier' in tokens and 'AddressNumber' not in tokens:
         orig_type: str = tokens.get('OccupancyType', '').upper()
         if (
             orig_type not in SECONDARY_UNITS
@@ -377,9 +362,7 @@ def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
             val_upper: str = val.upper()
             # Extract basic words removing numbers/punctuation for comparison
             words: list[str] = re.sub(r'[^A-Z\s]', '', val_upper).split()
-            if words and all(
-                w in SECONDARY_UNITS or w in SECONDARY_UNITS.values() for w in words
-            ):
+            if words and all(w in SECONDARY_UNITS or w in SECONDARY_UNITS.values() for w in words):
                 tokens['OccupancyType'] = val
                 del tokens[key]
                 break
@@ -398,11 +381,7 @@ def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
     # Re-categorize false-positive BoxType as Secondary Unit
     if 'USPSBoxType' in tokens:
         box_type_str: str = tokens['USPSBoxType'].upper()
-        if (
-            box_type_str in SECONDARY_UNITS
-            or box_type_str in SECONDARY_UNITS.values()
-            or 'AddressNumber' in tokens
-        ):
+        if box_type_str in SECONDARY_UNITS or box_type_str in SECONDARY_UNITS.values() or 'AddressNumber' in tokens:
             tokens['OccupancyType'] = tokens['USPSBoxType']
             if 'USPSBoxID' in tokens:
                 tokens['OccupancyIdentifier'] = tokens['USPSBoxID']
@@ -504,18 +483,13 @@ def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
             street_parts.append(tokens['StreetNamePreModifier'])
 
         if 'StreetNamePreDirectional' in tokens:
-            if 'StreetName' in tokens and (
-                tokens['StreetName'].strip().startswith('AND ')
-                or 'StreetName' in tokens
-            ):
+            if 'StreetName' in tokens and (tokens['StreetName'].strip().startswith('AND ') or 'StreetName' in tokens):
                 # Standard case: Abbreviate if a street name exists
                 # (except for compound names handled by the 'AND' check)
                 if tokens['StreetName'].strip().startswith('AND '):
                     street_parts.append(tokens['StreetNamePreDirectional'])
                 else:
-                    street_parts.append(
-                        _format_directional(tokens['StreetNamePreDirectional'])
-                    )
+                    street_parts.append(_format_directional(tokens['StreetNamePreDirectional']))
             else:
                 # If StreetName is missing, keep full spelling (e.g. SOUTH BLVD)
                 street_parts.append(tokens['StreetNamePreDirectional'])
@@ -532,9 +506,7 @@ def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
 
         if 'StreetNamePostDirectional' in tokens:
             if 'StreetName' in tokens:
-                street_parts.append(
-                    _format_directional(tokens['StreetNamePostDirectional'])
-                )
+                street_parts.append(_format_directional(tokens['StreetNamePostDirectional']))
             else:
                 # If StreetName is missing, keep full spelling
                 street_parts.append(tokens['StreetNamePostDirectional'])
@@ -546,9 +518,7 @@ def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
         if 'OccupancyIdentifier' in tokens:
 
             def get_val_txt(obj: object) -> str:
-                if hasattr(obj, 'get_text') and callable(
-                    typing.cast(typing.Any, obj).get_text
-                ):
+                if hasattr(obj, 'get_text') and callable(typing.cast(typing.Any, obj).get_text):
                     return str(typing.cast(typing.Any, obj).get_text())
                 return str(obj)
 
@@ -559,9 +529,7 @@ def _format_from_dict(tokens: dict[str, str], is_military: bool = False) -> str:
     elif 'OccupancyIdentifier' in tokens:
 
         def get_val_simple(obj: object) -> str:
-            if hasattr(obj, 'get_text') and callable(
-                typing.cast(typing.Any, obj).get_text
-            ):
+            if hasattr(obj, 'get_text') and callable(typing.cast(typing.Any, obj).get_text):
                 return str(typing.cast(typing.Any, obj).get_text())
             return str(obj)
 
@@ -643,11 +611,7 @@ def _format_from_raw(raw_parsed: list[tuple[str, str]]) -> str:
             can_swap = True
             for v_chk, _label in raw_parsed[:-1]:
                 v_up = v_chk.upper()
-                if (
-                    v_up in SECONDARY_UNITS
-                    or v_up in SECONDARY_UNITS.values()
-                    or v_up in highway_keywords_check
-                ):
+                if v_up in SECONDARY_UNITS or v_up in SECONDARY_UNITS.values() or v_up in highway_keywords_check:
                     can_swap = False
                     break
             if can_swap and not any(v.isdigit() for v, _label in raw_parsed[:-1]):
@@ -659,11 +623,7 @@ def _format_from_raw(raw_parsed: list[tuple[str, str]]) -> str:
         _, l_zip = raw_parsed[-1]
         is_state_abbr = v_state.upper() in STATES.values()
         is_state_name = v_state.upper() in STATES
-        if (
-            l_zip == 'ZipCode'
-            and (is_state_abbr or is_state_name)
-            and l_state != 'StateName'
-        ):
+        if l_zip == 'ZipCode' and (is_state_abbr or is_state_name) and l_state != 'StateName':
             raw_parsed[-2] = (v_state, 'StateName')
             for i in range(len(raw_parsed) - 2):
                 if raw_parsed[i][1] in (
@@ -706,12 +666,7 @@ def _format_from_raw(raw_parsed: list[tuple[str, str]]) -> str:
     # Reassemble and try to figure out lines based on newlines that were in the original
     # usaddress strips \n from values sometimes, so we'll just join with space
     # and do a naive newline check
-    final_raw = (
-        ' '.join(reconstructed)
-        .replace(' \n ', '\n')
-        .replace('\n ', '\n')
-        .replace(' \n', '\n')
-    )
+    final_raw = ' '.join(reconstructed).replace(' \n ', '\n').replace('\n ', '\n').replace(' \n', '\n')
     lines_raw = final_raw.split('\n')
     return '\n'.join(_apply_pr_exceptions(line_item) for line_item in lines_raw)
 
@@ -736,17 +691,13 @@ def _apply_pr_exceptions(text: str) -> str:
         line_up = line_clean.upper()
         if line_up.startswith(('URB', 'EXT', 'URBANIZATION')):
             urb_lines.append(line_clean)
-        elif any(
-            k in line_up
-            for k in ('COND', 'EDIF', 'CONDOMINIO', 'EDIFICIO', 'APT', 'APARTAMENT')
-        ):
+        elif any(k in line_up for k in ('COND', 'EDIF', 'CONDOMINIO', 'EDIFICIO', 'APT', 'APARTAMENT')):
             condo_lines.append(line_clean)
         elif any(k in line_up for k in ('PO BOX', 'STA', 'STATION')):
             postal_lines.append(line_clean)
-        elif any(
-            k in line_up
-            for k in ('CALLE', 'C/ ', 'AVE', 'AVENIDA', 'KM', 'ROAD', 'ROUTE', 'RR')
-        ) or re.search(r'^\d', line_clean):
+        elif any(k in line_up for k in ('CALLE', 'C/ ', 'AVE', 'AVENIDA', 'KM', 'ROAD', 'ROUTE', 'RR')) or re.search(
+            r'^\d', line_clean
+        ):
             street_lines_list.append(line_clean)
         else:
             other_lines.append(line_clean)
@@ -758,9 +709,7 @@ def _apply_pr_exceptions(text: str) -> str:
     # Reorder Station lines to be ABOVE delivery lines
     if len(postal_lines) > 1:
         for i in range(len(postal_lines) - 1):
-            if 'PO BOX' in postal_lines[i].upper() and any(
-                k in postal_lines[i + 1].upper() for k in ('STA', 'STATION')
-            ):
+            if 'PO BOX' in postal_lines[i].upper() and any(k in postal_lines[i + 1].upper() for k in ('STA', 'STATION')):
                 postal_lines[i], postal_lines[i + 1] = (
                     postal_lines[i + 1],
                     postal_lines[i],
@@ -794,13 +743,8 @@ def _apply_pr_exceptions(text: str) -> str:
             w_upper_pr = w_pr.upper()
             if w_upper_pr in ('URB', 'URBANIZATION') and i + 1 < len(words_pr):
                 next_word_pr = words_pr[i + 1].upper()
-                if (
-                    next_word_pr in PR_URBANIZATION_EXCEPTIONS
-                    or next_word_pr in PR_URBANIZATION_EXCEPTIONS.values()
-                ):
-                    mapped_val_pr = PR_URBANIZATION_EXCEPTIONS.get(
-                        next_word_pr, next_word_pr
-                    )
+                if next_word_pr in PR_URBANIZATION_EXCEPTIONS or next_word_pr in PR_URBANIZATION_EXCEPTIONS.values():
+                    mapped_val_pr = PR_URBANIZATION_EXCEPTIONS.get(next_word_pr, next_word_pr)
                     new_words.append(mapped_val_pr)
                     skip = True
                     continue

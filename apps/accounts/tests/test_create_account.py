@@ -12,7 +12,7 @@ from apps.accounts.constants import (
     DOT_EXT_SIGNAL_LOGGER_NAME,
     LOGIN_MSG_ACTIVATED,
     MAIL_SENT_EVENT,
-    MAILER_EVENT_LOGGERS
+    MAILER_EVENT_LOGGERS,
 )
 from apps.accounts.models import UserProfile, UserIdentificationLabel
 from apps.fhir.bluebutton.models import Crosswalk
@@ -43,12 +43,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.client = Client()
         self.url = reverse('accounts_create_account')
         # Create user self identification choices
-        UserIdentificationLabel.objects.get_or_create(name="Self Identification #1",
-                                                      slug="ident1",
-                                                      weight=1)
-        UserIdentificationLabel.objects.get_or_create(name="Self Identification #2",
-                                                      slug="ident2",
-                                                      weight=2)
+        UserIdentificationLabel.objects.get_or_create(name='Self Identification #1', slug='ident1', weight=1)
+        UserIdentificationLabel.objects.get_or_create(name='Self Identification #2', slug='ident2', weight=2)
         self.logger_registry = redirect_loggers_custom(MAILER_EVENT_LOGGERS)
 
     def tearDown(self):
@@ -60,7 +56,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create an Account Valid
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident2')
         form_data = {
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
@@ -78,9 +74,9 @@ class CreateDeveloperAccountTestCase(TestCase):
 
         # verify username is lowercase
         User = get_user_model()
-        u = User.objects.get(email="bambam@example.com")
-        self.assertEqual(u.username, "bambam@example.com")
-        self.assertEqual(u.email, "bambam@example.com")
+        u = User.objects.get(email='bambam@example.com')
+        self.assertEqual(u.username, 'bambam@example.com')
+        self.assertEqual(u.email, 'bambam@example.com')
 
         # Ensure developer account does not have a crosswalk entry.
         self.assertEqual(Crosswalk.objects.filter(user=u).exists(), False)
@@ -101,7 +97,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         4. subsequent good account verify request return expected login page with expected message
         5. account verify url sent with fabricated key return message indicating there is an issue...
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident2')
         form_data = {
             'email': 'TestActivation@Example.com',
             'organization_name': 'transhealth',
@@ -125,15 +121,15 @@ class CreateDeveloperAccountTestCase(TestCase):
 
         # verify username is lowercase
         User = get_user_model()
-        u = User.objects.get(email="testactivation@example.com")
-        self.assertEqual(u.username, "testactivation@example.com")
-        self.assertEqual(u.email, "testactivation@example.com")
+        u = User.objects.get(email='testactivation@example.com')
+        self.assertEqual(u.username, 'testactivation@example.com')
+        self.assertEqual(u.email, 'testactivation@example.com')
         self.assertFalse(u.is_active)
 
         # Ensure developer account does not have a crosswalk entry.
         self.assertEqual(Crosswalk.objects.filter(user=u).exists(), False)
         key = ActivationKey.objects.get(user=u.id)
-        self.assertEqual(key.key_status, "created")
+        self.assertEqual(key.key_status, 'created')
         self.assertIsNotNone(key.created_at)
         self.assertIsNone(key.expired_at)
         self.assertIsNone(key.activated_at)
@@ -142,7 +138,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         form_data = {'username': 'testactivation@example.com', 'password': 'BEDrocks@123'}
         response = self.client.post(reverse('login'), form_data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Please click the verification link in your email before logging in.")
+        self.assertContains(response, 'Please click the verification link in your email before logging in.')
         # assert there is only one new account verify email sent
         log_rec_mailer = get_log_content(self.logger_registry, ACCT_MAIL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
         self.assertIsNotNone(log_rec_mailer)
@@ -162,7 +158,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(lines[0], MAIL_SENT_EVENT)
 
         log_rec_signal = get_log_content(self.logger_registry, DOT_EXT_SIGNAL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
-        self.assertEqual(log_rec_signal, "")
+        self.assertEqual(log_rec_signal, '')
 
         # simulate account verify link clicked again (it's OK), and should say: account activated
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
@@ -176,13 +172,13 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(lines[0], MAIL_SENT_EVENT)
 
         log_rec_signal = get_log_content(self.logger_registry, DOT_EXT_SIGNAL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
-        self.assertEqual(log_rec_signal, "")
+        self.assertEqual(log_rec_signal, '')
 
         # simulate account verify link played with a fabricated key, indicate issue and show contact
-        response = self.client.get(reverse('activation_verify', args=(key.key + "x",)), follow=True)
+        response = self.client.get(reverse('activation_verify', args=(key.key + 'x',)), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "There may be an issue with your account.")
-        self.assertContains(response, "Contact us at bluebuttonapi@cms.hhs.gov")
+        self.assertContains(response, 'There may be an issue with your account.')
+        self.assertContains(response, 'Contact us at bluebuttonapi@cms.hhs.gov')
 
     @override_switch('signup', active=True)
     @override_switch('login', active=True)
@@ -192,7 +188,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         account verify request sent after the activation key expired, should be redirected to login page
         with message indicating so
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident2')
         form_data = {
             'email': 'TestActivation02@Example.com',
             'organization_name': 'transhealth',
@@ -210,16 +206,16 @@ class CreateDeveloperAccountTestCase(TestCase):
 
         # verify username is lowercase
         User = get_user_model()
-        u = User.objects.get(email="testactivation02@example.com")
-        self.assertEqual(u.username, "testactivation02@example.com")
-        self.assertEqual(u.email, "testactivation02@example.com")
+        u = User.objects.get(email='testactivation02@example.com')
+        self.assertEqual(u.username, 'testactivation02@example.com')
+        self.assertEqual(u.email, 'testactivation02@example.com')
         self.assertFalse(u.is_active)
 
         # Ensure developer account does not have a crosswalk entry.
         self.assertEqual(Crosswalk.objects.filter(user=u).exists(), False)
         key = ActivationKey.objects.get(user=u.id)
         # Initial key has expected attributes values
-        self.assertEqual(key.key_status, "created")
+        self.assertEqual(key.key_status, 'created')
         self.assertIsNotNone(key.created_at)
         self.assertIsNone(key.expired_at)
         self.assertIsNone(key.activated_at)
@@ -233,8 +229,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         # simulate account verify link played with a fabricated key, indicate issue and show contact
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "The activation key is expired.")
-        self.assertContains(response, "Contact us at bluebuttonapi@cms.hhs.gov for further assistance")
+        self.assertContains(response, 'The activation key is expired.')
+        self.assertContains(response, 'Contact us at bluebuttonapi@cms.hhs.gov for further assistance')
 
     @override_switch('signup', active=False)
     @override_switch('login', active=True)
@@ -242,7 +238,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create an Account Valid
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident2')
         form_data = {
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
@@ -260,7 +256,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create account should fail if password is too short
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident2')
         form_data = {
             'invitation_code': '1234',
             'username': 'fred2',
@@ -280,7 +276,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create account should fail if password is too common
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident2')
         form_data = {
             'invitation_code': '1234',
             'username': 'fred',
@@ -300,7 +296,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Account Created on site is a developer and not a benny
         """
-        ident_choice = UserIdentificationLabel.objects.get(slug="ident1")
+        ident_choice = UserIdentificationLabel.objects.get(slug='ident1')
         form_data = {
             'invitation_code': '1234',
             'email': 'hank@example.com',

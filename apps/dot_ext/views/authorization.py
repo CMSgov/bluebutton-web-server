@@ -65,7 +65,6 @@ from apps.constants import (
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
-    LAUNCH_SCOPE,
     OPENID_SCOPE,
     USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
 )
@@ -281,9 +280,7 @@ class AuthorizationView(DotAuthorizationView):
     def sensitive_info_check(self, request):
         for qp in QP_CHECK_LIST:
             if self._has_param(request, qp):
-                return HttpResponseBadRequest(
-                    f'Illegal query parameter [{qp}] detected'
-                )
+                return HttpResponseBadRequest(f'Illegal query parameter [{qp}] detected')
         return None
 
     def get_template_names(self):
@@ -294,10 +291,7 @@ class AuthorizationView(DotAuthorizationView):
             return [default_tpl]
 
         app = getattr(self, 'application', None)
-        if (
-            app is not None
-            and 'coverage-eligibility' in app.get_internal_application_labels()
-        ):
+        if app is not None and 'coverage-eligibility' in app.get_internal_application_labels():
             return ['design_system/authorize_v3_coverage_only.html']
 
         return [default_tpl]
@@ -305,12 +299,12 @@ class AuthorizationView(DotAuthorizationView):
     def get_initial(self):
         initial_data = super().get_initial()
         # Prefer values parsed by DOT (self.oauth2_data); fall back to incoming request (GET/POST)
-        initial_data['code_challenge'] = self.oauth2_data.get(
-            'code_challenge', None
-        ) or self._get_param(self.request, 'code_challenge')
-        initial_data['code_challenge_method'] = self.oauth2_data.get(
-            'code_challenge_method'
-        ) or self._get_param(self.request, 'code_challenge_method')
+        initial_data['code_challenge'] = self.oauth2_data.get('code_challenge', None) or self._get_param(
+            self.request, 'code_challenge'
+        )
+        initial_data['code_challenge_method'] = self.oauth2_data.get('code_challenge_method') or self._get_param(
+            self.request, 'code_challenge_method'
+        )
         return initial_data
 
     def post(self, request, *args, **kwargs):
@@ -340,11 +334,7 @@ class AuthorizationView(DotAuthorizationView):
                 # more times than is needed
                 return
             else:
-                raise AccessDeniedError(
-                    description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(
-                        application.name
-                    )
-                )
+                raise AccessDeniedError(description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
         except ObjectDoesNotExist:
             raise AccessDeniedError(description='Unable to verify permission.')
 
@@ -364,28 +354,20 @@ class AuthorizationView(DotAuthorizationView):
             credentials['code_challenge'] = form.cleaned_data.get('code_challenge')
 
         if form.cleaned_data.get('code_challenge_method'):
-            credentials['code_challenge_method'] = form.cleaned_data.get(
-                'code_challenge_method'
-            )
+            credentials['code_challenge_method'] = form.cleaned_data.get('code_challenge_method')
 
         scopes = form.cleaned_data.get('scope')
         allow = form.cleaned_data.get('allow')
 
         # Get beneficiary demographic scopes sharing choice
         share_demographic_scopes = form.cleaned_data.get('share_demographic_scopes')
-        set_session_auth_flow_trace_value(
-            self.request, 'auth_share_demographic_scopes', share_demographic_scopes
-        )
+        set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
         # Get scopes list available to the application
-        application_available_scopes = CapabilitiesScopes().get_available_scopes(
-            application=application
-        )
+        application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
 
         # Set scopes to those available to application and beneficiary demographic info choices
-        scopes = ' '.join(
-            [s for s in scopes.split(' ') if s in application_available_scopes]
-        )
+        scopes = ' '.join([s for s in scopes.split(' ') if s in application_available_scopes])
 
         # Init deleted counts
         data_access_grant_delete_cnt = 0
@@ -413,9 +395,7 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(
-                    application, self.request.user
-                )
+                ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -434,16 +414,12 @@ class AuthorizationView(DotAuthorizationView):
             return response
 
         # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
-        if share_demographic_scopes == 'False' or (
-            allow is True and application.require_demographic_scopes is False
-        ):
+        if share_demographic_scopes == 'False' or (allow is True and application.require_demographic_scopes is False):
             (
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(
-                application, self.request.user
-            )
+            ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -521,8 +497,7 @@ class ApprovalView(AuthorizationView):
             if (
                 approval.application
                 and approval.application.client_id != request.GET.get('client_id', None)
-                and approval.application.client_id
-                != request.POST.get('client_id', None)
+                and approval.application.client_id != request.POST.get('client_id', None)
             ):
                 raise Approval.DoesNotExist
             request.user = approval.user
@@ -536,11 +511,7 @@ class ApprovalView(AuthorizationView):
 
         result = super().dispatch(request, *args, **kwargs)
 
-        if (
-            hasattr(result, 'headers')
-            and 'Location' in result.headers
-            and 'invalid_scope' in result.headers['Location']
-        ):
+        if hasattr(result, 'headers') and 'Location' in result.headers and 'invalid_scope' in result.headers['Location']:
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Invalid scopes.'},
                 status=HTTPStatus.BAD_REQUEST,
@@ -567,28 +538,18 @@ class TokenView(DotTokenView):
         try:
             url_query = parse_qs(request._body.decode('utf-8'))
             refresh_token_from_request = url_query.get('refresh_token', [None])
-            refresh_token = get_refresh_token_model().objects.get(
-                token=refresh_token_from_request[0]
-            )
-            application = get_application_model().objects.get(
-                id=refresh_token.application_id
-            )
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_from_request[0])
+            application = get_application_model().objects.get(id=refresh_token.application_id)
             application_user = get_user_model().objects.get(id=application.user_id)
 
             if flag.id is None or flag.is_active_for_user(application_user):
                 return
             else:
-                raise AccessDeniedError(
-                    description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(
-                        application.name
-                    )
-                )
+                raise AccessDeniedError(description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
         except ObjectDoesNotExist:
             raise AccessDeniedError(description='Unable to verify permission.')
 
-    def _check_if_client_credentials_call_is_allowed(
-        self, app: Application, version: int
-    ) -> bool:
+    def _check_if_client_credentials_call_is_allowed(self, app: Application, version: int) -> bool:
         """Checks if the version fo the call is v3 + the app is allowed to do this and has a jwks_uri
 
         Args:
@@ -599,9 +560,7 @@ class TokenView(DotTokenView):
             bool: if the app is allowed to make a client_credential call
         """
         if version != Versions.V3:
-            log.warning(
-                f'A client_credentials token call was made for version: {version}'
-            )
+            log.warning(f'A client_credentials token call was made for version: {version}')
             return False
         return app.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES
 
@@ -619,9 +578,7 @@ class TokenView(DotTokenView):
         mbi_hash_user_name = hash_id_value(mbi)
         # check if ANB already exists
         try:
-            user = User.objects.get(
-                username=mbi_hash_user_name
-            )  # want to filter or at least confirm that user is an ANB
+            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
         except User.DoesNotExist:
             # If the user does not already exist, create one (and a bluebutton_crosswalk record)
             user = create_beneficiary_record(
@@ -660,9 +617,7 @@ class TokenView(DotTokenView):
             'client_assertion_type',
             'client_assertion',
         ]
-        missing_params = [
-            param for param in required_params if not request.POST.get(param)
-        ]
+        missing_params = [param for param in required_params if not request.POST.get(param)]
 
         if missing_params:
             return JsonResponse(
@@ -673,18 +628,14 @@ class TokenView(DotTokenView):
                 status=HTTPStatus.BAD_REQUEST,
             )
 
-        if (
-            client_assertion_type := request.POST.get('client_assertion_type')
-        ) != CLIENT_ASSERTION_TYPE_VALUE:
+        if (client_assertion_type := request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
             log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
             raise InvalidRequestError('client_assertion_type was wrong')
 
         # TODO: do we have a function to validate scopes against BBAPI's well-known config?
         return None
 
-    def _validate_authorization_jwt(
-        self, token: str, client_id: str, jwks_client: PyJWKClient
-    ) -> str:
+    def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
         """Validates an authorization JWT and returns the id_token if valid
 
         Args:
@@ -820,9 +771,7 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
 
                 if payload.get('identity_assurance_level') != 2:
-                    log.warning(
-                        f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}'
-                    )
+                    log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
                     raise InvalidRequestError
 
                 # if (
@@ -833,15 +782,11 @@ class TokenView(DotTokenView):
                 #     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('family_name')):
-                    log.warning(
-                        f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
-                    )
+                    log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}')
                     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('given_name')):
-                    log.warning(
-                        f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}'
-                    )
+                    log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}')
                     raise InvalidRequestError
 
                 if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
@@ -882,11 +827,7 @@ class TokenView(DotTokenView):
             )
 
         if payload.get('email'):
-            telecoms.append(
-                ContactPoint(
-                    system='email', value=payload.get('email'), use='home', rank=2
-                )
-            )
+            telecoms.append(ContactPoint(system='email', value=payload.get('email'), use='home', rank=2))
 
         gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
         gender = payload.get('gender', 'u').lower()
@@ -949,9 +890,7 @@ class TokenView(DotTokenView):
                 )
 
         identifiers = []
-        if (
-            ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]
-        ) and len(ssn) == 4:
+        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) == 4:
             ssn_coding = Coding(
                 system=CC_SYSTEM_CODING_SYSTEM,
                 code='SS',
@@ -1006,29 +945,21 @@ class TokenView(DotTokenView):
 
             if grant_type == 'client_credentials':
                 # Check for malformed request
-                request_validation_result = self._validate_client_credentials_request(
-                    request
-                )
+                request_validation_result = self._validate_client_credentials_request(request)
                 if request_validation_result:
                     return request_validation_result
-                allow_client_credentials_call = (
-                    self._check_if_client_credentials_call_is_allowed(app, version)
-                )
+                allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
 
                 if allow_client_credentials_call:
                     # since we're not getting the user info from SLS, don't return openid scope in this flow
                     scopes = request.POST.get('scope', '').split()
-                    if OPENID_SCOPE in scopes or LAUNCH_SCOPE in scopes:
+                    if OPENID_SCOPE in scopes:
                         request.POST._mutable = True
-                        request.POST['scope'] = ' '.join(
-                            s for s in scopes if s != OPENID_SCOPE and s != LAUNCH_SCOPE
-                        )
+                        request.POST['scope'] = ' '.join(s for s in scopes if s != OPENID_SCOPE)
                         request.POST._mutable = False
 
                     # Allow client credentials call to proceed, to be implemented in a later ticket
-                    log.info(
-                        f'client_credentials token call was made for app: {app.name}'
-                    )
+                    log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
                         # Top level (application authorization) JWT validation
                         id_token = self._validate_authorization_jwt(
@@ -1038,18 +969,14 @@ class TokenView(DotTokenView):
                         )
 
                         # Determine if this is CLEAR or ID.ME
-                        pre_verified_ial = jwt.decode(
-                            id_token, options={'verify_signature': False}
-                        )
+                        pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
                         csp_jwks = JWKS_URLS.get(pre_verified_ial.get('iss', ''))
 
                         if not csp_jwks:
                             log.warning('id_token did not have a valid iss')
                             raise InvalidGrantError
 
-                        ial_valid = self._validate_ial_jwt(
-                            id_token, PyJWKClient(csp_jwks)
-                        )
+                        ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
                         if not ial_valid:
                             # at the moment, any validation error raises the exception inside
                             # probably refactor moment
@@ -1070,9 +997,7 @@ class TokenView(DotTokenView):
                             headers=headers,
                             method='POST',
                         )
-                        patient_match_found, patient = is_patient_match_found(
-                            patient_bundle, index=1
-                        )
+                        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
                         if patient_match_found and patient:
                             mbi = extract_mbi_from_patient(patient)
                             fhir_id = extract_fhir_id_from_patient(patient)
@@ -1083,13 +1008,9 @@ class TokenView(DotTokenView):
 
                             # create_or_update dag
                             # Do we need to return the dag here?
-                            create_or_update_data_access_grant_client_credential_flow(
-                                user, app
-                            )
+                            create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
-                            log.debug(
-                                f'No patient match found for client_credentials call for app: {app.name}'
-                            )
+                            log.debug(f'No patient match found for client_credentials call for app: {app.name}')
                             return JsonResponse(
                                 {
                                     'status_code': HTTPStatus.NOT_FOUND,
@@ -1107,22 +1028,13 @@ class TokenView(DotTokenView):
                             status=HTTPStatus.BAD_REQUEST,
                         )
                 else:
-                    error_message = (
-                        APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
-                            app.name
-                        )
-                    )
+                    error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
                     return JsonResponse(
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                         status=HTTPStatus.FORBIDDEN,
                     )
-            elif (
-                grant_type == 'authorization_code'
-                and app.allowed_auth_type == 'CLIENT_CREDENTIALS'
-            ):
-                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
-                    app.name
-                )
+            elif grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
+                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
                 return JsonResponse(
                     {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                     status=HTTPStatus.FORBIDDEN,
@@ -1162,19 +1074,13 @@ class TokenView(DotTokenView):
                 dag_expiry = ''
                 if app.data_access_type == 'THIRTEEN_MONTH':
                     try:
-                        dag = DataAccessGrant.objects.get(
-                            beneficiary=token.user, application=app
-                        )
+                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if dag.expiration_date is not None:
-                            dag_expiry = strftime(
-                                '%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple()
-                            )
+                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ''
                 elif app.data_access_type == 'ONE_TIME':
-                    expires_at = datetime.utcnow() + timedelta(
-                        seconds=body['expires_in']
-                    )
+                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
                     dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
                 elif app.data_access_type == 'RESEARCH_STUDY':
                     dag_expiry = ''
@@ -1192,9 +1098,7 @@ class TokenView(DotTokenView):
                             request,
                         )
                     except Crosswalk.DoesNotExist:
-                        log.debug(
-                            'Unable to find crosswalk record during a token refresh'
-                        )
+                        log.debug('Unable to find crosswalk record during a token refresh')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.NOT_FOUND,

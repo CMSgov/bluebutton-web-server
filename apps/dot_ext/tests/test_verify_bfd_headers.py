@@ -14,16 +14,14 @@ from apps.test import BaseApiTest
 from apps.dot_ext.models import Application
 
 
-def create_patient_capability(
-    group, fhir_prefix, title="My general patient and demographic information."
-):
+def create_patient_capability(group, fhir_prefix, title='My general patient and demographic information.'):
 
     c = None
-    description = "Patient FHIR Resource"
-    smart_scope_string = "patient/Patient.read"
+    description = 'Patient FHIR Resource'
+    smart_scope_string = 'patient/Patient.read'
     pr = []
-    pr.append(["GET", "%sPatient/" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]" % fhir_prefix])
+    pr.append(['GET', '%sPatient/' % fhir_prefix])
+    pr.append(['GET', '%sPatient/[id]' % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(
             group=group,
@@ -37,9 +35,9 @@ def create_patient_capability(
 
 class TestBFDHeaders(BaseApiTest):
     def fetching_data(self, sender, request=None, **kwargs):
-        hdr = request.headers.get("includeAddressFields")
+        hdr = request.headers.get('includeAddressFields')
         self.assertTrue(hdr)
-        self.assertEqual(hdr, "False")
+        self.assertEqual(hdr, 'False')
 
     def setUp(self):
         # found this test silently went through without testing the header's present
@@ -57,55 +55,55 @@ class TestBFDHeaders(BaseApiTest):
         self.client.force_login(user)
         # post the authorization form with only one scope selected
         payload = {
-            "client_id": application.client_id,
-            "response_type": "code",
-            "redirect_uri": application.redirect_uris,
-            "scope": application.scopes().split(" "),
-            "expires_in": 86400,
-            "allow": True,
-            "state": "0123456789abcdef",
-            "share_demographic_scopes": True
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'scope': application.scopes().split(' '),
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+            'share_demographic_scopes': True,
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
-            payload["response_type"] = "token"
-        response = self.client.post("/v1/o/authorize/", data=payload)
+            payload['response_type'] = 'token'
+        response = self.client.post('/v1/o/authorize/', data=payload)
         self.client.logout()
         if response.status_code != 302:
             raise Exception(response.context_data)
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
-            fragment = parse_qs(urlparse(response["Location"]).fragment)
-            tkn = fragment.pop("access_token")[0]
+            fragment = parse_qs(urlparse(response['Location']).fragment)
+            tkn = fragment.pop('access_token')[0]
         else:
-            query_dict = parse_qs(urlparse(response["Location"]).query)
-            authorization_code = query_dict.pop("code")
+            query_dict = parse_qs(urlparse(response['Location']).query)
+            authorization_code = query_dict.pop('code')
             token_request_data = {
-                "grant_type": "authorization_code",
-                "code": authorization_code,
-                "redirect_uri": application.redirect_uris,
-                "client_id": application.client_id,
-                "client_secret": application.client_secret_plain,
+                'grant_type': 'authorization_code',
+                'code': authorization_code,
+                'redirect_uri': application.redirect_uris,
+                'client_id': application.client_id,
+                'client_secret': application.client_secret_plain,
             }
 
-            response = self.client.post("/v1/o/token/", data=token_request_data)
+            response = self.client.post('/v1/o/token/', data=token_request_data)
             self.assertEqual(response.status_code, 200)
             # Now we have a token and refresh token
-            tkn = response.json()["access_token"]
+            tkn = response.json()['access_token']
 
         t = AccessToken.objects.get(token=tkn)
         return t
 
     def test_fhir_request_has_header(self):
         # create an app for a user and obtain a token
-        anna = self._create_user("anna", "123456", fhir_id_v2="-20140000008325")
+        anna = self._create_user('anna', '123456', fhir_id_v2='-20140000008325')
         application = self._create_application(
-            "an app",
+            'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris="http://example.it",
+            redirect_uris='http://example.it',
         )
-        fhir_prefix = "/v1/fhir/"
-        test_grp = self._create_group("test")
+        fhir_prefix = '/v1/fhir/'
+        test_grp = self._create_group('test')
         pt_cap = create_patient_capability(test_grp, fhir_prefix)
         application.scope.add(pt_cap)
         tkn = self._create_test_token(anna, application)
@@ -120,57 +118,51 @@ class TestBFDHeaders(BaseApiTest):
         @all_requests
         def catchall(url, req):
             return {
-                "status_code": 200,
-                "content": {
-                    "resourceType": "Patient",
-                    "id": "-20140000008325",
-                    "extension": [
+                'status_code': 200,
+                'content': {
+                    'resourceType': 'Patient',
+                    'id': '-20140000008325',
+                    'extension': [
                         {
-                            "url": "https://bluebutton.cms.gov/resources/variables/race",
-                            "valueCoding": {
-                                "system": "https://bluebutton.cms.gov/resources/variables/race",
-                                "code": "1",
-                                "display": "White",
+                            'url': 'https://bluebutton.cms.gov/resources/variables/race',
+                            'valueCoding': {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/race',
+                                'code': '1',
+                                'display': 'White',
                             },
                         }
                     ],
-                    "identifier": [
+                    'identifier': [
                         {
-                            "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                            "value": "-20140000008325",
+                            'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                            'value': '-20140000008325',
                         },
                         {
-                            "system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash",
-                            "value": "2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5",
+                            'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash',
+                            'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5',
                         },
                     ],
-                    "name": [{"use": "usual", "family": "Doe", "given": ["Jane", "X"]}],
-                    "gender": "unknown",
-                    "birthDate": "2014-06-01",
-                    "address": [
-                        {"district": "999", "state": "15", "postalCode": "99999"}
-                    ],
+                    'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}],
+                    'gender': 'unknown',
+                    'birthDate': '2014-06-01',
+                    'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
                 },  # noqa
             }
 
         with HTTMock(catchall):
+            response = self.client.get('/v1/fhir/Patient', headers={'authorization': 'Bearer ' + tkn.token})
+            self.assertEqual(response.status_code, 200)
+            # v2 support
+            response = self.client.get('/v2/fhir/Patient', headers={'authorization': 'Bearer ' + tkn.token})
+            self.assertEqual(response.status_code, 200)
             response = self.client.get(
-                "/v1/fhir/Patient", headers={"authorization": "Bearer " + tkn.token}
+                '/v1/fhir/Patient/-20140000008325',
+                headers={'authorization': 'Bearer ' + tkn.token},
             )
             self.assertEqual(response.status_code, 200)
             # v2 support
             response = self.client.get(
-                "/v2/fhir/Patient", headers={"authorization": "Bearer " + tkn.token}
-            )
-            self.assertEqual(response.status_code, 200)
-            response = self.client.get(
-                "/v1/fhir/Patient/-20140000008325",
-                headers={"authorization": "Bearer " + tkn.token},
-            )
-            self.assertEqual(response.status_code, 200)
-            # v2 support
-            response = self.client.get(
-                "/v2/fhir/Patient/-20140000008325",
-                headers={"authorization": "Bearer " + tkn.token},
+                '/v2/fhir/Patient/-20140000008325',
+                headers={'authorization': 'Bearer ' + tkn.token},
             )
             self.assertEqual(response.status_code, 200)

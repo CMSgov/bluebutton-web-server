@@ -19,7 +19,7 @@ from apps.mymedicare_cb.constants import (
     MAX_MBI_LENGTH,
     BBMyMedicareCallbackCrosswalkCreateException,
     BBMyMedicareCallbackCrosswalkUpdateException,
-    MedicareCallbackExceptionType
+    MedicareCallbackExceptionType,
 )
 
 
@@ -71,7 +71,6 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
 
     versioned_match_fhir_id_results = {}
     for supported_version in Versions.latest_versions():
-
         match_fhir_id_result = match_fhir_id(
             mbi=mbi,
             hicn_hash=hicn_hash,
@@ -142,15 +141,17 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
             or update_fhir_id
         ):
             # Log crosswalk before state
-            log_dict.update({
-                'crosswalk_before': {
-                    'id': user.crosswalk.id,
-                    'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                    'fhir_id_v2': bfd_fhir_id_v2,
-                    'fhir_id_v3': bfd_fhir_id_v3,
-                    'user_id_type': user.crosswalk.user_id_type,
-                },
-            })
+            log_dict.update(
+                {
+                    'crosswalk_before': {
+                        'id': user.crosswalk.id,
+                        'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                        'fhir_id_v2': bfd_fhir_id_v2,
+                        'fhir_id_v3': bfd_fhir_id_v3,
+                        'user_id_type': user.crosswalk.user_id_type,
+                    },
+                }
+            )
 
             with transaction.atomic():
                 # Archive to audit crosswalk changes
@@ -172,20 +173,22 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
-        log_dict.update({
-            'status': 'OK',
-            'user_id': user.id,
-            'user_username': user.username,
-            'hicn_updated': hicn_updated,
-            'mesg': 'RETURN existing beneficiary record',
-            'crosswalk': {
-                'id': user.crosswalk.id,
-                'user_hicn_hash': user.crosswalk.user_hicn_hash,
-                'fhir_id_v2': bfd_fhir_id_v2,
-                'fhir_id_v3': bfd_fhir_id_v3,
-                'user_id_type': user.crosswalk.user_id_type,
-            },
-        })
+        log_dict.update(
+            {
+                'status': 'OK',
+                'user_id': user.id,
+                'user_username': user.username,
+                'hicn_updated': hicn_updated,
+                'mesg': 'RETURN existing beneficiary record',
+                'crosswalk': {
+                    'id': user.crosswalk.id,
+                    'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                    'fhir_id_v2': bfd_fhir_id_v2,
+                    'fhir_id_v3': bfd_fhir_id_v3,
+                    'user_id_type': user.crosswalk.user_id_type,
+                },
+            }
+        )
         logger.info(log_dict)
 
         return user, 'R'
@@ -194,11 +197,13 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # Do NOT attempt to create a beneficiary record here — creation requires
         # data from an SLSx client and is only valid during initial auth.
         if slsx_client is None:
-            log_dict.update({
-                'status': 'FAIL',
-                'user_id': user_id,
-                'mesg': 'User not found on refresh; not creating new beneficiary record',
-            })
+            log_dict.update(
+                {
+                    'status': 'FAIL',
+                    'user_id': user_id,
+                    'mesg': 'User not found on refresh; not creating new beneficiary record',
+                }
+            )
             logger.info(log_dict)
             return None, 'NF'
 
@@ -208,56 +213,43 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # will populate `fhir_id_v3` even if the session/API version was v2.
 
         user = create_beneficiary_record_from_slsx_client(
-            slsx_client,
-            fhir_id_v2=bfd_fhir_id_v2,
-            fhir_id_v3=bfd_fhir_id_v3,
-            user_id_type=version_user_id_type,
-            request=request
+            slsx_client, fhir_id_v2=bfd_fhir_id_v2, fhir_id_v3=bfd_fhir_id_v3, user_id_type=version_user_id_type, request=request
         )
 
-    log_dict.update({
-        'status': 'OK',
-        'user_id': user.id,
-        'user_username': user.username,
-        'hicn_updated': hicn_updated,
-        'mesg': 'CREATE beneficiary record',
-        'crosswalk': {
-            'id': user.crosswalk.id,
-            'user_hicn_hash': user.crosswalk.user_hicn_hash,
-            'fhir_id_v2': bfd_fhir_id_v2,
-            'fhir_id_v3': bfd_fhir_id_v3,
-            'user_id_type': user.crosswalk.user_id_type,
-        },
-    })
+    log_dict.update(
+        {
+            'status': 'OK',
+            'user_id': user.id,
+            'user_username': user.username,
+            'hicn_updated': hicn_updated,
+            'mesg': 'CREATE beneficiary record',
+            'crosswalk': {
+                'id': user.crosswalk.id,
+                'user_hicn_hash': user.crosswalk.user_hicn_hash,
+                'fhir_id_v2': bfd_fhir_id_v2,
+                'fhir_id_v3': bfd_fhir_id_v3,
+                'user_id_type': user.crosswalk.user_id_type,
+            },
+        }
+    )
     logger.info(log_dict)
 
     return user, 'C'
 
 
 def get_and_update_from_refresh(mbi, user_id, hicn_hash, request):
-    return __get_and_update_user(
-        mbi,
-        user_id,
-        hicn_hash,
-        request,
-        'refresh'
-    )
+    return __get_and_update_user(mbi, user_id, hicn_hash, request, 'refresh')
 
 
 def get_and_update_user_from_initial_auth(slsx_client: OAuth2ConfigSLSx, request):
     return __get_and_update_user(
-        slsx_client.mbi,
-        slsx_client.user_id,
-        slsx_client.hicn_hash,
-        request,
-        'initial_auth',
-        slsx_client=slsx_client
+        slsx_client.mbi, slsx_client.user_id, slsx_client.hicn_hash, request, 'initial_auth', slsx_client=slsx_client
     )
 
 
 def _match_fhir_id_error_should_be_checked(
-        request_version: int,
-        match_fhir_id_version: int,
+    request_version: int,
+    match_fhir_id_version: int,
 ) -> bool:
     """Determine if we check the errors returned by match_fhir_id.
     We want to do that if the request_version/match_fhir_id version match,
@@ -277,17 +269,37 @@ def _match_fhir_id_error_should_be_checked(
     return False
 
 
-def create_beneficiary_record_from_slsx_client(slsx_client: OAuth2ConfigSLSx,
-                                               fhir_id_v2=None, fhir_id_v3=None,
-                                               user_id_type='H', request=None) -> User:
-    return create_beneficiary_record(slsx_client.user_id, slsx_client.mbi, slsx_client.hicn_hash,
-                                     slsx_client.firstname, slsx_client.lastname, slsx_client.email,
-                                     fhir_id_v2, fhir_id_v3, user_id_type, request, USER_TYPE_BENEFICIARY)
+def create_beneficiary_record_from_slsx_client(
+    slsx_client: OAuth2ConfigSLSx, fhir_id_v2=None, fhir_id_v3=None, user_id_type='H', request=None
+) -> User:
+    return create_beneficiary_record(
+        slsx_client.user_id,
+        slsx_client.mbi,
+        slsx_client.hicn_hash,
+        slsx_client.firstname,
+        slsx_client.lastname,
+        slsx_client.email,
+        fhir_id_v2,
+        fhir_id_v3,
+        user_id_type,
+        request,
+        USER_TYPE_BENEFICIARY,
+    )
 
 
-def create_beneficiary_record(username, user_mbi, hicn_hash=None, firstname='', lastname='', email='',
-                              fhir_id_v2=None, fhir_id_v3=None,
-                              user_id_type='H', request=None, user_type=USER_TYPE_BENEFICIARY) -> User:
+def create_beneficiary_record(
+    username,
+    user_mbi,
+    hicn_hash=None,
+    firstname='',
+    lastname='',
+    email='',
+    fhir_id_v2=None,
+    fhir_id_v3=None,
+    user_id_type='H',
+    request=None,
+    user_type=USER_TYPE_BENEFICIARY,
+) -> User:
     """function that takes meta information and creates a User, Crosswalk, and UserProfile
 
     Args:
@@ -311,30 +323,55 @@ def create_beneficiary_record(username, user_mbi, hicn_hash=None, firstname='', 
         'crosswalk': {},
     }
 
-    _validate_asserts(logger, log_dict, [
-        (username is None or username == '',
-         'username can not be None or empty string',
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (hicn_hash is not None and len(hicn_hash) != MAX_HICN_HASH_LENGTH,
-         'incorrect user HICN hash format',
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (user_mbi is not None and len(user_mbi) != MAX_MBI_LENGTH,
-         'incorrect user MBI format',
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
-        (User.objects.filter(username=username).exists(),
-         'user already exists',
-         MedicareCallbackExceptionType.VALIDATION_ERROR, username),
-        (fhir_id_v2 == '', 'fhir_id_v2 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2),
-        (fhir_id_v3 == '', 'fhir_id_v3 can not be an empty string', MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v3),
-        (fhir_id_v2 is None and fhir_id_v3 is None, 'a crosswalk must contain at least one valid fhir_id',
-         MedicareCallbackExceptionType.CALLBACK_CW_CREATE, fhir_id_v2, fhir_id_v3)
-    ])
+    _validate_asserts(
+        logger,
+        log_dict,
+        [
+            (
+                username is None or username == '',
+                'username can not be None or empty string',
+                MedicareCallbackExceptionType.CALLBACK_CW_CREATE,
+            ),
+            (
+                hicn_hash is not None and len(hicn_hash) != MAX_HICN_HASH_LENGTH,
+                'incorrect user HICN hash format',
+                MedicareCallbackExceptionType.CALLBACK_CW_CREATE,
+            ),
+            (
+                user_mbi is not None and len(user_mbi) != MAX_MBI_LENGTH,
+                'incorrect user MBI format',
+                MedicareCallbackExceptionType.CALLBACK_CW_CREATE,
+            ),
+            (
+                User.objects.filter(username=username).exists(),
+                'user already exists',
+                MedicareCallbackExceptionType.VALIDATION_ERROR,
+                username,
+            ),
+            (
+                fhir_id_v2 == '',
+                'fhir_id_v2 can not be an empty string',
+                MedicareCallbackExceptionType.CALLBACK_CW_CREATE,
+                fhir_id_v2,
+            ),
+            (
+                fhir_id_v3 == '',
+                'fhir_id_v3 can not be an empty string',
+                MedicareCallbackExceptionType.CALLBACK_CW_CREATE,
+                fhir_id_v3,
+            ),
+            (
+                fhir_id_v2 is None and fhir_id_v3 is None,
+                'a crosswalk must contain at least one valid fhir_id',
+                MedicareCallbackExceptionType.CALLBACK_CW_CREATE,
+                fhir_id_v2,
+                fhir_id_v3,
+            ),
+        ],
+    )
 
     with transaction.atomic():
-        user = User(username=username,
-                    first_name=firstname,
-                    last_name=lastname,
-                    email=email)
+        user = User(username=username, first_name=firstname, last_name=lastname, email=email)
         user.set_unusable_password()
         user.save()
         cw = Crosswalk.objects.create(
@@ -352,17 +389,19 @@ def create_beneficiary_record(username, user_mbi, hicn_hash=None, firstname='', 
         group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
         user.groups.add(group)
 
-        log_dict.update({
-            'status': 'OK',
-            'mesg': 'CREATE beneficiary record',
-            'crosswalk': {
-                'id': cw.id,
-                'user_hicn_hash': cw.user_hicn_hash,
-                'fhir_id_v2': cw.fhir_id(Versions.V2),
-                'fhir_id_v3': cw.fhir_id(Versions.V3),
-                'user_id_type': cw.user_id_type,
-            },
-        })
+        log_dict.update(
+            {
+                'status': 'OK',
+                'mesg': 'CREATE beneficiary record',
+                'crosswalk': {
+                    'id': cw.id,
+                    'user_hicn_hash': cw.user_hicn_hash,
+                    'fhir_id_v2': cw.fhir_id(Versions.V2),
+                    'fhir_id_v3': cw.fhir_id(Versions.V3),
+                    'user_id_type': cw.user_id_type,
+                },
+            }
+        )
         logger.info(log_dict)
 
     return user

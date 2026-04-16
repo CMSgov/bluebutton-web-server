@@ -46,20 +46,15 @@
 /bb/${env}/app/sensitive/slsx_signout_endpoint: CHANGE_ME
 /bb/${env}/app/sensitive/slsx_userinfo_endpoint: CHANGE_ME
 /bb/${env}/app/sensitive/slsx_health_check_endpoint: CHANGE_ME
-/bb/${env}/app/nonsensitive/slsx_verify_ssl_internal: "True"
-/bb/${env}/app/nonsensitive/slsx_verify_ssl_external: "True"
+/bb/${env}/app/nonsensitive/django_slsx_verify_ssl_internal: "True"
+/bb/${env}/app/nonsensitive/django_slsx_verify_ssl_external: "True"
 
 # ============================================================================
-# Email (AWS SES)
+# Email (AWS SES via django-ses — uses IAM role, no SMTP credentials needed)
 # ============================================================================
-/bb/${env}/app/sensitive/email_host_user: CHANGE_ME
-/bb/${env}/app/sensitive/email_host_password: CHANGE_ME
-/bb/${env}/app/nonsensitive/email_host: "email-smtp.us-east-1.amazonaws.com"
-/bb/${env}/app/nonsensitive/email_port: "587"
-/bb/${env}/app/nonsensitive/email_use_tls: "True"
-/bb/${env}/app/nonsensitive/email_backend: "django_ses.SESBackend"
-/bb/${env}/app/nonsensitive/from_email: "BlueButtonAPI@cms.hhs.gov"
-/bb/${env}/app/nonsensitive/admin_email: "BlueButtonAPI@cms.hhs.gov"
+/bb/${env}/app/nonsensitive/django_email_backend: "django_ses.SESBackend"
+/bb/${env}/app/nonsensitive/django_from_email: "BlueButtonAPI@cms.hhs.gov"
+/bb/${env}/app/nonsensitive/django_admin_email: "BlueButtonAPI@cms.hhs.gov"
 
 # ============================================================================
 # NewRelic

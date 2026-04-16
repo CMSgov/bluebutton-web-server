@@ -30,6 +30,4 @@ class V3EarlyAdopterWellKnownPermission(permissions.BasePermission):
         if flag.id is None or flag.is_active_for_user(application_user):
             return True
         else:
-            raise PermissionDenied(
-                APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name)
-            )
+            raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))

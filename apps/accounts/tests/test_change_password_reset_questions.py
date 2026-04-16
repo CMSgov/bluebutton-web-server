@@ -13,14 +13,14 @@ class ChangePasswordResetQuestionsTestCase(TestCase):
     """
 
     def setUp(self):
-        u = User.objects.create_user(username="fred",
-                                     first_name="Fred",
-                                     last_name="Flinstone",
-                                     email='fred@example.com',
-                                     password="foobar",)
-        UserProfile.objects.create(user=u,
-                                   user_type=USER_TYPE_DEV,
-                                   create_applications=True)
+        u = User.objects.create_user(
+            username='fred',
+            first_name='Fred',
+            last_name='Flinstone',
+            email='fred@example.com',
+            password='foobar',
+        )
+        UserProfile.objects.create(user=u, user_type=USER_TYPE_DEV, create_applications=True)
         self.client = Client()
 
     @override_switch('login', active=True)
