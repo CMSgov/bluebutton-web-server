@@ -1,4 +1,3 @@
-
 # Enrollment and Identity Proofing. NIST SP 800-63-33 B
 # Authenticator Assurance Level
 AAL_CHOICES = (
@@ -9,15 +8,15 @@ AAL_CHOICES = (
     ('3', 'AAL3'),
 )
 ADDITION = 1
-ACCT_ACTIVATED_MSG = '''Your account has been activated. You may now login.'''
-ACCT_HAS_ISSUE_MSG = '''There may be an issue with your account.
-                Contact us at bluebuttonapi@cms.hhs.gov'''
+ACCT_ACTIVATED_MSG = """Your account has been activated. You may now login."""
+ACCT_HAS_ISSUE_MSG = """There may be an issue with your account.
+                Contact us at bluebuttonapi@cms.hhs.gov"""
 ACCT_MAIL_LOGGER_NAME = 'hhs_server.apps.accounts.emails'
 CHANGE = 2
 DELETION = 3
 DOT_EXT_SIGNAL_LOGGER_NAME = 'hhs_server.apps.dot_ext.signals'
 # Set the default Encoding standard. typically 'utf-8'
-ENCODED = "utf-8"
+ENCODED = 'utf-8'
 
 # Enrollment and Identity Proofing. NIST SP 800-63-3 A
 # Identity assurance level
@@ -29,8 +28,8 @@ IAL_CHOICES = (
     ('3', 'IAL3'),
 )
 
-LINK_EXPIRED_MSG = '''The activation key is expired.
-                Contact us at bluebuttonapi@cms.hhs.gov for further assistance'''
+LINK_EXPIRED_MSG = """The activation key is expired.
+                Contact us at bluebuttonapi@cms.hhs.gov for further assistance"""
 
 # Enrollment and Identity Proofing. NIST SP 800-63-A
 # Level of Assurance - Legacy/Deprecated  See NIST SP 800-63-2
@@ -61,51 +60,46 @@ QUESTION_2_CHOICES = (
 
 QUESTION_3_CHOICES = (
     ('1', 'What was the make of your first automobile?'),
-    ('2', 'What was your maternal grandmother\'s maiden name?'),
-    ('3', 'What was your paternal grandmother\'s maiden name?'),
-)
-
-USER_CHOICES = (
-    ('BEN', 'Beneficiary'),
-    ('DEV', 'Developer'),
+    ('2', "What was your maternal grandmother's maiden name?"),
+    ('3', "What was your paternal grandmother's maiden name?"),
 )
 
 # password rules used by validator: PasswordComplexityValidator,
 # this is part of the validation logic, exercise caution when make changes
 PASSWORD_RULES = [
     {
-        "name": "min_length_digit",
-        "regex": "[0-9]",
-        "msg": "Password must contain at least {} digit(s).",
-        "help": "{} digit(s)",
-        "min_len": 1,
+        'name': 'min_length_digit',
+        'regex': '[0-9]',
+        'msg': 'Password must contain at least {} digit(s).',
+        'help': '{} digit(s)',
+        'min_len': 1,
     },
     {
-        "name": "min_length_alpha",
-        "regex": "[a-zA-Z]",
-        "msg": "Password must contain at least {} letter(s).",
-        "help": "{} letter(s)",
-        "min_len": 1,
+        'name': 'min_length_alpha',
+        'regex': '[a-zA-Z]',
+        'msg': 'Password must contain at least {} letter(s).',
+        'help': '{} letter(s)',
+        'min_len': 1,
     },
     {
-        "name": "min_length_special",
-        "regex": "[~!{}@#$%^&*_+\":;()'[]",
-        "msg": "Password must contain at least {} special character(s).",
-        "help": "{} special char(s)",
-        "min_len": 1,
+        'name': 'min_length_special',
+        'regex': '[~!{}@#$%^&*_+":;()\'[]',
+        'msg': 'Password must contain at least {} special character(s).',
+        'help': '{} special char(s)',
+        'min_len': 1,
     },
     {
-        "name": "min_length_lower",
-        "regex": "[a-z]",
-        "msg": "Password must contain at least {} lower case letter(s)",
-        "help": "{} lower case char(s)",
-        "min_len": 1,
+        'name': 'min_length_lower',
+        'regex': '[a-z]',
+        'msg': 'Password must contain at least {} lower case letter(s)',
+        'help': '{} lower case char(s)',
+        'min_len': 1,
     },
     {
-        "name": "min_length_upper",
-        "regex": "[A-Z]",
-        "msg": "Password must contain at least {} upper case letter(s).",
-        "help": "{} upper case char(s)",
-        "min_len": 1,
+        'name': 'min_length_upper',
+        'regex': '[A-Z]',
+        'msg': 'Password must contain at least {} upper case letter(s).',
+        'help': '{} upper case char(s)',
+        'min_len': 1,
     },
 ]

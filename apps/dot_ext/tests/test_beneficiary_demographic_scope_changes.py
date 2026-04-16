@@ -3,6 +3,7 @@ from apps.test import BaseApiTest
 from django.core.management import call_command
 from django.http import HttpRequest
 from django.urls import reverse
+
 # from oauth2_provider.compat import parse_qs, urlparse
 from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import AccessToken, RefreshToken
@@ -11,10 +12,10 @@ from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import ArchivedToken, Application
 from http import HTTPStatus
+from unittest import mock
 
 
 class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
-
     @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
@@ -32,7 +33,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
 
         response.status_code
-        content = json.loads(response.content.decode("utf-8"))
+        content = json.loads(response.content.decode('utf-8'))
         token = AccessToken.objects.get(token=content['access_token'])
         refresh_token = content['refresh_token']
         response_scopes = sorted(content['scope'].split())
@@ -50,7 +51,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
             self.assertEqual(response.status_code, 403)
 
     @override_switch('require-scopes', active=True)
-    def test_bene_demo_scopes_change(self):
+    @mock.patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    def test_bene_demo_scopes_change(self, mock_get_and_update):
         """
         Test authorization related to different, beneficiary "share_demographic_scopes"
         choices made on subsequent authorizations.
@@ -59,14 +61,18 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         beneficiary's sharing choice. Tokens should be deleted when the choices is to
         NOT share demographic scopes.
         """
+
+        # Configure mocks
+        mock_get_and_update.return_value = None
+
         call_command('create_blue_button_scopes')
         # create a user
         self._create_user('anna', '123456')
 
         # create an application and add some extra capabilities
         application = self._create_application(
-            'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris='http://example.it')
+            'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE, redirect_uris='http://example.it'
+        )
 
         # Give the app some additional scopes.
         capability_a = self._create_capability('Capability A', [])
@@ -78,11 +84,20 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.client.login(request=request, username='anna', password='123456')
 
         # Scopes lists for testing
-        APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
-                                   'patient/ExplanationOfBenefit.read', 'patient/Coverage.read',
-                                   'capability-a', 'capability-b']
-        APPLICATION_SCOPES_NON_DEMOGRAPHIC = ['patient/ExplanationOfBenefit.read',
-                                              'patient/Coverage.read', 'capability-a', 'capability-b']
+        APPLICATION_SCOPES_FULL = [
+            'patient/Patient.read',
+            'profile',
+            'patient/ExplanationOfBenefit.read',
+            'patient/Coverage.read',
+            'capability-a',
+            'capability-b',
+        ]
+        APPLICATION_SCOPES_NON_DEMOGRAPHIC = [
+            'patient/ExplanationOfBenefit.read',
+            'patient/Coverage.read',
+            'capability-a',
+            'capability-b',
+        ]
 
         # Setup request parameters for test case
         request_scopes = APPLICATION_SCOPES_FULL
@@ -90,13 +105,14 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Init API client for request calls
         client = APIClient()
 
-        payload = {'client_id': application.client_id,
-                   'response_type': 'code',
-                   'redirect_uri': 'http://example.it',
-                   'expires_in': 86400,
-                   'allow': True,
-                   "state": "0123456789abcdef",
-                   }
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': 'http://example.it',
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+        }
 
         request_scopes = APPLICATION_SCOPES_FULL
         # Scopes to be requested in the authorization request
@@ -106,8 +122,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
-        token_1, refresh_token_1, status_code, \
-            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
+        token_1, refresh_token_1, status_code, response_scopes, access_token_scopes = self._authorize_and_request_token(
+            payload, application
+        )
 
         # Assert auth request was successful
         self.assertEqual(status_code, 200)
@@ -119,8 +136,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
         # Assert access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_1.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_1.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
         # ------ TEST #2:  Test refresh of token_1
@@ -132,7 +149,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
             'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
-        content = json.loads(response.content.decode("utf-8"))
+        content = json.loads(response.content.decode('utf-8'))
 
         # Assert successful
         self.assertEqual(response.status_code, 200)
@@ -147,8 +164,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
         # Assert access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
         # Verify token counts expected.
@@ -164,8 +181,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['share_demographic_scopes'] = False
 
         # Perform authorization request
-        token_3, refresh_token_3, status_code, \
-            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
+        token_3, refresh_token_3, status_code, response_scopes, access_token_scopes = self._authorize_and_request_token(
+            payload, application
+        )
 
         # Assert auth request was successful
         self.assertEqual(status_code, 200)
@@ -177,8 +195,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_NON_DEMOGRAPHIC))
 
         # Assert NO access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_3.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_3.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 403)
 
         # Verify token counts expected.
@@ -192,13 +210,13 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
 
         # ------ TEST #4:  Test token_1 from TEST #1 access to userinfo? Does it still have access? ------
         # Setup token in APIClient
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_1.token)
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_1.token)
 
         # Test access to userinfo end point? NO ACCESS!
-        response = client.get("/v1/connect/userinfo")
+        response = client.get('/v1/connect/userinfo')
         content = json.loads(response.content)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(content.get('detail', None), "Authentication credentials were not provided.")
+        self.assertEqual(content.get('detail', None), 'Authentication credentials were not provided.')
 
         # ------ TEST #5:  Test token_1 from TEST #1 token refresh? NO ACCESS!
         refresh_request_data = {
@@ -218,8 +236,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
-        token_6, refresh_token_6, status_code, \
-            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
+        token_6, refresh_token_6, status_code, response_scopes, access_token_scopes = self._authorize_and_request_token(
+            payload, application
+        )
 
         # Assert auth request was successful
         self.assertEqual(status_code, 200)
@@ -231,20 +250,20 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
         # Assert access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_6.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_6.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
         # ------ TEST #7: Test token_3 from TEST #3 again. It should still have access, but no permission with status=403.
 
         # Setup token_3 in APIClient from previous step.
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_3.token)
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_3.token)
 
         # Test access to userinfo end point?
-        response = client.get("/v1/connect/userinfo")
+        response = client.get('/v1/connect/userinfo')
         content = json.loads(response.content)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(content.get('detail', None), "You do not have permission to perform this action.")
+        self.assertEqual(content.get('detail', None), 'You do not have permission to perform this action.')
 
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 2)
@@ -264,13 +283,13 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(response.status_code, 302)
 
         # Setup token_3 in APIClient from previous step. It should be removed now?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_3.token)
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_3.token)
 
         # Test access to userinfo end point?
-        response = client.get("/v1/connect/userinfo")
+        response = client.get('/v1/connect/userinfo')
         content = json.loads(response.content)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(content.get('detail', None), "Authentication credentials were not provided.")
+        self.assertEqual(content.get('detail', None), 'Authentication credentials were not provided.')
 
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 0)
@@ -285,8 +304,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
-        token_9, refresh_token_9, status_code, \
-            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
+        token_9, refresh_token_9, status_code, response_scopes, access_token_scopes = self._authorize_and_request_token(
+            payload, application
+        )
 
         # Assert auth request was successful
         self.assertEqual(status_code, 200)
@@ -301,8 +321,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
         # Assert access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_9.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_9.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
         # Beneficiary chooses the DENY button choice on consent page
@@ -324,8 +344,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Assert access to userinfo end point?
         # after BB2-4270, this will now work as the DAG/tokens are now not deleted
         # when the allow parameter is false
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_9.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_9.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
         # BB2-4270: Remove prior active tokens so tests below are not looking for multiple active tokens
@@ -340,8 +360,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['allow'] = True
 
         # Perform authorization request
-        token_10, refresh_token_10, status_code, \
-            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
+        token_10, refresh_token_10, status_code, response_scopes, access_token_scopes = self._authorize_and_request_token(
+            payload, application
+        )
 
         # Assert auth request was successful
         self.assertEqual(status_code, 200)
@@ -356,8 +377,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
         # Assert access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_10.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_10.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
         # Appliation changes choice to require demographic scopes
@@ -391,7 +412,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(ArchivedDataAccessGrant.objects.count(), 4)
 
         # Assert access to userinfo end point?
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_10.token)
-        response = client.get("/v1/connect/userinfo")
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + token_10.token)
+        response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(content.get('detail', None), "Authentication credentials were not provided.")
+        self.assertEqual(content.get('detail', None), 'Authentication credentials were not provided.')

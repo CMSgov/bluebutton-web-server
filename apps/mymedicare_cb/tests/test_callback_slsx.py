@@ -33,7 +33,7 @@ from apps.mymedicare_cb.constants import (
     ERR_MSG_HICN_NOT_STR,
     ERR_MSG_MBI_NOT_STR,
     BBMyMedicareSLSxSignoutException,
-    BBMyMedicareSLSxUserinfoException
+    BBMyMedicareSLSxUserinfoException,
 )
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
@@ -54,9 +54,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     """
 
     def setUp(self):
-        self.callback_url = reverse("mymedicare-sls-callback")
-        self.login_url = reverse("mymedicare-login")
-        Group.objects.create(name="BlueButton")
+        self.callback_url = reverse('mymedicare-sls-callback')
+        self.login_url = reverse('mymedicare-login')
+        Group.objects.create(name='BlueButton')
         # Setup the RequestFactory
         self.client = Client()
         self.logger_registry = redirect_loggers()
@@ -70,7 +70,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         Helper method that creates a ProtectedCapability instance
         that controls the access for the set of `urls`.
         """
-        group = group or self._create_group("test")
+        group = group or self._create_group('test')
         capability = ProtectedCapability.objects.create(
             default=default,
             title=name,
@@ -93,7 +93,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             validate(instance=content, schema=schema)
         except jsonschema.exceptions.ValidationError as e:
             # Show error info for debugging
-            print("jsonschema.exceptions.ValidationError: ", e)
+            print('jsonschema.exceptions.ValidationError: ', e)
             return False
         return True
 
@@ -101,30 +101,26 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         """
         Test well-formed login_url has expected content
         """
-        fake_login_url = "https://example.com/login?scope=openid"
-        with self.settings(
-            MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI="/123"
-        ):
+        fake_login_url = 'https://example.com/login?scope=openid'
+        with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(self.mock_response.slsx_health_ok_mock):
-                response = self.client.get(self.login_url + "?next=/")
+                response = self.client.get(self.login_url + '?next=/')
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-            query = parse_qs(urlparse(response["Location"]).query)
-            path = response["Location"].split("?")[0]
-            self.assertEqual(path, "https://example.com/login")
-            self.assertIn("/123", query["redirect_uri"][0])
-            self.assertTrue("relay" in query)
+            query = parse_qs(urlparse(response['Location']).query)
+            path = response['Location'].split('?')[0]
+            self.assertEqual(path, 'https://example.com/login')
+            self.assertIn('/123', query['redirect_uri'][0])
+            self.assertTrue('relay' in query)
 
     def test_login_url_health_check_fail(self):
         """
         Test SLSx health check failure
         """
-        fake_login_url = "https://example.com/login?scope=openid"
-        with self.settings(
-            MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI="/123"
-        ):
+        fake_login_url = 'https://example.com/login?scope=openid'
+        with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(self.mock_response.slsx_health_fail_mock):
                 with self.assertRaises(HTTPError):
-                    self.client.get(self.login_url + "?next=/")
+                    self.client.get(self.login_url + '?next=/')
 
     def test_callback_url_missing_relay(self):
         """
@@ -135,12 +131,12 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_authorize_uuid_dne(self):
-        auth_uri = reverse("oauth2_provider:authorize-instance", args=[uuid.uuid4()])
+        auth_uri = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
         response = self.client.get(auth_uri)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
     def test_authorize_uuid(self):
-        user = User.objects.create_user("bob", password="bad")
+        user = User.objects.create_user('bob', password='bad')
         Crosswalk.objects.create(
             user=user,
             fhir_id_v2='-20000000002346',
@@ -168,7 +164,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'response_type': 'code',
                 'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
                 'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
-                'state': '01234567890123456789'
+                'state': '01234567890123456789',
             },
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -258,7 +254,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         path=r'/v3/fhir/Patient/',
     )
     def fhir_patient_info_mock_v3(self, url, request):
-        print("fhir_patient_info_mock_v3")
+        print('fhir_patient_info_mock_v3')
         return {
             'status_code': status.HTTP_200_OK,
             'content': patient_response,
@@ -274,7 +270,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             next_uri=(
                 f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'  # noqa: E231
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
-            )
+            ),
         )
 
         @all_requests
@@ -297,92 +293,88 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             s = self.client.session
             s.update(
                 {
-                    "auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
-                    "auth_app_id": "2",
-                    "auth_app_name": "TestApp-001",
-                    "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop",
-                    "version": version,
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_app_id': '2',
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
+                    'version': version,
                 }
             )
             s.save()
 
             response = self.client.get(
                 self.callback_url,
-                data={"req_token": "0000-test_req_token-0000", "relay": state},
+                data={'req_token': '0000-test_req_token-0000', 'relay': state},
             )
 
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-            self.assertIn("client_id=test", response.url)
-            self.assertIn("redirect_uri=test.com", response.url)
-            self.assertIn("response_type=token", response.url)
-            self.assertIn(f"http://www.doesnotexist.gov/v{version}/o/authorize/", response.url)  # noqa: E231
+            self.assertIn('client_id=test', response.url)
+            self.assertIn('redirect_uri=test.com', response.url)
+            self.assertIn('response_type=token', response.url)
+            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)  # noqa: E231
             # assert login
-            self.assertNotIn("_auth_user_id", self.client.session)
+            self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
-        AnonUserState.objects.create(state=state, next_uri="http://www.doesnotexist.gov")  # noqa: E231
+        AnonUserState.objects.create(state=state, next_uri='http://www.doesnotexist.gov')  # noqa: E231
 
         @all_requests
         def catchall(url, request):
             return {
-                "status_code": status.HTTP_403_FORBIDDEN,
-                "content": {"error": "nope"},
+                'status_code': status.HTTP_403_FORBIDDEN,
+                'content': {'error': 'nope'},
             }
 
         with HTTMock(catchall):
             with self.assertRaises(HTTPError):
                 self.client.get(
                     self.callback_url,
-                    data={"req_token": "0000-test_req_token-0000", "relay": state},
+                    data={'req_token': '0000-test_req_token-0000', 'relay': state},
                 )
 
     def test_sls_token_exchange_w_creds(self):
-        with self.settings(SLSX_CLIENT_ID="test", SLSX_CLIENT_SECRET="stest"):
-
+        with self.settings(SLSX_CLIENT_ID='test', SLSX_CLIENT_SECRET='stest'):
             sls_client = OAuth2ConfigSLSx()
 
             @all_requests
             def catchall(url, request):
-                sls_auth_header = request.headers["Authorization"]
-                self.assertEqual(sls_auth_header, "Basic dGVzdDpzdGVzdA==")
+                sls_auth_header = request.headers['Authorization']
+                self.assertEqual(sls_auth_header, 'Basic dGVzdDpzdGVzdA==')
                 return {
-                    "status_code": status.HTTP_200_OK,
-                    "content": {
-                        "auth_token": "test_tkn",
-                        "user_id": "00112233-4455-6677-8899-aabbccddeeff",
+                    'status_code': status.HTTP_200_OK,
+                    'content': {
+                        'auth_token': 'test_tkn',
+                        'user_id': '00112233-4455-6677-8899-aabbccddeeff',
                     },
                 }
 
             with HTTMock(catchall):
                 request = MagicMock()
-                sls_client.exchange_for_access_token("test_code", request)
-                self.assertEqual(sls_client.auth_token, "test_tkn")
-                self.assertEqual(
-                    sls_client.user_id, "00112233-4455-6677-8899-aabbccddeeff"
-                )
+                sls_client.exchange_for_access_token('test_code', request)
+                self.assertEqual(sls_client.auth_token, 'test_tkn')
+                self.assertEqual(sls_client.user_id, '00112233-4455-6677-8899-aabbccddeeff')
 
     def test_failed_sls_token_exchange(self):
-        with self.settings(SLSX_CLIENT_ID="test", SLSX_CLIENT_SECRET="stest"):
-
+        with self.settings(SLSX_CLIENT_ID='test', SLSX_CLIENT_SECRET='stest'):
             sls_client = OAuth2ConfigSLSx()
 
             @all_requests
             def catchall(url, request):
-                sls_auth_header = request.headers["Authorization"]
-                self.assertEqual(sls_auth_header, "Basic dGVzdDpzdGVzdA==")
+                sls_auth_header = request.headers['Authorization']
+                self.assertEqual(sls_auth_header, 'Basic dGVzdDpzdGVzdA==')
                 return {
-                    "status_code": status.HTTP_401_UNAUTHORIZED,
-                    "content": {
-                        "error": "nope!",
+                    'status_code': status.HTTP_401_UNAUTHORIZED,
+                    'content': {
+                        'error': 'nope!',
                     },
                 }
 
             with HTTMock(catchall):
                 with self.assertRaises(HTTPError):
-                    sls_client.exchange_for_access_token("test_code", None)
+                    sls_client.exchange_for_access_token('test_code', None)
 
     @override_switch('v3_endpoints', active=True)
     def test_callback_exceptions(self):
@@ -399,9 +391,12 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri=''.join([
-                f'http://www.doesnotexist.gov/v{version}/o/authorize?client_id=test',
-                '&redirect_uri=test.com&response_type=token&state=test'])
+            next_uri=''.join(
+                [
+                    f'http://www.doesnotexist.gov/v{version}/o/authorize?client_id=test',
+                    '&redirect_uri=test.com&response_type=token&state=test',
+                ]
+            ),
         )
 
         @all_requests
@@ -420,9 +415,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -447,9 +440,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             with self.assertRaises(BBMyMedicareSLSxUserinfoException):
-                response = self.client.get(
-                    self.callback_url, data={"req_token": "test", "relay": state}
-                )
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock sls_user_info_empty_hicn_mock test User info HICN cannot be empty.
         with HTTMock(
@@ -462,15 +453,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-            self.assertEqual(
-                response.status_code, HTTPStatus.CONFLICT
-            )
+            self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
             content = json.loads(response.content)
-            self.assertEqual(content["error"], settings.MEDICARE_ERROR_MSG)
+            self.assertEqual(content['error'], settings.MEDICARE_ERROR_MSG)
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
         with HTTMock(
@@ -483,9 +470,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 302
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -502,9 +487,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             with self.assertRaises(HTTPError):
-                response = self.client.get(
-                    self.callback_url, data={"req_token": "test", "relay": state}
-                )
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock sls_user_info_http_error_mock
         with HTTMock(
@@ -518,9 +501,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             with self.assertRaises(HTTPError):
-                response = self.client.get(
-                    self.callback_url, data={"req_token": "test", "relay": state}
-                )
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(
@@ -534,9 +515,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             with self.assertRaises(HTTPError):
-                response = self.client.get(
-                    self.callback_url, data={"req_token": "test", "relay": state}
-                )
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
         with HTTMock(
@@ -547,9 +526,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             with self.assertRaises(BBMyMedicareSLSxSignoutException):
-                response = self.client.get(
-                    self.callback_url, data={"req_token": "test", "relay": state}
-                )
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
     def test_callback_allow_slsx_changes_to_hicn_and_mbi(self):
         """
@@ -607,37 +584,31 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             next_uri=(
                 'http://www.doesnotexist.gov?next=/v{version}/o/authorize'
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
-            )
+            ),
         )
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
-        @urlmatch(
-            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v1/fhir/Patient/"
-        )
+        @urlmatch(netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path='/v1/fhir/Patient/')
         def fhir_patient_info_mock_v1(url, request):
             return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
             }
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
-        @urlmatch(
-            netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path="/v2/fhir/Patient/"
-        )
+        @urlmatch(netloc=MOCK_FHIR_ENDPOINT_HOSTNAME, path='/v2/fhir/Patient/')
         def fhir_patient_info_mock_v2(url, request):
             return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
             }
 
         # mock fhir patient endpoint (back end bfd) with fhir_id == "-20140000008325"
-        @urlmatch(
-            netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME, path="/v3/fhir/Patient/"
-        )
+        @urlmatch(netloc=MOCK_FHIR_V3_ENDPOINT_HOSTNAME, path='/v3/fhir/Patient/')
         def fhir_patient_info_mock_v3(url, request):
             return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_response,
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
             }
 
         @all_requests
@@ -655,9 +626,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -666,11 +635,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 1)
-        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id(2), "-20140000008325")
+        self.assertEqual(cw.user.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(cw.fhir_id(2), '-20140000008325')
         self.assertEqual(
             cw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
 
         # Validate ArchiveCrosswalk count
@@ -687,15 +656,15 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
         #   Update json schema for what changed (mbi = None/Null).
-        log_schema["properties"]["crosswalk"]["properties"].update(
+        log_schema['properties']['crosswalk']['properties'].update(
             {
-                "user_id_type": {"pattern": "^H$"},
+                'user_id_type': {'pattern': '^H$'},
             }
         )
 
-        log_schema["properties"].update(
+        log_schema['properties'].update(
             {
-                "hash_lookup_type": {"pattern": "^H$"},
+                'hash_lookup_type': {'pattern': '^H$'},
             }
         )
 
@@ -713,9 +682,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -724,11 +691,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 1)
-        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id(2), "-20140000008325")
+        self.assertEqual(cw.user.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(cw.fhir_id(2), '-20140000008325')
         self.assertEqual(
             cw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
         self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
@@ -736,11 +703,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
         acw = ArchivedCrosswalk.objects.get(id=1)
 
-        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
+        self.assertEqual(acw.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(acw.fhir_id_v2, '-20140000008325')
         self.assertEqual(
             acw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
 
         # Validate logging
@@ -754,26 +721,26 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
         #   Update json schema for what changed (mbi = None/Null).
-        log_schema["properties"]["crosswalk"]["properties"].update(
+        log_schema['properties']['crosswalk']['properties'].update(
             {
-                "user_id_type": {"pattern": "^M$"},
+                'user_id_type': {'pattern': '^M$'},
             }
         )
 
-        log_schema["properties"].update(
+        log_schema['properties'].update(
             {
-                "mesg": {"pattern": "^RETURN existing beneficiary record$"},
-                "hash_lookup_type": {"type": "string", "pattern": "^M$"},
-                "crosswalk_before": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "integer"},
-                        "user_hicn_hash": {
-                            "type": "string",
-                            "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+                'mesg': {'pattern': '^RETURN existing beneficiary record$'},
+                'hash_lookup_type': {'type': 'string', 'pattern': '^M$'},
+                'crosswalk_before': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'user_hicn_hash': {
+                            'type': 'string',
+                            'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
                         },
-                        "fhir_id": {"type": "string", "pattern": "^-20140000008325$"},
-                        "user_id_type": {"type": "string", "pattern": "^H$"},
+                        'fhir_id': {'type': 'string', 'pattern': '^-20140000008325$'},
+                        'user_id_type': {'type': 'string', 'pattern': '^H$'},
                     },
                 },
             }
@@ -783,7 +750,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
         # 3. Remove User (cascade removes UserProfile/Crosswalk) and ArchivedCrosswalk entries for a fresh start.
-        User.objects.filter(username="00112233-4455-6677-8899-aabbccddeeff").delete()
+        User.objects.filter(username='00112233-4455-6677-8899-aabbccddeeff').delete()
         ArchivedCrosswalk.objects.filter(id=1).delete()
 
         #   Assert counts
@@ -803,9 +770,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -814,11 +779,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Assert correct crosswalk values:
         self.assertEqual(cw.user.id, 2)
-        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id(2), "-20140000008325")
+        self.assertEqual(cw.user.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(cw.fhir_id(2), '-20140000008325')
         self.assertEqual(
             cw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
         self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
@@ -836,11 +801,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
         #   Assert correct log values using original json schema
-        self.assertTrue(
-            self.validate_json_schema(
-                MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_dict
-            )
-        )
+        self.assertTrue(self.validate_json_schema(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_dict))
 
         # Save crosswalk values for restoring prior to later tests.
         saved_hicn_hash = cw._user_id_hash
@@ -856,9 +817,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -867,11 +826,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Assert correct crosswalk values. Did the hicn update to new value?
         self.assertEqual(cw.user.id, 2)
-        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id(2), "-20140000008325")
+        self.assertEqual(cw.user.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(cw.fhir_id(2), '-20140000008325')
         self.assertEqual(
             cw._user_id_hash,
-            "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
+            '55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122',
         )
         self.assertEqual(cw._user_mbi, '1SA0A00AA00')
 
@@ -879,11 +838,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
         acw = ArchivedCrosswalk.objects.get(id=2)
 
-        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
+        self.assertEqual(acw.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(acw.fhir_id_v2, '-20140000008325')
         self.assertEqual(
             acw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
         self.assertEqual(acw._user_mbi, '1SA0A00AA00')
 
@@ -900,36 +859,36 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
         #   Update json schema for what changed (hicn). Add crosswalk_before to also be used later.
-        log_schema["properties"]["crosswalk"]["properties"].update(
+        log_schema['properties']['crosswalk']['properties'].update(
             {
-                "user_hicn_hash": {
-                    "type": "string",
-                    "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
+                'user_hicn_hash': {
+                    'type': 'string',
+                    'pattern': '^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$',
                 }
             }
         )
 
-        log_schema["properties"].update(
+        log_schema['properties'].update(
             {
-                "mesg": {
-                    "type": "string",
-                    "pattern": "^RETURN existing beneficiary record$",
+                'mesg': {
+                    'type': 'string',
+                    'pattern': '^RETURN existing beneficiary record$',
                 },
-                "hicn_updated": {"enum": [True]},
-                "hicn_hash": {
-                    "type": "string",
-                    "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
+                'hicn_updated': {'enum': [True]},
+                'hicn_hash': {
+                    'type': 'string',
+                    'pattern': '^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$',
                 },
-                "crosswalk_before": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "integer"},
-                        "user_hicn_hash": {
-                            "type": "string",
-                            "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+                'crosswalk_before': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'user_hicn_hash': {
+                            'type': 'string',
+                            'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
                         },
-                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
-                        "user_id_type": {"type": "string", "pattern": "^M$"},
+                        'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
+                        'user_id_type': {'type': 'string', 'pattern': '^M$'},
                     },
                 },
             }
@@ -954,9 +913,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -965,11 +922,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
         self.assertEqual(cw.user.id, 2)
-        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id(2), "-20140000008325")
+        self.assertEqual(cw.user.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(cw.fhir_id(2), '-20140000008325')
         self.assertEqual(
             cw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
         self.assertEqual(
             cw._user_mbi,
@@ -980,11 +937,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 2)
         acw = ArchivedCrosswalk.objects.get(id=2)
 
-        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
+        self.assertEqual(acw.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(acw.fhir_id_v2, '-20140000008325')
         self.assertEqual(
             acw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
         self.assertEqual(
             acw._user_mbi,
@@ -1001,22 +958,22 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Set working copy of schema
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
-        log_schema["properties"].update(
+        log_schema['properties'].update(
             {
-                "mesg": {
-                    "type": "string",
-                    "pattern": "^RETURN existing beneficiary record$",
+                'mesg': {
+                    'type': 'string',
+                    'pattern': '^RETURN existing beneficiary record$',
                 },
-                "crosswalk_before": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "integer"},
-                        "user_hicn_hash": {
-                            "type": "string",
-                            "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+                'crosswalk_before': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'user_hicn_hash': {
+                            'type': 'string',
+                            'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
                         },
-                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
-                        "user_id_type": {"type": "string", "pattern": "^M$"},
+                        'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
+                        'user_id_type': {'type': 'string', 'pattern': '^M$'},
                     },
                 },
             }
@@ -1036,9 +993,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             fhir_patient_info_mock_v3,
             catchall,
         ):
-            response = self.client.get(
-                self.callback_url, data={"req_token": "test", "relay": state}
-            )
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -1047,11 +1002,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
         self.assertEqual(cw.user.id, 2)
-        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(cw.fhir_id(2), "-20140000008325")
+        self.assertEqual(cw.user.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(cw.fhir_id(2), '-20140000008325')
         self.assertEqual(
             cw._user_id_hash,
-            "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122",
+            '55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122',
         )
         self.assertEqual(
             cw._user_mbi,
@@ -1062,11 +1017,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 3)
         acw = ArchivedCrosswalk.objects.get(id=3)
 
-        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(acw.fhir_id_v2, "-20140000008325")
+        self.assertEqual(acw.username, '00112233-4455-6677-8899-aabbccddeeff')
+        self.assertEqual(acw.fhir_id_v2, '-20140000008325')
         self.assertEqual(
             acw._user_id_hash,
-            "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948",
+            'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
         )
         self.assertEqual(
             acw._user_mbi,
@@ -1084,36 +1039,36 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_schema = copy.deepcopy(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA)
 
         #   Update json schema for what changed (mbi and hicn)
-        log_schema["properties"]["crosswalk"]["properties"].update(
+        log_schema['properties']['crosswalk']['properties'].update(
             {
-                "user_hicn_hash": {
-                    "type": "string",
-                    "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
+                'user_hicn_hash': {
+                    'type': 'string',
+                    'pattern': '^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$',
                 },
             }
         )
 
-        log_schema["properties"].update(
+        log_schema['properties'].update(
             {
-                "mesg": {
-                    "type": "string",
-                    "pattern": "^RETURN existing beneficiary record$",
+                'mesg': {
+                    'type': 'string',
+                    'pattern': '^RETURN existing beneficiary record$',
                 },
-                "hicn_updated": {"enum": [True]},
-                "hicn_hash": {
-                    "type": "string",
-                    "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$",
+                'hicn_updated': {'enum': [True]},
+                'hicn_hash': {
+                    'type': 'string',
+                    'pattern': '^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$',
                 },
-                "crosswalk_before": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "integer"},
-                        "user_hicn_hash": {
-                            "type": "string",
-                            "pattern": "^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$",
+                'crosswalk_before': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'user_hicn_hash': {
+                            'type': 'string',
+                            'pattern': '^f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948$',
                         },
-                        "fhir_id_v2": {"type": "string", "pattern": "^-20140000008325$"},
-                        "user_id_type": {"type": "string", "pattern": "^M$"},
+                        'fhir_id_v2': {'type': 'string', 'pattern': '^-20140000008325$'},
+                        'user_id_type': {'type': 'string', 'pattern': '^M$'},
                     },
                 },
             }
@@ -1140,43 +1095,52 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
-            next_uri="http://www.doesnotexist.gov?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+            next_uri='http://www.doesnotexist.gov?client_id=test&redirect_uri=test.com&response_type=token&state=test',
+        )
 
         @all_requests
         def catchall(url, request):
             raise Exception(url)
 
-        with HTTMock(self.mock_response.slsx_token_mock,
-                     mock_response_func,
-                     self.mock_response.slsx_health_ok_mock,
-                     self.mock_response.slsx_signout_ok_mock,
-                     catchall):
+        with HTTMock(
+            self.mock_response.slsx_token_mock,
+            mock_response_func,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
+            catchall,
+        ):
             s = self.client.session
-            s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
-                      "auth_app_id": "2",
-                      "auth_app_name": "TestApp-001",
-                      "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
+            s.update(
+                {
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_app_id': '2',
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
+                }
+            )
             s.save()
             response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
             resp_json = response.json()
             self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
             self.assertIsNotNone(resp_json)
-            self.assertIsNotNone(resp_json.get("error"))
-            self.assertEqual(resp_json.get("error"), settings.MEDICARE_ERROR_MSG)
+            self.assertIsNotNone(resp_json.get('error'))
+            self.assertEqual(resp_json.get('error'), settings.MEDICARE_ERROR_MSG)
             # further check log for root cause
             sls_authn_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_SLS_LOGGER)
             self.assertIsNotNone(sls_authn_log_content)
-            quoted_strings = re.findall("{[^{}]+}", sls_authn_log_content)
+            quoted_strings = re.findall('{[^{}]+}', sls_authn_log_content)
             # expect one log record
             self.assertEqual(len(quoted_strings), 1)
             log_rec_json = json.loads(quoted_strings[0])
             self.assertIsNotNone(log_rec_json)
-            self.assertEqual(log_rec_json.get("sls_status_mesg"), err_msg)
+            self.assertEqual(log_rec_json.get('sls_status_mesg'), err_msg)
 
-    @patch('apps.mymedicare_cb.models.match_fhir_id', return_value=(MatchFhirIdResult(
-                                                                    error='Failure',
-                                                                    error_type=MatchFhirIdErrorType.UPSTREAM,
-                                                                    lookup_type=MatchFhirIdLookupType.MBI)))
+    @patch(
+        'apps.mymedicare_cb.models.match_fhir_id',
+        return_value=(
+            MatchFhirIdResult(error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI)
+        ),
+    )
     def test_failure_response_v1_auth_flow_match_fhir_id_failure(self, mock_match_fhir):
         """During v1 auth flow, if we fail to retrieve the fhir_id for v2 from match_fhir_id,
         a 500 error should be thrown with a message of 'Failed to retrieve data from data source.'
@@ -1187,7 +1151,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             next_uri=(
                 'http://www.doesnotexist.gov?next=/v1/o/authorize'  # noqa: E231
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
-            )
+            ),
         )
 
         with HTTMock(
@@ -1198,7 +1162,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         ):
             response = self.client.get(
                 self.callback_url,
-                data={"req_token": "0000-test_req_token-0000", "relay": state},
+                data={'req_token': '0000-test_req_token-0000', 'relay': state},
             )
             self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
             self.assertEqual(response.json()['error'], 'Failed to retrieve data from data source.')

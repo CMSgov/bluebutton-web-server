@@ -6,7 +6,7 @@ gonogo () {
         return 0
     else
         echo "⛔ BADNESS: $STEP - $result"
-        exit -1
+        exit 1
     fi
 }
 

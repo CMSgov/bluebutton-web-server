@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+import jwt
 from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Validator
 from oauthlib.oauth2.rfc6749 import utils
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
@@ -15,21 +16,38 @@ class OAuth2Validator(DotOAuth2Validator):
         for compatability.
         TODO: Remove this if it becomes possible.
         """
-        auth = request.headers.get("HTTP_AUTHORIZATION", None)
+        auth = request.headers.get('HTTP_AUTHORIZATION', None)
         if not auth:
-            auth = request.headers.get("Authorization", None)
+            auth = request.headers.get('Authorization', None)
         if not auth:
             return None
 
-        splitted = auth.split(" ", 1)
+        splitted = auth.split(' ', 1)
         if len(splitted) != 2:
             return None
         auth_type, auth_string = splitted
 
-        if auth_type != "Basic":
+        if auth_type != 'Basic':
             return None
 
         return auth_string
+
+    def authenticate_client(self, request, *args, **kwargs):
+        # Ensure that a client_secret can not be passed along with a client_assertion_type
+        # Will throw a 401 invalid_client error
+        if getattr(request, 'client_assertion_type', None) and getattr(request, 'client_secret', None):
+            return False
+        if getattr(request, 'grant_type', None) == 'client_credentials':
+            if getattr(request, 'client_assertion_type', None) and getattr(request, 'client_assertion', None):
+                try:
+                    payload = jwt.decode(request.client_assertion, options={'verify_signature': False})
+                    client_id = payload.get('iss')
+                    if self._load_application(client_id, request):
+                        return True
+                except Exception:
+                    pass
+
+        return super().authenticate_client(request, *args, **kwargs)
 
     def is_within_original_scope(
         self,
@@ -55,9 +73,7 @@ class OAuth2Validator(DotOAuth2Validator):
             bool: Whether or not the requested scopes are within the original scopes of the access token
         """
 
-        original_scopes = utils.scope_to_list(
-            self.get_original_scopes(refresh_token, request)
-        )
+        original_scopes = utils.scope_to_list(self.get_original_scopes(refresh_token, request))
 
         for req_scope in request_scopes:
             if not CapabilitiesScopes().is_smart_subscope(req_scope, original_scopes):
@@ -66,26 +82,23 @@ class OAuth2Validator(DotOAuth2Validator):
 
 
 class SingleAccessTokenValidator(
-        PKCEValidatorMixin,
-        OAuth2Validator,
+    PKCEValidatorMixin,
+    OAuth2Validator,
 ):
     """
     This custom oauth2 validator checks if a valid token
     exists for the current user/application and return
     it instead of creating a new one.
     """
+
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
         if redirect_uri is None:
             # Set to default
             redirect_uri = client.default_redirect_uri
 
         return super(SingleAccessTokenValidator, self).confirm_redirect_uri(
-            client_id,
-            code,
-            redirect_uri,
-            client,
-            *args,
-            **kwargs)
+            client_id, code, redirect_uri, client, *args, **kwargs
+        )
 
     def get_original_scopes(self, refresh_token, request, *args, **kwargs):
         try:

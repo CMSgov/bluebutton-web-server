@@ -1,24 +1,34 @@
+import logging
+import re
 from base64 import b64decode
+from http import HTTPStatus
 
+import jwt
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http import HttpRequest
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
-from http import HTTPStatus
-import re
-from apps.constants import (
-    APPLICATION_TEMPORARILY_INACTIVE,
-    APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
-    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+from oauthlib.oauth2.rfc6749.errors import (
+    InvalidClientError,
+    InvalidGrantError,
+    InvalidRequestError,
 )
-from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
-from apps.versions import Versions, VersionNotMatched
 
 from apps.authorization.models import DataAccessGrant
-
+from apps.constants import (
+    APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+    APPLICATION_TEMPORARILY_INACTIVE,
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+    HHS_SERVER_LOGNAME_FMT,
+)
+from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
+from apps.dot_ext.models import Application
+from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
+
+log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def remove_application_user_pair_tokens_data_access(application, user):
@@ -42,20 +52,14 @@ def remove_application_user_pair_tokens_data_access(application, user):
     """
     with transaction.atomic():
         # Get count of access tokens to be deleted.
-        access_token_delete_cnt = AccessToken.objects.filter(
-            application=application, user=user
-        ).count()
+        access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
-            application=application, beneficiary=user
-        ).delete()[0]
+        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(application=application, beneficiary=user).delete()[0]
 
         # Delete refresh token records
-        refresh_token_delete_cnt = RefreshToken.objects.filter(
-            application=application, user=user
-        ).delete()[0]
+        refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
 
     return (
         data_access_grant_delete_cnt,
@@ -64,7 +68,7 @@ def remove_application_user_pair_tokens_data_access(application, user):
     )
 
 
-def get_application_from_meta(request):
+def get_application_from_meta(request) -> Application | None:
     """
     Utility function to application from auth header.
     This method will pull either the access token
@@ -94,80 +98,7 @@ def get_application_from_meta(request):
         elif ac is not None:
             app = Application.objects.get(id=ac.application_id)
     except Application.DoesNotExist:
-        raise InvalidClientError(
-            description='Application does not exist'
-        )
-    return app
-
-
-def validate_app_is_active(request):
-    """
-    Utility function to check that an application
-    is an active, valid application.
-    This method will pull the application from the
-    request and then check the active flag and the
-    data access grant (dag) validity.
-    RETURN:
-        application or None
-    """
-    app = get_application_from_meta(request)
-    if not app:
-        app = get_application_from_data(request)
-
-    # revoked access and expired auth period to a 401 error
-    if app and app.active:
-        # Is this for a token refresh request?
-        post_grant_type = request.POST.get('grant_type', None)
-        if post_grant_type == 'refresh_token':
-
-            # A ONE_TIME token is not allowed to be refreshed.
-            # In that instance, we raise an error that explicitly
-            # indicates that the user must re-authenticate.
-            # This is a FORBIDDEN error for the API consumer.
-            if app.has_one_time_only_data_access():
-                raise InvalidClientError(
-                    description=APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
-                    status_code=HTTPStatus.FORBIDDEN
-                )
-
-            refresh_code = request.POST.get('refresh_token', None)
-            try:
-                refresh_token = RefreshToken.objects.get(token=refresh_code)
-                dag = DataAccessGrant.objects.get(
-                    beneficiary=refresh_token.user,
-                    application=app
-                )
-
-                if dag:
-                    # If we get a DAG, but it has expired, we pass back a message (again)
-                    # saying the end user must re-authenticate.
-                    if dag.has_expired():
-                        # https://www.rfc-editor.org/rfc/rfc6750#section-3.1
-                        # We will return a 401 (UNAUTHORIZED) because this is in keeping
-                        # with the OAuth RFC.
-                        raise InvalidGrantError(
-                            description=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
-                            status_code=HTTPStatus.UNAUTHORIZED
-                        )
-            except DataAccessGrant.DoesNotExist:
-                # In the event that we cannot find a DAG, we don't want to pass back too much information.
-                # We pass back a FORBIDDEN and a message saying as much (and, again, encouraging
-                # reauthentication).
-                raise InvalidGrantError(
-                    description=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
-                    status_code=HTTPStatus.FORBIDDEN
-                )
-            except RefreshToken.DoesNotExist:
-                raise InvalidRequestError(
-                    description='Missing refresh token parameter',
-                    status_code=HTTPStatus.BAD_REQUEST
-                )
-    elif app and not app.active:
-        raise InvalidClientError(
-            description=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
-            status_code=HTTPStatus.FORBIDDEN
-        )
-
+        raise InvalidClientError(description='Application does not exist')
     return app
 
 
@@ -188,18 +119,39 @@ def get_application_from_data(request):
     # up the application via the client_id. If we find it, return it.
     # If not, we have a bad request, because a client_id was present,
     # but malformed in some way.
-    if request.GET.get('client_id', None):
-        client_id = request.GET.get('client_id', None)
-    elif request.POST.get('client_id', None):
-        client_id = request.POST.get('client_id', None)
+    if request.GET.get('client_id'):
+        client_id = request.GET.get('client_id')
+    elif request.POST.get('client_id'):
+        client_id = request.POST.get('client_id')
+    if request.POST.get('client_assertion'):
+        # for client credentials flow, we need to get the client_id from the client_assertion
+        try:
+            token = request.POST.get('client_assertion')
+            auth_jwt = jwt.decode(token, options={'verify_signature': False})
+            client_assertion_client_id = auth_jwt.get('iss')
+
+            if client_id:
+                if client_id != client_assertion_client_id:
+                    raise InvalidRequestError(
+                        description='client_id param did not match client_id in JWT',
+                        status_code=HTTPStatus.BAD_REQUEST,
+                    )
+            else:
+                client_id = client_assertion_client_id
+        except jwt.PyJWTError:
+            raise InvalidRequestError(
+                description='Malformed client_assertion',
+                status_code=HTTPStatus.BAD_REQUEST,
+            )
+
     try:
-        if client_id is not None:
+        if client_id:
             app = Application.objects.get(client_id=client_id)
             return app
     except Application.DoesNotExist:
         raise InvalidClientError(
             description='Application does not exist (client_id)',
-            status_code=HTTPStatus.BAD_REQUEST
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
     # Try via token
@@ -214,7 +166,7 @@ def get_application_from_data(request):
     except Application.DoesNotExist:
         raise InvalidClientError(
             description='Application does not exist (token)',
-            status_code=HTTPStatus.BAD_REQUEST
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
     # Try via refresh_token
@@ -228,7 +180,7 @@ def get_application_from_data(request):
     except Application.DoesNotExist:
         raise InvalidClientError(
             description='Application does not exist (refresh_token)',
-            status_code=HTTPStatus.BAD_REQUEST
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
     # If we get here, we should fail. We don't have an app.
@@ -245,6 +197,86 @@ def get_application_from_data(request):
     # that would require refactoring many tests, as they are cyclically dependent
     # on the production code.
     return None
+
+
+def validate_app_is_active(request: HttpRequest) -> Application:
+    """
+    Utility function to check that an application is an active, valid application.
+    This method will pull the application from the request and then check the active flag and the
+    data access grant (DA) validity.
+    Args:
+        request (HttpRequest): Django HttpRequest object
+
+    Raises:
+        InvalidClientError: Application can't refresh or isn't active
+        InvalidGrantError: Could not find a corresponding DAG, or DAG has expired
+        InvalidRequestError: Missing refresh token parameter
+
+    Returns:
+        Model: Application model or None
+    """
+    app = get_application_from_meta(request)
+    if not app:
+        app = get_application_from_data(request)
+
+    # client_creds/CAN-specific (for now) validation
+    if request.POST.get('grant_type') == 'client_credentials':
+        if not request.POST.get('client_assertion'):
+            raise InvalidRequestError('Missing client_assertion for client_credentials grant')
+        if not app:
+            raise InvalidClientError('App id failed')
+
+    # revoked access and expired auth period to a 401 error
+    if app and app.active:
+        # Is this for a token refresh request?
+        post_grant_type = request.POST.get('grant_type', None)
+        if post_grant_type == 'refresh_token':
+            # A ONE_TIME token is not allowed to be refreshed.
+            # In that instance, we raise an error that explicitly
+            # indicates that the user must re-authenticate.
+            # This is a FORBIDDEN error for the API consumer.
+            if app.has_one_time_only_data_access():
+                raise InvalidClientError(
+                    description=APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+                    status_code=HTTPStatus.FORBIDDEN,
+                )
+
+            refresh_code = request.POST.get('refresh_token', None)
+            try:
+                refresh_token = RefreshToken.objects.get(token=refresh_code)
+                dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
+
+                if dag:
+                    # If we get a DAG, but it has expired, we pass back a message (again)
+                    # saying the end user must re-authenticate.
+                    if dag.has_expired():
+                        # https://www.rfc-editor.org/rfc/rfc6750#section-3.1
+                        # We will return a 401 (UNAUTHORIZED) because this is in keeping
+                        # with the OAuth RFC.
+                        raise InvalidGrantError(
+                            description=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+                            status_code=HTTPStatus.UNAUTHORIZED,
+                        )
+            except DataAccessGrant.DoesNotExist:
+                # In the event that we cannot find a DAG, we don't want to pass back too much information.
+                # We pass back a FORBIDDEN and a message saying as much (and, again, encouraging
+                # reauthentication).
+                raise InvalidGrantError(
+                    description=APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+                    status_code=HTTPStatus.FORBIDDEN,
+                )
+            except RefreshToken.DoesNotExist:
+                raise InvalidRequestError(
+                    description='Missing refresh token parameter',
+                    status_code=HTTPStatus.BAD_REQUEST,
+                )
+    elif app and not app.active:
+        raise InvalidClientError(
+            description=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
+            status_code=HTTPStatus.FORBIDDEN,
+        )
+
+    return app
 
 
 def json_response_from_oauth2_error(error):
@@ -282,3 +314,16 @@ def get_api_version_number_from_url(url_path: str) -> int:
             raise VersionNotMatched(f'{version} extracted from {url_path}')
 
     return Versions.NOT_AN_API_VERSION
+
+
+def validate_latin_extended_string(text: str) -> bool:
+    """Checks if a string has all values (and at least one value) that fall within ascii, latin supplement, and extended:
+        https://en.wikipedia.org/wiki/Latin_Extended-A
+
+    Args:
+        text (str): the text to check
+
+    Returns:
+        bool: if all strings are encoded less than U+017F (383) and it is not empty
+    """
+    return all(ord(char) <= 383 for char in text) and bool(text)

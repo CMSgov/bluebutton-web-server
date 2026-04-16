@@ -9,29 +9,27 @@ FHIR_SERVER = {
 }
 
 """
+
 from django.conf import settings
 
-USER_SETTINGS = getattr(settings, "FHIR_SERVER", None)
+USER_SETTINGS = getattr(settings, 'FHIR_SERVER', None)
 
 DEFAULTS = {
-    "FHIR_URL": None,
-    "FHIR_URL_V3": None,
-    "CLIENT_AUTH": False,
-    "CERT_FILE": "",
-    "KEY_FILE": "",
-    "SERVER_VERIFY": False,
-    "WAIT_TIME": 30,
-    "VERIFY_SERVER": False,
+    'FHIR_URL': None,
+    'FHIR_URL_V3': None,
+    'CLIENT_AUTH': False,
+    'CERT_FILE': '',
+    'KEY_FILE': '',
+    'SERVER_VERIFY': False,
+    'WAIT_TIME': 30,
+    'VERIFY_SERVER': False,
 }
 
 # List of settings that cannot be empty
-MANDATORY = (
-    "FHIR_URL",
-)
+MANDATORY = ('FHIR_URL',)
 
 
 class FHIRServerSettings(object):
-
     def __init__(self, user_settings=None, defaults=None, mandatory=None):
         self.user_settings = user_settings or {}
         self.defaults = defaults or {}
@@ -40,7 +38,7 @@ class FHIRServerSettings(object):
     def __getattr__(self, attr):
         attr = attr.upper()
         if attr not in self.defaults.keys():
-            raise AttributeError("Invalid FHIRServer setting: %r" % (attr))
+            raise AttributeError('Invalid FHIRServer setting: %r' % (attr))
 
         try:
             # Check if present in user settings
@@ -57,7 +55,7 @@ class FHIRServerSettings(object):
 
     def validate_setting(self, attr, val):
         if not val and attr in self.mandatory:
-            raise AttributeError("FHIRServer setting: %r is mandatory" % (attr))
+            raise AttributeError('FHIRServer setting: %r is mandatory' % (attr))
 
 
 fhir_settings = FHIRServerSettings(USER_SETTINGS, DEFAULTS, MANDATORY)

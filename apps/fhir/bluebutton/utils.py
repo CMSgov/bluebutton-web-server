@@ -1,30 +1,31 @@
-import os
 import logging
-
-import apps.logging.request_logger as bb2logging
-from apps.constants import HHS_SERVER_LOGNAME_FMT
-
-import pytz
-import requests
+import os
 import uuid
-
 from collections import OrderedDict
 from datetime import datetime
-from pytz import timezone
 from typing import Any, Dict, List, NamedTuple, Optional
 from urllib.parse import parse_qs
 
+import pytz
+import requests
 from django.conf import settings
 from django.contrib import messages
-from apps.fhir.constants import FHIR_PARAM_FORMAT, REQUEST_EOB_KEEP_ALIVE
+from oauth2_provider.models import AccessToken
+from pytz import timezone
+
+import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT, OPERATION_OUTCOME
+from apps.dot_ext.utils import get_api_version_number_from_url
+from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
+from apps.fhir.constants import (
+    FHIR_PARAM_FORMAT,
+    MBI_URL,
+    PATIENT_RESOURCE_TYPE,
+    REQUEST_EOB_KEEP_ALIVE,
+)
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
-from oauth2_provider.models import AccessToken
-
 from apps.wellknown.views import base_issuer, build_endpoint_info
-from apps.constants import OPERATION_OUTCOME
-from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
-from apps.dot_ext.utils import get_api_version_number_from_url
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -37,9 +38,9 @@ class ValidateSearchParams(NamedTuple):
 def get_user_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     user = None
-    if hasattr(request, "resource_owner"):
+    if hasattr(request, 'resource_owner'):
         user = request.resource_owner
-    if hasattr(request, "user"):
+    if hasattr(request, 'user'):
         if not request.user.is_anonymous:
             user = request.user
     return user
@@ -49,22 +50,22 @@ def get_ip_from_request(request):
     """Returns the IP of the request, accounting for the possibility of being
     behind a proxy.
     """
-    ip = request.headers.get("x-forwarded-for", None)
+    ip = request.headers.get('x-forwarded-for', None)
     if ip:
         # X_FORWARDED_FOR returns client1, proxy1, proxy2,...
-        ip = ip.split(", ")[0]
+        ip = ip.split(', ')[0]
     else:
-        ip = request.META.get("REMOTE_ADDR", "")
+        ip = request.META.get('REMOTE_ADDR', '')
     return ip
 
 
 def get_access_token_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
-    token = ""
-    if "authorization" in request.headers:
-        auth_list = request.headers["authorization"].split(" ")
-    elif "Authorization" in request.META:
-        auth_list = request.META["Authorization"].split(" ")
+    token = ''
+    if 'authorization' in request.headers:
+        auth_list = request.headers['authorization'].split(' ')
+    elif 'Authorization' in request.META:
+        auth_list = request.META['Authorization'].split(' ')
     else:
         auth_list = []
 
@@ -101,7 +102,7 @@ def get_timestamp(request):
 
     """
 
-    if not hasattr(request, "_logging_start_dt"):
+    if not hasattr(request, '_logging_start_dt'):
         return datetime.now(pytz.utc).isoformat()
 
     else:
@@ -115,7 +116,7 @@ def get_query_id(request):
     we grab it or set a uuid and return it.
 
     """
-    if not hasattr(request, "_logging_uuid"):
+    if not hasattr(request, '_logging_uuid'):
         return uuid.uuid1()
 
     else:
@@ -129,7 +130,7 @@ def get_query_counter(request):
     we grab it or set a counter and return it.
 
     """
-    if not hasattr(request, "_logging_pass"):
+    if not hasattr(request, '_logging_pass'):
         return 1
 
     else:
@@ -141,15 +142,15 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     result = {}
     # BB2-279 support BFD header "includeAddressFields" and always set to False
     # NOT TO include addresss info in Patient resource (refer BFD-379)
-    result["includeAddressFields"] = "False"
+    result['includeAddressFields'] = 'False'
     # get timestamp from request via Middleware, or get current time
-    result["BlueButton-OriginalQueryTimestamp"] = str(get_timestamp(request))
+    result['BlueButton-OriginalQueryTimestamp'] = str(get_timestamp(request))
 
     # get uuid or set one
-    result["BlueButton-OriginalQueryId"] = str(get_query_id(request))
+    result['BlueButton-OriginalQueryId'] = str(get_query_id(request))
 
     # get query counter or set to 1
-    result["BlueButton-OriginalQueryCounter"] = str(get_query_counter(request))
+    result['BlueButton-OriginalQueryCounter'] = str(get_query_counter(request))
 
     # Return resource_owner or user
     user = get_user_from_request(request)
@@ -164,34 +165,30 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
         if crosswalk.fhir_id(version) != '':
             result['BlueButton-BeneficiaryId'] = 'patientId:' + crosswalk.fhir_id(version)
         else:
-            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(
-                crosswalk.user_hicn_hash
-            )
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(crosswalk.user_hicn_hash)
     else:
         # Set to empty
-        result["BlueButton-BeneficiaryId"] = ""
+        result['BlueButton-BeneficiaryId'] = ''
 
     if user:
-        result["BlueButton-UserId"] = str(user.id)
-        result["BlueButton-User"] = str(user)
-        if AccessToken.objects.filter(
-            token=get_access_token_from_request(request)
-        ).exists():
+        result['BlueButton-UserId'] = str(user.id)
+        result['BlueButton-User'] = str(user)
+        if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
             at = AccessToken.objects.get(token=get_access_token_from_request(request))
-            result["BlueButton-Application"] = str(at.application.name)
-            result["BlueButton-ApplicationId"] = str(at.application.id)
+            result['BlueButton-Application'] = str(at.application.name)
+            result['BlueButton-ApplicationId'] = str(at.application.id)
             # BB2-2011 update logging w.r.t new fields application data_access_type
             result['BlueButton-ApplicationDataAccessType'] = str(at.application.data_access_type)
             result['BlueButton-DeveloperId'] = str(at.application.user.id)
             result['BlueButton-Developer'] = str(at.application.user)
         else:
-            result["BlueButton-Application"] = ""
-            result["BlueButton-ApplicationId"] = ""
+            result['BlueButton-Application'] = ''
+            result['BlueButton-ApplicationId'] = ''
             # BB2-2011 update logging w.r.t new fields application data_access_type
-            result["BlueButton-ApplicationDataAccessType"] = ""
-            result["BlueButton-ApplicationEndDate"] = ""
-            result["BlueButton-DeveloperId"] = ""
-            result["BlueButton-Developer"] = ""
+            result['BlueButton-ApplicationDataAccessType'] = ''
+            result['BlueButton-ApplicationEndDate'] = ''
+            result['BlueButton-DeveloperId'] = ''
+            result['BlueButton-Developer'] = ''
 
     return result
 
@@ -207,19 +204,19 @@ def set_default_header(request, header=None):
     if header is None:
         header = {}
 
-    header["keep-alive"] = REQUEST_EOB_KEEP_ALIVE
+    header['keep-alive'] = REQUEST_EOB_KEEP_ALIVE
     if request.is_secure():
-        header["X-Forwarded-Proto"] = "https"
+        header['X-Forwarded-Proto'] = 'https'
     else:
-        header["X-Forwarded-Proto"] = "http"
+        header['X-Forwarded-Proto'] = 'http'
 
-    header["X-Forwarded-Host"] = request.get_host()
+    header['X-Forwarded-Host'] = request.get_host()
 
     originating_ip = get_ip_from_request(request)
     if originating_ip:
-        header["X-Forwarded-For"] = originating_ip
+        header['X-Forwarded-For'] = originating_ip
     else:
-        header["X-Forwarded-For"] = ""
+        header['X-Forwarded-For'] = ''
 
     return header
 
@@ -238,7 +235,7 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     auth_state = FhirServerAuth()
 
     verify_state = fhir_settings.verify_server
-    if auth_state["client_auth"]:
+    if auth_state['client_auth']:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
         # Cert_file_path and key_file_ath are fully defined paths to
@@ -247,7 +244,7 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         # logger.debug(
         #    "Cert:%s , Key:%s" % (auth_state["cert_file"], auth_state["key_file"])
         # )
-        cert = (auth_state["cert_file"], auth_state["key_file"])
+        cert = (auth_state['cert_file'], auth_state['key_file'])
     else:
         cert = ()
 
@@ -256,9 +253,9 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     header_info = set_default_header(request, header_info)
 
     header_detail = header_info
-    header_detail["BlueButton-OriginalUrl"] = request.path
-    header_detail["BlueButton-OriginalQuery"] = request.META["QUERY_STRING"]
-    header_detail["BlueButton-BackendCall"] = call_url
+    header_detail['BlueButton-OriginalUrl'] = request.path
+    header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
+    header_detail['BlueButton-BackendCall'] = call_url
 
     logger_perf.info(header_detail)
 
@@ -281,38 +278,37 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
                 verify=verify_state,
             )
 
-        logger.debug("Request.get:%s" % call_url)
-        logger.debug("Status of Request:%s" % r.status_code)
+        logger.debug('Request.get:%s' % call_url)
+        logger.debug('Status of Request:%s' % r.status_code)
 
-        header_detail["BlueButton-BackendResponse"] = r.status_code
+        header_detail['BlueButton-BackendResponse'] = r.status_code
 
         logger_perf.info(header_detail)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=r, e=None)
 
-        logger.debug("Leaving request_call with " "fhir_Response: %s" % fhir_response)
+        logger.debug('Leaving request_call with fhir_Response: %s' % fhir_response)
 
     except requests.exceptions.Timeout as e:
-
-        logger.debug("Gateway timeout talking to back-end server")
+        logger.debug('Gateway timeout talking to back-end server')
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
     except requests.ConnectionError as e:
-        logger.debug("Request.GET:%s" % request.GET)
+        logger.debug('Request.GET:%s' % request.GET)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
     except requests.exceptions.HTTPError as e:
         r_err = requests.exceptions.RequestException
-        logger.debug("Problem connecting to FHIR Server: %s" % call_url)
-        logger.debug("Exception: %s" % r_err)
+        logger.debug('Problem connecting to FHIR Server: %s' % call_url)
+        logger.debug('Exception: %s' % r_err)
         handle_http_error(e)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
-        messages.error(request, "Problem connecting to FHIR Server.")
+        messages.error(request, 'Problem connecting to FHIR Server.')
 
-        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+        logger.debug('HTTPError Status_code:%s' % requests.exceptions.HTTPError)
 
     return fhir_response
 
@@ -342,62 +338,58 @@ def FhirServerAuth() -> dict:
     """
 
     auth_settings = {}
-    auth_settings["client_auth"] = fhir_settings.client_auth
-    auth_settings["cert_file"] = fhir_settings.cert_file
-    auth_settings["key_file"] = fhir_settings.key_file
+    auth_settings['client_auth'] = fhir_settings.client_auth
+    auth_settings['cert_file'] = fhir_settings.cert_file
+    auth_settings['key_file'] = fhir_settings.key_file
 
-    if auth_settings["client_auth"]:
+    if auth_settings['client_auth']:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
-        cert_file_path = os.path.join(
-            settings.FHIR_CLIENT_CERTSTORE, auth_settings["cert_file"]
-        )
-        key_file_path = os.path.join(
-            settings.FHIR_CLIENT_CERTSTORE, auth_settings["key_file"]
-        )
-        auth_settings["cert_file"] = cert_file_path
-        auth_settings["key_file"] = key_file_path
+        cert_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE, auth_settings['cert_file'])
+        key_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE, auth_settings['key_file'])
+        auth_settings['cert_file'] = cert_file_path
+        auth_settings['key_file'] = key_file_path
 
     return auth_settings
 
 
-def mask_with_this_url(request, host_path="", in_text="", find_url=""):
+def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     """find_url in in_text and replace with url for this server"""
 
-    if in_text == "":
+    if in_text == '':
         # No text to evaluate
         return in_text
 
-    if find_url == "":
+    if find_url == '':
         # no string to find
         return in_text
 
     # Now we have something to do
     # Get the host name
     # replace_text = request.get_host()
-    if host_path.endswith("/"):
+    if host_path.endswith('/'):
         host_path = host_path[:-1]
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        logger.debug("Replacing: [%s] with [%s]" % (find_url, host_path))
+        logger.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
 
-        logger.debug("Passing [%s] to [%s]" % (in_text, "out_text"))
+        logger.debug('Passing [%s] to [%s]' % (in_text, 'out_text'))
 
     return out_text
 
 
-def get_host_url(request, resource_type=""):
+def get_host_url(request, resource_type=''):
     """get the full url and split on resource_type"""
 
     if request.is_secure():
-        http_mode = "https://"
+        http_mode = 'https://'
     else:
-        http_mode = "http://"
+        http_mode = 'http://'
 
     full_url = http_mode + request.get_host() + request.get_full_path()
-    if resource_type == "":
+    if resource_type == '':
         return full_url
     else:
         full_url_list = full_url.split(resource_type)
@@ -408,10 +400,10 @@ def get_host_url(request, resource_type=""):
 def prepend_q(pass_params):
     """Add ? to parameters if needed"""
     if len(pass_params) > 0:
-        if pass_params.startswith("?"):
+        if pass_params.startswith('?'):
             pass
         else:
-            pass_params = "?" + pass_params
+            pass_params = '?' + pass_params
     return pass_params
 
 
@@ -421,7 +413,7 @@ def dt_patient_reference(user, version):
     if user:
         patient = crosswalk_patient_id(user, version)
         if patient:
-            return {"reference": patient}
+            return {'reference': patient}
 
     return None
 
@@ -429,7 +421,7 @@ def dt_patient_reference(user, version):
 def crosswalk_patient_id(user, version):
     """Get patient/id from Crosswalk for user"""
 
-    logger.debug("\ncrosswalk_patient_id User:%s" % user)
+    logger.debug('\ncrosswalk_patient_id User:%s' % user)
     try:
         patient = Crosswalk.objects.get(user=user)
         if patient.fhir_id(version):
@@ -464,7 +456,7 @@ def handle_http_error(e):
     This function is under development
 
     """
-    logger.debug("In handle http_error - e:%s" % e)
+    logger.debug('In handle http_error - e:%s' % e)
 
     return e
 
@@ -495,70 +487,70 @@ def build_fhir_response(request, call_url, crosswalk, r=None, e=None):
     fhir_response.crosswalk = crosswalk
 
     if len(r_dir) > 0:
-        if "status_code" in r_dir:
+        if 'status_code' in r_dir:
             fhir_response._status_code = r.status_code
         else:
-            fhir_response._status_code = "000"
+            fhir_response._status_code = '000'
 
-        if "text" in r_dir:
+        if 'text' in r_dir:
             fhir_response._text = r.text
         else:
-            fhir_response._text = "No Text returned"
+            fhir_response._text = 'No Text returned'
 
-        if "json" in r_dir:
+        if 'json' in r_dir:
             fhir_response._json = r.json
         else:
             fhir_response._json = {}
 
-        if "user" in request:
-            fhir_response._owner = request.user + ":"
+        if 'user' in request:
+            fhir_response._owner = request.user + ':'
         else:
-            fhir_response._owner = ":"
+            fhir_response._owner = ':'
 
-        if "resource_owner" in request:
+        if 'resource_owner' in request:
             fhir_response._owner = request.resource_owner
         else:
-            fhir_response._owner += ""
+            fhir_response._owner += ''
 
     elif len(e_dir) > 0:
         fhir_response.status_code = 504
         fhir_response._status_code = fhir_response.status_code
         fhir_response._json = {
-            "errors": ["The gateway has timed out", "Failed to reach FHIR Database."],
-            "code": fhir_response.status_code,
-            "status_code": fhir_response.status_code,
-            "text": "The gateway has timed out",
+            'errors': ['The gateway has timed out', 'Failed to reach FHIR Database.'],
+            'code': fhir_response.status_code,
+            'status_code': fhir_response.status_code,
+            'text': 'The gateway has timed out',
         }
         fhir_response._text = fhir_response._json
         fhir_response._content = fhir_response._json
     else:
-        fhir_response.status_code = "000"
-        fhir_response._status_code = "000"
-        fhir_response._text = "No Text returned"
+        fhir_response.status_code = '000'
+        fhir_response._status_code = '000'
+        fhir_response._text = 'No Text returned'
         fhir_response._json = {}
 
-        if "user" in request:
-            fhir_response._owner = request.user + ":"
+        if 'user' in request:
+            fhir_response._owner = request.user + ':'
         else:
-            fhir_response._owner = ":"
-        if "resource_owner" in request:
+            fhir_response._owner = ':'
+        if 'resource_owner' in request:
             fhir_response._owner += request.resource_owner
         else:
-            fhir_response._owner += ""
+            fhir_response._owner += ''
 
     if e:
-        logger.debug("\ne_response:START\n")
+        logger.debug('\ne_response:START\n')
         e_dir = dir(e)
         for k in e_dir:
-            if k == "characters_written":
+            if k == 'characters_written':
                 pass
-            elif k == "arg":
+            elif k == 'arg':
                 for i in e.arg:
-                    logger.debug("arg:%s" % i)
+                    logger.debug('arg:%s' % i)
             else:
-                logger.debug("%s:%s" % (k, e.__getattribute__(k)))
+                logger.debug('%s:%s' % (k, e.__getattribute__(k)))
 
-        logger.debug("\ne_response:END\n")
+        logger.debug('\ne_response:END\n')
 
     return fhir_response
 
@@ -573,10 +565,10 @@ def get_response_text(fhir_response=None):
     :return:
     """
 
-    text_in = ""
+    text_in = ''
 
     if not fhir_response:
-        return ""
+        return ''
 
     try:
         text_in = fhir_response.text
@@ -598,13 +590,13 @@ def get_response_text(fhir_response=None):
             return text_in
 
     except Exception:
-        logger.debug("Nothing in ._text")
-        logger.debug("giving up...")
-        text_in = ""
+        logger.debug('Nothing in ._text')
+        logger.debug('giving up...')
+        text_in = ''
         return text_in
 
 
-def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_type="json") -> dict | str:
+def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_type='json') -> dict | str:
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
@@ -617,8 +609,7 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
         endpoints['authorization_endpoint'] = endpoints['authorization_endpoint'].replace('v2', 'v3')
         endpoints['revocation_endpoint'] = endpoints['revocation_endpoint'].replace('v2', 'v3')
 
-    if format_type.lower() == "xml":
-
+    if format_type.lower() == 'xml':
         security = """
 <security>
     <cors>true</cors>
@@ -652,48 +643,47 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
 
 </security>
         """ % (
-            endpoints["token_endpoint"],
-            endpoints["authorization_endpoint"],
-            endpoints["revocation_endpoint"],
+            endpoints['token_endpoint'],
+            endpoints['authorization_endpoint'],
+            endpoints['revocation_endpoint'],
         )
 
     else:  # json
-
         security = {}
 
-        security["cors"] = True
-        security["service"] = [
+        security['cors'] = True
+        security['service'] = [
             {
-                "text": "OAuth",
-                "coding": [
+                'text': 'OAuth',
+                'coding': [
                     {
-                        "system": "http://hl7.org/fhir/restful-security-service",
-                        "code": "OAuth",
-                        "display": "OAuth",
+                        'system': 'http://hl7.org/fhir/restful-security-service',
+                        'code': 'OAuth',
+                        'display': 'OAuth',
                     }
                 ],
             },
             {
-                "text": "OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)",
-                "coding": [
+                'text': 'OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)',
+                'coding': [
                     {
-                        "system": "http://hl7.org/fhir/restful-security-service",
-                        "code": "SMART-on-FHIR",
-                        "display": "SMART-on-FHIR",
+                        'system': 'http://hl7.org/fhir/restful-security-service',
+                        'code': 'SMART-on-FHIR',
+                        'display': 'SMART-on-FHIR',
                     }
                 ],
             },
         ]
-        security["extension"] = [
+        security['extension'] = [
             {
-                "url": "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris",
-                "extension": [
-                    {"url": "token", "valueUri": endpoints["token_endpoint"]},
+                'url': 'http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris',
+                'extension': [
+                    {'url': 'token', 'valueUri': endpoints['token_endpoint']},
                     {
-                        "url": "authorize",
-                        "valueUri": endpoints["authorization_endpoint"],
+                        'url': 'authorize',
+                        'valueUri': endpoints['authorization_endpoint'],
                     },
-                    {"url": "revoke", "valueUri": endpoints["revocation_endpoint"]},
+                    {'url': 'revoke', 'valueUri': endpoints['revocation_endpoint']},
                 ],
             }
         ]
@@ -707,16 +697,16 @@ def get_v2_patient_by_id(id, request):
     or normal data flow, use by tools such as BB2-Tools admin viewers
     """
     auth_settings = FhirServerAuth()
-    certs = (auth_settings["cert_file"], auth_settings["key_file"])
+    certs = (auth_settings['cert_file'], auth_settings['key_file'])
 
     headers = generate_info_headers(request)
-    headers["BlueButton-Application"] = "BB2-Tools"
-    headers["includeIdentifiers"] = "true"
+    headers['BlueButton-Application'] = 'BB2-Tools'
+    headers['includeIdentifiers'] = 'true'
     # for now this will only work for v1/v2 patients, but we'll need to be able to
     # determine if the user is V3 and use those endpoints later
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/{id}?_format={FHIR_PARAM_FORMAT}'
     s = requests.Session()
-    req = requests.Request("GET", url, headers=headers)
+    req = requests.Request('GET', url, headers=headers)
     prepped = req.prepare()
     response = s.send(prepped, cert=certs, verify=False)
     response.raise_for_status()
@@ -728,17 +718,17 @@ def get_v2_patient_by_id(id, request):
 # We can remove this entire function at that point
 def get_patient_by_mbi_hash(mbi_hash, request):
     auth_settings = FhirServerAuth()
-    certs = (auth_settings["cert_file"], auth_settings["key_file"])
+    certs = (auth_settings['cert_file'], auth_settings['key_file'])
     headers = generate_info_headers(request)
-    headers["BlueButton-Application"] = "BB2-Tools"
-    headers["includeIdentifiers"] = "true"
+    headers['BlueButton-Application'] = 'BB2-Tools'
+    headers['includeIdentifiers'] = 'true'
 
     search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
     payload = {'identifier': search_identifier}
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 
     s = requests.Session()
-    req = requests.Request("POST", url, headers=headers, data=payload)
+    req = requests.Request('POST', url, headers=headers, data=payload)
     prepped = req.prepare()
     response = s.send(prepped, cert=certs, verify=False)
 
@@ -800,13 +790,105 @@ def validate_query_parameters(accepted_query_params: Dict[str, Any], api_query_p
         if key not in accepted_query_params.keys() and key != 'count' and key != '_format':
             valid = False
             invalid_params.append(key)
-    return ValidateSearchParams(
-        valid=valid,
-        invalid_params=invalid_params
-    )
+    return ValidateSearchParams(valid=valid, invalid_params=invalid_params)
 
 
 def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     if response_json.get('resourceType') == OPERATION_OUTCOME:
         return True
     return False
+
+
+def is_patient_match_found(response_json: Dict[str, Any], index: int) -> tuple[bool, dict | None]:
+    """
+    This is a utility function to check if a patient match is found. If a patient match is found,
+    a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned.
+
+    Args:
+        response_json: The response from BFD as a json/dict object
+        index: The index of the patient entry to check
+
+    Returns:
+        bool: True and the patient resource if a patient match is found, False and None otherwise
+    """
+    entries = response_json.get('entry', [])
+
+    if index < 0 or index >= len(entries):
+        return False, None
+
+    # The code below can probably be modified in the future to check for other resourceTypes besides patient,
+    # but for now this is sufficient to determine if a patient match was found or not,
+    # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
+    if len(entries) > 1:
+        # The length of the 'entry' list is greater than 1, which indicates a patient match was found,
+        # but we want to make sure the resourceType of the entry is patient before returning True
+        patient = entries[index].get('resource', {})
+        if patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
+            return True, patient
+    return False, None
+
+
+def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
+    """
+    This is a utility function to get the patient match json response from a call to BFD.
+
+    Args:
+        url: The URL for the endpoint on BFD
+        json: The json payload to be sent in the body of the request
+        headers: The headers for the request
+        method: The HTTP method for the request (e.g. 'GET', 'POST', etc.)
+    Returns:
+        dict: The response from BFD as a json/dict object
+    """
+    auth_settings = FhirServerAuth()
+    certs = (auth_settings['cert_file'], auth_settings['key_file'])
+
+    # We could just do a requests.post but this way is useful for debugging and testing,
+    # to be able to see the prepared request and manipulate if needed before sending,
+    # and to use the same pattern for certs and headers as other calls to BFD
+    s = requests.Session()
+    req = requests.Request(url=url, json=json, headers=headers, method=method)
+    prepped = req.prepare()
+    response = s.send(prepped, cert=certs, verify=False)
+
+    response.raise_for_status()
+    return response.json()
+
+
+def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+    """
+    Extracts the MBI from a patient entry in a FHIR Bundle.
+
+    Args:
+        patient: A patient entry from a FHIR Bundle as a json/dict object
+
+    Returns:
+        str: The MBI if found, None otherwise
+    """
+    if not patient:
+        return None
+
+    # Look for the identifier with the MBI system and return the value
+    # (returns None if 'identifier' key is missing or if no identifier with the MBI system is found)
+    identifiers = patient.get('identifier', [])
+    for ident in identifiers:
+        if ident.get('system') == MBI_URL and 'value' in ident:
+            return ident.get('value')
+
+    return None
+
+
+def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+    """
+    Extracts the FHIR ID from a patient entry in a FHIR Bundle.
+
+    Args:
+        patient: A patient entry from a FHIR Bundle as a json/dict object
+
+    Returns:
+        str: The FHIR ID if found, None otherwise
+    """
+    if not patient:
+        return None
+
+    return patient.get('id')

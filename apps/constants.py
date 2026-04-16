@@ -1,6 +1,6 @@
 # Used frequently in testing
-DEFAULT_SAMPLE_FHIR_ID_V2 = "-20140000008325"
-DEFAULT_SAMPLE_FHIR_ID_V3 = "-30250000008325"
+DEFAULT_SAMPLE_FHIR_ID_V2 = '-20140000008325'
+DEFAULT_SAMPLE_FHIR_ID_V3 = '-30250000008325'
 
 # As the name suggests, message for app being inactive temporarily. Used in multiple apps
 APPLICATION_TEMPORARILY_INACTIVE = (
@@ -19,9 +19,7 @@ APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    'User access has timed out. '
-    'To refresh Medicare data, end user must re-authenticate '
-    'and consent to share their data.'
+    'User access has timed out. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 )
 
 # Message output when an app attempts a v3 call but they are not in the waffle flag for v3
@@ -33,17 +31,17 @@ APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
 )
 
 C4BB_PROFILE_URLS = {
-    "COVERAGE": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage",
-    "PATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient",
-    "INPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional",
-    "OUTPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional",
-    "PHARMACY": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy",
-    "NONCLINICIAN": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician",
+    'COVERAGE': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage',
+    'PATIENT': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Patient',
+    'INPATIENT': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional',
+    'OUTPATIENT': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional',
+    'PHARMACY': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy',
+    'NONCLINICIAN': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician',
 }
 
 CODE_CHALLENGE_METHOD_S256 = 'S256'
 
-HHS_SERVER_LOGNAME_FMT = "hhs_server.{}"
+HHS_SERVER_LOGNAME_FMT = 'hhs_server.{}'
 
 MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
     'title': 'MyMedicareCbGetUpdateBeneLogSchema',
@@ -104,4 +102,36 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
     ],
 }
 
+COVERAGE_SCOPE = 'patient/Coverage.rs'
+PATIENT_SCOPE = 'patient/Patient.rs'
+EOB_SCOPE = 'patient/ExplanationOfBenefit.rs'
+OPENID_SCOPE = 'openid'
+LAUNCH_SCOPE = 'launch/patient'
+
 OPERATION_OUTCOME = 'OperationOutcome'
+
+USER_TYPE_BENEFICIARY = 'BEN'
+USER_TYPE_DEV = 'DEV'
+USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY = 'ANB'
+
+USER_CHOICES = (
+    (USER_TYPE_BENEFICIARY, 'Beneficiary'),
+    (USER_TYPE_DEV, 'Developer'),
+    (USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, 'Aligned Network Beneficiary'),
+)
+TEST_APP_CLIENT_ID = 'test-client-id'
+TEST_APP_CLIENT_SECRET = 'test-client-secret'
+CLIENT_CREDENTIALS = 'client_credentials'
+CLIENT_CONFIDENTIAL_ASYMMETRIC = 'client-confidential-asymmetric'
+
+PRIVATE_KEY_JWT = 'private_key_jwt'
+AUTH_SIGNING_ALG_RS256 = 'RS256'
+AUTH_SIGNING_ALG_RS384 = 'RS384'
+AUTH_SIGNING_ALG_RS512 = 'RS512'
+AUTH_SIGNING_ALG_ES384 = 'ES384'
+CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS = [
+    AUTH_SIGNING_ALG_ES384,
+    AUTH_SIGNING_ALG_RS256,
+    AUTH_SIGNING_ALG_RS384,
+    AUTH_SIGNING_ALG_RS512,
+]

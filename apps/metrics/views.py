@@ -27,17 +27,11 @@ from rest_framework.serializers import (
 )
 from rest_framework.views import APIView
 from apps.accounts.models import UserProfile, UserIdentificationLabel
-from apps.authorization.models import (
-    DataAccessGrant,
-    ArchivedDataAccessGrant,
-    check_grants,
-    update_grants)
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant, check_grants, update_grants
 from apps.dot_ext.models import Application, ArchivedToken
-from apps.fhir.bluebutton.models import (
-    Crosswalk,
-    get_crosswalk_bene_counts)
+from apps.fhir.bluebutton.models import Crosswalk, get_crosswalk_bene_counts
 
-from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.constants import HHS_SERVER_LOGNAME_FMT, USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -50,10 +44,10 @@ class StreamingSerializer(ListSerializer):
         data = self.instance
         psize = 100
         count = data.count() if isinstance(data, QuerySet) else len(data)
-        log.info("csv of {} items".format(count))
+        log.info('csv of {} items'.format(count))
         for i in range(0, count, psize):
-            iterable = data.all()[i:i + psize] if isinstance(data, QuerySet) else data
-            log.info("pulled {} items from the db starting at index {}".format(len(iterable), i))
+            iterable = data.all()[i : i + psize] if isinstance(data, QuerySet) else data
+            log.info('pulled {} items from the db starting at index {}'.format(len(iterable), i))
             for item in iterable:
                 yield self.child.to_representation(item)
 
@@ -80,10 +74,7 @@ class StreamableSerializerMixin(object):
         if allow_empty is not None:
             stream_kwargs['allow_empty'] = allow_empty
 
-        stream_kwargs.update({
-            key: value for key, value in kwargs.items()
-            if key in STREAM_SERIALIZER_KWARGS
-        })
+        stream_kwargs.update({key: value for key, value in kwargs.items() if key in STREAM_SERIALIZER_KWARGS})
 
         meta = getattr(cls, 'Meta', None)
         stream_serializer_class = getattr(meta, 'stream_serializer_class', StreamingSerializer)
@@ -133,7 +124,7 @@ class DevUserSerializer(StreamableSerializerMixin, ModelSerializer):
 
     def get_identification(self, obj):
         identification = UserIdentificationLabel.objects.filter(users=obj.id).values('slug', 'name')
-        return (list(identification))
+        return list(identification)
 
 
 class ApplicationSerializer(ModelSerializer):
@@ -141,7 +132,11 @@ class ApplicationSerializer(ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'user', )
+        fields = (
+            'id',
+            'name',
+            'user',
+        )
 
 
 class BeneUserSerializer(StreamableSerializerMixin, ModelSerializer):
@@ -165,18 +160,33 @@ class AppMetricsSerializer(ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active',
-                  'logo_uri', 'tos_uri', 'policy_uri', 'contacts', 'website_uri', 'description')
+        fields = (
+            'id',
+            'name',
+            'active',
+            'user',
+            'beneficiaries',
+            'first_active',
+            'last_active',
+            'logo_uri',
+            'tos_uri',
+            'policy_uri',
+            'contacts',
+            'website_uri',
+            'description',
+        )
 
     def get_beneficiaries(self, obj):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
 
-        real_cnt = Crosswalk.real_objects.filter(
-            user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
-        synth_cnt = Crosswalk.synth_objects.filter(
-            user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+        real_cnt = (
+            Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+        )
+        synth_cnt = (
+            Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+        )
 
-        return ({'real': real_cnt, 'synthetic': synth_cnt})
+        return {'real': real_cnt, 'synthetic': synth_cnt}
 
 
 class MetricsPagination(PageNumberPagination):
@@ -192,17 +202,16 @@ class BeneMetricsView(APIView):
     * Only admin users are able to access this view.
     * Default returns count info
     """
+
     permission_classes = (
         IsAuthenticated,
         IsAdminUser,
     )
 
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def get(self, request, format=None):
-        content = {
-            'count': UserProfile.objects.filter(user_type='BEN').count()
-        }
+        content = {'count': UserProfile.objects.filter(user_type=USER_TYPE_BENEFICIARY).count()}
         return Response(content)
 
 
@@ -224,7 +233,14 @@ class ArchivedTokenSerializer(ModelSerializer):
 
     class Meta:
         model = ArchivedToken
-        fields = ('user', 'application', 'token', 'expires', 'created', 'archived_at', )
+        fields = (
+            'user',
+            'application',
+            'token',
+            'expires',
+            'created',
+            'archived_at',
+        )
 
 
 class ArchivedTokenView(ListAPIView):
@@ -263,7 +279,13 @@ class ArchivedDataAccessGrantSerializer(ModelSerializer):
 
     class Meta:
         model = ArchivedDataAccessGrant
-        fields = ('beneficiary', 'application', 'created_at', 'archived_at', 'id', )
+        fields = (
+            'beneficiary',
+            'application',
+            'created_at',
+            'archived_at',
+            'id',
+        )
 
 
 class ArchivedDataAccessGrantView(ListAPIView):
@@ -301,7 +323,12 @@ class DataAccessGrantSerializer(ModelSerializer):
 
     class Meta:
         model = DataAccessGrant
-        fields = ('beneficiary', 'application', 'created_at', 'id', )
+        fields = (
+            'beneficiary',
+            'application',
+            'created_at',
+            'id',
+        )
 
 
 class DataAccessGrantView(ListAPIView):
@@ -400,74 +427,68 @@ class TokenMetricsView(APIView):
     * Only admin users are able to access this view.
     * Default returns count info
     """
+
     permission_classes = (
         IsAuthenticated,
         IsAdminUser,
     )
 
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def get(self, request, format=None):
-        content = {
-            'count': AccessToken.objects.count()
-        }
+        content = {'count': AccessToken.objects.count()}
         return Response(content)
 
 
 class DeveloperFilter(filters.FilterSet):
-    joined_after = filters.DateFilter(field_name="date_joined", lookup_expr='gte')
-    joined_before = filters.DateFilter(field_name="date_joined", lookup_expr='lte')
-    app_count = filters.NumberFilter(
-        field_name="app_count",
-        label="Application Count")
-    min_app_count = filters.NumberFilter(
-        field_name="app_count",
-        lookup_expr='gte',
-        label="Min Application Count")
-    max_app_count = filters.NumberFilter(
-        field_name="app_count",
-        lookup_expr='lte',
-        label="Max Application Count")
+    joined_after = filters.DateFilter(field_name='date_joined', lookup_expr='gte')
+    joined_before = filters.DateFilter(field_name='date_joined', lookup_expr='lte')
+    app_count = filters.NumberFilter(field_name='app_count', label='Application Count')
+    min_app_count = filters.NumberFilter(field_name='app_count', lookup_expr='gte', label='Min Application Count')
+    max_app_count = filters.NumberFilter(field_name='app_count', lookup_expr='lte', label='Max Application Count')
 
     first_active_after = filters.DateFilter(
-        label="Date first_active is greater than or equal to",
-        field_name="first_active",
-        lookup_expr='gte')
+        label='Date first_active is greater than or equal to', field_name='first_active', lookup_expr='gte'
+    )
     first_active_before = filters.DateFilter(
-        label="Date first_active is less than or equal to",
-        field_name="first_active",
-        lookup_expr='lte')
+        label='Date first_active is less than or equal to', field_name='first_active', lookup_expr='lte'
+    )
 
     last_active_after = filters.DateFilter(
-        label="Date last_active is greater than or equal to",
-        field_name="last_active",
-        lookup_expr='gte')
+        label='Date last_active is greater than or equal to', field_name='last_active', lookup_expr='gte'
+    )
     last_active_before = filters.DateFilter(
-        label="Date last_active is less than or equal to",
-        field_name="last_active",
-        lookup_expr='lte')
+        label='Date last_active is less than or equal to', field_name='last_active', lookup_expr='lte'
+    )
 
-    active_app_count = filters.NumberFilter(
-        field_name="active_app_count",
-        label="Active Application Count")
+    active_app_count = filters.NumberFilter(field_name='active_app_count', label='Active Application Count')
     min_active_app_count = filters.NumberFilter(
-        field_name="active_app_count",
-        lookup_expr='gte',
-        label="Min Active Application Count")
+        field_name='active_app_count', lookup_expr='gte', label='Min Active Application Count'
+    )
     max_active_app_count = filters.NumberFilter(
-        field_name="active_app_count",
-        lookup_expr='lte',
-        label="Max Active Application Count")
+        field_name='active_app_count', lookup_expr='lte', label='Max Active Application Count'
+    )
     identification = filters.ModelMultipleChoiceFilter(
-        label='Identification Label',
-        field_name='useridentificationlabel',
-        queryset=UserIdentificationLabel.objects.all())
+        label='Identification Label', field_name='useridentificationlabel', queryset=UserIdentificationLabel.objects.all()
+    )
 
     class Meta:
         model = User
-        fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count',
-                  'first_active_after', 'first_active_before', 'last_active_after', 'last_active_before',
-                  'active_app_count', 'min_active_app_count', 'max_active_app_count', 'identification']
+        fields = [
+            'joined_after',
+            'joined_before',
+            'app_count',
+            'min_app_count',
+            'max_app_count',
+            'first_active_after',
+            'first_active_before',
+            'last_active_after',
+            'last_active_before',
+            'active_app_count',
+            'min_active_app_count',
+            'max_active_app_count',
+            'identification',
+        ]
 
 
 class DevelopersView(ListAPIView):
@@ -476,11 +497,17 @@ class DevelopersView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
-        app_count=Count('dot_ext_application'),
-        first_active=Min('dot_ext_application__first_active'),
-        active_app_count=Count('dot_ext_application__first_active'),
-        last_active=Max('dot_ext_application__last_active')).all()
+    queryset = (
+        User.objects.select_related()
+        .filter(userprofile__user_type=USER_TYPE_DEV)
+        .annotate(
+            app_count=Count('dot_ext_application'),
+            first_active=Min('dot_ext_application__first_active'),
+            active_app_count=Count('dot_ext_application__first_active'),
+            last_active=Max('dot_ext_application__last_active'),
+        )
+        .all()
+    )
 
     serializer_class = DevUserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -495,11 +522,17 @@ class DevelopersStreamView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
-        app_count=Count('dot_ext_application'),
-        first_active=Min('dot_ext_application__first_active'),
-        active_app_count=Count('dot_ext_application__first_active'),
-        last_active=Max('dot_ext_application__last_active')).all()
+    queryset = (
+        User.objects.select_related()
+        .filter(userprofile__user_type=USER_TYPE_DEV)
+        .annotate(
+            app_count=Count('dot_ext_application'),
+            first_active=Min('dot_ext_application__first_active'),
+            active_app_count=Count('dot_ext_application__first_active'),
+            last_active=Max('dot_ext_application__last_active'),
+        )
+        .all()
+    )
 
     serializer_class = DevUserSerializer
     filter_backends = (filters.DjangoFilterBackend,)

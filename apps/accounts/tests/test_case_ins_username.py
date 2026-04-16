@@ -5,6 +5,7 @@ from django.test.client import Client
 from django.urls import reverse
 
 from ..models import UserProfile
+from apps.constants import USER_TYPE_DEV
 
 
 class CheckCaseInsensitiveUsernameTestCase(TestCase):
@@ -13,47 +14,49 @@ class CheckCaseInsensitiveUsernameTestCase(TestCase):
     """
 
     def setUp(self):
-        u = User.objects.create_user(username="fred@example.com",
-                                     first_name="Fred",
-                                     last_name="Flinstone",
-                                     email='fred@example.com',
-                                     password="foobar",)
-        UserProfile.objects.create(user=u,
-                                   user_type="DEV",
-                                   create_applications=True)
+        u = User.objects.create_user(
+            username='fred@example.com',
+            first_name='Fred',
+            last_name='Flinstone',
+            email='fred@example.com',
+            password='foobar',
+        )
+        UserProfile.objects.create(user=u, user_type=USER_TYPE_DEV, create_applications=True)
         self.client = Client()
 
     def test_page_loads(self):
         request = HttpRequest()
-        self.client.login(request=request, username="fred@example.com", password="foobar")
+        self.client.login(request=request, username='fred@example.com', password='foobar')
         url = reverse('account_settings')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
     def test_all_fields_required(self):
         request = HttpRequest()
-        self.client.login(request=request, username="fred@example.com", password="foobar")
+        self.client.login(request=request, username='fred@example.com', password='foobar')
         url = reverse('account_settings')
-        form_data = {'username': '',
-                     'email': 'fred@example.com',
-                     'first_name': '',
-                     'last_name': "",
-                     'organization_name': "Flinstone INC.",
-                     }
+        form_data = {
+            'username': '',
+            'email': 'fred@example.com',
+            'first_name': '',
+            'last_name': '',
+            'organization_name': 'Flinstone INC.',
+        }
         response = self.client.post(url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'This field is required.')
 
     def test_username_forced_to_lower(self):
         request = HttpRequest()
-        self.client.login(request=request, username="fred@example.com", password="foobar")
+        self.client.login(request=request, username='fred@example.com', password='foobar')
         url = reverse('account_settings')
-        form_data = {'username': 'FRED@Example.com',
-                     'email': 'fred@example.com',
-                     'first_name': 'Fred',
-                     'last_name': "Flinstone",
-                     'organization_name': "Flinstone INC.",
-                     }
+        form_data = {
+            'username': 'FRED@Example.com',
+            'email': 'fred@example.com',
+            'first_name': 'Fred',
+            'last_name': 'Flinstone',
+            'organization_name': 'Flinstone INC.',
+        }
         response = self.client.post(url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'fred@example.com')

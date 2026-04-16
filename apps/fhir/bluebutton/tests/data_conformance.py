@@ -8,11 +8,6 @@ File created by: Mark Scirmshire @ekivemark
 """
 # TODO: Could be problem dealing with \" embedded in Conformance Response
 
-# flake8: noqa
-
-
-# flake8: noqa
-
 CONFORMANCE = """
 {
     "resourceType":"Conformance",

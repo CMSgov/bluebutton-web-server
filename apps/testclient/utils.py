@@ -23,10 +23,10 @@ def _start_url_with_http_or_https(host: str) -> str:
     Returns:
         host: string (with "https://")
     """
-    if host.startswith("https://"):
+    if host.startswith('https://'):
         # This is fine.
         pass
-    elif host.startswith("http://"):
+    elif host.startswith('http://'):
         # This is also fine
         pass
     else:
@@ -54,7 +54,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
 
     response['api_ver'] = version
 
-    oa2client = Application.objects.get(name="TestApp")
+    oa2client = Application.objects.get(name='TestApp')
     response['client_id'] = oa2client.client_id
 
     if include_client_secret:
@@ -68,7 +68,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
     response['coverage_uri'] = '{}/v{}/fhir/Coverage/'.format(host, version)
 
     auth_data = __generate_auth_data()
-    response['code_challenge_method'] = "S256"
+    response['code_challenge_method'] = 'S256'
     response['code_verifier'] = auth_data['code_verifier']
     response['code_challenge'] = auth_data['code_challenge']
     response['state'] = auth_data['state']
@@ -85,7 +85,7 @@ def testclient_http_response_setup(include_client_secret: bool = True, version: 
 
 
 def get_client_secret():
-    oa2client = Application.objects.get(name="TestApp")
+    oa2client = Application.objects.get(name='TestApp')
     return oa2client.client_secret_plain
 
 
@@ -115,8 +115,8 @@ def extract_last_page_index(last_url):
 
 
 def __base64_url_encode(buffer):
-    buffer_bytes = base64.urlsafe_b64encode(buffer.encode("utf-8"))
-    buffer_result = str(buffer_bytes, "utf-8")
+    buffer_bytes = base64.urlsafe_b64encode(buffer.encode('utf-8'))
+    buffer_result = str(buffer_bytes, 'utf-8')
     return buffer_result
 
 
@@ -128,10 +128,8 @@ def __get_random_string(length) -> str:
 
 def __generate_pkce_data() -> dict:
     verifier = __generate_random_state(32)
-    code_challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode("ASCII")).digest()
-    )
-    return {"code_challenge": code_challenge.decode("utf-8"), "code_verifier": verifier}
+    code_challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode('ASCII')).digest())
+    return {'code_challenge': code_challenge.decode('utf-8'), 'code_verifier': verifier}
 
 
 def __generate_random_state(num) -> str:
@@ -139,7 +137,7 @@ def __generate_random_state(num) -> str:
 
 
 def __generate_auth_data() -> dict:
-    auth_data = {"state": __generate_random_state(32)}
+    auth_data = {'state': __generate_random_state(32)}
     auth_data.update(__generate_pkce_data())
     return auth_data
 

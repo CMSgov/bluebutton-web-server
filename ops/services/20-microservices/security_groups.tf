@@ -70,6 +70,10 @@ resource "aws_security_group" "alb_sg" {
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg" }
 }
 
+# ALB ingress: VPN/CDN access is provided by attaching cmscloud-vpn and akamai
+# security groups directly to the ALB (see alb.tf security_groups list).
+# No open 0.0.0.0/0 ingress — all traffic flows through Akamai CDN or CMS VPN.
+
 # ALB egress: Allow all outbound
 resource "aws_vpc_security_group_egress_rule" "alb_all" {
   for_each = nonsensitive({ for k, v in local.service_config : k => v if v.alb })

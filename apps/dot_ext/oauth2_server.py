@@ -1,8 +1,10 @@
 from datetime import timedelta
+from urllib.parse import parse_qs
 from waffle import switch_is_active
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 from oauth2_provider.settings import oauth2_settings
 
+from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.models import ExpiresIn
 from apps.pkce.oauth2_server import PKCEServerMixin
 
@@ -15,13 +17,20 @@ def my_token_expires_in(request):
     # first we try to retrieve the expires_in from the ExpiresIn
     # table.
     client_id = request.client.client_id
-    user_id = request.user.pk
+    request_body = parse_qs(request.body)
+    grant_type = request_body.get('grant_type', [None])
+
+    if grant_type[0] and grant_type[0] != CLIENT_CREDENTIALS:
+        user_id = request.user.pk
+    else:
+        user_id = request.client.user.pk
+
     expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
     # if no record is found we default to the value defined in the
     # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
     # or one hour if the one_hour_token_expiry switch is active
     if expires_in is None:
-        if switch_is_active("one_hour_token_expiry"):
+        if switch_is_active('one_hour_token_expiry') or (grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS):
             one_hour_delta = timedelta(hours=1)
             seconds_in_one_hour = int(one_hour_delta.total_seconds())
             expires_in = seconds_in_one_hour
@@ -32,12 +41,14 @@ def my_token_expires_in(request):
 
 
 class Server(PKCEServerMixin, OAuthLibServer):
-    def __init__(self, request_validator, token_expires_in=None,
-                 token_generator=None, refresh_token_generator=None,
-                 *args, **kwargs):
+    def __init__(
+        self, request_validator, token_expires_in=None, token_generator=None, refresh_token_generator=None, *args, **kwargs
+    ):
         super(Server, self).__init__(
             request_validator,
             token_expires_in=my_token_expires_in,  # add custom expires_in callable
             token_generator=token_generator,
             refresh_token_generator=refresh_token_generator,
-            *args, **kwargs)
+            *args,
+            **kwargs,
+        )
