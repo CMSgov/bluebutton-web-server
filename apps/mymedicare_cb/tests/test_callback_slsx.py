@@ -759,7 +759,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(Crosswalk.objects.count(), 0)
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
 
-        # 4. 1st sucessful matching for bene that creates a new crosswalk entry
+        # 4. 1st successful matching for bene that creates a new crosswalk entry
         with HTTMock(
             self.mock_response.slsx_token_mock,
             self.mock_response.slsx_user_info_mock,

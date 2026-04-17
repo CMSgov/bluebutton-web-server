@@ -61,7 +61,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 MIDDLEWARE = [
-    # Middleware that adds headers to the resposne
+    # Middleware that adds headers to the response
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
@@ -391,7 +391,7 @@ SILENCED_SYSTEM_CHECKS = ['urls.W002']
 # PACKAGE SETTINGS
 ###############################################################################
 
-# Django Oauth Tookit settings and customizations
+# Django Oauth Toolkit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,

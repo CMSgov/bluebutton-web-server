@@ -140,7 +140,7 @@ handler500 = 'hhs_oauth_server.urls.server_error'
 handler400 = 'hhs_oauth_server.urls.bad_request'
 
 
-# TODO Replace this with defaults from rest_framework once upgrated to > 3.7.7
+# TODO Replace this with defaults from rest_framework once upgraded to > 3.7.7
 def server_error(request, *args, **kwargs):
     """
     Generic 500 error handler.

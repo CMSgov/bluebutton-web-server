@@ -14,7 +14,7 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
     Process errors coming from FHIR endpoints.
     * All 2XX errors pass through as-is.
     * All 3XX errors are wrapped and become a 502
-    * All 4XX errors are wraped and become a 400
+    * All 4XX errors are wrapped and become a 400
         * All 4XX errors get additional diagnostics attached
         * Except 404, which remains a NotFound
     * All 5XX errors are wrapped and become a 502
