@@ -37,10 +37,13 @@ jobs:
           mask-aws-account-id: true
 
       - name: Set up Node
-        run:  |
-            apt-get update && apt-get install -y nodejs npm
-            node --version
-            npm --version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+        # run:  |
+        #     # apt-get update && apt-get install -y nodejs npm
+        #     node --version
+        #     npm --version
 
       - name: Install python dependencies
         run: |
