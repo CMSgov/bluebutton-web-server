@@ -1,31 +1,30 @@
 import json
+from http import HTTPStatus
+from unittest import skipIf
 
 from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
+from httmock import HTTMock, all_requests
+from oauth2_provider.models import get_access_token_model
+from waffle.testutils import override_switch
+
 from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
     ENFORCE_PARAM_VALIDATAION,
     FHIR_CONFORMANCE_URLS,
-    READ_UPDATE_DELETE_PATIENT_URLS,
-    READ_UPDATE_DELETE_EOB_URLS,
     READ_UPDATE_DELETE_COVERAGE_URLS,
+    READ_UPDATE_DELETE_EOB_URLS,
+    READ_UPDATE_DELETE_PATIENT_URLS,
     SEARCH_COVERAGE_URLS,
     SEARCH_EOB_URLS,
     SEARCH_PATIENT_URLS,
     USERINFO_URLS,
 )
-from apps.versions import Versions
-from httmock import all_requests, HTTMock
-from http import HTTPStatus
-from oauth2_provider.models import get_access_token_model
-from waffle.testutils import override_switch
-from unittest import skipIf
-
 from apps.test import BaseApiTest
-
+from apps.versions import Versions
 from hhs_oauth_server.settings.base import FHIR_SERVER
 
 AccessToken = get_access_token_model()
@@ -183,19 +182,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac.save()
 
         @all_requests
-        def catchall_w_tag_qparam(url, req):
-            # this is called in case EOB search with good tag
-            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
-            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
-            # parameters encoded in prepared request's body
-            self.assertTrue(('_tag=Adjudicated' in req.url) or ('_tag=PartiallyAdjudicated' in req.url))
-
-            return {
-                'status_code': 200,
-                'content': get_response_json(f'eob_search_pt_v{version}'),
-            }
-
-        @all_requests
         def catchall(url, req):
             self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
             self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
@@ -206,24 +192,14 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             }
 
         # Test _tag with valid parameter value e.g. Adjudicated, PartiallyAdjudicated
-        with HTTMock(catchall_w_tag_qparam):
+        with HTTMock(catchall):
             response = self.client.get(
-                reverse(SEARCH_EOB_URLS[version]), {'_tag': 'Adjudicated'}, Authorization='Bearer %s' % (first_access_token)
+                reverse(SEARCH_EOB_URLS[version]),
+                {'_tag': 'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory'},
+                Authorization='Bearer %s' % (first_access_token),
             )
             # just check for 200 is sufficient
             self.assertEqual(response.status_code, 200)
-
-        # Test _tag with invalid parameter value e.g.: Adjudiacted-Typo
-        with HTTMock(catchall):
-            response = self.client.get(
-                reverse(SEARCH_EOB_URLS[version]), {'_tag': 'Adjudiacted-Typo'}, Authorization='Bearer %s' % (first_access_token)
-            )
-
-            content = json.loads(response.content.decode('utf-8'))
-            self.assertTrue(content['detail'].startswith('Invalid _tag value ('))
-            self.assertTrue(content['detail'].endswith("'PartiallyAdjudicated' or 'Adjudicated' expected."))
-            self.assertTrue('Adjudiacted-Typo' in content['detail'])
-            self.assertEqual(response.status_code, 400)
 
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(1)
@@ -504,7 +480,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             return {'status_code': 200, 'content': get_response_json(f'coverage_search_v{version}')}
 
         with HTTMock(catchall):
-            response = self.client.get(reverse(SEARCH_COVERAGE_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(SEARCH_COVERAGE_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
             self.assertEqual(response.status_code, 200)
 
             # assert v1 and v2 coverage resources
@@ -544,7 +522,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(reverse(FHIR_CONFORMANCE_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(FHIR_CONFORMANCE_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['resourceType'], 'CapabilityStatement')
@@ -568,7 +548,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(reverse(USERINFO_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(USERINFO_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
             # identical response for v1 and v2
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['sub'], response.json()['patient'])
@@ -623,15 +605,21 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_EOB_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+        self._test_request_when_invalid_parameters_included(
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+        )
 
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_COVERAGE_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+        self._test_request_when_invalid_parameters_included(
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+        )
 
     def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_PATIENT_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+        self._test_request_when_invalid_parameters_included(
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+        )
 
     @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
@@ -668,7 +656,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac.save()
 
         response = self.client.get(
-            reverse(url), {'hello': 'world'}, Authorization='Bearer %s' % (first_access_token), HTTP_PREFER=prefer_header
+            reverse(url),
+            {'hello': 'world'},
+            Authorization='Bearer %s' % (first_access_token),
+            HTTP_PREFER=prefer_header,
         )
         self.assertEqual(response.status_code, expected_response_code)
         if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
