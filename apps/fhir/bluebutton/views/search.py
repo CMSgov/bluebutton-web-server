@@ -4,7 +4,6 @@ from voluptuous import (
     REMOVE_EXTRA,
     All,
     Coerce,
-    Invalid,
     Match,
     Range,
     Required,
@@ -20,7 +19,6 @@ from apps.fhir.bluebutton.permissions import (
     V3EarlyAdopterPermission,
 )
 from apps.fhir.bluebutton.views.generic import FhirDataView
-from apps.fhir.constants import ACCEPTABLE_TAGS
 
 
 class HasSearchScope(permissions.BasePermission):
@@ -116,18 +114,6 @@ class SearchViewCoverage(SearchView):
 
 
 class SearchViewExplanationOfBenefit(SearchView):
-    # customized validator for better error reporting
-    def validate_tag(self):
-        def validator(value):
-            for entry in value:
-                for v in entry.split(','):
-                    if v not in ACCEPTABLE_TAGS:
-                        msg = f"Invalid _tag value ('{v}')."
-                        raise Invalid(msg)
-            return value
-
-        return validator
-
     # Class used for ExplanationOfBenefit resource search view
     required_scopes = [
         'patient/ExplanationOfBenefit.read',

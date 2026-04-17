@@ -1,12 +1,13 @@
-from apps.versions import Versions
 from collections import namedtuple as NT
+
 from voluptuous import (
     All,
+    Coerce,
     Match,
     Range,
-    Coerce,
 )
 
+from apps.versions import Versions
 
 ALLOWED_RESOURCE_TYPES = ['Patient', 'Coverage', 'ExplanationOfBenefit', 'Bundle']
 
@@ -137,11 +138,3 @@ USER_ID_TYPE_DEFAULT = 'H'
 
 IDI_MATCH_ENDPOINT = '$idi-match'
 PATIENT_RESOURCE_TYPE = 'Patient'
-
-ACCEPTABLE_TAGS = [
-    'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|SharedSystem',
-    'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory',
-    'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|DDPS',
-    'https://bluebutton.cms.gov/fhir/CodeSystem/Final-Action|FinalAction',
-    'https://bluebutton.cms.gov/fhir/CodeSystem/Final-Action|NotFinalAction',
-]
