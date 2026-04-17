@@ -1,7 +1,6 @@
 name: Build and Upload Static Assets
 
 on:
-  push:
   workflow_dispatch:
 
 env:
@@ -9,7 +8,7 @@ env:
   TARGET_ENV: test
 
 permissions:
-  id-token: write # Required for requ esting the AWS IAM OIDC JWT
+  id-token: write # Required for requesting the AWS IAM OIDC JWT
   contents: write # Required for actions/checkout
   actions: write # Required for GHA cache
 
@@ -21,15 +20,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # TO DO: Look into using setup-python github action in the future
       - name: Setup Python 3.12
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-        # run: |
-        #   echo "Setting up Python 3.12 via pyenv..."
-        #   pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
-        #   pyenv global 3.12 || pyenv global 3.12.0
-        #   python3 --version
+        run: |
+          echo "Setting up Python 3.12 via pyenv..."
+          pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
+          pyenv global 3.12 || pyenv global 3.12.0
+          python3 --version
 
       - name: Configure AWS credentials
         id: aws-creds
