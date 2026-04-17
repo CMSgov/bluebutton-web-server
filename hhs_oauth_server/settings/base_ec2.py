@@ -442,7 +442,8 @@ AWS_REGION_NAME = env('AWS_DEFAULT_REGION')
 
 BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
-# TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks that aren't being migrated
+# TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks
+# in the deployment repo that aren't being migrated
 LOGGING = env(
     'DJANGO_LOGGING',
     {
@@ -471,10 +472,6 @@ LOGGING = env(
         },
         'handlers': {
             'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'simple',
-            },
-            'cloudwatch_console': {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
                 'formatter': 'jsonout',
@@ -490,7 +487,7 @@ LOGGING = env(
                 'class': 'watchtower.CloudWatchLogHandler',
                 'boto3_client': BOTO3_LOGS_CLIENT,
                 'formatter': 'verbose',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/debug.log',  # TODO: Update CloudWatch group
+                'log_group_name': f'/bb/{TARGET_ENV}/app/debug.log',
             },
             'wt_error': {
                 'level': 'INFO',
@@ -530,39 +527,39 @@ LOGGING = env(
         },
         'loggers': {
             'hhs_server': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_oauth_server.accounts': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_debug': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_server_error': {
-                'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
                 'level': 'ERROR',
             },
             'unsuccessful_logins': {
-                'handlers': ['wt_badlogin', 'wt_perf_mon', 'cloudwatch_console', 'wt_info'],
+                'handlers': ['wt_badlogin', 'wt_perf_mon', 'wt_info', 'console'],
                 'level': 'INFO',
             },
             'admin_interface': {
-                'handlers': ['wt_adminuse', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_adminuse', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_info': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauth2_provider': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauthlib': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'tests': {
@@ -570,11 +567,11 @@ LOGGING = env(
                 'level': 'DEBUG',
             },
             'audit': {
-                'handlers': ['wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'performance': {
-                'handlers': ['wt_perf_mon', 'cloudwatch_console'],
+                'handlers': ['wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
         },
