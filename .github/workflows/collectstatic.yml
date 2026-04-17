@@ -24,7 +24,7 @@ jobs:
       - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12.0'
         # run: |
         #   echo "Setting up Python 3.12 via pyenv..."
         #   pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
