@@ -1,27 +1,26 @@
-from apps.fhir.constants import ACCEPTABLE_TAGS
 import waffle
-
+from rest_framework import permissions
 from voluptuous import (
-    Required,
+    REMOVE_EXTRA,
     All,
+    Coerce,
+    Invalid,
     Match,
     Range,
-    Coerce,
+    Required,
     Schema,
-    Invalid,
-    REMOVE_EXTRA,
 )
-from rest_framework import permissions
 
-from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.permissions import (
-    SearchCrosswalkPermission,
-    ResourcePermission,
     ApplicationActivePermission,
+    ResourcePermission,
+    SearchCrosswalkPermission,
     V3EarlyAdopterPermission,
 )
+from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.constants import ACCEPTABLE_TAGS
 
 
 class HasSearchScope(permissions.BasePermission):
@@ -169,6 +168,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
         'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
         'patient': str,
+        '_tag': [str],
     }
 
     def __init__(self, version=1):
@@ -195,7 +195,6 @@ class SearchViewExplanationOfBenefit(SearchView):
         # BB2-4250: Does not seem that this code will execute given the new permission class
         # so leaving it as is
         if waffle.switch_is_active('v3_endpoints'):
-            query_schema['_tag'] = self.validate_tag()
             # _tag if presents, is a string value
             params['_tag'] = request.query_params.getlist('_tag')
 
