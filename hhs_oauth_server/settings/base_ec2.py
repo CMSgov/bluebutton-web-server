@@ -384,12 +384,8 @@ ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
-MEDIA_URL = '/media/'
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'collectedstatic')
-
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static/'),
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 # Waffle
