@@ -226,6 +226,13 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
 		</tr>
 		<tr>
             <td align="center">
+                <a href="https://github.com/ryan-morosa">
+                    <img src="https://avatars.githubusercontent.com/u/253099523?v=4" width="100;" alt="ryan-morosa"/>
+                    <br />
+                    <sub><b>ryan-morosa</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/alex-dzeda">
                     <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
                     <br />
@@ -237,13 +244,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
                     <br />
                     <sub><b>Micah Taylor</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/ryan-morosa">
-                    <img src="https://avatars.githubusercontent.com/u/253099523?v=4" width="100;" alt="ryan-morosa"/>
-                    <br />
-                    <sub><b>ryan-morosa</b></sub>
                 </a>
             </td>
             <td align="center">
