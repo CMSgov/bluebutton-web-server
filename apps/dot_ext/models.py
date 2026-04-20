@@ -83,6 +83,7 @@ class Application(AbstractApplication):
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
     # TODO validator?
+    # why not use URLField? Wouldn't that be more explicit?
     client_uri = models.TextField(
         default='',
         blank=True,
