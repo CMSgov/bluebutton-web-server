@@ -444,7 +444,7 @@ class AnonUserState(models.Model):
     # TODO should this still have a max length?
     state = models.TextField(default='', max_length=64, db_index=True)
     # TODO validator?
-    next_uri = models.TextField(default='', validators=[URLValidator()])
+    next_uri = models.TextField(default='', validators=[URLValidator()], max_length=512)
 
     def __str__(self):
         return '%s %s' % (self.state, self.next_uri)
