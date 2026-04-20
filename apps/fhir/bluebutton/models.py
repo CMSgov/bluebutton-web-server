@@ -91,9 +91,8 @@ class Crosswalk(models.Model):
         on_delete=CASCADE,
     )
     # https://www.hl7.org/fhir/R4/datatypes.html#id
-    # TODO if spec says 64, why 80?
     fhir_id_v2 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v2',
@@ -101,9 +100,8 @@ class Crosswalk(models.Model):
         validators=[MinLengthValidator(1)],
     )
     # https://www.hl7.org/fhir/R4/datatypes.html#id
-    # TODO if spec says 64, why 80?
     fhir_id_v3 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v3',
@@ -218,7 +216,7 @@ class ArchivedCrosswalk(models.Model):
     This is performed via code in the '__get_and_update_user()' function
     in apps/mymedicare_cb/models.py
     Attributes:
-        user: auth_user.id
+        user: auth_user.id TODO but there is no user field in this model below?
         fhir_id_v2: v1/v2 BFD fhir patient id
         fhir_id_v3: v3 BFD fhir patient id
         user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
@@ -241,18 +239,16 @@ class ArchivedCrosswalk(models.Model):
         db_index=True,
     )
     # https://www.hl7.org/fhir/R4/datatypes.html#id
-    # TODO if spec says 64, why 80?
     fhir_id_v2 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v2',
         db_index=True,
     )
     # https://www.hl7.org/fhir/R4/datatypes.html#id
-    # TODO if spec says 64, why 80?
     fhir_id_v3 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v3',
