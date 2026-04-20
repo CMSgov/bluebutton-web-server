@@ -152,9 +152,9 @@ class SearchViewExplanationOfBenefit(SearchView):
     QUERY_SCHEMA = {
         **SearchView.QUERY_SCHEMA,
         'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
-        'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
+        'service-date': list[Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
         'patient': str,
-        '_tag': [str],
+        '_tag': list[str],
     }
 
     def __init__(self, version=1):

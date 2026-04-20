@@ -191,7 +191,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 'content': get_response_json(f'eob_search_pt_v{version}'),
             }
 
-        # Test _tag with valid parameter value e.g. Adjudicated, PartiallyAdjudicated
+        # Test _tag with valid parameter value
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(SEARCH_EOB_URLS[version]),
