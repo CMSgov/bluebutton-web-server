@@ -9,7 +9,6 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
-from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import (
@@ -27,6 +26,7 @@ from oauth2_provider.models import (
 from oauth2_provider.settings import oauth2_settings
 from waffle import switch_is_active
 
+from apps.validators import phone_regex
 import apps.logging.request_logger as logging
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import (
@@ -148,14 +148,7 @@ class Application(AbstractApplication):
     # TODO possible validator
     support_email = models.TextField(blank=True, null=True)
 
-    # FROM https://stackoverflow.com/questions/19130942/whats-the-best-way-to-store-phone-number-in-django-models
-    phone_regex = RegexValidator(
-        regex=r'^\+?1?\d{9,15}$',
-        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
-    )
-
-    # TODO what should we do here with the length discrepancy?
-    support_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
+    support_phone_number = models.CharField(validators=[phone_regex], max_length=16, blank=True, null=True)
 
     description = models.TextField(
         default='',
