@@ -70,7 +70,9 @@ class Application(AbstractApplication):
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    # TODO validator?
     op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, max_length=512)
+    # TODO validator?
     op_policy_uri = models.TextField(default='', blank=True, max_length=512)
     # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
     # see migration file 0005_alter_application_client_secret.py
@@ -115,8 +117,10 @@ class Application(AbstractApplication):
 
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
+    # TODO validator?
     logo_uri = models.TextField(default='', blank=True, max_length=512, verbose_name='Logo URI')
 
+    # TODO validator?
     tos_uri = models.TextField(
         default='',
         blank=True,
@@ -124,6 +128,7 @@ class Application(AbstractApplication):
         verbose_name="Client's Terms of Service URI",
     )
 
+    # TODO validator?
     policy_uri = models.TextField(
         default='',
         blank=True,
@@ -206,6 +211,8 @@ class Application(AbstractApplication):
     )
 
     # New fields for CMS Aligned Networks epic
+    # TODO validator?
+    # TODO to TextField?
     jwks_uri = models.URLField(
         default=None,
         blank=True,
