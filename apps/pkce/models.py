@@ -10,5 +10,7 @@ class CodeChallenge(models.Model):
         on_delete=models.CASCADE,
         primary_key=True,
     )
+    # TODO spec
     challenge = models.CharField(max_length=255, default=None)
+    # TODO spec
     challenge_method = models.CharField(max_length=255, default="S256")

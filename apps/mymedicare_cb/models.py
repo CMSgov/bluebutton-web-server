@@ -440,7 +440,8 @@ def _validate_asserts(logger, log_dict, asserts):
 
 
 class AnonUserState(models.Model):
-    state = models.CharField(default='', max_length=64, db_index=True)
+    # TODO should this still have a max length?
+    state = models.TextField(default='', max_length=64, db_index=True)
     next_uri = models.TextField(default='')
 
     def __str__(self):

@@ -43,9 +43,9 @@ THIRTEEN_MONTHS = _('for 13 months, until ')
 
 
 class InternalApplicationLabels(models.Model):
-    label = models.CharField(max_length=255, default='', unique=True)
-    slug = models.CharField(max_length=1024, default='', unique=True)
-    description = models.TextField(max_length=10240, blank=True, default='')
+    label = models.TextField(max_length=255, default='', unique=True)
+    slug = models.TextField(max_length=1024, default='', unique=True)
+    description = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.label
@@ -70,16 +70,18 @@ class Application(AbstractApplication):
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
-    op_policy_uri = models.CharField(default='', blank=True, max_length=512)
+    op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, max_length=512)
+    op_policy_uri = models.TextField(default='', blank=True, max_length=512)
     # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
     # where the client_secret is hashed ireversible
+    # TODO spec?
     client_secret_plain = models.CharField(default='', blank=True, max_length=255)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
-    client_uri = models.URLField(
+    # TODO validator?
+    client_uri = models.TextField(
         default='',
         blank=True,
         null=True,
@@ -89,7 +91,8 @@ class Application(AbstractApplication):
         'For example, https://www.example.org or http://www.example.org .',
     )
 
-    website_uri = models.URLField(
+    # TODO possible validator
+    website_uri = models.TextField(
         default='',
         blank=True,
         null=True,
@@ -109,16 +112,16 @@ class Application(AbstractApplication):
 
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
-    logo_uri = models.CharField(default='', blank=True, max_length=512, verbose_name='Logo URI')
+    logo_uri = models.TextField(default='', blank=True, max_length=512, verbose_name='Logo URI')
 
-    tos_uri = models.CharField(
+    tos_uri = models.TextField(
         default='',
         blank=True,
         max_length=512,
         verbose_name="Client's Terms of Service URI",
     )
 
-    policy_uri = models.CharField(
+    policy_uri = models.TextField(
         default='',
         blank=True,
         max_length=512,
@@ -126,7 +129,7 @@ class Application(AbstractApplication):
         help_text='This can be a model privacy notice or other policy document.',
     )
 
-    software_id = models.CharField(
+    software_id = models.TextField(
         default='',
         blank=True,
         max_length=128,
@@ -136,12 +139,12 @@ class Application(AbstractApplication):
     contacts = models.TextField(
         default='',
         blank=True,
-        max_length=512,
         verbose_name="Client's Contacts",
         help_text='This is typically an email',
     )
 
-    support_email = models.EmailField(blank=True, null=True)
+    # TODO possible validator
+    support_email = models.TextField(blank=True, null=True)
 
     # FROM https://stackoverflow.com/questions/19130942/whats-the-best-way-to-store-phone-number-in-django-models
     phone_regex = RegexValidator(
@@ -149,6 +152,7 @@ class Application(AbstractApplication):
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
     )
 
+    # TODO
     support_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
 
     description = models.TextField(
@@ -176,6 +180,7 @@ class Application(AbstractApplication):
     )
 
     # Type related to data access limits.
+    # TODO enum?
     data_access_type = models.CharField(
         default='THIRTEEN_MONTH',
         choices=APPLICATION_TYPE_CHOICES,
@@ -197,6 +202,7 @@ class Application(AbstractApplication):
         ),
     )
 
+    # TODO enum?
     allowed_auth_type = models.CharField(
         max_length=40,
         choices=APPLICATION_AUTH_CHOICES,
@@ -384,7 +390,7 @@ class Application(AbstractApplication):
 
 
 class ApplicationLabel(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.TextField(max_length=255, unique=True)
     slug = models.SlugField(db_index=True, unique=True)
     description = models.TextField()
     applications = models.ManyToManyField(Application, blank=True)
@@ -460,6 +466,7 @@ class ArchivedToken(models.Model):
         db_constraint=False,
         related_name='%(app_label)s_%(class)s',
     )
+    # spec
     token = models.CharField(
         max_length=255,
         unique=True,
@@ -486,6 +493,7 @@ class ExpiresIn(models.Model):
     issued to the user.
     """
 
+    # TODO spec?
     key = models.CharField(max_length=64, unique=True)
     expires_in = models.IntegerField()
 
@@ -523,9 +531,13 @@ class AuthFlowUuid(models.Model):
     """
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
+    # TODO should this also be TextField?
     state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
+    # TODO spec?
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
+    # TODO spec?
     client_id = models.CharField(max_length=100, null=True)
+    # TODO spec?
     auth_pkce_method = models.CharField(max_length=16, null=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
@@ -552,6 +564,8 @@ class AuthFlowUuidCopy(models.Model):
     auth_share_demographic_scopes - Bene demographic sharing choice from consent page/form
     """
 
+    # TODO same changes as above?
+    # TODO could this just inherit from the above?
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
     state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
