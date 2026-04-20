@@ -31,7 +31,6 @@ def export_settings(request):
         'ORGANIZATION_TITLE': base.ORGANIZATION_TITLE,
         'POLICY_TITLE': base.POLICY_TITLE,
         'POLICY_URI': base.POLICY_URI,
-        'STATIC_ROOT': base.STATIC_ROOT,
         'STATIC_URL': base.STATIC_URL,
         'TAG_LINE_1': base.TAG_LINE_1,
         'TAG_LINE_2': base.TAG_LINE_2,
