@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.validators import URLValidator
 from django.core.files.storage import default_storage
 from django.db import models
 from django.db.models import Q
@@ -71,9 +72,10 @@ class Application(AbstractApplication):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     # TODO validator?
-    op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, max_length=512)
+    # shouldn't this really be named 'url'? or are we really allowing uri's?
+    op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, validators=[URLValidator()], max_length=512)
     # TODO validator?
-    op_policy_uri = models.TextField(default='', blank=True, max_length=512)
+    op_policy_uri = models.TextField(default='', blank=True, max_length=512, validators=[URLValidator()])
     # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
@@ -90,6 +92,7 @@ class Application(AbstractApplication):
         default='',
         blank=True,
         null=True,
+        validators=[URLValidator()],
         max_length=512,
         verbose_name='Client URI',
         help_text='This is typically a home/download website for the application. '
@@ -101,6 +104,7 @@ class Application(AbstractApplication):
         default='',
         blank=True,
         null=True,
+        validators=[URLValidator()],
         max_length=512,
         verbose_name='Website URI',
         help_text='This is typically a home/download website for the application. '
@@ -118,12 +122,13 @@ class Application(AbstractApplication):
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
     # TODO validator?
-    logo_uri = models.TextField(default='', blank=True, max_length=512, verbose_name='Logo URI')
+    logo_uri = models.TextField(default='', blank=True, max_length=512, verbose_name='Logo URI', validators=[URLValidator()])
 
     # TODO validator?
     tos_uri = models.TextField(
         default='',
         blank=True,
+        validators=[URLValidator()],
         max_length=512,
         verbose_name="Client's Terms of Service URI",
     )
@@ -132,6 +137,7 @@ class Application(AbstractApplication):
     policy_uri = models.TextField(
         default='',
         blank=True,
+        validators=[URLValidator()],
         max_length=512,
         verbose_name="Client's Policy URI",
         help_text='This can be a model privacy notice or other policy document.',
@@ -213,10 +219,11 @@ class Application(AbstractApplication):
     # New fields for CMS Aligned Networks epic
     # TODO validator?
     # TODO to TextField?
-    jwks_uri = models.URLField(
+    jwks_uri = models.TextField(
         default=None,
         blank=True,
         null=True,
+        validators=[URLValidator()],
         # Went with 512 as that is the established pattern we have for URLFields
         # and to allow for extremely long URLs. 200 is default
         max_length=512,
