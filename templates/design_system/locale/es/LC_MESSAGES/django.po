@@ -3,7 +3,7 @@
 #
 # TRANSLATORS: text and punctuation after 'msgid' is the English text requiring translation.
 # The translation text should go within the quotation marks following the 'msgstr' identifier.
-# Please add/maintain all punctuation and whitespace found in the original text.
+# Please add/maintain all punctuation and whitespce found in the original text.
 # When updating this file, run `django-admin compilemessages` for the changes to be compiled.
 #, fuzzy
 msgid ""
