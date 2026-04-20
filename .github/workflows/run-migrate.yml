@@ -118,4 +118,4 @@ jobs:
             --log-stream-name "$LOG_STREAM" \
             --start-from-head \
             --query 'events[*].message' \
-            --output text || echo "Could not fetch logs"
+            --output json | jq -r '.[]' || echo "Could not fetch logs"
