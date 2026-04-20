@@ -15,12 +15,7 @@ from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
-from apps.constants import (
-    CLIENT_CREDENTIALS,
-    CODE_CHALLENGE_METHOD_S256,
-    TEST_APP_CLIENT_ID,
-    TEST_APP_CLIENT_SECRET,
-)
+from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
@@ -31,11 +26,7 @@ from apps.dot_ext.constants import (
     IDME_LOWER_ISS,
 )
 from apps.dot_ext.models import Application
-from apps.dot_ext.utils import (
-    get_application_from_data,
-    get_application_from_meta,
-    validate_app_is_active,
-)
+from apps.dot_ext.utils import get_application_from_data, get_application_from_meta, validate_app_is_active
 from apps.dot_ext.views import TokenView
 from apps.test import BaseApiTest
 from apps.versions import Versions
@@ -54,31 +45,21 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             jwks_uri='https://valid.jwks.json',
         )
 
-        result = view_instance._check_if_client_credentials_call_is_allowed(
-            mock_app, Versions.V1
-        )
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
         assert not result
 
-        result = view_instance._check_if_client_credentials_call_is_allowed(
-            mock_app, Versions.V2
-        )
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V2)
         assert not result
 
-        result = view_instance._check_if_client_credentials_call_is_allowed(
-            mock_app, Versions.V3
-        )
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert not result
 
         mock_app.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
-        result = view_instance._check_if_client_credentials_call_is_allowed(
-            mock_app, Versions.V3
-        )
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
         mock_app.allowed_auth_type = 'CLIENT_CREDENTIALS'
-        result = view_instance._check_if_client_credentials_call_is_allowed(
-            mock_app, Versions.V3
-        )
+        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
         assert result
 
     @override_switch('v3_endpoints', active=True)
@@ -103,13 +84,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # Identification from client_assertion (Private Key JWT)
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
-        assertion = jwt.encode(
-            {'iss': application.client_id}, 'secret', algorithm='HS256'
-        )
-=======
         assertion = jwt.encode({'iss': application.client_id}, 'secret', algorithm='HS256')
->>>>>>> master
         token_request_data = {
             'grant_type': CLIENT_CREDENTIALS,
             'redirect_uri': redirect_uri,
@@ -125,15 +100,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         )
 
         assert response.status_code == HTTPStatus.FORBIDDEN
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
-        assert response.json()[
-            'message'
-        ] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
+        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
             application.name
         )
-=======
-        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
->>>>>>> master
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(
@@ -198,9 +167,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         }
         body = urlencode(token_request_data)
 
-        application.allowed_auth_type = (
-            CLIENT_CREDENTIALS_TYPE  # update to disable auth code based token
-        )
+        application.allowed_auth_type = CLIENT_CREDENTIALS_TYPE  # update to disable auth code based token
         application.save()
 
         response = self.client.post(
@@ -210,9 +177,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         )
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         assert response.json()['message'] == (
-            APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
-                application.name
-            )
+            APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(application.name)
         )
 
     def test_validate_client_credentials_request_raise_missing_params(self) -> None:
@@ -270,13 +235,7 @@ class TestClientIdExtraction(BaseApiTest):
 
     def test_get_client_id_from_client_assertion(self):
         """Verify client_id extraction from JWT client_assertion (client_credentials path)."""
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
-        assertion = jwt.encode(
-            {'iss': self.application.client_id}, 'secret', algorithm='HS256'
-        )
-=======
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
->>>>>>> master
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {'client_assertion': assertion}
         mock_request.GET = {}
@@ -337,13 +296,7 @@ class TestClientIdExtraction(BaseApiTest):
 
     def test_validate_app_is_active_client_credentials_with_assertion(self):
         """Verify validate_app_is_active succeeds for client_credentials with valid-looking assertion."""
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
-        assertion = jwt.encode(
-            {'iss': self.application.client_id}, 'secret', algorithm='HS256'
-        )
-=======
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
->>>>>>> master
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
             'grant_type': 'client_credentials',
@@ -361,13 +314,7 @@ class TestTokenResponseFields(BaseApiTest):
         super().setUp()
         # Create a patient user with a crosswalk
         self.patient_fhir_v3 = 'patient-123-v3'
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
-        self.user = self._create_user(
-            'patient_user', 'password123', fhir_id_v3=self.patient_fhir_v3
-        )
-=======
         self.user = self._create_user('patient_user', 'password123', fhir_id_v3=self.patient_fhir_v3)
->>>>>>> master
 
         # Since we care about exact capabilities, define it here explicitly
         capability_a, _ = ProtectedCapability.objects.get_or_create(
@@ -451,13 +398,7 @@ class TestTokenResponseFields(BaseApiTest):
             ]
         }
 
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
-        assertion = jwt.encode(
-            {'iss': self.application.client_id}, 'secret', algorithm='HS256'
-        )
-=======
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
->>>>>>> master
 
         token_request_data = {
             'grant_type': CLIENT_CREDENTIALS,
@@ -482,7 +423,6 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertNotIn('openid', data['scope'])
         # other scopes ought to be fine, however.
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
-<<<<<<< clewellyn-nava/BB2-4731/cache-jti-iss
 
 
 class TestTokenPrivateMethods(BaseApiTest):
@@ -519,12 +459,8 @@ class TestTokenPrivateMethods(BaseApiTest):
                 'header': {'typ': 'JWT'},
             }
 
-            result = self.token_view._validate_authorization_jwt(
-                'token', 'test_iss', self.mock_jwks_client
-            )
-            assert result == mock_payload.get('extensions', {}).get(
-                'cms_smart', {}
-            ).get('id_token')
+            result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
+            assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
 
             # Assert cache has the key we'd expect and that the result is what we'd expect
             cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
@@ -560,12 +496,8 @@ class TestTokenPrivateMethods(BaseApiTest):
             'header': {'typ': 'JWT'},
         }
 
-        result = self.token_view._validate_authorization_jwt(
-            'token', 'test_iss', self.mock_jwks_client
-        )
-        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get(
-            'id_token'
-        )
+        result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
+        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
 
         # Assert cache has the key we'd expect and that the result is what we'd expect
         cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
@@ -573,9 +505,7 @@ class TestTokenPrivateMethods(BaseApiTest):
 
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
-            self.token_view._validate_authorization_jwt(
-                'token', 'test_iss', self.mock_jwks_client
-            )
+            self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
 
     @override_switch('client_credentials_validation', active=True)
     @patch('jwt.decode_complete')
@@ -644,5 +574,3 @@ class TestTokenPrivateMethods(BaseApiTest):
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
-=======
->>>>>>> master
