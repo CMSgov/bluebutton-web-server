@@ -76,7 +76,9 @@ class Application(AbstractApplication):
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
     # where the client_secret is hashed ireversible
+    # 
     # TODO spec?
+    # It appears that 128 is the length that's generated in the code, so why 255?
     client_secret_plain = models.CharField(default='', blank=True, max_length=255)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
@@ -152,7 +154,7 @@ class Application(AbstractApplication):
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
     )
 
-    # TODO
+    # TODO what should we do here with the length discrepancy?
     support_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
 
     description = models.TextField(
@@ -466,7 +468,7 @@ class ArchivedToken(models.Model):
         db_constraint=False,
         related_name='%(app_label)s_%(class)s',
     )
-    # spec
+    # TODO spec
     token = models.CharField(
         max_length=255,
         unique=True,
@@ -493,7 +495,8 @@ class ExpiresIn(models.Model):
     issued to the user.
     """
 
-    # TODO spec?
+    # hex digest from sha-256, which is always 64 characters long
+    # https://csrc.nist.gov/pubs/fips/180-4/upd1/final
     key = models.CharField(max_length=64, unique=True)
     expires_in = models.IntegerField()
 
@@ -537,7 +540,7 @@ class AuthFlowUuid(models.Model):
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
     # TODO spec?
     client_id = models.CharField(max_length=100, null=True)
-    # TODO spec?
+    # TODO spec? should this be a TextField?
     auth_pkce_method = models.CharField(max_length=16, null=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)

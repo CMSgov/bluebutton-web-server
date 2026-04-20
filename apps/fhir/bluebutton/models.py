@@ -133,7 +133,7 @@ class Crosswalk(models.Model):
         db_column='user_mbi_hash',
         db_index=True,
     )
-    # TODO spec
+    # spec: https://www.cms.gov/training-education/partner-outreach-resources/new-medicare-card/medical-beneficiary-identifiers-mbis
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name='Unhashed MBI',
@@ -278,7 +278,7 @@ class ArchivedCrosswalk(models.Model):
         db_column='user_mbi_hash',
         db_index=True,
     )
-    # TODO spec
+    # spec: https://www.cms.gov/training-education/partner-outreach-resources/new-medicare-card/medical-beneficiary-identifiers-mbis
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name='Unhashed MBI',
