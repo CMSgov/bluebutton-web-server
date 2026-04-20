@@ -527,8 +527,7 @@ class AuthFlowUuid(models.Model):
     """
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
-    # TODO should this also be TextField?
-    state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
+    state = models.TextField(max_length=64, null=True, unique=True, db_index=True)
     # TODO spec?
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
     # TODO spec?
