@@ -18,7 +18,7 @@ from apps.fhir.constants import (
     SEARCH_EOB_URLS,
     SEARCH_PATIENT_URLS,
 )
-from apps.fhir.bluebutton.views.home import (conformance_filter)
+from apps.fhir.bluebutton.views.home import conformance_filter
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
 
@@ -45,33 +45,36 @@ def get_expected_read_request(version: int):
             'X-Forwarded-For': '127.0.0.1',
             'keep-alive': 'timeout=120, max=10',
             'BlueButton-OriginalUrl': f'/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}',
-            'BlueButton-BackendCall': (f'{FHIR_SERVER["FHIR_URL"]}/v{version}/'
-                                       f'fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}/'),
-        }
+            'BlueButton-BackendCall': (f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}/'),
+        },
     }
 
 
 def get_expected_request(version):
-    return {'method': 'GET',
-            'url': (f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/'
-                    f'?_format=application%2Fjson%2Bfhir&_id={DEFAULT_SAMPLE_FHIR_ID_V2}'),
-            'headers': {
-                # 'User-Agent': 'python-requests/2.20.0',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept': '*/*',
-                'Connection': 'keep-alive',
-                'BlueButton-OriginalQueryCounter': '1',
-                'BlueButton-BeneficiaryId': f'patientId:{DEFAULT_SAMPLE_FHIR_ID_V2}',  # noqa: E231
-                'BlueButton-Application': 'John_Smith_test',
-                'X-Forwarded-For': '127.0.0.1',
-                'keep-alive': 'timeout=120, max=10',
-                'BlueButton-OriginalUrl': f'/v{version}/fhir/Patient',
-                'BlueButton-BackendCall': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/', }
-            }
+    return {
+        'method': 'GET',
+        'url': (
+            f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/'
+            f'?_format=application%2Fjson%2Bfhir&_id={DEFAULT_SAMPLE_FHIR_ID_V2}'
+        ),
+        'headers': {
+            # 'User-Agent': 'python-requests/2.20.0',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept': '*/*',
+            'Connection': 'keep-alive',
+            'BlueButton-OriginalQueryCounter': '1',
+            'BlueButton-BeneficiaryId': f'patientId:{DEFAULT_SAMPLE_FHIR_ID_V2}',  # noqa: E231
+            'BlueButton-Application': 'John_Smith_test',
+            'X-Forwarded-For': '127.0.0.1',
+            'keep-alive': 'timeout=120, max=10',
+            'BlueButton-OriginalUrl': f'/v{version}/fhir/Patient',
+            'BlueButton-BackendCall': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/',
+        },
+    }
 
 
 class ConformanceReadRequestTest(TestCase):
-    """ Check the BlueButton API call  """
+    """Check the BlueButton API call"""
 
     # 'fhir_server_testdata_prep.json',
     fixtures = ['fhir_bluebutton_test_rt.json']
@@ -83,9 +86,9 @@ class ConformanceReadRequestTest(TestCase):
 
     @patch('apps.fhir.bluebutton.utils.requests')
     def test_fhir_bluebutton_read_conformance_testcase(self, mock_requests):
-        """ Checking Conformance
+        """Checking Conformance
 
-            The @patch replaces the call to requests with mock_requests
+        The @patch replaces the call to requests with mock_requests
 
         """
 
@@ -99,15 +102,13 @@ class ConformanceReadRequestTest(TestCase):
         # Make the call to request_call which uses requests.get
         # patch will intercept the call to requests.get and
         # return the pre-defined values
-        result = apps.fhir.bluebutton.utils.request_call(request,
-                                                         call_to,
-                                                         crosswalk=None)
+        result = apps.fhir.bluebutton.utils.request_call(request, call_to, crosswalk=None)
 
         # Test for a match
         self.assertEqual(result._response.content, CONFORMANCE)
 
     def test_fhir_conformance_filter(self):
-        """ Check filtering of Conformance Statement """
+        """Check filtering of Conformance Statement"""
 
         conform_out = json.loads(CONFORMANCE)
         result = conformance_filter(conform_out)
@@ -130,6 +131,7 @@ def _lower_dict(d):
         lower_d[str(k).lower()] = str(v).lower()
     return lower_d
 
+
 # _contains_subset :: dict, dict -> bool
 # Asks if d1 contains d1 as a subset.
 
@@ -142,15 +144,17 @@ def _contains_subset(d1, d2) -> bool:
 
 
 class ThrottleReadRequestTest(BaseApiTest):
-
     def setUp(self):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability('patient', [
-            ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-            ['GET', '/v1/fhir/Patient'],
-        ])
+        self._create_capability(
+            'patient',
+            [
+                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
+                ['GET', '/v1/fhir/Patient'],
+            ],
+        )
         # Setup the RequestFactory
         self.client = Client()
 
@@ -176,15 +180,38 @@ class ThrottleReadRequestTest(BaseApiTest):
         def catchall(url, req):
             return {
                 'status_code': 200,
-                'content': {'resourceType': 'Patient', 'id': DEFAULT_SAMPLE_FHIR_ID_V2, 'extension': [{'url': 'https://bluebutton.cms.gov/resources/variables/race', 'valueCoding': {'system': 'https://bluebutton.cms.gov/resources/variables/race', 'code': '1', 'display': 'White'}}], 'identifier': [{'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': DEFAULT_SAMPLE_FHIR_ID_V2}, {'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash', 'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5'}], 'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}], 'gender': 'unknown', 'birthDate': '2014-06-01', 'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}]}  # noqa
+                'content': {
+                    'resourceType': 'Patient',
+                    'id': DEFAULT_SAMPLE_FHIR_ID_V2,
+                    'extension': [
+                        {
+                            'url': 'https://bluebutton.cms.gov/resources/variables/race',
+                            'valueCoding': {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/race',
+                                'code': '1',
+                                'display': 'White',
+                            },
+                        }
+                    ],
+                    'identifier': [
+                        {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': DEFAULT_SAMPLE_FHIR_ID_V2},
+                        {
+                            'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash',
+                            'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5',
+                        },
+                    ],
+                    'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}],
+                    'gender': 'unknown',
+                    'birthDate': '2014-06-01',
+                    'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
+                },  # noqa
             }
 
         with HTTMock(catchall):
-
             response = self.client.get(
-                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version],
-                        kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
 
@@ -199,10 +226,9 @@ class ThrottleReadRequestTest(BaseApiTest):
             self.assertEqual(response.get('X-RateLimit-Reset'), '86400.0')
 
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_PATIENT_URLS[version],
-                    kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 429)
             # Assert that the proper headers are in place
@@ -220,10 +246,7 @@ class ThrottleReadRequestTest(BaseApiTest):
             self.assertEqual(response.get('Retry-After'), '86400')
 
             # Assert that the search endpoint is also ratelimited
-            response = self.client.get(
-                reverse(
-                    SEARCH_PATIENT_URLS[version]),
-                Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 429)
 
@@ -232,33 +255,40 @@ class ThrottleReadRequestTest(BaseApiTest):
             self.assertFalse(second_access_token == first_access_token)
 
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_PATIENT_URLS[version],
-                    kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
-                Authorization='Bearer %s' % (second_access_token))
+                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
+                Authorization='Bearer %s' % (second_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
 
 
 class BackendConnectionTest(BaseApiTest):
-
     def setUp(self):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability('patient', [
-            ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-            ['GET', r'\/v1\/fhir\/Patient\/\d+'],
-            ['GET', '/v1/fhir/Patient'],
-        ])
-        self._create_capability('coverage', [
-            ['GET', r'\/v1\/fhir\/Coverage\/.+'],
-            ['GET', '/v1/fhir/Coverage'],
-        ])
-        self._create_capability('eob', [
-            ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
-            ['GET', '/v1/fhir/ExplanationOfBenefit'],
-        ])
+        self._create_capability(
+            'patient',
+            [
+                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
+                ['GET', r'\/v1\/fhir\/Patient\/\d+'],
+                ['GET', '/v1/fhir/Patient'],
+            ],
+        )
+        self._create_capability(
+            'coverage',
+            [
+                ['GET', r'\/v1\/fhir\/Coverage\/.+'],
+                ['GET', '/v1/fhir/Coverage'],
+            ],
+        )
+        self._create_capability(
+            'eob',
+            [
+                ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
+                ['GET', '/v1/fhir/ExplanationOfBenefit'],
+            ],
+        )
         # Setup the RequestFactory
         self.client = Client()
 
@@ -294,10 +324,8 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    SEARCH_PATIENT_URLS[version]),
-                {'count': 5},
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_PATIENT_URLS[version]), {'count': 5}, Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 200)
             # asserts no significant transformation
@@ -312,9 +340,7 @@ class BackendConnectionTest(BaseApiTest):
         self._search_request_unauthorized(2)
 
     def _search_request_unauthorized(self, version: int = 1):
-        response = self.client.get(
-            reverse(SEARCH_PATIENT_URLS[version]),
-            Authorization='Bearer bogus')
+        response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer bogus')
 
         self.assertEqual(response.status_code, 401)
 
@@ -335,10 +361,10 @@ class BackendConnectionTest(BaseApiTest):
 
         self.assertEqual(response.status_code, 400)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content['detail'], (
-            'Using the access token in the query parameters is not supported. '
-            'Use the Authorization header instead'
-        ))
+        self.assertEqual(
+            content['detail'],
+            ('Using the access token in the query parameters is not supported. Use the Authorization header instead'),
+        )
 
     def test_search_request_not_found(self):
         self._search_request_not_found(1)
@@ -368,9 +394,7 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(SEARCH_PATIENT_URLS[version]),
-                Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 404)
 
@@ -394,23 +418,19 @@ class BackendConnectionTest(BaseApiTest):
                 'content': {
                     'resourceType': 'Bundle',
                     'id': '4b74b5b0-f324-41cb-85db-f8d527f79128',
-                    'meta': {
-                        'lastUpdated': '2018-05-15T14:01:58.603+00:00'
-                    },
+                    'meta': {'lastUpdated': '2018-05-15T14:01:58.603+00:00'},
                     'type': 'searchset',
                     'link': [
                         {
                             'relation': 'self',
-                            'url': f'http://hapi.fhir.org/v{version}/fhir/ExplanationOfBenefit?_pretty=true&patient=1234'  # noqa: E231, E501
+                            'url': f'http://hapi.fhir.org/v{version}/fhir/ExplanationOfBenefit?_pretty=true&patient=1234',  # noqa: E231, E501
                         },
                     ],
                 },
             }
 
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(SEARCH_EOB_URLS[version]),
-                Authorization="Bearer %s" % (first_access_token))
+            response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
 
@@ -450,9 +470,7 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(SEARCH_PATIENT_URLS[version]),
-                Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
 
@@ -478,16 +496,20 @@ class BackendConnectionTest(BaseApiTest):
         ac.save()
         expected_request = get_expected_request(version)
 
-        @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
+        @urlmatch(
+            query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*'
+        )  # noqa
         def fhir_request(url, req):
             return {
                 'status_code': 200,
                 'content': {
-                    'entry': [{
-                        'resource': {
-                            'id': DEFAULT_SAMPLE_FHIR_ID_V2,
-                        },
-                    }],
+                    'entry': [
+                        {
+                            'resource': {
+                                'id': DEFAULT_SAMPLE_FHIR_ID_V2,
+                            },
+                        }
+                    ],
                 },
             }
 
@@ -505,9 +527,7 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(fhir_request, catchall):
-            response = self.client.get(
-                reverse(SEARCH_PATIENT_URLS[version]),
-                Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
 
@@ -544,7 +564,8 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(SEARCH_EOB_URLS[version]),
                 {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
-                Authorization='Bearer %s' % (first_access_token))
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
 
         # Test _lastUpdated with invalid parameter starting with 'zz'
@@ -552,7 +573,8 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(SEARCH_EOB_URLS[version]),
                 {'_lastUpdated': 'zz2020-11-22T14:00:00-05:00'},
-                Authorization='Bearer %s' % (first_access_token))
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             content = json.loads(response.content.decode('utf-8'))
             self.assertEqual(content['detail'], 'the _lastUpdated operator is not valid')
@@ -561,43 +583,43 @@ class BackendConnectionTest(BaseApiTest):
         # Test type= with single valid value: 'pde'
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    SEARCH_EOB_URLS[version]),
-                {'type': 'pde'},
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_EOB_URLS[version]), {'type': 'pde'}, Authorization='Bearer %s' % (first_access_token)
+            )
             self.assertEqual(response.status_code, 200)
 
         # Test type= with multiple (all valid values)
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(SEARCH_EOB_URLS[version]),
-                {'type': 'carrier,'
-                         'pde,'
-                         'dme,'
-                         'hha,'
-                         'hospice,'
-                         'inpatient,'
-                         'outpatient,'
-                         'snf,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'},
-                Authorization='Bearer %s' % (first_access_token))
+                {
+                    'type': 'carrier,'
+                    'pde,'
+                    'dme,'
+                    'hha,'
+                    'hospice,'
+                    'inpatient,'
+                    'outpatient,'
+                    'snf,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'
+                },
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
 
         # Test type= with an invalid type
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(SEARCH_EOB_URLS[version]),
-                {'type': 'carrier,'
-                         'INVALID-TYPE,'
-                         'dme,'},
-                Authorization='Bearer %s' % (first_access_token))
+                {'type': 'carrier,INVALID-TYPE,dme,'},
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             content = json.loads(response.content.decode('utf-8'))
             self.assertEqual(content['detail'], 'the type parameter value is not valid')
@@ -613,16 +635,20 @@ class BackendConnectionTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
-        @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
+        @urlmatch(
+            query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*'
+        )  # noqa
         def fhir_request(url, req):
             return {
                 'status_code': 200,
                 'content': {
-                    'entry': [{
-                        'resource': {
-                            'id': 20140000008324,
-                        },
-                    }],
+                    'entry': [
+                        {
+                            'resource': {
+                                'id': 20140000008324,
+                            },
+                        }
+                    ],
                 },
             }
 
@@ -635,10 +661,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(fhir_request, catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_PATIENT_URLS[version],
-                    kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 403)
 
@@ -661,13 +686,37 @@ class BackendConnectionTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                'content': {'resourceType': 'Patient', 'id': DEFAULT_SAMPLE_FHIR_ID_V2, 'extension': [{'url': 'https://bluebutton.cms.gov/resources/variables/race', 'valueCoding': {'system': 'https://bluebutton.cms.gov/resources/variables/race', 'code': '1', 'display': 'White'}}], 'identifier': [{'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': DEFAULT_SAMPLE_FHIR_ID_V2}, {'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash', 'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5'}], 'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}], 'gender': 'unknown', 'birthDate': '2014-06-01', 'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}]}  # noqa
+                'content': {
+                    'resourceType': 'Patient',
+                    'id': DEFAULT_SAMPLE_FHIR_ID_V2,
+                    'extension': [
+                        {
+                            'url': 'https://bluebutton.cms.gov/resources/variables/race',
+                            'valueCoding': {
+                                'system': 'https://bluebutton.cms.gov/resources/variables/race',
+                                'code': '1',
+                                'display': 'White',
+                            },
+                        }
+                    ],
+                    'identifier': [
+                        {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': DEFAULT_SAMPLE_FHIR_ID_V2},
+                        {
+                            'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash',
+                            'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5',
+                        },
+                    ],
+                    'name': [{'use': 'usual', 'family': 'Doe', 'given': ['Jane', 'X']}],
+                    'gender': 'unknown',
+                    'birthDate': '2014-06-01',
+                    'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
+                },  # noqa
             }
 
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
-                Authorization='Bearer %s' % (first_access_token)
+                Authorization='Bearer %s' % (first_access_token),
             )
 
             self.assertEqual(response.status_code, 200)
@@ -696,10 +745,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_EOB_URLS[version],
-                    kwargs={'resource_id': 'eob_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_EOB_URLS[version], kwargs={'resource_id': 'eob_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
 
@@ -727,10 +775,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_COVERAGE_URLS[version],
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
 
@@ -765,10 +812,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_COVERAGE_URLS[version],
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
 
@@ -797,10 +843,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_COVERAGE_URLS[version],
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
 
@@ -846,10 +891,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_COVERAGE_URLS[version],
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 401)
             errStr = str(response.json().get('detail'))
             errwords = errStr.split()
@@ -873,10 +917,9 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    READ_UPDATE_DELETE_COVERAGE_URLS[version],
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 401)
             errStr = str(response.json().get('detail'))
             errwords = errStr.split()
@@ -905,16 +948,10 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            return {
-                'status_code': HTTPStatus.NOT_FOUND,
-                'detail': 'Not found.'
-            }
+            return {'status_code': HTTPStatus.NOT_FOUND, 'detail': 'Not found.'}
 
         with HTTMock(catchall):
-            response = self.client.get(
-                '/v2/fhir/Patient/' + non_token_fhir_id_v2,
-                Authorization='Bearer %s' % (access_token)
-            )
+            response = self.client.get('/v2/fhir/Patient/' + non_token_fhir_id_v2, Authorization='Bearer %s' % (access_token))
 
         json_response = response.json()
         assert response.status_code == HTTPStatus.NOT_FOUND
@@ -936,16 +973,10 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            return {
-                'status_code': HTTPStatus.NOT_FOUND,
-                'detail': 'Not found.'
-            }
+            return {'status_code': HTTPStatus.NOT_FOUND, 'detail': 'Not found.'}
 
         with HTTMock(catchall):
-            response = self.client.get(
-                '/v2/fhir/Patient/' + non_token_fhir_id_v2,
-                Authorization='Bearer %s' % (access_token)
-            )
+            response = self.client.get('/v2/fhir/Patient/' + non_token_fhir_id_v2, Authorization='Bearer %s' % (access_token))
 
         json_response = response.json()
         assert response.status_code == HTTPStatus.NOT_FOUND

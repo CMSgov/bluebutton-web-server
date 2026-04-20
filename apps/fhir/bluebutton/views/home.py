@@ -6,12 +6,10 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from urllib.parse import urlparse
+
 # from oauth2_provider.compat import urlparse
 from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
-from apps.fhir.bluebutton.utils import (request_call,
-                                        prepend_q,
-                                        get_response_text,
-                                        build_oauth_resource)
+from apps.fhir.bluebutton.utils import request_call, prepend_q, get_response_text, build_oauth_resource
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions, VersionNotMatched
 
@@ -21,7 +19,7 @@ logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def get_supported_resources(resources, resource_names):
-    """ Filter resources for resource type matches """
+    """Filter resources for resource type matches"""
 
     resource_list = []
 
@@ -36,8 +34,8 @@ def get_supported_resources(resources, resource_names):
 
 
 def conformance_filter(text_block):
-    """ Filter FHIR Conformance Statement based on
-        supported ResourceTypes
+    """Filter FHIR Conformance Statement based on
+    supported ResourceTypes
     """
     # TODO: This is fragile based on the structure of the resource.
     # A more robust way of pulling this apart as we increment versions
@@ -53,15 +51,15 @@ def conformance_filter(text_block):
                         text_block['rest'][ct]['resource'] = supp_resources
                 ct += 1
         else:
-            text_block = ""
+            text_block = ''
     else:
-        text_block = ""
+        text_block = ''
 
     return text_block
 
 
 def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
-    """ Pull and filter fhir Conformance statement
+    """Pull and filter fhir Conformance statement
 
     BaseStu3 = "CapabilityStatement"
 
@@ -101,9 +99,7 @@ def _fhir_conformance(request, version=Versions.NOT_AN_API_VERSION, *args):
 
     if r.status_code >= 300:
         logger.debug(f'We have an error code to deal with: {r.status_code}')
-        return HttpResponse(json.dumps(r._content),
-                            status=r.status_code,
-                            content_type='application/json')
+        return HttpResponse(json.dumps(r._content), status=r.status_code, content_type='application/json')
 
     text_in = get_response_text(fhir_response=r)
 

@@ -19,24 +19,18 @@ from apps.testclient.utils import (
     testclient_http_response_setup,
     get_client_secret,
     extract_page_nav,
-    _start_url_with_http_or_https
+    _start_url_with_http_or_https,
 )
 
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
-from apps.fhir.bluebutton.views.home import (
-    fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3)
+from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 from apps.versions import Versions, VersionNotMatched
 
-from apps.testclient.constants import (
-    HOME_PAGE,
-    RESULTS_PAGE,
-    EndpointUrl,
-    ResponseErrors
-)
+from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, ResponseErrors
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -53,7 +47,7 @@ def _get_oauth2_session_with_token(request: HttpRequest) -> OAuth2Session:
 
 
 # Giving a name to the params. The patient is optional.
-FhirDataParams = namedtuple("FhirDataParams", "name,uri,version,patient")
+FhirDataParams = namedtuple('FhirDataParams', 'name,uri,version,patient')
 
 
 def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest) -> str:
@@ -71,14 +65,12 @@ def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest
         id = beneficiary
     else:
         # We should not be able to get here.
-        raise ValueError("Failed to set a patient id or beneficiary id on the pagination URI")  # noqa: E702
+        raise ValueError('Failed to set a patient id or beneficiary id on the pagination URI')  # noqa: E702
 
     # Extend the base URI with pagination information.
-    uri = EndpointUrl.nav_uri(uri,
-                              count=request.GET.get('_count', 10),
-                              start_index=request.GET.get('startIndex', 0),
-                              id_type=id_type,
-                              id=id)
+    uri = EndpointUrl.nav_uri(
+        uri, count=request.GET.get('_count', 10), start_index=request.GET.get('startIndex', 0), id_type=id_type, id=id
+    )
     return uri
 
 
@@ -138,13 +130,8 @@ def _pagination_info(request: HttpRequest, last_url: str, version=Versions.NOT_A
 
 
 def _is_synthetic_patient_id(patient_id: str) -> bool:
-    '''Checks if a string is a synthetic patient ID.
-    '''
-    return (
-        patient_id is not None
-        and patient_id.startswith('-')
-        and re.match(r'^-\d+$', patient_id)
-    )
+    """Checks if a string is a synthetic patient ID."""
+    return patient_id is not None and patient_id.startswith('-') and re.match(r'^-\d+$', patient_id)
 
 
 ############################################################
@@ -202,7 +189,7 @@ def callback(request: HttpRequest):
         case Versions.V3:
             token_uri += reverse('oauth2_provider_v3:token-v3')
         case _:
-            logger.error(f"Failed to get valid API version back from authorizing agent. Given: [{version}]")
+            logger.error(f'Failed to get valid API version back from authorizing agent. Given: [{version}]')
             return ResponseErrors.MissingCallbackVersionContext(version)
 
     oas = _get_oauth2_session_with_redirect(request)
@@ -213,10 +200,7 @@ def callback(request: HttpRequest):
         # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
         # cannot be pulled from the session.
         cv = request.session.get('code_verifier', '')
-        token = oas.fetch_token(token_uri,
-                                client_secret=get_client_secret(),
-                                authorization_response=auth_uri,
-                                code_verifier=cv)
+        token = oas.fetch_token(token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv)
     except MissingTokenError:
         token_uri = request.session['token_uri']
         logger.error(f'MissingToken: failed to get token from {token_uri}')
@@ -262,13 +246,14 @@ def callback(request: HttpRequest):
     # Successful token response, redirect to home page view
     return redirect('test_links', permanent=True)
 
+
 ###############
 # restart
 
 
 @waffle_switch('enable_testclient')
 def restart(request: HttpRequest):
-    '''We hit the `restart` case when a user clicks on the restart link on the API try-out page.'''
+    """We hit the `restart` case when a user clicks on the restart link on the API try-out page."""
     if 'token' in request.session:
         del request.session['token']
 
@@ -277,6 +262,7 @@ def restart(request: HttpRequest):
 
 ###############
 # test_links
+
 
 @waffle_switch('enable_testclient')
 def test_links(request: HttpRequest, **kwargs):
@@ -299,14 +285,18 @@ def test_links(request: HttpRequest, **kwargs):
             case Versions.V3:
                 pass
 
-        return render(request, HOME_PAGE,
-                      context={
-                          'session_token': request.session['token'],
-                          'api_ver': version,
-                      })
+        return render(
+            request,
+            HOME_PAGE,
+            context={
+                'session_token': request.session['token'],
+                'api_ver': version,
+            },
+        )
     else:
         # If we don't have a token, go back home.
         return render(request, HOME_PAGE, context={'session_token': None})
+
 
 ############################################################
 # ENDPOINT LINKS
@@ -318,6 +308,7 @@ def _link_session_or_version_is_bad(session, version):
         return redirect('test_links', permanent=True)
     else:
         return False
+
 
 ###############
 # authorize_link
@@ -337,30 +328,25 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case Versions.V3:
             # https://bluebutton.cms.gov/developers/#authorization:~:text=response%20type%3A%20code-,scope,-optional
             # Should the test client request all scopes for v3? Some scopes?
-            oas.scope = "profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs"
+            oas.scope = 'profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs'
         case _:
             if 'token' in request.session:
                 del request.session['token']
-            return render(request, RESULTS_PAGE,
-                          {'error': 'Invalid API version',
-                           'response_type': 'BB2 error: authorize_link',
-                           'api_ver': version
-                           })
+            return render(
+                request,
+                RESULTS_PAGE,
+                {'error': 'Invalid API version', 'response_type': 'BB2 error: authorize_link', 'api_ver': version},
+            )
 
     authorization_url_kwargs = {}
-    authorization_url_kwargs["code_challenge"] = request.session['code_challenge']
-    authorization_url_kwargs["code_challenge_method"] = request.session['code_challenge_method']
+    authorization_url_kwargs['code_challenge'] = request.session['code_challenge']
+    authorization_url_kwargs['code_challenge_method'] = request.session['code_challenge_method']
     authorization_url = oas.authorization_url(
-        request.session['authorization_uri'],
-        request.session['state'],
-        **authorization_url_kwargs
+        request.session['authorization_uri'], request.session['state'], **authorization_url_kwargs
     )[0]
 
-    return render(
-        request,
-        'authorize.html',
-        {'authorization_url': authorization_url, 'api_ver': version}
-    )
+    return render(request, 'authorize.html', {'authorization_url': authorization_url, 'api_ver': version})
+
 
 ###############
 # test_coverage
@@ -370,8 +356,9 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    coverage = _get_fhir_data_as_json(request, FhirDataParams(
-        EndpointUrl.coverage, request.session['resource_uri'], version, None))
+    coverage = _get_fhir_data_as_json(
+        request, FhirDataParams(EndpointUrl.coverage, request.session['resource_uri'], version, None)
+    )
 
     nav_info, last_link = extract_page_nav(coverage)
 
@@ -391,21 +378,25 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             url_name = 'test_coverage_v3'
         case _:
             del request.session['token']
-            return render(request, RESULTS_PAGE,
-                          {'error': 'Invalid API version',
-                           'response_type': 'BB2 error: test_coverage',
-                           'api_ver': version
-                           })
+            return render(
+                request,
+                RESULTS_PAGE,
+                {'error': 'Invalid API version', 'response_type': 'BB2 error: test_coverage', 'api_ver': version},
+            )
 
-    return render(request,
-                  RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(coverage, indent=3),
-                   'url_name': url_name,
-                   'nav_list': nav_info,
-                   'page_loc': pg_info,
-                   'response_type': 'Bundle of Coverage',
-                   'api_ver': version,
-                   })
+    return render(
+        request,
+        RESULTS_PAGE,
+        {
+            'fhir_json_pretty': json.dumps(coverage, indent=3),
+            'url_name': url_name,
+            'nav_list': nav_info,
+            'page_loc': pg_info,
+            'response_type': 'Bundle of Coverage',
+            'api_ver': version,
+        },
+    )
+
 
 ###############
 # test_eob
@@ -415,8 +406,7 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    params = FhirDataParams(EndpointUrl.explanation_of_benefit,
-                            request.session['resource_uri'], version, None)
+    params = FhirDataParams(EndpointUrl.explanation_of_benefit, request.session['resource_uri'], version, None)
 
     eob = _get_fhir_data_as_json(request, params)
 
@@ -435,20 +425,25 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             url_name = 'test_eob_v3'
         case _:
             del request.session['token']
-            return render(request, RESULTS_PAGE,
-                          {'error': 'Invalid API version',
-                           'response_type': 'BB2 error: test_eob',
-                           'api_ver': version
-                           })
+            return render(
+                request,
+                RESULTS_PAGE,
+                {'error': 'Invalid API version', 'response_type': 'BB2 error: test_eob', 'api_ver': version},
+            )
 
-    return render(request, RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(eob, indent=3),
-                   'url_name': url_name,
-                   'nav_list': nav_info,
-                   'page_loc': pg_info,
-                   'response_type': 'Bundle of ExplanationOfBenefit',
-                   'api_ver': version
-                   })
+    return render(
+        request,
+        RESULTS_PAGE,
+        {
+            'fhir_json_pretty': json.dumps(eob, indent=3),
+            'url_name': url_name,
+            'nav_list': nav_info,
+            'page_loc': pg_info,
+            'response_type': 'Bundle of ExplanationOfBenefit',
+            'api_ver': version,
+        },
+    )
+
 
 ###############
 # test_metadata
@@ -469,19 +464,21 @@ def _test_metadata(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             conformance = fhir_conformance_v3
         case _:
             del request.session['token']
-            return render(request, RESULTS_PAGE,
-                          {'error': 'Invalid API version',
-                           'response_type': 'BB2 error: test_metadata',
-                           'api_ver': version
-                           })
+            return render(
+                request,
+                RESULTS_PAGE,
+                {'error': 'Invalid API version', 'response_type': 'BB2 error: test_metadata', 'api_ver': version},
+            )
 
     json_response = _convert_response_string_to_json(conformance(request))
 
-    return render(request, RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(json_response, indent=3),
-                   'response_type': 'FHIR Metadata',
-                   'api_ver': version
-                   })
+    return render(
+        request,
+        RESULTS_PAGE,
+        {'fhir_json_pretty': json.dumps(json_response, indent=3), 'response_type': 'FHIR Metadata', 'api_ver': version},
+    )
+
+
 ###############
 # test_openid_config
 
@@ -498,13 +495,14 @@ def _test_openid_config(request: HttpRequest, version=Versions.NOT_AN_API_VERSIO
         case Versions.V3:
             json_response = _convert_response_string_to_json(openid_configuration_v3(request))
         case _:
-            raise VersionNotMatched("Version not matched in openid_config.")
+            raise VersionNotMatched('Version not matched in openid_config.')
 
-    return render(request, RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(json_response, indent=3),
-                   'response_type': 'OIDC Discovery',
-                   'api_ver': version
-                   })
+    return render(
+        request,
+        RESULTS_PAGE,
+        {'fhir_json_pretty': json.dumps(json_response, indent=3), 'response_type': 'OIDC Discovery', 'api_ver': version},
+    )
+
 
 ###############
 # test_patient
@@ -514,14 +512,14 @@ def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    patient = _get_fhir_data_as_json(request, FhirDataParams(
-        EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']))
+    patient = _get_fhir_data_as_json(
+        request, FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient'])
+    )
 
-    return render(request, RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(patient, indent=3),
-                   'response_type': 'Patient',
-                   'api_ver': version
-                   })
+    return render(
+        request, RESULTS_PAGE, {'fhir_json_pretty': json.dumps(patient, indent=3), 'response_type': 'Patient', 'api_ver': version}
+    )
+
 
 ###############
 # test_userinfo
@@ -531,28 +529,31 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    user_info = _get_fhir_data_as_json(request, FhirDataParams(
-        EndpointUrl.userinfo, request.session['resource_uri'], version, None))
+    user_info = _get_fhir_data_as_json(
+        request, FhirDataParams(EndpointUrl.userinfo, request.session['resource_uri'], version, None)
+    )
 
-    return render(request, RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(user_info, indent=3),
-                   'response_type': 'Profile (OIDC Userinfo)',
-                   'api_ver': version
-                   })
+    return render(
+        request,
+        RESULTS_PAGE,
+        {'fhir_json_pretty': json.dumps(user_info, indent=3), 'response_type': 'Profile (OIDC Userinfo)', 'api_ver': version},
+    )
 
 
 def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    c4dic_info = _get_fhir_data_as_json(request, FhirDataParams(
-        EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']))
+    c4dic_info = _get_fhir_data_as_json(
+        request,
+        FhirDataParams(EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']),
+    )
 
-    return render(request, RESULTS_PAGE,
-                  {'fhir_json_pretty': json.dumps(c4dic_info, indent=3),
-                   'response_type': 'Bundle',
-                   'api_ver': version
-                   })
+    return render(
+        request,
+        RESULTS_PAGE,
+        {'fhir_json_pretty': json.dumps(c4dic_info, indent=3), 'response_type': 'Bundle', 'api_ver': version},
+    )
 
 
 ############################################################
@@ -562,10 +563,12 @@ def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_A
 ###############
 # authorize_link
 
+
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link_v1(request: HttpRequest):
     return _authorize_link(request, version=Versions.V1)
+
 
 ###############
 # test_coverage
@@ -576,6 +579,7 @@ def authorize_link_v1(request: HttpRequest):
 def test_coverage_v1(request: HttpRequest):
     return _test_coverage(request, version=Versions.V1)
 
+
 ###############
 # test_eob
 
@@ -584,6 +588,7 @@ def test_coverage_v1(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_eob_v1(request: HttpRequest):
     return _test_eob(request, version=Versions.V1)
+
 
 ###############
 # test_metadata
@@ -598,10 +603,12 @@ def test_metadata_v1(request: HttpRequest):
 ###############
 # test_openid_config
 
+
 @never_cache
 @waffle_switch('enable_testclient')
 def test_openid_config_v1(request: HttpRequest):
     return _test_openid_config(request, version=Versions.V1)
+
 
 ###############
 # test_patient
@@ -611,6 +618,7 @@ def test_openid_config_v1(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_patient_v1(request: HttpRequest):
     return _test_patient(request, version=Versions.V1)
+
 
 ###############
 # test_userinfo
@@ -629,10 +637,12 @@ def test_userinfo_v1(request: HttpRequest):
 ###############
 # authorize_link
 
+
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link_v2(request: HttpRequest):
     return _authorize_link(request, version=Versions.V2)
+
 
 ###############
 # test_coverage
@@ -643,6 +653,7 @@ def authorize_link_v2(request: HttpRequest):
 def test_coverage_v2(request: HttpRequest):
     return _test_coverage(request, version=Versions.V2)
 
+
 ###############
 # test_eob
 
@@ -651,6 +662,7 @@ def test_coverage_v2(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_eob_v2(request: HttpRequest):
     return _test_eob(request, version=Versions.V2)
+
 
 ###############
 # test_metadata
@@ -665,10 +677,12 @@ def test_metadata_v2(request: HttpRequest):
 ###############
 # test_openid_config
 
+
 @never_cache
 @waffle_switch('enable_testclient')
 def test_openid_config_v2(request: HttpRequest):
     return _test_openid_config(request, version=Versions.V2)
+
 
 ###############
 # test_patient
@@ -678,6 +692,7 @@ def test_openid_config_v2(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_patient_v2(request: HttpRequest):
     return _test_patient(request, version=Versions.V2)
+
 
 ###############
 # test_userinfo
@@ -697,10 +712,12 @@ def test_userinfo_v2(request: HttpRequest):
 ###############
 # authorize_link
 
+
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link_v3(request: HttpRequest):
     return _authorize_link(request, version=Versions.V3)
+
 
 ###############
 # test_coverage
@@ -711,6 +728,7 @@ def authorize_link_v3(request: HttpRequest):
 def test_coverage_v3(request: HttpRequest):
     return _test_coverage(request, version=Versions.V3)
 
+
 ###############
 # test_eob
 
@@ -719,6 +737,7 @@ def test_coverage_v3(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_eob_v3(request: HttpRequest):
     return _test_eob(request, version=Versions.V3)
+
 
 ###############
 # test_metadata
@@ -733,10 +752,12 @@ def test_metadata_v3(request: HttpRequest):
 ###############
 # test_openid_config
 
+
 @never_cache
 @waffle_switch('enable_testclient')
 def test_openid_config_v3(request: HttpRequest):
     return _test_openid_config(request, version=Versions.V3)
+
 
 ###############
 # test_patient
@@ -746,6 +767,7 @@ def test_openid_config_v3(request: HttpRequest):
 @waffle_switch('enable_testclient')
 def test_patient_v3(request: HttpRequest):
     return _test_patient(request, version=Versions.V3)
+
 
 ###############
 # test_userinfo

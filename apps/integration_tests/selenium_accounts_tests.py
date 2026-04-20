@@ -10,22 +10,21 @@ from apps.integration_tests.constants import (
 
 
 class TestUserAndAppMgmt(SeleniumGenericTests):
-
     @screenshot_on_exception
     def testAccountAndAppMgmt(self):
         debugpy.listen(('0.0.0.0', 8910))
         # wait if needed
         # debugpy.wait_for_client()
         step = [0]
-        test_name = "create_user_account"
-        api_ver = "*"
+        test_name = 'create_user_account'
+        api_ver = '*'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
         step = [0]
         # activate request with a faked key should give expected error message with an email
         # for further assistance
-        test_name = "validate_activation_key_err_msg"
+        test_name = 'validate_activation_key_err_msg'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
@@ -41,7 +40,7 @@ class TestUserAndAppMgmt(SeleniumGenericTests):
         activation_key = self._validate_email_content(USER_ACCT_ACTIVATION_EMAIL_SUBJ, USER_ACCT_ACTIVATION_KEY_PREFIX)
         # now login to the account and do app stuff
         step = [0]
-        test_name = "login_user_account_add_app"
+        test_name = 'login_user_account_add_app'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
@@ -49,7 +48,7 @@ class TestUserAndAppMgmt(SeleniumGenericTests):
         # lastly, use testclient to do an authorize, this will
         # trigger an email notification of 1st API call
         step = [0]
-        test_name = "first_api_call_email"
+        test_name = 'first_api_call_email'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)

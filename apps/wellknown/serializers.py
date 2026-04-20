@@ -1,4 +1,4 @@
-from rest_framework.serializers import (ModelSerializer, SerializerMethodField)
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from apps.dot_ext.models import Application, ApplicationLabel
 
 
@@ -17,9 +17,18 @@ class ApplicationListSerializer(ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ('name', 'website_uri', 'logo_uri', 'tos_uri', 'policy_uri',
-                  'support_email', 'support_phone_number', 'description', 'labels')
+        fields = (
+            'name',
+            'website_uri',
+            'logo_uri',
+            'tos_uri',
+            'policy_uri',
+            'support_email',
+            'support_phone_number',
+            'description',
+            'labels',
+        )
 
     def get_labels(self, obj):
         labels = ApplicationLabel.objects.filter(applications=obj.id).values('name', 'slug', 'description')
-        return (labels)
+        return labels

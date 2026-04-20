@@ -22,9 +22,7 @@ class PKCEServerMixin(object):
 def validate_redirect_uri_pkce(request):
     redirect_uri = urlparse(request.redirect_uri)
     if redirect_uri.scheme not in oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES:
-        if getattr(request, 'code_challenge_method', False) \
-                and getattr(request, 'code_challenge', False):
-
+        if getattr(request, 'code_challenge_method', False) and getattr(request, 'code_challenge', False):
             return {}
 
         raise InvalidRequestError("Non http uri scheme's must be used with pkce")
@@ -37,7 +35,7 @@ def validate_code_challenge_method(request):
     # has code_challenge_method, and code_challenge in its internal _params dict,
     # so it seems hasattr(request, 'code_challenge_method') always holds
     if hasattr(request, 'code_challenge_method') and request.code_challenge_method:
-        if request.code_challenge_method != "S256":
+        if request.code_challenge_method != 'S256':
             raise InvalidRequestError(ERR_CCM_S256_REQUIRED)
         # now code_challenge_method=S256 found, further check
         # code_challenge=<value> is present
@@ -63,23 +61,22 @@ def validate_code_verifier(request):
     try:
         code_verifier = request.code_verifier
     except AttributeError:
-        raise OAuth2Error("code_verifier required for this request")
+        raise OAuth2Error('code_verifier required for this request')
     if len(code_verifier) > 128:
-        raise OAuth2Error("code_verifier max length is 128")
+        raise OAuth2Error('code_verifier max length is 128')
 
     if len(code_verifier) < 43:
-        raise OAuth2Error("code_verifier min length is 43")
+        raise OAuth2Error('code_verifier min length is 43')
 
-    code_challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(code_verifier.encode('ASCII')).digest()).decode('utf-8')
+    code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode('ASCII')).digest()).decode('utf-8')
 
     grant_challenge = grant.codechallenge.challenge
     # Add padding to compensate for base64 encoding behavior
     while len(grant_challenge) < len(code_challenge):
-        grant_challenge += "="
+        grant_challenge += '='
 
     # check grant.code against request.code
     if code_challenge != grant_challenge:
-        raise OAuth2Error("code_challenge does not match")
+        raise OAuth2Error('code_challenge does not match')
 
     return {}

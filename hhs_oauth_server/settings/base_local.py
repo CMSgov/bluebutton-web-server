@@ -1,13 +1,14 @@
 import datetime
-from django.contrib.messages import constants as messages
-from django.utils.translation import gettext_lazy as _
-import environ
 import os
 import socket
 from urllib.parse import urlparse
 
+import environ
+from django.contrib.messages import constants as messages
+from django.utils.translation import gettext_lazy as _
+
 from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
-from hhs_oauth_server.settings.themes import THEMES, THEME_SELECTED
+from hhs_oauth_server.settings.themes import THEME_SELECTED, THEMES
 
 env = environ.Env()
 
@@ -22,187 +23,182 @@ environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
 ###############################################################################
 
 # project root folder
-BASE_DIR = os.path.join(BASE_DIR, "..")
+BASE_DIR = os.path.join(BASE_DIR, '..')
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation."
-        "UserAttributeSimilarityValidator",
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        "NAME": "django.contrib.auth.password_validation." "MinimumLengthValidator",
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        "NAME": "django.contrib.auth.password_validation." "CommonPasswordValidator",
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        "NAME": "django.contrib.auth.password_validation." "NumericPasswordValidator",
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
     {
-        "NAME": "apps.accounts.validators." "PasswordReuseAndMinAgeValidator",
-        "OPTIONS": {
+        'NAME': 'apps.accounts.validators.PasswordReuseAndMinAgeValidator',
+        'OPTIONS': {
             # password minimum age in seconds (5 min)
-            "password_min_age": 60 * 5,
+            'password_min_age': 60 * 5,
             # password reuse interval in seconds (365 days)
-            "password_reuse_interval": 60 * 60 * 24 * 365,
-            "password_expire": 0,
+            'password_reuse_interval': 60 * 60 * 24 * 365,
+            'password_expire': 0,
         },
     },
     {
-        "NAME": "apps.accounts.validators." "PasswordComplexityValidator",
-        "OPTIONS": {
-            "min_length_digit": 1,
-            "min_length_alpha": 1,
-            "min_length_special": 1,
-            "min_length_lower": 1,
-            "min_length_upper": 1,
-            "special_characters": "[~!{}@#$%^&*_+\":;()'[]",
+        'NAME': 'apps.accounts.validators.PasswordComplexityValidator',
+        'OPTIONS': {
+            'min_length_digit': 1,
+            'min_length_alpha': 1,
+            'min_length_special': 1,
+            'min_length_lower': 1,
+            'min_length_upper': 1,
+            'special_characters': '[~!{}@#$%^&*_+":;()\'[]',
         },
     },
 ]
 
 MIDDLEWARE = [
     # Middleware that adds headers to the resposne
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     # Must be before CommonMiddleware but after SessionMiddleware
-    "django.middleware.locale.LocaleMiddleware",
+    'django.middleware.locale.LocaleMiddleware',
     # Middleware that can send a response must be below this line
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "apps.dot_ext.throttling.ThrottleMiddleware",
-    "waffle.middleware.WaffleMiddleware",
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.dot_ext.throttling.ThrottleMiddleware',
+    'waffle.middleware.WaffleMiddleware',
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
     # on failed user authentication attempts from login views.
     # If you do not want Axes to override the authentication response
     # you can skip installing the middleware and use your own views.
-    "axes.middleware.AxesMiddleware",
+    'axes.middleware.AxesMiddleware',
 ]
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, ("templates/"))],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.template.context_processors.i18n",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, ('templates/'))],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
                 'hhs_oauth_server.settings.context_processors.export_settings',
-                "hhs_oauth_server.hhs_oauth_server_context.active_apps",
+                'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
-            "builtins": [],
+            'builtins': [],
         },
     },
 ]
 
 AUTHENTICATION_BACKENDS = (
     # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
-    "axes.backends.AxesBackend",
-    "apps.accounts.backends.EmailAuthBackend",
-    "django.contrib.auth.backends.ModelBackend",
+    'axes.backends.AxesBackend',
+    'apps.accounts.backends.EmailAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
-ALLOWED_HOSTS = ["*", socket.gethostname()]
+ALLOWED_HOSTS = ['*', socket.gethostname()]
 
 # apps and middlewares
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.humanize",
-    "rest_framework",
-    "rest_framework_csv",
-    "django_filters",
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'rest_framework',
+    'rest_framework_csv',
+    'django_filters',
     # 1st Party (in-house) ----------
-    "apps.accounts",
-    "apps.capabilities",
-    "apps.core",
-    "apps.wellknown",
-    "apps.health",
-    "apps.docs",
+    'apps.accounts',
+    'apps.capabilities',
+    'apps.core',
+    'apps.wellknown',
+    'apps.health',
+    'apps.docs',
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
     # TODO I don't think this is needed, apps register as the last item (after the last .)
-    "apps.dot_ext.apps.dot_extConfig",
-    "apps.pkce",
-    "apps.home",
-    "apps.fhir.server",
-    "apps.fhir.bluebutton",
-    "apps.mymedicare_cb",
-    "apps.authorization",
-    "apps.bb2_tools",
+    'apps.dot_ext.apps.dot_extConfig',
+    'apps.pkce',
+    'apps.home',
+    'apps.fhir.server',
+    'apps.fhir.bluebutton',
+    'apps.mymedicare_cb',
+    'apps.authorization',
+    'apps.bb2_tools',
     # 3rd Party ---------------------
-    "corsheaders",
-    "django_bootstrap5",
-    "waffle",
+    'corsheaders',
+    'django_bootstrap5',
+    'waffle',
     # DOT must be installed after apps.dot_ext in order to override templates
-    "oauth2_provider",
-    "axes",
-    "apps.logging",
-    "apps.creds",
+    'oauth2_provider',
+    'axes',
+    'apps.logging',
+    'apps.creds',
 ]
 
 DEV_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     # 'storages',
     # A test client - moved to aws-test / dev /impl settings
-    "apps.testclient",
+    'apps.testclient',
 ]
 
 INSTALLED_APPS += DEV_SPECIFIC_APPS
 
-if env("ENV_SPECIFIC_APPS", default=False):
-    INSTALLED_APPS += env("ENV_SPECIFIC_APPS")
+if env('ENV_SPECIFIC_APPS', default=False):
+    INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
 
-LOGIN_REDIRECT_URL = "/"
-LOGIN_URL = "/v1/accounts/login"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/v1/accounts/login'
+LOGOUT_REDIRECT_URL = '/'
 
-ROOT_URLCONF = "hhs_oauth_server.urls"
+ROOT_URLCONF = 'hhs_oauth_server.urls'
 
-WSGI_APPLICATION = "hhs_oauth_server.wsgi.application"
+WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
 CACHES = {
-    "default": {
-        "BACKEND": env("CACHE_BACKEND", default="django.core.cache.backends.db.DatabaseCache"),
-        "LOCATION": env("CACHE_LOCATION", default="django_cache"),
+    'default': {
+        'BACKEND': env('CACHE_BACKEND', default='django.core.cache.backends.db.DatabaseCache'),
+        'LOCATION': env('CACHE_LOCATION', default='django_cache'),
     },
 }
 
 # keep backward compatible with AutoField instead of BigAutoField
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Use env-specific logging config if present
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "%(asctime)s %(levelname)s "
-            "[%(process)d] %(name)s line:%(lineno)d %(message)s"
-        },
-        "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {'format': '%(asctime)s %(levelname)s [%(process)d] %(name)s line:%(lineno)d %(message)s'},
+        'simple': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'},
         'jsonout': {
             'format': '{"env": "local", "time": "%(asctime)s", "level": "%(levelname)s", '
-                      '"name": "%(name)s", "message": %(message)s}',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
-
-        }
+            '"name": "%(name)s", "message": %(message)s}',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
     },
     'handlers': {
         'its_log_api': {
@@ -210,9 +206,9 @@ LOGGING = {
             'level': 'INFO',
         },
         'console': {
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-            "filters": [SENSITIVE_DATA_FILTER],
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'filters': [SENSITIVE_DATA_FILTER],
         },
         # Mimics what we will see in production
         'cloudwatch_console': {
@@ -221,50 +217,50 @@ LOGGING = {
             'formatter': 'jsonout',
         },
     },
-    "filters": {
-        "sensitive_data_filter": {
-            "()": SensitiveDataFilter,
+    'filters': {
+        'sensitive_data_filter': {
+            '()': SensitiveDataFilter,
         }
     },
-    "loggers": {
+    'loggers': {
         # handy for sql trouble shooting
         # 'django.db.backends': {
         #     'level': 'DEBUG',
         #     'handlers': ['console'],
         # },
-        "hhs_server": {
+        'hhs_server': {
             'handlers': ['its_log_api', 'console'],
             'level': 'DEBUG',
         },
-        "hhs_oauth_server.accounts": {
+        'hhs_oauth_server.accounts': {
             'handlers': ['its_log_api', 'console'],
             'level': 'DEBUG',
         },
-        "oauth2_provider": {
+        'oauth2_provider': {
             'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
-        "oauthlib": {
+        'oauthlib': {
             'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
-        "unsuccessful_logins": {
+        'unsuccessful_logins': {
             'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
-        "admin_interface": {
+        'admin_interface': {
             'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
-        "tests": {
+        'tests': {
             'handlers': ['its_log_api', 'console'],
             'level': 'DEBUG',
         },
-        "audit": {
+        'audit': {
             'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
-        "performance": {
+        'performance': {
             'handlers': ['its_log_api', 'console'],
             'level': 'INFO',
         },
@@ -275,20 +271,20 @@ LOGGING = {
         'apps.logging': {
             'handlers': ['its_log_api'],
             'level': 'INFO',
-        }
+        },
     },
 }
 
 DATABASES = {
-    "default": env.db(
-        "DATABASES_CUSTOM",
-        default=f"sqlite:///{BASE_DIR}/db.sqlite3",
+    'default': env.db(
+        'DATABASES_CUSTOM',
+        default=f'sqlite:///{BASE_DIR}/db.sqlite3',
     )
 }
 
 # internationalization
-LANGUAGE_CODE = "en"
-TIME_ZONE = "UTC"
+LANGUAGE_CODE = 'en'
+TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
@@ -300,29 +296,29 @@ LANGUAGES = [
 ]
 
 LOCALE_PATHS = [
-    os.path.join(BASE_DIR, ("templates/design_system/locale")),
+    os.path.join(BASE_DIR, ('templates/design_system/locale')),
 ]
 
 # emails
-DEFAULT_FROM_EMAIL = env("DJANGO_FROM_EMAIL", default="change-me@example.com")
-DEFAULT_ADMIN_EMAIL = env("DJANGO_ADMIN_EMAIL", default="change-me@example.com")
+DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', default='change-me@example.com')
+DEFAULT_ADMIN_EMAIL = env('DJANGO_ADMIN_EMAIL', default='change-me@example.com')
 
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="email-smtp.us-east-1.amazonaws.com")
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = env('DJANGO_EMAIL_HOST', default='email-smtp.us-east-1.amazonaws.com')
 # SES PORT options: 25, 465, 587, 2465 or 2587.
 # Port 25 is throttled
 # Use port 587 or 2587 for TLS connections
 # Use port 465 or 2465 for Native SSL support
-EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)
-EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
-EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
-EMAIL_TIMEOUT = env("DJANGO_EMAIL_TIMEOUT", default=None)
-EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default=None)
-EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default=None)
-EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", default=None)
-EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", default=None)
+EMAIL_PORT = env.int('DJANGO_EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('DJANGO_EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env.bool('DJANGO_EMAIL_USE_SSL', default=False)
+EMAIL_TIMEOUT = env('DJANGO_EMAIL_TIMEOUT', default=None)
+EMAIL_HOST_USER = env('DJANGO_EMAIL_HOST_USER', default=None)
+EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', default=None)
+EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', default=None)
+EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', default=None)
 
 # this helps Django messages format nicely with Bootstrap3
 MESSAGE_TAGS = {
@@ -337,28 +333,25 @@ MESSAGE_TAGS = {
 # Note: ASSETS_ROOT is not a Django setting, but it is referenced by MEDIA_ROOT, which is a Django setting
 # and it appears ASSETS_ROOT is a environment variable available in deployed environments. For those reasons,
 # including it in the Django settings section
-ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", default="/code/hhs_oauth_server/..")
+ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', default='/code/hhs_oauth_server/..')
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
-MEDIA_URL = "/media/"
-STATIC_URL = "/static/"
-STATIC_ROOT = "collectedstatic"
+MEDIA_URL = '/media/'
+STATIC_URL = '/static/'
+STATIC_ROOT = 'collectedstatic'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 # security
-SECRET_KEY = env("DJANGO_SECRET_KEY")
-if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
-    print(
-        "WARNING: Generate your secret key and set in environment "
-        "variable: DJANGO_SECRET_KEY"
-    )
+SECRET_KEY = env('DJANGO_SECRET_KEY')
+if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
+    print('WARNING: Generate your secret key and set in environment variable: DJANGO_SECRET_KEY')
 
 SESSION_COOKIE_AGE = 5400
-SESSION_COOKIE_SECURE = env.bool("DJANGO_SECURE_SESSION", default=True)
+SESSION_COOKIE_SECURE = env.bool('DJANGO_SECURE_SESSION', default=True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # 20251029 NOTE: Setting this to `False` may disable all
@@ -408,47 +401,46 @@ SILENCED_SYSTEM_CHECKS = ['urls.W002']
 ###############################################################################
 
 # Django Oauth Tookit settings and customizations
-OAUTH2_PROVIDER_APPLICATION_MODEL = "dot_ext.Application"
+OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
 OAUTH2_PROVIDER = {
-    "PKCE_REQUIRED": False,
-    "OAUTH2_VALIDATOR_CLASS": "apps.dot_ext.oauth2_validators."
-    "SingleAccessTokenValidator",
-    "OAUTH2_SERVER_CLASS": "apps.dot_ext.oauth2_server.Server",
-    "SCOPES_BACKEND_CLASS": "apps.dot_ext.scopes.CapabilitiesScopes",
-    "OAUTH2_BACKEND_CLASS": "apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR",
-    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
-    "CLIENT_ID_GENERATOR_CLASS": "oauth2_provider.generators.ClientIdGenerator",
-    "CLIENT_SECRET_GENERATOR_CLASS": "oauth2_provider.generators.ClientSecretGenerator",
+    'PKCE_REQUIRED': False,
+    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
+    'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
+    'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
+    'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
+    'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
 }
 
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
 DOT_EXPIRES_IN = (
-    (86400 * 365 * 5, _("5 Years")),
-    (86400, _("1 Day")),
-    (86400 * 7, _("1 Week")),
-    (86400 * 365, _("1 Year")),
-    (86400 * 365 * 3, _("3 Years")),
-    (86400 * 365 * 10, _("10 Years")),
-    (86400 * 365 * 100, _("Forever")),
+    (86400 * 365 * 5, _('5 Years')),
+    (86400, _('1 Day')),
+    (86400 * 7, _('1 Week')),
+    (86400 * 365, _('1 Year')),
+    (86400 * 365 * 3, _('3 Years')),
+    (86400 * 365 * 10, _('10 Years')),
+    (86400 * 365 * 100, _('Forever')),
 )
 
-GRANT_AUTHORIZATION_CODE = "authorization-code"
-GRANT_IMPLICIT = "implicit"
+GRANT_AUTHORIZATION_CODE = 'authorization-code'
+GRANT_IMPLICIT = 'implicit'
 GRANT_TYPES = (
-    (GRANT_AUTHORIZATION_CODE, _("Authorization code")),
-    (GRANT_IMPLICIT, _("Implicit")),
+    (GRANT_AUTHORIZATION_CODE, _('Authorization code')),
+    (GRANT_IMPLICIT, _('Implicit')),
 )
 
 REST_FRAMEWORK = {
-    "DEFAULT_THROTTLE_RATES": {
-        "token": env("TOKEN_THROTTLE_RATE", default="100000/s"),
+    'DEFAULT_THROTTLE_RATES': {
+        'token': env('TOKEN_THROTTLE_RATE', default='100000/s'),
     },
 }
 
 # CORS settings
 # In local development we default to allowing all origins for convenience.
-CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=True)
+CORS_ORIGIN_ALLOW_ALL = env.bool('CORS_ORIGIN_ALLOW_ALL', default=True)
 # TODO: Uncomment once Fargate migration is complete and we would have a better sense of what allowed origins would be.
 # Once a Fargate post migration ticket is created, this should be addressed then.
 # It is a possible security hardening that can be decided upon later.
@@ -483,48 +475,50 @@ AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
 # 2025-12-08 AXES_ONLY_USER_FAILURES is deprecated
 # AXES_ONLY_USER_FAILURES = True
-AXES_USERNAME_FORM_FIELD = "username"
+AXES_USERNAME_FORM_FIELD = 'username'
 
 # Waffle
-WAFFLE_FLAG_MODEL = "core.Flag"
+WAFFLE_FLAG_MODEL = 'core.Flag'
 
 
 ###############################################################################
 # BLUE BUTTON CUSTOM SETTINGS
 ###############################################################################
 
-PASSWORD_HASH_ITERATIONS = env.int("DJANGO_PASSWORD_HASH_ITERATIONS", default=200000)
+PASSWORD_HASH_ITERATIONS = env.int('DJANGO_PASSWORD_HASH_ITERATIONS', default=200000)
 
 # Used for testing for optional apps in templates without causing a crash
 # used in SETTINGS_EXPORT below.
 OPTIONAL_INSTALLED_APPS = [
-    "",
+    '',
 ]
 
-if env("OPTIONAL_INSTALLED_APPS", default=False):
-    OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
+if env('OPTIONAL_INSTALLED_APPS', default=False):
+    OPTIONAL_INSTALLED_APPS += env('OPTIONAL_INSTALLED_APPS')
 
 # Option for local development to pretty print/format JSON logging
-LOG_JSON_FORMAT_PRETTY = env.bool("DJANGO_LOG_JSON_FORMAT_PRETTY", default=False)
+LOG_JSON_FORMAT_PRETTY = env.bool('DJANGO_LOG_JSON_FORMAT_PRETTY', default=False)
 
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env("DJANGO_APPLICATION_TITLE", default="Blue Button 2.0")
-ORGANIZATION_TITLE = env("DJANGO_ORGANIZATION_TITLE", default="The U.S. Centers for Medicare & Medicaid Services (CMS)")
-ORGANIZATION_URI = env("DJANGO_ORGANIZATION_URI", default="https://cms.gov")
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button 2.0')
+ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE', default='The U.S. Centers for Medicare & Medicaid Services (CMS)')
+ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', default='https://cms.gov')
 
-POLICY_URI = "https://www.cms.gov/about-cms/web-policies-important-links/web-policies/privacy"
-POLICY_TITLE = "Privacy Policy"
-TOS_URI = "https://bluebutton.cms.gov/terms"
-TOS_TITLE = "Terms of Service"
-TAG_LINE_1 = "Share your Medicare data"
-TAG_LINE_2 = "with applications, organizations, and people you trust."
-EXPLAINATION_LINE = "This service allows Medicare beneficiaries to connect their health data to applications of their choosing."
+POLICY_URI = 'https://www.cms.gov/about-cms/web-policies-important-links/web-policies/privacy'
+POLICY_TITLE = 'Privacy Policy'
+TOS_URI = 'https://bluebutton.cms.gov/terms'
+TOS_TITLE = 'Terms of Service'
+TAG_LINE_1 = 'Share your Medicare data'
+TAG_LINE_2 = 'with applications, organizations, and people you trust.'
+EXPLAINATION_LINE = (
+    'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+)
 
 # LINKS TO DOCS
-DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
-DEVELOPER_DOCS_TITLE = "Documentation"
+DEVELOPER_DOCS_URI = 'https://bluebutton.cms.gov/developers'
+DEVELOPER_DOCS_TITLE = 'Documentation'
 
 DISCLOSURE_TEXT = """
     This system is provided for use by 3rd party application developers
@@ -536,35 +530,31 @@ DISCLOSURE_TEXT = """
 """
 
 # Application model settings
-APP_LOGO_SIZE_MAX = env.int("DJANGO_APP_LOGO_SIZE_MAX", default=100)
-APP_LOGO_WIDTH_MAX = env.int("DJANGO_APP_LOGO_WIDTH_MAX", default=512)
-APP_LOGO_HEIGHT_MAX = env.int("DJANGO_APP_LOGO_HEIGHT_MAX", default=512)
+APP_LOGO_SIZE_MAX = env.int('DJANGO_APP_LOGO_SIZE_MAX', default=100)
+APP_LOGO_WIDTH_MAX = env.int('DJANGO_APP_LOGO_WIDTH_MAX', default=512)
+APP_LOGO_HEIGHT_MAX = env.int('DJANGO_APP_LOGO_HEIGHT_MAX', default=512)
 
 # Application label slugs to exclude from externally
 # published lists, like those used for internal use testing.
-APP_LIST_EXCLUDE = env.list("DJANGO_APP_LIST_EXCLUDE", default=["internal-use"])
+APP_LIST_EXCLUDE = env.list('DJANGO_APP_LIST_EXCLUDE', default=['internal-use'])
 
 
-HOSTNAME_URL = env("HOSTNAME_URL", default="http://localhost:8000")
+HOSTNAME_URL = env('HOSTNAME_URL', default='http://localhost:8000')
 
 FHIR_CLIENT_CERTSTORE = env(
-    "DJANGO_FHIR_CERTSTORE",
-    default=os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", default="../tmp/certstore")),
+    'DJANGO_FHIR_CERTSTORE',
+    default=os.path.join(BASE_DIR, env('DJANGO_FHIR_CERTSTORE_REL', default='../tmp/certstore')),
 )
 
 FHIR_SERVER = {
     # Strip trailing '/' from all URLs. We expect hostnames/paths to *not* have a trailing slash
     # throughout the codebase. Allowing a '/' through at the end here will create many situations where
     # URLs have a "//" embedded within them, and may cause problems for tests and other substring matches.
-    "FHIR_URL": env("FHIR_URL", default="https://invalid_fhir_url.gov").rstrip("/"),
-    "FHIR_URL_V3": env("FHIR_URL_V3", default="https://invalid_fhir_url_v3.gov").rstrip("/"),
-    "CERT_FILE": os.path.join(
-        FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", default="ca.cert.pem")
-    ),
-    "KEY_FILE": os.path.join(
-        FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", default="ca.key.nocrypt.pem")
-    ),
-    "CLIENT_AUTH": True,
+    'FHIR_URL': env('FHIR_URL', default='https://invalid_fhir_url.gov').rstrip('/'),
+    'FHIR_URL_V3': env('FHIR_URL_V3', default='https://invalid_fhir_url_v3.gov').rstrip('/'),
+    'CERT_FILE': os.path.join(FHIR_CLIENT_CERTSTORE, env('FHIR_CERT_FILE', default='ca.cert.pem')),
+    'KEY_FILE': os.path.join(FHIR_CLIENT_CERTSTORE, env('FHIR_KEY_FILE', default='ca.key.nocrypt.pem')),
+    'CLIENT_AUTH': True,
 }
 
 # The mock FHIR endpoint is a hostname used in many tests. It was previously a host
@@ -572,47 +562,48 @@ FHIR_SERVER = {
 # this hostname with a valid hostname (or, a very clearly *invalid*/non-squattable hostname).
 # The hostname is ultimately used in a mock, and therefore does not strictly need to exist
 # or be correct. But, it does need to be consistent.
-MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL"]).hostname
-MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER["FHIR_URL_V3"]).hostname
+MOCK_FHIR_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER['FHIR_URL']).hostname
+MOCK_FHIR_V3_ENDPOINT_HOSTNAME = urlparse(FHIR_SERVER['FHIR_URL_V3']).hostname
 
-SIGNUP_TIMEOUT_DAYS = env.int("SIGNUP_TIMEOUT_DAYS", default=7)
+SIGNUP_TIMEOUT_DAYS = env.int('SIGNUP_TIMEOUT_DAYS', default=7)
 
 # Move Admin to a variable url location
-ADMIN_PREPEND_URL = env("DJANGO_ADMIN_PREPEND_URL", default="")
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', default='')
 
-ALLOW_END_USER_EXTERNAL_AUTH = "B"
-EXTERNAL_AUTH_NAME = "Medicare.gov"
+ALLOW_END_USER_EXTERNAL_AUTH = 'B'
+EXTERNAL_AUTH_NAME = 'Medicare.gov'
 
 # SLSx settings
-SLSX_CLIENT_ID = env("DJANGO_SLSX_CLIENT_ID", default="bb2api")
-SLSX_CLIENT_SECRET = env("DJANGO_SLSX_CLIENT_SECRET", default="xxxxx")
+SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID', default='bb2api')
+SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET', default='xxxxx')
 
 # ACA token for SLSX_TOKEN_ENDPOINT
-MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", default="")
+MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', default='')
 
-MEDICARE_SLSX_REDIRECT_URI = env("DJANGO_MEDICARE_SLSX_REDIRECT_URI", default="http://localhost:8000/mymedicare/sls-callback")
+MEDICARE_SLSX_REDIRECT_URI = env(
+    'DJANGO_MEDICARE_SLSX_REDIRECT_URI', default='http://localhost:8000/mymedicare/sls-callback'
+)
 
 MEDICARE_SLSX_LOGIN_URI = env(
-    "DJANGO_MEDICARE_SLSX_LOGIN_URI",
-    default="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+    'DJANGO_MEDICARE_SLSX_LOGIN_URI', default='https://test.medicare.gov/sso/authorize?client_id=bb2api'
 )
-SLSX_HEALTH_CHECK_ENDPOINT = env("DJANGO_SLSX_HEALTH_CHECK_ENDPOINT", default="https://test.accounts.cms.gov/health")
-SLSX_TOKEN_ENDPOINT = env("DJANGO_SLSX_TOKEN_ENDPOINT", default="https://test.medicare.gov/sso/session")
-SLSX_SIGNOUT_ENDPOINT = env("DJANGO_SLSX_SIGNOUT_ENDPOINT", default="https://test.medicare.gov/sso/signout")
-SLSX_USERINFO_ENDPOINT = env("DJANGO_SLSX_USERINFO_ENDPOINT", default="https://test.accounts.cms.gov/v1/users")
+SLSX_HEALTH_CHECK_ENDPOINT = env('DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', default='https://test.accounts.cms.gov/health')
+SLSX_TOKEN_ENDPOINT = env('DJANGO_SLSX_TOKEN_ENDPOINT', default='https://test.medicare.gov/sso/session')
+SLSX_SIGNOUT_ENDPOINT = env('DJANGO_SLSX_SIGNOUT_ENDPOINT', default='https://test.medicare.gov/sso/signout')
+SLSX_USERINFO_ENDPOINT = env('DJANGO_SLSX_USERINFO_ENDPOINT', default='https://test.accounts.cms.gov/v1/users')
 
 # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
-SLSX_VERIFY_SSL_INTERNAL = env.bool("DJANGO_SLSX_VERIFY_SSL_INTERNAL", default=False)
-SLSX_VERIFY_SSL_EXTERNAL = env.bool("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", default=False)
+SLSX_VERIFY_SSL_INTERNAL = env.bool('DJANGO_SLSX_VERIFY_SSL_INTERNAL', default=False)
+SLSX_VERIFY_SSL_EXTERNAL = env.bool('DJANGO_SLSX_VERIFY_SSL_EXTERNAL', default=False)
 
 # Message returned to bene for API exceptions related to medicare login/SLS
-MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"
+MEDICARE_ERROR_MSG = 'An error occurred connecting to medicare.gov account'
 
 # Change these for production
-USER_ID_SALT = env("DJANGO_USER_ID_SALT", default="6E6F747468657265616C706570706572")
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', default='6E6F747468657265616C706570706572')
 
 # Check type for cases where this is an INT in local development
-iterations = env.int("DJANGO_USER_ID_ITERATIONS", default=None)
+iterations = env.int('DJANGO_USER_ID_ITERATIONS', default=None)
 if iterations:
     if isinstance(iterations, int):
         USER_ID_ITERATIONS = iterations
@@ -625,22 +616,22 @@ else:
 
 BLOCK_HTTP_REDIRECT_URIS = False
 
-our_target_env = env("TARGET_ENV", default="local")
-if our_target_env in ["test", "impl", "prod"]:
-    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
-    STATICFILES_LOCATION = "static/"
-    MEDIAFILES_LOCATION = "media/"
-    STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+our_target_env = env('TARGET_ENV', default='local')
+if our_target_env in ['test', 'impl', 'prod']:
+    AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
+    STATICFILES_LOCATION = 'static/'
+    MEDIAFILES_LOCATION = 'media/'
+    STATIC_URL = 'https://%s%s' % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
     STORAGES = {
-        "default": {
-            "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
+        'default': {
+            'BACKEND': 'hhs_oauth_server.s3_storage.MediaStorage',
         },
-        "staticfiles": {
-            "BACKEND": "hhs_oauth_server.s3_storage.StaticStorage",
+        'staticfiles': {
+            'BACKEND': 'hhs_oauth_server.s3_storage.StaticStorage',
         },
     }
-    MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+    MEDIA_URL = 'https://%s/%s' % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
     # Email config
     SEND_EMAIL = True
     CSRF_COOKIE_SECURE = True
@@ -653,33 +644,33 @@ else:
     # But, we have to use a different URL in the options below, because
     # Django has to write to the docker-internal name of `s3mock`
     AWS_S3_ENDPOINT_URL = 'http://localhost:9090'
-    AWS_STORAGE_BUCKET_NAME = "django"
+    AWS_STORAGE_BUCKET_NAME = 'django'
     AWS_ACCESS_KEY_ID = 'not-a-key-id'
     AWS_SECRET_ACCESS_KEY = 'not-a-secret'
     AWS_S3_CUSTOM_DOMAIN = None
     AWS_S3_SECURE_URLS = False
-    MEDIAFILES_LOCATION = "media/"
-    STATICFILES_LOCATION = "static/"
-    MEDIA_URL = "http://localhost:9090/django/media/"
-    STATIC_URL = "http://localhost:9090/django/static/"
+    MEDIAFILES_LOCATION = 'media/'
+    STATICFILES_LOCATION = 'static/'
+    MEDIA_URL = 'http://localhost:9090/django/media/'
+    STATIC_URL = 'http://localhost:9090/django/static/'
 
     STORAGES = {
-        "default": {
-            "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
-            "OPTIONS": {
-                "endpoint_url": AWS_S3_ENDPOINT_URL,
-                "access_key": AWS_ACCESS_KEY_ID,
-                "secret_key": AWS_SECRET_ACCESS_KEY,
-                "bucket_name": AWS_STORAGE_BUCKET_NAME,
-            }
+        'default': {
+            'BACKEND': 'hhs_oauth_server.s3_storage.MediaStorage',
+            'OPTIONS': {
+                'endpoint_url': AWS_S3_ENDPOINT_URL,
+                'access_key': AWS_ACCESS_KEY_ID,
+                'secret_key': AWS_SECRET_ACCESS_KEY,
+                'bucket_name': AWS_STORAGE_BUCKET_NAME,
+            },
         },
-        "staticfiles": {
-            "BACKEND": "hhs_oauth_server.s3_storage.StaticStorage",
-            "OPTIONS": {
-                "endpoint_url": AWS_S3_ENDPOINT_URL,
-                "access_key": AWS_ACCESS_KEY_ID,
-                "secret_key": AWS_SECRET_ACCESS_KEY,
-                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+        'staticfiles': {
+            'BACKEND': 'hhs_oauth_server.s3_storage.StaticStorage',
+            'OPTIONS': {
+                'endpoint_url': AWS_S3_ENDPOINT_URL,
+                'access_key': AWS_ACCESS_KEY_ID,
+                'secret_key': AWS_SECRET_ACCESS_KEY,
+                'bucket_name': AWS_STORAGE_BUCKET_NAME,
             },
         },
     }
