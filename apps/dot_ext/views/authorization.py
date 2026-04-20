@@ -660,27 +660,21 @@ class TokenView(DotTokenView):
         try:
             if waffle.switch_is_active('client_credentials_validation'):
                 signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
-                print('signing key in validate_authorization_jwt: ', signing_key.__dict__)
-                # print('type: ', type(signing_key))
-                # print('type of key: ', type(signing_key.key))
-                # print('key id: ', signing_key.key_id)
                 # pyjwt handles:
                 # header - alg, kid
                 # payload - iss, aud, exp
                 host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
-                print('host: ', host)
                 data = jwt.decode_complete(
                     token,
                     signing_key,
                     issuer=client_id,
                     audience=host + reverse('oauth2_provider_v3:token-v3'),
-                    leeway=timedelta(minutes=5000),
+                    leeway=timedelta(minutes=5),
                     options={
                         'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
                     },
                     algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
                 )
-                print('what is the data: ', data)
                 payload, header = data.get('payload'), data.get('header')
 
                 if not payload or not header or header.get('typ') != 'JWT':
@@ -688,13 +682,10 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
 
                 # TODO: combine iss and jti for cache + not allowed duplicates
-                print('expiration check: ', payload.get('exp') - datetime.now(timezone.utc).timestamp())
-                print('exp: ', payload.get('exp'))
-                print('datetime.now(timezone.utc).timestamp()', datetime.now(timezone.utc))
                 # payload
-                # if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-                #     log.warning('JWT exp is longer than 5 minutes away')
-                #     raise InvalidRequestError
+                if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
+                    log.warning('JWT exp is longer than 5 minutes away')
+                    raise InvalidRequestError
 
                 if payload.get('iss') != payload.get('sub'):
                     log.warning('iss and sub are not the same')
@@ -727,7 +718,6 @@ class TokenView(DotTokenView):
 
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {type(e)}')
-            log.warning(f'error was {e}')
             raise InvalidRequestError
 
     def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
