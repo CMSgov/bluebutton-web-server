@@ -13,7 +13,7 @@ class CodeChallenge(models.Model):
     # up to 128 characters in plain transformation method, and
     # shorter if S256
     # https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
-    challenge = models.CharField(max_length=255, default=None)
+    challenge = models.CharField(max_length=128, default=None)
 
     # TODO enum?
     # either "S256" or "plain" by spec
