@@ -529,8 +529,10 @@ class AuthFlowUuid(models.Model):
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
     state = models.TextField(max_length=64, null=True, unique=True, db_index=True)
     # TODO spec?
+    # matches what is in django rest framework
+    # https://github.com/django-oauth/django-oauth-toolkit/blob/d422eeab79052c04a91d124f938ddc22c841c38c/oauth2_provider/models.py#L333
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
-    # TODO spec?
+    # TODO spec? why 100?
     client_id = models.CharField(max_length=100, null=True)
     # TODO spec? should this be a TextField?
     auth_pkce_method = models.CharField(max_length=16, null=True)
