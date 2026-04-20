@@ -1,11 +1,17 @@
 import json
-import jwt
-from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
-from oauth2_provider.models import get_access_token_model
-from django.http import HttpRequest
+import os
+from base64 import b64encode
+from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
+
+import jwt
+from django.http import HttpRequest
+from oauth2_provider.models import get_access_token_model
+from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
+
+from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     CLIENT_CREDENTIALS,
     CODE_CHALLENGE_METHOD_S256,
@@ -15,24 +21,23 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    AUTH_CODE_TYPE,
+    CC_SYSTEM_MEDICARE_NUMBER,
+    CLEAR_HIGHER_ISS,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_TYPE,
-    AUTH_CODE_TYPE,
+    IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
-    CC_SYSTEM_MEDICARE_NUMBER,
 )
-from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
-from apps.dot_ext.views import TokenView
-from apps.test import BaseApiTest
-from base64 import b64encode
 from apps.dot_ext.utils import (
     get_application_from_data,
     get_application_from_meta,
     validate_app_is_active,
 )
+from apps.dot_ext.views import TokenView
+from apps.test import BaseApiTest
 from apps.versions import Versions
-from http import HTTPStatus
 
 AccessToken = get_access_token_model()
 
@@ -92,10 +97,14 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             'client_assertion': assertion,
         }
         body = urlencode(token_request_data)
-        response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(
+            f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded'
+        )
 
         assert response.status_code == HTTPStatus.FORBIDDEN
-        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(application.name)
+        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
+            application.name
+        )
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):
@@ -161,7 +170,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         application.allowed_auth_type = CLIENT_CREDENTIALS_TYPE  # update to disable auth code based token
         application.save()
 
-        response = self.client.post(f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(
+            f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded'
+        )
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         assert response.json()['message'] == (
             APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(application.name)
@@ -207,6 +218,37 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
 
         result = view_instance._validate_client_credentials_request(mock_request)
         assert result is None
+
+    def test_validate_environment_for_id_token(self) -> None:
+        """Confirm that, given a specific environment and an issuer URL, the
+        _validate_idme_url_for_id_token_and_environment will correctly return True or False
+        """
+        view_instance = TokenView()
+        os.environ['TARGET_ENV'] = 'prod'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(CLEAR_HIGHER_ISS)
+        assert result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert not result
+
+        os.environ['TARGET_ENV'] = 'impl'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert not result
+
+        os.environ['TARGET_ENV'] = 'test'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert not result
+
+        os.environ['TARGET_ENV'] = 'local'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert not result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert result
+
+        os.environ['TARGET_ENV'] = 'prod'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert result
 
 
 # we set empty GET/META/POST because get_application_from_data does not like it if a GET is missing.

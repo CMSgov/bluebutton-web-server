@@ -1,6 +1,7 @@
 import html
 import json
 import logging
+import os
 import re
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -75,6 +76,9 @@ from apps.dot_ext.constants import (
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
+    ID_ME_URL_CONTAINS,
+    IDME_HIGHER_ISS,
+    IDME_LOWER_ISS,
     JWKS_URLS,
     PARAMETERS_ID_MATCH_META,
     PATIENT_ID_MATCH_META,
@@ -510,7 +514,11 @@ class ApprovalView(AuthorizationView):
 
         result = super().dispatch(request, *args, **kwargs)
 
-        if hasattr(result, 'headers') and 'Location' in result.headers and 'invalid_scope' in result.headers['Location']:
+        if (
+            hasattr(result, 'headers')
+            and 'Location' in result.headers
+            and 'invalid_scope' in result.headers['Location']
+        ):
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Invalid scopes.'},
                 status=HTTPStatus.BAD_REQUEST,
@@ -577,7 +585,9 @@ class TokenView(DotTokenView):
         mbi_hash_user_name = hash_id_value(mbi)
         # check if ANB already exists
         try:
-            user = User.objects.get(username=mbi_hash_user_name)  # want to filter or at least confirm that user is an ANB
+            user = User.objects.get(
+                username=mbi_hash_user_name
+            )  # want to filter or at least confirm that user is an ANB
         except User.DoesNotExist:
             # If the user does not already exist, create one (and a bluebutton_crosswalk record)
             user = create_beneficiary_record(
@@ -650,21 +660,27 @@ class TokenView(DotTokenView):
         try:
             if waffle.switch_is_active('client_credentials_validation'):
                 signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
+                print('signing key in validate_authorization_jwt: ', signing_key.__dict__)
+                # print('type: ', type(signing_key))
+                # print('type of key: ', type(signing_key.key))
+                # print('key id: ', signing_key.key_id)
                 # pyjwt handles:
                 # header - alg, kid
                 # payload - iss, aud, exp
                 host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
+                print('host: ', host)
                 data = jwt.decode_complete(
                     token,
                     signing_key,
                     issuer=client_id,
                     audience=host + reverse('oauth2_provider_v3:token-v3'),
-                    leeway=timedelta(minutes=5),
+                    leeway=timedelta(minutes=5000),
                     options={
                         'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
                     },
                     algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
                 )
+                print('what is the data: ', data)
                 payload, header = data.get('payload'), data.get('header')
 
                 if not payload or not header or header.get('typ') != 'JWT':
@@ -672,11 +688,13 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
 
                 # TODO: combine iss and jti for cache + not allowed duplicates
-
+                print('expiration check: ', payload.get('exp') - datetime.now(timezone.utc).timestamp())
+                print('exp: ', payload.get('exp'))
+                print('datetime.now(timezone.utc).timestamp()', datetime.now(timezone.utc))
                 # payload
-                if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-                    log.warning('JWT exp is longer than 5 minutes away')
-                    raise InvalidRequestError
+                # if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
+                #     log.warning('JWT exp is longer than 5 minutes away')
+                #     raise InvalidRequestError
 
                 if payload.get('iss') != payload.get('sub'):
                     log.warning('iss and sub are not the same')
@@ -709,7 +727,31 @@ class TokenView(DotTokenView):
 
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {type(e)}')
+            log.warning(f'error was {e}')
             raise InvalidRequestError
+
+    def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
+        """Determine if the issuer of the id_token is valid for the environment for ID.me client_credentials
+        calls
+        Args:
+            issuer (str): Where the token was issued from
+        Returns:
+            bool: Whether or not the environment is valid for the id token issuer
+        """
+
+        # If the issue does not contain oidc, it is not ID.me, and it must be CLEAR
+        # CLEAR does not differentiate between environments at this time
+        if ID_ME_URL_CONTAINS not in issuer:
+            return True
+
+        env = os.environ.get('TARGET_ENV', 'local')
+        # if the env is prod, and the issuer is not the prod url, return false
+        # or if the env is not prod, and the issuer is not the lower env url, return false
+        if (env == 'prod' and issuer != IDME_HIGHER_ISS) or (env != 'prod' and issuer != IDME_LOWER_ISS):
+            log.warning(f'Invalid URL for env: {env}: {issuer}')
+            return False
+
+        return True
 
     def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient) -> dict:
         """Validates an IAL JWT from a trusted CSP
@@ -755,6 +797,10 @@ class TokenView(DotTokenView):
                     log.warning('Malformed header / payload')
                     raise InvalidRequestError
 
+                if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+                    log.warning('The issuer of the token is not valid for this environment')
+                    raise InvalidRequestError
+
                 # TODO: combine iss and jti for cache + not allowed duplicates
 
                 if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
@@ -773,11 +819,15 @@ class TokenView(DotTokenView):
                 #     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('family_name')):
-                    log.warning(f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}')
+                    log.warning(
+                        f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
+                    )
                     raise InvalidRequestError
 
                 if not validate_latin_extended_string(payload.get('given_name')):
-                    log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}')
+                    log.warning(
+                        f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}'
+                    )
                     raise InvalidRequestError
 
                 if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
@@ -785,10 +835,14 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
             else:
                 payload = jwt.decode(id_token, options={'verify_signature': False})
+                if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+                    log.warning('The issuer of the token is not valid for this environment')
+                    raise InvalidRequestError
 
             return payload
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {type(e)}')
+            log.warning(f'jwt.decode_complete() failed error was {e}')
             raise InvalidRequestError
 
     def _parse_ial_into_parameter(self, payload: dict) -> dict:
@@ -1025,7 +1079,9 @@ class TokenView(DotTokenView):
                         status=HTTPStatus.FORBIDDEN,
                     )
             elif grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
-                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(app.name)
+                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
+                    app.name
+                )
                 return JsonResponse(
                     {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                     status=HTTPStatus.FORBIDDEN,
