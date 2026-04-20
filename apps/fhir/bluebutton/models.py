@@ -90,7 +90,8 @@ class Crosswalk(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
     )
-    # TODO spec?
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
+    # TODO if spec says 64, why 80?
     fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
@@ -99,7 +100,8 @@ class Crosswalk(models.Model):
         db_index=True,
         validators=[MinLengthValidator(1)],
     )
-    # TODO spec?
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
+    # TODO if spec says 64, why 80?
     fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
@@ -238,7 +240,8 @@ class ArchivedCrosswalk(models.Model):
         db_column='username',
         db_index=True,
     )
-    # TODO spec?
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
+    # TODO if spec says 64, why 80?
     fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
@@ -246,7 +249,8 @@ class ArchivedCrosswalk(models.Model):
         db_column='fhir_id_v2',
         db_index=True,
     )
-    # TODO spec?
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
+    # TODO if spec says 64, why 80?
     fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
