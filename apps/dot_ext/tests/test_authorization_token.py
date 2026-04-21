@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 from base64 import b64encode
@@ -6,18 +7,16 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
+import pytest
+from django.core.cache import cache
 from django.http import HttpRequest
+from freezegun import freeze_time
 from oauth2_provider.models import get_access_token_model
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
-from apps.constants import (
-    CLIENT_CREDENTIALS,
-    CODE_CHALLENGE_METHOD_S256,
-    TEST_APP_CLIENT_ID,
-    TEST_APP_CLIENT_SECRET,
-)
+from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
@@ -47,7 +46,11 @@ AccessToken = get_access_token_model()
 class TestAuthorizeTokenEndpoint(BaseApiTest):
     def test_check_if_client_credentials_call_is_allowed(self) -> None:
         view_instance = TokenView()
-        mock_app = Application(name='TestApp', allowed_auth_type='AUTH_CODE', jwks_uri='https://valid.jwks.json')
+        mock_app = Application(
+            name='TestApp',
+            allowed_auth_type='AUTH_CODE',
+            jwks_uri='https://valid.jwks.json',
+        )
 
         result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
         assert not result
@@ -98,7 +101,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         }
         body = urlencode(token_request_data)
         response = self.client.post(
-            f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded'
+            f'/v{Versions.V3}/o/token/',
+            data=body,
+            content_type='application/x-www-form-urlencoded',
         )
 
         assert response.status_code == HTTPStatus.FORBIDDEN
@@ -107,7 +112,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         )
 
     @override_switch('v3_endpoints', active=True)
-    def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(self):
+    def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(
+        self,
+    ):
         """Purpose of this test is to show that if a call is made to the token endpoint, and the app has
         allowed_auth_type of CLIENT_CREDENTIALS, and the grant_type is not client_credentials, that a 403 error
         with a specific message will be returned
@@ -171,7 +178,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         application.save()
 
         response = self.client.post(
-            f'/v{Versions.V3}/o/token/', data=body, content_type='application/x-www-form-urlencoded'
+            f'/v{Versions.V3}/o/token/',
+            data=body,
+            content_type='application/x-www-form-urlencoded',
         )
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         assert response.json()['message'] == (
@@ -458,3 +467,154 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertNotIn('openid', data['scope'])
         # other scopes ought to be fine, however.
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
+
+
+class TestTokenPrivateMethods(BaseApiTest):
+    def setUp(self):
+        super().setUp()
+        self.mock_jwks_client = MagicMock()
+        self.mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+        self.token_view = TokenView()
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_authorization_jwt_success(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_authorization_jwt succeeds with basic validation"""
+
+        with freeze_time() as frozen_time:
+            mock_payload = {
+                'iss': 'test_iss',
+                'jti': 'test_validate_authorization_jwt_cache_success',
+                'sub': 'test_iss',
+                'exp': datetime.datetime.now().timestamp(),
+                'extensions': {
+                    'cms_smart': {
+                        'version': '1',
+                        'purpose_of_use': 'PATRQT',
+                        'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                    }
+                },
+            }
+            mock_decode_complete.return_value = {
+                'payload': mock_payload,
+                'header': {'typ': 'JWT'},
+            }
+
+            result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
+            assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
+
+            # Assert cache has the key we'd expect and that the result is what we'd expect
+            cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+            assert cache.get(cache_key) == 'sentinel'
+
+            # Advance time by 300 seconds and assert cache no longer has key
+            frozen_time.tick(delta=datetime.timedelta(seconds=300))
+            assert cache.get(cache_key) is None
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_authorization_jwt_cache_replay(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_authorization_jwt succeeds on first cache hit"""
+
+        mock_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_authorization_jwt_cache_replay',
+            'sub': 'test_iss',
+            'exp': datetime.datetime.now().timestamp(),
+            'extensions': {
+                'cms_smart': {
+                    'version': '1',
+                    'purpose_of_use': 'PATRQT',
+                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                }
+            },
+        }
+        mock_decode_complete.return_value = {
+            'payload': mock_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
+        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
+
+        # Assert cache has the key we'd expect and that the result is what we'd expect
+        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+        assert cache.get(cache_key) == 'sentinel'
+
+        # Second call with same jti/iss fails
+        with pytest.raises(InvalidRequestError):
+            self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_ial_jwt_success(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_ial_jwt succeeds with basic validation."""
+
+        with freeze_time() as frozen_time:
+            mock_payload = {
+                'iss': 'test_iss',
+                'jti': 'test_validate_ial_jwt_cache_success',
+                'iat': datetime.datetime.now().timestamp(),
+                'identity_assurance_level': 2,
+                'family_name': 'Doe',
+                'given_name': 'John',
+                'birthdate': '1990-01-01',
+            }
+            mock_decode_complete.return_value = {
+                'payload': mock_payload,
+                'header': {'typ': 'JWT'},
+            }
+
+            # Call succeeds
+            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            assert result == mock_payload
+
+            # Assert cache has the key we'd expect and that the result is what we'd expect
+            cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+            assert cache.get(cache_key) == 'sentinel'
+
+            # Advance time by 300 seconds and assert cache no longer has key
+            frozen_time.tick(delta=datetime.timedelta(seconds=300))
+            assert cache.get(cache_key) is None
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_ial_jwt_cache_replay(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_ial_jwt fails on second call with same jti (replay detected)."""
+
+        mock_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_ial_jwt_cache_replay',
+            'iat': datetime.datetime.now().timestamp(),
+            'identity_assurance_level': 2,
+            'family_name': 'Doe',
+            'given_name': 'John',
+            'birthdate': '1990-01-01',
+        }
+        mock_decode_complete.return_value = {
+            'payload': mock_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        # First call succeeds
+        self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+
+        # Assert cache contains expected key
+        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+        assert cache.get(cache_key) == 'sentinel'
+
+        # Second call with same jti/iss fails
+        with pytest.raises(InvalidRequestError):
+            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
