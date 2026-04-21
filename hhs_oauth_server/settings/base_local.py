@@ -1,13 +1,14 @@
 import datetime
-from django.contrib.messages import constants as messages
-from django.utils.translation import gettext_lazy as _
-import environ
 import os
 import socket
 from urllib.parse import urlparse
 
+import environ
+from django.contrib.messages import constants as messages
+from django.utils.translation import gettext_lazy as _
+
 from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
-from hhs_oauth_server.settings.themes import THEMES, THEME_SELECTED
+from hhs_oauth_server.settings.themes import THEME_SELECTED, THEMES
 
 env = environ.Env()
 
@@ -204,12 +205,6 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
             'filters': [SENSITIVE_DATA_FILTER],
-        },
-        # Mimics what we will see in production
-        'cloudwatch_console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'jsonout',
         },
     },
     'filters': {
@@ -503,7 +498,9 @@ TOS_URI = 'https://bluebutton.cms.gov/terms'
 TOS_TITLE = 'Terms of Service'
 TAG_LINE_1 = 'Share your Medicare data'
 TAG_LINE_2 = 'with applications, organizations, and people you trust.'
-EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+EXPLAINATION_LINE = (
+    'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+)
 
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = 'https://bluebutton.cms.gov/developers'
@@ -569,7 +566,9 @@ SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET', default='xxxxx')
 # ACA token for SLSX_TOKEN_ENDPOINT
 MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', default='')
 
-MEDICARE_SLSX_REDIRECT_URI = env('DJANGO_MEDICARE_SLSX_REDIRECT_URI', default='http://localhost:8000/mymedicare/sls-callback')
+MEDICARE_SLSX_REDIRECT_URI = env(
+    'DJANGO_MEDICARE_SLSX_REDIRECT_URI', default='http://localhost:8000/mymedicare/sls-callback'
+)
 
 MEDICARE_SLSX_LOGIN_URI = env(
     'DJANGO_MEDICARE_SLSX_LOGIN_URI', default='https://test.medicare.gov/sso/authorize?client_id=bb2api'

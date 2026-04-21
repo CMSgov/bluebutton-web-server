@@ -449,7 +449,7 @@ LOGGING = env(
     {
         'version': 1,
         'disable_existing_loggers': False,
-        'root': {'level': 'INFO', 'handlers': ['cloudwatch_console']},
+        'root': {'level': 'INFO', 'handlers': ['console']},
         'formatters': {
             'verbose': {'format': '%(asctime)s %(levelname)s [%(process)d] %(name)s line:%(lineno)d %(message)s'},
             'simple': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'},
