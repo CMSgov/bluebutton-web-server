@@ -537,11 +537,6 @@ class AuthFlowUuid(models.Model):
     # https://github.com/django-oauth/django-oauth-toolkit/blob/d422eeab79052c04a91d124f938ddc22c841c38c/oauth2_provider/models.py#L333
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
 
-    # TODO spec? why 100?
-    # 100 might be because that is what oauth2_provider/models.py:AbstractApplication.client_id has for max_length
-    # actual length is 40
-    # 40 because this is what is hard-coded into oauth2_provider/generators.py:ClientIdGenerator
-    #
     # In ouath2_provider, the length of the generated client_id is 40,
     # but the max_length of AbstractApplication.client_id is 100. Going with
     # 40 here because that is the ID's actual length.
