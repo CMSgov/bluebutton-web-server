@@ -77,12 +77,12 @@ class Application(AbstractApplication):
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
     # where the client_secret is hashed ireversible
-    # 
-    # TODO spec?
-    # It appears that 128 is the length that's generated in the code, so why 255?
-    # TODO go ahead and change this
-    # TODO add test
-    client_secret_plain = models.CharField(default='', blank=True, max_length=255)
+    #
+    # In ouath2_provider, the default length of the generated secret is 128,
+    # but the max_length of AbstractApplication.client_secret is 255. Going with
+    # 128 here because that is the secret's actual length and the length expected
+    # by code and tests.
+    client_secret_plain = models.CharField(default='', blank=True, max_length=128)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
     # why not use URLField? Wouldn't that be more explicit?
