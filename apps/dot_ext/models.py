@@ -150,7 +150,6 @@ class Application(AbstractApplication):
         help_text='This is typically an email',
     )
 
-    # TODO possible validator
     support_email = models.TextField(blank=True, null=True)
 
     support_phone_number = models.CharField(validators=[phone_regex], max_length=16, blank=True, null=True)
@@ -180,7 +179,6 @@ class Application(AbstractApplication):
     )
 
     # Type related to data access limits.
-    # TODO enum?
     data_access_type = models.CharField(
         default='THIRTEEN_MONTH',
         choices=APPLICATION_TYPE_CHOICES,
@@ -202,7 +200,6 @@ class Application(AbstractApplication):
         ),
     )
 
-    # TODO enum?
     allowed_auth_type = models.CharField(
         max_length=40,
         choices=APPLICATION_AUTH_CHOICES,
