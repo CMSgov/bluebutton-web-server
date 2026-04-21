@@ -1,26 +1,24 @@
 import waffle
-
+from rest_framework import permissions
 from voluptuous import (
-    Required,
+    REMOVE_EXTRA,
     All,
+    Coerce,
     Match,
     Range,
-    Coerce,
+    Required,
     Schema,
-    Invalid,
-    REMOVE_EXTRA,
 )
-from rest_framework import permissions
 
-from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.permissions import (
-    SearchCrosswalkPermission,
-    ResourcePermission,
     ApplicationActivePermission,
+    ResourcePermission,
+    SearchCrosswalkPermission,
     V3EarlyAdopterPermission,
 )
+from apps.fhir.bluebutton.views.generic import FhirDataView
 
 
 class HasSearchScope(permissions.BasePermission):
@@ -116,19 +114,12 @@ class SearchViewCoverage(SearchView):
 
 
 class SearchViewExplanationOfBenefit(SearchView):
-    # customized validator for better error reporting
-    def validate_tag(self):
-        def validator(value):
-            for v in value:
-                if v not in ['Adjudicated', 'PartiallyAdjudicated']:
-                    msg = f"Invalid _tag value (='{v}'), 'PartiallyAdjudicated' or 'Adjudicated' expected."
-                    raise Invalid(msg)
-            return value
-
-        return validator
-
     # Class used for ExplanationOfBenefit resource search view
-    required_scopes = ['patient/ExplanationOfBenefit.read', 'patient/ExplanationOfBenefit.rs', 'patient/ExplanationOfBenefit.s']
+    required_scopes = [
+        'patient/ExplanationOfBenefit.read',
+        'patient/ExplanationOfBenefit.rs',
+        'patient/ExplanationOfBenefit.s',
+    ]
 
     # Regex to match a valid type value
     REGEX_TYPE_VALUE = (
@@ -163,6 +154,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
         'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
         'patient': str,
+        '_tag': list[str],
     }
 
     def __init__(self, version=1):
@@ -189,7 +181,6 @@ class SearchViewExplanationOfBenefit(SearchView):
         # BB2-4250: Does not seem that this code will execute given the new permission class
         # so leaving it as is
         if waffle.switch_is_active('v3_endpoints'):
-            query_schema['_tag'] = self.validate_tag()
             # _tag if presents, is a string value
             params['_tag'] = request.query_params.getlist('_tag')
 
