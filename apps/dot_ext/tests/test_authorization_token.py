@@ -235,9 +235,15 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
         assert not result
 
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert result
+
         os.environ['TARGET_ENV'] = 'test'
         result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
         assert not result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert result
 
         os.environ['TARGET_ENV'] = 'local'
         result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
