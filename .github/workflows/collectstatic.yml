@@ -27,7 +27,6 @@ jobs:
           echo "Setting up Python 3.12 via pyenv..."
           pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
           pyenv global 3.12 || pyenv global 3.12.0
-          python3 --version
 
       - name: Configure AWS credentials
         id: aws-creds
@@ -51,7 +50,6 @@ jobs:
 
       - name: Compile and Build CSS assets
         run:  |
-            ls -la
             cd static/bluebutton-css
             npm i 
             npm run gulp
@@ -69,7 +67,6 @@ jobs:
 
       - name: Collect static files
         run: |
-          ls -la
           source venv/bin/activate
-          python3 manage.py collectstatic --noinput --verbosity 2
+          python3 manage.py collectstatic --noinput
     
