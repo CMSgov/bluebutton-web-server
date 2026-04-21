@@ -1,7 +1,6 @@
 import json
 import logging
 import threading
-import uuid
 from typing import Any, Dict
 
 import requests
@@ -51,18 +50,13 @@ class ITSLogAPIHandler(logging.Handler):
         if log_message.get('type') in TYPES_TO_SKIP or 'testclient' in log_message.get('path', ''):
             return
 
-        cluster_uuid = str(uuid.uuid4())
         updated_log_message = self._format_log_message(log_message)
-        app_id = getattr(record, 'application_id', None)
+        if not updated_log_message:
+            return
+        payload = self._build_payload(updated_log_message)
+        print('payload: ', payload)
 
-        if not app_id:
-            app_id = getattr(record, 'auth_app_id', None)
-
-        for key, value in updated_log_message.items():
-            if key in ACCEPTED_LOG_KEYS:
-                payload = self._build_payload(key, value, app_id)
-                payload['cluster'] = cluster_uuid
-                threading.Thread(target=self._post_to_api, args=(payload,), daemon=True).start()
+        threading.Thread(target=self._post_to_api, args=(payload,), daemon=True).start()
 
     def parse_log_message(self, record):
         msg = record.get('msg', '')
@@ -77,7 +71,21 @@ class ITSLogAPIHandler(logging.Handler):
         # Return None (or the raw string) if it's not valid JSON
         return {}
 
-    def _build_payload(self, key, value, application_id) -> Dict[str, Any]:
+    def _build_payload(self, log_message) -> Dict[str, Any]:
+        tags = []
+        print('LOG MESSAGE: ', log_message)
+        filtered_log = {k: v for k, v in log_message.items() if k in ACCEPTED_LOG_KEYS}
+
+        print('filtered_log: ', filtered_log)
+
+        return {
+            'tags': tags,
+            'value': json.dumps(filtered_log),
+            'type': 'text',
+        }
+
+    def _build_payload_cluster_events(self, key, value, application_id) -> Dict[str, Any]:
+
         formatted_tag = [key]
         if application_id:
             formatted_tag.append(application_id)
@@ -100,10 +108,22 @@ class ITSLogAPIHandler(logging.Handler):
         ):
             log_message['auth_path'] = log_message.get('location').split('?')[0]
 
-        if log_message.get('auth_app_id'):
+        if log_message.get('req_grant_type'):
+            log_message['auth_grant_type'] = log_message.get('req_grant_type')
+
+        if not log_message.get('app_id') and log_message.get('auth_app_id'):
             log_message['app_id'] = log_message.get('auth_app_id')
-        if log_message.get('auth_app_name'):
+        if not log_message.get('app_name') and log_message.get('auth_app_name'):
             log_message['app_name'] = log_message.get('auth_app_name')
+        if not log_message.get('app_id') and log_message.get('resp_app_id'):
+            log_message['app_id'] = log_message.get('resp_app_id')
+        if not log_message.get('app_name') and log_message.get('resp_app_name'):
+            log_message['app_name'] = log_message.get('resp_app_name')
+        if log_message.get('allow'):
+            if log_message.get('allow') is True:
+                log_message['allow'] = 'True'
+            else:
+                log_message['allow'] = 'False'
 
         return log_message
 
