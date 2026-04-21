@@ -544,7 +544,7 @@ LOGGING = env(
                 'level': 'ERROR',
             },
             'unsuccessful_logins': {
-                'handlers': ['wt_badlogin', 'wt_perf_mon', 'wt_info', 'console'],
+                'handlers': ['wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
                 'level': 'INFO',
             },
             'admin_interface': {
