@@ -85,8 +85,6 @@ class Application(AbstractApplication):
     client_secret_plain = models.CharField(default='', blank=True, max_length=128)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
-    # why not use URLField? Wouldn't that be more explicit?
-    # TODO I chose to go with TextField with URLValidator, and an explicit max_length of 2048. Counterproposals: ...
     client_uri = models.TextField(
         default='',
         blank=True,
