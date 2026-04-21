@@ -1,10 +1,12 @@
 name: Build and Upload Static Assets
 
 on:
+  push:
   workflow_dispatch:
 
 env:
   AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
+  DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
   TARGET_ENV: test
 
 permissions:
