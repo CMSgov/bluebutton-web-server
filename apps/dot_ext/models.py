@@ -83,29 +83,30 @@ class Application(AbstractApplication):
     # 
     # TODO spec?
     # It appears that 128 is the length that's generated in the code, so why 255?
+    # TODO go ahead and change this
+    # TODO add test
     client_secret_plain = models.CharField(default='', blank=True, max_length=255)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
-    # TODO validator?
     # why not use URLField? Wouldn't that be more explicit?
+    # TODO I chose to go with TextField with URLValidator, and an explicit max_length of 2048. Counterproposals: ...
     client_uri = models.TextField(
         default='',
         blank=True,
         null=True,
         validators=[URLValidator()],
-        max_length=512,
+        max_length=2048,
         verbose_name='Client URI',
         help_text='This is typically a home/download website for the application. '
         'For example, https://www.example.org or http://www.example.org .',
     )
 
-    # TODO possible validator
     website_uri = models.TextField(
         default='',
         blank=True,
         null=True,
         validators=[URLValidator()],
-        max_length=512,
+        max_length=2048,
         verbose_name='Website URI',
         help_text='This is typically a home/download website for the application. '
         'For example, https://www.example.org or http://www.example.org .',
@@ -121,24 +122,21 @@ class Application(AbstractApplication):
 
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
-    # TODO validator?
-    logo_uri = models.TextField(default='', blank=True, max_length=512, verbose_name='Logo URI', validators=[URLValidator()])
+    logo_uri = models.TextField(default='', blank=True, max_length=2048, verbose_name='Logo URI', validators=[URLValidator()])
 
-    # TODO validator?
     tos_uri = models.TextField(
         default='',
         blank=True,
         validators=[URLValidator()],
-        max_length=512,
+        max_length=2048,
         verbose_name="Client's Terms of Service URI",
     )
 
-    # TODO validator?
     policy_uri = models.TextField(
         default='',
         blank=True,
         validators=[URLValidator()],
-        max_length=512,
+        max_length=2048,
         verbose_name="Client's Policy URI",
         help_text='This can be a model privacy notice or other policy document.',
     )
@@ -217,8 +215,6 @@ class Application(AbstractApplication):
     )
 
     # New fields for CMS Aligned Networks epic
-    # TODO validator?
-    # TODO to TextField?
     jwks_uri = models.TextField(
         default=None,
         blank=True,
@@ -226,7 +222,7 @@ class Application(AbstractApplication):
         validators=[URLValidator()],
         # Went with 512 as that is the established pattern we have for URLFields
         # and to allow for extremely long URLs. 200 is default
-        max_length=512,
+        max_length=2048,
         verbose_name='JSON Web Key Set URI',
     )
 
