@@ -464,7 +464,7 @@ class ArchivedToken(models.Model):
         db_constraint=False,
         related_name='%(app_label)s_%(class)s',
     )
-    # TODO spec
+    # The length of the AccessToken's created by oauth2_provider is 255
     token = models.CharField(
         max_length=255,
         unique=True,
@@ -494,6 +494,7 @@ class ExpiresIn(models.Model):
     # hex digest from sha-256, which is always 64 characters long
     # https://csrc.nist.gov/pubs/fips/180-4/upd1/final
     key = models.CharField(max_length=64, unique=True)
+
     expires_in = models.IntegerField()
 
     objects = ExpiresInManager()
@@ -531,14 +532,17 @@ class AuthFlowUuid(models.Model):
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
     state = models.TextField(max_length=64, null=True, unique=True, db_index=True)
-    # TODO spec?
+
     # matches what is in django rest framework
     # https://github.com/django-oauth/django-oauth-toolkit/blob/d422eeab79052c04a91d124f938ddc22c841c38c/oauth2_provider/models.py#L333
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
+
     # TODO spec? why 100?
     client_id = models.CharField(max_length=100, null=True)
+
     # TODO spec? should this be a TextField?
     auth_pkce_method = models.CharField(max_length=16, null=True)
+
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
     auth_share_demographic_scopes = models.BooleanField(null=True)
