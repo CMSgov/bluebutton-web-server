@@ -722,6 +722,7 @@ class TokenView(DotTokenView):
 
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {type(e)}')
+            log.warning(f'error was {e}')
             raise InvalidRequestError
 
     def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
@@ -838,7 +839,6 @@ class TokenView(DotTokenView):
             return payload
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {type(e)}')
-            log.warning(f'jwt.decode_complete() failed error was {e}')
             raise InvalidRequestError
 
     def _parse_ial_into_parameter(self, payload: dict) -> dict:
