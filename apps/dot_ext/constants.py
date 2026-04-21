@@ -48,11 +48,6 @@ TOKEN_ENDPOINT_V1_KEY = 'token'
 TOKEN_ENDPOINT_V2_KEY = 'token-v2'
 TOKEN_ENDPOINT_V3_KEY = 'token-v3'
 
-URL_REGEX = re.compile(
-    r'^(https:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.'
-    r'[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'
-)
-
 """
     Test Cases for demographic scopes related testing
     Dictionaries included:
