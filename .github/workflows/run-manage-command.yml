@@ -1,4 +1,4 @@
-name: Run Django Management Command
+name: Run Django Manage Command
 
 on:
   workflow_dispatch:
