@@ -71,11 +71,8 @@ class Application(AbstractApplication):
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    # TODO validator?
-    # shouldn't this really be named 'url'? or are we really allowing uri's?
-    op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, validators=[URLValidator()], max_length=512)
-    # TODO validator?
-    op_policy_uri = models.TextField(default='', blank=True, max_length=512, validators=[URLValidator()])
+    op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, validators=[URLValidator()], max_length=2048)
+    op_policy_uri = models.TextField(default='', blank=True, max_length=2048, validators=[URLValidator()])
     # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
