@@ -1,9 +1,10 @@
-import logging
 import json
+import logging
 import threading
-from typing import Any, Dict
-import requests
 import uuid
+from typing import Any, Dict
+
+import requests
 
 TYPES_TO_SKIP = ['fhir_post_fetch', 'fhir_pre_fetch', 'fhir_auth_post_fetch']
 # Other possibilities:
@@ -26,7 +27,9 @@ ACCEPTED_LOG_KEYS = [
     'sls_userinfo_status_code',
     'auth_crosswalk_action',
     'crosswalk_fhir_id',
-    'auth_path'
+    'auth_path',
+    # 'auth_app_id',
+    # 'auth_app_name',
 ]
 GRAB_FHIR_ID_FROM_USER_CROSSWALK = ['Authentication:success', 'Authorization']
 GRAB_FHIR_ID_FROM_CROSSWALK = ['AccessToken']
@@ -38,11 +41,12 @@ class ITSLogAPIHandler(logging.Handler):
     Fires asynchronously so it never blocks the main thread.
     """
 
-    API_URL = "http://host.docker.internal:8888/v1/log/create"
+    API_URL = 'http://host.docker.internal:8888/v1/log/create'
     # API_KEY = "12345678901234561234567890123456"
-    API_KEY = "1234567890123456123456789012345612345678901234561234567890123456"
+    API_KEY = '1234567890123456123456789012345612345678901234561234567890123456'
 
     def emit(self, record):
+        print('record check: ', record)
         log_message = self.parse_log_message(record.__dict__)
         if log_message.get('type') in TYPES_TO_SKIP or 'testclient' in log_message.get('path', ''):
             return
@@ -51,15 +55,14 @@ class ITSLogAPIHandler(logging.Handler):
         updated_log_message = self._format_log_message(log_message)
         app_id = getattr(record, 'application_id', None)
 
+        if not app_id:
+            app_id = getattr(record, 'auth_app_id', None)
+
         for key, value in updated_log_message.items():
             if key in ACCEPTED_LOG_KEYS:
                 payload = self._build_payload(key, value, app_id)
                 payload['cluster'] = cluster_uuid
-                threading.Thread(
-                    target=self._post_to_api,
-                    args=(payload,),
-                    daemon=True
-                ).start()
+                threading.Thread(target=self._post_to_api, args=(payload,), daemon=True).start()
 
     def parse_log_message(self, record):
         msg = record.get('msg', '')
@@ -79,11 +82,7 @@ class ITSLogAPIHandler(logging.Handler):
         if application_id:
             formatted_tag.append(application_id)
 
-        return {
-            'tags': formatted_tag,
-            'value': str(value),
-            'type': 'text'
-        }
+        return {'tags': formatted_tag, 'value': str(value), 'type': 'text'}
 
     def _format_log_message(self, log_message: Dict[str, Any]) -> Dict[str, Any]:
         if log_message.get('type'):
@@ -101,16 +100,16 @@ class ITSLogAPIHandler(logging.Handler):
         ):
             log_message['auth_path'] = log_message.get('location').split('?')[0]
 
+        if log_message.get('auth_app_id'):
+            log_message['app_id'] = log_message.get('auth_app_id')
+        if log_message.get('auth_app_name'):
+            log_message['app_name'] = log_message.get('auth_app_name')
+
         return log_message
 
     def _post_to_api(self, payload):
         try:
-            response = requests.post(
-                self.API_URL,
-                headers={'x-api-key': self.API_KEY},
-                json=payload,
-                timeout=2
-            )
+            response = requests.post(self.API_URL, headers={'x-api-key': self.API_KEY}, json=payload, timeout=2)
             return response
         except Exception:
             # Do not let ITS-log failures crash BlueButton

@@ -3,23 +3,23 @@ import hashlib
 import json
 import uuid
 
-import apps.logging.request_logger as logging
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
-from apps.versions import Versions
+
+import apps.logging.request_logger as logging
 from apps.dot_ext.constants import SESSION_AUTH_FLOW_TRACE_KEYS
 from apps.dot_ext.loggers import (
     get_session_auth_flow_trace,
     is_path_part_of_auth_flow_trace,
 )
 from apps.fhir.bluebutton.utils import (
+    get_access_token_from_request,
     get_ip_from_request,
     get_user_from_request,
-    get_access_token_from_request,
 )
+from apps.versions import Versions
 
 audit = logging.getLogger('audit.%s' % __name__)
 
@@ -468,7 +468,13 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def log_message(request, response):
-        print('we are in log_message of hhs_oauth_server')
+        if request.user:
+            print('we are in log_message of hhs_oauth_server request check: ', request.__dict__)
+            print('we are in log_message of hhs_oauth_server user check: ', request.user.__dict__)
+        if request.auser:
+            print('we are in log_message of hhs_oauth_server auser check: ', request.auser.__dict__)
+        if request._logger:
+            print('we are in log_message of hhs_oauth_server logger check: ', request._logger.__dict__)
         audit.info(RequestResponseLog(request, response).to_dict())
         request._logging_pass += 1
 

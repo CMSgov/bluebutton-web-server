@@ -1,7 +1,8 @@
-import logging
 import json
+import logging
 
 from django.conf import settings
+
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 
 CRITICAL = logging.CRITICAL
@@ -149,11 +150,9 @@ class RequestLogger(BasicLogger):
         return super().format_for_output(merged_dict, cls=cls)
 
     def debug(self, data_dict, request=None, cls=None):
-        print('We are in debug log ya pab', data_dict)
         self._logger.debug(self.format_for_output(data_dict, cls=cls))
 
     def info(self, data_dict, request=None, cls=None):
-        print('We are in info log ya pab: ', data_dict)
         self._logger.info(self.format_for_output(data_dict, cls=cls))
 
     def error(self, data_dict, request=None, cls=None):
