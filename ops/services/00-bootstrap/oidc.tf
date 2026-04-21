@@ -143,7 +143,10 @@ data "aws_iam_policy_document" "github_actions_codebuild" {
       "codebuild:StartBuild",
       "codebuild:BatchGetBuilds"
     ]
-    resources = [aws_codebuild_project.main[0].arn]
+    resources = compact([
+      aws_codebuild_project.main[0].arn,
+      local.create_static_site ? aws_codebuild_project.static_site[0].arn : ""
+    ])
   }
 }
 
