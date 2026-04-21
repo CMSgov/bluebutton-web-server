@@ -1,7 +1,6 @@
 name: Build and Upload Static Assets
 
 on:
-  push:
   workflow_dispatch:
 
 env:
