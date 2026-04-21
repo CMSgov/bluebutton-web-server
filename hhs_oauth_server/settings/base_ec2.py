@@ -438,7 +438,8 @@ if not os.path.exists(LOG_DIR):
             READ_ONLY_FS = True
             LOG_DIR = '/tmp'  # Fallback purely so string evaluation doesn't crash prior to intercept
 
-AWS_REGION_NAME = env('AWS_DEFAULT_REGION')
+# TODO - remove default, failing in Jenkins tests
+AWS_REGION_NAME = env('AWS_DEFAULT_REGION', 'us-east-1')
 
 BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
