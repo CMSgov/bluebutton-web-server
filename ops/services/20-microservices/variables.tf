@@ -114,3 +114,9 @@ variable "alarm_email" {
   default     = ""
   description = "Email address for CloudWatch alarm notifications (optional)"
 }
+
+variable "log_groups" {
+  type        = list(string)
+  default     = ["debug", "error", "info", "login_failed", "admin_access", "perf_mon"]
+  description = "Historical log groups from EC2 deployment, subject to change"
+}
