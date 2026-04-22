@@ -216,7 +216,7 @@ class ArchivedCrosswalk(models.Model):
     This is performed via code in the '__get_and_update_user()' function
     in apps/mymedicare_cb/models.py
     Attributes:
-        user: auth_user.id TODO but there is no user field in this model below?
+        username: auth_user.username
         fhir_id_v2: v1/v2 BFD fhir patient id
         fhir_id_v3: v3 BFD fhir patient id
         user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
