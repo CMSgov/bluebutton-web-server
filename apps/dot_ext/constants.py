@@ -1,4 +1,3 @@
-import re
 from apps.constants import LAUNCH_SCOPE, OPENID_SCOPE
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
