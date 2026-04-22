@@ -1,4 +1,5 @@
 import re
+
 from apps.constants import LAUNCH_SCOPE, OPENID_SCOPE
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
@@ -113,7 +114,12 @@ V2_SCOPES_NON_DEMOGRAPHIC = [
     LAUNCH_SCOPE,
     OPENID_SCOPE,
 ]
-V2_SCOPES_NON_DEMOGRAPHIC_CONDENSED = ['patient/ExplanationOfBenefit.rs', 'patient/Coverage.rs', LAUNCH_SCOPE, OPENID_SCOPE]
+V2_SCOPES_NON_DEMOGRAPHIC_CONDENSED = [
+    'patient/ExplanationOfBenefit.rs',
+    'patient/Coverage.rs',
+    LAUNCH_SCOPE,
+    OPENID_SCOPE,
+]
 
 # Scope to base URL PATH mapping.
 SCOPES_TO_URL_BASE_PATH = {
@@ -547,9 +553,7 @@ BENE_PERSONAL_INFO_SCOPES = [
     'profile',
 ]
 
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = (
-    'User access cannot be found. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
-)
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = 'User access cannot be found. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
 APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
     'This application, {}, does not yet have access to this authorization method.'
@@ -1639,3 +1643,5 @@ COUNTRIES = {
     'ZIMBABWE',
     'ÅLAND ISLANDS',
 }
+
+ID_ME_URL_CONTAINS = 'oidc'
