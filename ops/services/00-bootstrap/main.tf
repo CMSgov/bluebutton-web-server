@@ -28,8 +28,12 @@ locals {
   service = "bootstrap"
 
   # CodeBuild configuration
-  project_name = "bb-${local.bucket_env}-web-server"
-  repo_env     = local.env == "sandbox" ? "prod" : local.env
+  project_name             = "bb-${local.bucket_env}-web-server"
+  static_site_project_name = "bb-${local.bucket_env}-site-static"
+  repo_env                 = local.env == "sandbox" ? "prod" : local.env
+
+  # Static site CodeBuild only in test account (deploys to Akamai NetStorage for all envs)
+  create_static_site = local.env == "test"
 
   # Conditional resource creation (sandbox doesn't create resources, reuses prod)
   create_resources = local.env != "sandbox"
@@ -103,9 +107,9 @@ resource "aws_ecr_lifecycle_policy" "api" {
       {
         rulePriority = 2
         selection = {
-          tagStatus  = "untagged"
-          countType  = "sinceImagePushed"
-          countUnit  = "days"
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
           countNumber = 1
         }
         action = { type = "expire" }
