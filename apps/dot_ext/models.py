@@ -117,7 +117,9 @@ class Application(AbstractApplication):
 
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
-    logo_uri = models.TextField(default='', blank=True, max_length=2048, verbose_name='Logo URI', validators=[URLValidator()])
+    logo_uri = models.TextField(
+        default='', blank=True, max_length=2048, verbose_name='Logo URI', validators=[URLValidator()]
+    )
 
     tos_uri = models.TextField(
         default='',
@@ -544,7 +546,7 @@ class AuthFlowUuid(models.Model):
 
     # code challenge method, either "S256" or "plain" by spec
     # https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
-    auth_pkce_method = models.CharField(max_length=16, null=True, choices={"S256":  "S256", "plain": "plain"})
+    auth_pkce_method = models.CharField(max_length=16, null=True, choices={'S256': 'S256', 'plain': 'plain'})
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
@@ -587,7 +589,7 @@ class AuthFlowUuidCopy(models.Model):
 
     # code challenge method, either "S256" or "plain" by spec
     # https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
-    auth_pkce_method = models.CharField(max_length=16, null=True, choices={"S256":  "S256", "plain": "plain"})
+    auth_pkce_method = models.CharField(max_length=16, null=True, choices={'S256': 'S256', 'plain': 'plain'})
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
