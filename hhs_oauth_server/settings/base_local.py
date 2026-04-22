@@ -323,10 +323,6 @@ ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', default='/code/hhs_oauth_server/..')
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
-MEDIA_URL = '/media/'
-STATIC_URL = '/static/'
-STATIC_ROOT = 'collectedstatic'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]

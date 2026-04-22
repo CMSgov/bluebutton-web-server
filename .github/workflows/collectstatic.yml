@@ -1,0 +1,72 @@
+name: Build and Upload Static Assets
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
+  DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
+  TARGET_ENV: test
+
+permissions:
+  id-token: write # Required for requesting the AWS IAM OIDC JWT
+  contents: write # Required for actions/checkout
+  actions: write # Required for GHA cache
+
+jobs:
+  collectstatic:
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # TO DO: Look into using setup-python github action in the future
+      - name: Setup Python 3.12
+        run: |
+          echo "Setting up Python 3.12 via pyenv..."
+          pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
+          pyenv global 3.12 || pyenv global 3.12.0
+
+      - name: Configure AWS credentials
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install python dependencies
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
+
+      - name: Compile and Build CSS assets
+        run:  |
+            cd static/bluebutton-css
+            npm i 
+            npm run gulp
+
+      - name: Mask additional sensitive values
+        run: |
+            # Mask the role ARN
+            echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
+            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
+            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
+            # Get and mask account ID
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            echo "::add-mask::$ACCOUNT_ID"
+            echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+
+      - name: Collect static files
+        run: |
+          source venv/bin/activate
+          python3 manage.py collectstatic --noinput
+    
