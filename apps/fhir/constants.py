@@ -1,12 +1,13 @@
-from apps.versions import Versions
 from collections import namedtuple as NT
+
 from voluptuous import (
     All,
+    Coerce,
     Match,
     Range,
-    Coerce,
 )
 
+from apps.versions import Versions
 
 ALLOWED_RESOURCE_TYPES = ['Patient', 'Coverage', 'ExplanationOfBenefit', 'Bundle']
 
@@ -66,14 +67,18 @@ FHIR_CONFORMANCE_URLS = {
 
 ACCEPTED_PATIENT_QUERY_PARAMS = {
     'startIndex': Coerce(int, msg=None),
-    '_count': All(Coerce(int, msg=None), Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None),
+    '_count': All(
+        Coerce(int, msg=None), Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
+    ),
     '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
     '_id': str,
     'identifier': str,
 }
 ACCEPTED_COVERAGE_QUERY_PARAMS = {
     'startIndex': Coerce(int, msg=None),
-    '_count': All(Coerce(int, msg=None), Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None),
+    '_count': All(
+        Coerce(int, msg=None), Range(min=0, max=50, min_included=True, max_included=True, msg=None), msg=None
+    ),
     '_lastUpdated': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the _lastUpdated operator is not valid')],
     'beneficiary': str,
 }

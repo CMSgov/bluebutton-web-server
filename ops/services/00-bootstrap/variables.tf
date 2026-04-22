@@ -18,6 +18,18 @@ variable "github_repo" {
   default     = "bluebutton-web-server"
 }
 
+variable "github_repo_pattern" {
+  description = "GitHub repository pattern for OIDC trust policy (supports wildcards). Defaults to all BB repos."
+  type        = string
+  default     = "bluebutton*"
+}
+
+variable "static_site_github_repo_url" {
+  description = "GitHub repository URL for bb-site-static CodeBuild"
+  type        = string
+  default     = "https://github.com/CMSgov/bluebutton-site-static"
+}
+
 variable "iam_path" {
   description = "IAM path for roles"
   type        = string

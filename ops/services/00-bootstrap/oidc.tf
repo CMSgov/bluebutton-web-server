@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_org}/${var.github_repo}:*"]
+      values   = ["repo:${var.github_org}/${var.github_repo_pattern}:*"]
     }
 
     condition {
@@ -143,7 +143,10 @@ data "aws_iam_policy_document" "github_actions_codebuild" {
       "codebuild:StartBuild",
       "codebuild:BatchGetBuilds"
     ]
-    resources = [aws_codebuild_project.main[0].arn]
+    resources = compact([
+      aws_codebuild_project.main[0].arn,
+      local.create_static_site ? aws_codebuild_project.static_site[0].arn : ""
+    ])
   }
 }
 
@@ -181,7 +184,8 @@ data "aws_iam_policy_document" "github_actions_ecs_deploy" {
       "ecs:RegisterTaskDefinition",
       "ecs:DescribeTaskDefinition",
       "ecs:ListTaskDefinitions",
-      "ecs:DeregisterTaskDefinition"
+      "ecs:DeregisterTaskDefinition",
+      "ecs:RunTask"
     ]
     resources = ["*"]
   }
@@ -272,6 +276,9 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "logs:CreateLogStream",
       "logs:DeleteLogGroup",
       "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:FilterLogEvents",
+      "logs:GetLogEvents",
       "logs:ListTagsForResource",
       "logs:PutLogEvents",
       "logs:PutRetentionPolicy",
