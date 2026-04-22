@@ -542,8 +542,9 @@ class AuthFlowUuid(models.Model):
     # 40 here because that is the ID's actual length.
     client_id = models.CharField(max_length=40, null=True)
 
-    # TODO spec? should this be a TextField?
-    auth_pkce_method = models.CharField(max_length=16, null=True)
+    # code challenge method, either "S256" or "plain" by spec
+    # https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+    auth_pkce_method = models.CharField(max_length=16, null=True, choices={"S256":  "S256", "plain": "plain"})
 
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
@@ -570,14 +571,25 @@ class AuthFlowUuidCopy(models.Model):
     auth_share_demographic_scopes - Bene demographic sharing choice from consent page/form
     """
 
-    # TODO same changes as above?
     # TODO could this just inherit from the above?
+
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
-    state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
+    state = models.TextField(max_length=64, null=True, unique=True, db_index=True)
+
+    # matches what is in django rest framework
+    # https://github.com/django-oauth/django-oauth-toolkit/blob/d422eeab79052c04a91d124f938ddc22c841c38c/oauth2_provider/models.py#L333
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
-    client_id = models.CharField(max_length=100, null=True)
-    auth_pkce_method = models.CharField(max_length=16, null=True)
-    created = models.DateTimeField(null=True)
+
+    # In ouath2_provider, the length of the generated client_id is 40,
+    # but the max_length of AbstractApplication.client_id is 100. Going with
+    # 40 here because that is the ID's actual length.
+    client_id = models.CharField(max_length=40, null=True)
+
+    # code challenge method, either "S256" or "plain" by spec
+    # https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+    auth_pkce_method = models.CharField(max_length=16, null=True, choices={"S256":  "S256", "plain": "plain"})
+
+    created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
     auth_share_demographic_scopes = models.BooleanField(null=True)
 
