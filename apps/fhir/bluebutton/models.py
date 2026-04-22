@@ -229,7 +229,7 @@ class ArchivedCrosswalk(models.Model):
         create (crosswalk): static method to create an ArchivedCrosswalk from a Crosswalk instance
     """
 
-    # TODO spec?
+    # The max_length of django's AbstractUser.username field is 150
     username = models.CharField(
         max_length=150,
         null=False,
