@@ -1,6 +1,7 @@
 import html
 import json
 import logging
+import os
 import re
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -79,6 +80,9 @@ from apps.dot_ext.constants import (
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
+    ID_ME_URL_CONTAINS,
+    IDME_HIGHER_ISS,
+    IDME_LOWER_ISS,
     JWKS_URLS,
     PARAMETERS_ID_MATCH_META,
     PATIENT_ID_MATCH_META,
@@ -717,9 +721,7 @@ class TokenView(DotTokenView):
                     log.warning('Malformed JWT')
                     raise InvalidRequestError
 
-                if not cache.add(
-                    f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300
-                ):
+                if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
                     log.warning('jti/iss combo replay')
                     raise InvalidRequestError
 
@@ -759,7 +761,31 @@ class TokenView(DotTokenView):
 
         except jwt.PyJWTError as e:
             log.warning(f'jwt.decode_complete() failed because {type(e)}')
+            log.warning(f'error was {e}')
             raise InvalidRequestError
+
+    def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
+        """Determine if the issuer of the id_token is valid for the environment for ID.me client_credentials
+        calls
+        Args:
+            issuer (str): Where the token was issued from
+        Returns:
+            bool: Whether or not the environment is valid for the id token issuer
+        """
+
+        # If the issue does not contain oidc, it is not ID.me, and it must be CLEAR
+        # CLEAR does not differentiate between environments at this time
+        if ID_ME_URL_CONTAINS not in issuer:
+            return True
+
+        env = os.environ.get('TARGET_ENV', 'local')
+        # if the env is prod, and the issuer is not the prod url, return false
+        # or if the env is not prod, and the issuer is not the lower env url, return false
+        if (env == 'prod' and issuer != IDME_HIGHER_ISS) or (env != 'prod' and issuer != IDME_LOWER_ISS):
+            log.warning(f'Invalid URL for env: {env}: {issuer}')
+            return False
+
+        return True
 
     def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient) -> dict:
         """Validates an IAL JWT from a trusted CSP
@@ -805,9 +831,11 @@ class TokenView(DotTokenView):
                     log.warning('Malformed header / payload')
                     raise InvalidRequestError
 
-                if not cache.add(
-                    f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300
-                ):
+                if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+                    log.warning('The issuer of the token is not valid for this environment')
+                    raise InvalidRequestError
+
+                if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
                     log.warning('jti/iss combo replay')
                     raise InvalidRequestError
 
@@ -843,6 +871,9 @@ class TokenView(DotTokenView):
                     raise InvalidRequestError
             else:
                 payload = jwt.decode(id_token, options={'verify_signature': False})
+                if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+                    log.warning('The issuer of the token is not valid for this environment')
+                    raise InvalidRequestError
 
             return payload
         except jwt.PyJWTError as e:

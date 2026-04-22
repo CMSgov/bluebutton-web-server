@@ -8,6 +8,7 @@ import os
 import socket
 from urllib.parse import urlparse
 
+import boto3
 import dj_database_url
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
@@ -385,10 +386,6 @@ ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
-MEDIA_URL = '/media/'
-STATIC_URL = '/static/'
-STATIC_ROOT = 'collectedstatic'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -438,12 +435,19 @@ if not os.path.exists(LOG_DIR):
             READ_ONLY_FS = True
             LOG_DIR = '/tmp'  # Fallback purely so string evaluation doesn't crash prior to intercept
 
-# TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks that aren't being migrated
+# TODO - remove default, failing in Jenkins tests
+AWS_REGION_NAME = env('AWS_DEFAULT_REGION', 'us-east-1')
+
+BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
+
+# TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks
+# in the deployment repo that aren't being migrated
 LOGGING = env(
     'DJANGO_LOGGING',
     {
         'version': 1,
         'disable_existing_loggers': False,
+        'root': {'level': 'INFO', 'handlers': ['console']},
         'formatters': {
             'verbose': {'format': '%(asctime)s %(levelname)s [%(process)d] %(name)s line:%(lineno)d %(message)s'},
             'simple': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'},
@@ -466,10 +470,6 @@ LOGGING = env(
         },
         'handlers': {
             'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'simple',
-            },
-            'cloudwatch_console': {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
                 'formatter': 'jsonout',
@@ -480,44 +480,84 @@ LOGGING = env(
                 'filters': ['require_debug_true'],
                 'formatter': 'verbose',
             },
+            'wt_debug': {
+                'level': 'DEBUG',
+                'class': 'watchtower.CloudWatchLogHandler',
+                'boto3_client': BOTO3_LOGS_CLIENT,
+                'formatter': 'verbose',
+                'log_group_name': f'/bb/{TARGET_ENV}/app/debug.log',
+            },
+            'wt_error': {
+                'level': 'INFO',
+                'class': 'watchtower.CloudWatchLogHandler',
+                'boto3_client': BOTO3_LOGS_CLIENT,
+                'formatter': 'verbose',
+                'log_group_name': f'/bb/{TARGET_ENV}/app/error.log',
+            },
+            'wt_info': {
+                'level': 'INFO',
+                'class': 'watchtower.CloudWatchLogHandler',
+                'boto3_client': BOTO3_LOGS_CLIENT,
+                'formatter': 'simple',
+                'log_group_name': f'/bb/{TARGET_ENV}/app/info.log',
+            },
+            'wt_loginfailed': {
+                'level': 'INFO',
+                'class': 'watchtower.CloudWatchLogHandler',
+                'boto3_client': BOTO3_LOGS_CLIENT,
+                'formatter': 'simple',
+                'log_group_name': f'/bb/{TARGET_ENV}/app/login_failed.log',
+            },
+            'wt_adminuse': {
+                'level': 'INFO',
+                'class': 'watchtower.CloudWatchLogHandler',
+                'boto3_client': BOTO3_LOGS_CLIENT,
+                'formatter': 'simple',
+                'log_group_name': f'/bb/{TARGET_ENV}/app/admin_access.log',
+            },
+            'wt_perf_mon': {
+                'level': 'INFO',
+                'class': 'watchtower.CloudWatchLogHandler',
+                'boto3_client': BOTO3_LOGS_CLIENT,
+                'formatter': 'jsonout',
+                'log_group_name': f'/bb/{TARGET_ENV}/app/perf_mon.log',
+            },
         },
         'loggers': {
             'hhs_server': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_oauth_server.accounts': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_debug': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_server_error': {
-                'handlers': ['mail_admins', 'cloudwatch_console'],
+                'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
                 'level': 'ERROR',
             },
             'unsuccessful_logins': {
-                'handlers': [
-                    'cloudwatch_console',
-                ],
+                'handlers': ['wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
                 'level': 'INFO',
             },
             'admin_interface': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_adminuse', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_info': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauth2_provider': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauthlib': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'tests': {
@@ -525,11 +565,11 @@ LOGGING = env(
                 'level': 'DEBUG',
             },
             'audit': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'performance': {
-                'handlers': ['cloudwatch_console'],
+                'handlers': ['wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
         },

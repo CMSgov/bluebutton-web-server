@@ -112,6 +112,14 @@ data "aws_iam_policy_document" "s3" {
   }
 }
 
+data "aws_iam_policy_document" "cloudwatch_log_groups" {
+  statement {
+    sid = "CreateCloudWatchLogGroups"
+    actions = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
+    resources = ["*"]
+  }
+}
+
 # ============================================================================
 # IAM Policies
 # ============================================================================
@@ -157,6 +165,12 @@ resource "aws_iam_policy" "s3" {
   name   = "${local.name_prefix}-s3"
   path   = local.iam_path
   policy = data.aws_iam_policy_document.s3.json
+}
+
+resource "aws_iam_policy" "cloudwatch_log_groups" {
+  name   = "${local.name_prefix}-cloudwatch-log-groups"
+  path   = local.iam_path
+  policy = data.aws_iam_policy_document.cloudwatch_log_groups.json
 }
 
 # ============================================================================
@@ -253,4 +267,10 @@ resource "aws_iam_role_policy_attachment" "task_ecs_exec" {
   for_each   = nonsensitive(local.service_config)
   role       = aws_iam_role.task[each.key].name
   policy_arn = aws_iam_policy.ecs_exec.arn
+}
+
+resource "aws_iam_role_policy_attachment" "task_cloudwatch_log_groups" {
+  for_each   = nonsensitive(local.service_config)
+  role       = aws_iam_role.task[each.key].name
+  policy_arn = aws_iam_policy.cloudwatch_log_groups.arn
 }

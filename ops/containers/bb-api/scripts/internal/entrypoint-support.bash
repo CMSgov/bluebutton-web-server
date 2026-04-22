@@ -117,6 +117,7 @@ launch_blue_button () {
         newrelic-admin run-program \
             gunicorn \
             hhs_oauth_server.wsgi:application \
+            --config /home/boton/bb/gunicorn.conf.py \
             --certfile /tmp/certstore/tls/cert.pem \
             --keyfile /tmp/certstore/tls/key.pem \
             --worker-tmp-dir /tmp/gunicorn \

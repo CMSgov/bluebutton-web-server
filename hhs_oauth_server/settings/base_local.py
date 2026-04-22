@@ -207,12 +207,6 @@ LOGGING = {
             'formatter': 'verbose',
             'filters': [SENSITIVE_DATA_FILTER],
         },
-        # Mimics what we will see in production
-        'cloudwatch_console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'jsonout',
-        },
     },
     'filters': {
         'sensitive_data_filter': {
@@ -329,10 +323,6 @@ MESSAGE_TAGS = {
 ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', default='/code/hhs_oauth_server/..')
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
-
-MEDIA_URL = '/media/'
-STATIC_URL = '/static/'
-STATIC_ROOT = 'collectedstatic'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),

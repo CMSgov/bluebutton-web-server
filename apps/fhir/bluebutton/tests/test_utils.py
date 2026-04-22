@@ -1,45 +1,43 @@
+import json
 import os
 import uuid
-import json
+
+import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase, RequestFactory
-from apps.constants import OPERATION_OUTCOME
-from apps.accounts.models import UserProfile
-from apps.test import BaseApiTest
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.versions import Versions
-from apps.constants import USER_TYPE_DEV
-from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS, IDI_MATCH_ENDPOINT
-from apps.fhir.server.settings import fhir_settings
-import pytest
-
-
-from apps.fhir.bluebutton.utils import (
-    get_patient_match_response_json,
-    notNone,
-    FhirServerAuth,
-    mask_with_this_url,
-    get_host_url,
-    prepend_q,
-    dt_patient_reference,
-    crosswalk_patient_id,
-    build_oauth_resource,
-    valid_patient_read_or_search_call,
-    validate_query_parameters,
-    is_operation_outcome,
-    format_patient_name,
-    is_patient_match_found,
-    extract_fhir_id_from_patient,
-    extract_mbi_from_patient,
-)
-from apps.fhir.bluebutton.views.search import SearchViewExplanationOfBenefit
+from django.test import RequestFactory, TestCase
 from voluptuous import (
     All,
+    Coerce,
     Match,
     Range,
-    Coerce,
 )
+
+from apps.accounts.models import UserProfile
+from apps.constants import OPERATION_OUTCOME, USER_TYPE_DEV
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.utils import (
+    FhirServerAuth,
+    build_oauth_resource,
+    crosswalk_patient_id,
+    dt_patient_reference,
+    extract_fhir_id_from_patient,
+    extract_mbi_from_patient,
+    format_patient_name,
+    get_host_url,
+    get_patient_match_response_json,
+    is_operation_outcome,
+    is_patient_match_found,
+    mask_with_this_url,
+    notNone,
+    prepend_q,
+    valid_patient_read_or_search_call,
+    validate_query_parameters,
+)
+from apps.fhir.constants import ACCEPTED_COVERAGE_QUERY_PARAMS, ACCEPTED_PATIENT_QUERY_PARAMS, IDI_MATCH_ENDPOINT
+from apps.fhir.server.settings import fhir_settings
+from apps.test import BaseApiTest
+from apps.versions import Versions
 
 # Leaving this here to avoid a circular import issue
 ACCEPTED_EOB_QUERY_PARAMS = {
@@ -60,7 +58,6 @@ ACCEPTED_EOB_QUERY_PARAMS = {
     ),
     'service-date': [Match('^((lt)|(le)|(gt)|(ge)).+', msg='the service-date operator is not valid')],
     'patient': str,
-    '_tag': SearchViewExplanationOfBenefit.validate_tag,
 }
 
 
