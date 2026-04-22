@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 from base64 import b64encode
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
@@ -21,12 +22,18 @@ from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     AUTH_CODE_TYPE,
     CC_SYSTEM_MEDICARE_NUMBER,
+    CLEAR_HIGHER_ISS,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_TYPE,
+    IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
 )
 from apps.dot_ext.models import Application
-from apps.dot_ext.utils import get_application_from_data, get_application_from_meta, validate_app_is_active
+from apps.dot_ext.utils import (
+    get_application_from_data,
+    get_application_from_meta,
+    validate_app_is_active,
+)
 from apps.dot_ext.views import TokenView
 from apps.test import BaseApiTest
 from apps.versions import Versions
@@ -220,6 +227,43 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
 
         result = view_instance._validate_client_credentials_request(mock_request)
         assert result is None
+
+    def test_validate_environment_for_id_token(self) -> None:
+        """Confirm that, given a specific environment and an issuer URL, the
+        _validate_idme_url_for_id_token_and_environment will correctly return True or False
+        """
+        view_instance = TokenView()
+        os.environ['TARGET_ENV'] = 'prod'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(CLEAR_HIGHER_ISS)
+        assert result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert not result
+
+        os.environ['TARGET_ENV'] = 'impl'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert not result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert result
+
+        os.environ['TARGET_ENV'] = 'test'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert not result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert result
+
+        os.environ['TARGET_ENV'] = 'local'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert not result
+
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
+        assert result
+
+        os.environ['TARGET_ENV'] = 'prod'
+        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
+        assert result
 
 
 # we set empty GET/META/POST because get_application_from_data does not like it if a GET is missing.

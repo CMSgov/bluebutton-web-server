@@ -18,6 +18,12 @@ variable "github_repo" {
   default     = "bluebutton-web-server"
 }
 
+variable "github_repo_pattern" {
+  description = "GitHub repository pattern for OIDC trust policy (supports wildcards). Defaults to all BB repos."
+  type        = string
+  default     = "bluebutton*"
+}
+
 variable "iam_path" {
   description = "IAM path for roles"
   type        = string
