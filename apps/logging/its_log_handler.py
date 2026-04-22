@@ -119,6 +119,10 @@ class ITSLogAPIHandler(logging.Handler):
             log_message['app_id'] = log_message.get('resp_app_id')
         if not log_message.get('app_name') and log_message.get('resp_app_name'):
             log_message['app_name'] = log_message.get('resp_app_name')
+        if not log_message.get('app_id') and log_message.get('application'):
+            log_message['app_id'] = log_message['application'].get('id')
+            log_message['app_name'] = log_message['application'].get('name')
+
         if log_message.get('allow'):
             if log_message.get('allow') is True:
                 log_message['allow'] = 'True'

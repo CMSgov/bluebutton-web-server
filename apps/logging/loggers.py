@@ -243,7 +243,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             val_to_post = log_dict[key]
             if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
                 val_to_post = str(val_to_post)
-            ping_api([key], val_to_post)
+            ping_api([key], val_to_post, 'global')
 
     if report_flag:
         print('---')
@@ -315,7 +315,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             val_to_post = log_dict[key]
             if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
                 val_to_post = str(val_to_post)
-            ping_api([tag], val_to_post)
+            ping_api([tag], val_to_post, 'global_per_app')
 
         count = count + 1
 
@@ -333,17 +333,15 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
         print('SUCCESS')
 
 
-def ping_api(tags, value):
-    print('TAGS: ', tags)
-    print('VALUE: ', value)
+def ping_api(tags, value, cluster):
     try:
         result = requests.post(
-            'http://host.docker.internal:8888/v1/log',
-            headers={'x-api-key': '12345678901234561234567890123456'},
+            'http://host.docker.internal:8888/v1/log/create',
+            headers={'x-api-key': '1234567890123456123456789012345612345678901234561234567890123456'},
             json={
-                # "source": "my-django-app",
                 'tags': tags,
                 'value': value,
+                'cluster': cluster,
                 'type': 'text',
             },
             timeout=2,
