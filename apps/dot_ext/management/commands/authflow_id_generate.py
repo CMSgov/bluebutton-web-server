@@ -9,7 +9,7 @@ from apps.dot_ext.models import AuthFlowUuidCopy
 
 def generate_authflowuuid_records(start_date_str, sample_size):
     #
-    # simulate a large dot_ext_auditflowuuid table with fequent insert + delete (50%) plus insert without delete (50%)
+    # simulate a large dot_ext_auditflowuuid table with frequent insert + delete (50%) plus insert without delete (50%)
     #
     start_date = datetime.fromisoformat(start_date_str)
     start_date = start_date.replace(tzinfo=timezone.utc)

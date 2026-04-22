@@ -565,7 +565,7 @@ APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
 CSP_IAL_ACCEPTED_JWT_ALGORITHMS = ['RS256']
 CLIENT_ASSERTION_TYPE_VALUE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
 
-# TODO - use env vars to determine which enviornment is valid, at the moment all of them are
+# TODO - use env vars to determine which environment is valid, at the moment all of them are
 CLEAR_HIGHER_JWKS_URL = 'https://verified.clearme.com/integrations/.well-known/jwks.json'
 CLEAR_LOWER_JWKS_URL = 'https://please-find-out-what-i.am'
 IDME_HIGHER_JWKS_URL = 'https://api.id.me/oidc/.well-known/jwks'

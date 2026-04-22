@@ -398,7 +398,7 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_detail_mesg=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
         )
 
-        # 6. Test token refresh after applciation in-active/disabled
+        # 6. Test token refresh after application in-active/disabled
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac['refresh_token'],

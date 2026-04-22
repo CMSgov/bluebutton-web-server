@@ -930,7 +930,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
 
-        # Test for cascading contraint errors.
+        # Test for cascading constraint errors.
         application_pk = application.pk
         application.delete()
         # Test related objects are deleted
@@ -988,7 +988,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
 
-        # Test for cascading contraint errors.
+        # Test for cascading constraint errors.
         user_pk = user.pk
         user.delete()
         # Test related objects are deleted
