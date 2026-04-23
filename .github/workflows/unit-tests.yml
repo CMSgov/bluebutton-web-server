@@ -36,5 +36,6 @@ jobs:
             - name: Run unit tests
               run: |
                 ls -la
+                echo $TARGET_ENV
                 source venv/bin/activate
                 python runtests.py
