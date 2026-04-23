@@ -16,8 +16,11 @@ jobs:
             - name: Setup Python 3.12
               run: |
                 echo "Setting up Python 3.12 via pyenv..."
-                pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
-                pyenv global 3.12 || pyenv global 3.12.0
+                python3 --version
+                which python3
+                pip3 --version
+                # pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
+                # pyenv global 3.12 || pyenv global 3.12.0
 
             - name: Install python dependencies
               run: |
