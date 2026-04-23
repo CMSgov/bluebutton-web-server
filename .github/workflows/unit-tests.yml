@@ -23,8 +23,6 @@ jobs:
                 python3 --version
                 which python3
                 pip3 --version
-                # pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
-                # pyenv global 3.12 || pyenv global 3.12.0
 
             - name: Install python dependencies
               run: |
@@ -32,6 +30,13 @@ jobs:
                 source venv/bin/activate
                 python3 -m pip install --upgrade pip setuptools wheel
                 pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
+
+            - name: Setup AWS credentials (Test)
+              uses: ./.github/actions/setup-tofu
+              with:
+                environment: test
+                non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+                prod-account: ${{ secrets.PROD_ACCOUNT }}
 
             - name: Run unit tests
               run: |
