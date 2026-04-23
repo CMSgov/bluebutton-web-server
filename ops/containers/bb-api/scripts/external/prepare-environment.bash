@@ -43,6 +43,10 @@ gonogo "retrieve_bfd_certs"
 # the live system. 
 configure_slsx
 
+####################################
+# 
+# setup_database_and_users_if_local
+
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
 
 if [[ "${bfd}" == "local" ]]; then

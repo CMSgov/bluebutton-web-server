@@ -51,3 +51,11 @@ collectstatic:
 	env="local" \
 	TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
+
+run-selenium:
+	@echo "Running Selenium: Local"
+	cd selenium && make run-local
+
+build-selenium:
+	@echo "Running Selenium: Local"
+	cd selenium && make build-local
