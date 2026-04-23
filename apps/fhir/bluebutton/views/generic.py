@@ -1,39 +1,37 @@
 import hashlib
+import logging
+from urllib.parse import quote
 
 import voluptuous
-import logging
-
-from apps.versions import VersionNotMatched, Versions
-from apps.constants import HHS_SERVER_LOGNAME_FMT
-
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
-from requests import Session, Request
+from requests import Request, Session
 from rest_framework import exceptions, permissions
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from urllib.parse import quote
 
 from apps.authorization.permissions import DataAccessGrantPermission
+from apps.constants import FHIR_RES_TYPE_EOB, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.throttling import TokenRateThrottle
-from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
-from apps.fhir.parsers import FHIRParser
-from apps.fhir.renderers import FHIRRenderer
-from apps.fhir.server.settings import fhir_settings
-from apps.fhir.server import connection as backend_connection
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
-from apps.fhir.bluebutton.permissions import HasCrosswalk, ResourcePermission, ApplicationActivePermission
-from apps.fhir.bluebutton.signals import pre_fetch, post_fetch
+from apps.fhir.bluebutton.permissions import ApplicationActivePermission, HasCrosswalk, ResourcePermission
+from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_fhir_response,
     valid_patient_read_or_search_call,
     validate_query_parameters,
 )
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
+from apps.fhir.parsers import FHIRParser
+from apps.fhir.renderers import FHIRRenderer
+from apps.fhir.server import connection as backend_connection
+from apps.fhir.server.settings import fhir_settings
+from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -134,7 +132,9 @@ class FhirDataView(APIView):
         request.session.version = self.version
 
         # Now make the call to the backend API
-        req = Request('GET', target_url, params=get_parameters, headers=backend_connection.headers(request, url=target_url))
+        req = Request(
+            'GET', target_url, params=get_parameters, headers=backend_connection.headers(request, url=target_url)
+        )
         s = Session()
 
         # BB2-1544 request header url encode if header value (app name) contains char (>256)
@@ -157,8 +157,24 @@ class FhirDataView(APIView):
                 # making the request can see what the invalid parameters were so they can fix the request
                 raise ValidationError({'error': f'Invalid parameters: {validation_result.invalid_params}'})
 
+        # If a v3 EOB search call is being made, and it does not contain _tag or _source parameters
+        # then append add _source=NCH to the query parameters of the call to ensure that, by default
+        # we only return NCH data for v3 EOB search calls. If a _source or _tag parameter is already included
+        # then we won't add the default.
+        resource_id = kwargs.get('resource_id')
+        if (
+            resource_type == FHIR_RES_TYPE_EOB
+            and self.version == Versions.V3
+            and not resource_id
+            and '_tag' not in query_param
+            and '_source' not in query_param
+        ):
+            get_parameters['_source'] = 'NCH'
+            # Reset request params after adding default _source param
+            req.params = get_parameters
+            prepped = s.prepare_request(req)
+
         if resource_type == 'Patient':
-            resource_id = kwargs.get('resource_id')
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 
             # For patient read and search calls, we need to ensure that what is being passed, either in
@@ -166,7 +182,9 @@ class FhirDataView(APIView):
             # current session (matching the beneficiary_id). If not, raise a 404 Not found before calling BFD.
             # 20260217 update: We will not return a Not found error when the call is for v3. Instead, we will let
             # exceptions.py handle it, and ensure an OperationOutcome is returned.
-            if self.version != Versions.V3 and not valid_patient_read_or_search_call(beneficiary_id, resource_id, query_param):
+            if self.version != Versions.V3 and not valid_patient_read_or_search_call(
+                beneficiary_id, resource_id, query_param
+            ):
                 error = NotFound('Not found.')
                 raise error
 

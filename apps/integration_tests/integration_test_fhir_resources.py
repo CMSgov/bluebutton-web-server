@@ -1,20 +1,23 @@
 import json
+from http import HTTPStatus
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.management import call_command
-from http import HTTPStatus
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
-from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
-from apps.constants import OPERATION_OUTCOME
+from apps.constants import (
+    C4BB_PROFILE_URLS,
+    DEFAULT_SAMPLE_FHIR_ID_V2,
+    DEFAULT_SAMPLE_FHIR_ID_V3,
+    FHIR_RES_TYPE_EOB,
+    OPERATION_OUTCOME,
+)
 from apps.core.models import Flag
-from apps.test import BaseApiTest
-from apps.testclient.utils import extract_last_page_index
 from apps.integration_tests.common_utils import validate_json_schema
-
 from apps.integration_tests.constants import (
+    COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
     COVERAGE_READ_SCHEMA,
     COVERAGE_READ_SCHEMA_V2,
     COVERAGE_SEARCH_SCHEMA,
@@ -23,20 +26,20 @@ from apps.integration_tests.constants import (
     EOB_SEARCH_SCHEMA,
     FHIR_META_SCHEMA,
     FHIR_RES_TYPE_COVERAGE,
-    FHIR_RES_TYPE_EOB,
     FHIR_RES_TYPE_PATIENT,
-    PATIENT_READ_SCHEMA,
-    PATIENT_SEARCH_SCHEMA,
-    SAMPLE_A_888_MBI,
-    SAMPLE_A_888_HICN_HASH,
-    USERINFO_SCHEMA,
-    V3_403_DETAIL,
-    COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
+    INVALID_COVERAGE_ID,
     INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
     INVALID_PATIENT_ID,
-    INVALID_COVERAGE_ID,
+    PATIENT_READ_SCHEMA,
+    PATIENT_SEARCH_SCHEMA,
+    SAMPLE_A_888_HICN_HASH,
+    SAMPLE_A_888_MBI,
+    USERINFO_SCHEMA,
+    V3_403_DETAIL,
     V3_FHIR_CALL_PREFIX,
 )
+from apps.test import BaseApiTest
+from apps.testclient.utils import extract_last_page_index
 
 
 def dump_content(json_str, file_name):
@@ -456,7 +459,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(
-                lnk, ("Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' ")
+                lnk,
+                (
+                    "Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "
+                ),
             )
             nav_info = self._extract_urls(lnk)
             if nav_info.get('next', None) is not None:
@@ -526,7 +532,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(
-                lnk, ("Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' ")
+                lnk,
+                (
+                    "Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "
+                ),
             )
             nav_info = self._extract_urls(lnk)
             if nav_info.get('next', None) is not None:
@@ -597,7 +606,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(
-                lnk, ("Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' ")
+                lnk,
+                (
+                    "Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "
+                ),
             )
             nav_info = self._extract_urls(lnk)
             if nav_info.get('next', None) is not None:
@@ -825,7 +837,9 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         """
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'patient=')
 
-    def _call_v3_endpoint_to_assert_403(self, resource_type: str, resource_value: str, is_search_call: bool, search_param: str):
+    def _call_v3_endpoint_to_assert_403(
+        self, resource_type: str, resource_value: str, is_search_call: bool, search_param: str
+    ):
         client = APIClient()
 
         # Authenticate

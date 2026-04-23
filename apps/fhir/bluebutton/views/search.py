@@ -155,6 +155,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
         'patient': str,
         '_tag': list[str],
+        '_source': str,
     }
 
     def __init__(self, version=1):

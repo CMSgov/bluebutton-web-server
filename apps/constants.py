@@ -18,9 +18,7 @@ APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
     'If your application needs to refresh tokens, contact us at BlueButtonAPI@cms.hhs.gov.'
 )
 
-APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    'User access has timed out. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
-)
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = 'User access has timed out. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
 # Message output when an app attempts a v3 call but they are not in the waffle flag for v3
 APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
@@ -135,3 +133,5 @@ CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS = [
     AUTH_SIGNING_ALG_RS384,
     AUTH_SIGNING_ALG_RS512,
 ]
+
+FHIR_RES_TYPE_EOB = 'ExplanationOfBenefit'
