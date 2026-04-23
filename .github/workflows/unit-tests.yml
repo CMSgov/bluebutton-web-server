@@ -1,0 +1,33 @@
+name: Run Unit Tests
+
+on:
+    push:
+    pull_request:
+        branches: [master]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Python 3.12
+              run: |
+                echo "Setting up Python 3.12 via pyenv..."
+                pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
+                pyenv global 3.12 || pyenv global 3.12.0
+
+            - name: Install python dependencies
+              run: |
+                python3 -m venv venv
+                source venv/bin/activate
+                python3 -m pip install --upgrade pip setuptools wheel
+                pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
+
+            - name: Run unit tests
+              run: |
+                ls -la
+                source venv/bin/activate
+                python runtests.py
