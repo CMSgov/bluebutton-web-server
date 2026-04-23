@@ -119,3 +119,9 @@ data "aws_secretsmanager_secret" "github_token" {
   count = local.create_resources ? 1 : 0
   name  = "/bb/${local.env}/gitpat"
 }
+
+# Separate secret used by bb-site-static CodeBuild source auth
+data "aws_secretsmanager_secret" "static_site_github_token" {
+  count = local.create_static_site ? 1 : 0
+  name  = var.static_site_github_token_secret_name
+}

@@ -30,6 +30,12 @@ variable "static_site_github_repo_url" {
   default     = "https://github.com/CMSgov/bluebutton-site-static"
 }
 
+variable "static_site_github_token_secret_name" {
+  description = "Secrets Manager secret name for the bb-site-static GitHub PAT used by CodeBuild source auth"
+  type        = string
+  default     = "Noor-New-PAT"
+}
+
 variable "iam_path" {
   description = "IAM path for roles"
   type        = string

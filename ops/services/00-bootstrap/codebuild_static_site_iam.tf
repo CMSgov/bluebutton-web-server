@@ -19,10 +19,24 @@ resource "aws_iam_role" "codebuild_static_site" {
 data "aws_iam_policy_document" "static_site_logs" {
   count = local.create_static_site ? 1 : 0
 
+  # CodeBuild project log group
   statement {
-    sid       = "AllowLogStreamControl"
+    sid       = "AllowCodeBuildLogStreamControl"
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["${aws_cloudwatch_log_group.static_site[0].arn}:*"]
+  }
+
+  # Application-level deploy logs written by the workflow (/bb2/site-static/{env}/deploy)
+  statement {
+    sid = "AllowDeployLogWrites"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    resources = [
+      "arn:aws:logs:${local.region}:${local.account_id}:log-group:/bb2/site-static/*",
+    ]
   }
 }
 
@@ -102,7 +116,7 @@ resource "aws_iam_policy" "static_site_secrets_manager" {
       {
         Effect   = "Allow"
         Action   = "secretsmanager:GetSecretValue"
-        Resource = data.aws_secretsmanager_secret.github_token[0].arn
+        Resource = "arn:aws:secretsmanager:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:secret:*"
       }
     ]
   })
