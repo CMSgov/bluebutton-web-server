@@ -5,6 +5,10 @@ on:
     pull_request:
         branches: [master]
 
+env:
+    DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+    DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
+
 jobs:
     test:
         runs-on: ubuntu-latest
