@@ -19,7 +19,7 @@ class TestModels(BaseApiTest):
 
     def test_not_require_user_mbi(self):
         """
-        user_mbi can be null for backward compatability
+        user_mbi can be null for backward compatibility
         and also an empty string return value from SLS.
         """
         user = self._create_user(

@@ -381,7 +381,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         response = client.get('/v1/connect/userinfo')
         self.assertEqual(response.status_code, 200)
 
-        # Appliation changes choice to require demographic scopes
+        # Application changes choice to require demographic scopes
         application.require_demographic_scopes = False
         application.save()
 

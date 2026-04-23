@@ -29,7 +29,7 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
 
         # Two things need to be true:
         #  1. At least one of the scopes in the token needs to be one of the above coverage scopes.
-        #  2. At leaset one of the scopes in the token needs to be one of the above read scopes.
+        #  2. At least one of the scopes in the token needs to be one of the above read scopes.
         coverage_set = set(HasDigitalInsuranceCardScope.required_coverage_search_scopes)
         patient_set = set(HasDigitalInsuranceCardScope.required_patient_read_scopes)
         token_set = set(token_scopes)

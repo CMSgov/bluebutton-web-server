@@ -46,6 +46,23 @@ output "codebuild_role_arn" {
   sensitive   = true
 }
 
+# Static Site CodeBuild Outputs (test account only)
+output "static_site_codebuild_project_arn" {
+  description = "ARN of the bb-site-static CodeBuild project"
+  value       = local.create_static_site ? aws_codebuild_project.static_site[0].arn : null
+}
+
+output "static_site_codebuild_project_name" {
+  description = "Name of the bb-site-static CodeBuild project"
+  value       = local.create_static_site ? aws_codebuild_project.static_site[0].name : null
+}
+
+output "static_site_codebuild_role_arn" {
+  description = "ARN of the bb-site-static CodeBuild service role"
+  value       = local.create_static_site ? aws_iam_role.codebuild_static_site[0].arn : null
+  sensitive   = true
+}
+
 # GitHub OIDC Outputs
 output "github_oidc_provider_arn" {
   description = "ARN of GitHub Actions OIDC provider"

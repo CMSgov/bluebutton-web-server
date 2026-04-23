@@ -586,7 +586,7 @@ if READ_ONLY_FS:
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
-# Django Oauth Tookit settings and customizations
+# Django Oauth Toolkit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,

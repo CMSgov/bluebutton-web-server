@@ -67,5 +67,5 @@ class TestSimpleAllowForm(BaseApiTest):
 
             self.assertNotEqual(cleaned_data['scope'].split(), None)
 
-            # Test for expected scopes in cleand form data
+            # Test for expected scopes in cleaned form data
             self.assertEqual(sorted(result_token_scopes_granted), sorted(cleaned_data['scope'].split()))

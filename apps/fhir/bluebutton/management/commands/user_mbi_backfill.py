@@ -94,7 +94,7 @@ class Command(BaseCommand):
     def process_records(self, crosswalk_records: List[Crosswalk], execute: bool) -> None:
         for crosswalk in crosswalk_records:
             retries = 0
-            # retry three times if a RequestException occures
+            # retry three times if a RequestException occurs
             while retries < MAX_RETRIES:
                 try:
                     patient_info = 0

@@ -122,7 +122,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
             return {
                 'status_code': status.HTTP_200_OK,
-                # TODO replace this with true backend response, this has been post proccessed
+                # TODO replace this with true backend response, this has been post processed
                 'content': patient_response,
             }
 
