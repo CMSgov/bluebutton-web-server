@@ -76,6 +76,7 @@ from apps.dot_ext.constants import (
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    CLIENT_CREDENTIALS_TYPE,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
     ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
@@ -256,6 +257,18 @@ class AuthorizationView(DotAuthorizationView):
                     'detail': error.error + ' : ' + error.description,
                 },
                 status=error.status_code,
+            )
+
+        # TODO tests
+        # TODO try a non-v3 call and see what happens
+        # TODO is this conditional right? do we need a check for a grant_type?
+        if version == Versions.V3 and self.application.allowed_auth_type == CLIENT_CREDENTIALS_TYPE:
+            error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
+                self.application.name
+            )
+            return JsonResponse(
+                {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
+                status=HTTPStatus.FORBIDDEN,
             )
 
         sensitive_info_detected = self.sensitive_info_check(request)
@@ -1074,6 +1087,7 @@ class TokenView(DotTokenView):
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                         status=HTTPStatus.FORBIDDEN,
                     )
+            # TODO this needs to stay here right? in case some hits this endpoint directly?
             elif grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
                     app.name
