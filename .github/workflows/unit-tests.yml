@@ -9,6 +9,11 @@ env:
     DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
     DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
 
+permissions:
+  id-token: write # Required for requesting the AWS IAM OIDC JWT
+  contents: read  # Required for actions/checkout
+  actions: write  # Required for GHA cache
+
 jobs:
     test:
         runs-on: ubuntu-latest
