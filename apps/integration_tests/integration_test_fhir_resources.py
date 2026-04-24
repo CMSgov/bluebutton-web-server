@@ -12,6 +12,7 @@ from apps.constants import (
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
     FHIR_RES_TYPE_EOB,
+    FHIR_RES_TYPE_PATIENT,
     OPERATION_OUTCOME,
 )
 from apps.core.models import Flag
@@ -26,7 +27,6 @@ from apps.integration_tests.constants import (
     EOB_SEARCH_SCHEMA,
     FHIR_META_SCHEMA,
     FHIR_RES_TYPE_COVERAGE,
-    FHIR_RES_TYPE_PATIENT,
     INVALID_COVERAGE_ID,
     INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
     INVALID_PATIENT_ID,

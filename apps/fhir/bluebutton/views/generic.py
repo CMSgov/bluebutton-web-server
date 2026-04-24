@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.authorization.permissions import DataAccessGrantPermission
-from apps.constants import FHIR_RES_TYPE_EOB, HHS_SERVER_LOGNAME_FMT
+from apps.constants import FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
@@ -174,7 +174,7 @@ class FhirDataView(APIView):
             req.params = get_parameters
             prepped = s.prepare_request(req)
 
-        if resource_type == 'Patient':
+        if resource_type == FHIR_RES_TYPE_PATIENT:
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 
             # For patient read and search calls, we need to ensure that what is being passed, either in
