@@ -260,9 +260,9 @@ class AuthorizationView(DotAuthorizationView):
             )
 
         # TODO tests
-        # TODO try a non-v3 call and see what happens
+        # TODO also applying this to other versions? does that make sense?
         # TODO is this conditional right? do we need a check for a grant_type?
-        if version == Versions.V3 and self.application.allowed_auth_type == CLIENT_CREDENTIALS_TYPE:
+        if self.application.allowed_auth_type == CLIENT_CREDENTIALS_TYPE:
             error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
                 self.application.name
             )
