@@ -30,7 +30,7 @@ AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
 
 
-class TestAuthorizeWithCustomScheme(BaseApiTest):
+class TestAuthorizationView(BaseApiTest):
     def _create_authorization_header(self, client_id, client_secret):
         return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
