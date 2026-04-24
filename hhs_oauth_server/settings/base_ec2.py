@@ -441,139 +441,145 @@ BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
 # TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks
 # in the deployment repo that aren't being migrated
-LOGGING = env(
-    'DJANGO_LOGGING',
-    {
+if TARGET_ENV == 'dev':
+    LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
-        'root': {'level': 'INFO', 'handlers': ['console']},
-        'formatters': {
-            'verbose': {'format': '%(asctime)s %(levelname)s [%(process)d] %(name)s line:%(lineno)d %(message)s'},
-            'simple': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'},
-            'jsonout': {
-                'format': f'{{"env": "{TARGET_ENV}", "time": "%(asctime)s", "level": "%(levelname)s", '
-                f'"name": "%(name)s", "message": %(message)s}}',
-                'datefmt': '%Y-%m-%d %H:%M:%S',
+    }
+else:
+    LOGGING = env(
+        'DJANGO_LOGGING',
+        {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'root': {'level': 'INFO', 'handlers': ['console']},
+            'formatters': {
+                'verbose': {'format': '%(asctime)s %(levelname)s [%(process)d] %(name)s line:%(lineno)d %(message)s'},
+                'simple': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'},
+                'jsonout': {
+                    'format': f'{{"env": "{TARGET_ENV}", "time": "%(asctime)s", "level": "%(levelname)s", '
+                    f'"name": "%(name)s", "message": %(message)s}}',
+                    'datefmt': '%Y-%m-%d %H:%M:%S',
+                },
+            },
+            'filters': {
+                'require_debug_true': {
+                    '()': 'django.utils.log.RequireDebugTrue',
+                },
+                'require_debug_false': {
+                    '()': 'django.utils.log.RequireDebugFalse',
+                },
+                'sensitive_data_filter': {
+                    '()': SensitiveDataFilter,
+                },
+            },
+            'handlers': {
+                'console': {
+                    'level': 'INFO',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'jsonout',
+                },
+                'mail_admins': {
+                    'level': 'ERROR',
+                    'class': 'django.utils.log.AdminEmailHandler',
+                    'filters': ['require_debug_true'],
+                    'formatter': 'verbose',
+                },
+                'wt_debug': {
+                    'level': 'DEBUG',
+                    'class': 'watchtower.CloudWatchLogHandler',
+                    'boto3_client': BOTO3_LOGS_CLIENT,
+                    'formatter': 'verbose',
+                    'log_group_name': f'/bb/{TARGET_ENV}/app/debug.log',
+                },
+                'wt_error': {
+                    'level': 'INFO',
+                    'class': 'watchtower.CloudWatchLogHandler',
+                    'boto3_client': BOTO3_LOGS_CLIENT,
+                    'formatter': 'verbose',
+                    'log_group_name': f'/bb/{TARGET_ENV}/app/error.log',
+                },
+                'wt_info': {
+                    'level': 'INFO',
+                    'class': 'watchtower.CloudWatchLogHandler',
+                    'boto3_client': BOTO3_LOGS_CLIENT,
+                    'formatter': 'simple',
+                    'log_group_name': f'/bb/{TARGET_ENV}/app/info.log',
+                },
+                'wt_loginfailed': {
+                    'level': 'INFO',
+                    'class': 'watchtower.CloudWatchLogHandler',
+                    'boto3_client': BOTO3_LOGS_CLIENT,
+                    'formatter': 'simple',
+                    'log_group_name': f'/bb/{TARGET_ENV}/app/login_failed.log',
+                },
+                'wt_adminuse': {
+                    'level': 'INFO',
+                    'class': 'watchtower.CloudWatchLogHandler',
+                    'boto3_client': BOTO3_LOGS_CLIENT,
+                    'formatter': 'simple',
+                    'log_group_name': f'/bb/{TARGET_ENV}/app/admin_access.log',
+                },
+                'wt_perf_mon': {
+                    'level': 'INFO',
+                    'class': 'watchtower.CloudWatchLogHandler',
+                    'boto3_client': BOTO3_LOGS_CLIENT,
+                    'formatter': 'jsonout',
+                    'log_group_name': f'/bb/{TARGET_ENV}/app/perf_mon.log',
+                },
+            },
+            'loggers': {
+                'hhs_server': {
+                    'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
+                    'level': 'DEBUG',
+                },
+                'hhs_oauth_server.accounts': {
+                    'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
+                'hhs_server_debug': {
+                    'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
+                    'level': 'DEBUG',
+                },
+                'hhs_server_error': {
+                    'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
+                    'level': 'ERROR',
+                },
+                'unsuccessful_logins': {
+                    'handlers': ['wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
+                    'level': 'INFO',
+                },
+                'admin_interface': {
+                    'handlers': ['wt_adminuse', 'wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
+                'hhs_server_info': {
+                    'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
+                'oauth2_provider': {
+                    'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
+                'oauthlib': {
+                    'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
+                'tests': {
+                    'handlers': ['console'],
+                    'level': 'DEBUG',
+                },
+                'audit': {
+                    'handlers': ['wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
+                'performance': {
+                    'handlers': ['wt_perf_mon', 'console'],
+                    'level': 'INFO',
+                },
             },
         },
-        'filters': {
-            'require_debug_true': {
-                '()': 'django.utils.log.RequireDebugTrue',
-            },
-            'require_debug_false': {
-                '()': 'django.utils.log.RequireDebugFalse',
-            },
-            'sensitive_data_filter': {
-                '()': SensitiveDataFilter,
-            },
-        },
-        'handlers': {
-            'console': {
-                'level': 'INFO',
-                'class': 'logging.StreamHandler',
-                'formatter': 'jsonout',
-            },
-            'mail_admins': {
-                'level': 'ERROR',
-                'class': 'django.utils.log.AdminEmailHandler',
-                'filters': ['require_debug_true'],
-                'formatter': 'verbose',
-            },
-            'wt_debug': {
-                'level': 'DEBUG',
-                'class': 'watchtower.CloudWatchLogHandler',
-                'boto3_client': BOTO3_LOGS_CLIENT,
-                'formatter': 'verbose',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/debug.log',
-            },
-            'wt_error': {
-                'level': 'INFO',
-                'class': 'watchtower.CloudWatchLogHandler',
-                'boto3_client': BOTO3_LOGS_CLIENT,
-                'formatter': 'verbose',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/error.log',
-            },
-            'wt_info': {
-                'level': 'INFO',
-                'class': 'watchtower.CloudWatchLogHandler',
-                'boto3_client': BOTO3_LOGS_CLIENT,
-                'formatter': 'simple',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/info.log',
-            },
-            'wt_loginfailed': {
-                'level': 'INFO',
-                'class': 'watchtower.CloudWatchLogHandler',
-                'boto3_client': BOTO3_LOGS_CLIENT,
-                'formatter': 'simple',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/login_failed.log',
-            },
-            'wt_adminuse': {
-                'level': 'INFO',
-                'class': 'watchtower.CloudWatchLogHandler',
-                'boto3_client': BOTO3_LOGS_CLIENT,
-                'formatter': 'simple',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/admin_access.log',
-            },
-            'wt_perf_mon': {
-                'level': 'INFO',
-                'class': 'watchtower.CloudWatchLogHandler',
-                'boto3_client': BOTO3_LOGS_CLIENT,
-                'formatter': 'jsonout',
-                'log_group_name': f'/bb/{TARGET_ENV}/app/perf_mon.log',
-            },
-        },
-        'loggers': {
-            'hhs_server': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
-                'level': 'DEBUG',
-            },
-            'hhs_oauth_server.accounts': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-            'hhs_server_debug': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
-                'level': 'DEBUG',
-            },
-            'hhs_server_error': {
-                'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
-                'level': 'ERROR',
-            },
-            'unsuccessful_logins': {
-                'handlers': ['wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
-                'level': 'INFO',
-            },
-            'admin_interface': {
-                'handlers': ['wt_adminuse', 'wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-            'hhs_server_info': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-            'oauth2_provider': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-            'oauthlib': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-            'tests': {
-                'handlers': ['console'],
-                'level': 'DEBUG',
-            },
-            'audit': {
-                'handlers': ['wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-            'performance': {
-                'handlers': ['wt_perf_mon', 'console'],
-                'level': 'INFO',
-            },
-        },
-    },
-)
+    )
 
 if READ_ONLY_FS:
     # Fargate runs extremely locked-down read-only filesystems which crashes standard logging.
