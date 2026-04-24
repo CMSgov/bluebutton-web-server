@@ -1556,36 +1556,38 @@ class TestAuthorizationView(BaseApiTest):
         # TODO looks kinda random, anything special about it?
         code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'code_challenge': code_challenge,
-            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        }
-        response = self.client.get(f'/v{Versions.V3}/o/authorize', data=payload)
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['capability-a'],
-            'expires_in': 86400,
-            'allow': True,
-            'state': '0123456789abcdef',
-            'code_challenge': code_challenge,
-            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        }
-        response = self.client.post(response['Location'], data=payload)
+        # TODO pytest.mark.parameterize
+        for method in ['get', 'post']:
+            for version in Versions.supported_versions():
+                print(method, version)
+                payload = {
+                    'client_id': application.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': redirect_uri,
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                }
+                response = (getattr(self.client, method))(f'/v{version}/o/authorize', data=payload)
+                payload = {
+                    'client_id': application.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': redirect_uri,
+                    'scope': ['capability-a'],
+                    'expires_in': 86400,
+                    'allow': True,
+                    'state': '0123456789abcdef',
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                }
+                response = (getattr(self.client, method))(response['Location'], data=payload)
 
-        # TODO other methods, or versions
-
-        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
-        self.assertJSONEqual(
-            response.content,
-            {
-                'status_code': 403,
-                'message': APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
-                    application.name
-                ),
-            },
-        )
+                self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+                self.assertJSONEqual(
+                    response.content,
+                    {
+                        'status_code': 403,
+                        'message': APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
+                            application.name
+                        ),
+                    },
+                )
