@@ -14,7 +14,7 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from getenv import env
 
-from apps.logging.sensitive_logging_filters import SensitiveDataFilter
+from apps.logging.sensitive_logging_filters import SENSITIVE_DATA_FILTER, SensitiveDataFilter
 from hhs_oauth_server.settings.themes import THEME_SELECTED, THEMES
 from hhs_oauth_server.utils import bool_env, int_env
 
@@ -445,6 +445,74 @@ if TARGET_ENV == 'dev':
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {'format': '%(asctime)s %(levelname)s [%(process)d] %(name)s line:%(lineno)d %(message)s'},
+            'simple': {'format': '%(asctime)s %(levelname)s %(name)s %(message)s'},
+            'jsonout': {
+                'format': '{"env": "local", "time": "%(asctime)s", "level": "%(levelname)s", '
+                '"name": "%(name)s", "message": %(message)s}',
+                'datefmt': '%Y-%m-%d %H:%M:%S',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+                'filters': [SENSITIVE_DATA_FILTER],
+            },
+        },
+        'filters': {
+            'sensitive_data_filter': {
+                '()': SensitiveDataFilter,
+            }
+        },
+        'loggers': {
+            # handy for sql trouble shooting
+            # 'django.db.backends': {
+            #     'level': 'DEBUG',
+            #     'handlers': ['console'],
+            # },
+            'hhs_server': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+            'hhs_oauth_server.accounts': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+            'oauth2_provider': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'oauthlib': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'unsuccessful_logins': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'admin_interface': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'tests': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+            'audit': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'performance': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+        },
     }
 else:
     LOGGING = env(
