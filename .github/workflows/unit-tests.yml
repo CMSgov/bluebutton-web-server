@@ -6,7 +6,6 @@ on:
         branches: [master]
 
 env:
-    DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
     DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
     TARGET_ENV: dev
 
