@@ -1532,8 +1532,6 @@ class TestAuthorizationView(BaseApiTest):
         """
         # TODO a lot of this is not DRY with other tests
 
-
-
         redirect_uri = 'com.custom.bluebutton://example.it'
         self._create_user('anna', '123456')
         capability_a = self._create_capability('Capability A', [])
@@ -1548,9 +1546,14 @@ class TestAuthorizationView(BaseApiTest):
         application.scope.add(capability_a)
         application.save()
 
-        request = HttpRequest()
-        self.client.login(request=request, username='anna', password='123456')
+        # TODO this doesn't seem to be necessary, but its in the other tests. why?
+        # Seems to be that without being logged in, we get a redirect to
+        # /mymedicare/login, which would I think then go to the medicare.gov login
+        # screen. But why does the user being logged in to bluebutton bypass this?
+        # request = HttpRequest()
+        # self.client.login(request=request, username='anna', password='123456')
 
+        # TODO looks kinda random, anything special about it?
         code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
         payload = {
@@ -1560,11 +1563,7 @@ class TestAuthorizationView(BaseApiTest):
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.get('/v3/o/authorize', data=payload)
-        print('first request')
-        print(response)
-        print(response.content)
-        print(response['Location'])
+        response = self.client.get(f'/v{Versions.V3}/o/authorize', data=payload)
         payload = {
             'client_id': application.client_id,
             'response_type': 'code',
@@ -1577,39 +1576,8 @@ class TestAuthorizationView(BaseApiTest):
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
         response = self.client.post(response['Location'], data=payload)
-        print('second request')
-        print(response)
-        print(response.content)
-        # print(response['Location'])
 
-
-
-        # application = self._create_application(name='my app')
-        # # application.allowed_auth_type = CLIENT_CREDENTIALS_TYPE
-        # # application.jwks_uri = 'https://example.it'
-        # application.save()
-        # # TODO other methods, or versions
-        # response = self.client.get(
-        #     f'/v{Versions.V3}/o/authorize',
-        #     data={
-        #         'client_id': application.client_id,
-        #         'response_type': 'code',
-        #         'redirect_uri': 'http://example.it',
-        #         # TODO this is just kinda random, why?
-        #         'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
-        #         'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        #         # TODO state?
-        #         'state': str(uuid.uuid4()),
-        #     },
-        # )
-        # print(response)
-        # print(response.content)
-        # print(response['Location'])
-
-        # response = self.client.get(response['Location'])
-
-        # print(response)
-        # print(response.content)
+        # TODO other methods, or versions
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertJSONEqual(
@@ -1618,6 +1586,6 @@ class TestAuthorizationView(BaseApiTest):
                 'status_code': 403,
                 'message': APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
                     application.name
-                )
+                ),
             },
-        )  # TODO other parts
+        )
