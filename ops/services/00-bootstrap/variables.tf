@@ -24,6 +24,12 @@ variable "github_repo_pattern" {
   default     = "bluebutton*"
 }
 
+variable "static_site_github_repo_url" {
+  description = "GitHub repository URL for bb-site-static CodeBuild"
+  type        = string
+  default     = "https://github.com/CMSgov/bluebutton-site-static"
+}
+
 variable "iam_path" {
   description = "IAM path for roles"
   type        = string

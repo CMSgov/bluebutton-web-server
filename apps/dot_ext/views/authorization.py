@@ -558,7 +558,7 @@ class TokenView(DotTokenView):
             raise AccessDeniedError(description='Unable to verify permission.')
 
     def _check_if_client_credentials_call_is_allowed(self, app: Application, version: int) -> bool:
-        """Checks if the version fo the call is v3 + the app is allowed to do this and has a jwks_uri
+        """Checks if the version for the call is v3 + the app is allowed to do this and has a jwks_uri
 
         Args:
             app (Application): model

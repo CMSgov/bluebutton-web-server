@@ -316,7 +316,7 @@ class TestRegisterApplicationForm(BaseApiTest):
     #     self.assertFalse(form_app2.errors, "There are error(s) in the new app register form.")
 
     #     # check APP1 and APP2 are saved in django and have correct path pointing to
-    #     # logo image files, no image overriden
+    #     # logo image files, no image overridden
     #     app_obj1 = self._get_user_application(user.username, 'BB2-66-APP-1')
     #     app_obj2 = self._get_user_application(user.username, 'BB2-66-APP-2')
     #     self.assertIsNotNone(app_obj1.logo_uri)

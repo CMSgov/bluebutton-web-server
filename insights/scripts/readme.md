@@ -50,7 +50,7 @@ The following is a general procedure for converting the logging:
 
 
 
-## 3. Use the Python utlity program to convert the logging events to a format compatible with BFD-Insights.
+## 3. Use the Python utility program to convert the logging events to a format compatible with BFD-Insights.
 
 * Run the following command to get the help text:
     ```

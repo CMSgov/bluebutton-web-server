@@ -29,7 +29,7 @@ In that case, the approach is to unpin a second library, and then a third, until
 ### how to update requirements
 
 1. make sure that the Python version for the build container matches what we are using in the development stack (/dev-local/Dockerfile.local), which in turn should match the Python version we ware using in production.
-1. update the requriements.in (for production reqs) or requirements.dev.in (for local reqs)
+1. update the requirements.in (for production reqs) or requirements.dev.in (for local reqs)
 1. `make generate`
 
 The build invoked by `generate` provides a Linux container which is "pinned" to our local dev experience as well as the production environment. 

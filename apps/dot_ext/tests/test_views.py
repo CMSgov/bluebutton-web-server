@@ -59,22 +59,22 @@ class TestAuthorizationView(BaseApiTest):
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH)
     def fhir_request_patient_readview_success_mock(self, url, request):
-        # Return successful respose for Patient FHIR requests
+        # Return successful response for Patient FHIR requests
         return mock_fhir_responses['success_patient_readview']
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH)
     def fhir_request_patient_searchview_success_mock(self, url, request):
-        # Return successful respose for Patient FHIR requests
+        # Return successful response for Patient FHIR requests
         return mock_fhir_responses['success_patient_searchview']
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_PATH)
     def fhir_request_eob_success_mock(self, url, request):
-        # Return successful respose for EOB FHIR requests
+        # Return successful response for EOB FHIR requests
         return mock_fhir_responses['success_eob']
 
     @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_PATH)
     def fhir_request_coverage_success_mock(self, url, request):
-        # Return successful respose for coverage FHIR requests
+        # Return successful response for coverage FHIR requests
         return mock_fhir_responses['success_coverage']
 
     @override_switch('require-scopes', active=True)

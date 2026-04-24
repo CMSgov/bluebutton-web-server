@@ -23,6 +23,6 @@ eg.
 
     "hhs_oauth_server.settings.aws-test"
     
-The bluebutton-web-deplyoment scripts deploy environment-specific settings
+The bluebutton-web-deployment scripts deploy environment-specific settings
 files for each CMS Environment.
 

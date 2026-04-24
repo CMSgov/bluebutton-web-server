@@ -12,8 +12,8 @@ from apps.pkce.oauth2_validators import PKCEValidatorMixin
 class OAuth2Validator(DotOAuth2Validator):
     def _extract_basic_auth(self, request):
         """
-        This overrided method additionally checks the "Authorization" header
-        for compatability.
+        This overridden method additionally checks the "Authorization" header
+        for compatibility.
         TODO: Remove this if it becomes possible.
         """
         auth = request.headers.get('HTTP_AUTHORIZATION', None)

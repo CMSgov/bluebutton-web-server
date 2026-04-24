@@ -160,7 +160,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             )
 
             self.assertEqual(response.status_code, 200)
-            # check C4BB in resource as v2 charactor
+            # check C4BB in resource as v2 character
             self.assertIsNotNone(response.json()['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
             for r in response.json()['entry']:

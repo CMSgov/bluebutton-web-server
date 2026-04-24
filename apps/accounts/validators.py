@@ -122,8 +122,8 @@ class PasswordReuseAndMinAgeValidator:
         #                                                                        ^
         #                                                                   cur_time_utc
         #  given new password p:
-        #  (1) p's hash colides with any px in 'no reuse window' => validation fails
-        #  (2) p's hash does not colide with any px in 'no reuse window'
+        #  (1) p's hash collides with any px in 'no reuse window' => validation fails
+        #  (2) p's hash does not collide with any px in 'no reuse window'
         #      or the window is empty => further check 'min password age'
         #  (3) there are px in 'no reuse window' => if there is no px in 'min password age'
         #      like p5 => validation pass
@@ -136,18 +136,18 @@ class PasswordReuseAndMinAgeValidator:
             passwds = None
             try:
                 if self.password_reuse_interval > 0:
-                    # only check invalid reuse (colide) within reuse_interval
+                    # only check invalid reuse (collide) within reuse_interval
                     reuse_datetime = cur_time_utc - timedelta(0, self.password_reuse_interval)
                     passwds = PastPassword.objects.filter(
                         Q(date_created__gt=reuse_datetime), userpassword_desc=userpassword_desc
                     ).order_by('-date_created')
                 else:
-                    # no reuse_interval, check all past passwords for colide
+                    # no reuse_interval, check all past passwords for collide
                     passwds = PastPassword.objects.filter(userpassword_desc=userpassword_desc).order_by('-date_created')
 
                 for p in passwds:
                     if p.password == password_hash:
-                        # check invalid re-use (colide) within password reuse interval
+                        # check invalid re-use (collide) within password reuse interval
                         raise ValidationError(
                             (
                                 'You can not use a password that is already'

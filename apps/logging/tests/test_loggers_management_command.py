@@ -379,7 +379,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         self._call_management_command_log_global_state_metrics()
 
-        # Setup inital dict used for global state metrics validation.
+        # Setup initial dict used for global state metrics validation.
         validate_global_dict = {
             'real_bene_cnt': 11,
             'synth_bene_cnt': 9,
