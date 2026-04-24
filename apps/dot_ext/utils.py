@@ -199,7 +199,7 @@ def get_application_from_data(request):
     return None
 
 
-def validate_app_is_active(request: HttpRequest) -> Application:
+def validate_app_is_active(request: HttpRequest) -> Application | None:
     """
     Utility function to check that an application is an active, valid application.
     This method will pull the application from the request and then check the active flag and the
