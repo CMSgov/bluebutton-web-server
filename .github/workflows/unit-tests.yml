@@ -6,13 +6,8 @@ on:
         branches: [master]
 
 env:
-    DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+    DJANGO_SETTINGS_MODULE: hhs_oauth_server.settings.logging_it
     DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-
-permissions:
-  id-token: write # Required for requesting the AWS IAM OIDC JWT
-  contents: read  # Required for actions/checkout
-  actions: write  # Required for GHA cache
 
 jobs:
     test:
@@ -36,16 +31,8 @@ jobs:
                 python3 -m pip install --upgrade pip setuptools wheel
                 pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
 
-            - name: Setup AWS credentials (Test)
-              uses: ./.github/actions/setup-tofu
-              with:
-                environment: test
-                non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
-                prod-account: ${{ secrets.PROD_ACCOUNT }}
-
             - name: Run unit tests
               run: |
                 ls -la
-                echo $TARGET_ENV
                 source venv/bin/activate
                 python runtests.py
