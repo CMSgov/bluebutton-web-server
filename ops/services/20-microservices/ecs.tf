@@ -9,7 +9,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   # Using jsonencode instead of templatefile for better maintainability
   container_definitions = jsonencode([{
     name      = "${local.app_prefix}-${local.workspace}-${each.key}"
-    image     = "${local.ecr_repository_url}:${var.image_tag}"
+    image     = "${local.ecr_repository_url}:${local.resolved_image_tag}"
     essential = true
 
     readonlyRootFilesystem = true

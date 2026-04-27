@@ -41,8 +41,8 @@ variable "service_overrides" {
 
 variable "image_tag" {
   type        = string
-  default     = "latest"
-  description = "Container image tag"
+  default     = null
+  description = "Container image tag (e.g. r41). Defaults to latest r* release in ECR if not set."
 }
 
 variable "log_retention_days" {
