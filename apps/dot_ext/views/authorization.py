@@ -226,20 +226,6 @@ class AuthorizationView(DotAuthorizationView):
         initially create an AuthFlowUuid object for authorization
         flow tracing in logs.
         """
-        path_info = self.request.__dict__.get('path_info')
-        version = get_api_version_number_from_url(path_info)
-        # If it is not version 3, we don't need to check anything, just return
-        if version == Versions.V3:
-            try:
-                self.validate_v3_authorization_request()
-            except AccessDeniedError:
-                return JsonResponse(
-                    {
-                        'status_code': HTTPStatus.FORBIDDEN,
-                        'message': 'Unable to verify permission',
-                    },
-                    status=HTTPStatus.FORBIDDEN,
-                )
 
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
@@ -257,6 +243,22 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code,
             )
+
+        path_info = self.request.__dict__.get('path_info')
+        version = get_api_version_number_from_url(path_info)
+        # If it is not version 3, we don't need to check anything, just return
+        # TODO this comment seems misleading?
+        if version == Versions.V3:
+            try:
+                self.validate_v3_authorization_request()
+            except AccessDeniedError:
+                return JsonResponse(
+                    {
+                        'status_code': HTTPStatus.FORBIDDEN,
+                        'message': 'Unable to verify permission',
+                    },
+                    status=HTTPStatus.FORBIDDEN,
+                )
 
         sensitive_info_detected = self.sensitive_info_check(request)
 
@@ -325,21 +327,19 @@ class AuthorizationView(DotAuthorizationView):
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
+        if self.application is None:
+            raise AccessDeniedError(description='Unable to verify permission.')
+
         flag = get_waffle_flag_model().get('v3_early_adopter')
-        req_meta = self.request.META
-        # TODO this doesn't work if method is post and the client_id is in body?
-        url_query = parse_qs(req_meta.get('QUERY_STRING'))
-        client_id = url_query.get('client_id', [None])
         try:
-            application = get_application_model().objects.get(client_id=client_id[0])
-            application_user = get_user_model().objects.get(id=application.user_id)
+            application_user = get_user_model().objects.get(id=self.application.user_id)
 
             if flag.id is None or flag.is_active_for_user(application_user):
                 # Update the class variable to ensure subsequent calls to dispatch don't call this function
                 # more times than is needed
                 return
             else:
-                raise AccessDeniedError(description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
+                raise AccessDeniedError(description=APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(self.application.name))
         except ObjectDoesNotExist:
             raise AccessDeniedError(description='Unable to verify permission.')
 
