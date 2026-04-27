@@ -54,7 +54,6 @@ data "aws_ecr_repository" "api" {
 data "aws_ecr_image" "latest_release" {
   repository_name = data.aws_ecr_repository.api.name
   most_recent     = true
-  image_tag_regex = "^r[0-9]+"
 }
 
 locals {
