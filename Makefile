@@ -22,8 +22,7 @@ build-local:
 run-local:
 	cd dev-local ; make run-local ; cd ..
 	
-make generate-requirements:
-	cd requirements ; make generate ; cd ..
+
 
 exec-web:
 	cd dev-local ; make exec-web ; cd ..
@@ -31,8 +30,11 @@ exec-web:
 run-selenium:
 	cd dev-local ; make run-selenium ; cd ..
 
+generate-requirements:
+	cd ops/containers ; make requirements ; cd ../..
+
 generate:
-	cd requirements ; make generate ; cd ..
+	cd ops/containers ; make requirements ; cd ../..
 
 retrieve-certs:
 	cd dev-local ; make retrieve-certs ; cd ..
