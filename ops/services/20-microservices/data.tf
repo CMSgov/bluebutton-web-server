@@ -50,9 +50,19 @@ data "aws_ecr_repository" "api" {
   name = "${local.app_prefix}-${local.bucket_env}-api"
 }
 
+# Find latest release image when no tag is explicitly passed
+data "aws_ecr_image" "latest_release" {
+  repository_name = data.aws_ecr_repository.api.name
+  most_recent     = true
+  image_tag_regex = "^r[0-9]+"
+}
+
 locals {
   ecr_repository_url = data.aws_ecr_repository.api.repository_url
   ecr_repository_arn = data.aws_ecr_repository.api.arn
+  resolved_image_tag = var.image_tag != null ? var.image_tag : one([
+    for tag in data.aws_ecr_image.latest_release.image_tags : tag if can(regex("^r[0-9]+$", tag))
+  ])
 }
 
 # ============================================================================
