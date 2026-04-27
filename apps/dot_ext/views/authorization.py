@@ -327,6 +327,7 @@ class AuthorizationView(DotAuthorizationView):
     def validate_v3_authorization_request(self):
         flag = get_waffle_flag_model().get('v3_early_adopter')
         req_meta = self.request.META
+        # TODO this doesn't work if method is post and the client_id is in body?
         url_query = parse_qs(req_meta.get('QUERY_STRING'))
         client_id = url_query.get('client_id', [None])
         try:
