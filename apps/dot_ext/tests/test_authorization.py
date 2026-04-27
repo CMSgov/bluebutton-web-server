@@ -1526,8 +1526,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         """
         Ensure the authorize endpoint works across versions and methods.
         """
-        # TODO a lot of this is not DRY with other tests
-
         redirect_uri = 'com.custom.bluebutton://example.it'
         self._create_user('anna', '123456')
         capability_a = self._create_capability('Capability A', [])
@@ -1544,16 +1542,17 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # Seems to be that without being logged in, we get a redirect to
         # /mymedicare/login, which would I think then go to the medicare.gov login
         # screen. But why does the user being logged in to bluebutton bypass this?
+        # TODO check that this is in fact the behavior and I didn't do anything else
+        # to change the behavior
         # request = HttpRequest()
         # self.client.login(request=request, username='anna', password='123456')
 
-        # TODO looks kinda random, anything special about it?
+        # TODO move to constant?
         code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
         # TODO pytest.mark.parameterize
         for method in ['get', 'post']:
             for version in Versions.supported_versions():
-                print(method, version)
                 payload = {
                     'client_id': application.client_id,
                     'response_type': 'code',
@@ -1575,14 +1574,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
                     'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
                 }
                 response = (getattr(self.client, method))(response['Location'], data=payload)
-                print(response)
-                print(response.content)
 
+                # TODO should we use self.assertRedirects here?
                 self.assertEqual(response.status_code, HTTPStatus.FOUND)
                 self.assertTrue(response.url.startswith('/mymedicare/login'))
-                # self.assertRedirects(
-                #     response,
-                #     expected_url='/mymedicare/login',
-                #     status_code=302,
-                #     fetch_redirect_response=False,
-                # )
