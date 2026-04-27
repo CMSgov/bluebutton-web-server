@@ -1244,6 +1244,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # Create an instance of the view
         view_instance = AuthorizationView()
         view_instance.request = request
+        view_instance.application = fake_application
 
         with self.assertRaises(AccessDeniedTokenCustomError):
             view_instance.validate_v3_authorization_request()

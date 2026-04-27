@@ -169,6 +169,8 @@ class AuthorizationView(DotAuthorizationView):
 
     def __init__(self, version=1):
         self.version = version
+        # TODO should we add this so every instance at least has the attribute?
+        # self.application = None
         super().__init__()
 
     def _get_param(self, request, key, default=None):
