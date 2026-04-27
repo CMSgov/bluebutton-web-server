@@ -129,19 +129,19 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/ajshred">
-                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
+                <a href="https://github.com/clewellyn-nava">
+                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
                     <br />
-                    <sub><b>Adrian Jones</b></sub>
+                    <sub><b>Connor Lewellyn</b></sub>
                 </a>
             </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/clewellyn-nava">
-                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
+                <a href="https://github.com/ajshred">
+                    <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
                     <br />
-                    <sub><b>Connor Lewellyn</b></sub>
+                    <sub><b>Adrian Jones</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -203,17 +203,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/oragame">
-                    <img src="https://avatars.githubusercontent.com/u/22204906?v=4" width="100;" alt="oragame"/>
-                    <br />
-                    <sub><b>Don Seymour</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/noor1027">
                     <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
                     <br />
                     <sub><b>noor1027</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/oragame">
+                    <img src="https://avatars.githubusercontent.com/u/22204906?v=4" width="100;" alt="oragame"/>
+                    <br />
+                    <sub><b>Don Seymour</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -281,6 +281,13 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/1518259?v=4" width="100;" alt="dull7295"/>
                     <br />
                     <sub><b>MuraliKrishna Dulla</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/annamontare-nava">
+                    <img src="https://avatars.githubusercontent.com/u/267455234?v=4" width="100;" alt="annamontare-nava"/>
+                    <br />
+                    <sub><b>annamontare-nava</b></sub>
                 </a>
             </td>
             <td align="center">
