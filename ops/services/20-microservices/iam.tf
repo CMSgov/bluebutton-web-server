@@ -107,7 +107,9 @@ data "aws_iam_policy_document" "s3" {
       "arn:aws:s3:::${local.app_config_bucket}",
       "arn:aws:s3:::${local.app_config_bucket}/*",
       "arn:aws:s3:::bb-${local.bucket_env}-static-content",
-      "arn:aws:s3:::bb-${local.bucket_env}-static-content/*"
+      "arn:aws:s3:::bb-${local.bucket_env}-static-content/*",
+      "arn:aws:s3:::bb-${local.bucket_env}-content-cms-gov",
+      "arn:aws:s3:::bb-${local.bucket_env}-content-cms-go/*"
     ]
   }
 }
