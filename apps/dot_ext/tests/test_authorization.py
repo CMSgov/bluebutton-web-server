@@ -1521,9 +1521,9 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')
 
     @override_switch('v3_endpoints', active=True)
-    def test_authorization_endpoint_across_versions(self):
+    def test_authorization_endpoint_across_versions_and_methods(self):
         """
-        Ensure the authorize endpoint works across versions.
+        Ensure the authorize endpoint works across versions and methods.
         """
         # TODO a lot of this is not DRY with other tests
 
