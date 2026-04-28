@@ -248,8 +248,7 @@ class AuthorizationView(DotAuthorizationView):
 
         path_info = self.request.__dict__.get('path_info')
         version = get_api_version_number_from_url(path_info)
-        # If it is not version 3, we don't need to check anything, just return
-        # TODO this comment seems misleading?
+        # If it is not version 3, we don't need to check anything, just continue
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
