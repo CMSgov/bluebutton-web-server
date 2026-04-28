@@ -10,9 +10,9 @@ LOGIN_RATE = '100/m'
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-RUN_ONLINE_TESTS = False
-if os.getenv('RUN_ONLINE_TESTS', 'false') in ['true', 'True']:
-    RUN_ONLINE_TESTS = True
+RUN_INTEGRATION_TEST = False
+if os.getenv('RUN_INTEGRATION_TEST', 'false') in ['true', 'True']:
+    RUN_INTEGRATION_TEST = True
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
