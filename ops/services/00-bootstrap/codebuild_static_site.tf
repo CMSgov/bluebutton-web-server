@@ -8,8 +8,6 @@ resource "aws_cloudwatch_log_group" "static_site" {
   count             = local.create_static_site ? 1 : 0
   name              = "/aws/codebuild/${local.static_site_project_name}"
   retention_in_days = 30
-  # Uses AWS-managed S3 key (alias/aws/s3) to match the manually-created project
-  kms_key_id        = "arn:aws:kms:us-east-1:${data.aws_caller_identity.current.account_id}:alias/aws/s3"
 }
 
 # CodeBuild Project - Acts as GitHub Actions Runner
@@ -21,8 +19,6 @@ resource "aws_codebuild_project" "static_site" {
   build_timeout      = 60
   project_visibility = "PRIVATE"
   service_role       = aws_iam_role.codebuild_static_site[0].arn
-  # Uses AWS-managed S3 key (alias/aws/s3) to match the manually-created project
-  encryption_key     = "arn:aws:kms:us-east-1:${data.aws_caller_identity.current.account_id}:alias/aws/s3"
 
   artifacts {
     type = "NO_ARTIFACTS"
