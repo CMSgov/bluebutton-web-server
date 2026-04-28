@@ -104,3 +104,14 @@ class TestScopesBackendClass(BaseApiTest):
         assert 'patient/Coverage.rs' in condensed_scopes
         assert 'patient/ExplanationOfBenefit.s' in condensed_scopes
         assert 'profile' in condensed_scopes
+
+    def test_new_apps_get_default_scopes(self):
+        """
+        Ensure newly-created applications receive all default scopes.
+        """
+        capability_a = self._create_capability('Capability A', [], default=True)
+        capability_b = self._create_capability('Capability B', [], default=True)
+
+        app = self._create_application('an app')
+
+        self.assertQuerySetEqual(app.scope.all(), [capability_a, capability_b], ordered=False)
