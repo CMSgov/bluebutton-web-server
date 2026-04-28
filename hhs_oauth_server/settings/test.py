@@ -6,8 +6,6 @@ TARGET_ENV = 'test'
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
-LOGIN_RATE = '100/m'
-
 REQUEST_CALL_TIMEOUT = (5, 120)
 
 RUN_INTEGRATION_TEST = False
