@@ -1,5 +1,6 @@
-import environ
 import os
+
+import environ
 
 # Set the project base directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -8,7 +9,7 @@ env = environ.Env(
     TARGET_ENV=(str, ''),
 )
 
-environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
+environ.Env.read_env(os.path.join(BASE_DIR + '/ops/containers', '.env.local'))
 
 TARGET_ENV = env('TARGET_ENV')
 

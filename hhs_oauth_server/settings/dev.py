@@ -1,5 +1,6 @@
 import os
-from .base import *
+
+from hhs_oauth_server.settings.base import *
 
 # 20251029 NOTE: Setting this to `False` may disable all
 # CSS styling in the application when working locally.

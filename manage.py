@@ -2,9 +2,7 @@
 import os
 import sys
 
-# replace django dotenv (latest release is 2017) with python dotenv
 from dotenv import load_dotenv
-
 
 if __name__ == '__main__':
     if os.environ.get('DJANGO_DOTENV_FILE', None):

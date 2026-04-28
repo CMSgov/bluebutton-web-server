@@ -1,8 +1,8 @@
-from .dev import *
 import os
 
-del LOGGING['loggers']
+from hhs_oauth_server.settings.dev import *
 
+TARGET_ENV = 'test'
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
