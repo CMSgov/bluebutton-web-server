@@ -326,9 +326,6 @@ class AuthorizationView(DotAuthorizationView):
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
-        if self.application is None:
-            raise AccessDeniedError(description='Unable to verify permission.')
-
         flag = get_waffle_flag_model().get('v3_early_adopter')
         try:
             application_user = get_user_model().objects.get(id=self.application.user_id)
