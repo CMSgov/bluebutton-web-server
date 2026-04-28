@@ -10,6 +10,12 @@ exec-web:
 run-selenium:
 	cd ops/containers ; make run-selenium ; cd ../..
 
+reqs-install:
+	pip install -r requirements/requirements.txt
+
+reqs-install-dev:
+	pip install -r requirements/requirements.dev.txt
+
 generate generate-requirements:
 	cd ops/containers ; make requirements ; cd ../..
 
