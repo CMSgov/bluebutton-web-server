@@ -241,9 +241,12 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     if its_log_flag:
         for key in log_dict.keys():
             val_to_post = log_dict[key]
+            print('global key/val: ', key, val_to_post)
             if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
                 val_to_post = str(val_to_post)
-            ping_api([key], val_to_post, 'global')
+            # ping_api([key], val_to_post, 'global')
+            # ping_api([], val_to_post, 'total_' + key, 'global_state_metrics')
+            ping_api([], val_to_post, 'total_' + key)
 
     if report_flag:
         print('---')
@@ -311,11 +314,13 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
 
         logger.info(log_dict, cls=DjangoJSONEncoder)
         for key in log_dict.keys():
-            tag = str(app.id) + '_' + key
+            tag = [str(app.id), app.name]
             val_to_post = log_dict[key]
+
             if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
                 val_to_post = str(val_to_post)
-            ping_api([tag], val_to_post, 'global_per_app')
+
+            ping_api(tag, val_to_post, 'app_' + key)
 
         count = count + 1
 
@@ -333,7 +338,37 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
         print('SUCCESS')
 
 
-def ping_api(tags, value, cluster):
+def ping_api(tags, value, operation):
+    test = {
+        'tags': tags,
+        'count': 1,
+        'value': value,
+        'operation': operation,
+        'date': 'today',
+    }
+    print('posting: ', test)
+    try:
+        result = requests.post(
+            'http://host.docker.internal:8888/v1/summary/create',
+            headers={'x-api-key': 'abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh'},
+            json={
+                'tags': tags,
+                'count': 1,
+                'value': value,
+                'operation': operation,
+                'date': 'today',
+            },
+            timeout=2,
+        )
+        print('its-log -result: ', result.json())
+        print('its-log -result2: ', result)
+        return result
+    except Exception as e:
+        print('ERROR FROM ITS-LOG middleware 1217: ', e, type(e))
+        pass  # Never let logging failures crash your app
+
+
+def ping_events_api(tags, value, cluster):
     try:
         result = requests.post(
             'http://host.docker.internal:8888/v1/log/create',
@@ -348,5 +383,5 @@ def ping_api(tags, value, cluster):
         )
         return result
     except Exception as e:
-        print('ERROR FROM ITS-LOG middleware 1217: ', e)
+        print('ERROR FROM ITS-LOG middleware 1217: ', e, type(e))
         pass  # Never let logging failures crash your app
