@@ -90,6 +90,10 @@ resource "aws_codebuild_project" "main" {
       fetch_submodules = false
     }
   }
+
+  lifecycle {
+    ignore_changes = [source[0].auth]
+  }
 }
 
 # Webhook for GitHub Actions Runner integration

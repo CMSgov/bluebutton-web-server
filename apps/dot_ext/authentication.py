@@ -19,7 +19,7 @@ class SLSAuthentication(authentication.BaseAuthentication):
         except User.DoesNotExist:
             raise exceptions.NotFound()
 
-        # these are for compatability with OAuth2Validator
+        # these are for compatibility with OAuth2Validator
         # TODO remove if it becomes possible
         if not hasattr(request, "headers"):
             request.headers = request.META

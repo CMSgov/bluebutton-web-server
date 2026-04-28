@@ -96,7 +96,7 @@ Press Ctrl C will stop monitor logging.
 
 To start with a clean docker setup do the following:
 
-NOTE: This is often needed when switching betwen PR branches where migrations were added or when running selenium type tests.
+NOTE: This is often needed when switching between PR branches where migrations were added or when running selenium type tests.
 WARNING: This cleans up all Docker related images! If this is an issue, you may want to individually remove (rmi) images.
 
 ```
@@ -109,7 +109,7 @@ docker images  # This should now show an empty list.
 
 ## Setting up Pre Commit
 
-Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
+Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to committing. To setup run as follows:
 
 ```
 source venv/Scripts/activate (unless already done)
@@ -239,7 +239,7 @@ To change the number of refresh tokens, archived tokens, or archived access gran
 The generated users and apps have the following relations:
 
 1. dev users and apps created date are spread over past 700 days randomly
-2. each bene sign up (grant access) with 1-3 apps by aproximately: 70% 1 app, 25% 2 apps, 5% 3 apps and
+2. each bene sign up (grant access) with 1-3 apps by approximately: 70% 1 app, 25% 2 apps, 5% 3 apps and
 3. among these sign up (access token grants): 80% with demographic scopes, 20% deny demo access
 4. benes sign up dates are randomized and set to a date approximately 10 days after apps created date
 5. apps' client type, grant type, opt in/out of demographic info access are also randomly generated per a percent distribution
@@ -285,7 +285,7 @@ docker compose exec web python runtests.py apps.dot_ext.tests apps.accounts.test
 This requires the use of a linux sub system. This includes a choice of Cygwin, WSL, or VirtualBox + Linux.
 Install the Docker Desktop on your Windows host, and set the DOCKER_HOST environment
 variable in linux sub system. Also enable the git configuration for proper EOL CRLF/LF
-convertion using the following command:
+conversion using the following command:
 
 ```
 git config --global core.autocrlf true
@@ -352,7 +352,7 @@ Add below contents to `.vscode/launch.json`
 ```
 Note: Above we are using port `6789` this is because `unittests` section in docker-compose.yaml runs server on 6789.
 On mac in some cases this port is used by `elastic-a root service`, therefore this port cannot be used for debugging.
-For this update docker-compose.yaml `unittests` service to use new port. See exmaple below
+For this update docker-compose.yaml `unittests` service to use new port. See example below
 
 ```
  unittests:
