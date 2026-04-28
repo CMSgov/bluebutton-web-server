@@ -1,0 +1,25 @@
+# v3 access token pool (used by BlueButtonUserV3)
+#
+# Add one access token per line. Blank lines and lines starting with # are ignored.
+# These tokens MUST come from OAuth apps whose owner has the v3_early_adopter flag set.
+# Without that flag, FHIR v3 endpoints will return 403 Forbidden.
+#
+# To obtain tokens:
+#   1. Ensure the app's owner account has the v3_early_adopter permission.
+#   2. Complete the OAuth flow against your target environment for each beneficiary.
+#   3. Copy the resulting access_token values here, one per line.
+#
+# Run with this file (both pools):
+#   BB_ACCESS_TOKENS_FILE_NON_V3=apps/tokens_non_v3.txt \
+#   BB_ACCESS_TOKENS_FILE_V3=apps/tokens_v3.txt \
+#     locust -f apps/locustfile.py --host https://<your-host> --headless -u 10 -t 60s
+#
+# Run with only v3 users (skip non-v3 traffic):
+#   BB_ACCESS_TOKENS_FILE_V3=apps/tokens_v3.txt \
+#     locust -f apps/locustfile.py --host https://<your-host> --headless -u 5 -t 60s \
+#     BlueButtonUserV3
+#
+# Token selection strategy (optional, default: random):
+#   BB_TOKEN_SELECTION=round_robin  # or: random
+
+# Paste tokens below, one per line:

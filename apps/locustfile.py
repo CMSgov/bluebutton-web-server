@@ -1,176 +1,188 @@
-# locustfile.py
-import base64
-import hashlib
+import csv
 import os
 import random
-import secrets
-from urllib.parse import parse_qs, urlparse
+import re
+from threading import Lock
 
 from locust import HttpUser, between, task
+from locust.exception import StopUser
 from versions import Versions
 
 """
-Locust load test for bluebutton-web-server running in Fargate (TEST env).
+Token-fed Locust load test for bluebutton-web-server.
 
-Simulates:
-- OAuth2 authorization_code flow via /{version}/o/authorize/ and /{version}/o/token/
-- FHIR calls via /v{version}/fhir/ExplanationOfBenefit and /v{version}/fhir/Patient
-- Basic HTML page access (/, /docs/)
+Simulates token-authenticated FHIR traffic for:
+- /v{version}/fhir/ExplanationOfBenefit
+- /v{version}/fhir/Coverage
+- /v{version}/fhir/Patient
 
-Environment variables:
-- BB_CLIENT_ID, BB_CLIENT_SECRET, BB_REDIRECT_URI
-- BB_SCOPE
-- BB_USERNAME, BB_PASSWORD
+Provide versioned access token pools:
+- Non-v3 pool (used by v1 and v2 users):
+    - BB_ACCESS_TOKEN or BB_ACCESS_TOKEN_NON_V3
+    - BB_ACCESS_TOKENS or BB_ACCESS_TOKENS_NON_V3
+    - BB_ACCESS_TOKENS_FILE or BB_ACCESS_TOKENS_FILE_NON_V3
+- v3 pool (used by v3 users):
+    - BB_ACCESS_TOKEN_V3
+    - BB_ACCESS_TOKENS_V3
+    - BB_ACCESS_TOKENS_FILE_V3
+
+Optional:
+- BB_TOKEN_SELECTION=random|round_robin (default: random)
 """
 
-BB_CLIENT_ID = os.getenv('BB_CLIENT_ID', 'client-id-here')
-BB_CLIENT_SECRET = os.getenv(
-    'BB_CLIENT_SECRET',
-    'client-secret-here',
-)
-BB_REDIRECT_URI = os.getenv('BB_REDIRECT_URI', 'callback-here')
-BB_SCOPE = os.getenv('BB_SCOPE', 'profile patient/ExplanationOfBenefit.read patient/Patient.read patient/Coverage.read')
-BB_USERNAME_ENV = os.getenv('BB_USERNAME')
-BB_PASSWORD_ENV = os.getenv('BB_PASSWORD')
+TOKEN_POOL_NON_V3 = 'non_v3'
+TOKEN_POOL_V3 = 'v3'
+
+# Backward-compatible aliases map existing env vars to the non-v3 pool.
+BB_ACCESS_TOKEN_NON_V3 = os.getenv('BB_ACCESS_TOKEN_NON_V3', os.getenv('BB_ACCESS_TOKEN', '')).strip()
+BB_ACCESS_TOKENS_NON_V3 = os.getenv('BB_ACCESS_TOKENS_NON_V3', os.getenv('BB_ACCESS_TOKENS', '')).strip()
+BB_ACCESS_TOKENS_FILE_NON_V3 = os.getenv('BB_ACCESS_TOKENS_FILE_NON_V3', os.getenv('BB_ACCESS_TOKENS_FILE', '')).strip()
+
+BB_ACCESS_TOKEN_V3 = os.getenv('BB_ACCESS_TOKEN_V3', '').strip()
+BB_ACCESS_TOKENS_V3 = os.getenv('BB_ACCESS_TOKENS_V3', '').strip()
+BB_ACCESS_TOKENS_FILE_V3 = os.getenv('BB_ACCESS_TOKENS_FILE_V3', '').strip()
+
+BB_TOKEN_SELECTION = os.getenv('BB_TOKEN_SELECTION', 'random').strip().lower()
+
+TOKEN_SPLIT_RE = re.compile(r'[\s,]+')
+_TOKEN_LOCKS = {
+    TOKEN_POOL_NON_V3: Lock(),
+    TOKEN_POOL_V3: Lock(),
+}
+_TOKEN_INDICES = {
+    TOKEN_POOL_NON_V3: 0,
+    TOKEN_POOL_V3: 0,
+}
 
 
-def generate_credentials():
-    """Return a tuple (username, password) where the username is
-    `BBUser` + 5-digit zero-padded number and the password is `PW` + same
-    number + `!`.
-    """
-    n = random.randint(0, 9999)
-    s = f'{n:05d}'
-    return f'BBUser{s}', f'PW{s}!'
+def _parse_token_text(raw_text):
+    return [token.strip() for token in TOKEN_SPLIT_RE.split(raw_text) if token.strip()]
 
 
-def make_pkce_pair():
-    """Generate a PKCE code_verifier and code_challenge (S256).
+def _load_tokens_from_file(file_path):
+    if not file_path or not os.path.exists(file_path):
+        return []
 
-    Returns (verifier, challenge) as strings.
-    """
-    # generate a high-entropy random verifier
-    verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=').decode('ascii')
-    digest = hashlib.sha256(verifier.encode('ascii')).digest()
-    challenge = base64.urlsafe_b64encode(digest).rstrip(b'=').decode('ascii')
-    return verifier, challenge
+    with open(file_path, encoding='utf-8') as token_file:
+        content = token_file.read().strip()
+
+    if not content:
+        return []
+
+    first_line = content.splitlines()[0].strip().lower()
+    if ',' in first_line and ('token' in first_line or 'access_token' in first_line):
+        tokens = []
+        with open(file_path, newline='', encoding='utf-8') as token_file:
+            reader = csv.DictReader(token_file)
+            for row in reader:
+                token = (row.get('access_token') or row.get('token') or '').strip()
+                if token:
+                    tokens.append(token)
+        return tokens
+
+    tokens = []
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        tokens.extend(_parse_token_text(stripped))
+
+    return tokens
 
 
-def get_state():
-    # Server enforces minimum state length; use high-entropy value.
-    return secrets.token_urlsafe(24)
+def _dedupe_tokens(tokens):
+    deduped = []
+    seen = set()
+    for token in tokens:
+        if token not in seen:
+            deduped.append(token)
+            seen.add(token)
+    return deduped
+
+
+def _load_access_tokens(single_token, token_list, token_file):
+    tokens = []
+
+    if single_token:
+        tokens.append(single_token)
+
+    if token_list:
+        tokens.extend(_parse_token_text(token_list))
+
+    if token_file:
+        tokens.extend(_load_tokens_from_file(token_file))
+
+    return _dedupe_tokens(tokens)
+
+
+ACCESS_TOKENS_BY_POOL = {
+    TOKEN_POOL_NON_V3: _load_access_tokens(
+        BB_ACCESS_TOKEN_NON_V3,
+        BB_ACCESS_TOKENS_NON_V3,
+        BB_ACCESS_TOKENS_FILE_NON_V3,
+    ),
+    TOKEN_POOL_V3: _load_access_tokens(
+        BB_ACCESS_TOKEN_V3,
+        BB_ACCESS_TOKENS_V3,
+        BB_ACCESS_TOKENS_FILE_V3,
+    ),
+}
+
+
+def _token_pool_for_version(version):
+    if version == Versions.V3:
+        return TOKEN_POOL_V3
+    return TOKEN_POOL_NON_V3
+
+
+def _next_access_token(pool_name):
+    if pool_name not in ACCESS_TOKENS_BY_POOL:
+        return None
+
+    tokens = ACCESS_TOKENS_BY_POOL[pool_name]
+    if not tokens:
+        return None
+
+    if BB_TOKEN_SELECTION == 'round_robin':
+        with _TOKEN_LOCKS[pool_name]:
+            token = tokens[_TOKEN_INDICES[pool_name] % len(tokens)]
+            _TOKEN_INDICES[pool_name] += 1
+            return token
+
+    return random.choice(tokens)
 
 
 class BlueButtonUser(HttpUser):
-    """
-    Simulated Blue Button web-server user:
-    - Visits home/docs
-    - Performs OAuth2 auth code flow
-    - Calls FHIR resources with the obtained access token
-    """
+    """Simulated Blue Button API user using a pre-issued bearer token."""
 
+    abstract = True
     wait_time = between(1, 5)
     access_token = None
     api_version = None
 
     def on_start(self):
-        """Use the class's `api_version` when provided, otherwise pick one.
-
-        Subclasses can set `api_version` at class level to ensure each
-        Locust user class targets a specific API version.
-        """
         if self.api_version is None:
+            # Base class represents a mixed-version population.
             self.api_version = random.choice(Versions.supported_versions())
 
-        # Determine credentials for this simulated user. Prefer explicit
-        # environment variables if both are provided; otherwise generate
-        # a random matching pair (BBUser##### / PW#####!).
-        if BB_USERNAME_ENV and BB_PASSWORD_ENV:
-            self.username = BB_USERNAME_ENV
-            self.password = BB_PASSWORD_ENV
-        else:
-            self.username, self.password = generate_credentials()
-
-        # PKCE pair for this user session
-        self.code_verifier, self.code_challenge = make_pkce_pair()
-
-        self._authorize_and_get_token()
+        token_pool = _token_pool_for_version(self.api_version)
+        self.access_token = _next_access_token(token_pool)
+        if not self.access_token:
+            if token_pool == TOKEN_POOL_V3:
+                raise StopUser(
+                    'No v3 access token supplied. Set BB_ACCESS_TOKEN_V3, BB_ACCESS_TOKENS_V3, or BB_ACCESS_TOKENS_FILE_V3.'
+                )
+            raise StopUser(
+                'No non-v3 access token supplied. Set BB_ACCESS_TOKEN_NON_V3 (or BB_ACCESS_TOKEN), '
+                'BB_ACCESS_TOKENS_NON_V3 (or BB_ACCESS_TOKENS), or BB_ACCESS_TOKENS_FILE_NON_V3 '
+                '(or BB_ACCESS_TOKENS_FILE).'
+            )
 
     def _version_prefix(self):
         return f'/{Versions.as_str(self.api_version)}'
 
-    def _authorize_and_get_token(self):
-        state = get_state()
-        auth_data = {
-            'client_id': BB_CLIENT_ID,
-            'response_type': 'code',
-            'redirect_uri': BB_REDIRECT_URI,
-            'scope': BB_SCOPE,
-            'state': state,
-            'code_challenge': getattr(self, 'code_challenge', None),
-            'code_challenge_method': 'S256',
-        }
-        prefix = self._version_prefix()
-        code = None
-
-        # Step 1: POST authorize directly (endpoint reachability check)
-        with self.client.post(
-            f'{prefix}/o/authorize/',
-            data=auth_data,
-            name='oauth_authorize_post',
-            allow_redirects=False,
-            catch_response=True,
-        ) as resp:
-            # Treat common OAuth responses as success for endpoint reachability.
-            if resp.status_code in (200, 302, 303):
-                redirect_location = resp.headers.get('Location', '')
-
-                # If auth code is present, continue to token exchange.
-                if redirect_location:
-                    parsed = urlparse(redirect_location)
-                    query = parse_qs(parsed.query)
-                    code = query.get('code', [None])[0]
-                    returned_state = query.get('state', [None])[0]
-
-                    if code and returned_state != state:
-                        resp.failure('State mismatch in authorize redirect')
-                        return
-
-                resp.success()
-            else:
-                resp.failure(f'Authorize POST failed: {resp.status_code}')
-                return
-
-        # Step 2: Exchange authorization code for token (only when present)
-        if not code:
-            self.access_token = None
-            return
-
-        token_data = {
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': BB_REDIRECT_URI,
-            'client_id': BB_CLIENT_ID,
-            'client_secret': BB_CLIENT_SECRET,
-            'code_verifier': getattr(self, 'code_verifier', None),
-        }
-
-        token_resp = self.client.post(
-            f'{prefix}/o/token/',
-            data=token_data,
-            name='oauth_token',
-        )
-
-        if token_resp.status_code == 200:
-            json_data = token_resp.json()
-            self.access_token = json_data.get('access_token')
-        else:
-            self.access_token = None
-
     def _auth_headers(self):
-        if self.access_token:
-            return {'Authorization': f'Bearer {self.access_token}'}
-        return {}
+        return {'Authorization': f'Bearer {self.access_token}'}
 
     @task(1)
     def home_page(self):
@@ -193,6 +205,18 @@ class BlueButtonUser(HttpUser):
             f'{self._version_prefix()}/fhir/ExplanationOfBenefit',
             headers=headers,
             name='fhir_eob_list',
+        )
+
+    @task(2)
+    def fhir_coverage(self):
+        """FHIR Coverage list call for the logged-in bene."""
+        headers = self._auth_headers()
+        if not headers:
+            return
+        self.client.get(
+            f'{self._version_prefix()}/fhir/Coverage',
+            headers=headers,
+            name='fhir_coverage_list',
         )
 
     @task(2)

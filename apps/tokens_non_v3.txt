@@ -1,0 +1,22 @@
+# Non-v3 access token pool (used by BlueButtonUserV1 and BlueButtonUserV2)
+#
+# Add one access token per line. Blank lines and lines starting with # are ignored.
+# These tokens must come from OAuth apps that do NOT have the v3_early_adopter flag set.
+#
+# To obtain tokens:
+#   1. Complete the OAuth flow against your target environment for each beneficiary.
+#   2. Copy the resulting access_token values here, one per line.
+#
+# Run with this file (single token pool, no v3):
+#   BB_ACCESS_TOKENS_FILE_NON_V3=apps/tokens_non_v3.txt \
+#     locust -f apps/locustfile.py --host https://<your-host> --headless -u 10 -t 60s
+#
+# Run with both pools:
+#   BB_ACCESS_TOKENS_FILE_NON_V3=apps/tokens_non_v3.txt \
+#   BB_ACCESS_TOKENS_FILE_V3=apps/tokens_v3.txt \
+#     locust -f apps/locustfile.py --host https://<your-host> --headless -u 10 -t 60s
+#
+# Token selection strategy (optional, default: random):
+#   BB_TOKEN_SELECTION=round_robin  # or: random
+
+# Paste tokens below, one per line:
