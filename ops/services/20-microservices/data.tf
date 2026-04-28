@@ -13,22 +13,6 @@ data "aws_ecs_cluster" "main" {
 }
 
 # ============================================================================
-# Per-Service Configuration from SSM (single JSON parameter per service)
-# SSM path: /bb/{env}/{service}/config — stores all ECS/scaling/ALB config as JSON
-#
-# Expected JSON structure:
-# {
-#   "port": 8000,
-#   "cpu": 512,
-#   "memory": 1024,
-#   "count": 1,
-#   "scaling_min": 1,
-#   "scaling_max": 2,
-#   "health_check_path": "/health",
-#   "alb_enabled": true,
-#   "autoscale_enabled": false
-# }
-# ============================================================================
 data "aws_ssm_parameter" "service_config" {
   for_each = var.enable_ssm_config ? var.backend_services : toset([])
   name     = "/bb/${local.workspace}/${each.key}/config"
