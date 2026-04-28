@@ -1575,6 +1575,5 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
                 }
                 response = (getattr(self.client, method))(response['Location'], data=payload)
 
-                # TODO should we use self.assertRedirects here?
                 self.assertEqual(response.status_code, HTTPStatus.FOUND)
                 self.assertTrue(response.url.startswith('/mymedicare/login'))
