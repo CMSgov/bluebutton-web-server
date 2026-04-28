@@ -318,7 +318,7 @@ class BackendConnectionTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                # TODO replace this with true backend response, this has been post proccessed
+                # TODO replace this with true backend response, this has been post processed
                 'content': patient_response,
             }
 

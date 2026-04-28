@@ -55,7 +55,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                     self.assertEqual(response.status_code, test.status_code)
 
     # This looks at the given set of URLs and makes sure that the version value encoded in the
-    # reponses are correctly versioned. Note the handling of v1/v2.
+    # responses are correctly versioned. Note the handling of v1/v2.
     @tag('integration')
     @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)

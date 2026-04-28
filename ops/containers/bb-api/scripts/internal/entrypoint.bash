@@ -44,9 +44,12 @@ gonogo "run_socat_locally"
 #
 # This conditionally does that only if TARGET_ENV=local and
 # either MIGRATE=1 or COLLECTSTATIC=1
-#
+
 # Must come after socat, so we can talk to the s3mock.
 possibly_migrate_or_collectstatic_if_local
+# Setup the database and users.
+setup_database_and_users_if_local
+gonogo "setup_database_and_users_if_local"
 
 # ========== BFD ==========
 # We need certs to talk to BFD. These are grabbed

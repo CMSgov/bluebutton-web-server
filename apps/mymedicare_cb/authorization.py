@@ -245,7 +245,7 @@ class OAuth2ConfigSLSx(object):
         After it does the signout, the response is a redirect to the
         Medicare.gov signout page. Since this is more of a browser type
         functionality, we disable the redirects in the HTTP GET call.
-        NOTE: This enpoint always returns a 302---even if the signout
+        NOTE: This endpoint always returns a 302---even if the signout
               did not work.
         """
         headers = self.slsx_common_headers(request)
@@ -276,7 +276,7 @@ class OAuth2ConfigSLSx(object):
         Performs a call to userinfo_endpoint to validate that the bene is
         signed out. When NOT signed out, an exception is thrown.
         This assumes the bene is signed out, if the userinfo endpoint returns
-        a HTTP_403_FORBIDDEN respose and the auth_token is no longer valid.
+        a HTTP_403_FORBIDDEN response and the auth_token is no longer valid.
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())

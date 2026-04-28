@@ -170,7 +170,7 @@ Each combination has different implications. Only some make sense at this time (
 
 ### running daemonized
 
-You cann add `daemon=1` to any of the above commands, and the stack will run in the background.
+You can add `daemon=1` to any of the above commands, and the stack will run in the background.
 
 For example:
 
