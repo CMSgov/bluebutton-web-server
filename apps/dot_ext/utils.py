@@ -213,7 +213,7 @@ def validate_app_is_active(request: HttpRequest) -> Application | None:
         InvalidRequestError: Missing refresh token parameter
 
     Returns:
-        Model: Application model or None
+        Model: Application model
     """
     app = get_application_from_meta(request)
     if not app:
@@ -223,11 +223,12 @@ def validate_app_is_active(request: HttpRequest) -> Application | None:
     if request.POST.get('grant_type') == 'client_credentials':
         if not request.POST.get('client_assertion'):
             raise InvalidRequestError('Missing client_assertion for client_credentials grant')
-        if not app:
-            raise InvalidClientError('App id failed')
+
+    if not app:
+        raise InvalidClientError('App id failed')
 
     # revoked access and expired auth period to a 401 error
-    if app and app.active:
+    if app.active:
         # Is this for a token refresh request?
         post_grant_type = request.POST.get('grant_type', None)
         if post_grant_type == 'refresh_token':
@@ -270,7 +271,7 @@ def validate_app_is_active(request: HttpRequest) -> Application | None:
                     description='Missing refresh token parameter',
                     status_code=HTTPStatus.BAD_REQUEST,
                 )
-    elif app and not app.active:
+    else:
         raise InvalidClientError(
             description=APPLICATION_TEMPORARILY_INACTIVE.format(app.name),
             status_code=HTTPStatus.FORBIDDEN,

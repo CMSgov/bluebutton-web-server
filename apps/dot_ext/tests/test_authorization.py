@@ -1245,6 +1245,7 @@ class TestAuthorizationView(BaseApiTest):
         # Create an instance of the view
         view_instance = AuthorizationView()
         view_instance.request = request
+        view_instance.application = fake_application
 
         with self.assertRaises(AccessDeniedTokenCustomError):
             view_instance.validate_v3_authorization_request()
@@ -1413,20 +1414,18 @@ class TestAuthorizationView(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     def test_valid_uuid_authorize_call(self):
         """BB2-4326: Ensure a 302 is thrown if a valid UUID is passed to an authorize endpoint"""
+        app = self._create_application('an app')
         auth_uri_v1 = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
         auth_uri_v2 = reverse('oauth2_provider_v2:authorize-instance-v2', args=[uuid.uuid4()])
         auth_uri_v3 = reverse('oauth2_provider_v3:authorize-instance-v3', args=[uuid.uuid4()])
 
-        response_v1 = self.client.get(auth_uri_v1)
-        response_v2 = self.client.get(auth_uri_v2)
-        response_v3 = self.client.get(auth_uri_v3)
+        response_v1 = self.client.get(auth_uri_v1, data={'client_id': app.client_id})
+        response_v2 = self.client.get(auth_uri_v2, data={'client_id': app.client_id})
+        response_v3 = self.client.get(auth_uri_v3, data={'client_id': app.client_id})
 
         assert response_v1.status_code == HTTPStatus.FOUND
         assert response_v2.status_code == HTTPStatus.FOUND
-        # The behavior is different for v3, as we check v3 authorize calls to see if the application is in
-        # the v3_early_adopter flag (part of BB2-4250). Because all of the mocks are not included in this test
-        # such that the authorize call will return a 302 for v3, v3 in this test throws a 403
-        assert response_v3.status_code == HTTPStatus.FORBIDDEN
+        assert response_v3.status_code == HTTPStatus.FOUND
 
     @patch(
         'apps.mymedicare_cb.models.match_fhir_id',
@@ -1520,6 +1519,63 @@ class TestAuthorizationView(BaseApiTest):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
         self.assertEqual(response.json()['message'], 'Failed to retrieve data from data source.')
+
+    @override_switch('v3_endpoints', active=True)
+    def test_authorization_endpoint_across_versions_and_methods(self):
+        """
+        Ensure the authorize endpoint works across versions and methods.
+        """
+        redirect_uri = 'com.custom.bluebutton://example.it'
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri,
+        )
+        application.scope.add(capability_a)
+        application.save()
+
+        # TODO this doesn't seem to be necessary, but its in the other tests. why?
+        # Seems to be that without being logged in, we get a redirect to
+        # /mymedicare/login, which would I think then go to the medicare.gov login
+        # screen. But why does the user being logged in to bluebutton bypass this?
+        # TODO check that this is in fact the behavior and I didn't do anything else
+        # to change the behavior
+        # request = HttpRequest()
+        # self.client.login(request=request, username='anna', password='123456')
+
+        # TODO move to constant?
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+
+        # TODO pytest.mark.parameterize
+        for method in ['get', 'post']:
+            for version in Versions.supported_versions():
+                payload = {
+                    'client_id': application.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': redirect_uri,
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                }
+                # TODO this first request might not be necessary?
+                response = (getattr(self.client, method))(f'/v{version}/o/authorize', data=payload)
+                payload = {
+                    'client_id': application.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': redirect_uri,
+                    'scope': ['capability-a'],
+                    'expires_in': 86400,
+                    'allow': True,
+                    'state': '0123456789abcdef',
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                }
+                response = (getattr(self.client, method))(response['Location'], data=payload)
+
+                self.assertEqual(response.status_code, HTTPStatus.FOUND)
+                self.assertTrue(response.url.startswith('/mymedicare/login'))
 
     @override_switch('v3_endpoints', active=True)
     def test_fail_when_app_only_allowed_client_credentials(self):
