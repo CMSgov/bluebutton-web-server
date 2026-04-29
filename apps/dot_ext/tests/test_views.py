@@ -1,6 +1,7 @@
 import json
 import base64
 from datetime import date, timedelta
+from http import HTTPStatus
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -28,6 +29,30 @@ from apps.dot_ext.constants import (
 import os
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
+
+
+class TestApplicationRegistrationView(BaseApiTest):
+    # TODO should I test the view or the form?
+    def test_assigns_default_scopes(self):
+        """
+        Test that the registration view assigns default scopes to apps it creates.
+        """
+        capability_a = self._create_capability('Capability A', [], default=True)
+        capability_b = self._create_capability('Capability B', [], default=True)
+        capability_c = self._create_capability('Capability C', [], default=False)
+
+        self._create_user('anna', '123456')
+        self.client.login(request=HttpRequest(), username='anna', password='123456')
+
+        response = self.client.post(
+            reverse('oauth2_provider:register'),
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+        app = Application.objects.get(name='an app')
+
+        self.assertQuerySetEqual(app.scope.all(), [capability_a, capability_b], ordered=False)
 
 
 class TestApplicationUpdateView(BaseApiTest):
