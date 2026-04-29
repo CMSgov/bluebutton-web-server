@@ -1,6 +1,6 @@
 import os
 
-from hhs_oauth_server.settings.dev import *
+from hhs_oauth_server.settings.base import *
 
 TARGET_ENV = 'test'
 SEND_SMS = False

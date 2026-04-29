@@ -1,3 +1,7 @@
+###
+# DELETE THIS AFTER WE MOVE OFF OF JENKINS
+###
+
 from .dev import *  # lgtm [py/polluting-import]
 
 # Override audit logging handler with a file handler
@@ -20,7 +24,11 @@ except FileExistsError as err:
 if logging_handlers is None:
     raise ValueError('Bad settings, expecting handlers defined in settings.LOGGING')
 
-logging_handlers['file'] = {'class': 'logging.FileHandler', 'filename': logfile_path, 'filters': [SENSITIVE_DATA_FILTER]}
+logging_handlers['file'] = {
+    'class': 'logging.FileHandler',
+    'filename': logfile_path,
+    'filters': [SENSITIVE_DATA_FILTER],
+}
 
 loggers = LOGGING.get('loggers')
 
