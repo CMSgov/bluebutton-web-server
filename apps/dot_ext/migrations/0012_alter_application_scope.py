@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='application',
             name='scope',
-            field=models.ManyToManyField(default=apps.dot_ext.models._get_default_scopes, to='capabilities.protectedcapability'),
+            field=models.ManyToManyField(default=apps.dot_ext.models.get_default_scopes, to='capabilities.protectedcapability'),
         ),
     ]

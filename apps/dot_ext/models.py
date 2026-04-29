@@ -65,7 +65,7 @@ class InternalApplicationLabelsProxy(InternalApplicationLabels):
         verbose_name_plural = 'Internal Categories'
 
 
-def _get_default_scopes():
+def get_default_scopes():
     return ProtectedCapability.objects.filter(default=True)
 
 
@@ -74,7 +74,7 @@ class Application(AbstractApplication):
     # code with Application.objects.create, but default will be picked up for the
     # admin interface pages.
     # See https://code.djangoproject.com/ticket/2750#comment:23
-    scope = models.ManyToManyField(ProtectedCapability, default=_get_default_scopes)
+    scope = models.ManyToManyField(ProtectedCapability, default=get_default_scopes)
 
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
