@@ -246,6 +246,7 @@ data "aws_iam_policy_document" "github_actions_tofu" {
     sid = "AutoScaling"
     actions = [
       "application-autoscaling:Describe*",
+      "application-autoscaling:ListTagsForResource",
       "application-autoscaling:RegisterScalableTarget",
       "application-autoscaling:DeregisterScalableTarget",
       "application-autoscaling:PutScalingPolicy",
