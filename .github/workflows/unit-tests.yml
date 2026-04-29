@@ -7,7 +7,6 @@ on:
 
 env:
     DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-    TARGET_ENV: dev
 
 jobs:
     test:
