@@ -131,8 +131,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_authorize_uuid_dne(self):
+        app = self._create_application('an app')
         auth_uri = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
-        response = self.client.get(auth_uri)
+        response = self.client.get(auth_uri, data={'client_id': app.client_id})
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
     def test_authorize_uuid(self):
