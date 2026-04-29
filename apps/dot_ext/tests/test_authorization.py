@@ -1586,8 +1586,6 @@ class TestAuthorizationView(BaseApiTest):
         This means that a user going through an authorization code flow when the
         app is not allowed it will get an error before being shown the medicare.gov login page.
         """
-        # TODO a lot of this is not DRY with other tests
-
         redirect_uri = 'com.custom.bluebutton://example.it'
         self._create_user('anna', '123456')
         capability_a = self._create_capability('Capability A', [])
@@ -1602,14 +1600,11 @@ class TestAuthorizationView(BaseApiTest):
         application.scope.add(capability_a)
         application.save()
 
-        # TODO this doesn't seem to be necessary, but its in the other tests. why?
-        # Seems to be that without being logged in, we get a redirect to
-        # /mymedicare/login, which would I think then go to the medicare.gov login
-        # screen. But why does the user being logged in to bluebutton bypass this?
+        # TODO same as above, is this necessary?
         # request = HttpRequest()
         # self.client.login(request=request, username='anna', password='123456')
 
-        # TODO looks kinda random, anything special about it?
+        # TODO move to constant?
         code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
         # TODO pytest.mark.parameterize
@@ -1623,6 +1618,7 @@ class TestAuthorizationView(BaseApiTest):
                     'code_challenge': code_challenge,
                     'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
                 }
+                # TODO same as above, first request might not be necessary
                 response = (getattr(self.client, method))(f'/v{version}/o/authorize', data=payload)
                 payload = {
                     'client_id': application.client_id,
