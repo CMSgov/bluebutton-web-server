@@ -5,9 +5,10 @@ from hhs_oauth_server.settings.dev import *
 TARGET_ENV = 'test'
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
-
+SECRET_KEY = 'test-secret-key-this-is-not-real'
 REQUEST_CALL_TIMEOUT = (5, 120)
 
+# This needs to be set by the environment to run integratin tests in the container
 RUN_INTEGRATION_TEST = False
 if os.getenv('RUN_INTEGRATION_TEST', 'false') in ['true', 'True']:
     RUN_INTEGRATION_TEST = True
@@ -75,3 +76,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
 APPLICATION_TITLE = 'Blue Button 2.0 TEST'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': [],
+        'level': 'DEBUG',
+    },
+}
