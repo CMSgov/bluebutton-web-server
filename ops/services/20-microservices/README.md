@@ -129,7 +129,7 @@ tofu apply
 
 ### Task Role (Container Runtime)
 - Secrets Manager, SSM, KMS (same as execution)
-- S3 access: `bb-{env}-app-config`, `bb-{env}-static-content`
+- S3 access: `bb-{env}-app-config`, `bb-{env}-content-cms-gov`
 
 ## Outputs
 
