@@ -129,6 +129,10 @@ ACCESS_TOKENS_BY_POOL = {
 }
 
 
+def _pool_has_tokens(pool_name):
+    return bool(ACCESS_TOKENS_BY_POOL.get(pool_name))
+
+
 def _token_pool_for_version(version):
     if version == Versions.V3:
         return TOKEN_POOL_V3
@@ -184,6 +188,36 @@ class BlueButtonUser(HttpUser):
     def _auth_headers(self):
         return {'Authorization': f'Bearer {self.access_token}'}
 
+    def _user_label(self):
+        return f'user={self.__class__.__name__} version={Versions.as_str(self.api_version)}'
+
+    def _token_label(self):
+        if not self.access_token:
+            return 'token=missing'
+
+        # Report a short token fingerprint rather than the full bearer token.
+        if len(self.access_token) <= 12:
+            return f'token={self.access_token}'
+
+        return f'token={self.access_token[:6]}...{self.access_token[-6:]}'
+
+    def _request_with_error_context(self, path, name):
+        headers = self._auth_headers()
+        if not headers:
+            return
+
+        with self.client.get(
+            path,
+            headers=headers,
+            name=name,
+            catch_response=True,
+        ) as response:
+            if response.status_code >= 400:
+                response.failure(f'HTTP {response.status_code} for {name} ({self._user_label()} {self._token_label()})')
+                return
+
+            response.success()
+
     @task(1)
     def home_page(self):
         self.client.get('/', name='home_page')
@@ -198,36 +232,24 @@ class BlueButtonUser(HttpUser):
     @task(3)
     def fhir_explanation_of_benefit(self):
         """FHIR ExplanationOfBenefit list call for the logged-in bene."""
-        headers = self._auth_headers()
-        if not headers:
-            return
-        self.client.get(
+        self._request_with_error_context(
             f'{self._version_prefix()}/fhir/ExplanationOfBenefit',
-            headers=headers,
             name='fhir_eob_list',
         )
 
     @task(2)
     def fhir_coverage(self):
         """FHIR Coverage list call for the logged-in bene."""
-        headers = self._auth_headers()
-        if not headers:
-            return
-        self.client.get(
+        self._request_with_error_context(
             f'{self._version_prefix()}/fhir/Coverage',
-            headers=headers,
             name='fhir_coverage_list',
         )
 
     @task(2)
     def fhir_patient(self):
         """FHIR Patient resource for the current bene."""
-        headers = self._auth_headers()
-        if not headers:
-            return
-        self.client.get(
+        self._request_with_error_context(
             f'{self._version_prefix()}/fhir/Patient',
-            headers=headers,
             name='fhir_patient',
         )
 
@@ -251,3 +273,11 @@ class BlueButtonUserV3(BlueButtonUser):
 
     api_version = Versions.V3
     weight = 1
+
+
+if not _pool_has_tokens(TOKEN_POOL_NON_V3):
+    BlueButtonUserV1.weight = 0
+    BlueButtonUserV2.weight = 0
+
+if not _pool_has_tokens(TOKEN_POOL_V3):
+    BlueButtonUserV3.weight = 0
