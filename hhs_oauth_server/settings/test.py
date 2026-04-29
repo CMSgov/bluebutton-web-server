@@ -1,18 +1,17 @@
-from .dev import *
 import os
 
-del LOGGING['loggers']
+from hhs_oauth_server.settings.base import *
 
+TARGET_ENV = 'test'
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
-
-LOGIN_RATE = '100/m'
-
+SECRET_KEY = 'test-secret-key-this-is-not-real'
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-RUN_ONLINE_TESTS = False
-if os.getenv('RUN_ONLINE_TESTS', 'false') in ['true', 'True']:
-    RUN_ONLINE_TESTS = True
+# This needs to be set by the environment to run integratin tests in the container
+RUN_INTEGRATION_TEST = False
+if os.getenv('RUN_INTEGRATION_TEST', 'false') in ['true', 'True']:
+    RUN_INTEGRATION_TEST = True
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
@@ -77,3 +76,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
 APPLICATION_TITLE = 'Blue Button 2.0 TEST'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': [],
+        'level': 'DEBUG',
+    },
+}

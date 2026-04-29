@@ -2,17 +2,16 @@
 import os
 import sys
 
-# replace django dotenv (latest release is 2017) with python dotenv
 from dotenv import load_dotenv
 
-
 if __name__ == '__main__':
-    if os.environ.get('DJANGO_DOTENV_FILE', None):
-        load_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
-    else:
-        load_dotenv()
+    load_dotenv()
 
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.base')
+    TESTING = 'test' in sys.argv
+    if TESTING:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.test')
+    else:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.base')
 
     from django.core.management import execute_from_command_line
 
