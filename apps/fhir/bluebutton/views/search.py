@@ -155,7 +155,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
         'patient': str,
         '_tag': list[str],
-        '_source': str,
+        '_source': list[str],
     }
 
     def __init__(self, version=1):
@@ -182,8 +182,9 @@ class SearchViewExplanationOfBenefit(SearchView):
         # BB2-4250: Does not seem that this code will execute given the new permission class
         # so leaving it as is
         if waffle.switch_is_active('v3_endpoints'):
-            # _tag if presents, is a string value
+            # _tag/_source if present, is a string value
             params['_tag'] = request.query_params.getlist('_tag')
+            params['_source'] = request.query_params.getlist('_source')
 
         schema = Schema(query_schema, extra=REMOVE_EXTRA)
 
