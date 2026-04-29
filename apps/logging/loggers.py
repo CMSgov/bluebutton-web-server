@@ -17,6 +17,7 @@ from apps.dot_ext.models import (
     get_token_bene_counts,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
+from apps.logging.constants import APP_LEVEL_METRICS, APP_NAMES_TO_IGNORE, GLOBAL_METRICS
 from apps.logging.utils import format_timestamp
 
 """
@@ -30,6 +31,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     For use in apps/logging/management/commands/log_global_metrics.py management command
     NOTE:  print statements are for output when run via Jenkins
     """
+    print('its_log_flag: ', its_log_flag)
     if report_flag:
         print('---')
         print('---RUNNING DJANGO COMMAND:  log_global_state_metrics')
@@ -239,6 +241,9 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     logger.info(log_dict)
 
     if its_log_flag:
+        for metric in GLOBAL_METRICS:
+            ping_api([], '0', metric)
+
         for key in log_dict.keys():
             val_to_post = log_dict[key]
             print('global key/val: ', key, val_to_post)
@@ -262,6 +267,9 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
 
     start_time = datetime.utcnow().timestamp()
     count = 0
+    active_apps = 0
+    active_apps_w_gt_25_real_benes = 0
+    active_apps_w_lt_25_real_benes = 0
     for app in applications:
         # Get UserProfile for application's dev user
         try:
@@ -312,17 +320,34 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             'user_limit_data_access': True,
         }
 
+        if app.name not in APP_NAMES_TO_IGNORE and app.active and log_dict.get('real_bene_cnt', 0) > 25:
+            active_apps_w_gt_25_real_benes += 1
+        elif app.name not in APP_NAMES_TO_IGNORE and app.active:
+            active_apps_w_lt_25_real_benes += 1
+
+        if app.active and app.name not in APP_NAMES_TO_IGNORE:
+            active_apps += 1
+
         logger.info(log_dict, cls=DjangoJSONEncoder)
-        for key in log_dict.keys():
-            tag = [str(app.id), app.name]
-            val_to_post = log_dict[key]
+        print('app name: ', app.name)
+        if its_log_flag and app.name not in APP_NAMES_TO_IGNORE:
+            # post all metrics for all apps to ensure we have data populated for each app, each day
+            for metric in APP_LEVEL_METRICS:
+                tag = [str(app.id), app.name]
+                ping_api(tag, '0', metric)
 
-            if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
-                val_to_post = str(val_to_post)
+            for key in log_dict.keys():
+                tag = [str(app.id), app.name]
+                val_to_post = log_dict[key]
 
-            ping_api(tag, val_to_post, 'app_' + key)
+                if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
+                    val_to_post = str(val_to_post)
 
-        count = count + 1
+                ping_api(tag, val_to_post, 'app_' + key)
+    if its_log_flag:
+        ping_api([], str(active_apps_w_gt_25_real_benes), 'app_active_bene_cnt_gt25')
+        ping_api([], str(active_apps_w_lt_25_real_benes), 'app_active_bene_cnt_le25')
+        ping_api([], str(active_apps), 'active_apps')
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
