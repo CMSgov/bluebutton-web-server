@@ -13,6 +13,7 @@ from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
+    DEFAULT_EOB_SOURCE,
     ENFORCE_PARAM_VALIDATAION,
     FHIR_CONFORMANCE_URLS,
     READ_UPDATE_DELETE_COVERAGE_URLS,
@@ -664,3 +665,52 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, expected_response_code)
         if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
             self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @override_switch('v3_endpoints', active=True)
+    def test_call_eob_v3_ensure_source_is_added(self) -> None:
+        """Ensure that if a v3 search EOB call is made, that the _source=NCH parameter
+        is automatically added to the call, as there is no _tag or _source parameter already on the call
+        """
+
+        # create the user
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+
+        url = SEARCH_EOB_URLS[Versions.V3]
+        response = self.client.get(
+            reverse(url),
+            {},
+            Authorization='Bearer %s' % (first_access_token),
+        )
+        self.assertEqual(response.status_code, 200)
+        assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
+
+    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @override_switch('v3_endpoints', active=True)
+    def test_call_eob_v3_ensure_source_is_not_added(self) -> None:
+        """Ensure that if a v3 search EOB call is made, and a _tag parameter is being passed,
+        that the _source=NCH parameter is not added to the call
+        """
+
+        # create the user
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+
+        url = reverse(SEARCH_EOB_URLS[Versions.V3])
+        url += '/?_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory'
+        response = self.client.get(
+            url,
+            {},
+            Authorization='Bearer %s' % (first_access_token),
+        )
+        self.assertEqual(response.status_code, 200)
+        assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
