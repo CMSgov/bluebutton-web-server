@@ -11,7 +11,7 @@ from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import PRINTABLE_SPECIAL_ASCII
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.models import Application, InternalApplicationLabels
+from apps.dot_ext.models import Application, InternalApplicationLabels, get_default_scopes
 from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
 from django.contrib.auth.models import Group, User
 from django.forms.widgets import URLInput
@@ -186,6 +186,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
         app.save()
+        app.scope.add(*get_default_scopes())
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
             app.logo_uri = uri
