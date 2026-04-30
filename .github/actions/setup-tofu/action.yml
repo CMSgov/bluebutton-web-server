@@ -11,6 +11,12 @@ inputs:
   prod-account:
     description: 'AWS account ID for prod (sandbox, prod)'
     required: true
+  test-role-id:
+    description: 'IAM Role ID for test'
+    required: false
+  prod-role-id:
+    description: 'IAM Role ID for prod'
+    required: false
 
 runs:
   using: composite
@@ -30,9 +36,13 @@ runs:
       env:
         NON_PROD_ACCOUNT: ${{ inputs.non-prod-account }}
         PROD_ACCOUNT: ${{ inputs.prod-account }}
+        TEST_ROLE: ${{ inputs.test-role-id }}
+        PROD_ROLE: ${{ inputs.prod-role-id }}
       run: |
         echo "::add-mask::${NON_PROD_ACCOUNT}"
         echo "::add-mask::${PROD_ACCOUNT}"
+        [[ -n "$TEST_ROLE" ]] && echo "::add-mask::${TEST_ROLE}"
+        [[ -n "$PROD_ROLE" ]] && echo "::add-mask::${PROD_ROLE}"
 
     - name: Check if tofu is installed
       id: check-tofu
