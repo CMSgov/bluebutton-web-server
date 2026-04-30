@@ -70,6 +70,8 @@ jobs:
           environment: test
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
           prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
 
       - name: Login to Amazon ECR (Test)
         id: login-ecr-test
@@ -101,6 +103,8 @@ jobs:
           environment: prod
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
           prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
 
       - name: Login to Amazon ECR (Prod)
         id: login-ecr-prod
