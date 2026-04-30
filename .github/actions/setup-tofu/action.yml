@@ -27,8 +27,12 @@ runs:
 
     - name: Mask sensitive values
       shell: bash
+      env:
+        NON_PROD_ACCOUNT: ${{ inputs.non-prod-account }}
+        PROD_ACCOUNT: ${{ inputs.prod-account }}
       run: |
-        echo "::add-mask::${{ steps.account.outputs.account }}"
+        echo "::add-mask::${NON_PROD_ACCOUNT}"
+        echo "::add-mask::${PROD_ACCOUNT}"
 
     - name: Check if tofu is installed
       id: check-tofu

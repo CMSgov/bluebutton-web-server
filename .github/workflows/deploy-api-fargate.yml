@@ -48,8 +48,10 @@ jobs:
           mask-password: true
 
       - name: Mask ECR registry
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
+          echo "::add-mask::${ECR_REGISTRY}"
 
       - name: Verify image exists in ECR
         id: verify-image
