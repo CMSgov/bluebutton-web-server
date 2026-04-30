@@ -1,9 +1,10 @@
+import http.client
 import os
 from enum import Enum
-import http.client
-from selenium.webdriver.common.by import By
-from apps.constants import COVERAGE_SCOPE, PATIENT_SCOPE, EOB_SCOPE, OPENID_SCOPE, LAUNCH_SCOPE
 
+from selenium.webdriver.common.by import By
+
+from apps.constants import COVERAGE_SCOPE, EOB_SCOPE, LAUNCH_SCOPE, OPENID_SCOPE, PATIENT_SCOPE
 
 """
   Endpoint schemas used for tests in apps/integration_tests/integration_test_fhir_resources.py
@@ -126,8 +127,6 @@ EOB_SEARCH_SCHEMA = {
 SAMPLE_A_888_MBI = '1SA0A00CC11'
 SAMPLE_A_888_HICN_HASH = '3637b48c050b8d7a3aa29cd012a535c0ab0e52fe18ddcf1863266b217adc242f'
 
-FHIR_RES_TYPE_EOB = 'ExplanationOfBenefit'
-FHIR_RES_TYPE_PATIENT = 'Patient'
 FHIR_RES_TYPE_COVERAGE = 'Coverage'
 V3_403_DETAIL = (
     'This application, John_Doe_test, does not yet have access to v3 endpoints. '
@@ -1172,7 +1171,9 @@ SLSX_TXT_FLD_USERNAME_VAL = BENE_TXT_USERNAME
 SLSX_TXT_FLD_PASSWORD_VAL = BENE_TXT_PASSWORD
 SLSX_CSS_BUTTON = 'login-button'
 SLSX_CSS_CONTINUE_BUTTON = "button[type='submit']"
-SLSX_CSS_LOGIN_BUTTON = "//button[@type='submit' and (normalize-space(text())='Log in' or normalize-space(text())='Entrar')]"
+SLSX_CSS_LOGIN_BUTTON = (
+    "//button[@type='submit' and (normalize-space(text())='Log in' or normalize-space(text())='Entrar')]"
+)
 
 # Demographic info access grant form
 BTN_ID_GRANT_DEMO_ACCESS = 'approve'
@@ -1298,7 +1299,11 @@ SEQ_LOGIN_MSLSX = [
         'action': Action.FIND_SEND_KEY,
         'params': [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL],
     },
-    {'display': 'Input mbi', 'action': Action.FIND_SEND_KEY, 'params': [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]},
+    {
+        'display': 'Input mbi',
+        'action': Action.FIND_SEND_KEY,
+        'params': [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL],
+    },
     {
         'display': "Click 'submit' on MSLSX login form",
         'action': Action.FIND_CLICK,
@@ -1935,7 +1940,11 @@ SEQ_CREATE_USER_ACCOUNT = [
         'action': Action.FIND_SEND_KEY,
         'params': [20, By.ID, USER_TXT_FLD_ID_PASSWD2, USER_TXT_FLD_ID_PASSWD2_VAL],
     },
-    {'display': 'Click link submit button', 'action': Action.FIND_CLICK, 'params': [30, By.CSS_SELECTOR, USER_FORM_SUBMIT_BTN]},
+    {
+        'display': 'Click link submit button',
+        'action': Action.FIND_CLICK,
+        'params': [30, By.CSS_SELECTOR, USER_FORM_SUBMIT_BTN],
+    },
 ]
 
 SEQ_USER_LOGIN = [
@@ -1989,8 +1998,16 @@ USER_ACCT_LOGOUT = {
 }
 
 SEQ_ADD_APPS = [
-    {'display': "Click 'Add an Application'...", 'action': Action.FIND_CLICK, 'params': [20, By.LINK_TEXT, LNK_TXT_APP_ADD]},
-    {'display': 'Type in app name...', 'action': Action.FIND_SEND_KEY, 'params': [20, By.ID, APP_ID_NAME, APP_ID_NAME_VAL]},
+    {
+        'display': "Click 'Add an Application'...",
+        'action': Action.FIND_CLICK,
+        'params': [20, By.LINK_TEXT, LNK_TXT_APP_ADD],
+    },
+    {
+        'display': 'Type in app name...',
+        'action': Action.FIND_SEND_KEY,
+        'params': [20, By.ID, APP_ID_NAME, APP_ID_NAME_VAL],
+    },
     {
         'display': 'Type in redirect URI...',
         'action': Action.FIND_SEND_KEY,
@@ -2001,7 +2018,11 @@ SEQ_ADD_APPS = [
         'action': Action.FIND_CLICK,
         'params': [30, By.CSS_SELECTOR, APP_CSS_CLASS_DEMO_YES],
     },
-    {'display': 'Check term of service check box (Yes)...', 'action': Action.FIND_CLICK, 'params': [30, By.ID, APP_ID_AGREE]},
+    {
+        'display': 'Check term of service check box (Yes)...',
+        'action': Action.FIND_CLICK,
+        'params': [30, By.ID, APP_ID_AGREE],
+    },
     {
         'display': "Click 'Save Application' button...",
         'action': Action.FIND_CLICK,
@@ -2062,7 +2083,11 @@ SEQ_UPD_APPS = [
         'action': Action.FIND_CLICK,
         'params': [20, By.CSS_SELECTOR, APP_CSS_SELECTOR_EDIT_APP],
     },
-    {'display': 'Type in app name changed...', 'action': Action.FIND_SEND_KEY, 'params': [30, By.ID, APP_ID_NAME, '_UPDATED']},
+    {
+        'display': 'Type in app name changed...',
+        'action': Action.FIND_SEND_KEY,
+        'params': [30, By.ID, APP_ID_NAME, '_UPDATED'],
+    },
     {
         'display': "Click 'Save Application' button...",
         'action': Action.FIND_CLICK,
