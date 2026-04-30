@@ -104,8 +104,8 @@ launch_blue_button () {
                 hhs_oauth_server.wsgi:application \
                 --worker-tmp-dir /tmp/gunicorn \
                 --bind 0.0.0.0:${GUNICORN_PORT} \
-                --workers ${GUNICORN_WORKERS} \
-                --timeout ${GUNICORN_TIMEOUT} \
+                --workers 1 \
+                --timeout 0 \
                 --reload \
                 --log-level debug
             RESULT=$?
@@ -115,8 +115,8 @@ launch_blue_button () {
                 hhs_oauth_server.wsgi:application \
                 --worker-tmp-dir /tmp/gunicorn \
                 --bind 0.0.0.0:${GUNICORN_PORT} \
-                --workers ${GUNICORN_WORKERS} \
-                --timeout ${GUNICORN_TIMEOUT} \
+                --workers 1 \
+                --timeout 0 \
                 --reload \
                 --log-level debug
             RESULT=$?
