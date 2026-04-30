@@ -3,7 +3,7 @@
 # This script runs inside the selenium docker container, at the moment it only runs locally and sets up a 
 # socat relay, but this should be put behind a conditional if TARGET_ENV is 'local'
 
-source /code/dev-local/utility-functions.bash
+source /code/ops/containers/selenium/utility-functions.bash
 
 echo_msg ""
 echo_msg "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
@@ -43,8 +43,8 @@ else
 fi
 
 if [ "$DEBUG_MODE" = true ]; then
-    DEBUG_CMD="python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client -m "
-    echo_msg "DEBUG MODE ENABLED - Debugger waiting on 0.0.0.0:6789"
+    DEBUG_CMD="python3 -m debugpy --listen 0.0.0.0:7890 --wait-for-client -m "
+    echo_msg "DEBUG MODE ENABLED - Debugger waiting on 0.0.0.0:7890"
 fi
 
 ${DEBUG_CMD}pytest -s --tb=line ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py ${PYTEST_SHOW_TRACE_OPT}

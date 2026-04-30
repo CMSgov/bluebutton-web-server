@@ -3,13 +3,13 @@
 
 all: build-local
 
-build-local:
+build-selenium:
 	@echo "Building Selenium Image"
 	docker build \
 		-t selenium-local:latest \
 		-f Dockerfile.selenium .
 
-run-local:
+run-selenium-local:
 	./run-selenium-local.sh auth=$(auth) debug=$(if $(debug),$(debug),false)
 
 run-remote:

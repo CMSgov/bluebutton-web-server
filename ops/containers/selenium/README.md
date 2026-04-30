@@ -21,7 +21,7 @@ This document describes the selenium test harness for Blue Button
 Vars specific to Selenium:
 
 - `USE_MSLSX` — whether to point at the local MSLS mock or the live SLSx endpoints
-- `DEBUG_MODE` — when `true`, `start-selenium.sh` enables the Python debug server (`debugpy`) and waits for an attach on port `6789`
+- `DEBUG_MODE` — when `true`, `start-selenium.sh` enables the Python debug server (`debugpy`) and waits for an attach on port `7890`
 - `TARGET_ENV` — `dev` for local runs, change this
 
 ---
@@ -42,7 +42,7 @@ If running locally, the selenium container starts a socat proxy that listens on 
 
 This is done because locally, we are running on `localhost:8000` and our redirects from SLSx are also to `localhost:8000`, so we need to map `localhost:8000` -> `host.docker.internal:8000` so that selenium can be debugged. I tried setting it to network_mode: host, which allows it to see `localhost:8000` as if it were the host, but prevents debugging.
 
-If `DEBUG_MODE` is `true`, the pytest script runs a debugpy and listens on port `6789`, This is reachable in your VSCode instance via `0.0.0.0:6789`
+If `DEBUG_MODE` is `true`, the pytest script runs a debugpy and listens on port `7890`, This is reachable in your VSCode instance via `0.0.0.0:7890`
 
 ---
 
@@ -58,7 +58,7 @@ All of these should be run via the Makefile in `dev-local`
 
   make run-selenium auth=live debug=false
 
-- Run with debugger attached (waits for debugger connect on 6789):
+- Run with debugger attached (waits for debugger connect on 7890):
 
   make run-selenium auth=live debug=true
 

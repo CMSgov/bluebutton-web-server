@@ -10,8 +10,11 @@ run-local:
 exec-web:
 	cd ops/containers ; make exec-web ; cd ../..
 
+build-selenium:
+	cd ops/containers ; make build-selenium ; cd ../..
+
 run-selenium:
-	cd ops/containers ; make run-selenium ; cd ../..
+	cd ops/containers ; make run-selenium-local ; cd ../..
 
 reqs-install:
 	pip install -r requirements/requirements.txt
