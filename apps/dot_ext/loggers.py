@@ -271,7 +271,7 @@ def update_session_auth_flow_trace_from_state(request, state):
 
     CALLED FROM:  apps.mymedicare_cb.views.authenticate()
     """
-    # Retreive auth flow session values using previous state in AuthFlowUuid.
+    # Retrieve auth flow session values using previous state in AuthFlowUuid.
     try:
         if state and len(state.strip()) != 0:
             auth_flow_uuid = AuthFlowUuid.objects.get(state=state)

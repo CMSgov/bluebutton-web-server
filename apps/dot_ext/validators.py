@@ -39,7 +39,7 @@ def validate_notags(value):
         raise ValidationError(_('The text contains HTML tags. Please use plain-text only!'))
 
 
-# Validate the applciation logo imagefield in form clean
+# Validate the application logo imagefield in form clean
 def validate_logo_image(value):
     file_extension = ospath.splitext(value.name)[1]
     if file_extension.lower() not in ['.jpg', '.jpeg', '.png']:

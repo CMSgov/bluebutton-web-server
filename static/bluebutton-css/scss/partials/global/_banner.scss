@@ -132,7 +132,7 @@ $banner-sandbox-gradient-accent: #9e8ff3;
   // Color override when banner is in use for the Sandbox
   .sandbox-solid {
     background: $banner-sandbox-solid;
-    // Padding specificaly for the static site (overwritten below)
+    // Padding specifically for the static site (overwritten below)
     @media #{$large-desktop, $macbook-pro, $desktop, $tablet, $phone, $small-phone} {
       padding-left: 5% !important;
     }

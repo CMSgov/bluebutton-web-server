@@ -57,4 +57,5 @@ typing_extensions == 4.15.0
 usaddress == 0.5.16
 urllib3 == 2.6.3
 voluptuous == 0.13.1
+watchtower == 3.4.0
 zipp == 3.19.2
