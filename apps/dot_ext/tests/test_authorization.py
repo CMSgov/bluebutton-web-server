@@ -15,6 +15,7 @@ from unittest.mock import patch, MagicMock
 from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 from waffle.testutils import override_switch
+from apps.dot_ext.constants import APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE, CLIENT_CREDENTIALS_TYPE
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.constants import CODE_CHALLENGE_METHOD_S256
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
@@ -30,7 +31,7 @@ AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
 
 
-class TestAuthorizeWithCustomScheme(BaseApiTest):
+class TestAuthorizationView(BaseApiTest):
     def _create_authorization_header(self, client_id, client_secret):
         return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
@@ -1575,3 +1576,70 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
                 self.assertEqual(response.status_code, HTTPStatus.FOUND)
                 self.assertTrue(response.url.startswith('/mymedicare/login'))
+
+    @override_switch('v3_endpoints', active=True)
+    def test_fail_when_app_only_allowed_client_credentials(self):
+        """
+        The authorization view should fail when an app is only allowed to use the
+        client credentials flow.
+
+        This means that a user going through an authorization code flow when the
+        app is not allowed it will get an error before being shown the medicare.gov login page.
+        """
+        redirect_uri = 'com.custom.bluebutton://example.it'
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri,
+        )
+        application.allowed_auth_type = CLIENT_CREDENTIALS_TYPE
+        application.jwks_uri = 'https://example.it'
+        application.scope.add(capability_a)
+        application.save()
+
+        # TODO same as above, is this necessary?
+        # request = HttpRequest()
+        # self.client.login(request=request, username='anna', password='123456')
+
+        # TODO move to constant?
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+
+        # TODO pytest.mark.parameterize
+        for method in ['get', 'post']:
+            for version in Versions.supported_versions():
+                print(method, version)
+                payload = {
+                    'client_id': application.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': redirect_uri,
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                }
+                # TODO same as above, first request might not be necessary
+                response = (getattr(self.client, method))(f'/v{version}/o/authorize', data=payload)
+                payload = {
+                    'client_id': application.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': redirect_uri,
+                    'scope': ['capability-a'],
+                    'expires_in': 86400,
+                    'allow': True,
+                    'state': '0123456789abcdef',
+                    'code_challenge': code_challenge,
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                }
+                response = (getattr(self.client, method))(response['Location'], data=payload)
+
+                self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+                self.assertJSONEqual(
+                    response.content,
+                    {
+                        'status_code': 403,
+                        'message': APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
+                            application.name
+                        ),
+                    },
+                )
