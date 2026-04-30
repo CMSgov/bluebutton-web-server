@@ -515,7 +515,11 @@ def archive_token(sender, instance=None, **kwargs):
     )
 
 
-class AuthFlowUuid(models.Model):
+# Make an abstract class that both versions inherit from, because just using normal
+# inheritance would have Django create links in the database between them, which is
+# not what we want.
+# See https://docs.djangoproject.com/en/6.0/topics/db/models/#model-inheritance
+class AbstractAuthFlowUuid(models.Model):
     """
     An instance used to persist the beneficiary authorization flow
     auth_uuid across the auth flow when there are breaks in the
@@ -555,8 +559,15 @@ class AuthFlowUuid(models.Model):
     def __str__(self):
         return str(self.auth_uuid)
 
+    class Meta:
+        abstract = True
 
-class AuthFlowUuidCopy(AuthFlowUuid):
+
+class AuthFlowUuid(AbstractAuthFlowUuid):
+    pass
+
+
+class AuthFlowUuidCopy(AbstractAuthFlowUuid):
     pass
 
 
