@@ -35,7 +35,7 @@ def screenshot_on_exception(func):
                     print(f'Current URL: {webdriver.current_url}')
                     print(f'Page Title: {webdriver.title}')
 
-                    test_folder = os.path.join('ops/container/selenium/dump', func.__name__)
+                    test_folder = os.path.join('ops/containers/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
 
                     # screenshot of failed page
