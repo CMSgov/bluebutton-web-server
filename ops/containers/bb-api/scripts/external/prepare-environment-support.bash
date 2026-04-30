@@ -85,7 +85,7 @@ load_env_vars () {
         export DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
         export DJANGO_SECRET_KEY=$(openssl rand -hex 32)
         export DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"
-        export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.dev}"
+        export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.base}"
         export DJANGO_USER_ID_ITERATIONS="${DJANGO_USER_ID_ITERATIONS:-2}"
         export DJANGO_USER_ID_SALT="${DJANGO_USER_ID_SALT:-6E6F747468657265616C706570706572}"
         export FHIR_URL_SBX="${FHIR_URL_SBX:-https://prod-sbx.fhir.bfd.cmscloud.local}"
@@ -96,7 +96,6 @@ load_env_vars () {
         export POSTGRES_DB="${POSTGRES_DB:-bluebutton}"
         export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-toor}"
         export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-        export RUN_INTEGRATION_TEST="${RUN_INTEGRATION_TEST:-true}"
         export RUNNING_IN_LOCAL_STACK="${RUNNING_IN_LOCAL_STACK:-true}"
         export SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"

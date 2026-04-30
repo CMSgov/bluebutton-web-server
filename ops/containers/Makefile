@@ -17,6 +17,9 @@ build-local: css requirements
 	cd mslsx ; make build-local
 	cd bb-api ; make build-local
 
+build-local-no-cache:
+	cd bb-api ; make build-local-no-cache
+
 # This is speculative; not yet tested in production.
 build-production:
 	echo "build"

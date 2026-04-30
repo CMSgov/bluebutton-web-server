@@ -14,6 +14,17 @@ build-local:
 		-f Dockerfile \
 		../../..
 
+build-local-no-cache:
+	echo "build-local no-cache"
+	TARGET_ENV="local" \
+	docker build \
+		--build-arg RELEASE_TAG="local" \
+		--build-arg BUILD_TARGET="local" \
+		--no-cache \
+		-t bb-api:latest \
+		-f Dockerfile \
+		../../..
+
 # FIXME: This is not yet really tested.
 build-production:
 	echo "build"

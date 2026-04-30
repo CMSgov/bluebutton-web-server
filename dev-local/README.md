@@ -118,7 +118,6 @@ At the top of the file are variables that a developer may want to fiddle with. S
 
 * BB20_ENABLE_REMOTE_DEBUG=true
 * BB20_REMOTE_DEBUG_WAIT_ATTACH=false
-* RUN_INTEGRATION_TEST=true
 
 These variables control the debugger and whether we run tests that require a live connection to BFD in `TEST` and `SBX` environments. The latter is defaulted to `true` to ensure test coverage completeness when developing locally. The local dev tools help automate the process of testing against the online `test` and `sbx` environments.
 

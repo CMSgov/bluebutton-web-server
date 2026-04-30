@@ -8,10 +8,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 SECRET_KEY = 'test-secret-key-this-is-not-real'
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-# This needs to be set by the environment to run integratin tests in the container
-RUN_INTEGRATION_TEST = False
-if os.getenv('RUN_INTEGRATION_TEST', 'false') in ['true', 'True']:
-    RUN_INTEGRATION_TEST = True
 
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps

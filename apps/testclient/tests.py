@@ -1,8 +1,6 @@
 import json
 import os
-from unittest import skipIf
 
-from django.conf import settings
 from django.core.management import call_command
 from django.http import HttpRequest
 from django.test import TestCase, tag
@@ -164,7 +162,6 @@ class BlueButtonClientApiUserInfoTest(TestCase):
 
 
 @tag('integration')
-@skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
 class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
@@ -429,7 +426,6 @@ class BlueButtonClientApiFhirTest(TestCase):
 
 
 @tag('integration')
-@skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
 class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints

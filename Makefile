@@ -1,6 +1,9 @@
 build-local:
 	cd ops/containers ; make build-local ; cd ../..
 
+build-local-no-cache:
+	cd ops/containers ; make build-local-no-cache ; cd ../..
+
 run-local:
 	cd ops/containers ; make run-local ; cd ../..
 
