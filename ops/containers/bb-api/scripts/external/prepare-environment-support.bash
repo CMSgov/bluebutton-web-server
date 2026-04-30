@@ -96,7 +96,7 @@ load_env_vars () {
         export POSTGRES_DB="${POSTGRES_DB:-bluebutton}"
         export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-toor}"
         export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-        export RUN_ONLINE_TESTS="${RUN_ONLINE_TESTS:-true}"
+        export RUN_INTEGRATION_TEST="${RUN_INTEGRATION_TEST:-true}"
         export RUNNING_IN_LOCAL_STACK="${RUNNING_IN_LOCAL_STACK:-true}"
         export SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"

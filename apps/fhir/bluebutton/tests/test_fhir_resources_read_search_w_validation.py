@@ -673,7 +673,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
             self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, that the _source=NCH parameter
@@ -697,7 +697,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_not_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, and a _tag parameter is being passed,
