@@ -104,11 +104,4 @@ runs:
         role-to-assume: arn:aws:iam::${{ steps.account.outputs.account }}:role/delegatedadmin/developer/bb-${{ steps.role-env.outputs.env }}-github-actions
         aws-region: us-east-1
 
-    - name: Mask caller identity
-      shell: bash
-      run: |
-        IDENTITY=$(aws sts get-caller-identity --output json 2>/dev/null || echo "{}")
-        ROLE_ID=$(echo "$IDENTITY" | jq -r '.UserId // ""' | cut -d: -f1)
-        ACCOUNT=$(echo "$IDENTITY" | jq -r '.Account // ""')
-        [[ -n "$ROLE_ID" ]] && echo "::add-mask::${ROLE_ID}"
-        [[ -n "$ACCOUNT" ]] && echo "::add-mask::${ACCOUNT}"
+
