@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 from django.core.serializers.json import DjangoJSONEncoder
@@ -56,6 +56,8 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     beneficiary_app_pair_counts = get_beneficiary_grant_app_pair_counts()
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
+
+    prior_day = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
 
     log_dict = {
         'type': 'global_state_metrics',
@@ -242,7 +244,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
 
     if its_log_flag:
         for metric in GLOBAL_METRICS:
-            ping_api([], '0', metric)
+            ping_api([], '0', metric, prior_day)
 
         for key in log_dict.keys():
             val_to_post = log_dict[key]
@@ -251,7 +253,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
                 val_to_post = str(val_to_post)
             # ping_api([key], val_to_post, 'global')
             # ping_api([], val_to_post, 'total_' + key, 'global_state_metrics')
-            ping_api([], val_to_post, 'total_' + key)
+            ping_api([], val_to_post, 'total_' + key, prior_day)
 
     if report_flag:
         print('---')
@@ -334,7 +336,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             # post all metrics for all apps to ensure we have data populated for each app, each day
             for metric in APP_LEVEL_METRICS:
                 tag = [str(app.id), app.name]
-                ping_api(tag, '0', metric)
+                ping_api(tag, '0', metric, prior_day)
 
             for key in log_dict.keys():
                 tag = [str(app.id), app.name]
@@ -343,11 +345,11 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
                 if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
                     val_to_post = str(val_to_post)
 
-                ping_api(tag, val_to_post, 'app_' + key)
+                ping_api(tag, val_to_post, 'app_' + key, prior_day)
     if its_log_flag:
-        ping_api([], str(active_apps_w_gt_25_real_benes), 'app_active_bene_cnt_gt25')
-        ping_api([], str(active_apps_w_lt_25_real_benes), 'app_active_bene_cnt_le25')
-        ping_api([], str(active_apps), 'active_apps')
+        ping_api([], str(active_apps_w_gt_25_real_benes), 'app_active_bene_cnt_gt25', prior_day)
+        ping_api([], str(active_apps_w_lt_25_real_benes), 'app_active_bene_cnt_le25', prior_day)
+        ping_api([], str(active_apps), 'active_apps', prior_day)
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
@@ -363,13 +365,13 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
         print('SUCCESS')
 
 
-def ping_api(tags, value, operation):
+def ping_api(tags, value, operation, date):
     test = {
         'tags': tags,
         'count': 1,
         'value': value,
         'operation': operation,
-        'date': 'today',
+        'date': date,
     }
     print('posting: ', test)
     try:
@@ -381,7 +383,7 @@ def ping_api(tags, value, operation):
                 'count': 1,
                 'value': value,
                 'operation': operation,
-                'date': 'today',
+                'date': date,
             },
             timeout=2,
         )
