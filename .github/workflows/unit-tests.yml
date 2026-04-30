@@ -13,6 +13,10 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
+            - name: Run Ruff Linter
+              run: |
+                ruff check
+
             - name: Install python dependencies
               run: |
                 python3 -m venv venv
