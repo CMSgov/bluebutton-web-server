@@ -13,16 +13,16 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Run Ruff Linter
-              run: |
-                ruff check
-
             - name: Install python dependencies
               run: |
                 python3 -m venv venv
                 source venv/bin/activate
                 python3 -m pip install --upgrade pip setuptools wheel
                 pip install -r requirements/requirements.dev.txt --no-deps --prefer-binary --require-hashes
+
+            - name: Run Ruff Linter
+              run: |
+                ruff check
 
             - name: Run unit tests
               run: |
