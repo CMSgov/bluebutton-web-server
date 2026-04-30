@@ -78,8 +78,10 @@ jobs:
           mask-password: true
 
       - name: Mask ECR registry (Test)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr-test.outputs.registry }}
         run: |
-          echo "::add-mask::${{ steps.login-ecr-test.outputs.registry }}"
+          echo "::add-mask::${ECR_REGISTRY}"
 
       - name: Check for Prod Configuration
         id: check_prod
@@ -109,8 +111,10 @@ jobs:
 
       - name: Mask ECR registry (Prod)
         if: steps.check_prod.outputs.has_prod == 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr-prod.outputs.registry }}
         run: |
-          echo "::add-mask::${{ steps.login-ecr-prod.outputs.registry }}"
+          echo "::add-mask::${ECR_REGISTRY}"
 
       - name: Prepare Image Tags
         id: prep_tags
