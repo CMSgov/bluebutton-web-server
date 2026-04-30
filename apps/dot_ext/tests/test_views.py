@@ -39,7 +39,7 @@ class TestApplicationRegistrationView(BaseApiTest):
         """
         capability_a = self._create_capability('Capability A', [], default=True)
         capability_b = self._create_capability('Capability B', [], default=True)
-        capability_c = self._create_capability('Capability C', [], default=False)
+        self._create_capability('Capability C', [], default=False)
 
         self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
