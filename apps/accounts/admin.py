@@ -2,7 +2,6 @@ from datetime import datetime
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from django_filters import fields
 
 from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, USER_TYPE_DEV
 
@@ -39,7 +38,11 @@ class ActiveAccountFilter(admin.SimpleListFilter):
     parameter_name = 'status'
 
     def lookups(self, request, model_admin):
-        return [('active', 'Active'), ('inactive_all', 'Inactive'), ('inactive_expired', 'Inactive (expired activation key)')]
+        return [
+            ('active', 'Active'),
+            ('inactive_all', 'Inactive'),
+            ('inactive_expired', 'Inactive (expired activation key)'),
+        ]
 
     def queryset(self, request, queryset):
         if self.value() == 'inactive_expired':
