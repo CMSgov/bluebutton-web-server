@@ -1,39 +1,37 @@
-import random
-import urllib.request as urllib_request
 import os
-import requests
+import random
 import time
+import urllib.request as urllib_request
+from http import HTTPStatus
 from urllib.parse import parse_qs, unquote, urlsplit, urlunsplit
 
-
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from apps.versions import Versions
 
 from apps.dot_ext.loggers import (
     clear_session_auth_flow_trace,
     set_session_auth_flow_trace_value,
-    update_session_auth_flow_trace_from_state,
     update_instance_auth_flow_trace_with_state,
+    update_session_auth_flow_trace_from_state,
 )
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.constants import (
     BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException,
-    BBMyMedicareCallbackCrosswalkUpdateException,
     BBMyMedicareCallbackCrosswalkCreateException,
+    BBMyMedicareCallbackCrosswalkUpdateException,
     MedicareCallbackExceptionType,
 )
 from apps.mymedicare_cb.models import AnonUserState, get_and_update_user_from_initial_auth
-
-from http import HTTPStatus
+from apps.versions import Versions
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
 
