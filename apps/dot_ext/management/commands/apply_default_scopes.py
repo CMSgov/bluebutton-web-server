@@ -33,7 +33,5 @@ class Command(BaseCommand):
                 app.scope.remove(*demographic_scopes)
             else: # True or None
                 app.scope.add(*default_scopes)
-            # TODO is the save call necessary?
-            app.save()
 
         self.stdout.write('Done.')
