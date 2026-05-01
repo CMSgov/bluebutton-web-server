@@ -6,7 +6,9 @@ from apps.dot_ext.models import Application
 
 
 class Command(BaseCommand):
-    help = 'Ensure all apps have default scopes.'
+    help = ('Ensure all apps have the appropriate default scopes. When '
+            'require_demographic_scopes is False for an app, remove any demographic '
+            'scopes set for that app.')
 
     def _display_scopes(self, scopes, label):
         self.stdout.write(label)
@@ -24,7 +26,7 @@ class Command(BaseCommand):
         self._display_scopes(default_scopes, 'Default scopes:')
         self._display_scopes(demographic_scopes, 'Demographic scopes:')
 
-        self.stdout.write('Applying to all apps.')
+        self.stdout.write('Applying changes to all apps.')
 
         for app in Application.objects.all():
             # TODO is there a way to only update those that need updating?
