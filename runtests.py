@@ -9,6 +9,9 @@ import django
 from django.conf import settings
 from django.test.utils import get_runner
 
+### TODO
+### This should be deleted after we stop the Jenkins PR check job in favor of the GHA
+
 """
     Reference: https://docs.djangoproject.com/en/3.0/topics/testing/advanced/#defining-a-test-runner
 

@@ -105,6 +105,7 @@ launch_blue_button () {
                 --worker-tmp-dir /tmp/gunicorn \
                 --bind 0.0.0.0:${GUNICORN_PORT} \
                 --workers 1 \
+                --threads 4 \
                 --timeout 0 \
                 --reload \
                 --log-level debug
@@ -116,6 +117,7 @@ launch_blue_button () {
                 --worker-tmp-dir /tmp/gunicorn \
                 --bind 0.0.0.0:${GUNICORN_PORT} \
                 --workers 1 \
+                --threads 4 \
                 --timeout 0 \
                 --reload \
                 --log-level debug
