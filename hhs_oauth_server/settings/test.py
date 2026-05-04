@@ -26,6 +26,7 @@ OAUTH2_PROVIDER = {
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
     'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
+    'APPLICATION_ADMIN_CLASS': 'apps.dot_ext.admin_overrides.AnotherApplicationAdmin',
 }
 
 CACHES = {
