@@ -143,6 +143,18 @@ Setup your local venv (or whatever flavor of local python environment) and insta
 3. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
 4. Run `python manage.py test --exlucde=integration` or `make unit-test`
 
+### debugging
+
+To debug, modify the command above from step 4 to be:
+
+`python -m debugpy debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test`
+
+### specific tests
+
+To target a specific test, add the full class path of the test /after/ `test` in the manage.py command. For example:
+
+`python debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test apps.dot_ext.tests.test_scopes.TestScopesBackendClass.test_get_available_scopes`
+
 ## integration testing
 
 You'll need to exec into your running instance of bb-api to do this
