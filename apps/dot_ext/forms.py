@@ -9,9 +9,9 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.constants import PRINTABLE_SPECIAL_ASCII
+from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, PRINTABLE_SPECIAL_ASCII
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.models import Application, InternalApplicationLabels, get_default_scopes
+from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
 from django.contrib.auth.models import Group, User
 from django.forms.widgets import URLInput
@@ -186,7 +186,19 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
         app.save()
-        app.scope.add(*get_default_scopes())
+
+        # TODO apply any changes made in management command here too
+        # TODO refactor out?
+        default_scopes = ProtectedCapability.objects.filter(default__exact=True)
+        demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
+        default_non_demographic = default_scopes.difference(demographic_scopes)
+
+        if app.require_demographic_scopes is False:
+            app.scope.add(*default_non_demographic)
+            app.scope.remove(*demographic_scopes)
+        else:  # True or None
+            app.scope.add(*default_scopes)
+
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
             app.logo_uri = uri

@@ -65,10 +65,6 @@ class InternalApplicationLabelsProxy(InternalApplicationLabels):
         verbose_name_plural = 'Internal Categories'
 
 
-def get_default_scopes():
-    return ProtectedCapability.objects.filter(default=True)
-
-
 class Application(AbstractApplication):
     scope = models.ManyToManyField(ProtectedCapability)
 
