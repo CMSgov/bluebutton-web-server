@@ -132,3 +132,24 @@ We have access to `/tmp` locally and in production. That space is used for writi
     |-- tmp
     `-- uwsgi_params -> /etc/nginx/uwsgi_params
 ```
+
+# testing
+## unit testing
+
+Setup your local venv (or whatever flavor of local python environment) and install the dev dependencies
+
+1. Build requirements `make generate`
+2. Activate your environment
+3. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
+4. Run `python manage.py test --exlucde=integration` or `make unit-test`
+
+## integration testing
+
+You'll need to exec into your running instance of bb-api to do this
+
+1. Exec into bb-api
+2. Run `python manage.py test --tag=integration`
+
+## selenium testing
+
+For this, check the selenium/ subfolder

@@ -25,9 +25,6 @@ reqs-install-dev:
 generate generate-requirements:
 	cd ops/containers ; make requirements ; cd ../..
 
-generate-dev generate-reqs-dev:
-	cd ops/containers ; make requirements-dev ; cd ../..
-
 retrieve-certs:
 	cd ops/containers ; make retrieve-certs ; cd ../..
 
@@ -36,3 +33,6 @@ migrate:
 
 collectstatic:
 	cd ops/containers ; make collectstatic ; cd ../..
+
+unit-test:
+	python manage.py test --exclude=integration
