@@ -135,23 +135,27 @@ We have access to `/tmp` locally and in production. That space is used for writi
 
 # testing
 
+## unit testing
+
+Unit testing will be ran outside a container.
+
 ### prerequisites:
 
-1. pip install pip==25.3
-2. pip install pip-tools setuptools
+1. Ensure you have python 3.12 installed locally
+2. pip install pip==25.3
+3. pip install pip-tools setuptools
 
-## unit testing
+### running unit tests
 
 Setup your local venv (or whatever flavor of local python environment) and install the dev dependencies
 
-1. Build requirements `make generate`
-2. Activate your environment
-3. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
-4. Run `python manage.py test --exclude=integration` or `make unit-test`
+1. Activate your environment
+2. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
+3. Run `python manage.py test --exclude=integration` or `make unit-test`
 
 ### debugging - unit
 
-To debug, modify the command above from step 4 to be:
+To debug, modify the command above from step 3 to be:
 
 `python -m debugpy debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test`
 
