@@ -36,3 +36,6 @@ collectstatic:
 
 unit-test:
 	python manage.py test --exclude=integration
+
+integration-test:
+	python manage.py test --tag=integration

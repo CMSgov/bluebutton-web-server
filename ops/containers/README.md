@@ -134,6 +134,12 @@ We have access to `/tmp` locally and in production. That space is used for writi
 ```
 
 # testing
+
+### prerequisites:
+
+1. pip install pip==25.3
+2. pip install pip-tools setuptools
+
 ## unit testing
 
 Setup your local venv (or whatever flavor of local python environment) and install the dev dependencies
@@ -141,26 +147,34 @@ Setup your local venv (or whatever flavor of local python environment) and insta
 1. Build requirements `make generate`
 2. Activate your environment
 3. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
-4. Run `python manage.py test --exlucde=integration` or `make unit-test`
+4. Run `python manage.py test --exclude=integration` or `make unit-test`
 
-### debugging
+### debugging - unit
 
 To debug, modify the command above from step 4 to be:
 
 `python -m debugpy debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test`
 
-### specific tests
+### specific tests - unit
 
 To target a specific test, add the full class path of the test /after/ `test` in the manage.py command. For example:
 
-`python debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test apps.dot_ext.tests.test_scopes.TestScopesBackendClass.test_get_available_scopes`
+`python -m debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test apps.dot_ext.tests.test_scopes.TestScopesBackendClass.test_get_available_scopes`
 
 ## integration testing
 
 You'll need to exec into your running instance of bb-api to do this
 
 1. Exec into bb-api
-2. Run `python manage.py test --tag=integration`
+2. Run `python manage.py test --tag=integration` or `make integration-test`
+
+### debugging - integration
+
+Same as unit tests
+
+### specific tests - integration
+
+Same as unit tests
 
 ## selenium testing
 
