@@ -6,7 +6,7 @@ This document describes the selenium test harness for Blue Button
 
 ## Overview
 
-- Selenium tests are run inside a Docker image (`selenium-local:latest`) defined in `dev-local/selenium/Dockerfile.selenium`.
+- Selenium tests are run inside a Docker image (`selenium-local:latest`) defined in `ops/containers/selenium/Dockerfile.selenium`.
 - The compose file `ops/containers/selenium/docker-compose-selenium.yaml` starts two services:
   - `selenium-tests` — Django app / Selenium instance / do-it-all
   - `chrome` — a standalone Chrome instance for hitting local and remote
