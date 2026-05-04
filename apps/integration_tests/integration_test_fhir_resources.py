@@ -167,6 +167,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
             self.assertTrue(is_matched, 'Unexpected resource id prefix encountered, id={}'.format(rs_id))
 
+    @tag('integration')
     def test_health_endpoint(self):
         client = APIClient()
         # no authenticate needed
@@ -260,10 +261,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     #         self.assertEqual(msg, "all's well")
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_userinfo_endpoint(self):
         self._call_userinfo_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_userinfo_endpoint_v2(self):
         self._call_userinfo_endpoint(True)
 
@@ -288,10 +291,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(validate_json_schema(USERINFO_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_fhir_meta_endpoint(self):
         self._call_fhir_meta_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_fhir_meta_endpoint_v2(self):
         self._call_fhir_meta_endpoint(True)
 
@@ -321,6 +326,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(validate_json_schema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_patient_endpoint(self):
         """
         test patient read and search v1
@@ -328,6 +334,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_patient_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_patient_endpoint_v2(self):
         """
         test patient read and search v2
@@ -377,6 +384,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_endpoint(self):
         """
         Search and read Coverage v1
@@ -384,6 +392,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_coverage_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_endpoint_v2(self):
         """
         Search and read Coverage v2
@@ -421,6 +430,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_search_endpoint(self):
         """
         Search Coverage v1, navigate pages and collect stats
@@ -428,6 +438,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_coverage_search_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_search_endpoint_v2(self):
         """
         Search Coverage v2, navigate pages and collect stats
@@ -502,6 +513,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_eob_search_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_search_endpoint_v2(self):
         """
         Search EOB v2, navigate pages and collect stats of different types of claims
@@ -557,6 +569,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(resource_stats['outpatient'], expected_resource_stats['outpatient'])
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_profiles_endpoint(self):
         client = APIClient()
 
@@ -635,6 +648,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(resource_stats['hospice'], expected_resource_stats['hospice'])
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint(self):
         """
         Search and read EOB v1
@@ -642,6 +656,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_eob_endpoint(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_v2(self):
         """
         Search and read EOB v2
@@ -693,6 +708,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_pde(self):
         """
         EOB pde (pharmacy) profile v1
@@ -700,6 +716,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_eob_endpoint_pde(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_pde_v2(self):
         """
         EOB pde (pharmacy) profile v2
@@ -721,10 +738,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PHARMACY'], v2)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_inpatient(self):
         self._call_eob_endpoint_inpatient(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_inpatient_v2(self):
         self._call_eob_endpoint_inpatient(True)
 
@@ -751,10 +770,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         return total_page
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_outpatient(self):
         self._call_eob_endpoint_outpatient(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_outpatient_v2(self):
         self._call_eob_endpoint_outpatient(True)
 
@@ -775,10 +796,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_err_response_caused_by_illegalarguments(self):
         self._err_response_caused_by_illegalarguments(False)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_err_response_caused_by_illegalarguments_v2(self):
         self._err_response_caused_by_illegalarguments(True)
 
@@ -792,6 +815,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 400)
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_patient_read_endpoint_v3_403(self):
         """
         test patient read v3 throwing a 403 when an app is not in the flag
@@ -800,6 +824,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, False, None)
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_coverage_read_endpoint_v3_403(self):
         """
         test coverage read v3 throwing a 403 when an app is not in the flag
@@ -808,6 +833,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', False, None)
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_eob_read_endpoint_v3_403(self):
         """
         test eob read v3 throwing a 403 when an app is not in the flag
@@ -816,6 +842,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, 'outpatient--9999999999999', False, None)
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_patient_search_endpoint_v3_403(self):
         """
         test patient search v3 throwing a 403 when an app is not in the flag
@@ -824,6 +851,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_coverage_search_endpoint_v3_403(self):
         """
         test coverage search v3 throwing a 403 when an app is not in the flag
@@ -832,6 +860,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_eob_search_endpoint_v3_403(self):
         """
         test eob search v3 throwing a 403 when an app is not in the flag
@@ -882,6 +911,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         )
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_eob_read_endpoint_v3_400_operation_outcome(self):
         """
         test EOB read v3 throwing a 400 operation outcome when a bad request is made
@@ -895,6 +925,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         )
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_coverage_read_endpoint_v3_400_operation_outcome(self):
         """
         test coverage read v3 throwing a 400 operation outcome when a bad request is made
