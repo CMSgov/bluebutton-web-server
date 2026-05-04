@@ -371,7 +371,8 @@ def ping_api(tags, value, operation, date):
         'count': 1,
         'value': value,
         'operation': operation,
-        'date': date,
+        # TODO: Revert
+        'date': '2026-04-29',
     }
     print('posting: ', test)
     try:
@@ -383,7 +384,8 @@ def ping_api(tags, value, operation, date):
                 'count': 1,
                 'value': value,
                 'operation': operation,
-                'date': date,
+                # TODO: Revert
+                'date': '2026-04-29',
             },
             timeout=2,
         )

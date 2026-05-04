@@ -1051,4 +1051,10 @@ GLOBAL_METRICS = [
     'app_all',
 ]
 
-APP_NAMES_TO_IGNORE = ['TestApp', 'BlueButton Client (Test - Internal Use Only)', 'MyMedicare PROD', 'new-relic']
+APP_NAMES_TO_IGNORE = [
+    'TestApp',
+    'BlueButton Client (Test - Internal Use Only)',
+    'MyMedicare PROD',
+    'new-relic',
+    'testing scopes fun',
+]
