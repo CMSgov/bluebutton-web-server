@@ -14,7 +14,7 @@ build-selenium:
 	cd ops/containers ; make build-selenium ; cd ../..
 
 run-selenium:
-	cd ops/containers ; make run-selenium-local ; cd ../..
+	$(MAKE) -C ops/containers run-selenium-target-local
 
 reqs-install:
 	pip install -r requirements/requirements.txt

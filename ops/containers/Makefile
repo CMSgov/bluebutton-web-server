@@ -55,10 +55,9 @@ collectstatic:
 	TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
-run-selenium-local:
+run-selenium-target-local:
 	@echo "Running Selenium: Local"
-	auth="${auth}" \
-	cd selenium && make run-selenium-local 
+	$(MAKE) -C selenium run-selenium-target-local AUTH=$(auth)
 
 build-selenium:
 	@echo "Running Selenium: Local"
