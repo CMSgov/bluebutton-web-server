@@ -155,9 +155,11 @@ Setup your local venv (or whatever flavor of local python environment) and insta
 
 ### debugging - unit
 
-To debug, modify the command above from step 3 to be:
+Make sure you have your launch.json updated - details can be found in `docker-compose.readme.md`. To debug, modify the command above from step 3 to be:
 
-`python -m debugpy debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test`
+`python -m debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test`
+
+After running this in the terminal, navigate to `Run and Debug` extension and run the `Unit Test` play button. You can set breakpoints accordingly in different tests to test functionality and stop at different moments.
 
 ### specific tests - unit
 
