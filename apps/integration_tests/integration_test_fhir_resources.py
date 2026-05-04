@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.management import call_command
+from django.test import tag
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
@@ -482,6 +483,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(resource_stats['part-d'], expected_resource_stats['part-d'])
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_search_endpoint(self):
         """
         Search EOB v1, navigate pages and collect stats of different types of claims
