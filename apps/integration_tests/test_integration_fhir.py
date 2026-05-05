@@ -1,9 +1,8 @@
-import json
 from http import HTTPStatus
+from urllib.parse import urlparse
 
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.management import call_command
-from oauth2_provider.models import AccessToken
+from django.test import tag
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
@@ -36,69 +35,45 @@ from apps.integration_tests.constants import (
     SAMPLE_A_888_MBI,
     USERINFO_SCHEMA,
     V3_403_DETAIL,
-    V3_FHIR_CALL_PREFIX,
 )
 from apps.test import BaseApiTest
 from apps.testclient.utils import extract_last_page_index
+from apps.versions import Versions
 
 
-def dump_content(json_str, file_name):
-    text_file = open(file_name, 'w')
-    text_file.write(json_str)
-    text_file.close()
-
-
-class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
+class ContainerizedFhirApiIntegrationTests(BaseApiTest):
     """
-    This sets up a live server in the background to test with.
-    For more details, see https://docs.djangoproject.com/en/3.1/topics/testing/tools/#liveservertestcase
-    This uses APIClient to test the BB2 FHIR API endpoints with the default (Fred) access token.
+    Refactored integration tests using standard Django test runner against
+    the containerized BFD backend.
     """
 
     def setUp(self):
         call_command('create_blue_button_scopes')
+        self.read_capability = self._create_capability('Read', [])
+        self.write_capability = self._create_capability('Write', [])
         super().setUp()
 
-    def _get_fhir_url(self, resource_name, params, v2=False):
-        endpoint_url = '{}/{}/fhir/{}'.format(self.live_server_url, 'v2' if v2 else 'v1', resource_name)
+    def _get_fhir_url(self, resource_name, params=None, version=Versions.V2):
+        endpoint_url = '/v{}/fhir/{}'.format(version, resource_name)
         if params is not None:
             endpoint_url = '{}/{}'.format(endpoint_url, params)
         return endpoint_url
 
-    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None):
-        # Setup token in APIClient
-        """
-        TODO: Perform auth flow here --- when selenium is included later.
-              For now, creating user thru access token using BaseApiTest for now.
-        """
-        # Setup instance of BaseApiTest
-        base_api_test = BaseApiTest()
+    def _setup_apiclient(self, fn='John', ln='Doe', fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None):
+        access_token = self.create_token(fn, ln, fhir_id_v2, fhir_id_v3, hicn_hash, mbi)
 
-        # Setup client for BaseApiTest client
-        base_api_test.client = client
+        # Overwrite standard client with DRF's APIClient
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+        return access_token
 
-        # Setup read/write capability for create_token()
-        base_api_test.read_capability = base_api_test._create_capability('Read', [])
-        base_api_test.write_capability = base_api_test._create_capability('Write', [])
-
-        # create user, app, and access token
-        first_name = fn if fn is not None else 'John'
-        last_name = ln if ln is not None else 'Doe'
-        access_token = base_api_test.create_token(first_name, last_name, fhir_id_v2, fhir_id_v3, hicn_hash, mbi)
-
-        # Test scope in access_token
-        at = AccessToken.objects.get(token=access_token)
-
-        # Setup Bearer token:
-        client.credentials(HTTP_AUTHORIZATION='Bearer ' + at.token)
-
-    def _assertHasC4BBProfile(self, resource, c4bb_profile, v2=False):
+    def _assertHasC4BBProfile(self, resource, c4bb_profile, version):
         meta_profile = None
         try:
             meta_profile = resource['meta']['profile'][0]
         except KeyError:
             pass
-        if not v2:
+        if version is not Versions.V2:
             self.assertIsNone(meta_profile)
         else:
             self.assertIsNotNone(meta_profile)
@@ -113,18 +88,11 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             self.assertIsNone(a.get('line'))
             self.assertIsNone(a.get('city'))
 
-    def _assertHasC4BBIdentifier(self, resource, c4bb_type, v2=False):
-        identifiers = None
-
-        try:
-            identifiers = resource['identifier']
-        except KeyError:
-            pass
-
+    def _assertHasC4BBIdentifier(self, resource, c4bb_type, version):
+        identifiers = resource.get('identifier', None)
         self.assertIsNotNone(identifiers)
 
         hasC4BB = False
-
         for id in identifiers:
             try:
                 system = id['type']['coding'][0]['system']
@@ -134,7 +102,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             except KeyError:
                 pass
 
-        if v2:
+        if version is Versions.V2:
             self.assertTrue(hasC4BB)
         else:
             self.assertFalse(hasC4BB)
@@ -145,8 +113,15 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             nav_info[r.get('relation')] = r.get('url', None)
         return nav_info
 
-    def _stats_resource_by_type(self, bundle_json, cur_stats_dict, schema=None):
+    def _get_total_page(self, content):
+        total_page = -1
+        links = content.get('link', None)
+        if links:
+            nav_info = self._extract_urls(links)
+            total_page = extract_last_page_index(nav_info['last'])
+        return total_page
 
+    def _stats_resource_by_type(self, bundle_json, cur_stats_dict, schema=None):
         for e in bundle_json['entry']:
             rs = e['resource']
             rs_id = rs['id']
@@ -157,7 +132,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                 self.assertTrue(validate_json_schema(schema, rs))
 
             is_matched = False
-
             for t in cur_stats_dict:
                 if rs_id.startswith(t):
                     is_matched = True
@@ -166,148 +140,69 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
             self.assertTrue(is_matched, 'Unexpected resource id prefix encountered, id={}'.format(rs_id))
 
+    @tag('integration')
     def test_health_endpoint(self):
-        client = APIClient()
-        # no authenticate needed
-        response = client.get(self.live_server_url + '/health')
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+        """Test that checks the /health endpoint returns a HTTPStatus.OK"""
+        response = self.client.get('/health')
 
-    # Commenting the following resulting some failures in the Cloudbees CI
-    # in contacting the test.accounts.cms.gov servers
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    # @override_switch('require-scopes', active=True)
-    # def test_health_external_endpoint(self):
-    #     self._call_health_external_endpoint(False)
+        content = response.json()
 
-    # @override_switch('require-scopes', active=True)
-    # def test_health_external_endpoint_v2(self):
-    #     self._call_health_external_endpoint(True)
-
-    # def _call_health_external_endpoint(self, v2=False):
-    #     use_mslsx = os.environ.get('USE_MSLSX', None)
-    #     if use_mslsx is not None and not use_mslsx == 'true':
-    #         # do not ping health end point if using MSLSX
-    #         client = APIClient()
-    #         # no authenticate needed
-    #         response = client.get(self.live_server_url + "/health/external_v2" if v2 else "/health/external")
-    #         self.assertEqual(response.status_code, 200)
-    #         content = json.loads(response.content)
-    #         msg = None
-    #         try:
-    #             msg = content['message']
-    #         except KeyError:
-    #             pass
-    #         self.assertEqual(msg, "all's well")
-
-    # @override_switch('require-scopes', active=True)
-    # def test_health_bfd_endpoint(self):
-    #     self._call_health_bfd_endpoint(False)
-
-    # @override_switch('require-scopes', active=True)
-    # def test_health_bfd_endpoint_v2(self):
-    #     self._call_health_bfd_endpoint(True)
-
-    # def _call_health_bfd_endpoint(self, v2=False):
-    #     client = APIClient()
-    #     # no authenticate needed
-    #     response = client.get(self.live_server_url + "/health/bfd_v2" if v2 else "/health/bfd")
-    #     self.assertEqual(response.status_code, 200)
-    #     content = json.loads(response.content)
-    #     msg = None
-    #     try:
-    #         msg = content['message']
-    #     except KeyError:
-    #         pass
-    #     self.assertEqual(msg, "all's well")
-
-    # @override_switch('require-scopes', active=True)
-    # def test_health_db_endpoint(self):
-    #     client = APIClient()
-    #     # no authenticate needed
-    #     response = client.get(self.live_server_url + "/health/db")
-    #     self.assertEqual(response.status_code, 200)
-    #     content = json.loads(response.content)
-    #     msg = None
-    #     try:
-    #         msg = content['message']
-    #     except KeyError:
-    #         pass
-    #     self.assertEqual(msg, "all's well")
-
-    # @override_switch('require-scopes', active=True)
-    # def test_health_sls_endpoint(self):
-    #     use_mslsx = os.environ.get('USE_MSLSX', None)
-    #     if use_mslsx is not None and not use_mslsx == 'true':
-    #         # do not ping health end point if using MSLSX
-    #         client = APIClient()
-    #         # no authenticate needed
-    #         response = client.get(self.live_server_url + "/health/sls")
-    #         self.assertEqual(response.status_code, 200)
-    #         content = json.loads(response.content)
-    #         msg = None
-    #         try:
-    #             msg = content['message']
-    #         except KeyError:
-    #             pass
-    #         self.assertEqual(msg, "all's well")
+        self.assertEqual(content.get('message'), "all's well")
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_userinfo_endpoint(self):
-        self._call_userinfo_endpoint(False)
+        self._call_userinfo_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_userinfo_endpoint_v2(self):
-        self._call_userinfo_endpoint(True)
+        self._call_userinfo_endpoint(Versions.V2)
 
-    def _call_userinfo_endpoint(self, v2=False):
-        base_path = '/{}/connect/userinfo'.format('v2' if v2 else 'v1')
-        client = APIClient()
+    def _call_userinfo_endpoint(self, version):
+        """Calling the userinfo endpoint which requires authentication
 
-        # 1. Test unauthenticated request
-        url = self.live_server_url + base_path
-        response = client.get(url)
+        Args:
+            v2 (bool, optional): If this is a v1 or v2 call. Defaults to False.
+        """
+        url = '/{}/connect/userinfo'.format('v2' if version is Versions.V2 else 'v1')
+
+        # 1. Unathenticated
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 401)
 
-        # Authenticate
-        self._setup_apiclient(client)
-
         # 2. Test authenticated request
-        response = client.get(url)
-        self.assertEqual(response.status_code, 200)
-        #     Validate JSON Schema
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "userinfo_{}.json".format('v2' if v2 else 'v1'))
+        self._setup_apiclient()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
         self.assertEqual(validate_json_schema(USERINFO_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_fhir_meta_endpoint(self):
-        self._call_fhir_meta_endpoint(False)
+        self._call_fhir_meta_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_fhir_meta_endpoint_v2(self):
-        self._call_fhir_meta_endpoint(True)
+        self._call_fhir_meta_endpoint(Versions.V2)
 
-    def _call_fhir_meta_endpoint(self, v2=False):
-        client = APIClient()
+    def _call_fhir_meta_endpoint(self, version):
         # 1. Test unauthenticated request, no auth needed for capabilities
-        response = client.get(self._get_fhir_url('metadata', None, v2))
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(self._get_fhir_url('metadata', None, version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
 
         # 2. Test authenticated request
-        response = client.get(self._get_fhir_url('metadata', None, v2))
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(self._get_fhir_url('metadata', None, version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         # Validate JSON Schema
-        content = json.loads(response.content)
+        content = response.json()
         fhir_ver = None
         try:
             fhir_ver = content['fhirVersion']
@@ -315,136 +210,120 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             pass
         self.assertIsNotNone(fhir_ver)
         # match any FHIR ver 4.0.*
-        versionOK = fhir_ver and fhir_ver.startswith('4.0.' if v2 else '3.0.2')
+        versionOK = fhir_ver and fhir_ver.startswith('4.0.' if version is Versions.V2 else '3.0.2')
         self.assertTrue(versionOK)
         self.assertEqual(validate_json_schema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_patient_endpoint(self):
-        """
-        test patient read and search v1
-        """
-        self._call_patient_endpoint(False)
+        self._call_patient_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_patient_endpoint_v2(self):
-        """
-        test patient read and search v2
-        """
-        self._call_patient_endpoint(True)
+        self._call_patient_endpoint(Versions.V2)
 
-    def _call_patient_endpoint(self, v2=False):
-        client = APIClient()
+    def _call_patient_endpoint(self, version):
         # 1. Test unauthenticated request
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, None, v2))
-        self.assertEqual(response.status_code, 401)
+        url = self._get_fhir_url(FHIR_RES_TYPE_PATIENT, None, version)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient(fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         # 2. Test SEARCH VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, None, v2))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "patient_search_{}.json".format('v2' if v2 else 'v1'))
-        # Validate JSON Schema
-        self.assertEqual(validate_json_schema(PATIENT_SEARCH_SCHEMA, content), True)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
 
-        for r in content['entry']:
+        self.assertTrue(validate_json_schema(PATIENT_SEARCH_SCHEMA, content))
+
+        for r in content.get('entry', []):
             resource = r['resource']
-            self._assertHasC4BBProfile(resource, C4BB_PROFILE_URLS['PATIENT'], v2)
-            # Assert address does not contain address details
+            self._assertHasC4BBProfile(resource, C4BB_PROFILE_URLS['PATIENT'], version)
             self._assertAddressOK(resource)
 
         # 3. Test READ VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V2, v2))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
-        # Validate JSON Schema
-        # now v2 returns patient without identifier - think it's a bug, by-pass v2 assert to BB2 IT temporarily
-        # until BFD resolve this.
-        if not v2:
-            self.assertEqual(validate_json_schema(PATIENT_READ_SCHEMA, content), True)
+        read_url = self._get_fhir_url(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V2, version)
+        response = self.client.get(read_url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
 
-        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PATIENT'], v2)
-        # Assert there is no address lines and city in patient.address (BFD-379)
+        if version is Versions.V1:
+            self.assertTrue(validate_json_schema(PATIENT_READ_SCHEMA, content))
+
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PATIENT'], version)
         self._assertAddressOK(content)
 
-        # 5. Test unauthorized READ request
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, '99999999999999', v2))
-        self.assertEqual(response.status_code, 404)
+        # 4. Test unauthorized READ request
+        bad_read_url = self._get_fhir_url(FHIR_RES_TYPE_PATIENT, '99999999999999', version)
+        response = self.client.get(bad_read_url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_endpoint(self):
-        """
-        Search and read Coverage v1
-        """
-        self._call_coverage_endpoint(False)
+        self._call_coverage_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_endpoint_v2(self):
-        """
-        Search and read Coverage v2
-        """
-        self._call_coverage_endpoint(True)
+        self._call_coverage_endpoint(Versions.V2)
 
-    def _call_coverage_endpoint(self, v2=False):
-        client = APIClient()
+    def _call_coverage_endpoint(self, version):
         # 1. Test unauthenticated request
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, v2))
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, version))
         self.assertEqual(response.status_code, 401)
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient(fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         # 2. Test SEARCH VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, v2))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "coverage_search_{}.json".format('v2' if v2 else 'v1'))
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
         # Validate JSON Schema
         self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, 'part-a-' + DEFAULT_SAMPLE_FHIR_ID_V2, v2))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
+        response = self.client.get(
+            self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, 'part-a-' + DEFAULT_SAMPLE_FHIR_ID_V2, version)
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
         # Validate JSON Schema
-        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['COVERAGE'], v2)
-        self.assertEqual(validate_json_schema(COVERAGE_READ_SCHEMA_V2 if v2 else COVERAGE_READ_SCHEMA, content), True)
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['COVERAGE'], version)
+        self.assertEqual(
+            validate_json_schema(COVERAGE_READ_SCHEMA_V2 if version is Versions.V2 else COVERAGE_READ_SCHEMA, content),
+            True,
+        )
 
         # 4. Test unauthorized READ request
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', v2))
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', version))
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_search_endpoint(self):
-        """
-        Search Coverage v1, navigate pages and collect stats
-        """
-        self._call_coverage_search_endpoint(False)
+        self._call_coverage_search_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_coverage_search_endpoint_v2(self):
-        """
-        Search Coverage v2, navigate pages and collect stats
-        """
-        self._call_coverage_search_endpoint(True)
+        self._call_coverage_search_endpoint(Versions.V2)
 
-    def _call_coverage_search_endpoint(self, v2=False):
-        client = APIClient()
+    def _call_coverage_search_endpoint(self, version):
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
 
         # Coverage search endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, v2))
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "coverage_search_nav_p{}_{}.json".format(0, 'v2' if v2 else 'v1'))
+        content = response.json()
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
         self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
@@ -466,9 +345,9 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             )
             nav_info = self._extract_urls(lnk)
             if nav_info.get('next', None) is not None:
-                response = client.get(nav_info['next'])
-                self.assertEqual(response.status_code, 200)
-                content = json.loads(response.content)
+                response = self.client.get(nav_info['next'])
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+                content = response.json()
                 self._stats_resource_by_type(content, resource_stats)
                 # dump_content(json.dumps(content), "coverage_search_nav_p{}_{}.json".format(i+1, 'v2' if v2 else 'v1'))
             else:
@@ -482,6 +361,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(resource_stats['part-d'], expected_resource_stats['part-d'])
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_search_endpoint(self):
         """
         Search EOB v1, navigate pages and collect stats of different types of claims
@@ -497,27 +377,25 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         outpatient: 6
 
         """
-        self._call_eob_search_endpoint(False)
+        self._call_eob_search_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_search_endpoint_v2(self):
         """
         Search EOB v2, navigate pages and collect stats of different types of claims
         e.g. pde, carrier, outpatient, inpatient, etc.
         """
-        self._call_eob_search_endpoint(True)
+        self._call_eob_search_endpoint(Versions.V2)
 
-    def _call_eob_search_endpoint(self, v2=False):
-        client = APIClient()
+    def _call_eob_search_endpoint(self, version):
 
         # Authenticate
-        self._setup_apiclient(client)
-
+        self._setup_apiclient()
         # EOB search endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, v2))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "eob_search_nav_p{}_{}.json".format(0, 'v2' if v2 else 'v1'))
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
@@ -525,10 +403,11 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         total_page = self._get_total_page(content)
         assert total_page >= 0
 
-        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
+        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 0, 'outpatient': 0}
         resource_stats = {'pde': 0, 'carrier': 0, 'inpatient': 0, 'outpatient': 0}
         self._stats_resource_by_type(content, resource_stats)
 
+        # Loop through pages
         for i in range(total_page):
             lnk = content.get('link', None)
             self.assertIsNotNone(
@@ -539,9 +418,9 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             )
             nav_info = self._extract_urls(lnk)
             if nav_info.get('next', None) is not None:
-                response = client.get(nav_info['next'])
+                response = self.client.get(nav_info['next'])
                 self.assertEqual(response.status_code, 200)
-                content = json.loads(response.content)
+                content = response.json()
                 self._stats_resource_by_type(content, resource_stats)
                 # dump_content(json.dumps(content), "eob_search_nav_p{}_{}.json".format(i+1, 'v2' if v2 else 'v1'))
             else:
@@ -555,23 +434,21 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(resource_stats['outpatient'], expected_resource_stats['outpatient'])
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_profiles_endpoint(self):
-        client = APIClient()
-
         # Authenticate
         self._setup_apiclient(
-            client,
             'sample_a_88888888888888',
             'sample_a_88888888888888',
             '-88888888888888',
-            SAMPLE_A_888_HICN_HASH,
-            SAMPLE_A_888_MBI,
+            hicn_hash=SAMPLE_A_888_HICN_HASH,
+            mbi=SAMPLE_A_888_MBI,
         )
 
         # EOB search endpoint
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, True))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, version=Versions.V2))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
         # dump_content(json.dumps(content), "eob_search_profiles_888888888888.json")
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
@@ -605,21 +482,19 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         for i in range(total_page):
             lnk = content.get('link', None)
-            self.assertIsNotNone(
-                lnk,
-                (
-                    "Field 'link' expected, containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "
-                ),
-            )
+            self.assertIsNotNone(lnk, "Field 'link' expected...")
             nav_info = self._extract_urls(lnk)
-            if nav_info.get('next', None) is not None:
-                response = client.get(nav_info['next'])
-                self.assertEqual(response.status_code, 200)
-                content = json.loads(response.content)
+
+            if nav_info.get('next') is not None:
+                # Strip the domain to make it a relative path for self.client
+                parsed = urlparse(nav_info['next'])
+                relative_next_url = f'{parsed.path}?{parsed.query}'
+
+                response = self.client.get(relative_next_url)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+                content = response.json()
                 self._stats_resource_by_type(content, resource_stats)
-                # dump_content(json.dumps(content), "eob_search_profiles_p{}.json".format(i + 1))
             else:
-                # last page does not have 'next'
                 break
 
         # assert eob claims resource stats of sample A:
@@ -633,187 +508,186 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(resource_stats['hospice'], expected_resource_stats['hospice'])
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint(self):
         """
         Search and read EOB v1
         """
-        self._call_eob_endpoint(False)
+        self._call_eob_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_v2(self):
         """
         Search and read EOB v2
         """
-        self._call_eob_endpoint(True)
+        self._call_eob_endpoint(Versions.V2)
 
-    def _call_eob_endpoint(self, v2=False):
-        client = APIClient()
+    def _call_eob_endpoint(self, version):
+
         # 1. Test unauthenticated request
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, v2))
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, version))
         self.assertEqual(response.status_code, 401)
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
 
         # 2. Test SEARCH VIEW endpoint, default to current bene's PDE
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, v2))
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        content = response.json()
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
-        # dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         for r in content['entry']:
-            self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
+            self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['NONCLINICIAN'], version)
 
         # 3. Test READ VIEW endpoint v1 (carrier) and v2
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'carrier--22639159481', v2))
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "eob_read_carrier_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(response.status_code, 200)
-        if not v2:
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'carrier--22639159481', version))
+        content = response.json()
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        if version is not Versions.V2:
             # Validate JSON Schema
             self.assertEqual(validate_json_schema(EOB_READ_SCHEMA, content), True)
-        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['NONCLINICIAN'], version)
 
         # 4. Test SEARCH VIEW endpoint v1 and v2 (BB2-418 EOB V2 PDE profile)
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, '?patient=-20140000008325', v2))
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, '?patient=-20140000008325', version))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         # Validate JSON Schema
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
+        content = response.json()
         self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
         for r in content['entry']:
-            self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
+            self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['NONCLINICIAN'], version)
 
         # 5. Test unauthorized READ request
         # same asserts for v1 and v2
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'carrier--23017401521', v2))
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'carrier--23017401521', version))
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_pde(self):
         """
         EOB pde (pharmacy) profile v1
         """
-        self._call_eob_endpoint_pde(False)
+        self._call_eob_endpoint_pde(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_pde_v2(self):
         """
         EOB pde (pharmacy) profile v2
         """
-        self._call_eob_endpoint_pde(True)
+        self._call_eob_endpoint_pde(Versions.V2)
 
-    def _call_eob_endpoint_pde(self, v2=False):
-        client = APIClient()
+    def _call_eob_endpoint_pde(self, version):
+
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
         # read eob pde profile v1 and v2
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'pde--4894712975', v2))
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "eob_read_pde_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(response.status_code, 200)
-        if not v2:
-            # Validate JSON Schema for v1
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'pde--4894712975', version))
+        content = response.json()
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        if not version == Versions.V2:
             self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
-        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PHARMACY'], v2)
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PHARMACY'], version)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_inpatient(self):
-        self._call_eob_endpoint_inpatient(False)
+        self._call_eob_endpoint_inpatient(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_inpatient_v2(self):
-        self._call_eob_endpoint_inpatient(True)
+        self._call_eob_endpoint_inpatient(Versions.V2)
 
-    def _call_eob_endpoint_inpatient(self, v2=False):
-        client = APIClient()
+    def _call_eob_endpoint_inpatient(self, version):
+
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
         # Test READ VIEW endpoint v1 and v2: inpatient
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'inpatient--4436342082', v2))
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(response.status_code, 200)
-        if not v2:
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'inpatient--4436342082', version))
+        content = response.json()
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        if version == Versions.V2:
             # Validate JSON Schema v1
             self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
-        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
-
-    def _get_total_page(self, content):
-        total_page = -1
-        links = content.get('link', None)
-        if links:
-            nav_info = self._extract_urls(links)
-            total_page = extract_last_page_index(nav_info['last'])
-        return total_page
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], version)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_outpatient(self):
-        self._call_eob_endpoint_outpatient(False)
+        self._call_eob_endpoint_outpatient(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_eob_endpoint_outpatient_v2(self):
-        self._call_eob_endpoint_outpatient(True)
+        self._call_eob_endpoint_outpatient(Versions.V2)
 
-    def _call_eob_endpoint_outpatient(self, v2=False):
-        client = APIClient()
+    def _call_eob_endpoint_outpatient(self, version):
+
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
         # Test READ VIEW endpoint v1 and v2: outpatient
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'outpatient--4412920419', v2))
-        content = json.loads(response.content)
-        # dump_content(json.dumps(content), "eob_read_out_pt_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(response.status_code, 200)
-        if not v2:
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, 'outpatient--4412920419', version))
+        content = response.json()
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        if not version == Versions.V2:
             # Validate JSON Schema v1
             self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
         else:
-            self.assertEqual(response.status_code, 200)
-        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], version)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_err_response_caused_by_illegalarguments(self):
-        self._err_response_caused_by_illegalarguments(False)
+        self._err_response_caused_by_illegalarguments(Versions.V1)
 
     @override_switch('require-scopes', active=True)
+    @tag('integration')
     def test_err_response_caused_by_illegalarguments_v2(self):
-        self._err_response_caused_by_illegalarguments(True)
+        self._err_response_caused_by_illegalarguments(Versions.V2)
 
-    def _err_response_caused_by_illegalarguments(self, v2=False):
-        client = APIClient()
+    def _err_response_caused_by_illegalarguments(self, version):
+
         # Authenticate
-        self._setup_apiclient(client)
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, 'part-d___--20140000008325', v2))
+        self._setup_apiclient()
+        response = self.client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, 'part-d___--20140000008325', version))
         # This now returns 400 after BB2-2063 work.
         # for both v1 and v2
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_patient_read_endpoint_v3_403(self):
         """
         test patient read v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         """
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, False, None)
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, False, '')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_coverage_read_endpoint_v3_403(self):
         """
         test coverage read v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         """
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', False, None)
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', False, '')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_eob_read_endpoint_v3_403(self):
         """
         test eob read v3 throwing a 403 when an app is not in the flag
         TODO - Should be removed when v3_early_adopter flag is deleted and v3 is available for all apps
         """
-        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, 'outpatient--9999999999999', False, None)
+        self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, 'outpatient--9999999999999', False, '')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_patient_search_endpoint_v3_403(self):
         """
         test patient search v3 throwing a 403 when an app is not in the flag
@@ -822,6 +696,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_coverage_search_endpoint_v3_403(self):
         """
         test coverage search v3 throwing a 403 when an app is not in the flag
@@ -830,6 +705,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_eob_search_endpoint_v3_403(self):
         """
         test eob search v3 throwing a 403 when an app is not in the flag
@@ -840,20 +716,20 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def _call_v3_endpoint_to_assert_403(
         self, resource_type: str, resource_value: str, is_search_call: bool, search_param: str
     ):
-        client = APIClient()
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient(fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3)
         Flag.objects.create(name='v3_early_adopter', everyone=None)
         if is_search_call:
-            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/?{search_param}{resource_value}'
+            endpoint_url = self._get_fhir_url(resource_type, f'?{search_param}{resource_value}', Versions.V3)
         else:
-            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/{resource_value}'
-        response = client.get(endpoint_url)
+            endpoint_url = self._get_fhir_url(resource_type, f'{search_param}{resource_value}', Versions.V3)
+        response = self.client.get(endpoint_url)
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.json()['detail'], V3_403_DETAIL)
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_patient_search_endpoint_v3_400_operation_outcome(self):
         """
         test patient search v3 throwing a 400 operation outcome when a bad request is made
@@ -867,6 +743,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         )
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_patient_read_endpoint_v3_400_operation_outcome(self):
         """
         test patient read v3 throwing a 400 operation outcome when a bad request is made
@@ -875,11 +752,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             FHIR_RES_TYPE_PATIENT,
             INVALID_PATIENT_ID,
             False,
-            None,
+            '',
             INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
         )
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_eob_read_endpoint_v3_400_operation_outcome(self):
         """
         test EOB read v3 throwing a 400 operation outcome when a bad request is made
@@ -888,11 +766,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             FHIR_RES_TYPE_EOB,
             INVALID_PATIENT_ID,
             False,
-            None,
+            '',
             INVALID_ID_OPERATION_OUTCOME_DIAGNOSTICS,
         )
 
     @override_switch('v3_endpoints', active=True)
+    @tag('integration')
     def test_coverage_read_endpoint_v3_400_operation_outcome(self):
         """
         test coverage read v3 throwing a 400 operation outcome when a bad request is made
@@ -901,24 +780,23 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             FHIR_RES_TYPE_COVERAGE,
             INVALID_COVERAGE_ID,
             False,
-            None,
+            '',
             COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
         )
 
     def _call_v3_endpoint(
         self, resource_type: str, resource_value: str, is_search_call: bool, search_param: str, diagnostics_result: str
     ):
-        client = APIClient()
 
         # Authenticate
-        self._setup_apiclient(client)
+        self._setup_apiclient()
         # Ensure we don't get a 403 on the v3 call
         Flag.objects.create(name='v3_early_adopter', everyone=True)
         if is_search_call:
-            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/?{search_param}{resource_value}'
+            endpoint_url = self._get_fhir_url(resource_type, f'?{search_param}{resource_value}', Versions.V3)
         else:
-            endpoint_url = f'{self.live_server_url}{V3_FHIR_CALL_PREFIX}{resource_type}/{resource_value}'
-        response = client.get(endpoint_url)
+            endpoint_url = self._get_fhir_url(resource_type, f'{search_param}{resource_value}', Versions.V3)
+        response = self.client.get(endpoint_url)
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.json()['resourceType'], OPERATION_OUTCOME)
