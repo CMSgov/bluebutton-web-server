@@ -96,7 +96,6 @@ class ApplyDefaultScopesTest(BaseApiTest):
         require_demographic_scopes==False
         """
         # TODO make these tests more DRY
-        # TODO is openid profile info a demographic scope?
 
         call_command('create_blue_button_scopes')
         app = self._create_application('an app')
