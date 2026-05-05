@@ -3,6 +3,7 @@ import uuid
 
 from django import forms
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
@@ -259,6 +260,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             'contacts',
             'redirect_uris',
             'require_demographic_scopes',
+            'scope',
             'policy_uri',
             'tos_uri',
             'website_uri',
@@ -326,6 +328,28 @@ class CreateNewApplicationForm(forms.ModelForm):
             raise forms.ValidationError(msg)
         return require_demographic_scopes
 
+    def clean(self):
+        # TODO not DRY
+        cleaned_data = super().clean()
+
+        if 'require_demographic_scopes' in cleaned_data and 'scope' in cleaned_data:
+            require_demographic_scopes = cleaned_data['require_demographic_scopes']
+            scope = cleaned_data['scope']
+
+            demographic_scopes_query = scope.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
+            if require_demographic_scopes:
+                if not demographic_scopes_query.exists():
+                    raise ValidationError(
+                        'Must have at least one demographic scope when require_demographic_scopes==True.'
+                    )
+            else:  # False or None
+                if demographic_scopes_query.exists():
+                    raise ValidationError(
+                        'Cannot have demographic scopes when require_demographic_scopes==False or None.'
+                    )
+
+        return cleaned_data
+
     def save(self, *args, **kwargs):
         app = self.instance
 
@@ -348,8 +372,6 @@ class CreateNewApplicationForm(forms.ModelForm):
         app.user = new_user_model
         app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
         app.client_type = Application.CLIENT_CONFIDENTIAL
-        app.save()
-        app.scope.add(*list(ProtectedCapability.objects.filter(default=True).values_list('id', flat=True)))
         app.save()
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:

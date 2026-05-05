@@ -562,3 +562,79 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
             form.errors,
             {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
         )
+
+
+class TestCreateNewApplicationForm(BaseApiTest):
+    def test_no_errors_when_no_demographic_scopes_and_required_false(self):
+        """
+        Assert that CreateNewApplicationForm does not give a validation error when
+        there are no demographic scopes selected and require_demographic_scopes==False
+        """
+        # TODO not DRY
+        call_command('create_blue_button_scopes')
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
+        user = self._create_user('anna', '123456')
+        app = self._create_application(name='an app', user=user)
+        form = CreateNewApplicationForm(
+            data={
+                'allowed_auth_type': app.allowed_auth_type,
+                'organization_name': 'org',
+                'require_demographic_scopes': False,
+                'scope': default_non_demographic_scopes,
+            },
+            instance=app,
+        )
+        self.assertTrue(form.is_bound)
+        self.assertTrue(form.is_valid())
+        self.assertDictEqual(form.errors, {})
+
+    def test_error_when_demographic_scopes_and_require_false(self):
+        """
+        Assert that CreateNewApplicationForm gives a validation error when there are
+        demographic scopes selected but require_demographic_scopes==False
+        """
+        call_command('create_blue_button_scopes')
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        user = self._create_user('anna', '123456')
+        app = self._create_application(name='an app', user=user)
+        form = CreateNewApplicationForm(
+            data={
+                'allowed_auth_type': app.allowed_auth_type,
+                'organization_name': 'org',
+                'require_demographic_scopes': False,
+                'scope': default_scopes,
+            },
+            instance=app,
+        )
+        self.assertTrue(form.is_bound)
+        self.assertFalse(form.is_valid())
+        self.assertDictEqual(
+            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False or None.']}
+        )
+
+    def test_error_when_no_demographic_scopes_and_require_true(self):
+        """
+        Assert that CreateNewApplicationForm gives a validation error when there are
+        no demographic scopes selected but require_demographic_scopes==True
+        """
+        call_command('create_blue_button_scopes')
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
+        user = self._create_user('anna', '123456')
+        app = self._create_application(name='an app', user=user)
+        form = CreateNewApplicationForm(
+            data={
+                'allowed_auth_type': app.allowed_auth_type,
+                'organization_name': 'org',
+                'require_demographic_scopes': True,
+                'scope': default_non_demographic_scopes,
+            },
+            instance=app,
+        )
+        self.assertTrue(form.is_bound)
+        self.assertFalse(form.is_valid())
+        self.assertDictEqual(
+            form.errors,
+            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
+        )
