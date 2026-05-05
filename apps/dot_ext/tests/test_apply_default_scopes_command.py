@@ -189,10 +189,10 @@ class ApplyDefaultScopesTest(BaseApiTest):
         app.require_demographic_scopes = True
         app.save()
         default_scopes = ProtectedCapability.objects.filter(default=True)
-        non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        app.scope.add(*non_demographic_scopes)
+        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
+        app.scope.add(*default_non_demographic_scopes)
 
-        self.assertQuerySetEqual(app.scope.all(), non_demographic_scopes, ordered=False)
+        self.assertQuerySetEqual(app.scope.all(), default_non_demographic_scopes, ordered=False)
 
         call_command('apply_default_scopes')
 
