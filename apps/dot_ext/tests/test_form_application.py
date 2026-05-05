@@ -400,7 +400,6 @@ class TestRegisterApplicationForm(BaseApiTest):
         Assert that CustomAdminApplicationForm does not give a validation error when
         there are no demographic scopes selected and require_demographic_scopes==False
         """
-        # TODO not DRY
         call_command('create_blue_button_scopes')
         default_scopes = ProtectedCapability.objects.filter(default=True)
         default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
@@ -482,7 +481,6 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
         Assert that AnotherApplicationAdminForm does not give a validation error when
         there are no demographic scopes selected and require_demographic_scopes==False
         """
-        # TODO not DRY
         call_command('create_blue_button_scopes')
         default_scopes = ProtectedCapability.objects.filter(default=True)
         default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
@@ -570,7 +568,6 @@ class TestCreateNewApplicationForm(BaseApiTest):
         Assert that CreateNewApplicationForm does not give a validation error when
         there are no demographic scopes selected and require_demographic_scopes==False
         """
-        # TODO not DRY
         call_command('create_blue_button_scopes')
         default_scopes = ProtectedCapability.objects.filter(default=True)
         default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)

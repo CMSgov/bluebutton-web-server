@@ -107,8 +107,6 @@ class ApplyDefaultScopesTest(BaseApiTest):
         Assert that the command does not assign demographic scopes when app has
         require_demographic_scopes==False
         """
-        # TODO make these tests more DRY
-
         call_command('create_blue_button_scopes')
         app = self._create_application('an app')
         app.require_demographic_scopes = False
