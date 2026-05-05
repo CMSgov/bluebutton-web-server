@@ -1,10 +1,9 @@
-"""
-Putting this in a separate file to avoid circular imports
-"""
+# Putting this in a separate file to avoid circular imports
 
 from django import forms
 from django.core.exceptions import ValidationError
 from oauth2_provider.admin import ApplicationAdmin
+from oauth2_provider.models import get_application_model
 
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 
@@ -28,6 +27,10 @@ class AnotherApplicationAdminForm(forms.ModelForm):
                     )
 
         return cleaned_data
+
+    class Meta:
+        model = get_application_model()
+        fields = '__all__' # TODO this is strongly recommended against
 
 
 class AnotherApplicationAdmin(ApplicationAdmin):
