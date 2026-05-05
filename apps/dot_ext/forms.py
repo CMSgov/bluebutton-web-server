@@ -193,11 +193,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
         default_non_demographic = default_scopes.difference(demographic_scopes)
 
-        if app.require_demographic_scopes is False:
+        if app.require_demographic_scopes:
+            app.scope.add(*default_scopes)
+        else:  # False or None
             app.scope.add(*default_non_demographic)
             app.scope.remove(*demographic_scopes)
-        else:  # True or None
-            app.scope.add(*default_scopes)
 
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:

@@ -71,9 +71,9 @@ class ApplyDefaultScopesTest(BaseApiTest):
         default_scopes = ProtectedCapability.objects.filter(default=True)
         self.assertQuerySetEqual(app.scope.all(), default_scopes, ordered=False)
 
-    def test_assigns_demographic_scopes_required_none(self):
+    def test_does_not_assign_demographic_scopes_required_none(self):
         """
-        Assert that the command assigns demographic scopes when app has
+        Assert that the command does not assign demographic scopes when app has
         require_demographic_scopes==None
         """
         call_command('create_blue_button_scopes')
@@ -86,7 +86,9 @@ class ApplyDefaultScopesTest(BaseApiTest):
         call_command('apply_default_scopes')
 
         default_scopes = ProtectedCapability.objects.filter(default=True)
-        self.assertQuerySetEqual(app.scope.all(), default_scopes, ordered=False)
+        self.assertQuerySetEqual(
+            app.scope.all(), default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES), ordered=False
+        )
 
     def test_does_not_assign_demographic_scopes_required_false(self):
         """
@@ -110,7 +112,7 @@ class ApplyDefaultScopesTest(BaseApiTest):
             app.scope.all(), default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES), ordered=False
         )
 
-    def test_deletes_when_some_demographic_scopes(self):
+    def test_deletes_when_some_demographic_scopes_required_false(self):
         """
         If the app has require_demographic_scopes==False, but has some demographic
         scopes in the database, assert that the command deletes the demographic scopes
@@ -133,7 +135,7 @@ class ApplyDefaultScopesTest(BaseApiTest):
             app.scope.all(), default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES), ordered=False
         )
 
-    def test_deletes_when_all_demographic_scopes(self):
+    def test_deletes_when_all_demographic_scopes_required_false(self):
         """
         If the app has require_demographic_scopes==False, but has all demographic
         scopes in the database, assert that the command deletes the demographic scopes
@@ -142,6 +144,51 @@ class ApplyDefaultScopesTest(BaseApiTest):
         call_command('create_blue_button_scopes')
         app = self._create_application('an app')
         app.require_demographic_scopes = False
+        app.save()
+        demographic_scopes = [ProtectedCapability.objects.get(slug=slug) for slug in BENE_PERSONAL_INFO_SCOPES]
+        app.scope.add(*demographic_scopes)
+
+        self.assertQuerySetEqual(app.scope.all(), demographic_scopes, ordered=False)
+
+        call_command('apply_default_scopes')
+
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        self.assertQuerySetEqual(
+            app.scope.all(), default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES), ordered=False
+        )
+
+    def test_deletes_when_some_demographic_scopes_required_none(self):
+        """
+        If the app has require_demographic_scopes==None, but has some demographic
+        scopes in the database, assert that the command deletes the demographic scopes
+        for that app from the database.
+        """
+        call_command('create_blue_button_scopes')
+        app = self._create_application('an app')
+        app.require_demographic_scopes = None
+        app.save()
+        profile_scope = ProtectedCapability.objects.get(slug='profile')
+        app.scope.add(profile_scope)
+
+        self.assertQuerySetEqual(app.scope.all(), [profile_scope], ordered=False)
+
+        call_command('apply_default_scopes')
+
+        self.assertFalse(app.scope.contains(profile_scope))
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        self.assertQuerySetEqual(
+            app.scope.all(), default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES), ordered=False
+        )
+
+    def test_deletes_when_all_demographic_scopes_required_none(self):
+        """
+        If the app has require_demographic_scopes==None, but has all demographic
+        scopes in the database, assert that the command deletes the demographic scopes
+        for that app from the database.
+        """
+        call_command('create_blue_button_scopes')
+        app = self._create_application('an app')
+        app.require_demographic_scopes = None
         app.save()
         demographic_scopes = [ProtectedCapability.objects.get(slug=slug) for slug in BENE_PERSONAL_INFO_SCOPES]
         app.scope.add(*demographic_scopes)
