@@ -36,7 +36,6 @@ from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 class TestApplicationRegistrationView(BaseApiTest):
     maxDiff = 2000
 
-    # TODO should I test the view or the form?
     def test_assigns_default_scopes(self):
         """
         Test that the registration view assigns default scopes to apps it creates.
@@ -125,18 +124,6 @@ class TestApplicationUpdateView(BaseApiTest):
         uri = reverse('oauth2_provider:update', args=[app.pk])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-
-    # def test_(self):
-    #     """
-    #     Assert that the update view adds demographic scopes when require_demographic_scopes is changed from False to True.
-    #     """
-    #     pass
-
-    # def test_(self):
-    #     """
-    #     Assert that the update view removes demographic scopes when require_demographic_scopes is changed from True to False.
-    #     """
-    #     pass
 
     # TODO is this easier to read as separate tests?
     def test_adds_or_removes_demographic_scopes(self):
