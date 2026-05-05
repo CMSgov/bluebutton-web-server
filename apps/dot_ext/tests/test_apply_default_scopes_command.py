@@ -1,4 +1,8 @@
+import os
+from unittest.mock import patch
+
 from django.core.management import call_command
+from django.core.management.base import CommandError
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
@@ -7,6 +11,14 @@ from apps.test import BaseApiTest
 
 class ApplyDefaultScopesTest(BaseApiTest):
     maxDiff = 2000
+
+    @patch.dict(os.environ, {'TARGET_ENV': 'prod'})
+    def test_will_not_run_with_target_env_prod(self):
+        """
+        Assert that the command fails when running with TARGET_ENV==prod.
+        """
+        with self.assertRaisesMessage(CommandError, 'Target environment not in ["local", "test", "sbx"].'):
+            call_command('apply_default_scopes')
 
     def test_app_no_scopes(self):
         """

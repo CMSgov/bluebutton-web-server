@@ -1,4 +1,6 @@
-from django.core.management.base import BaseCommand
+import os
+
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
@@ -17,6 +19,9 @@ class Command(BaseCommand):
         self.stdout.write()
 
     def handle(self, *args, **options):
+        if os.getenv('TARGET_ENV') not in ['local', 'test', 'sbx']:
+            raise CommandError('Target environment not in ["local", "test", "sbx"].')
+
         # TODO is there a way to write this function more readably?
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         # TODO what about demographic scopes that are not default?
