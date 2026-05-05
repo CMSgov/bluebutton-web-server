@@ -28,19 +28,39 @@ Provide versioned access token pools:
 
 Optional:
 - BB_TOKEN_SELECTION=random|round_robin (default: random)
+
+Default token file lookup when no explicit file env vars are set:
+- Non-v3: ${BB2_LOCUST_DIR:-~/.bb2/locust}/tokens_non_v3.txt
+- v3: ${BB2_LOCUST_DIR:-~/.bb2/locust}/tokens_v3.txt
 """
 
 TOKEN_POOL_NON_V3 = 'non_v3'
 TOKEN_POOL_V3 = 'v3'
 
+DEFAULT_BB2_LOCUST_DIR = os.path.join(os.path.expanduser('~'), '.bb2', 'locust')
+
+
+def _expand_path(path_value):
+    return os.path.expandvars(os.path.expanduser(path_value)).strip() if path_value else ''
+
+
+BB2_LOCUST_DIR = _expand_path(os.getenv('BB2_LOCUST_DIR', DEFAULT_BB2_LOCUST_DIR))
+
 # Backward-compatible aliases map existing env vars to the non-v3 pool.
 BB_ACCESS_TOKEN_NON_V3 = os.getenv('BB_ACCESS_TOKEN_NON_V3', os.getenv('BB_ACCESS_TOKEN', '')).strip()
 BB_ACCESS_TOKENS_NON_V3 = os.getenv('BB_ACCESS_TOKENS_NON_V3', os.getenv('BB_ACCESS_TOKENS', '')).strip()
-BB_ACCESS_TOKENS_FILE_NON_V3 = os.getenv('BB_ACCESS_TOKENS_FILE_NON_V3', os.getenv('BB_ACCESS_TOKENS_FILE', '')).strip()
+BB_ACCESS_TOKENS_FILE_NON_V3 = _expand_path(
+    os.getenv(
+        'BB_ACCESS_TOKENS_FILE_NON_V3',
+        os.getenv('BB_ACCESS_TOKENS_FILE', os.path.join(BB2_LOCUST_DIR, 'tokens_non_v3.txt')),
+    )
+)
 
 BB_ACCESS_TOKEN_V3 = os.getenv('BB_ACCESS_TOKEN_V3', '').strip()
 BB_ACCESS_TOKENS_V3 = os.getenv('BB_ACCESS_TOKENS_V3', '').strip()
-BB_ACCESS_TOKENS_FILE_V3 = os.getenv('BB_ACCESS_TOKENS_FILE_V3', '').strip()
+BB_ACCESS_TOKENS_FILE_V3 = _expand_path(
+    os.getenv('BB_ACCESS_TOKENS_FILE_V3', os.path.join(BB2_LOCUST_DIR, 'tokens_v3.txt'))
+)
 
 BB_TOKEN_SELECTION = os.getenv('BB_TOKEN_SELECTION', 'random').strip().lower()
 
@@ -174,12 +194,13 @@ class BlueButtonUser(HttpUser):
         if not self.access_token:
             if token_pool == TOKEN_POOL_V3:
                 raise StopUser(
-                    'No v3 access token supplied. Set BB_ACCESS_TOKEN_V3, BB_ACCESS_TOKENS_V3, or BB_ACCESS_TOKENS_FILE_V3.'
+                    'No v3 access token supplied. Set BB_ACCESS_TOKEN_V3, BB_ACCESS_TOKENS_V3, or '
+                    f'BB_ACCESS_TOKENS_FILE_V3. Default file path: {BB_ACCESS_TOKENS_FILE_V3}.'
                 )
             raise StopUser(
                 'No non-v3 access token supplied. Set BB_ACCESS_TOKEN_NON_V3 (or BB_ACCESS_TOKEN), '
                 'BB_ACCESS_TOKENS_NON_V3 (or BB_ACCESS_TOKENS), or BB_ACCESS_TOKENS_FILE_NON_V3 '
-                '(or BB_ACCESS_TOKENS_FILE).'
+                f'(or BB_ACCESS_TOKENS_FILE). Default file path: {BB_ACCESS_TOKENS_FILE_NON_V3}.'
             )
 
     def _version_prefix(self):

@@ -8,13 +8,13 @@
 #   2. Copy the resulting access_token values here, one per line.
 #
 # Run with this file (single token pool, no v3):
-#   BB_ACCESS_TOKENS_FILE_NON_V3=apps/tokens_non_v3.txt \
-#     locust -f apps/locustfile.py --host https://<your-host> --headless -u 10 -t 60s
+#   BB_ACCESS_TOKENS_FILE_NON_V3=${HOME}/.bb2/locust/tokens_non_v3.txt \
+#     locust -f locustfile.py --host https://<your-host> --headless -u 10 -t 60s
 #
 # Run with both pools:
-#   BB_ACCESS_TOKENS_FILE_NON_V3=apps/tokens_non_v3.txt \
-#   BB_ACCESS_TOKENS_FILE_V3=apps/tokens_v3.txt \
-#     locust -f apps/locustfile.py --host https://<your-host> --headless -u 10 -t 60s
+#   BB_ACCESS_TOKENS_FILE_NON_V3=${HOME}/.bb2/locust/tokens_non_v3.txt \
+#   BB_ACCESS_TOKENS_FILE_V3=${HOME}/.bb2/locust/tokens_v3.txt \
+#     locust -f locustfile.py --host https://<your-host> --headless -u 10 -t 60s
 #
 # Token selection strategy (optional, default: random):
 #   BB_TOKEN_SELECTION=round_robin  # or: random
