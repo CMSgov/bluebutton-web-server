@@ -444,7 +444,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())
         self.assertDictEqual(
-            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False.']}
+            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False or None.']}
         )
 
     def test_error_when_no_demographic_scopes_and_require_true(self):
@@ -472,7 +472,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         self.assertFalse(form.is_valid())
         self.assertDictEqual(
             form.errors,
-            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True or None.']},
+            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
         )
 
 
@@ -530,7 +530,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
         self.assertTrue(form.is_bound)
         self.assertFalse(form.is_valid())
         self.assertDictEqual(
-            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False.']}
+            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False or None.']}
         )
 
     def test_error_when_no_demographic_scopes_and_require_true(self):
@@ -560,5 +560,5 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
         self.assertFalse(form.is_valid())
         self.assertDictEqual(
             form.errors,
-            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True or None.']},
+            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
         )
