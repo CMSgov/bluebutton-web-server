@@ -48,6 +48,8 @@ class Command(BaseCommand):
                 app.scope.add(*default_non_demographic)
                 app.scope.remove(*demographic_scopes)
 
+            # TODO it is possible that another process could edit the scopes while
+            # this command runs and then throw off these numbers
             after = set(app.scope.all())
             added = after.difference(before)
             removed = before.difference(after)
