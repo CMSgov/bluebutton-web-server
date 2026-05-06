@@ -596,6 +596,7 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
     'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
     'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
+    'APPLICATION_ADMIN_CLASS': 'apps.dot_ext.admin_overrides.AnotherApplicationAdmin',
 }
 
 # These choices will be available in the expires_in field

@@ -324,11 +324,11 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'request_scopes': APPLICATION_SCOPES_FULL,
         # Result:
         'result_has_error': False,
-        'result_token_scopes_granted': APPLICATION_SCOPES_FULL,
-        'result_access_token_count': 2,
-        'result_refresh_token_count': 2,
-        'result_archived_token_count': 1,
-        'result_archived_data_access_grant_count': 1,
+        'result_token_scopes_granted': APPLICATION_SCOPES_NON_DEMOGRAPHIC,
+        'result_access_token_count': 1,
+        'result_refresh_token_count': 1,
+        'result_archived_token_count': 2,
+        'result_archived_data_access_grant_count': 2,
     },
     # Tests for request_app_requires_demographic = True
     'test 4: app_requires = True bene_share = None': {
@@ -339,10 +339,10 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': APPLICATION_SCOPES_NON_DEMOGRAPHIC,
-        'result_access_token_count': 3,
-        'result_refresh_token_count': 3,
-        'result_archived_token_count': 1,
-        'result_archived_data_access_grant_count': 1,
+        'result_access_token_count': 2,
+        'result_refresh_token_count': 2,
+        'result_archived_token_count': 2,
+        'result_archived_data_access_grant_count': 2,
     },
     'test 5: app_requires = True bene_share = False': {
         # Request:
@@ -355,7 +355,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 4,
-        'result_archived_data_access_grant_count': 2,
+        'result_archived_data_access_grant_count': 3,
     },
     'test 6: app_requires = True bene_share = True': {
         # Request:
@@ -368,7 +368,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 2,
         'result_refresh_token_count': 2,
         'result_archived_token_count': 4,
-        'result_archived_data_access_grant_count': 2,
+        'result_archived_data_access_grant_count': 3,
     },
     # Tests for request_app_requires_demographic = False
     'test 7: app_requires = False bene_share = None': {
@@ -382,7 +382,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 6,
-        'result_archived_data_access_grant_count': 3,
+        'result_archived_data_access_grant_count': 4,
     },
     'test 8: app_requires = False bene_share = False': {
         # Request:
@@ -395,7 +395,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 7,
-        'result_archived_data_access_grant_count': 4,
+        'result_archived_data_access_grant_count': 5,
     },
     'test 9: app_requires = False bene_share = True': {
         # Request:
@@ -408,7 +408,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 8,
-        'result_archived_data_access_grant_count': 5,
+        'result_archived_data_access_grant_count': 6,
     },
     # Misc tests where only partial scopes are requested for authorization
     'test 10: app_requires = True bene_share = True request just EOB and B': {
@@ -422,7 +422,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 2,
         'result_refresh_token_count': 2,
         'result_archived_token_count': 8,
-        'result_archived_data_access_grant_count': 5,
+        'result_archived_data_access_grant_count': 6,
     },
     'test 11: app_requires = None bene_share = None request just PATIENT and A': {
         # Request:
@@ -432,10 +432,10 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': SCOPES_JUST_A,
-        'result_access_token_count': 3,
-        'result_refresh_token_count': 3,
-        'result_archived_token_count': 8,
-        'result_archived_data_access_grant_count': 5,
+        'result_access_token_count': 1,
+        'result_refresh_token_count': 1,
+        'result_archived_token_count': 10,
+        'result_archived_data_access_grant_count': 7,
     },
     'test 12: app_requires = True bene_share = True request just PATIENT and A': {
         # Request:
@@ -445,10 +445,10 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': SCOPES_JUST_PATIENT_AND_A,
-        'result_access_token_count': 4,
-        'result_refresh_token_count': 4,
-        'result_archived_token_count': 8,
-        'result_archived_data_access_grant_count': 5,
+        'result_access_token_count': 2,
+        'result_refresh_token_count': 2,
+        'result_archived_token_count': 10,
+        'result_archived_data_access_grant_count': 7,
     },
     'test 13: app_requires = False bene_share = True request just PATIENT and A': {
         # Request:
@@ -461,7 +461,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 12,
-        'result_archived_data_access_grant_count': 6,
+        'result_archived_data_access_grant_count': 8,
     },
     'test 14: app_requires = True bene_share = False request just PATIENT and A': {
         # Request:
@@ -474,7 +474,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 13,
-        'result_archived_data_access_grant_count': 7,
+        'result_archived_data_access_grant_count': 9,
     },
     'test 15: app_requires = None bene_share = False request just PATIENT and A': {
         # Request:
@@ -487,7 +487,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'result_access_token_count': 1,
         'result_refresh_token_count': 1,
         'result_archived_token_count': 14,
-        'result_archived_data_access_grant_count': 8,
+        'result_archived_data_access_grant_count': 10,
     },
     # Testing initial auth request has request_scopes = None
     #   The POST to oauth2_provider:authorize must have scope in the payload.
