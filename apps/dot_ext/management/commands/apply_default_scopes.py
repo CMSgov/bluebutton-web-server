@@ -10,8 +10,8 @@ from apps.dot_ext.models import Application
 class Command(BaseCommand):
     help = (
         'Ensure all apps have the appropriate default scopes. When '
-        'require_demographic_scopes is False for an app, remove any demographic '
-        'scopes set for that app.'
+        'require_demographic_scopes is False or None for an app, remove any '
+        'demographic scopes set for that app.'
     )
 
     def _display_scopes(self, scopes, label):
