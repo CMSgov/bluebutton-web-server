@@ -90,6 +90,7 @@ docker-compose/certstore/
 
 # tmp files
 docker-compose/tmp/
+locust-out/
 
 # dev tools dir for placing scripts you don't want checked in
 dev-tools/
