@@ -77,7 +77,9 @@ jobs:
       - name: Collect static files
         run: |
           source venv/bin/activate
+          find /static -type f ! -name "*.css" - delete
           python manage.py collectstatic --noinput
+          ls -al
 
       - name: Setup Akamai SSH key
         run: |
@@ -91,10 +93,10 @@ jobs:
             IdentityFile ~/.ssh/akamai_key
           EOF
 
-      - name: Deploy to Akamai NetStorage via Rsync
+      - name: Deploy to Akamai NetStorage
         run: |
           echo "Syncing static files to Akamai..."
-          # NOTE: Replace ./staticfiles/ with your actual Django STATIC_ROOT directory if different
+          echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
           rsync -av --delete \
             -e "ssh" \
             ./staticfiles/ \
