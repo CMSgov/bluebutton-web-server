@@ -956,12 +956,8 @@ APP_LEVEL_METRICS = [
     'app_fhir_v3_generate_insurance_card_call_synthetic_count',
     'app_auth_ok_real_bene_count',
     'app_auth_ok_synthetic_bene_count',
-    'app_auth_ok_real_bene_distinct_count',
-    'app_auth_ok_synthetic_bene_distinct_count',
     'app_auth_fail_or_deny_real_bene_count',
     'app_auth_fail_or_deny_synthetic_bene_count',
-    'app_auth_fail_or_deny_real_bene_distinct_count',
-    'app_auth_fail_or_deny_synthetic_bene_distinct_count',
     'app_auth_demoscope_required_choice_sharing_real_bene_count',
     'app_auth_demoscope_required_choice_sharing_synthetic_bene_count',
     'app_auth_demoscope_required_choice_not_sharing_real_bene_count',
@@ -1004,7 +1000,6 @@ APP_LEVEL_METRICS = [
     'app_sdk_requests_node_count',
     'app_access_grant_enabled',
     'app_access_grant_category',
-    'app_internal_application_labels',
 ]
 
 GLOBAL_METRICS = [

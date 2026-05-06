@@ -349,7 +349,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     if its_log_flag:
         ping_api([], str(active_apps_w_gt_25_real_benes), 'app_active_bene_cnt_gt25', prior_day)
         ping_api([], str(active_apps_w_lt_25_real_benes), 'app_active_bene_cnt_le25', prior_day)
-        ping_api([], str(active_apps), 'active_apps', prior_day)
+        ping_api([], str(active_apps), 'app_all', prior_day)
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
