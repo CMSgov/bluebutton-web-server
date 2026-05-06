@@ -3,6 +3,7 @@ import itertools
 import sys
 import uuid
 from datetime import datetime
+from typing import override
 from urllib.parse import urlparse
 
 from dateutil.relativedelta import relativedelta
@@ -259,6 +260,7 @@ class Application(AbstractApplication):
 
         return resource_scopes.issubset(provided_scopes)
 
+    @override
     def allows_grant_type(self, *grant_types):
         allowed = []
         if self.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES:
@@ -347,8 +349,8 @@ class Application(AbstractApplication):
                         'type': 'application_allowed_auth_type_change',
                         'application_id': self.id,
                         'application_name': self.name,
-                        'data_access_type_old': app_from_db.allowed_auth_type,
-                        'data_access_type_new': self.allowed_auth_type,
+                        'allowed_auth_type_old': app_from_db.allowed_auth_type,
+                        'allowed_auth_type_new': self.allowed_auth_type,
                     }
                     logger.info(log_dict)
         except Application.DoesNotExist:

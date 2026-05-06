@@ -1,14 +1,16 @@
 import json
-from oauth2_provider.oauth2_backends import OAuthLibCore
+
 from oauth2_provider.models import AccessToken
-from apps.fhir.bluebutton.models import Crosswalk
+from oauth2_provider.oauth2_backends import OAuthLibCore
+
 from apps.dot_ext.loggers import (
     clear_session_auth_flow_trace,
+    set_session_auth_flow_trace_value,
     update_session_auth_flow_trace_from_code,
     update_session_auth_flow_trace_from_request,
-    set_session_auth_flow_trace_value,
 )
 from apps.dot_ext.utils import get_api_version_number_from_url
+from apps.fhir.bluebutton.models import Crosswalk
 
 
 class OAuthLibSMARTonFHIR(OAuthLibCore):
@@ -25,7 +27,6 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
             update_session_auth_flow_trace_from_code(request, body.get('code', None))
             set_session_auth_flow_trace_value(request, 'auth_grant_type', body.get('grant_type', None))
         if body.get('grant_type') == 'client_credentials':
-            # do something here if needed
             update_session_auth_flow_trace_from_request(request)
             set_session_auth_flow_trace_value(request, 'auth_grant_type', body.get('grant_type', None))
 

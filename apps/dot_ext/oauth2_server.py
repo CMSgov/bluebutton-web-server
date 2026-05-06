@@ -1,8 +1,9 @@
 from datetime import timedelta
 from urllib.parse import parse_qs
-from waffle import switch_is_active
-from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
+
 from oauth2_provider.settings import oauth2_settings
+from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
+from waffle import switch_is_active
 
 from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.models import ExpiresIn
@@ -20,6 +21,7 @@ def my_token_expires_in(request):
     request_body = parse_qs(request.body)
     grant_type = request_body.get('grant_type', [None])
 
+    # TODO: Figure this out or open ticket?
     if grant_type[0] and grant_type[0] != CLIENT_CREDENTIALS:
         user_id = request.user.pk
     else:
@@ -42,7 +44,13 @@ def my_token_expires_in(request):
 
 class Server(PKCEServerMixin, OAuthLibServer):
     def __init__(
-        self, request_validator, token_expires_in=None, token_generator=None, refresh_token_generator=None, *args, **kwargs
+        self,
+        request_validator,
+        token_expires_in=None,
+        token_generator=None,
+        refresh_token_generator=None,
+        *args,
+        **kwargs,
     ):
         super(Server, self).__init__(
             request_validator,
