@@ -1,5 +1,5 @@
-from oauth2_provider.contrib.rest_framework import authentication
 from django.utils import timezone
+from oauth2_provider.contrib.rest_framework import authentication
 from rest_framework import exceptions
 
 

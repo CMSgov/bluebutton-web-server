@@ -1,27 +1,32 @@
 import os
-import time
 import re
-
-from apps.integration_tests.common_utils import extract_href_from_html, extract_last_part_of_url, log_step, check_element_state
+import time
 from datetime import datetime, timedelta
+
 from dateutil.relativedelta import relativedelta
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from selenium.common.exceptions import TimeoutException
 
+from apps.integration_tests.common_utils import (
+    check_element_state,
+    extract_href_from_html,
+    extract_last_part_of_url,
+    log_step,
+)
 from apps.integration_tests.constants import (
-    Action,
-    TESTCASE_BANNER_FMT,
-    TESTCLIENT_LNK_TXT_RESTART,
+    ES_ES,
+    PROD_URL,
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
-    PROD_URL,
-    ES_ES,
+    TESTCASE_BANNER_FMT,
+    TESTCLIENT_LNK_TXT_RESTART,
     X_PATH_FOR_MEDICARE_LOGIN,
+    Action,
 )
 
 LOG_FILE = './docker-compose/tmp/bb2_email_to_stdout.log'
@@ -95,7 +100,9 @@ class SeleniumGenericTests:
             opt.binary_location = '/usr/bin/chromium'
             self.driver = webdriver.Remote(command_executor=hub_url, options=opt)
         else:
-            driver_exec = '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
+            driver_exec = (
+                '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
+            )
             print(f'Chrome Driver, location={driver_exec}')
             opt.add_argument('--window-size=1920,980')
             opt.add_argument('--headless')

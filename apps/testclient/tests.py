@@ -1,19 +1,17 @@
-from django.core.management import call_command
-from django.test.client import Client
-from django.test import TestCase
-from apps.testclient.utils import testclient_http_response_setup, _start_url_with_http_or_https
-from django.urls import reverse
-from unittest import skipIf
-from django.conf import settings
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
-from apps.versions import Versions, VersionNotMatched
-from apps.testclient.utils import _ormap, _deepfind
-from apps.testclient.constants import EndpointUrl, ResponseErrors
-from apps.testclient.views import FhirDataParams, _build_pagination_uri
-from django.http import HttpRequest
 import json
-
 import os
+
+from django.core.management import call_command
+from django.http import HttpRequest
+from django.test import TestCase, tag
+from django.test.client import Client
+from django.urls import reverse
+
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.testclient.constants import EndpointUrl, ResponseErrors
+from apps.testclient.utils import _deepfind, _ormap, _start_url_with_http_or_https, testclient_http_response_setup
+from apps.testclient.views import FhirDataParams, _build_pagination_uri
+from apps.versions import VersionNotMatched, Versions
 
 
 class TestclientHelpers(TestCase):
@@ -163,7 +161,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     #     self._test_get_userinfo(Versions.V3)
 
 
-@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+@tag('integration')
 class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
@@ -189,8 +187,6 @@ class BlueButtonClientApiFhirTest(TestCase):
                 raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')  # noqa: E702
 
         self.another_patient = '20140000000001'
-
-    # python runtests.py apps.testclient.tests.BlueButtonClientApiFhirTest.test_get_patient
 
     def _test_get_patient(self, version=Versions.NOT_AN_API_VERSION):
         """
@@ -429,7 +425,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     #     self.assertContains(response, "Bundle")
 
 
-@skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+@tag('integration')
 class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints

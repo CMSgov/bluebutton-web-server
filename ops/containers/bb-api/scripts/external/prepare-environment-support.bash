@@ -45,7 +45,6 @@ check_valid_env () {
 # check_env_preconditions
 # Certain minimal things must be true in order to proceed.
 check_env_preconditions () {
-    
     if [[ "${TARGET_ENV}" == "local" ]]; then
         if [ "${bfd}" != "local" ]; then
             if [ -z ${KION_ACCOUNT_ALIAS} ]; then
@@ -54,7 +53,6 @@ check_env_preconditions () {
                 return 1
             fi
         fi
-
         # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
         if [ -z ${bfd} ]; then
             echo "'bfd' not set. Cannot retrieve certs."
@@ -68,10 +66,12 @@ check_env_preconditions () {
     return 0
 }
 
+########################################
+# load_env_vars
+# By definition, this should only be used when TARGET_ENV == "local"
+# We should not be getting variables in this manner when we are running
+# in a production-like environment.
 load_env_vars () {
-    # By definition, this should only be used when TARGET_ENV == "local"
-    # We should not be getting variables in this manner when we are running
-    # in a production-like environment.
     if [[ "${TARGET_ENV}" == "local" ]]; then
         export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
         export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
@@ -85,7 +85,7 @@ load_env_vars () {
         export DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
         export DJANGO_SECRET_KEY=$(openssl rand -hex 32)
         export DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"
-        export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.dev}"
+        export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.base}"
         export DJANGO_USER_ID_ITERATIONS="${DJANGO_USER_ID_ITERATIONS:-2}"
         export DJANGO_USER_ID_SALT="${DJANGO_USER_ID_SALT:-6E6F747468657265616C706570706572}"
         export FHIR_URL_SBX="${FHIR_URL_SBX:-https://prod-sbx.fhir.bfd.cmscloud.local}"
@@ -96,14 +96,13 @@ load_env_vars () {
         export POSTGRES_DB="${POSTGRES_DB:-bluebutton}"
         export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-toor}"
         export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-        export RUN_ONLINE_TESTS="${RUN_ONLINE_TESTS:-true}"
         export RUNNING_IN_LOCAL_STACK="${RUNNING_IN_LOCAL_STACK:-true}"
         export SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
         return 0
     else
-        echo "⛔ cannot load env vars for non-local environments."
+        echo "⛔ Cannot load env vars for non-local environments."
         return 1
     fi
 }
@@ -114,10 +113,10 @@ load_env_vars () {
 # variables are now present that would not have been otherwise.
 check_env_after_setup () {
     if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
-        echo "We need insecure transport when running locally."
-        echo "OAUTHLIB_INSECURE_TRANSPORT was not set to true."
-        echo "Something went badly wrong."
-        echo "Exiting."
+        echo "⛔ We need insecure transport when running locally."
+        echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."
+        echo "⛔ Something went badly wrong."
+        echo "⛔ Exiting."
         return 1
     fi
     return 0
@@ -127,26 +126,27 @@ check_env_after_setup () {
 # set_bfd_urls
 # Make sure we have the right BFD URLs for testing against.
 set_bfd_urls () {
-    #####
+    ############
     # LOCAL
     if [[ "${bfd}" == "local" ]]; then
         echo "⚠️  No FHIR URLs set for local testing."
         echo "   There are no mock BFD endpoints for local testing at this time."
         export LOCAL_TESTING_TARGET="local"
-    #####
+    ############
     # TEST
     elif [[ "${bfd}" == "test" ]]; then
         FHIR_URL="${FHIR_URL_TEST}"
         FHIR_URL_V3="${FHIR_URL_V3_TEST}"
         LOCAL_TESTING_TARGET="test"
-    #####
+    ############
     # SBX
     elif [[ "${bfd}" == "sbx" ]]; then
         FHIR_URL="${FHIR_URL_SBX}"
         FHIR_URL_V3="${FHIR_URL_V3_SBX}"
         # FIXME: Do we use "impl" or "sbx"? ...
         LOCAL_TESTING_TARGET="impl"
-
+    ############
+    # PROD
     elif [[ "${bfd}" == "prod" ]]; then
         echo "⛔ no way to set BFD urls for prod when running locally"
         return 1
@@ -208,7 +208,7 @@ retrieve_bfd_certs () {
             --query 'SecretString' \
             --output text)
     elif [[ "${bfd}" == "prod" ]]; then
-        echo "⛔ fetching BFD certs for prod target not supported locally."
+        echo "⛔ Fetching BFD certs for prod target not supported locally."
         return 1
     fi
 
@@ -305,4 +305,38 @@ cleanup_docker_stack () {
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
 		echo "$(basename $0): $*"
+}
+
+########################################
+# Function for setting up local stack
+setup_database_and_users_if_local () {
+    echo "🟦 Setup database and users if local"
+
+    if [[ $TARGET_ENV == "local" ]]; then
+
+        # Only create the root user if it doesn't exist.
+        result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")
+        if [[ "$result" == "0" ]]; then
+            echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
+            echo "🆗 created ${SUPER_USER_NAME} user."
+        else
+            echo "🆗 ${SUPER_USER_NAME} already exists."
+        fi
+
+        python manage.py create_test_feature_switches
+        echo "🆗 create_test_feature_switches"
+
+        python manage.py create_admin_groups
+        echo "🆗 create_admin_groups"
+
+        python manage.py create_blue_button_scopes
+        echo "🆗 create_blue_button_scopes"
+
+        python manage.py create_test_user_and_application
+
+        echo "🆗 create_test_user_and_application"
+
+        python manage.py create_user_identification_label_selection
+        echo "🆗 create_user_identification_label_selection"
+    fi
 }

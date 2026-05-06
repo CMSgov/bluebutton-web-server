@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 import argparse
-import django
 import os
 import sys
 from datetime import datetime
 from io import StringIO
 
+import django
 from django.conf import settings
 from django.test.utils import get_runner
+
+### TODO
+### This should be deleted after we stop the Jenkins PR check job in favor of the GHA
 
 """
     Reference: https://docs.djangoproject.com/en/3.0/topics/testing/advanced/#defining-a-test-runner
@@ -97,7 +100,7 @@ if __name__ == '__main__':
     if args.test:
         failures = test_runner.run_tests(args.test)
     else:
-        failures = test_runner.run_tests(None)
+        failures = test_runner.run_tests(['*'])
 
     if captured_output and failures and args.report_file:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

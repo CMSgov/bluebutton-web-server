@@ -1,20 +1,11 @@
-from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, DEFAULT_SAMPLE_FHIR_ID_V2
-from apps.fhir.constants import (
-    Appropriate,
-    MissingFields,
-    Status,
-    BASEURL,
-    PAGE_NOT_FOUND_TESTS,
-    TESTS,
-)
-from apps.test import BaseApiTest
-
-from django.conf import settings
+from django.test import tag
 from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
-from unittest import skipIf
-from waffle.testutils import override_switch, override_flag
+from waffle.testutils import override_flag, override_switch
 
+from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, DEFAULT_SAMPLE_FHIR_ID_V2
+from apps.fhir.constants import BASEURL, PAGE_NOT_FOUND_TESTS, TESTS, Appropriate, MissingFields, Status
+from apps.test import BaseApiTest
 
 AccessToken = get_access_token_model()
 
@@ -25,7 +16,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=False)
     def test_userinfo_returns_403(self):
@@ -37,7 +28,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()['detail'], APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format('John_Smith_test'))
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     @override_flag('v3_early_adopter', active=True)
     def test_userinfo_returns_200(self):
@@ -49,7 +40,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
         self.assertEqual(response.status_code, 200)
 
     # This makes sure URLs return 200s.
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_url_status_codes(self):
         with override_switch('v3_endpoints', active=True):
             for test in TESTS:
@@ -59,7 +50,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
 
     # This looks at the given set of URLs and makes sure that the version value encoded in the
     # responses are correctly versioned. Note the handling of v1/v2.
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     def test_urls_appropriate(self):
         for test in TESTS:
@@ -85,7 +76,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 else:
                     self.fail('Failed to connect with a good status code.')
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     def test_smart_configuration_missing_fields_in_v3(self):
         for test in TESTS:
@@ -120,7 +111,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     # Make sure FHIR v3 extensions are correct when the metadata is fetched; the extensions object
     # is commented above for reference.
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     def test_fhir_metadata_extensions_have_v3(self):
         the_url = f'{BASEURL}/v3/fhir/metadata'
@@ -133,7 +124,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
                 for e in ext['extension']:
                     self.assertIn('v3', e['valueUri'])
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=False)
     def test_page_not_found_when_waffle_switch_disabled(self):
         for test in PAGE_NOT_FOUND_TESTS:

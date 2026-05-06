@@ -17,6 +17,9 @@ build-local: css requirements
 	cd mslsx ; make build-local
 	cd bb-api ; make build-local
 
+build-local-no-cache:
+	cd bb-api ; make build-local-no-cache
+
 # This is speculative; not yet tested in production.
 build-production:
 	echo "build"
@@ -51,3 +54,11 @@ collectstatic:
 	env="local" \
 	TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
+
+run-selenium-target-local:
+	@echo "Running Selenium: Local"
+	$(MAKE) -C selenium run-selenium-target-local AUTH=$(auth)
+
+build-selenium:
+	@echo "Running Selenium: Local"
+	cd selenium && make build-selenium

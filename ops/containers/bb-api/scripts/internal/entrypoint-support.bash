@@ -98,17 +98,31 @@ launch_blue_button () {
     mkdir -p /tmp/gunicorn
     # Start BBAPI via `gunicorn`
     if [[ $TARGET_ENV == "local" ]]; then
-        # --bind 0.0.0.0:${GUNICORN_PORT} \
-        echo "🔵 local run options"
-        gunicorn \
-            hhs_oauth_server.wsgi:application \
-            --worker-tmp-dir /tmp/gunicorn \
-            --bind 0.0.0.0:${GUNICORN_PORT} \
-            --workers ${GUNICORN_WORKERS} \
-            --timeout ${GUNICORN_TIMEOUT} \
-            --reload \
-            --log-level debug
-        RESULT=$?
+        if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]; then
+            echo "🔵 local run options (wait for attach...)"
+            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn \
+                hhs_oauth_server.wsgi:application \
+                --worker-tmp-dir /tmp/gunicorn \
+                --bind 0.0.0.0:${GUNICORN_PORT} \
+                --workers 1 \
+                --threads 4 \
+                --timeout 0 \
+                --reload \
+                --log-level debug
+            RESULT=$?
+        else
+            echo "🔵 local run options"
+            python3 -m debugpy --listen 0.0.0.0:5678 -m gunicorn \
+                hhs_oauth_server.wsgi:application \
+                --worker-tmp-dir /tmp/gunicorn \
+                --bind 0.0.0.0:${GUNICORN_PORT} \
+                --workers 1 \
+                --threads 4 \
+                --timeout 0 \
+                --reload \
+                --log-level debug
+            RESULT=$?
+        fi
     else
         # Fargate: gunicorn handles TLS directly with DigiCert certs (no nginx)
         # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
@@ -130,34 +144,3 @@ launch_blue_button () {
     return $RESULT
 }
 
-setup_database_and_users_if_local () {
-    echo "🟦 Setup database and users if local"
-
-    if [[ $TARGET_ENV == "local" ]]; then
-
-        # Only create the root user if it doesn't exist.
-        result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")
-        if [[ "$result" == "0" ]]; then
-            echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
-            echo "🆗 created ${SUPER_USER_NAME} user."
-        else
-            echo "🆗 ${SUPER_USER_NAME} already exists."
-        fi
-
-        python manage.py create_test_feature_switches
-        echo "🆗 create_test_feature_switches"
-
-        python manage.py create_admin_groups
-        echo "🆗 create_admin_groups"
-
-        python manage.py create_blue_button_scopes
-        echo "🆗 create_blue_button_scopes"
-
-        python manage.py create_test_user_and_application
-
-        echo "🆗 create_test_user_and_application"
-
-        python manage.py create_user_identification_label_selection
-        echo "🆗 create_user_identification_label_selection"
-    fi
-}

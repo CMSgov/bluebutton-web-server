@@ -98,7 +98,6 @@ COVERAGE_SEARCH_SCHEMA = {
     'required': ['id', 'resourceType', 'entry'],
 }
 
-
 EOB_READ_SCHEMA = {
     'title': 'ExplenationofBenefitRead',
     'type': 'object',
@@ -1008,7 +1007,7 @@ EXPECTED_LOGGING_EVENTS = [
 ]
 
 # TODO 4330 - could this just be a constant in apps.py
-HOSTNAME_URL = os.environ['HOSTNAME_URL']
+HOSTNAME_URL = os.getenv('HOSTNAME_URL', 'http://localhost:8000')
 USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'

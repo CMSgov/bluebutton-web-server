@@ -3,16 +3,16 @@ services:
   # Local Selenium Server
   selenium-tests:
     image: selenium-local:latest
-    command: /code/dev-local/selenium/start-selenium.sh
+    command: /code/ops/containers/selenium/start-selenium.sh
     ports:
       - "8910:8910"
-      - "6789:6789"
+      - "7890:7890"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
       - .env.selenium
     volumes:
-      - ../..:/code
+      - ../../..:/code
     depends_on:
       chrome:
         condition: service_started
@@ -25,4 +25,4 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "4444:4444"
-      - "5900:5900"
+      - "5901:5901"

@@ -132,3 +132,56 @@ We have access to `/tmp` locally and in production. That space is used for writi
     |-- tmp
     `-- uwsgi_params -> /etc/nginx/uwsgi_params
 ```
+
+# testing
+
+## unit testing
+
+Unit testing will be ran outside a container.
+
+### prerequisites:
+
+1. Ensure you have python 3.12 installed locally
+2. pip install pip==25.3
+3. pip install pip-tools setuptools
+
+### running unit tests
+
+Setup your local venv (or whatever flavor of local python environment) and install the dev dependencies
+
+1. Activate your environment
+2. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
+3. Run `python manage.py test --exclude=integration` or `make unit-test`
+
+### debugging - unit
+
+Make sure you have your launch.json updated - details can be found in `docker-compose.readme.md`. To debug, modify the command above from step 3 to be:
+
+`python -m debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test`
+
+After running this in the terminal, navigate to `Run and Debug` extension and run the `Unit Test` play button. You can set breakpoints accordingly in different tests to test functionality and stop at different moments.
+
+### specific tests - unit
+
+To target a specific test, add the full class path of the test /after/ `test` in the manage.py command. For example:
+
+`python -m debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test apps.dot_ext.tests.test_scopes.TestScopesBackendClass.test_get_available_scopes`
+
+## integration testing
+
+You'll need to exec into your running instance of bb-api to do this
+
+1. Exec into bb-api
+2. Run `python manage.py test --tag=integration` or `make integration-test`
+
+### debugging - integration
+
+Same as unit tests
+
+### specific tests - integration
+
+Same as unit tests
+
+## selenium testing
+
+For this, check the selenium/ subfolder
