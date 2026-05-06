@@ -44,8 +44,6 @@ gonogo "retrieve_bfd_certs"
 configure_slsx
 gonogo "configure_slsx"
 
-setup_database_and_users_if_local
-gonogo "setup_database_and_users_if_local"
 
 
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
@@ -66,6 +64,7 @@ cleanup_docker_stack
 # Hence, we need to pop back up in order to get to the right
 # place to run the compose.
 cd ../..
+
 
 if [[ "${daemon}" == "1" ]]; then
     docker compose \
