@@ -1,72 +1,105 @@
-name: Build and Upload Static Assets
+name: Build and Deploy Static Assets to Akamai
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy to
+        required: true
+        type: choice
+        options:
+          - test
+          # - sandbox
+          # - prod
 
 env:
-  AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
+  AWS_REGION: us-east-1 
+  TARGET_ENV: ${{ inputs.environment }}
   DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-  TARGET_ENV: test
+  AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
 
 permissions:
-  id-token: write # Required for requesting the AWS IAM OIDC JWT
-  contents: write # Required for actions/checkout
-  actions: write # Required for GHA cache
+  id-token: write 
+  contents: write 
+  actions: write  
 
 jobs:
-  collectstatic:
-    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+  collect-and-deploy:
+    name: Collect and Deploy (${{ inputs.environment }})
+    runs-on: codebuild-bb-${{ inputs.environment }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # TO DO: Look into using setup-python github action in the future
       - name: Setup Python 3.12
         run: |
-          echo "Setting up Python 3.12 via pyenv..."
           pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
           pyenv global 3.12 || pyenv global 3.12.0
 
-      - name: Configure AWS credentials
-        id: aws-creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
-          aws-region: ${{ env.AWS_REGION }}
-          mask-aws-account-id: true
-
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: static/bluebutton-css/package-lock.json
 
-      - name: Install python dependencies
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }} 
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Determine Akamai upload path
+        id: akamai
         run: |
-          python3 -m venv venv
+          case "${TARGET_ENV}" in
+            test)    echo "path=/1197010/test.static.bluebutton.cms.gov/" >> "$GITHUB_OUTPUT" ;;
+            staging) echo "path=/1197010/staging.bluebutton.cms.gov/" >> "$GITHUB_OUTPUT" ;;
+            prod)    echo "path=/1197010/bluebutton.cms.gov/" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Install Python dependencies
+        run: |
+          python -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.txt
 
       - name: Compile and Build CSS assets
-        run:  |
-            cd static/bluebutton-css
-            npm i 
-            npm run gulp
-
-      - name: Mask additional sensitive values
+        working-directory: static/bluebutton-css
         run: |
-            # Mask the role ARN
-            echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
-            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
-            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
-            # Get and mask account ID
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            echo "::add-mask::$ACCOUNT_ID"
-            echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          npm ci
+          npm run gulp
 
       - name: Collect static files
         run: |
           source venv/bin/activate
-          python3 manage.py collectstatic --noinput
-    
+          python manage.py collectstatic --noinput
+
+      - name: Setup Akamai SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AKAMAI_SCP_SSH_KEY }}" > ~/.ssh/akamai_key
+          chmod 600 ~/.ssh/akamai_key
+          cat > ~/.ssh/config <<'EOF'
+          Host bluebuttoncms.rsync.upload.akamai.com
+            HostKeyAlgorithms +ssh-dss
+            StrictHostKeyChecking no
+            IdentityFile ~/.ssh/akamai_key
+          EOF
+
+      - name: Deploy to Akamai NetStorage via Rsync
+        run: |
+          echo "Syncing static files to Akamai..."
+          # NOTE: Replace ./staticfiles/ with your actual Django STATIC_ROOT directory if different
+          rsync -av --delete \
+            -e "ssh" \
+            ./staticfiles/ \
+            ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/akamai_key ~/.ssh/config
