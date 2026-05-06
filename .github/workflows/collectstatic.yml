@@ -28,7 +28,6 @@ jobs:
     name: Collect and Deploy (${{ inputs.environment }})
     runs-on: codebuild-bb-${{ inputs.environment }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
     environment: ${{ inputs.environment }}
-    timeout-minutes: 30
 
     steps:
       - name: Checkout code
