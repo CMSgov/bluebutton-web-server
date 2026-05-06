@@ -90,16 +90,18 @@ class Crosswalk(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
     )
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
     fhir_id_v2 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v2',
         db_index=True,
         validators=[MinLengthValidator(1)],
     )
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
     fhir_id_v3 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v3',
@@ -131,6 +133,7 @@ class Crosswalk(models.Model):
         db_column='user_mbi_hash',
         db_index=True,
     )
+    # spec: https://www.cms.gov/training-education/partner-outreach-resources/new-medicare-card/medical-beneficiary-identifiers-mbis
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name='Unhashed MBI',
@@ -213,7 +216,7 @@ class ArchivedCrosswalk(models.Model):
     This is performed via code in the '__get_and_update_user()' function
     in apps/mymedicare_cb/models.py
     Attributes:
-        user: auth_user.id
+        username: auth_user.username
         fhir_id_v2: v1/v2 BFD fhir patient id
         fhir_id_v3: v3 BFD fhir patient id
         user_id_type: value is to be set to the type of lookup used MBI or HICN, TODO remove during BB2-3143
@@ -226,6 +229,7 @@ class ArchivedCrosswalk(models.Model):
         create (crosswalk): static method to create an ArchivedCrosswalk from a Crosswalk instance
     """
 
+    # The max_length of django's AbstractUser.username field is 150
     username = models.CharField(
         max_length=150,
         null=False,
@@ -234,15 +238,17 @@ class ArchivedCrosswalk(models.Model):
         db_column='username',
         db_index=True,
     )
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
     fhir_id_v2 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v2',
         db_index=True,
     )
+    # https://www.hl7.org/fhir/R4/datatypes.html#id
     fhir_id_v3 = models.CharField(
-        max_length=80,
+        max_length=64,
         null=True,
         unique=False,
         db_column='fhir_id_v3',
@@ -272,6 +278,7 @@ class ArchivedCrosswalk(models.Model):
         db_column='user_mbi_hash',
         db_index=True,
     )
+    # spec: https://www.cms.gov/training-education/partner-outreach-resources/new-medicare-card/medical-beneficiary-identifiers-mbis
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name='Unhashed MBI',

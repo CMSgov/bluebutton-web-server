@@ -8,8 +8,8 @@ from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.validators import URLValidator
 from django.core.files.storage import default_storage
-from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import (
@@ -27,6 +27,7 @@ from oauth2_provider.models import (
 from oauth2_provider.settings import oauth2_settings
 from waffle import switch_is_active
 
+from apps.validators import phone_regex
 import apps.logging.request_logger as logging
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import (
@@ -43,9 +44,9 @@ THIRTEEN_MONTHS = _('for 13 months, until ')
 
 
 class InternalApplicationLabels(models.Model):
-    label = models.CharField(max_length=255, default='', unique=True)
-    slug = models.CharField(max_length=1024, default='', unique=True)
-    description = models.TextField(max_length=10240, blank=True, default='')
+    label = models.TextField(max_length=255, default='', unique=True)
+    slug = models.TextField(max_length=1024, default='', unique=True)
+    description = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.label
@@ -70,30 +71,37 @@ class Application(AbstractApplication):
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
-    op_policy_uri = models.CharField(default='', blank=True, max_length=512)
+    op_tos_uri = models.TextField(default=settings.TOS_URI, blank=True, validators=[URLValidator()], max_length=2048)
+    op_policy_uri = models.TextField(default='', blank=True, max_length=2048, validators=[URLValidator()])
     # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
     # see migration file 0005_alter_application_client_secret.py
     # field added to save client_secret in plain text before Application.save()
     # where the client_secret is hashed ireversible
-    client_secret_plain = models.CharField(default='', blank=True, max_length=255)
+    #
+    # In ouath2_provider, the default length of the generated secret is 128,
+    # but the max_length of AbstractApplication.client_secret is 255. Going with
+    # 128 here because that is the secret's actual length and the length expected
+    # by code and tests.
+    client_secret_plain = models.CharField(default='', blank=True, max_length=128)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
-    client_uri = models.URLField(
+    client_uri = models.TextField(
         default='',
         blank=True,
         null=True,
-        max_length=512,
+        validators=[URLValidator()],
+        max_length=2048,
         verbose_name='Client URI',
         help_text='This is typically a home/download website for the application. '
         'For example, https://www.example.org or http://www.example.org .',
     )
 
-    website_uri = models.URLField(
+    website_uri = models.TextField(
         default='',
         blank=True,
         null=True,
-        max_length=512,
+        validators=[URLValidator()],
+        max_length=2048,
         verbose_name='Website URI',
         help_text='This is typically a home/download website for the application. '
         'For example, https://www.example.org or http://www.example.org .',
@@ -109,24 +117,28 @@ class Application(AbstractApplication):
 
     redirect_uris = models.TextField(help_text=help_text, blank=True)
 
-    logo_uri = models.CharField(default='', blank=True, max_length=512, verbose_name='Logo URI')
+    logo_uri = models.TextField(
+        default='', blank=True, max_length=2048, verbose_name='Logo URI', validators=[URLValidator()]
+    )
 
-    tos_uri = models.CharField(
+    tos_uri = models.TextField(
         default='',
         blank=True,
-        max_length=512,
+        validators=[URLValidator()],
+        max_length=2048,
         verbose_name="Client's Terms of Service URI",
     )
 
-    policy_uri = models.CharField(
+    policy_uri = models.TextField(
         default='',
         blank=True,
-        max_length=512,
+        validators=[URLValidator()],
+        max_length=2048,
         verbose_name="Client's Policy URI",
         help_text='This can be a model privacy notice or other policy document.',
     )
 
-    software_id = models.CharField(
+    software_id = models.TextField(
         default='',
         blank=True,
         max_length=128,
@@ -136,20 +148,13 @@ class Application(AbstractApplication):
     contacts = models.TextField(
         default='',
         blank=True,
-        max_length=512,
         verbose_name="Client's Contacts",
         help_text='This is typically an email',
     )
 
-    support_email = models.EmailField(blank=True, null=True)
+    support_email = models.TextField(blank=True, null=True)
 
-    # FROM https://stackoverflow.com/questions/19130942/whats-the-best-way-to-store-phone-number-in-django-models
-    phone_regex = RegexValidator(
-        regex=r'^\+?1?\d{9,15}$',
-        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
-    )
-
-    support_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
+    support_phone_number = models.CharField(validators=[phone_regex], max_length=16, blank=True, null=True)
 
     description = models.TextField(
         default='',
@@ -204,13 +209,14 @@ class Application(AbstractApplication):
     )
 
     # New fields for CMS Aligned Networks epic
-    jwks_uri = models.URLField(
+    jwks_uri = models.TextField(
         default=None,
         blank=True,
         null=True,
+        validators=[URLValidator()],
         # Went with 512 as that is the established pattern we have for URLFields
         # and to allow for extremely long URLs. 200 is default
-        max_length=512,
+        max_length=2048,
         verbose_name='JSON Web Key Set URI',
     )
 
@@ -384,7 +390,7 @@ class Application(AbstractApplication):
 
 
 class ApplicationLabel(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.TextField(max_length=255, unique=True)
     slug = models.SlugField(db_index=True, unique=True)
     description = models.TextField()
     applications = models.ManyToManyField(Application, blank=True)
@@ -460,6 +466,7 @@ class ArchivedToken(models.Model):
         db_constraint=False,
         related_name='%(app_label)s_%(class)s',
     )
+    # The length of the AccessToken's created by oauth2_provider is 255
     token = models.CharField(
         max_length=255,
         unique=True,
@@ -486,7 +493,10 @@ class ExpiresIn(models.Model):
     issued to the user.
     """
 
+    # hex digest from sha-256, which is always 64 characters long
+    # https://csrc.nist.gov/pubs/fips/180-4/upd1/final
     key = models.CharField(max_length=64, unique=True)
+
     expires_in = models.IntegerField()
 
     objects = ExpiresInManager()
@@ -505,7 +515,11 @@ def archive_token(sender, instance=None, **kwargs):
     )
 
 
-class AuthFlowUuid(models.Model):
+# Make an abstract class that both versions inherit from, because just using normal
+# inheritance would have Django create links in the database between them, which is
+# not what we want.
+# See https://docs.djangoproject.com/en/6.0/topics/db/models/#model-inheritance
+class AbstractAuthFlowUuid(models.Model):
     """
     An instance used to persist the beneficiary authorization flow
     auth_uuid across the auth flow when there are breaks in the
@@ -523,10 +537,21 @@ class AuthFlowUuid(models.Model):
     """
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
-    state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
+    state = models.TextField(max_length=64, null=True, unique=True, db_index=True)
+
+    # matches what is in django rest framework
+    # https://github.com/django-oauth/django-oauth-toolkit/blob/d422eeab79052c04a91d124f938ddc22c841c38c/oauth2_provider/models.py#L333
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
-    client_id = models.CharField(max_length=100, null=True)
-    auth_pkce_method = models.CharField(max_length=16, null=True)
+
+    # In ouath2_provider, the length of the generated client_id is 40,
+    # but the max_length of AbstractApplication.client_id is 100. Going with
+    # 40 here because that is the ID's actual length.
+    client_id = models.CharField(max_length=40, null=True)
+
+    # code challenge method, either "S256" or "plain" by spec
+    # https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
+    auth_pkce_method = models.CharField(max_length=16, null=True, choices={'S256': 'S256', 'plain': 'plain'})
+
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
     auth_share_demographic_scopes = models.BooleanField(null=True)
@@ -534,35 +559,16 @@ class AuthFlowUuid(models.Model):
     def __str__(self):
         return str(self.auth_uuid)
 
+    class Meta:
+        abstract = True
 
-class AuthFlowUuidCopy(models.Model):
-    """
-    An instance used to persist the beneficiary authorization flow
-    auth_uuid across the auth flow when there are breaks in the
-    session and for logging the resulting access token that is granted.
 
-    Fields:
+class AuthFlowUuid(AbstractAuthFlowUuid):
+    pass
 
-    auth_uuid - The beneficiary authorization flow tracing UUID
-    state - The state noance used in the Medicare.gov login and callback
-    code - The authorization code generated by the authorization server
-    client_id - The application client id
-    auth_pkce_method - PKCE method used
-    auth_crosswalk_action - Action taken with regard to the crosswalk model (retreived/created)
-    auth_share_demographic_scopes - Bene demographic sharing choice from consent page/form
-    """
 
-    auth_uuid = models.UUIDField(primary_key=True, unique=True)
-    state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
-    code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
-    client_id = models.CharField(max_length=100, null=True)
-    auth_pkce_method = models.CharField(max_length=16, null=True)
-    created = models.DateTimeField(null=True)
-    auth_crosswalk_action = models.CharField(max_length=1, null=True)
-    auth_share_demographic_scopes = models.BooleanField(null=True)
-
-    def __str__(self):
-        return str(self.auth_uuid)
+class AuthFlowUuidCopy(AbstractAuthFlowUuid):
+    pass
 
 
 def get_application_counts():

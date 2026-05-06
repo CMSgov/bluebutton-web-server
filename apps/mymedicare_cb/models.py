@@ -1,3 +1,4 @@
+from django.core.validators import URLValidator
 import apps.logging.request_logger as logging
 
 from django.contrib.auth.models import User, Group
@@ -440,8 +441,8 @@ def _validate_asserts(logger, log_dict, asserts):
 
 
 class AnonUserState(models.Model):
-    state = models.CharField(default='', max_length=64, db_index=True)
-    next_uri = models.TextField(default='')
+    state = models.TextField(default='', max_length=64, db_index=True)
+    next_uri = models.TextField(default='', validators=[URLValidator()], max_length=2048)
 
     def __str__(self):
         return '%s %s' % (self.state, self.next_uri)
