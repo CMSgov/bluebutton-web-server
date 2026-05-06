@@ -34,12 +34,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -65,9 +59,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python -m venv venv
+          python3 -m venv venv
           source venv/bin/activate
-          python -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --upgrade pip setuptools wheel
           pip install -r requirements/requirements.txt
 
       - name: Compile and Build CSS assets
@@ -79,7 +73,7 @@ jobs:
       - name: Collect static files
         run: |
           source venv/bin/activate
-          python manage.py collectstatic --noinput
+          python3 manage.py collectstatic --noinput
 
       - name: Setup Akamai SSH key
         run: |
