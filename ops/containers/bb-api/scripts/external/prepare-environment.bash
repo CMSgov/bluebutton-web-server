@@ -42,6 +42,10 @@ gonogo "retrieve_bfd_certs"
 # We may want to run against a mock, or against
 # the live system. 
 configure_slsx
+gonogo "configure_slsx"
+
+setup_database_and_users_if_local
+gonogo "setup_database_and_users_if_local"
 
 
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
