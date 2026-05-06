@@ -77,6 +77,8 @@ jobs:
       - name: Collect static files
         run: |
           source venv/bin/activate
+          ls -al
+          pwd
           find /static -type f ! -name "*.css" -delete
           python manage.py collectstatic --noinput
           ls -al
