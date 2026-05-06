@@ -2,7 +2,6 @@ import http.client
 import os
 from enum import Enum
 
-from django.conf import settings
 from selenium.webdriver.common.by import By
 
 from apps.constants import COVERAGE_SCOPE, EOB_SCOPE, LAUNCH_SCOPE, OPENID_SCOPE, PATIENT_SCOPE
@@ -1008,7 +1007,7 @@ EXPECTED_LOGGING_EVENTS = [
 ]
 
 # TODO 4330 - could this just be a constant in apps.py
-HOSTNAME_URL = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+HOSTNAME_URL = os.getenv('HOSTNAME_URL', 'http://localhost:8000')
 USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
