@@ -98,7 +98,7 @@ jobs:
           echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
           rsync -av --delete \
             -e "ssh" \
-            ./staticfiles/ \
+            ./static/ \
             ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
 
       - name: Cleanup SSH key
