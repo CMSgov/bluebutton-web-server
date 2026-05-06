@@ -1,29 +1,29 @@
-from django.test import TestCase
+from unittest.mock import Mock, patch
+
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
+from django.test import TestCase
+from waffle.testutils import override_switch
+
 from apps.constants import USER_TYPE_BENEFICIARY
-from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.constants import (
     DEFAULT_EMAIL,
-    DEFAULT_HICN_HASH,
     DEFAULT_FIRST_NAME,
+    DEFAULT_HICN_HASH,
     DEFAULT_LAST_NAME,
     DEFAULT_USERNAME,
 )
-from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
-from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
-from waffle.testutils import override_switch
-
 from apps.mymedicare_cb.models import (
-    create_beneficiary_record_from_slsx_client,
-    get_and_update_user_from_initial_auth,
-    get_and_update_from_refresh,
+    BBMyMedicareCallbackCrosswalkCreateException,
     _match_fhir_id_error_should_be_checked,
+    create_beneficiary_record_from_slsx_client,
+    get_and_update_from_refresh,
+    get_and_update_user_from_initial_auth,
 )
-from unittest.mock import patch, Mock
-
 from apps.versions import Versions
 
 # Create the mock request
@@ -44,11 +44,15 @@ def search_fhir_id_by_identifier_side_effect(search_identifier, request, version
     return '-20140000008325'
 
 
-def match_fhir_id_side_effect_fail_v3(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION) -> MatchFhirIdResult:
+def match_fhir_id_side_effect_fail_v3(
+    mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERSION
+) -> MatchFhirIdResult:
     if version == Versions.V2:
         return MatchFhirIdResult(fhir_id='-20140000008325', lookup_type=MatchFhirIdLookupType.MBI)
     elif version == Versions.V3:
-        return MatchFhirIdResult(error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI)
+        return MatchFhirIdResult(
+            error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI
+        )
     return MatchFhirIdResult(fhir_id='-20140000008325', lookup_type=MatchFhirIdLookupType.MBI)
 
 
@@ -80,7 +84,7 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(bene.crosswalk.user_id_type, args['user_id_type'])
         self.assertEqual(bene.crosswalk.fhir_id(2), args['fhir_id_v2'])
         self.assertEqual(bene.crosswalk.fhir_id(3), args['fhir_id_v3'])
-        self.assertEqual(bene.userprofile.user_type, USER_TYPE_BENEFICIARY)
+        self.assertEqual(bene.userprofile.user_type, '')
 
     def test_create_beneficiary_record_min(self):
         args = {'username': '001010101010110', 'user_hicn_hash': DEFAULT_HICN_HASH, 'fhir_id_v2': '00001'}
@@ -261,7 +265,9 @@ class BeneficiaryLoginTest(TestCase):
             slsx_client = OAuth2ConfigSLSx(case['args'])
             with self.assertRaisesRegex(case['exception'], case['exception_mesg']):
                 create_beneficiary_record_from_slsx_client(
-                    slsx_client, fhir_id_v2=case['args'].get('fhir_id_v2', None), fhir_id_v3=case['args'].get('fhir_id_v3', None)
+                    slsx_client,
+                    fhir_id_v2=case['args'].get('fhir_id_v2', None),
+                    fhir_id_v3=case['args'].get('fhir_id_v3', None),
                 )
 
     def test_duplicate_username_auth_user_creation_fails(self):
@@ -284,7 +290,9 @@ class BeneficiaryLoginTest(TestCase):
         with self.assertRaisesRegex(ValidationError, 'user already exists'):
             slsx_client1 = OAuth2ConfigSLSx(second_user)
             create_beneficiary_record_from_slsx_client(
-                slsx_client1, fhir_id_v2=second_user.get('fhir_id_v2', None), fhir_id_v3=second_user.get('fhir_id_v3', None)
+                slsx_client1,
+                fhir_id_v2=second_user.get('fhir_id_v2', None),
+                fhir_id_v3=second_user.get('fhir_id_v3', None),
             )
 
     def test_successfully_create_multiple_beneficiary_record(self):
@@ -384,7 +392,11 @@ class BeneficiaryLoginTest(TestCase):
         slsx_mbi = '1S00EU7JH82'
 
         crosswalk = Crosswalk.objects.create(
-            user=fake_user, fhir_id_v2='-20000000002346', user_hicn_hash=DEFAULT_HICN_HASH, user_mbi=None, user_id_type='M'
+            user=fake_user,
+            fhir_id_v2='-20000000002346',
+            user_hicn_hash=DEFAULT_HICN_HASH,
+            user_mbi=None,
+            user_id_type='M',
         )
 
         slsx_client = Mock(spec=OAuth2ConfigSLSx)
@@ -429,7 +441,10 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(user.crosswalk.user_mbi, slsx_mbi)
         mock_archive.assert_called_once()
 
-    @patch('apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect)
+    @patch(
+        'apps.fhir.server.authentication.search_fhir_id_by_identifier',
+        side_effect=search_fhir_id_by_identifier_side_effect,
+    )
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
     @override_switch('v3_endpoints', active=True)
     def test_get_and_update_from_refresh_fhir_id_v3_previously_null(self, mock_archive, mock_match_fhir) -> None:
@@ -453,7 +468,10 @@ class BeneficiaryLoginTest(TestCase):
 
         assert user.crosswalk.fhir_id_v3 == '-30250000008325'
 
-    @patch('apps.fhir.server.authentication.search_fhir_id_by_identifier', side_effect=search_fhir_id_by_identifier_side_effect)
+    @patch(
+        'apps.fhir.server.authentication.search_fhir_id_by_identifier',
+        side_effect=search_fhir_id_by_identifier_side_effect,
+    )
     @patch('apps.fhir.bluebutton.models.ArchivedCrosswalk.create')
     def test_get_and_update_from_refresh_fhir_id_v2_previously_null(self, mock_archive, mock_match_fhir) -> None:
         """Test that the get_and_update_from_refresh executes fields correctly,

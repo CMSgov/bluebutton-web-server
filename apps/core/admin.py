@@ -1,4 +1,3 @@
-import dj_database_url
 from django.contrib import admin
 from waffle.admin import FlagAdmin
 
