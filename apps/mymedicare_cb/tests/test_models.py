@@ -84,7 +84,7 @@ class BeneficiaryLoginTest(TestCase):
         self.assertEqual(bene.crosswalk.user_id_type, args['user_id_type'])
         self.assertEqual(bene.crosswalk.fhir_id(2), args['fhir_id_v2'])
         self.assertEqual(bene.crosswalk.fhir_id(3), args['fhir_id_v3'])
-        self.assertEqual(bene.userprofile.user_type, '')
+        self.assertEqual(bene.userprofile.user_type, USER_TYPE_BENEFICIARY)
 
     def test_create_beneficiary_record_min(self):
         args = {'username': '001010101010110', 'user_hicn_hash': DEFAULT_HICN_HASH, 'fhir_id_v2': '00001'}
