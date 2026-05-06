@@ -23,6 +23,7 @@ from apps.fhir.bluebutton.utils import (
     dt_patient_reference,
     extract_fhir_id_from_patient,
     extract_mbi_from_patient,
+    format_patient_name,
     get_host_url,
     get_patient_match_response_json,
     is_operation_outcome,
@@ -181,6 +182,43 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
         result = is_operation_outcome({'resourceType': 'patient'})
         assert not result
+
+    def test_format_patient_name_search_result(self):
+        patient_result = {
+            'resourceType': 'Bundle',
+            'entry': [
+                {
+                    'resource': {
+                        'resourceType': 'Patient',
+                        'id': '-444444444',
+                        'name': [{'family': 'User', 'given': ['Test', 'A']}],
+                    }
+                }
+            ],
+        }
+        result = format_patient_name(patient_result)
+        assert result == 'Test A User'
+
+    def test_format_patient_name_read_result(self):
+        patient_result = {
+            'resourceType': 'Patient',
+            'id': '-444444444',
+            'name': [{'family': 'User', 'given': ['Test', 'A']}],
+        }
+        result = format_patient_name(patient_result)
+        assert result == 'Test A User'
+
+    def test_format_patient_name_unknown_result(self):
+        result = format_patient_name({})
+        assert result == 'Unknown'
+
+    def test_format_patient_name_unknown_result_bundle(self):
+        patient_result = {
+            'resourceType': 'Bundle',
+            'name': [{'family': 'User', 'given': ['Test', 'A']}],
+        }
+        result = format_patient_name(patient_result)
+        assert result == 'Unknown'
 
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
