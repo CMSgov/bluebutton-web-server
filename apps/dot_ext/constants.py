@@ -324,7 +324,7 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         'request_scopes': APPLICATION_SCOPES_FULL,
         # Result:
         'result_has_error': False,
-        'result_token_scopes_granted': APPLICATION_SCOPES_FULL,
+        'result_token_scopes_granted': APPLICATION_SCOPES_NON_DEMOGRAPHIC,
         'result_access_token_count': 2,
         'result_refresh_token_count': 2,
         'result_archived_token_count': 1,
