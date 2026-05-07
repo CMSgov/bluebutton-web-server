@@ -56,9 +56,9 @@ jobs:
         id: akamai
         run: |
           case "${TARGET_ENV}" in
-            test)    echo "path=/1197010/test.static.bluebutton.cms.gov/" >> "$GITHUB_OUTPUT" ;;
-            staging) echo "path=/1197010/staging.bluebutton.cms.gov/" >> "$GITHUB_OUTPUT" ;;
-            prod)    echo "path=/1197010/bluebutton.cms.gov/" >> "$GITHUB_OUTPUT" ;;
+            test)    echo "path=/1197010/test.static.bluebutton.cms.gov/bbapi-static/" >> "$GITHUB_OUTPUT" ;;
+            staging) echo "path=/1197010/staging.bluebutton.cms.gov/bbapi-static/" >> "$GITHUB_OUTPUT" ;;
+            prod)    echo "path=/1197010/bluebutton.cms.gov/bbapi-static/" >> "$GITHUB_OUTPUT" ;;
           esac
 
       - name: Install Python dependencies
@@ -97,12 +97,13 @@ jobs:
         run: |
           echo "Syncing static files to Akamai..."
           # Masking the updated path
-          echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}bbapi-static/"
+          echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
           
           rsync -av --delete \
+          --exclude=/bbapi-static/ \
             -e "ssh" \
             ./static/ \
-            ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}bbapi-static/
+            ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
 
       - name: Cleanup SSH key
         if: always()
