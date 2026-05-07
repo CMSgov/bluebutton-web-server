@@ -1,3 +1,5 @@
+from typing import override
+
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
@@ -87,7 +89,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             'jwks_uri',
         )
 
-    # TODO this doesn't do anything?
+    @override
     def clean_agree(self):
         return self.cleaned_data.get('agree')
 
