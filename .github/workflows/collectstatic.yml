@@ -15,8 +15,6 @@ on:
 env:
   AWS_REGION: us-east-1 
   TARGET_ENV: ${{ inputs.environment }}
-  DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-  AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
 
 permissions:
   id-token: write 
@@ -78,6 +76,7 @@ jobs:
         run: |
           source venv/bin/activate
           find static/ -type f ! -name "*.css" -delete
+          find static/ -empty -type d -delete
           python manage.py collectstatic --noinput
 
       - name: Setup Akamai SSH key
