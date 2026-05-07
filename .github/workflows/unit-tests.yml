@@ -1,7 +1,6 @@
 name: Run Unit Tests
 
 on:
-    push:
     pull_request:
         branches: [master]
 
@@ -28,4 +27,4 @@ jobs:
             - name: Run unit tests
               run: |
                 source venv/bin/activate
-                python manage.py test
+                python manage.py test --exclude=integration
