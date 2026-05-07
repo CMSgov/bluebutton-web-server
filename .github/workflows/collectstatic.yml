@@ -100,7 +100,6 @@ jobs:
           echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
           
           rsync -av --delete \
-          --exclude=/bbapi-static/ \
             -e "ssh" \
             ./static/ \
             ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
