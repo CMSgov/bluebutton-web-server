@@ -137,12 +137,13 @@ class TestApplicationUpdateView(BaseApiTest):
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         # TODO pytest.mark.parameterize
-        # TODO can None be passed here?
-        for start, end in [(True, False), (False, True)]:
-            starting_scopes = default_non_demographic if start is False else default_scopes
-            desired_ending_scopes = default_non_demographic if end is False else default_scopes
+        for start, end in [(True, False), (False, True), (None, True), (None, False)]:
+            starting_scopes = default_scopes if start else default_non_demographic
+            desired_ending_scopes = default_scopes if end else default_non_demographic
 
             app = self._create_application('an app', user=user)
+            app.require_demographic_scopes = start
+            app.save()
             app.scope.set(starting_scopes)
 
             response = self.client.post(
