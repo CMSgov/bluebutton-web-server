@@ -56,7 +56,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install --upgrade pip
 pip install pip-tools
-pip install -r requirements/requirements.txt
+pip install -r requirements/requirements.dev.txt
 ```
 
 **Configure your environment:**
