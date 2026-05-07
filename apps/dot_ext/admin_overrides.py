@@ -51,7 +51,6 @@ class ValidatedApplicationAdminForm(forms.ModelForm):
             'website_uri',
             'redirect_uris',
             'logo_uri',
-            'logo_image',
             'tos_uri',
             'policy_uri',
             'software_id',
