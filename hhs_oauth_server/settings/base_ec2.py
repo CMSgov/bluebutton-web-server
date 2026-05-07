@@ -198,6 +198,7 @@ INSTALLED_APPS = [
     # could deal with apps.dot_ext.model_name when it encounters a string
     # TODO I don't think this is needed, apps register as the last item (after the last .)
     'apps.dot_ext.apps.dot_extConfig',
+    # 'apps.dot_ext',
     'apps.pkce',
     'apps.home',
     'apps.fhir.server',
@@ -587,6 +588,7 @@ AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
 # Django Oauth Toolkit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
+# OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'dot_ext.BlueButtonAccessToken'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
@@ -596,6 +598,8 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
     'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
     'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
+    'ACCESS_TOKEN_MODEL': 'dot_ext.BlueButtonAccessToken',
+    # 'OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL': 'dot_ext.BlueButtonAccessToken',
 }
 
 # These choices will be available in the expires_in field

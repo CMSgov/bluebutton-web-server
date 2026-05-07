@@ -384,6 +384,7 @@ SILENCED_SYSTEM_CHECKS = ['urls.W002']
 
 # Django Oauth Toolkit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
+# OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'dot_ext.BlueButtonAccessToken'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
@@ -393,7 +394,11 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
     'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
     'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
+    # 'ACCESS_TOKEN_MODEL': 'apps.dot_ext.models.BlueButtonAccessToken',
+    'ACCESS_TOKEN_MODEL': 'dot_ext.BlueButtonAccessToken',
+    # 'OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL': 'dot_ext.BlueButtonAccessToken',
 }
+print('OAUTH2_PROVIDER CHECK: ', OAUTH2_PROVIDER)
 
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
