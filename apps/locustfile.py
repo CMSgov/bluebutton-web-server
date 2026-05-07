@@ -62,7 +62,7 @@ BB_ACCESS_TOKENS_FILE_V3 = _expand_path(
     os.getenv('BB_ACCESS_TOKENS_FILE_V3', os.path.join(BB2_LOCUST_DIR, 'tokens_v3.txt'))
 )
 
-BB_TOKEN_SELECTION = os.getenv('BB_TOKEN_SELECTION', 'random').strip().lower()
+BB_TOKEN_SELECTION = os.getenv('BB_TOKEN_SELECTION', 'round_robin').strip().lower()
 
 TOKEN_SPLIT_RE = re.compile(r'[\s,]+')
 _TOKEN_LOCKS = {
@@ -217,9 +217,6 @@ class BlueButtonUser(HttpUser):
             return 'token=missing'
 
         # Report a short token fingerprint rather than the full bearer token.
-        if len(self.access_token) <= 12:
-            return f'token={self.access_token}'
-
         return f'token={self.access_token[:6]}...{self.access_token[-6:]}'
 
     def _request_with_error_context(self, path, name):
