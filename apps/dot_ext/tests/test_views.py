@@ -63,7 +63,6 @@ class TestApplicationRegistrationView(BaseApiTest):
         Assert that the registration view assigns demographic scopes when the user
         selects "yes" for "Does your application need to collect beneficiary demographic information"
         """
-        # TODO not DRY
         call_command('create_blue_button_scopes')
 
         self._create_user('anna', '123456')
@@ -125,7 +124,6 @@ class TestApplicationUpdateView(BaseApiTest):
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
 
-    # TODO is this easier to read as separate tests?
     def test_adds_or_removes_demographic_scopes(self):
         """
         Assert that the update view adds or removes demographic scopes to match the

@@ -14,8 +14,7 @@ from apps.dot_ext.admin import CustomAdminApplicationForm
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 
 
-# TODO class name is narrower than actual scope
-class TestRegisterApplicationForm(BaseApiTest):
+class TestRegisterApplicationForms(BaseApiTest):
     def test_update_form_edit(self):
         """ """
         read_group = self._create_group('read')

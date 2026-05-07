@@ -92,7 +92,6 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         return self.cleaned_data.get('agree')
 
     def clean(self):
-        # TODO not DRY
         cleaned_data = super().clean()
 
         if 'require_demographic_scopes' in cleaned_data and 'scope' in cleaned_data:

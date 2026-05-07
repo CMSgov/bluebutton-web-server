@@ -188,7 +188,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         app = super().save(*args, **kwargs)
         app.save()
 
-        # TODO apply any changes made in management command here too
         # TODO refactor out?
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
@@ -329,7 +328,6 @@ class CreateNewApplicationForm(forms.ModelForm):
         return require_demographic_scopes
 
     def clean(self):
-        # TODO not DRY
         cleaned_data = super().clean()
 
         if 'require_demographic_scopes' in cleaned_data and 'scope' in cleaned_data:
