@@ -57,7 +57,6 @@ class TestApplicationRegistrationView(BaseApiTest):
 
         self.assertQuerySetEqual(app.scope.all(), [capability_a, capability_b], ordered=False)
 
-    # TODO are tests for None necessary?
     def test_assigns_demographic_scopes(self):
         """
         Assert that the registration view assigns demographic scopes when the user
