@@ -21,8 +21,6 @@ class Command(BaseCommand):
         self.stdout.write()
 
     def handle(self, *args, **options):
-        # TODO this seems too permissive, but TARGET_ENV doesn't seem to be set for
-        # pr checks
         if os.getenv('TARGET_ENV') not in [None, 'local', 'test', 'sbx']:
             raise CommandError('Target environment not in [None, "local", "test", "sbx"].')
 

@@ -188,7 +188,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         app = super().save(*args, **kwargs)
         app.save()
 
-        # TODO refactor out?
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
         default_non_demographic = default_scopes.difference(demographic_scopes)
