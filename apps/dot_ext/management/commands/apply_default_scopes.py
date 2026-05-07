@@ -28,7 +28,6 @@ class Command(BaseCommand):
 
         # TODO is there a way to write this function more readably?
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
-        # TODO what about demographic scopes that are not default?
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
         default_non_demographic = default_scopes.difference(demographic_scopes)
 
