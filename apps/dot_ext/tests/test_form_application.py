@@ -6,7 +6,7 @@ from django.forms import ModelMultipleChoiceField
 from PIL import Image
 from io import BytesIO
 
-from apps.dot_ext.admin_overrides import AnotherApplicationAdminForm
+from apps.dot_ext.admin_overrides import ValidatedApplicationAdminForm
 from apps.test import BaseApiTest
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.forms import CustomRegisterApplicationForm, CreateNewApplicationForm
@@ -485,7 +485,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
         default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
         user = self._create_user('anna', '123456')
         app = self._create_application(name='an app', user=user)
-        form = AnotherApplicationAdminForm(
+        form = ValidatedApplicationAdminForm(
             data={
                 'name': app.name,
                 'client_id': app.client_id,
@@ -511,7 +511,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
         default_scopes = ProtectedCapability.objects.filter(default=True)
         user = self._create_user('anna', '123456')
         app = self._create_application(name='an app', user=user)
-        form = AnotherApplicationAdminForm(
+        form = ValidatedApplicationAdminForm(
             data={
                 'name': app.name,
                 'client_id': app.client_id,
@@ -540,7 +540,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
         default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
         user = self._create_user('anna', '123456')
         app = self._create_application(name='an app', user=user)
-        form = AnotherApplicationAdminForm(
+        form = ValidatedApplicationAdminForm(
             data={
                 'name': app.name,
                 'client_id': app.client_id,

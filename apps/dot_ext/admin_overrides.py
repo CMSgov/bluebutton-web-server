@@ -8,7 +8,7 @@ from oauth2_provider.models import get_application_model
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 
 
-class AnotherApplicationAdminForm(forms.ModelForm):
+class ValidatedApplicationAdminForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
@@ -32,8 +32,41 @@ class AnotherApplicationAdminForm(forms.ModelForm):
 
     class Meta:
         model = get_application_model()
-        fields = '__all__'  # TODO this is strongly recommended against
+        fields = [
+            'data_access_type',
+            'client_id',
+            'user',
+            'client_type',
+            'authorization_grant_type',
+            'client_secret_plain',
+            'client_secret',
+            'name',
+            'skip_authorization',
+            'scope',
+            'require_demographic_scopes',
+            'agree',
+            'op_tos_uri',
+            'op_policy_uri',
+            'client_uri',
+            'website_uri',
+            'redirect_uris',
+            'logo_uri',
+            'logo_image',
+            'tos_uri',
+            'policy_uri',
+            'software_id',
+            'contacts',
+            'support_email',
+            'support_phone_number',
+            'description',
+            'internal_application_labels',
+            'active',
+            'first_active',
+            'last_active',
+            'allowed_auth_type',
+            'jwks_uri',
+        ]
 
 
-class AnotherApplicationAdmin(ApplicationAdmin):
-    form = AnotherApplicationAdminForm
+class ValidatedApplicationAdmin(ApplicationAdmin):
+    form = ValidatedApplicationAdminForm
