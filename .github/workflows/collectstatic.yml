@@ -96,11 +96,13 @@ jobs:
       - name: Deploy to Akamai NetStorage
         run: |
           echo "Syncing static files to Akamai..."
-          echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
+          # Masking the updated path
+          echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}bbapi-static/"
+          
           rsync -av --delete \
             -e "ssh" \
             ./static/ \
-            ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
+            ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}bbapi-static/
 
       - name: Cleanup SSH key
         if: always()
