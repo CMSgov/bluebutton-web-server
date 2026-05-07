@@ -43,7 +43,6 @@ class Command(BaseCommand):
         for app in Application.objects.all():
             before = set(app.scope.all())
 
-            # TODO is there a way to only update those that need updating?
             if app.require_demographic_scopes:
                 app.scope.add(*default_scopes)
             else:  # False or None
