@@ -1,8 +1,6 @@
 import json
 from http import HTTPStatus
-from unittest import skipIf
 
-from django.conf import settings
 from django.test import tag
 from django.test.client import Client
 from django.urls import reverse
@@ -588,21 +586,18 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, expected_code)
 
     @tag('integration')
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_EOB_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
     @tag('integration')
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_COVERAGE_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
     @tag('integration')
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_PATIENT_URLS[version]
@@ -627,19 +622,16 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         )
 
     @tag('integration')
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = SEARCH_EOB_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
     @tag('integration')
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = SEARCH_COVERAGE_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
     @tag('integration')
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
     def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = SEARCH_PATIENT_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
@@ -673,7 +665,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
             self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
 
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, that the _source=NCH parameter
@@ -697,7 +689,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
 
-    @skipIf((not settings.RUN_INTEGRATION_TEST), "Can't reach external sites.")
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_not_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, and a _tag parameter is being passed,

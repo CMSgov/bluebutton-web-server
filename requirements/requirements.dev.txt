@@ -401,9 +401,9 @@ djangorestframework-csv==3.0.0 \
     --hash=sha256:46b39864f68cf42e7357a8be6109a85d484be52d6d8720bfac5e62163ec1a300 \
     --hash=sha256:d6b2ee9a5fc62f98f6f4af241928836e2a2efab384d33def8ec722f9301602bf
     # via -r /code/requirements/requirements.in
-fhir-core==1.1.7 \
-    --hash=sha256:5c77aa939bb1c2920f505cda0e4905b38bba1e87ad46351acc383cec7184c4d7 \
-    --hash=sha256:7419c5102afd180392114a810707c55401fa96408d16d95df9f037def7ded52c
+fhir-core==1.1.8 \
+    --hash=sha256:1a576ce3f6ec2aa3e86891dd00091ee03bcdcbb5a2f179f4f8e09b25b4d75047 \
+    --hash=sha256:61b1fd984c1f3fc4ad2c4d96824d9ec6f92d19e9aa49269c89b9ebec878e778e
     # via fhir-resources
 fhir-resources==8.2.0 \
     --hash=sha256:122a8b336385d504b399df9c5f332a7d913f07bc71a52dc9dde39abb5bf29129 \
