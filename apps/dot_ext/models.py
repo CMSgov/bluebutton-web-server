@@ -568,20 +568,20 @@ class AuthFlowUuidCopy(models.Model):
 
 # class BlueButtonAccessToken(AbstractAccessToken):
 #     # Override id_token to set a unique related_name and avoid reverse accessor clash
-#     id_token = models.OneToOneField(
-#         oauth2_settings.ID_TOKEN_MODEL,
-#         on_delete=models.SET_NULL,
-#         blank=True,
-#         null=True,
-#         related_name='bb_access_token',
-#     )
-#     # Override source_refresh_token to avoid reverse accessor clash
-#     source_refresh_token = models.OneToOneField(
-#         oauth2_settings.REFRESH_TOKEN_MODEL,
-#         on_delete=models.SET_NULL,
-#         blank=True,
-#         null=True,
-#         related_name='bb_refreshed_access_token',
+# id_token = models.OneToOneField(
+#     oauth2_settings.ID_TOKEN_MODEL,
+#     on_delete=models.SET_NULL,
+#     blank=True,
+#     null=True,
+#     related_name='bb_access_token',
+# )
+# # Override source_refresh_token to avoid reverse accessor clash
+# source_refresh_token = models.OneToOneField(
+#     oauth2_settings.REFRESH_TOKEN_MODEL,
+#     on_delete=models.SET_NULL,
+#     blank=True,
+#     null=True,
+#     related_name='bb_refreshed_access_token',
 #     )
 #     include_samhsa = models.BooleanField(null=False, default=False)
 
@@ -592,10 +592,26 @@ class AuthFlowUuidCopy(models.Model):
 
 class BlueButtonAccessToken(AbstractAccessToken):
     include_samhsa = models.BooleanField(null=False, default=False)
+    id_token = models.OneToOneField(
+        oauth2_settings.ID_TOKEN_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='bb_access_token',
+    )
+    # Override source_refresh_token to avoid reverse accessor clash
+    source_refresh_token = models.OneToOneField(
+        oauth2_settings.REFRESH_TOKEN_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='bb_refreshed_access_token',
+    )
 
     class Meta(AbstractAccessToken.Meta):
         swappable = 'OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL'
-        # db_table = 'oauth2_provider_accesstoken'
+        db_table = 'oauth2_provider_accesstoken'
+        managed = False
 
 
 def get_application_counts():

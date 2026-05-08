@@ -8,7 +8,9 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
-from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+
+# from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from oauth2_provider.models import RefreshToken, get_access_token_model, get_application_model
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
     InvalidGrantError,
@@ -50,13 +52,16 @@ def remove_application_user_pair_tokens_data_access(application, user):
     CALLED FROM:
         apps.dot_ext.views.authorization.authorization.AuthorizationView.form_valid()
     """
+    AccessToken = get_access_token_model()
     with transaction.atomic():
         # Get count of access tokens to be deleted.
         access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(application=application, beneficiary=user).delete()[0]
+        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
+            application=application, beneficiary=user
+        ).delete()[0]
 
         # Delete refresh token records
         refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
@@ -80,6 +85,7 @@ def get_application_from_meta(request) -> Application | None:
     request_meta = getattr(request, 'META', None)
     client_id, ac = None, None
     Application = get_application_model()
+    AccessToken = get_access_token_model()
     app = None
     if request_meta:
         auth_header = request_meta.get('HTTP_AUTHORIZATION', None)
@@ -113,6 +119,7 @@ def get_application_from_data(request):
     """
     client_id, ac, rt, app = None, None, None, None
     Application = get_application_model()
+    AccessToken = get_access_token_model()
 
     # Try and get the application via `client_id`
     # If the client id comes in via GET or POST, we can try and look

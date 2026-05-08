@@ -3,35 +3,35 @@ import logging
 from django.contrib.auth.models import User
 from django.db.models import (
     Count,
-    QuerySet,
-    Min,
     Max,
+    Min,
+    QuerySet,
 )
-from django_filters import rest_framework as filters
 from django.http import StreamingHttpResponse
-from oauth2_provider.models import AccessToken
-from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRenderer
+from django_filters import rest_framework as filters
+from oauth2_provider.models import get_access_token_model
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.serializers import (
+    LIST_SERIALIZER_KWARGS,
+    CharField,
+    DateTimeField,
+    IntegerField,
+    ListSerializer,
     ModelSerializer,
     SerializerMethodField,
-    CharField,
-    ListSerializer,
-    IntegerField,
-    DateTimeField,
-    LIST_SERIALIZER_KWARGS,
 )
 from rest_framework.views import APIView
-from apps.accounts.models import UserProfile, UserIdentificationLabel
-from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant, check_grants, update_grants
+from rest_framework_csv.renderers import CSVStreamingRenderer, PaginatedCSVRenderer
+
+from apps.accounts.models import UserIdentificationLabel, UserProfile
+from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant, check_grants, update_grants
+from apps.constants import HHS_SERVER_LOGNAME_FMT, USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import Crosswalk, get_crosswalk_bene_counts
-
-from apps.constants import HHS_SERVER_LOGNAME_FMT, USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -177,13 +177,18 @@ class AppMetricsSerializer(ModelSerializer):
         )
 
     def get_beneficiaries(self, obj):
+        AccessToken = get_access_token_model()
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
 
         real_cnt = (
-            Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+            Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct])
+            .values('user', 'fhir_id_v2')
+            .count()
         )
         synth_cnt = (
-            Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+            Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct])
+            .values('user', 'fhir_id_v2')
+            .count()
         )
 
         return {'real': real_cnt, 'synthetic': synth_cnt}
@@ -436,6 +441,7 @@ class TokenMetricsView(APIView):
     renderer_classes = (JSONRenderer,)
 
     def get(self, request, format=None):
+        AccessToken = get_access_token_model()
         content = {'count': AccessToken.objects.count()}
         return Response(content)
 
@@ -469,7 +475,9 @@ class DeveloperFilter(filters.FilterSet):
         field_name='active_app_count', lookup_expr='lte', label='Max Active Application Count'
     )
     identification = filters.ModelMultipleChoiceFilter(
-        label='Identification Label', field_name='useridentificationlabel', queryset=UserIdentificationLabel.objects.all()
+        label='Identification Label',
+        field_name='useridentificationlabel',
+        queryset=UserIdentificationLabel.objects.all(),
     )
 
     class Meta:

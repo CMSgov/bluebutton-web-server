@@ -8,3 +8,5 @@ class LoggingConfig(AppConfig):
 
     def ready(self):
         from . import signals  # noqa
+
+        signals.connect_signals()

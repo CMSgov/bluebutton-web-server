@@ -588,7 +588,6 @@ AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
 # Django Oauth Toolkit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
-# OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'dot_ext.BlueButtonAccessToken'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
@@ -599,7 +598,6 @@ OAUTH2_PROVIDER = {
     'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
     'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
     'ACCESS_TOKEN_MODEL': 'dot_ext.BlueButtonAccessToken',
-    # 'OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL': 'dot_ext.BlueButtonAccessToken',
 }
 
 # These choices will be available in the expires_in field

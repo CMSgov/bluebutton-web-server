@@ -1,12 +1,12 @@
 import re
 import uuid
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
-from apps.dot_ext.constants import AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, SESSION_AUTH_FLOW_TRACE_KEYS
-from apps.dot_ext.models import AuthFlowUuid
 
+from apps.dot_ext.constants import AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, SESSION_AUTH_FLOW_TRACE_KEYS
 
 """
   Logger related functions for dot_ext/mymedicare_cb modules.
@@ -51,6 +51,7 @@ def create_session_auth_flow_trace(request):
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.dispatch()
     """
     Application = get_application_model()
+    from apps.dot_ext.models import AuthFlowUuid
 
     # Create new authorization flow trace UUID.
     new_auth_uuid = str(uuid.uuid4())
@@ -179,6 +180,8 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
     """
+    from apps.dot_ext.models import AuthFlowUuid
+
     auth_uuid = auth_dict.get('auth_uuid', None)
     auth_crosswalk_action = auth_dict.get('auth_crosswalk_action', None)
     auth_share_demographic_scopes = auth_dict.get('auth_share_demographic_scopes', None)
@@ -212,6 +215,8 @@ def update_session_auth_flow_trace_from_code(request, code):
 
     CALLED FROM:  apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR.create_token_response()
     """
+    from apps.dot_ext.models import AuthFlowUuid
+
     # Get session values from AuthFlowUuid via code.
     try:
         # Get previously created AuthFlowUuid with code.
@@ -248,6 +253,8 @@ def update_instance_auth_flow_trace_with_state(request, state):
 
     CALLED FROM:  apps.mymedicare_cb.views.mymedicare_login()
     """
+    from apps.dot_ext.models import AuthFlowUuid
+
     # Update AuthFlowUuid instance to pass along auth_uuid using state.
     auth_uuid = request.session.get('auth_uuid', None)
 
@@ -271,6 +278,8 @@ def update_session_auth_flow_trace_from_state(request, state):
 
     CALLED FROM:  apps.mymedicare_cb.views.authenticate()
     """
+    from apps.dot_ext.models import AuthFlowUuid
+
     # Retrieve auth flow session values using previous state in AuthFlowUuid.
     try:
         if state and len(state.strip()) != 0:

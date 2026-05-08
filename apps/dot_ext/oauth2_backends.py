@@ -1,14 +1,17 @@
 import json
+
+# from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_access_token_model
 from oauth2_provider.oauth2_backends import OAuthLibCore
-from oauth2_provider.models import AccessToken
-from apps.fhir.bluebutton.models import Crosswalk
+
 from apps.dot_ext.loggers import (
     clear_session_auth_flow_trace,
+    set_session_auth_flow_trace_value,
     update_session_auth_flow_trace_from_code,
     update_session_auth_flow_trace_from_request,
-    set_session_auth_flow_trace_value,
 )
 from apps.dot_ext.utils import get_api_version_number_from_url
+from apps.fhir.bluebutton.models import Crosswalk
 
 
 class OAuthLibSMARTonFHIR(OAuthLibCore):
@@ -18,6 +21,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         SMART on FHIR Authorization
         http://docs.smarthealthit.org/authorization/
         """
+        AccessToken = get_access_token_model()
         # Get session values previously stored in AuthFlowUuid from AuthorizationView.form_valid() from code.
         body = dict(self.extract_body(request))
         clear_session_auth_flow_trace(request)

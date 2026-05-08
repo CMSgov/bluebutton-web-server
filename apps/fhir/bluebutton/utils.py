@@ -10,7 +10,7 @@ import pytz
 import requests
 from django.conf import settings
 from django.contrib import messages
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_access_token_model
 from pytz import timezone
 
 import apps.logging.request_logger as bb2logging
@@ -155,6 +155,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     # Return resource_owner or user
     user = get_user_from_request(request)
     crosswalk = get_crosswalk(user)
+    AccessToken = get_access_token_model()
 
     if version == Versions.NOT_AN_API_VERSION:
         version = get_api_version_number_from_url(request.path)

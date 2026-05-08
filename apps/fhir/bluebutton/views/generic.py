@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 import voluptuous
 from django.core.exceptions import ObjectDoesNotExist
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_access_token_model
 from requests import Request, Session
 from rest_framework import exceptions, permissions
 from rest_framework.exceptions import NotFound, ValidationError
@@ -91,6 +91,7 @@ class FhirDataView(APIView):
         logger.debug('resource_type: %s' % resource_type)
         logger.debug('Interaction: read')
         logger.debug('Request.path: %s' % request.path)
+        AccessToken = get_access_token_model()
         req_meta = request.META
 
         if 'HTTP_AUTHORIZATION' in req_meta:
