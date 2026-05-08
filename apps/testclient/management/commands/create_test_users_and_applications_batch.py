@@ -14,7 +14,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
-from oauth2_provider.models import AccessToken, RefreshToken
+from oauth2_provider.models import get_access_token_model, RefreshToken
 
 from apps.constants import USER_TYPE_DEV
 from apps.accounts.models import UserProfile
@@ -272,6 +272,7 @@ def create_test_access_refresh_archived_objects(
         archived_grant_count,
         seed
 ):
+    AccessToken = get_access_token_model()
     scope_all = ' '.join(APPLICATION_SCOPES_FULL)
     scope_no_demo = ' '.join(APPLICATION_SCOPES_NON_DEMOGRAPHIC)
     now = datetime.utcnow()

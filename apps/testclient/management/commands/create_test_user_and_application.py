@@ -17,7 +17,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from waffle.models import Switch
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_access_token_model
 
 
 def create_group(name='BlueButton'):
@@ -122,7 +122,7 @@ def create_application(user):
 
 
 def create_test_token(the_user, the_app):
-
+    AccessToken = get_access_token_model()
     # Set expiration one day from now.
     now = timezone.now()
     expires = now + timedelta(days=1)

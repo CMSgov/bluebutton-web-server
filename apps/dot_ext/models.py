@@ -20,6 +20,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_duration
 from django.utils.translation import gettext_lazy as _
 from oauth2_provider.models import (
+    AbstractAccessToken,
     AbstractApplication,
     get_access_token_model,
     get_application_model,
@@ -565,6 +566,31 @@ class AuthFlowUuidCopy(models.Model):
         return str(self.auth_uuid)
 
 
+class BlueButtonAccessToken(AbstractAccessToken):
+    include_samhsa = models.BooleanField(null=False, default=False)
+    id_token = models.OneToOneField(
+        oauth2_settings.ID_TOKEN_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='bb_access_token',
+    )
+    # Override source_refresh_token to avoid reverse accessor clash
+    source_refresh_token = models.OneToOneField(
+        oauth2_settings.REFRESH_TOKEN_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='bb_refreshed_access_token',
+    )
+
+    class Meta:
+        # app_label = 'dot_ext'
+        swappable = 'OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL'
+        db_table = 'oauth2_provider_accesstoken'
+        managed = False
+
+
 def get_application_counts():
     """
     Get the active and inactive counts of applications.
@@ -663,4 +689,4 @@ def get_token_bene_counts(application=None):
     return counts_returned
 
 
-post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')
+post_delete.connect(archive_token, sender='dot_ext.BlueButtonAccessToken')

@@ -1,16 +1,44 @@
-from oauth2_provider.models import AccessToken, RefreshToken
+from oauth2_provider.models import RefreshToken
 
 from apps.accounts.models import UserProfile
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import Crosswalk
 
+# try:
+#     from oauth2_provider.models import get_access_token_model
 
-class DummyAdminObject(AccessToken):
-    class Meta:
-        proxy = True
-        app_label = 'bb2_tools'
-        verbose_name = 'Splunk dashboard'
-        verbose_name_plural = 'Splunk dashboards'
+#     AccessToken = get_access_token_model()
+#     print('SUCCESS: AccessToken =', AccessToken)
+# except Exception as e:
+#     print('FAILED, falling back:', e)
+#     from oauth2_provider.models import AccessToken
+
+# def _get_access_token_model():
+#     from oauth2_provider.models import get_access_token_model
+#     return get_access_token_model()
+# AccessToken = get_access_token_model()
+
+
+# class DummyAdminObject(AccessToken):
+#     class Meta:
+#         proxy = True
+#         app_label = 'bb2_tools'
+#         verbose_name = 'Splunk dashboard'
+#         verbose_name_plural = 'Splunk dashboards'
+
+
+# class MyAccessTokenViewer(AccessToken):
+#     class Meta:
+#         proxy = True
+#         app_label = 'bb2_tools'
+
+
+# class AccessTokenStats(AccessToken):
+#     class Meta:
+#         proxy = True
+#         app_label = 'bb2_tools'
+#         verbose_name = 'Access token counts by apps'
+#         verbose_name_plural = 'Access token counts by apps'
 
 
 class UserStats(UserProfile):
@@ -25,20 +53,6 @@ class BeneficiaryDashboard(Crosswalk):
     class Meta:
         proxy = True
         app_label = 'bb2_tools'
-
-
-class MyAccessTokenViewer(AccessToken):
-    class Meta:
-        proxy = True
-        app_label = 'bb2_tools'
-
-
-class AccessTokenStats(AccessToken):
-    class Meta:
-        proxy = True
-        app_label = 'bb2_tools'
-        verbose_name = 'Access token counts by apps'
-        verbose_name_plural = 'Access token counts by apps'
 
 
 class MyRefreshTokenViewer(RefreshToken):

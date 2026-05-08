@@ -1,28 +1,98 @@
 import json
+
 from django.contrib import admin
-from django.db.models import Q, Count, Min, Max, DateTimeField
+from django.db.models import Count, DateTimeField, Max, Min, Q
 from django.db.models.functions import Trunc
 from django.utils.html import format_html
-from oauth2_provider.models import AccessToken, RefreshToken
-from oauth2_provider.models import get_application_model
 
-from apps.constants import USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 from apps.accounts.models import UserProfile
+from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, SPLUNK_DASHBOARDS
+from apps.constants import USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 from apps.dot_ext.models import ArchivedToken
-from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, SPLUNK_DASHBOARDS, TOKEN_VIEWERS
-from apps.bb2_tools.models import (
-    BeneficiaryDashboard,
-    ApplicationStats,
-    MyAccessTokenViewer,
-    MyRefreshTokenViewer,
-    MyArchivedTokenViewer,
-    AccessTokenStats,
-    RefreshTokenStats,
-    ArchivedTokenStats,
-    DummyAdminObject,
-    UserStats,
-)
 from apps.fhir.bluebutton.utils import get_v2_patient_by_id
+
+
+def register_models():
+    """Called from AppConfig.ready() after app registry is fully loaded.
+    This is to help avoid ValueErrors between"""
+    from oauth2_provider.models import get_access_token_model
+
+    from apps.bb2_tools.models import (
+        ApplicationStats,
+        ArchivedTokenStats,
+        BeneficiaryDashboard,
+        MyArchivedTokenViewer,
+        MyRefreshTokenViewer,
+        RefreshTokenStats,
+        UserStats,
+    )
+
+    AccessToken = get_access_token_model()
+
+    # Dynamically create the AccessToken-based proxy models
+    DummyAdminObject = type(
+        'DummyAdminObject',
+        (AccessToken,),
+        {
+            '__module__': 'apps.bb2_tools.models',
+            'Meta': type(
+                'Meta',
+                (),
+                {
+                    'proxy': True,
+                    'app_label': 'bb2_tools',
+                    'verbose_name': 'Splunk dashboard',
+                    'verbose_name_plural': 'Splunk dashboards',
+                },
+            ),
+        },
+    )
+
+    MyAccessTokenViewer = type(
+        'MyAccessTokenViewer',
+        (AccessToken,),
+        {
+            '__module__': 'apps.bb2_tools.models',
+            'Meta': type(
+                'Meta',
+                (),
+                {
+                    'proxy': True,
+                    'app_label': 'bb2_tools',
+                },
+            ),
+        },
+    )
+
+    AccessTokenStats = type(
+        'AccessTokenStats',
+        (AccessToken,),
+        {
+            '__module__': 'apps.bb2_tools.models',
+            'Meta': type(
+                'Meta',
+                (),
+                {
+                    'proxy': True,
+                    'app_label': 'bb2_tools',
+                    'verbose_name': 'Access token counts by apps',
+                    'verbose_name_plural': 'Access token counts by apps',
+                },
+            ),
+        },
+    )
+
+    # Register all models with admin
+    admin.site.register(DummyAdminObject, BlueButtonAPISplunkLauncherAdmin)
+    admin.site.register(MyAccessTokenViewer, MyAccessTokenViewerAdmin)
+    admin.site.register(AccessTokenStats, ConnectedBeneficiaryCountByAppsAdmin)
+    admin.site.register(MyRefreshTokenViewer, MyRefreshTokenViewerAdmin)
+    admin.site.register(MyArchivedTokenViewer, MyArchivedTokenViewerAdmin)
+    admin.site.register(BeneficiaryDashboard, BeneficiaryDashboardAdmin)
+    admin.site.register(ApplicationStats, ApplicationStatsAdmin)
+    admin.site.register(UserStats, UserCountByCreateDateAdmin)
+    admin.site.register(RefreshTokenStats, RefreshTokenCountByAppsAdmin)
+    admin.site.register(ArchivedTokenStats, ArchivedTokenStatsAdmin)
 
 
 def extract_date_range(response):
@@ -178,15 +248,23 @@ def get_next_in_date_hierarchy(request, date_hierarchy):
 
 
 def get_my_tokens_widget(u, id):
+    from django.apps import apps
+
+    token_viewers = ['myaccesstokenviewer', 'myrefreshtokenviewer', 'myarchivedtokenviewer']
+
     widget_html = '<div><ul>'
-    for v in TOKEN_VIEWERS:
+    for viewer_name in token_viewers:
+        try:
+            viewer_class = apps.get_model('bb2_tools', viewer_name)
+        except LookupError:
+            continue
         widget_html += '<li>'
         widget_html += LINK_REF_FMT.format(
             BB2_TOOLS_PATH,
-            v.__name__.lower(),
+            viewer_name,
             u,
             id,
-            str(v()._meta.verbose_name_plural),
+            str(viewer_class()._meta.verbose_name_plural),
         )
         widget_html += '</li>'
 
@@ -216,6 +294,12 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
         pass
 
     def changelist_view(self, request, extra_context=None):
+        from oauth2_provider.models import get_access_token_model
+
+        from apps.dot_ext.models import ArchivedToken
+
+        AccessToken = get_access_token_model()
+
         response = super().changelist_view(
             request,
             extra_context=extra_context,
@@ -225,7 +309,10 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
 
         # common aggregations for access token, refresh token, archived token
         token_cnts_by_app = (
-            clazz_model.objects.all().values('application__name').annotate(tk_cnt=Count('token')).order_by('application__name')
+            clazz_model.objects.all()
+            .values('application__name')
+            .annotate(tk_cnt=Count('token'))
+            .order_by('application__name')
         )
 
         token_total = clazz_model.objects.all().count()
@@ -299,7 +386,6 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
         return response
 
 
-@admin.register(BeneficiaryDashboard)
 class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     change_form_template = 'admin/bb2_bene_dashboard_change_form.html'
     list_display = (
@@ -350,9 +436,15 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         ordering='MyConnectedApps',
     )
     def get_connected_applications(self, obj):
+        from oauth2_provider.models import get_access_token_model, get_application_model
+
+        from apps.bb2_tools.models import MyArchivedTokenViewer, MyRefreshTokenViewer
+
+        AccessToken = get_access_token_model()
+
         inlinehtml = '<div><ul>'
         tokens = (
-            MyAccessTokenViewer.objects.filter(user=obj.user_id)
+            AccessToken.objects.filter(user=obj.user_id)
             .values('user', 'application')
             .annotate(token_count=Count('token'))
         )
@@ -383,6 +475,8 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         return format_html(format_string=inlinehtml, args={}, kwargs={})
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
+        from apps.bb2_tools.models import BeneficiaryDashboard
+
         extra_context = extra_context or {}
         crosswalk = BeneficiaryDashboard.objects.get(pk=int(object_id))
 
@@ -409,7 +503,6 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         )
 
 
-@admin.register(MyAccessTokenViewer)
 class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
     list_display = (
         'user',
@@ -437,7 +530,6 @@ class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
         return obj.source_refresh_token.token if obj.source_refresh_token else None
 
 
-@admin.register(MyRefreshTokenViewer)
 class MyRefreshTokenViewerAdmin(ReadOnlyAdmin):
     list_display = (
         'user',
@@ -452,7 +544,6 @@ class MyRefreshTokenViewerAdmin(ReadOnlyAdmin):
     raw_id_fields = ('user', 'application')
 
 
-@admin.register(MyArchivedTokenViewer)
 class MyArchivedTokenViewerAdmin(ReadOnlyAdmin):
     list_display = (
         'user',
@@ -468,7 +559,6 @@ class MyArchivedTokenViewerAdmin(ReadOnlyAdmin):
     raw_id_fields = ('user', 'application')
 
 
-@admin.register(DummyAdminObject)
 class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
     change_list_template = 'admin/bb2_splunk_dashboards_change_list.html'
 
@@ -481,7 +571,6 @@ class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
         return response
 
 
-@admin.register(ApplicationStats)
 class ApplicationStatsAdmin(ReadOnlyAdmin):
     change_list_template = 'admin/apps_stats_change_list.html'
     list_display = (
@@ -503,6 +592,8 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
     date_hierarchy = 'created'
 
     def changelist_view(self, request, extra_context=None):
+        from apps.bb2_tools.models import ApplicationStats
+
         response = super().changelist_view(
             request,
             extra_context=extra_context,
@@ -585,7 +676,6 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
         return response
 
 
-@admin.register(UserStats)
 class UserCountByCreateDateAdmin(ReadOnlyAdmin):
     change_list_template = 'admin/user_counts_by_date_change_list.html'
     date_hierarchy = 'user__date_joined'
@@ -683,13 +773,15 @@ class UserCountByCreateDateAdmin(ReadOnlyAdmin):
         return response
 
 
-@admin.register(AccessTokenStats)
 class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/token_counts_by_apps_change_list.html'
     # date_hierarchy = 'created'
 
     def get_model(self):
-        return AccessToken
+        from oauth2_provider.models import get_access_token_model
+
+        return get_access_token_model()
+        # return AccessToken
 
     def changelist_view(self, request, extra_context=None):
 
@@ -713,11 +805,12 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
         return response
 
 
-@admin.register(RefreshTokenStats)
 class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/token_counts_by_apps_change_list.html'
 
     def get_model(self):
+        from oauth2_provider.models import RefreshToken
+
         return RefreshToken
 
     def changelist_view(self, request, extra_context=None):
@@ -735,7 +828,6 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
         return response
 
 
-@admin.register(ArchivedTokenStats)
 class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/token_counts_by_apps_change_list.html'
 

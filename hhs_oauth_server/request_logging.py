@@ -3,23 +3,23 @@ import hashlib
 import json
 import uuid
 
-import apps.logging.request_logger as logging
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
-from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from oauth2_provider.models import RefreshToken, get_access_token_model, get_application_model
 from rest_framework.response import Response
-from apps.versions import Versions
+
+import apps.logging.request_logger as logging
 from apps.dot_ext.constants import SESSION_AUTH_FLOW_TRACE_KEYS
 from apps.dot_ext.loggers import (
     get_session_auth_flow_trace,
     is_path_part_of_auth_flow_trace,
 )
 from apps.fhir.bluebutton.utils import (
+    get_access_token_from_request,
     get_ip_from_request,
     get_user_from_request,
-    get_access_token_from_request,
 )
+from apps.versions import Versions
 
 audit = logging.getLogger('audit.%s' % __name__)
 
@@ -217,9 +217,13 @@ class RequestResponseLog(object):
             self._log_msg_update_from_dict(request_headers, 'req_header_referrer', 'Referer')
             self._log_msg_update_from_dict(request_headers, 'req_header_user_agent', 'User-Agent')
             self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_sdk', 'X-BLUEBUTTON-SDK')
-            self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_sdk_version', 'X-BLUEBUTTON-SDK-VERSION')
+            self._log_msg_update_from_dict(
+                request_headers, 'req_header_bluebutton_sdk_version', 'X-BLUEBUTTON-SDK-VERSION'
+            )
             self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_app', 'X-BLUEBUTTON-APP')
-            self._log_msg_update_from_dict(request_headers, 'req_header_bluebutton_app_version', 'X-BLUEBUTTON-APP-VERSION')
+            self._log_msg_update_from_dict(
+                request_headers, 'req_header_bluebutton_app_version', 'X-BLUEBUTTON-APP-VERSION'
+            )
             self._log_msg_update_from_dict(request_headers, 'data_facilitator_end_user', 'DATA-END-USER')
 
         """
@@ -242,7 +246,9 @@ class RequestResponseLog(object):
 
                 refresh_token = request_body_dict.get('refresh_token', None)
                 if refresh_token is not None:
-                    self.log_msg['req_refresh_token_hash'] = hashlib.sha256(str(refresh_token).encode('utf-8')).hexdigest()
+                    self.log_msg['req_refresh_token_hash'] = hashlib.sha256(
+                        str(refresh_token).encode('utf-8')
+                    ).hexdigest()
 
                 # Log AC passed from RequestTimeLoggingMiddleware.process_request() pre-response
                 self._log_msg_update_from_object(self.request, 'req_access_token_hash', '_req_access_token_hash')
@@ -310,7 +316,9 @@ class RequestResponseLog(object):
 
             if self.log_msg.get('req_qparam_client_id', False):
                 try:
-                    application = get_application_model().objects.get(client_id=self.log_msg.get('req_qparam_client_id'))
+                    application = get_application_model().objects.get(
+                        client_id=self.log_msg.get('req_qparam_client_id')
+                    )
                     self._log_msg_update_from_object(application, 'req_app_name', 'name')
                     self._log_msg_update_from_object(application, 'req_app_id', 'id')
                 except ObjectDoesNotExist:
@@ -339,6 +347,7 @@ class RequestResponseLog(object):
         """
         --- Logging items from request access token ---
         """
+        AccessToken = get_access_token_model()
         access_token = getattr(self.request, 'auth', get_access_token_from_request(self.request))
 
         if access_token:
@@ -482,7 +491,9 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
                 if refresh_token is not None:
                     rt = RefreshToken.objects.get(token=refresh_token)
                     if rt:
-                        request._req_access_token_hash = hashlib.sha256(str(rt.access_token).encode('utf-8')).hexdigest()
+                        request._req_access_token_hash = hashlib.sha256(
+                            str(rt.access_token).encode('utf-8')
+                        ).hexdigest()
             except ValueError:
                 pass
             except ObjectDoesNotExist:

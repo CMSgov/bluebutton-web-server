@@ -1,13 +1,15 @@
 from django import forms
 from django.contrib import admin
-from oauth2_provider.models import AccessToken
-from oauth2_provider.models import get_application_model
+
+# from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_access_token_model, get_application_model
 
 from apps.dot_ext.csv import ExportCsvMixin
 from apps.dot_ext.forms import CreateNewApplicationForm, CustomRegisterApplicationForm
 from apps.dot_ext.models import ApplicationLabel, AuthFlowUuid, InternalApplicationLabelsProxy
 
 Application = get_application_model()
+AccessToken = get_access_token_model()
 
 
 class MyAccessToken(AccessToken):

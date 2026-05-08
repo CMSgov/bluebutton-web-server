@@ -1,30 +1,28 @@
-from apps.versions import Versions
-import apps.logging.request_logger as logging
-
 from django.db.models.signals import (
     post_delete,
 )
 from django.dispatch import receiver
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_access_token_model
 from oauth2_provider.signals import app_authorized
 
+import apps.logging.request_logger as logging
 from apps.authorization.models import DataAccessGrant
-from apps.dot_ext.admin import MyAccessToken
 from apps.dot_ext.signals import beneficiary_authorized_application
-from apps.fhir.bluebutton.signals import pre_fetch, post_fetch
-
-from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
 from apps.fhir.bluebutton.utils import FhirServerAuth
-from apps.mymedicare_cb.signals import post_sls
-
+from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.logging.serializers import (
-    Token,
     DataAccessGrantSerializer,
     FHIRRequest,
     FHIRRequestForAuth,
     FHIRResponse,
     FHIRResponseForAuth,
+    Token,
 )
+from apps.mymedicare_cb.signals import post_sls
+from apps.versions import Versions
+
+AccessToken = get_access_token_model()
 
 
 @receiver(app_authorized)
@@ -95,12 +93,16 @@ def handle_app_authorized(
     token_logger.info(log_dict)
 
 
-# BB2-218 also capture delete MyAccessToken
-@receiver(post_delete, sender=MyAccessToken)
-@receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
     token_logger.info(Token(instance, action='revoked').to_dict())
+
+
+def connect_signals():
+    from oauth2_provider.models import get_access_token_model
+
+    AccessToken = get_access_token_model()
+    post_delete.connect(token_removed, sender=AccessToken)
 
 
 @receiver(post_delete, sender=DataAccessGrant)
@@ -114,7 +116,9 @@ def log_grant_removed(sender, instance=None, **kwargs):
 def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
     fhir_logger.info(
-        FHIRRequest(request, api_ver).to_dict() if sender == FhirDataView else FHIRRequestForAuth(request, api_ver).to_dict()
+        FHIRRequest(request, api_ver).to_dict()
+        if sender == FhirDataView
+        else FHIRRequestForAuth(request, api_ver).to_dict()
     )
 
 
@@ -123,7 +127,9 @@ def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwarg
 def fetched_data(sender, request=None, auth_request=None, response=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
     fhir_logger.info(
-        FHIRResponse(response, api_ver).to_dict() if sender == FhirDataView else FHIRResponseForAuth(response, api_ver).to_dict()
+        FHIRResponse(response, api_ver).to_dict()
+        if sender == FhirDataView
+        else FHIRResponseForAuth(response, api_ver).to_dict()
     )
 
 
