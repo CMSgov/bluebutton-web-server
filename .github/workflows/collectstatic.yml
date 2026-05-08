@@ -74,6 +74,8 @@ jobs:
           npm ci
           npm run gulp
 
+      # these `find` commands are being left in to speed up the process
+      # TODO - remove this, either after cleaning up static files or pointing the API to Akamai instead of S3
       - name: Collect static files
         run: |
           source venv/bin/activate
@@ -99,7 +101,7 @@ jobs:
           # Masking the updated path
           echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
           
-          rsync -av --delete \
+          rsync -avz --delete \
             -e "ssh" \
             ./static/ \
             ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
