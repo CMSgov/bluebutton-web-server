@@ -115,7 +115,7 @@ echo "Using pssphrase: [$(cat $OW_SPACE_BASE/input/passphrase.txt)]"
 
 export OW_SELFSIGN_CERT=$OW_SPACE_BASE/Certificates/BBRootCA.crt
 openssl req -config $OW_SPACE_BASE/openssl.conf -new -x509 -days 3650 -key $OW_ROOT_CA -passin file:$OW_SPACE_BASE/input/passphrase.txt -out $OW_SELFSIGN_CERT <$OW_CERT_IN
-echo "Self-Signed Cerificate:" >>$OW_CERT_LOG
+echo "Self-Signed Certificate:" >>$OW_CERT_LOG
 ls $OW_SELFSIGN_CERT >>$OW_CERT_LOG
 
 # Export Root Certificate to Keystore
