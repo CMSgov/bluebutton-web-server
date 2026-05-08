@@ -16,7 +16,7 @@ env:
   AWS_REGION: us-east-1 
   TARGET_ENV: ${{ inputs.environment }}
   DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-  AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
+  AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
 
 permissions:
   id-token: write 
