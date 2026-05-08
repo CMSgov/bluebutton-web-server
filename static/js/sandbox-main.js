@@ -10,7 +10,7 @@ const mobileNavContent = document.querySelector('.desktop-nav-items').innerHTML;
 // Define the Mobile Nav Container - this is where we will append the mobileNavContent
 const mobileNavContainer = document.querySelector('.mobile-nav-items');
 
-// Apend nav items to mobile nav container
+// Append nav items to mobile nav container
 mobileNavContainer.innerHTML += mobileNavContent;
 
 // Define the mobile nav trigger button - this opens and closes the mobile nav
@@ -32,7 +32,7 @@ const closeNavOnResize = function(e) {
   console.log('Resize Call Active');
 };
 
-// Add an event listenter to close the nav if the window is resized
+// Add an event listener to close the nav if the window is resized
 window.addEventListener('resize', closeNavOnResize);
 
 // Add the click ation to the mobile nav trigger
@@ -49,7 +49,7 @@ mobileNavTriggerButton.addEventListener('click', function () {
   }
 });
 
-// Sanbox Dashboard UI Application List Interactions
+// Sandbox Dashboard UI Application List Interactions
 // -------------------------------------------------
 
 // Dashboard App Credential Toggle
