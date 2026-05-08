@@ -1,16 +1,17 @@
 # This is a helper Makefile, do not run from the selenium directory, compose context is relative and so it
 # expects to be run from dev-local
 
-all: build-local
+AUTH  ?= live
+DEBUG ?= false
 
-build-local:
+run-selenium-target-local:
+	auth=$(AUTH) debug=$(DEBUG) ./run-selenium-local.sh
+
+build-selenium:
 	@echo "Building Selenium Image"
 	docker build \
 		-t selenium-local:latest \
 		-f Dockerfile.selenium .
-
-run-local:
-	./run-selenium-local.sh auth=$(auth) debug=$(if $(debug),$(debug),false)
 
 run-remote:
 	@echo "Running Selenium: Remote"
