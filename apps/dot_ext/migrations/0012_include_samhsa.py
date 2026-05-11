@@ -28,7 +28,6 @@ class Migration(migrations.Migration):
                     },
                 ),
             ],
-            # No DB changes — handled by the management command
             database_operations=[],
         ),
     ]
