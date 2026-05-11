@@ -36,17 +36,19 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    runs-on: codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    # This will only run on test
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Setup AWS credentials
         uses: ./.github/actions/setup-tofu
         with:
           environment: ${{ inputs.environment }}
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
-          prod-account: ${{ secrets.PROD_ACCOUNT }}
       
       - name: Discover ECS environment
         id: network
@@ -59,3 +61,26 @@ jobs:
           echo "family=${ECS_FAMILY}"     >> "$GITHUB_OUTPUT"
           echo "container=${ECS_CONTAINER}" >> "$GITHUB_OUTPUT"
           echo "net_config=${ECS_NET_CONFIG}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Ephemeral Fargate Task
+        id: instance
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${{ steps.network.outputs.cluster }}" \
+            --task-definition "${{ steps.network.outputs.family }}" \
+            --launch-type FARGATE \
+            --platform-version LATEST \
+            --network-configuration '${{ steps.network.outputs.net_config }}' \
+            --overrides "{
+              \"containerOverrides\": [{
+                \"name\": \"${{ steps.network.outputs.container }}\",
+                \"command\": [\"bash\", \"-c\", \"export DATABASES_CUSTOM=\\\"postgres://\${DB_USER_NAME}:\${DB_USER_PW}@\${DB_HOST}:15432/\${DB_NAME}?sslmode=require&options=-c+role%3D\${DB_ROLE}\\\" && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base && export PATH=\\\"\${HOME}/venv/bin:\${PATH}\\\" && echo \\\"Running: manage.py ${{ steps.cmd.outputs.resolved }} on \${DB_HOST}:15432/\${DB_NAME} as \${DB_ROLE}\\\" && python manage.py ${{ steps.cmd.outputs.resolved }} 2>&1\"]
+              }]
+            }" \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          TASK_ID=$(echo "$TASK_ARN" | awk -F/ '{print $NF}')
+          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
+          echo "Started task: $TASK_ID"
