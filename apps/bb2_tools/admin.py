@@ -27,9 +27,9 @@ from apps.fhir.bluebutton.utils import get_v2_patient_by_id
 
 def extract_date_range(response):
     """
-    helper to extract date range from cl (changelist) date_hirarchy filter
-    expect date_hirarchy.field >= startdate AND date_hirarchy.field < enddate
-    or none (date hirarchy filter not clicked)
+    helper to extract date range from cl (changelist) date_hierarchy filter
+    expect date_hierarchy.field >= startdate AND date_hierarchy.field < enddate
+    or none (date hierarchy filter not clicked)
     """
     startdate = None
     lower_bound_op = None
