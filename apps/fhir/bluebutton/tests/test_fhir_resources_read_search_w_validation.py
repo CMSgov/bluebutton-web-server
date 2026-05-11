@@ -9,6 +9,7 @@ from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
 
 from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.dot_ext.models import AccessTokenExtension
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
@@ -713,3 +714,41 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         )
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
+
+    def test_access_token_extension_is_created(self) -> None:
+        """Ensure that when an access token is saved, a corresponding AccessTokenExtension record
+        is created
+        """
+
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+        access_token_extension = AccessTokenExtension.objects.get(access_token=ac)
+
+        assert access_token_extension is not None
+        assert access_token_extension.access_token == ac
+
+    def test_access_token_extension_is_deleted_when_token_is_deleted(self) -> None:
+        """Ensure that when an access token is saved, a corresponding AccessTokenExtension record
+        is created
+        """
+
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+        access_token_extension = AccessTokenExtension.objects.get(access_token=ac)
+        access_token_extension_id = access_token_extension.id
+
+        assert access_token_extension is not None
+        assert access_token_extension.access_token == ac
+
+        ac.delete()
+
+        with self.assertRaises(AccessTokenExtension.DoesNotExist):
+            access_token_extension = AccessTokenExtension.objects.get(id=access_token_extension_id)

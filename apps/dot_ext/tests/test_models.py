@@ -1,20 +1,20 @@
 import json
-import apps.logging.request_logger as logging
+from unittest.mock import Mock
 
 from django.contrib import admin
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
-from unittest.mock import Mock
 
-from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
+import apps.logging.request_logger as logging
+from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
+from apps.dot_ext.admin import MyApplicationAdmin
 from apps.dot_ext.models import (
+    Application,
+    InternalApplicationLabels,
     get_application_counts,
     get_application_require_demographic_scopes_count,
-    InternalApplicationLabels,
-    Application,
 )
-from apps.dot_ext.admin import MyApplicationAdmin
-from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
+from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers
 from apps.test import BaseApiTest
 
 
@@ -112,7 +112,9 @@ class TestDotExtModels(BaseApiTest):
         self.assertEqual('THIRTEEN_MONTH', test_app_sw_off.data_access_type)
 
         # fake some grants tied to the user and the app
-        DataAccessGrant.objects.update_or_create(beneficiary=User.objects.get(username='john'), application=test_app_sw_off)
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=User.objects.get(username='john'), application=test_app_sw_off
+        )
 
         grants = DataAccessGrant.objects.filter(application__name='test_app_sw_off')
 
