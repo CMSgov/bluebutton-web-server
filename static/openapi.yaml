@@ -542,7 +542,7 @@ paths:
         - name: resource_id
           in: path
           required: true
-          description: "Pateint FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
+          description: "Patient FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
           schema:
             type: string
       responses:
@@ -952,7 +952,7 @@ paths:
         - name: resource_id
           in: path
           required: true
-          description: "Pateint FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
+          description: "Patient FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)"
           schema:
             type: string
       responses:
