@@ -732,8 +732,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         assert access_token_extension.access_token == ac
 
     def test_access_token_extension_is_deleted_when_token_is_deleted(self) -> None:
-        """Ensure that when an access token is saved, a corresponding AccessTokenExtension record
-        is created
+        """Ensure that when an access token is deleted, the corresponding AccessTokenExtension record
+        is deleted
         """
 
         first_access_token = self.create_token(
