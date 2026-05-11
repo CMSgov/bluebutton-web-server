@@ -36,7 +36,7 @@ services:
     #   dockerfile: ops/containers/bb-api/Dockerfile
     image: bb-api:latest
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
-    read_only: ${READ_ONLY:-true}
+    read_only: false
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file: ./bb-api/files/external/.env.container
@@ -45,7 +45,7 @@ services:
       - type: bind
         source: ../..
         target: /home/boton/bb
-        read_only: ${READ_ONLY:-true}
+        read_only: false
       - type: tmpfs
         target: /tmp
         tmpfs:
