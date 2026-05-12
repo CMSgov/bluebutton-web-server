@@ -42,7 +42,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
       - Application.data_access_type
       - Application.end_date
-      - DataAcessGrant.expiration_date
+      - DataAccessGrant.expiration_date
 
     Tests are performed against API end points for:
 

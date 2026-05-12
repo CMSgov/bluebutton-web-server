@@ -42,6 +42,9 @@ gonogo "retrieve_bfd_certs"
 # We may want to run against a mock, or against
 # the live system. 
 configure_slsx
+gonogo "configure_slsx"
+
+
 
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
 
@@ -61,6 +64,7 @@ cleanup_docker_stack
 # Hence, we need to pop back up in order to get to the right
 # place to run the compose.
 cd ../..
+
 
 if [[ "${daemon}" == "1" ]]; then
     docker compose \
