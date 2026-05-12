@@ -2,18 +2,17 @@ import pytz
 
 from datetime import datetime
 
-from .models import ActivationKey
-
-LINK_EXPIRED_MSG = """The activation key is expired.
-                Contact us at bluebuttonapi@cms.hhs.gov for further assistance"""
-ACCT_HAS_ISSUE_MSG = """There may be an issue with your account.
-                Contact us at bluebuttonapi@cms.hhs.gov"""
-ACCT_ACTIVATED_MSG = """Your account has been activated. You may now login."""
+from apps.accounts.constants import (
+    ACCT_ACTIVATED_MSG,
+    ACCT_HAS_ISSUE_MSG,
+    LINK_EXPIRED_MSG,
+)
+from apps.accounts.models import ActivationKey
 
 
 def validate_activation_key(activation_key):
     utc = pytz.UTC
-    msg = ""
+    msg = ''
     is_valid = False
 
     try:
@@ -21,10 +20,10 @@ def validate_activation_key(activation_key):
         now = datetime.now().replace(tzinfo=utc)
         expires = vc.expires.replace(tzinfo=utc)
 
-        if vc.key_status == "created":
+        if vc.key_status == 'created':
             if expires < now:
                 # The key has expired
-                vc.key_status = "expired"
+                vc.key_status = 'expired'
                 vc.expired_at = now
                 vc.save()
                 msg = LINK_EXPIRED_MSG
@@ -32,7 +31,7 @@ def validate_activation_key(activation_key):
                 # The key exists and has not expired.
                 is_valid = True
                 vc.user.is_active = True
-                vc.key_status = "activated"
+                vc.key_status = 'activated'
                 vc.activated_at = now
                 vc.user.save()
                 vc.save()
@@ -48,7 +47,7 @@ def validate_activation_key(activation_key):
                 msg = LINK_EXPIRED_MSG
             else:
                 msg = ACCT_HAS_ISSUE_MSG
-    except (ActivationKey.DoesNotExist):
+    except ActivationKey.DoesNotExist:
         # The key does not exist, corner case: a fabricated url with a fake activation key
         msg = ACCT_HAS_ISSUE_MSG
 

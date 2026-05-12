@@ -24,6 +24,7 @@ services:
       - .env
     volumes:
       - .:/code
+      - ${HOME}/.bb2:/home/DEV/.bb2:ro
     ports:
       - "8000:8000"
       - "5678:5678"
@@ -42,6 +43,7 @@ services:
       - .env
     volumes:
       - .:/code
+      - ${HOME}/.bb2:/home/DEV/.bb2:ro
     ports:
       - "8000:8000"
       - "5678:5678"

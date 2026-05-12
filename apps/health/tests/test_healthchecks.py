@@ -10,7 +10,7 @@ ENDPOINT_TEST_CASES = [
     ('/health/bfd_v2/live', 404),
     ('/health/test', 404),
     ('/health/internal', 404),
-    ('/health/', 200)
+    ('/health/', 200),
 ]
 
 EXTERNAL_ENDPOINTS = [
@@ -23,10 +23,9 @@ EXTERNAL_ENDPOINTS = [
 
 
 class TestHealthchecks(BaseApiTest):
-
     def setUp(self):
         self.client = Client()
-        self.url = "http://localhost"
+        self.url = 'http://localhost'
 
     @all_requests
     def catchall(self, url, req):
@@ -37,7 +36,7 @@ class TestHealthchecks(BaseApiTest):
 
     @all_requests
     def fail(self, url, req):
-        raise Exception("Something failed")
+        raise Exception('Something failed')
 
     def test_health_external(self):
         self._call_health_external_endpoint(False)
@@ -47,7 +46,7 @@ class TestHealthchecks(BaseApiTest):
 
     def _call_health_external_endpoint(self, v2=False):
         with HTTMock(self.catchall):
-            response = self.client.get(self.url + "/health/external_v2" if v2 else "/health/external")
+            response = self.client.get(self.url + '/health/external_v2' if v2 else '/health/external')
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         msg = None
@@ -65,7 +64,7 @@ class TestHealthchecks(BaseApiTest):
 
     def _call_health_bfd_endpoint(self, v2=False):
         with HTTMock(self.catchall):
-            response = self.client.get(self.url + "/health/bfd_v2" if v2 else "/health/bfd")
+            response = self.client.get(self.url + '/health/bfd_v2' if v2 else '/health/bfd')
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         msg = None
@@ -76,7 +75,7 @@ class TestHealthchecks(BaseApiTest):
         self.assertEqual(msg, "all's well")
 
     def test_health_db_endpoint(self):
-        response = self.client.get(self.url + "/health/db")
+        response = self.client.get(self.url + '/health/db')
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         msg = None
@@ -88,7 +87,7 @@ class TestHealthchecks(BaseApiTest):
 
     def test_health_sls_endpoint(self):
         with HTTMock(self.catchall):
-            response = self.client.get(self.url + "/health/sls")
+            response = self.client.get(self.url + '/health/sls')
 
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
@@ -114,5 +113,4 @@ class TestHealthchecks(BaseApiTest):
             with HTTMock(self.fail):
                 response = self.client.get(self.url + endpoint)
             self.assertEqual(response.status_code, 503)
-            self.assertRegex(json.loads(response.content)["detail"],
-                             "^Service temporarily unavailable.*")
+            self.assertRegex(json.loads(response.content)['detail'], '^Service temporarily unavailable.*')

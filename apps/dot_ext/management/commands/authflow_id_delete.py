@@ -4,15 +4,11 @@ from django.db import connection
 from datetime import date, timedelta, datetime
 from django.core.management.base import BaseCommand
 
+from apps.dot_ext.constants import DELETE_WITH_LIMIT, TARGET_TABLE, TARGET_TABLE_COPY
 import apps.logging.request_logger as logging
 
 
 logger = logging.getLogger(logging.AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER)
-
-
-TARGET_TABLE_COPY = "dot_ext_authflowuuidcopy"
-TARGET_TABLE = "dot_ext_authflowuuid"
-DELETE_WITH_LIMIT = "DELETE FROM {table_name} WHERE auth_uuid IN (SELECT auth_uuid FROM {table_name} WHERE created < '{age_date}'::date ORDER BY created LIMIT {limit_on_delete})"
 
 
 def delete_authflow_uuid_table(age, limit_on_delete, simulation):

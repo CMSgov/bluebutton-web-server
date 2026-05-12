@@ -33,7 +33,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     def get_contacts(self, obj):
         application = Application.objects.get(id=obj.id)
-        return application.support_email or ""
+        return application.support_email or ''
 
 
 class DataAccessGrantSerializer(serializers.ModelSerializer):
@@ -45,26 +45,20 @@ class DataAccessGrantSerializer(serializers.ModelSerializer):
         fields = ('id', 'application', 'user')
 
 
-class AuthorizedGrants(viewsets.GenericViewSet,
-                       mixins.ListModelMixin,
-                       mixins.RetrieveModelMixin,
-                       mixins.DestroyModelMixin):
-
+class AuthorizedGrants(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
     authentication_classes = [SLSAuthentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['token_management']
     serializer_class = DataAccessGrantSerializer
 
     def get_queryset(self):
-        return DataAccessGrant.objects.select_related("application").filter(
-            Q(expiration_date__gt=datetime.now()) | Q(expiration_date=None),
-            beneficiary=self.request.user
+        return DataAccessGrant.objects.select_related('application').filter(
+            Q(expiration_date__gt=datetime.now()) | Q(expiration_date=None), beneficiary=self.request.user
         )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
-
     @staticmethod
     def post(request, *args, **kwargs):
         try:
@@ -81,15 +75,15 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
                 case Versions.V3:
                     user = Crosswalk.objects.get(fhir_id_v3=patient_id).user
                 case _:
-                    raise VersionNotMatched(f"{version} is not a valid version constant")
+                    raise VersionNotMatched(f'{version} is not a valid version constant')
 
             client = get_application_from_meta(request)
             DataAccessGrant.objects.get(beneficiary=user.id, application=client).delete()
         except Crosswalk.DoesNotExist:
-            return HttpResponse("Patient was Not Found. Please check the id number and try again.",
-                                status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse(
+                'Patient was Not Found. Please check the id number and try again.', status=status.HTTP_404_NOT_FOUND
+            )
         except DataAccessGrant.DoesNotExist:
-            return HttpResponse("Data Access Grant was Not Found.",
-                                status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse('Data Access Grant was Not Found.', status=status.HTTP_404_NOT_FOUND)
 
-        return HttpResponse("success", status=status.HTTP_200_OK)
+        return HttpResponse('success', status=status.HTTP_200_OK)

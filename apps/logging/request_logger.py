@@ -13,20 +13,20 @@ INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
-AUDIT_BASIC_LOGGER = "audit.basic_logger"
-AUDIT_AUTHZ_TOKEN_LOGGER = "audit.authorization.token"
-AUDIT_AUTHZ_SLS_LOGGER = "audit.authorization.sls"
-AUDIT_DATA_FHIR_LOGGER = "audit.data.fhir"
-AUDIT_AUTHN_SLS_LOGGER = "audit.authenticate.sls"
-AUDIT_AUTHN_MED_CALLBACK_LOGGER = "audit.authenticate.mymedicare_cb"
-AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER = "audit.authenticate.match_fhir_id"
-AUDIT_HHS_AUTH_SERVER_REQ_LOGGER = "audit.hhs_oauth_server.request_logging"
-AUDIT_GLOBAL_STATE_METRICS_LOGGER = "audit.global_state_metrics"
-AUDIT_REQUEST_LOGGER = "audit.request_logger"
-AUDIT_WAFFLE_EVENT_LOGGER = "audit.waffle.event"
-AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER = "audit.authflow.uuid.cleanup"
-AUDIT_CREDS_REQUEST_LOGGER = "audit.creds.request"
-AUDIT_APPLICATION_TYPE_CHANGE = "audit.application.type.change"
+AUDIT_BASIC_LOGGER = 'audit.basic_logger'
+AUDIT_AUTHZ_TOKEN_LOGGER = 'audit.authorization.token'
+AUDIT_AUTHZ_SLS_LOGGER = 'audit.authorization.sls'
+AUDIT_DATA_FHIR_LOGGER = 'audit.data.fhir'
+AUDIT_AUTHN_SLS_LOGGER = 'audit.authenticate.sls'
+AUDIT_AUTHN_MED_CALLBACK_LOGGER = 'audit.authenticate.mymedicare_cb'
+AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER = 'audit.authenticate.match_fhir_id'
+AUDIT_HHS_AUTH_SERVER_REQ_LOGGER = 'audit.hhs_oauth_server.request_logging'
+AUDIT_GLOBAL_STATE_METRICS_LOGGER = 'audit.global_state_metrics'
+AUDIT_REQUEST_LOGGER = 'audit.request_logger'
+AUDIT_WAFFLE_EVENT_LOGGER = 'audit.waffle.event'
+AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER = 'audit.authflow.uuid.cleanup'
+AUDIT_CREDS_REQUEST_LOGGER = 'audit.creds.request'
+AUDIT_APPLICATION_TYPE_CHANGE = 'audit.application.type.change'
 PERFORMANCE_LOGGER = 'performance'
 
 LOGGER_NAMES = [
@@ -42,10 +42,10 @@ LOGGER_NAMES = [
     AUDIT_REQUEST_LOGGER,
     AUDIT_WAFFLE_EVENT_LOGGER,
     AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER,
-    AUDIT_APPLICATION_TYPE_CHANGE
+    AUDIT_APPLICATION_TYPE_CHANGE,
 ]
 
-HHS_SERVER_LOGNAME_FMT = "hhs_server.{}"
+HHS_SERVER_LOGNAME_FMT = 'hhs_server.{}'
 
 
 def getLogger(name=None, request=None):
@@ -67,12 +67,12 @@ class BasicLogger:
     def format_for_output(self, data_dict, cls=None):
         try:
             if settings.LOG_JSON_FORMAT_PRETTY:
-                args = {"sort_keys": True, "indent": 2, "cls": cls}
+                args = {'sort_keys': True, 'indent': 2, 'cls': cls}
             else:
-                args = {"cls": cls}
+                args = {'cls': cls}
             return json.dumps(data_dict, **args)
         except Exception:
-            return "Could not turn the data_dict into a JSON dump"
+            return 'Could not turn the data_dict into a JSON dump'
 
     def debug(self, data_dict, cls=None):
         self._logger.debug(self.format_for_output(data_dict, cls=cls))
@@ -105,40 +105,40 @@ class RequestLogger(BasicLogger):
 
     def extract_request_data(self, request):
         try:
-            self.standard_log_data["request_uuid"] = request._logging_uuid
+            self.standard_log_data['request_uuid'] = request._logging_uuid
         except Exception:
-            self.standard_log_data["request_uuid"] = None
+            self.standard_log_data['request_uuid'] = None
         try:
-            self.standard_log_data["auth_uuid"] = request.session["auth_uuid"]
+            self.standard_log_data['auth_uuid'] = request.session['auth_uuid']
         except Exception:
-            self.standard_log_data["auth_uuid"] = None
+            self.standard_log_data['auth_uuid'] = None
         try:
-            self.standard_log_data["auth_app_id"] = request.session["auth_app_id"]
+            self.standard_log_data['auth_app_id'] = request.session['auth_app_id']
         except Exception:
-            self.standard_log_data["auth_app_id"] = None
+            self.standard_log_data['auth_app_id'] = None
         try:
-            self.standard_log_data["auth_app_name"] = request.session["auth_app_name"]
+            self.standard_log_data['auth_app_name'] = request.session['auth_app_name']
         except Exception:
-            self.standard_log_data["auth_app_name"] = None
+            self.standard_log_data['auth_app_name'] = None
         try:
-            self.standard_log_data["auth_app_data_access_type"] = request.session["auth_app_data_access_type"]
+            self.standard_log_data['auth_app_data_access_type'] = request.session['auth_app_data_access_type']
         except Exception:
-            self.standard_log_data["auth_app_data_access_type"] = None
+            self.standard_log_data['auth_app_data_access_type'] = None
         try:
-            self.standard_log_data["auth_client_id"] = request.session["auth_client_id"]
+            self.standard_log_data['auth_client_id'] = request.session['auth_client_id']
         except Exception:
-            self.standard_log_data["auth_client_id"] = None
+            self.standard_log_data['auth_client_id'] = None
         try:
-            self.standard_log_data["auth_pkce_method"] = request.session["auth_pkce_method"]
+            self.standard_log_data['auth_pkce_method'] = request.session['auth_pkce_method']
         except Exception:
-            self.standard_log_data["auth_pkce_method"] = None
+            self.standard_log_data['auth_pkce_method'] = None
         try:
-            self.standard_log_data["auth_language"] = request.session["auth_language"]
+            self.standard_log_data['auth_language'] = request.session['auth_language']
         except Exception:
             pass
         try:
-            request_headers = getattr(request, "headers")
-            self.standard_log_data["data_facilitator_end_user"] = request_headers["data_facilitator_end_user"]
+            request_headers = getattr(request, 'headers')
+            self.standard_log_data['data_facilitator_end_user'] = request_headers['data_facilitator_end_user']
         except Exception:
             pass
 

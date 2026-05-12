@@ -5,14 +5,14 @@ from django.db.models.signals import post_save, pre_save
 from oauth2_provider.models import get_application_model, get_access_token_model
 from libs.mail import Mailer
 from libs.decorators import waffle_function_switch
-from .models import ArchivedToken
+from apps.dot_ext.models import ArchivedToken
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 Application = get_application_model()
 Token = get_access_token_model()
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 beneficiary_authorized_application = Signal()

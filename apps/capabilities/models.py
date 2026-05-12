@@ -1,30 +1,25 @@
 import json
-import re
 
 from django.db import models
 from django.contrib.auth.models import Group
-# from django.utils.lru_cache import lru_cache
 from functools import lru_cache
 from django.db.models import CASCADE
+from apps.capabilities.constants import URL_BIT_PATTERN
 
 
 class ProtectedCapability(models.Model):
-    title = models.CharField(max_length=255,
-                             default='',
-                             unique=True)
-    slug = models.CharField(verbose_name='Scope',
-                            max_length=255,
-                            default='',
-                            unique=True)
-    group = models.ForeignKey(Group, on_delete=CASCADE,)
-    description = models.TextField(max_length=10240,
-                                   blank=True,
-                                   default='')
+    title = models.TextField(default='', unique=True)
+    slug = models.TextField(verbose_name='Scope', default='', unique=True)
+    group = models.ForeignKey(
+        Group,
+        on_delete=CASCADE,
+    )
+    description = models.TextField(blank=True, default='')
     protected_resources = models.TextField(
         help_text="""A JSON list of pairs containing HTTP method and URL.
         It may contain [id] placeholders for wildcards
         Example: [["GET","/api/task1"], ["POST","/api/task2/[id]"]]""",
-        default="""[["GET", "/some-url"]]"""
+        default="""[["GET", "/some-url"]]""",
     )
 
     default = models.BooleanField(default=True)
@@ -74,10 +69,7 @@ def _tokenize_path(path):
 
     e.g.: "/api/foo/" -> ["", "api", "foo"]
     """
-    return path.rstrip("/").split("/")
-
-
-URL_BIT_PATTERN = re.compile(r"\[.*\]")
+    return path.rstrip('/').split('/')
 
 
 @lru_cache()

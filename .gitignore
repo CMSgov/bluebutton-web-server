@@ -5,6 +5,9 @@
 .cache/
 media/
 .swp
+.ruff_cache/
+.pytest_cache/
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -44,8 +47,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Django
-/_start/settings/local.py
-local.py
 collectedstatic/
 
 # Testing
@@ -57,7 +58,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-dev-local/selenium/dump/*
+**/selenium/dump/*
 
 # Database
 *.db
@@ -65,15 +66,7 @@ db.sqlite3
 migration.completed
 
 # System
-.DS_Store
-/_start/app-email-messages/
-
-/hhs_oauth_server/settings/local.py
 .idea/
-
-
-# dotenv
-.env
 
 # virtualenv
 .venv
@@ -88,10 +81,16 @@ docker-compose/certstore/
 
 # tmp files
 docker-compose/tmp/
+locust-out/
 
 # dev tools dir for placing scripts you don't want checked in
-dev-tools/
 test_report.txt
+
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md

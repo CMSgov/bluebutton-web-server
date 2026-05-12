@@ -1,5 +1,7 @@
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, USER_TYPE_BENEFICIARY
 from apps.authorization.models import update_grants
-from apps.testclient import constants
+from apps.constants import TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
+from apps.testclient.constants import TESTCLIENT_REDIRECT_URI, TEST_APP_POSTMAN_CALLBACK
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Application
@@ -34,7 +36,7 @@ def create_user(the_group):
     last_name = 'Rogers'
     email = 'mrrogers@landofmakebelieve.gov'
     password = uuid4()
-    user_type = 'BEN'
+    user_type = USER_TYPE_BENEFICIARY
 
     # If we don't already exist, then create the user.
     if User.objects.filter(username=username).exists():
@@ -65,22 +67,22 @@ def create_user(the_group):
     user_id_hash = 'ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536'
     Crosswalk.objects.filter(_user_id_hash=user_id_hash).delete()
     Crosswalk.objects.get_or_create(user=user_obj,
-                                    fhir_id_v2=settings.DEFAULT_SAMPLE_FHIR_ID_V2,
+                                    fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2,
                                     _user_id_hash=user_id_hash)
     return user_obj
 
 
 def create_application(user):
     app_name = 'TestApp'
-    client_id = constants.TEST_APP_CLIENT_ID
-    client_secret = constants.TEST_APP_CLIENT_SECRET
+    client_id = TEST_APP_CLIENT_ID
+    client_secret = TEST_APP_CLIENT_SECRET
     if Application.objects.filter(name=app_name).exists():
         return Application.objects.get(name=app_name)
 
     # If the app doesn't exist, create the test app.
 
     Application.objects.filter(name=app_name).delete()
-    redirect_uri = f'{settings.HOSTNAME_URL}{settings.TESTCLIENT_REDIRECT_URI} {constants.TEST_APP_POSTMAN_CALLBACK}'
+    redirect_uri = f'{settings.HOSTNAME_URL}{TESTCLIENT_REDIRECT_URI} {TEST_APP_POSTMAN_CALLBACK}'
 
     the_app = Application.objects.create(name=app_name,
                                          client_id=client_id,

@@ -11,28 +11,19 @@ import json
 class CredentialsTestCase(BaseApiTest):
     def setUp(self):
         # Test App #1: happy path
-        dev_user1 = self._create_user("developer_test", "123456")
-        test_app1 = self._create_application(
-            "test_app_1", user=dev_user1, data_access_type="THIRTEEN_MONTH"
-        )
-        CredentialingReqest.objects.create(
-            application=test_app1)
+        dev_user1 = self._create_user('developer_test', '123456')
+        test_app1 = self._create_application('test_app_1', user=dev_user1, data_access_type='THIRTEEN_MONTH')
+        CredentialingReqest.objects.create(application=test_app1)
 
         # Test App #2: expired credentials
-        dev_user2 = self._create_user("developer_test_2", "789123")
-        test_app2 = self._create_application(
-            "test_app_2", user=dev_user2, data_access_type="THIRTEEN_MONTH"
-        )
-        CredentialingReqest.objects.create(
-            application=test_app2)
+        dev_user2 = self._create_user('developer_test_2', '789123')
+        test_app2 = self._create_application('test_app_2', user=dev_user2, data_access_type='THIRTEEN_MONTH')
+        CredentialingReqest.objects.create(application=test_app2)
 
         # Test App #3: credentials retrieved before, re-download/re-fetched not allowed
-        dev_user3 = self._create_user("developer_test_3", "123456")
-        test_app3 = self._create_application(
-            "test_app_3", user=dev_user3, data_access_type="THIRTEEN_MONTH"
-        )
-        CredentialingReqest.objects.create(
-            application=test_app3)
+        dev_user3 = self._create_user('developer_test_3', '123456')
+        test_app3 = self._create_application('test_app_3', user=dev_user3, data_access_type='THIRTEEN_MONTH')
+        CredentialingReqest.objects.create(application=test_app3)
         created_date = datetime.date(2018, 1, 1)
         CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_3')).update(updated_at=created_date)
         CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_3')).update(visits_count=1)
@@ -47,7 +38,7 @@ class CredentialsTestCase(BaseApiTest):
         """
         creds_req_id = CredentialingReqest.objects.get(application=Application.objects.get(name='test_app_1')).id
         url = reverse('credentials_request', kwargs={'prod_cred_req_id': creds_req_id})
-        response = self.client.get(url, {"action": "fetch"}, follow=True)
+        response = self.client.get(url, {'action': 'fetch'}, follow=True)
         self.assertEqual(len(str(creds_req_id)), 36)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'get_creds.html')
@@ -67,10 +58,10 @@ class CredentialsTestCase(BaseApiTest):
         """
         creds_req_id = CredentialingReqest.objects.get(application=Application.objects.get(name='test_app_1')).id
         url = reverse('credentials_request', kwargs={'prod_cred_req_id': creds_req_id})
-        response = self.client.get(url, {"action": "download"}, follow=True)
+        response = self.client.get(url, {'action': 'download'}, follow=True)
         self.assertEqual(len(str(creds_req_id)), 36)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Content-Disposition"], 'attachment; filename="{}.json"'.format(creds_req_id))
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename="{}.json"'.format(creds_req_id))
         self.assertContains(response, 'client_id')
         self.assertContains(response, 'client_secret_plain')
         json_response = json.loads(response.content)
@@ -86,7 +77,7 @@ class CredentialsTestCase(BaseApiTest):
         """
         creds_req_id = CredentialingReqest.objects.get(application=Application.objects.get(name='test_app_3')).id
         url = reverse('credentials_request', kwargs={'prod_cred_req_id': creds_req_id})
-        response = self.client.get(url, {"action": "download"}, follow=True)
+        response = self.client.get(url, {'action': 'download'}, follow=True)
         self.assertEqual(len(str(creds_req_id)), 36)
         self.assertEqual(response.status_code, 403)
         self.assertRaisesRegex(exceptions.PermissionDenied, 'Credentials already fetched (download), doing it again not allowed.')
@@ -98,10 +89,13 @@ class CredentialsTestCase(BaseApiTest):
         Tests that generated credentialing request expire and has a UUID with the correct length
         """
         creds_req_id = CredentialingReqest.objects.get(application=Application.objects.get(name='test_app_2')).id
-        (CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_2'))
-         .update(created_at=datetime.date(2018, 1, 1)))
+        (
+            CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_2')).update(
+                created_at=datetime.date(2018, 1, 1)
+            )
+        )
         url = reverse('credentials_request', kwargs={'prod_cred_req_id': creds_req_id})
-        response = self.client.get(url, {"action": "fetch"}, follow=True)
+        response = self.client.get(url, {'action': 'fetch'}, follow=True)
         self.assertEqual(len(str(creds_req_id)), 36)
         self.assertEqual(response.status_code, 403)
         self.assertRaisesRegex(exceptions.PermissionDenied, 'Generated credentialing request expired.')

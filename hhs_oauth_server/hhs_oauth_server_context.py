@@ -16,11 +16,12 @@ Custom HTML should be installed in the templates/{app_Name} folder inside
 the application.
 
 """
+
 from django.conf import settings
 
 
 def IsAppInstalled(target_app=None):
-    """ Is an app in INSTALLED_APPS """
+    """Is an app in INSTALLED_APPS"""
 
     if target_app:
         if target_app in settings.INSTALLED_APPS:
@@ -31,6 +32,6 @@ def IsAppInstalled(target_app=None):
 
 
 def active_apps(request):
-    """ Is app active in INSTALLED_APPS """
+    """Is app active in INSTALLED_APPS"""
 
     return {'active_apps': settings.INSTALLED_APPS}

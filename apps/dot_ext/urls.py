@@ -1,7 +1,7 @@
 from django.urls import path, re_path
 from oauth2_provider import views as oauth2_views
 from . import views
-from .constants import AUTHORIZE_INSTANCE_PARAM, TOKEN_ENDPOINT_V1_KEY
+from apps.dot_ext.constants import AUTHORIZE_INSTANCE_PARAM, TOKEN_ENDPOINT_V1_KEY
 
 app_name = "oauth2_provider"
 

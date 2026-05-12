@@ -1,0 +1,52 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [
+	"*/migrations/*",
+	"docs",
+	"examples",
+	"static",
+	"vendor",
+	"venv",
+	"*/management/*"
+]
+
+line-length = 120
+indent-width = 4
+
+# Python 3.12
+target-version = "py312"
+
+[lint]
+# These are recommended by Ruff documentation: https://docs.astral.sh/ruff/linter/
+# TO DO: Consider adding more rulesets in the future like ISort.
+select = [
+          "E", # pycodestyle errors
+          "F", # Pyflakes
+          "W", # pycodestyle warnings
+          ]
+ignore = [
+          "F403", # undefined-local-with-import-star, carried over from flake8 config
+          "F405", # undefined-local-with-import-star-usage, carried over from flake8 config
+          "W191", # Tab indentation, handled by formatter
+          "E111", # Indentation with invalid multiple, handled by formatter
+          "E114", # Indentation with invalid multiple, in comments handled by formatter
+          "E117", # Over-indented code, handled by formatter
+          "E501" # Line too long, handled by formatter
+          ]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+# Do not automatically fix unsafe fixes
+unfixable = []
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "single"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

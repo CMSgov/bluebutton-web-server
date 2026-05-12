@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from django.core.management.base import BaseCommand
 
 from apps.logging.loggers import log_global_state_metrics

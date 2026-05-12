@@ -1,8 +1,9 @@
-import jsonschema
-import re
 import os
+import re
 import traceback
 from functools import wraps
+
+import jsonschema
 from jsonschema import validate
 from selenium.common.exceptions import NoSuchElementException
 
@@ -20,6 +21,7 @@ def screenshot_on_exception(func):
     Returns:
         _type_: N/A
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
@@ -27,13 +29,13 @@ def screenshot_on_exception(func):
         except Exception as outer_exception:
             webdriver = getattr(self, 'driver')
             # Make sure there is a webdriver and we are not in an AWS environment
-            if webdriver and os.getenv('TARGET_ENV') == 'dev':
+            if webdriver and os.getenv('TARGET_ENV') == 'local':
                 try:
-                    print(f"{'=' * 80}")
+                    print(f'{"=" * 80}')
                     print(f'Current URL: {webdriver.current_url}')
                     print(f'Page Title: {webdriver.title}')
 
-                    test_folder = os.path.join('dev-local/selenium/dump', func.__name__)
+                    test_folder = os.path.join('ops/containers/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
 
                     # screenshot of failed page
@@ -59,17 +61,13 @@ def screenshot_on_exception(func):
                 except Exception as save_error:
                     print(f'Failed to capture test failure: {save_error}')
             raise outer_exception
+
     return wrapper
 
 
 def log_step(message, level='INFO'):
     """Log a step with consistent formatting"""
-    prefix = {
-        'INFO': 'ℹ️',
-        'SUCCESS': '✅',
-        'ERROR': '❌',
-        'WARNING': '⚠️'
-    }.get(level, '•')
+    prefix = {'INFO': 'ℹ️', 'SUCCESS': '✅', 'ERROR': '❌', 'WARNING': '⚠️'}.get(level, '•')
 
     print(f'{prefix} {message}')
 
@@ -98,8 +96,8 @@ def check_element_state(driver, by, by_expr, state):
         if not visible:
             print(f'       Size: {elem.size}')
             print(f'       Location: {elem.location}')
-            print(f"       CSS display: {elem.value_of_css_property('display')}")
-            print(f"       CSS visibility: {elem.value_of_css_property('visibility')}")
+            print(f'       CSS display: {elem.value_of_css_property("display")}')
+            print(f'       CSS visibility: {elem.value_of_css_property("visibility")}')
         if exists and not visible:
             print('    ⚠️  Element EXISTS but is NOT VISIBLE')
         elif exists and visible and not enabled:
@@ -140,4 +138,5 @@ def extract_last_part_of_url(url):
     parts = url.rstrip('/').split('/')
     last_part = parts[-1]
 
+    return last_part
     return last_part

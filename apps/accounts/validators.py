@@ -1,15 +1,11 @@
-from datetime import (
-    datetime,
-    timezone,
-    timedelta
-)
+from datetime import datetime, timezone, timedelta
 import re
 import warnings
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from .models import (
+from apps.accounts.constants import PASSWORD_RULES
+from apps.accounts.models import (
     UserPasswordDescriptor,
     PastPassword,
     PasswordHasher,
@@ -17,19 +13,19 @@ from .models import (
 
 
 class PasswordComplexityValidator:
-    '''
+    """
     BB2-62 POAM strengthen blue button developer account authentication
     - increase password complexity
-    '''
+    """
 
     def __init__(
-            self,
-            min_length_digit=1,
-            min_length_alpha=1,
-            min_length_special=1,
-            min_length_lower=1,
-            min_length_upper=1,
-            special_characters="[~!{}@#$%^&*_+\":;()'[]"
+        self,
+        min_length_digit=1,
+        min_length_alpha=1,
+        min_length_special=1,
+        min_length_lower=1,
+        min_length_upper=1,
+        special_characters='[~!{}@#$%^&*_+":;()\'[]',
     ):
         self.min_length_digit = min_length_digit
         self.min_length_alpha = min_length_alpha
@@ -38,7 +34,7 @@ class PasswordComplexityValidator:
         self.min_length_upper = min_length_upper
         self.special_characters = special_characters
 
-        settings.PASSWORD_RULES[2]['regex'] = self.special_characters
+        PASSWORD_RULES[2]['regex'] = self.special_characters
 
         self.actual_params = [
             self.min_length_digit,
@@ -50,25 +46,27 @@ class PasswordComplexityValidator:
 
         password_requirements = []
 
-        for rule in zip(settings.PASSWORD_RULES, self.actual_params):
+        for rule in zip(PASSWORD_RULES, self.actual_params):
             if rule[1]:
                 password_requirements.append(rule[0]['help'].format(rule[1]))
 
-        self.help_txt = "Your password must contaion at least {}.".format(', '.join(password_requirements))
+        self.help_txt = 'Your password must contaion at least {}.'.format(', '.join(password_requirements))
 
     def validate(self, password, user=None):
         validation_errors = []
-        for tuple in zip(settings.PASSWORD_RULES, self.actual_params):
+        for tuple in zip(PASSWORD_RULES, self.actual_params):
             rule = tuple[0]
             min_len_required = tuple[1]
             p = re.compile(rule['regex'])
             actual_cnt = len(p.findall(password))
             if actual_cnt < min_len_required:
-                validation_errors.append(ValidationError(
-                    rule['msg'].format(min_len_required),
-                    params={'min_length': min_len_required},
-                    code=rule['name'],
-                ))
+                validation_errors.append(
+                    ValidationError(
+                        rule['msg'].format(min_len_required),
+                        params={'min_length': min_len_required},
+                        code=rule['name'],
+                    )
+                )
 
         if validation_errors:
             raise ValidationError(validation_errors)
@@ -78,22 +76,25 @@ class PasswordComplexityValidator:
 
 
 class PasswordReuseAndMinAgeValidator:
-    '''
+    """
     BB2-62 POAM strengthen blue button developer account authentication
     - enforce min password age and re-use interval
-    '''
+    """
 
-    def __init__(self,
-                 password_min_age=60 * 60 * 24,
-                 password_reuse_interval=60 * 60 * 24 * 120,
-                 password_expire=0):
+    def __init__(self, password_min_age=60 * 60 * 24, password_reuse_interval=60 * 60 * 24 * 120, password_expire=0):
 
-        msg1 = "Invalid OPTIONS, password_min_age < password_reuse_interval expected, " \
-               "but having password_min_age({}) >= password_reuse_interval({})"
-        msg2 = "Invalid OPTIONS, password_expire < password_reuse_interval expected, " \
-               "but having password_expire({}) >= password_reuse_interval({})"
-        msg3 = "Invalid OPTIONS, password_min_age < password_expire expected, " \
-               "but having password_expire({}) >= password_reuse_interval({})"
+        msg1 = (
+            'Invalid OPTIONS, password_min_age < password_reuse_interval expected, '
+            'but having password_min_age({}) >= password_reuse_interval({})'
+        )
+        msg2 = (
+            'Invalid OPTIONS, password_expire < password_reuse_interval expected, '
+            'but having password_expire({}) >= password_reuse_interval({})'
+        )
+        msg3 = (
+            'Invalid OPTIONS, password_min_age < password_expire expected, '
+            'but having password_expire({}) >= password_reuse_interval({})'
+        )
 
         check_opt_err = []
         if 0 < password_reuse_interval < password_min_age:
@@ -121,8 +122,8 @@ class PasswordReuseAndMinAgeValidator:
         #                                                                        ^
         #                                                                   cur_time_utc
         #  given new password p:
-        #  (1) p's hash colides with any px in 'no reuse window' => validation fails
-        #  (2) p's hash does not colide with any px in 'no reuse window'
+        #  (1) p's hash collides with any px in 'no reuse window' => validation fails
+        #  (2) p's hash does not collide with any px in 'no reuse window'
         #      or the window is empty => further check 'min password age'
         #  (3) there are px in 'no reuse window' => if there is no px in 'min password age'
         #      like p5 => validation pass
@@ -135,37 +136,36 @@ class PasswordReuseAndMinAgeValidator:
             passwds = None
             try:
                 if self.password_reuse_interval > 0:
-                    # only check invalid reuse (colide) within reuse_interval
+                    # only check invalid reuse (collide) within reuse_interval
                     reuse_datetime = cur_time_utc - timedelta(0, self.password_reuse_interval)
                     passwds = PastPassword.objects.filter(
                         Q(date_created__gt=reuse_datetime), userpassword_desc=userpassword_desc
                     ).order_by('-date_created')
                 else:
-                    # no reuse_interval, check all past passwords for colide
-                    passwds = PastPassword.objects.filter(
-                        userpassword_desc=userpassword_desc
-                    ).order_by('-date_created')
+                    # no reuse_interval, check all past passwords for collide
+                    passwds = PastPassword.objects.filter(userpassword_desc=userpassword_desc).order_by('-date_created')
 
                 for p in passwds:
                     if p.password == password_hash:
-                        # check invalid re-use (colide) within password reuse interval
+                        # check invalid re-use (collide) within password reuse interval
                         raise ValidationError(
-                            ("You can not use a password that is already"
-                             " used in this application within password re-use interval [days hh:mm:ss]: {}.")
-                            .format(str(timedelta(seconds=self.password_reuse_interval))),
-                            code='password_used'
+                            (
+                                'You can not use a password that is already'
+                                ' used in this application within password re-use interval [days hh:mm:ss]: {}.'
+                            ).format(str(timedelta(seconds=self.password_reuse_interval))),
+                            code='password_used',
                         )
             except PastPassword.DoesNotExist:
                 pass
 
             if self.password_min_age > 0 and passwds is not None and passwds.first() is not None:
-                if (datetime.now(timezone.utc)
-                        - passwds.first().date_created).total_seconds() <= self.password_min_age:
+                if (datetime.now(timezone.utc) - passwds.first().date_created).total_seconds() <= self.password_min_age:
                     # change password too soon
                     raise ValidationError(
-                        "You can not change password that does not satisfy minimum password age [days hh:mm:ss]: {}."
-                        .format(str(timedelta(seconds=self.password_min_age))),
-                        code='password_used'
+                        'You can not change password that does not satisfy minimum password age [days hh:mm:ss]: {}.'.format(
+                            str(timedelta(seconds=self.password_min_age))
+                        ),
+                        code='password_used',
                     )
 
     def password_changed(self, password, user=None):
@@ -175,10 +175,7 @@ class PasswordReuseAndMinAgeValidator:
             return
 
         iter_val = PasswordHasher().iterations
-        userpassword_desc = UserPasswordDescriptor.objects.filter(
-            user=user,
-            iterations=iter_val
-        ).first()
+        userpassword_desc = UserPasswordDescriptor.objects.filter(user=user, iterations=iter_val).first()
 
         if not userpassword_desc:
             userpassword_desc = UserPasswordDescriptor()
@@ -193,11 +190,7 @@ class PasswordReuseAndMinAgeValidator:
             # with the timestamp now() this look up will certainly not able to get an entry
             # this is expected for new entry and re-use password (same user + password hash)
             # note, re use of user + password hash will satisfy re use interval first.
-            PastPassword.objects.get(
-                userpassword_desc=userpassword_desc,
-                password=password_hash,
-                date_created=tz_now
-            )
+            PastPassword.objects.get(userpassword_desc=userpassword_desc, password=password_hash, date_created=tz_now)
         except PastPassword.DoesNotExist:
             past_password = PastPassword()
             past_password.userpassword_desc = userpassword_desc
@@ -205,11 +198,11 @@ class PasswordReuseAndMinAgeValidator:
             past_password.save()
 
     def get_help_text(self):
-        help_msg = ('For security, you can not change your password again for [days hh:mm:ss]: {}, and'
-                    ' your new password can not be identical to any of the '
-                    'previously entered in the past [days hh:mm:ss] {}').format(
-            str(timedelta(seconds=self.password_min_age)),
-            str(timedelta(seconds=self.password_reuse_interval)))
+        help_msg = (
+            'For security, you can not change your password again for [days hh:mm:ss]: {}, and'
+            ' your new password can not be identical to any of the '
+            'previously entered in the past [days hh:mm:ss] {}'
+        ).format(str(timedelta(seconds=self.password_min_age)), str(timedelta(seconds=self.password_reuse_interval)))
         return help_msg
 
     def password_expired(self, user=None):
@@ -225,9 +218,7 @@ class PasswordReuseAndMinAgeValidator:
             passwds = None
             try:
                 # only check invalid reuse within reuse_interval
-                passwds = PastPassword.objects.filter(
-                    userpassword_desc=userpassword_desc
-                ).order_by('-date_created')
+                passwds = PastPassword.objects.filter(userpassword_desc=userpassword_desc).order_by('-date_created')
             except PastPassword.DoesNotExist:
                 pass
             if passwds is not None and passwds.first() is not None:

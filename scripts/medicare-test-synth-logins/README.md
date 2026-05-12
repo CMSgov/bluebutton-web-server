@@ -3,7 +3,7 @@
 - [Medicare Synthetic Patient Login Tester Tool Summary](#summary)
 - [How to Use the Tool Locally](#localusage)
   - [Considerations for Usage](#localusage1)
-  - [Python Virtual Enviornment Setup](#localusage2)
+  - [Python Virtual Environment Setup](#localusage2)
   - [Tool Command Line Options](#localusage3)
   - [Usage Example](#localusage4)
 - [How to Use the Tool Via Jenkins CBC](#cbcusage)
@@ -13,7 +13,7 @@
 
 This README has information on the usage of a tool for testing Medicare.gov synthetic user account logins. This is for testing ranges of accounts with usernames in the "BBUserXXXXX" format.
 
-This tool can be used periodicaly to verify the synthetic accounts are working as expected and to prevent activity expiration for those accounts that do not get used on a regular basis.
+This tool can be used periodically to verify the synthetic accounts are working as expected and to prevent activity expiration for those accounts that do not get used on a regular basis.
 
 # How to Use the Tool Locally<a id="localusage"></a>
 
@@ -23,7 +23,7 @@ This tool can be used periodicaly to verify the synthetic accounts are working a
 - Using too short of a sleep time between actions may cause your IP to be blocked.
 - There is a limit to the number of logins per Selenium browser (driver) session. See `DRIVER_RESTART_COUNT` setting for how to configure, if needed.
 
-## Python Virtual Enviornment Setup<a id="localusag2"></a>
+## Python Virtual Environment Setup<a id="localusag2"></a>
 
 Use the following command line to setup a virtual environment with needed packages installed.
 

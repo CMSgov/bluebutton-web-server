@@ -14,7 +14,7 @@ from apps.wellknown.permissions import V3EarlyAdopterWellKnownPermission
 
 
 def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
-    """ OIDC-style userinfo
+    """OIDC-style userinfo
 
     Args:
         user (AccessToken): AccessToken object from database
@@ -25,7 +25,7 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
     """
     data = OrderedDict()
     data['sub'] = user.username
-    data['name'] = "%s %s" % (user.first_name, user.last_name)
+    data['name'] = '%s %s' % (user.first_name, user.last_name)
     data['given_name'] = user.first_name
     data['family_name'] = user.last_name
     data['email'] = user.email
@@ -38,12 +38,11 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
     return data
 
 
-@api_view(["GET"])
+@api_view(['GET'])
 @authentication_classes([OAuth2Authentication])
-@permission_classes([ApplicationActivePermission,
-                     TokenHasProtectedCapability,
-                     DataAccessGrantPermission,
-                     V3EarlyAdopterWellKnownPermission])
+@permission_classes(
+    [ApplicationActivePermission, TokenHasProtectedCapability, DataAccessGrantPermission, V3EarlyAdopterWellKnownPermission]
+)
 @protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
     # NOTE: The **kwargs are not used anywhere down the callchain, and are being ignored.

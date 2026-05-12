@@ -1,0 +1,101 @@
+# terraform/services/20-microservices/security_groups.tf
+# Separate rule resources for fine-grained control
+
+# ============================================================================
+# Security Group for ECS Tasks (empty shell — rules defined separately)
+# ============================================================================
+resource "aws_security_group" "ecs_sg" {
+  for_each    = nonsensitive(local.service_config)
+  name        = "${local.app_prefix}-${local.workspace}-ecs-${each.key}-sg"
+  description = "ECS ${title(each.key)} Security Group"
+  vpc_id      = local.vpc_id
+
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-ecs-sg" }
+}
+
+# ECS ingress: Allow from ALB
+resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb" {
+  for_each = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
+
+  security_group_id            = aws_security_group.ecs_sg[each.key].id
+  referenced_security_group_id = aws_security_group.alb_sg[each.key].id
+  from_port                    = each.value.port
+  to_port                      = each.value.port
+  ip_protocol                  = "tcp"
+  description                  = "Allow port ${each.value.port} from ${title(each.key)} ALB"
+}
+
+# ECS ingress: Allow from each private subnet CIDR
+resource "aws_vpc_security_group_ingress_rule" "ecs_from_private" {
+  for_each = {
+    for pair in flatten([
+      for svc_key, svc in nonsensitive(local.service_config) : [
+        for subnet_id, subnet in module.platform.private_subnets : {
+          key       = "${svc_key}-${subnet_id}"
+          svc_key   = svc_key
+          port      = svc.port
+          cidr_ipv4 = subnet.cidr_block
+        }
+      ]
+    ]) : pair.key => pair
+  }
+
+  security_group_id = aws_security_group.ecs_sg[each.value.svc_key].id
+  cidr_ipv4         = each.value.cidr_ipv4
+  from_port         = each.value.port
+  to_port           = each.value.port
+  ip_protocol       = "tcp"
+  description       = "Allow from private subnet ${each.value.cidr_ipv4}"
+}
+
+# ECS egress: Allow all outbound
+resource "aws_vpc_security_group_egress_rule" "ecs_all" {
+  for_each = nonsensitive(local.service_config)
+
+  security_group_id = aws_security_group.ecs_sg[each.key].id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+  description       = "Allow all outbound"
+}
+
+# ============================================================================
+# Security Group for ALB (empty shell — rules defined separately)
+# ============================================================================
+resource "aws_security_group" "alb_sg" {
+  for_each    = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
+  name        = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg"
+  description = "ALB ${title(each.key)} Security Group"
+  vpc_id      = local.vpc_id
+
+  tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-alb-sg" }
+}
+
+# ALB ingress: VPN/CDN access is provided by attaching cmscloud-vpn and akamai
+# security groups directly to the ALB (see alb.tf security_groups list).
+# No open 0.0.0.0/0 ingress — all traffic flows through Akamai CDN or CMS VPN.
+
+# ALB egress: Allow all outbound
+resource "aws_vpc_security_group_egress_rule" "alb_all" {
+  for_each = nonsensitive({ for k, v in local.service_config : k => v if v.alb })
+
+  security_group_id = aws_security_group.alb_sg[each.key].id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+  description       = "Allow all outbound"
+}
+
+# ============================================================================
+# RDS Ingress: Allow ECS tasks to reach the database
+# Auto-discovers BB-SG-{ENV}-DATA-ALLZONE and adds ingress from ECS SG
+# ============================================================================
+resource "aws_vpc_security_group_ingress_rule" "rds_from_ecs" {
+  for_each = nonsensitive(local.service_config)
+
+  security_group_id            = data.aws_security_group.rds.id
+  referenced_security_group_id = aws_security_group.ecs_sg[each.key].id
+  from_port                    = 15432
+  to_port                      = 15432
+  ip_protocol                  = "tcp"
+  description                  = "PostgreSQL from ECS ${title(each.key)}"
+}
+

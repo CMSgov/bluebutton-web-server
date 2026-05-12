@@ -101,10 +101,10 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/synasius">
-                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
+                <a href="https://github.com/JamesDemeryNava">
+                    <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
                     <br />
-                    <sub><b>Federico Frenguelli</b></sub>
+                    <sub><b>James Demery</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -115,12 +115,28 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/synasius">
+                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
+                    <br />
+                    <sub><b>Federico Frenguelli</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/clewellyn-nava">
+                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
+                    <br />
+                    <sub><b>Connor Lewellyn</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/palazzem">
                     <img src="https://avatars.githubusercontent.com/u/1560405?v=4" width="100;" alt="palazzem"/>
                     <br />
                     <sub><b>Emanuele Palazzetti</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/ajshred">
                     <img src="https://avatars.githubusercontent.com/u/84713593?v=4" width="100;" alt="ajshred"/>
@@ -135,8 +151,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <sub><b>Logan Bertram</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/stiwarisemanticbits">
                     <img src="https://avatars.githubusercontent.com/u/57143602?v=4" width="100;" alt="stiwarisemanticbits"/>
@@ -152,17 +166,10 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/JamesDemeryNava">
-                    <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
+                <a href="https://github.com/bwang-icf">
+                    <img src="https://avatars.githubusercontent.com/u/178809349?v=4" width="100;" alt="bwang-icf"/>
                     <br />
-                    <sub><b>James Demery</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/clewellyn-nava">
-                    <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
-                    <br />
-                    <sub><b>Connor Lewellyn</b></sub>
+                    <sub><b>bwang-icf</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -172,13 +179,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <sub><b>Jim Fuqian</b></sub>
                 </a>
             </td>
-            <td align="center">
-                <a href="https://github.com/bwang-icf">
-                    <img src="https://avatars.githubusercontent.com/u/178809349?v=4" width="100;" alt="bwang-icf"/>
-                    <br />
-                    <sub><b>bwang-icf</b></sub>
-                </a>
-            </td>
 		</tr>
 		<tr>
             <td align="center">
@@ -186,6 +186,20 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <img src="https://avatars.githubusercontent.com/u/72608?v=4" width="100;" alt="rnagle"/>
                     <br />
                     <sub><b>Ryan Nagle</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jadudm">
+                    <img src="https://avatars.githubusercontent.com/u/38290?v=4" width="100;" alt="jadudm"/>
+                    <br />
+                    <sub><b>Matthew Jadud</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/noor1027">
+                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
+                    <br />
+                    <sub><b>noor1027</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -203,33 +217,19 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/jadudm">
-                    <img src="https://avatars.githubusercontent.com/u/38290?v=4" width="100;" alt="jadudm"/>
-                    <br />
-                    <sub><b>Matthew Jadud</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/sb-benohe">
                     <img src="https://avatars.githubusercontent.com/u/71290292?v=4" width="100;" alt="sb-benohe"/>
                     <br />
                     <sub><b>sb-benohe</b></sub>
                 </a>
             </td>
-            <td align="center">
-                <a href="https://github.com/micahtaylor">
-                    <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
-                    <br />
-                    <sub><b>Micah Taylor</b></sub>
-                </a>
-            </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/aaronerussell">
-                    <img src="https://avatars.githubusercontent.com/u/147522282?v=4" width="100;" alt="aaronerussell"/>
+                <a href="https://github.com/ryan-morosa">
+                    <img src="https://avatars.githubusercontent.com/u/253099523?v=4" width="100;" alt="ryan-morosa"/>
                     <br />
-                    <sub><b>Aaron Russell</b></sub>
+                    <sub><b>ryan-morosa</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -240,19 +240,35 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/micahtaylor">
+                    <img src="https://avatars.githubusercontent.com/u/671894?v=4" width="100;" alt="micahtaylor"/>
+                    <br />
+                    <sub><b>Micah Taylor</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/annamontare-nava">
+                    <img src="https://avatars.githubusercontent.com/u/267455234?v=4" width="100;" alt="annamontare-nava"/>
+                    <br />
+                    <sub><b>annamontare-nava</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/aaronerussell">
+                    <img src="https://avatars.githubusercontent.com/u/147522282?v=4" width="100;" alt="aaronerussell"/>
+                    <br />
+                    <sub><b>Aaron Russell</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/meliGuzman">
                     <img src="https://avatars.githubusercontent.com/u/148500681?v=4" width="100;" alt="meliGuzman"/>
                     <br />
                     <sub><b>meliGuzman</b></sub>
                 </a>
             </td>
-            <td align="center">
-                <a href="https://github.com/noor1027">
-                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
-                    <br />
-                    <sub><b>noor1027</b></sub>
-                </a>
-            </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/kellytaylorgov">
                     <img src="https://avatars.githubusercontent.com/u/30160757?v=4" width="100;" alt="kellytaylorgov"/>
@@ -267,8 +283,6 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                     <sub><b>Hasanul Chowdhury</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/dull7295">
                     <img src="https://avatars.githubusercontent.com/u/1518259?v=4" width="100;" alt="dull7295"/>

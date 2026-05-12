@@ -10,6 +10,7 @@ from requests import Response
 from rest_framework.exceptions import APIException
 from django.core.validators import MinLengthValidator
 from apps.accounts.models import get_user_id_salt
+from apps.fhir.constants import USER_ID_TYPE_CHOICES, USER_ID_TYPE_DEFAULT
 
 from apps.versions import Versions, VersionNotMatched
 
@@ -42,14 +43,7 @@ class RealCrosswalkManager(models.Manager):
 # Synthetic fhir_id Manager subclass
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(
-                Q(fhir_id_v2__startswith='-')
-                | Q(fhir_id_v3__startswith='-')
-            )
-        )
+        return super().get_queryset().filter(Q(fhir_id_v2__startswith='-') | Q(fhir_id_v3__startswith='-'))
 
 
 def hash_id_value(hicn):
@@ -58,9 +52,7 @@ def hash_id_value(hicn):
     Both currently use the same hash salt ENV values.
     https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
     """
-    return binascii.hexlify(
-        pbkdf2(hicn, get_user_id_salt(), settings.USER_ID_ITERATIONS)
-    ).decode('ascii')
+    return binascii.hexlify(pbkdf2(hicn, get_user_id_salt(), settings.USER_ID_ITERATIONS)).decode('ascii')
 
 
 def hash_hicn(hicn):
@@ -93,6 +85,7 @@ class Crosswalk(models.Model):
         real_objects: manager for real bene crosswalks
         synth_objects: manager for synthetic bene crosswalks
     """
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
@@ -100,7 +93,7 @@ class Crosswalk(models.Model):
     fhir_id_v2 = models.CharField(
         max_length=80,
         null=True,
-        unique=True,
+        unique=False,
         db_column='fhir_id_v2',
         db_index=True,
         validators=[MinLengthValidator(1)],
@@ -108,7 +101,7 @@ class Crosswalk(models.Model):
     fhir_id_v3 = models.CharField(
         max_length=80,
         null=True,
-        unique=True,
+        unique=False,
         db_column='fhir_id_v3',
         db_index=True,
         validators=[MinLengthValidator(1)],
@@ -117,14 +110,14 @@ class Crosswalk(models.Model):
     user_id_type = models.CharField(
         max_length=1,
         verbose_name='Hash ID type last used for FHIR_ID lookup',
-        default=settings.USER_ID_TYPE_DEFAULT,
-        choices=settings.USER_ID_TYPE_CHOICES,
+        default=USER_ID_TYPE_DEFAULT,
+        choices=USER_ID_TYPE_CHOICES,
     )
     _user_id_hash = models.CharField(
         max_length=64,
         verbose_name='HASH of User HICN ID',
-        unique=True,
-        null=False,
+        unique=False,
+        null=True,
         default=None,
         db_column='user_id_hash',
         db_index=True,
@@ -132,7 +125,7 @@ class Crosswalk(models.Model):
     _user_mbi_hash = models.CharField(
         max_length=64,
         verbose_name='HASH of User MBI ID',
-        unique=True,
+        unique=False,
         null=True,
         default=None,
         db_column='user_mbi_hash',
@@ -141,6 +134,7 @@ class Crosswalk(models.Model):
     _user_mbi = models.CharField(
         max_length=11,
         verbose_name='Unhashed MBI',
+        unique=False,
         null=True,
         default=None,
         db_column='user_mbi',
@@ -153,8 +147,7 @@ class Crosswalk(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False),
-                name='at_least_one_fhir_id_required'
+                condition=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False), name='at_least_one_fhir_id_required'
             )
         ]
 
@@ -258,8 +251,8 @@ class ArchivedCrosswalk(models.Model):
     user_id_type = models.CharField(
         max_length=1,
         verbose_name='Hash ID type last used for FHIR_ID lookup',
-        default=settings.USER_ID_TYPE_DEFAULT,
-        choices=settings.USER_ID_TYPE_CHOICES,
+        default=USER_ID_TYPE_DEFAULT,
+        choices=USER_ID_TYPE_CHOICES,
     )
     _user_id_hash = models.CharField(
         max_length=64,

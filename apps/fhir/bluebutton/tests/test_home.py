@@ -5,11 +5,11 @@ Created: 7/19/16 9:04 AM
 
 File created by: ''
 """
+
 from django.test import TestCase, RequestFactory
 
 
 class BlueButtonReadRequestTest(TestCase):
-
     def setUp(self):
         # Setup the RequestFactory
         self.factory = RequestFactory()
@@ -19,7 +19,7 @@ class BlueButtonReadRequestTest(TestCase):
 
 
 class ConformanceFilterTest(TestCase):
-    """ Test that Conformance Statement is filtered """
+    """Test that Conformance Statement is filtered"""
 
     # TODO: Write a test using Patient as supported resource.
 

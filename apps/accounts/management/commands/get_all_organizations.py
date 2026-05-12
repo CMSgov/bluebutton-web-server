@@ -1,4 +1,4 @@
-from ...models import UserProfile
+from apps.accounts.models import UserProfile
 from django.core.management.base import BaseCommand
 
 

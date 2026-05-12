@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .checks import (
+from apps.health.checks import (
     internal_services,
     external_services,
     slsx_services,
@@ -12,9 +12,9 @@ from .checks import (
     db_services,
 )
 
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class ServiceUnavailable(APIException):
@@ -24,7 +24,6 @@ class ServiceUnavailable(APIException):
 
 
 class Check(APIView):
-
     def get(self, request, format=None):
         try:
             for check in self.get_services():
@@ -34,19 +33,19 @@ class Check(APIView):
         except ServiceUnavailable:
             raise
         except Exception as e:
-            logger.exception("health check raised exception. {reason}".format(reason=e))
-            raise ServiceUnavailable(detail="Service temporarily unavailable, try again later."
-                                            " There is an issue with the - {svc}"
-                                            " - service check. Reason: {reason}".
-                                            format(svc=check.__name__, reason=e.args[0]))
-        return Response({'message': 'all\'s well'})
+            logger.exception('health check raised exception. {reason}'.format(reason=e))
+            raise ServiceUnavailable(
+                detail='Service temporarily unavailable, try again later.'
+                ' There is an issue with the - {svc}'
+                ' - service check. Reason: {reason}'.format(svc=check.__name__, reason=e.args[0])
+            )
+        return Response({'message': "all's well"})
 
     def get_services(self):
-        if not hasattr(self, "services"):
+        if not hasattr(self, 'services'):
             raise ImproperlyConfigured
         if len(self.services) < 1:
-            raise ImproperlyConfigured(
-                "please specify at least one service to check")
+            raise ImproperlyConfigured('please specify at least one service to check')
         return self.services
 
 

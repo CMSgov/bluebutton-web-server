@@ -1,0 +1,91 @@
+name: Setup OpenTofu
+description: Configure AWS credentials and install OpenTofu for BB2 infrastructure workflows
+
+inputs:
+  environment:
+    description: 'Target environment (test, sandbox, prod)'
+    required: true
+  non-prod-account:
+    description: 'AWS account ID for non-prod (test)'
+    required: true
+  prod-account:
+    description: 'AWS account ID for prod (sandbox, prod)'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set account
+      id: account
+      shell: bash
+      run: |
+        if [ "${{ inputs.environment }}" = "test" ]; then
+          echo "account=${{ inputs.non-prod-account }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "account=${{ inputs.prod-account }}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Mask sensitive values
+      shell: bash
+      run: |
+        echo "::add-mask::${{ steps.account.outputs.account }}"
+
+    - name: Check if tofu is installed
+      id: check-tofu
+      shell: bash
+      run: |
+        if command -v tofu &>/dev/null; then
+          echo "installed=true" >> "$GITHUB_OUTPUT"
+          echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
+        else
+          echo "installed=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup OpenTofu
+      if: steps.check-tofu.outputs.installed != 'true'
+      uses: opentofu/setup-opentofu@v1
+      with:
+        tofu_version_file: ops/services/.opentofu-version
+
+    - name: Install sops and yq
+      shell: bash
+      run: |
+        # sops — decrypt SOPS-encrypted config files
+        if ! command -v sops &>/dev/null; then
+          ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+          curl -sSLfo /usr/local/bin/sops \
+            "https://github.com/getsops/sops/releases/download/v3.9.4/sops-v3.9.4.linux.${ARCH}"
+          chmod +x /usr/local/bin/sops
+          echo "sops $(sops --version) installed"
+        else
+          echo "sops $(sops --version) already installed"
+        fi
+
+        # yq — YAML/JSON processing for SOPS wrapper
+        if ! command -v yq &>/dev/null; then
+          ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+          curl -sSLfo /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/v4.44.6/yq_linux_${ARCH}"
+          chmod +x /usr/local/bin/yq
+          echo "yq $(yq --version) installed"
+        else
+          echo "yq $(yq --version) already installed"
+        fi
+
+    - name: Resolve role environment
+      id: role-env
+      shell: bash
+      run: |
+        # One role per account: sandbox reuses prod's role
+        ENV="${{ inputs.environment }}"
+        if [ "$ENV" = "sandbox" ]; then
+          echo "env=prod" >> "$GITHUB_OUTPUT"
+        else
+          echo "env=$ENV" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ steps.account.outputs.account }}:role/delegatedadmin/developer/bb-${{ steps.role-env.outputs.env }}-github-actions
+        aws-region: us-east-1

@@ -1,84 +1,33 @@
 import json
+from http import HTTPStatus
 
-from django.conf import settings
+from django.test import tag
 from django.test.client import Client
 from django.urls import reverse
-from apps.fhir.bluebutton.views.generic import ENFORCE_PARAM_VALIDATAION
-from apps.versions import Versions
-from httmock import all_requests, HTTMock
-from http import HTTPStatus
+from httmock import HTTMock, all_requests
 from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
-from unittest import skipIf
 
+from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.fhir.constants import (
+    BAD_PARAMS_ACCEPTABLE_VERSIONS,
+    C4BB_SYSTEM_TYPES,
+    DEFAULT_EOB_SOURCE,
+    ENFORCE_PARAM_VALIDATAION,
+    FHIR_CONFORMANCE_URLS,
+    READ_UPDATE_DELETE_COVERAGE_URLS,
+    READ_UPDATE_DELETE_EOB_URLS,
+    READ_UPDATE_DELETE_PATIENT_URLS,
+    SEARCH_COVERAGE_URLS,
+    SEARCH_EOB_URLS,
+    SEARCH_PATIENT_URLS,
+    USERINFO_URLS,
+)
 from apps.test import BaseApiTest
-
+from apps.versions import Versions
 from hhs_oauth_server.settings.base import FHIR_SERVER
 
 AccessToken = get_access_token_model()
-
-C4BB_PROFILE_URLS = {
-    'INPATIENT': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional',
-    'OUTPATIENT': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional',
-    'PHARMACY': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy',
-    'NONCLINICIAN': 'http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician',
-}
-
-C4BB_SYSTEM_TYPES = {
-    'IDTYPE': 'http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType',
-}
-
-FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
-FHIR_ID_V3 = settings.DEFAULT_SAMPLE_FHIR_ID_V3
-BAD_PARAMS_ACCEPTABLE_VERSIONS = [Versions.V1, Versions.V2]
-
-read_update_delete_patient_urls = {
-    1: 'bb_oauth_fhir_patient_read_or_update_or_delete',
-    2: 'bb_oauth_fhir_patient_read_or_update_or_delete_v2',
-    3: 'bb_oauth_fhir_patient_read_or_update_or_delete_v3'
-}
-
-read_update_delete_eob_urls = {
-    1: 'bb_oauth_fhir_eob_read_or_update_or_delete',
-    2: 'bb_oauth_fhir_eob_read_or_update_or_delete_v2',
-    3: 'bb_oauth_fhir_eob_read_or_update_or_delete_v3'
-}
-
-read_update_delete_coverage_urls = {
-    1: 'bb_oauth_fhir_coverage_read_or_update_or_delete',
-    2: 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
-    3: 'bb_oauth_fhir_coverage_read_or_update_or_delete_v3'
-}
-
-search_patient_urls = {
-    1: 'bb_oauth_fhir_patient_search',
-    2: 'bb_oauth_fhir_patient_search_v2',
-    3: 'bb_oauth_fhir_patient_search_v3'
-}
-
-search_eob_urls = {
-    1: 'bb_oauth_fhir_eob_search',
-    2: 'bb_oauth_fhir_eob_search_v2',
-    3: 'bb_oauth_fhir_eob_search_v3'
-}
-
-search_coverage_urls = {
-    1: 'bb_oauth_fhir_coverage_search',
-    2: 'bb_oauth_fhir_coverage_search_v2',
-    3: 'bb_oauth_fhir_coverage_search_v3'
-}
-
-userinfo_urls = {
-    1: 'openid_connect_userinfo',
-    2: 'openid_connect_userinfo_v2',
-    3: 'openid_connect_userinfo_v3',
-}
-
-fhir_conformance_urls = {
-    1: 'fhir_conformance_metadata',
-    2: 'fhir_conformance_metadata_v2',
-    3: 'fhir_conformance_metadata_v3',
-}
 
 
 def get_response_json(resource_file_name):
@@ -89,24 +38,32 @@ def get_response_json(resource_file_name):
 
 
 class FHIRResourcesReadSearchTest(BaseApiTest):
-
     def setUp(self):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability('patient', [
-            ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-            ['GET', r'\/v1\/fhir\/Patient\/\d+'],
-            ['GET', '/v1/fhir/Patient'],
-        ])
-        self._create_capability('coverage', [
-            ['GET', r'\/v1\/fhir\/Coverage\/.+'],
-            ['GET', '/v1/fhir/Coverage'],
-        ])
-        self._create_capability('eob', [
-            ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
-            ['GET', '/v1/fhir/ExplanationOfBenefit'],
-        ])
+        self._create_capability(
+            'patient',
+            [
+                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
+                ['GET', r'\/v1\/fhir\/Patient\/\d+'],
+                ['GET', '/v1/fhir/Patient'],
+            ],
+        )
+        self._create_capability(
+            'coverage',
+            [
+                ['GET', r'\/v1\/fhir\/Coverage\/.+'],
+                ['GET', '/v1/fhir/Coverage'],
+            ],
+        )
+        self._create_capability(
+            'eob',
+            [
+                ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
+                ['GET', '/v1/fhir/ExplanationOfBenefit'],
+            ],
+        )
         # Setup the RequestFactory
         self.client = Client()
 
@@ -156,7 +113,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_patient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -168,9 +125,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(read_update_delete_patient_urls[version],
-                        kwargs={'resource_id': FHIR_ID_V2}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, 200)
             self._assertHasC4BBIdentifier(response.json(), C4BB_SYSTEM_TYPES['IDTYPE'], version)
@@ -183,7 +140,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _search_patient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Patient.read'
         ac.save()
@@ -198,12 +155,11 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_patient_urls[version]),
-                {'count': 5},
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_PATIENT_URLS[version]), {'count': 5}, Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 200)
-            # check C4BB in resource as v2 charactor
+            # check C4BB in resource as v2 character
             self.assertIsNotNone(response.json()['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
             for r in response.json()['entry']:
@@ -220,23 +176,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     def _search_eob_by_parameter_tag(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
-
-        @all_requests
-        def catchall_w_tag_qparam(url, req):
-            # this is called in case EOB search with good tag
-            self.assertIn(f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/ExplanationOfBenefit/', req.url)
-            self.assertIn('_format=application%2Ffhir%2Bjson', req.url)
-            # parameters encoded in prepared request's body
-            self.assertTrue(('_tag=Adjudicated' in req.url) or ('_tag=PartiallyAdjudicated' in req.url))
-
-            return {
-                'status_code': 200,
-                'content': get_response_json(f'eob_search_pt_v{version}'),
-            }
 
         @all_requests
         def catchall(url, req):
@@ -247,27 +190,16 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 'status_code': 200,
                 'content': get_response_json(f'eob_search_pt_v{version}'),
             }
-        # Test _tag with valid parameter value e.g. Adjudicated, PartiallyAdjudicated
-        with HTTMock(catchall_w_tag_qparam):
-            response = self.client.get(
-                reverse(search_eob_urls[version]),
-                {'_tag': 'Adjudicated'},
-                Authorization='Bearer %s' % (first_access_token))
-            # just check for 200 is sufficient
-            self.assertEqual(response.status_code, 200)
 
-        # Test _tag with invalid parameter value e.g.: Adjudiacted-Typo
+        # Test _tag with valid parameter value
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
-                {'_tag': 'Adjudiacted-Typo'},
-                Authorization='Bearer %s' % (first_access_token))
-
-            content = json.loads(response.content.decode('utf-8'))
-            self.assertTrue(content['detail'].startswith('Invalid _tag value ('))
-            self.assertTrue(content['detail'].endswith("'PartiallyAdjudicated' or 'Adjudicated' expected."))
-            self.assertTrue('Adjudiacted-Typo' in content['detail'])
-            self.assertEqual(response.status_code, 400)
+                reverse(SEARCH_EOB_URLS[version]),
+                {'_tag': 'https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory'},
+                Authorization='Bearer %s' % (first_access_token),
+            )
+            # just check for 200 is sufficient
+            self.assertEqual(response.status_code, 200)
 
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(1)
@@ -277,7 +209,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _search_eob_by_parameters_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
@@ -295,9 +227,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test service-date with valid parameter starting with 'lt'
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
+                reverse(SEARCH_EOB_URLS[version]),
                 {'service-date': 'lt2022-11-18'},
-                Authorization='Bearer %s' % (first_access_token))
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             for r in response.json()['entry']:
                 self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], version)
@@ -310,9 +243,11 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # &service-date=gt2000-01-01
         # &service-date=le2022-11-18
         with HTTMock(catchall):
-            search_url = reverse(search_eob_urls[version])
-            response = self.client.get(search_url + '?service-date=gt2000-01-01&service-date=le2022-11-18',
-                                       Authorization='Bearer %s' % (first_access_token))
+            search_url = reverse(SEARCH_EOB_URLS[version])
+            response = self.client.get(
+                search_url + '?service-date=gt2000-01-01&service-date=le2022-11-18',
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob
             for r in response.json()['entry']:
@@ -321,9 +256,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test service-date with invalid parameter starting with 'dd'
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
+                reverse(SEARCH_EOB_URLS[version]),
                 {'service-date': 'dd2022-11-18'},
-                Authorization='Bearer %s' % (first_access_token))
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             content = json.loads(response.content.decode('utf-8'))
             self.assertEqual(content['detail'], 'the service-date operator is not valid')
@@ -332,9 +268,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test _lastUpdated with valid parameter starting with 'lt'
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
+                reverse(SEARCH_EOB_URLS[version]),
                 {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
-                Authorization='Bearer %s' % (first_access_token))
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob
             # noticed resources ids are different: in v1 the id is like: 'id': 'carrier--20587716665',
@@ -346,9 +283,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test _lastUpdated with invalid parameter starting with 'zz'
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
+                reverse(SEARCH_EOB_URLS[version]),
                 {'_lastUpdated': 'zz2020-11-22T14:00:00-05:00'},
-                Authorization='Bearer %s' % (first_access_token))
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             content = json.loads(response.content.decode('utf-8'))
             self.assertEqual(content['detail'], 'the _lastUpdated operator is not valid')
@@ -357,10 +295,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test type= with single valid value: 'pde'
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    search_eob_urls[version]),
-                {'type': 'pde'},
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_EOB_URLS[version]), {'type': 'pde'}, Authorization='Bearer %s' % (first_access_token)
+            )
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob
             for r in response.json()['entry']:
@@ -369,24 +305,27 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test type= with multiple (all valid values)
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
-                {'type': 'carrier,'
-                         'pde,'
-                         'dme,'
-                         'hha,'
-                         'hospice,'
-                         'inpatient,'
-                         'outpatient,'
-                         'snf,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'},
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_EOB_URLS[version]),
+                {
+                    'type': 'carrier,'
+                    'pde,'
+                    'dme,'
+                    'hha,'
+                    'hospice,'
+                    'inpatient,'
+                    'outpatient,'
+                    'snf,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient,'
+                    'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'
+                },
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob
             for r in response.json()['entry']:
@@ -395,11 +334,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Test type= with an invalid type
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_eob_urls[version]),
-                {'type': 'carrier,'
-                         'INVALID-TYPE,'
-                         'dme,'},
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_EOB_URLS[version]),
+                {'type': 'carrier,INVALID-TYPE,dme,'},
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             content = json.loads(response.content.decode('utf-8'))
             self.assertEqual(content['detail'], 'the type parameter value is not valid')
@@ -413,7 +351,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_eob_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -425,9 +363,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         with HTTMock(catchall):
             # here the eob carrier id serve as fake id
             response = self.client.get(
-                reverse(read_update_delete_eob_urls[version],
-                        kwargs={'resource_id': 'carrier--22639159481'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_EOB_URLS[version], kwargs={'resource_id': 'carrier--22639159481'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             # assert v1 and v2 eob read using carrier id
             self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['NONCLINICIAN'], version)
@@ -440,7 +378,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_eob_inpatient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -451,9 +389,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(read_update_delete_eob_urls[version],
-                        kwargs={'resource_id': 'inpatient-4436342082'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_EOB_URLS[version], kwargs={'resource_id': 'inpatient-4436342082'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob inpatient
             self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['INPATIENT'], version)
@@ -466,7 +404,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_eob_outpatient_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -477,9 +415,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(read_update_delete_eob_urls[version],
-                        kwargs={'resource_id': 'outpatient-4388491497'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_EOB_URLS[version], kwargs={'resource_id': 'outpatient-4388491497'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob outpatient
             self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['OUTPATIENT'], version)
@@ -492,18 +430,20 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _read_coverage_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
-            return {'status_code': 200,
-                    'content': get_response_json(f'coverage_read_v{version}'), }
+            return {
+                'status_code': 200,
+                'content': get_response_json(f'coverage_read_v{version}'),
+            }
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(read_update_delete_coverage_urls[version],
-                        kwargs={'resource_id': 'coverage_id'}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
             self.assertEqual(response.status_code, 200)
             subId = None
             relationship = None
@@ -530,20 +470,19 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _search_coverage_request(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.read'
         ac.save()
 
         @all_requests
         def catchall(url, req):
-            return {'status_code': 200,
-                    'content': get_response_json(f'coverage_search_v{version}')}
+            return {'status_code': 200, 'content': get_response_json(f'coverage_search_v{version}')}
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(search_coverage_urls[version]),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(SEARCH_COVERAGE_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
             self.assertEqual(response.status_code, 200)
 
             # assert v1 and v2 coverage resources
@@ -573,7 +512,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _query_fhir_meta(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -584,8 +523,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(fhir_conformance_urls[version]),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(FHIR_CONFORMANCE_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['resourceType'], 'CapabilityStatement')
@@ -599,7 +538,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _query_userinfo(self, version=1):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -610,8 +549,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(userinfo_urls[version]),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(USERINFO_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
             # identical response for v1 and v2
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['sub'], response.json()['patient'])
@@ -628,7 +567,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     def _err_response_caused_by_illegalarguments(self, version=1, bfd_status_code=500, expected_code=400):
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
 
         @all_requests
         def catchall(url, req):
@@ -640,64 +579,66 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(read_update_delete_patient_urls[version],
-                        kwargs={'resource_id': FHIR_ID_V2}),
-                Authorization='Bearer %s' % (first_access_token))
+                reverse(READ_UPDATE_DELETE_PATIENT_URLS[version], kwargs={'resource_id': DEFAULT_SAMPLE_FHIR_ID_V2}),
+                Authorization='Bearer %s' % (first_access_token),
+            )
 
             self.assertEqual(response.status_code, expected_code)
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
-            url = search_eob_urls[version]
+            url = SEARCH_EOB_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
-            url = search_coverage_urls[version]
+            url = SEARCH_COVERAGE_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
-            url = search_patient_urls[version]
+            url = SEARCH_PATIENT_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
 
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
-        url = search_eob_urls[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+        url = SEARCH_EOB_URLS[Versions.V3]
+        self._test_request_when_invalid_parameters_included(
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+        )
 
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
-        url = search_coverage_urls[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+        url = SEARCH_COVERAGE_URLS[Versions.V3]
+        self._test_request_when_invalid_parameters_included(
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+        )
 
     def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
-        url = search_patient_urls[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION)
+        url = SEARCH_PATIENT_URLS[Versions.V3]
+        self._test_request_when_invalid_parameters_included(
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+        )
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
-        url = search_eob_urls[Versions.V3]
+        url = SEARCH_EOB_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
-        url = search_coverage_urls[Versions.V3]
+        url = SEARCH_COVERAGE_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
-    @skipIf((not settings.RUN_ONLINE_TESTS), "Can't reach external sites.")
+    @tag('integration')
     def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
-        url = search_patient_urls[Versions.V3]
+        url = SEARCH_PATIENT_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
     @override_switch('v3_endpoints', active=True)
     def _test_request_when_invalid_parameters_included(
-        self,
-        url: str,
-        version: int,
-        expected_response_code: HTTPStatus,
-        prefer_header: str
+        self, url: str, version: int, expected_response_code: HTTPStatus, prefer_header: str
     ) -> None:
         """Ensure that a 400 is thrown for each type of resource call when invalid parameters are included for v3
         And that it is a 200 response when it is v1 or v2
@@ -707,7 +648,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             expected_bad_params (List[str]): The bad parameters that cause the 400 error to be thrown
         """
         # create the user
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2, fhir_id_v3=FHIR_ID_V3)
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
         ac.save()
@@ -716,8 +659,57 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             reverse(url),
             {'hello': 'world'},
             Authorization='Bearer %s' % (first_access_token),
-            HTTP_PREFER=prefer_header
+            HTTP_PREFER=prefer_header,
         )
         self.assertEqual(response.status_code, expected_response_code)
         if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
-            self.assertEqual(response.json()['error'], 'Invalid parameters: [\'hello\']')
+            self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_call_eob_v3_ensure_source_is_added(self) -> None:
+        """Ensure that if a v3 search EOB call is made, that the _source=NCH parameter
+        is automatically added to the call, as there is no _tag or _source parameter already on the call
+        """
+
+        # create the user
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+
+        url = SEARCH_EOB_URLS[Versions.V3]
+        response = self.client.get(
+            reverse(url),
+            {},
+            Authorization='Bearer %s' % (first_access_token),
+        )
+        self.assertEqual(response.status_code, 200)
+        assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_call_eob_v3_ensure_source_is_not_added(self) -> None:
+        """Ensure that if a v3 search EOB call is made, and a _tag parameter is being passed,
+        that the _source=NCH parameter is not added to the call
+        """
+
+        # create the user
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+
+        url = reverse(SEARCH_EOB_URLS[Versions.V3])
+        url += '/?_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory'
+        response = self.client.get(
+            url,
+            {},
+            Authorization='Bearer %s' % (first_access_token),
+        )
+        self.assertEqual(response.status_code, 200)
+        assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']

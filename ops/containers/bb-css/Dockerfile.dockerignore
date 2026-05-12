@@ -1,0 +1,8 @@
+# bb-css dockerignore
+
+# Ignore Everything
+*
+
+# Except
+!/static
+!/ops/containers/bb-css

@@ -20,6 +20,7 @@ pipeline {
     DJANGO_SLSX_TOKEN_ENDPOINT = "http://localhost:8080/sso/session"
     DJANGO_SLSX_SIGNOUT_ENDPOINT = "http://localhost:8080/sso/signout"
     DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
+    DJANGO_SECRET_KEY='replace-me-with-real-secret'
     DJANGO_SLSX_CLIENT_ID = credentials("bb2-selenium-tests-slsx-client-id")
     DJANGO_SLSX_CLIENT_SECRET = credentials("bb2-selenium-tests-slsx-client-secret")
     DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
@@ -27,6 +28,7 @@ pipeline {
     FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
     FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
     FHIR_URL = "${params.FHIR_URL}"
+    FHIR_URL_V3 = "${params.FHIR_URL_V3}"
     HOSTNAME_URL = "http://localhost:8000"
   }
 
@@ -35,6 +37,11 @@ pipeline {
       name: 'FHIR_URL',
       defaultValue: "https://prod-sbx.fhir.bfd.cmscloud.local",
       description: 'The default FHIR URL for the back end BFD service.'
+    )
+    string(
+      name: 'FHIR_URL_V3',
+      defaultValue: "https://sandbox.fhirv3.bfd.cmscloud.local",
+      description: 'The default V3 FHIR URL for the back end BFD service.'
     )
     booleanParam(
         name: 'RUN_SELENIUM_TESTS', 
@@ -64,10 +71,10 @@ pipeline {
       }
     }
 
-    stage("CHECK Flake8 Python Lint/Style") {
+    stage("CHECK Ruff Python Lint/Style") {
       steps{
         sh """
-          flake8
+          ruff check
         """
       }
     }

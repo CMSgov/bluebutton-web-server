@@ -20,6 +20,9 @@
   "dependencies": {
     "@cmsgov/design-system": "^4.0.4",
     "gulp": "^5.0.0",
-    "sass": "^1.93.3"
+    "sass": "^1.97.3"
+  },
+  "overrides": {
+    "immutable": "^5.1.5"
   }
 }

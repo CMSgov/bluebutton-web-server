@@ -2,18 +2,14 @@ from rest_framework import permissions
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from ..permissions import (
-    ReadCrosswalkPermission,
-    ResourcePermission,
-    ApplicationActivePermission,
-    V3EarlyAdopterPermission
-)
+from ..permissions import ReadCrosswalkPermission, ResourcePermission, ApplicationActivePermission, V3EarlyAdopterPermission
 from apps.fhir.bluebutton.views.generic import FhirDataView
 
 
 #####################################################################
 # These functions are a stepping stone to a single class based view #
 #####################################################################
+
 
 class ReadView(FhirDataView):
     # Base class for FHIR resource read views
@@ -40,9 +36,7 @@ class ReadView(FhirDataView):
         return super().get(request, self.resource_type, *args, **kwargs)
 
     def build_parameters(self, *args, **kwargs):
-        return {
-            '_format': 'application/fhir+json'
-        }
+        return {'_format': 'application/fhir+json'}
 
     def build_url(self, fhir_settings, resource_type, resource_id, **kwargs):  # type: ignore
         if fhir_settings.fhir_url.endswith('v1/fhir/'):

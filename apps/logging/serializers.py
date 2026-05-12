@@ -31,7 +31,7 @@ class DataAccessGrantSerializer:
             'user': {
                 'id': getattr(user, 'id', None),
                 'username': getattr(user, 'username', None),
-            }
+            },
         }
 
 
@@ -61,8 +61,7 @@ class Token:
             'type': 'AccessToken',
             'action': self.action,
             'id': getattr(self.tkn, 'pk', None),
-            'access_token': hashlib.sha256(
-                str(getattr(self.tkn, 'token', None)).encode('utf-8')).hexdigest(),
+            'access_token': hashlib.sha256(str(getattr(self.tkn, 'token', None)).encode('utf-8')).hexdigest(),
             'scopes': scopes,
             'application': {
                 'id': getattr(app, 'id', None),
@@ -80,7 +79,6 @@ class Token:
             'crosswalk': {
                 'id': getattr(crosswalk, 'id', None),
                 'user_hicn_hash': getattr(crosswalk, 'user_hicn_hash', None),
-                'user_mbi': getattr(crosswalk, 'user_mbi', None),
                 'fhir_id': getattr(crosswalk, 'fhir_id', lambda: None)(),
                 'user_id_type': getattr(crosswalk, 'user_id_type', None),
             },
@@ -90,7 +88,7 @@ class Token:
 
 
 class Request:
-    # requests.PrepairedRequest
+    # requests.PreparedRequest
     req = None
 
     def __init__(self, request):
@@ -110,7 +108,6 @@ class Request:
 
 
 class SLSRequest(Request):
-
     def uuid(self):
         return self.req.headers.get('X-Request-ID')
 
@@ -167,7 +164,7 @@ class FHIRRequest(Request):
         return {
             'type': 'fhir_pre_fetch',
             'uuid': self.uuid(),
-            'fhir_id_v2': self.fhir_id(),
+            'fhir_id_v3' if self.api_ver == 'v3' else 'fhir_id_v2': self.fhir_id(),
             'api_ver': self.api_ver if self.api_ver is not None else 'v1',
             'includeAddressFields': self.includeAddressFields(),
             'user': self.user(),
@@ -241,6 +238,12 @@ class FHIRResponse(Response):
         super_dict = super().to_dict()
         # add fhir version info
         super_dict.update({'api_ver': self.api_ver if self.api_ver is not None else 'v1'})
+        if self.api_ver == 'v3':
+            if 'fhir_id_v2' in super_dict:
+                super_dict['fhir_id_v3'] = super_dict.pop('fhir_id_v2')
+        else:
+            if 'fhir_id_v3' in super_dict:
+                super_dict['fhir_id_v2'] = super_dict.pop('fhir_id_v3')
         # over write type
         super_dict.update({'type': 'fhir_post_fetch'})
         return super_dict
@@ -263,15 +266,16 @@ class FHIRResponseForAuth(Response):
 
 
 class SLSResponse(Response):
-
     def __init__(self, response, request=None):
         super().__init__(response)
 
     def to_dict(self):
         resp_dict = super().to_dict().copy()
-        resp_dict.update({
-            'type': self.get_type(),
-        })
+        resp_dict.update(
+            {
+                'type': self.get_type(),
+            }
+        )
         return resp_dict
 
 
@@ -300,8 +304,9 @@ class SLSxTokenResponse(SLSResponse):
             'type': event_dict.get('type', 'unknown'),
             'uuid': event_dict.get('uuid', ''),
             'path': event_dict.get('path', ''),
-            'auth_token': 'Not available' if event_dict.get('auth_token') is None else hashlib.sha256(
-                str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
+            'auth_token': 'Not available'
+            if event_dict.get('auth_token') is None
+            else hashlib.sha256(str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
             'code': event_dict.get('code', 306),
             'size': event_dict.get('size', 0),
             'start_time': event_dict.get('start_time', ''),
@@ -332,9 +337,7 @@ class SLSxUserInfoResponse(SLSResponse):
             try:
                 event_dict = json.loads(self.resp.text)
             except json.decoder.JSONDecodeError:
-                json_exception = {
-                    'message': 'JSONDecodeError thrown when parsing response text.'
-                }
+                json_exception = {'message': 'JSONDecodeError thrown when parsing response text.'}
 
         event_dict.update(super().to_dict().copy())
 

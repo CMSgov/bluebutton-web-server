@@ -1,50 +1,45 @@
 import hashlib
+import logging
+from urllib.parse import quote
 
 import voluptuous
-import logging
-
-from apps.versions import VersionNotMatched, Versions
-import apps.logging.request_logger as bb2logging
-
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
-from requests import Session, Request
-from rest_framework import (exceptions, permissions)
+from requests import Request, Session
+from rest_framework import exceptions, permissions
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from urllib.parse import quote
 
 from apps.authorization.permissions import DataAccessGrantPermission
+from apps.constants import FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.throttling import TokenRateThrottle
-from apps.fhir.parsers import FHIRParser
-from apps.fhir.renderers import FHIRRenderer
-from apps.fhir.server.settings import fhir_settings
-from apps.fhir.server import connection as backend_connection
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
-from apps.fhir.bluebutton.permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
-from apps.fhir.bluebutton.signals import (
-    pre_fetch,
-    post_fetch
-)
+from apps.fhir.bluebutton.permissions import ApplicationActivePermission, HasCrosswalk, ResourcePermission
+from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_fhir_response,
     valid_patient_read_or_search_call,
-    validate_query_parameters
+    validate_query_parameters,
 )
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
+from apps.fhir.parsers import FHIRParser
+from apps.fhir.renderers import FHIRRenderer
+from apps.fhir.server import connection as backend_connection
+from apps.fhir.server.settings import fhir_settings
+from apps.versions import VersionNotMatched, Versions
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
-ENFORCE_PARAM_VALIDATAION = 'handling=strict'
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):
     version = 1
     parser_classes = [JSONParser, FHIRParser]
-    renderer_classes = [JSONRenderer, FHIRRenderer]
+    renderer_classes = [FHIRRenderer, JSONRenderer]
     throttle_classes = [TokenRateThrottle]
     authentication_classes = [OAuth2ResourceOwner]
     # BB2-149 note, check authenticated first, then app active etc.
@@ -53,7 +48,7 @@ class FhirDataView(APIView):
         ApplicationActivePermission,
         HasCrosswalk,
         ResourcePermission,
-        DataAccessGrantPermission
+        DataAccessGrantPermission,
     ]
 
     def __init__(self, version=1):
@@ -83,9 +78,7 @@ class FhirDataView(APIView):
         # Get list from _lastUpdated QueryDict(), since it can have multi params
         params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
 
-        schema = voluptuous.Schema(
-            getattr(self, 'QUERY_SCHEMA', {}),
-            extra=voluptuous.REMOVE_EXTRA)
+        schema = voluptuous.Schema(getattr(self, 'QUERY_SCHEMA', {}), extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
 
     def initial(self, request, resource_type, *args, **kwargs):
@@ -126,9 +119,7 @@ class FhirDataView(APIView):
         return Response(out_data)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
-        target_url = self.build_url(fhir_settings,
-                                    resource_type,
-                                    *args, **kwargs)
+        target_url = self.build_url(fhir_settings, resource_type, *args, **kwargs)
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
@@ -137,15 +128,13 @@ class FhirDataView(APIView):
         except voluptuous.error.Invalid as e:
             raise exceptions.ParseError(detail=e.msg)
 
-        logger.debug('Here is the URL to send, %s now add '
-                     'GET parameters %s' % (target_url, get_parameters))
+        logger.debug('Here is the URL to send, %s now add GET parameters %s' % (target_url, get_parameters))
         request.session.version = self.version
 
         # Now make the call to the backend API
-        req = Request('GET',
-                      target_url,
-                      params=get_parameters,
-                      headers=backend_connection.headers(request, url=target_url))
+        req = Request(
+            'GET', target_url, params=get_parameters, headers=backend_connection.headers(request, url=target_url)
+        )
         s = Session()
 
         # BB2-1544 request header url encode if header value (app name) contains char (>256)
@@ -160,29 +149,42 @@ class FhirDataView(APIView):
         accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
         request_prefer_header = request.META.get('HTTP_PREFER')
 
-        if (
-            request_prefer_header == ENFORCE_PARAM_VALIDATAION
-            and query_param
-            and self.version == Versions.V3
-        ):
+        if request_prefer_header == ENFORCE_PARAM_VALIDATAION and query_param and self.version == Versions.V3:
             accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
             validation_result = validate_query_parameters(accepted_query_parameters, query_param)
             if not validation_result.valid:
                 # We are raising a ValidationError here so that, even when DEBUG = False, a developer
                 # making the request can see what the invalid parameters were so they can fix the request
-                raise ValidationError({
-                    'error': f'Invalid parameters: {validation_result.invalid_params}'
-                })
+                raise ValidationError({'error': f'Invalid parameters: {validation_result.invalid_params}'})
 
-        if resource_type == 'Patient':
+        # If a v3 EOB search call is being made, and it does not contain _tag or _source parameters
+        # then append add _source=NCH to the query parameters of the call to ensure that, by default
+        # we only return NCH data for v3 EOB search calls. If a _source or _tag parameter is already included
+        # then we won't add the default.
+        resource_id = kwargs.get('resource_id')
+        if (
+            resource_type == FHIR_RES_TYPE_EOB
+            and self.version == Versions.V3
+            and not resource_id
+            and '_tag' not in query_param
+            and '_source' not in query_param
+        ):
+            get_parameters['_source'] = 'NCH'
+            # Reset request params after adding default _source param
+            req.params = get_parameters
+            prepped = s.prepare_request(req)
 
-            resource_id = kwargs.get('resource_id')
+        if resource_type == FHIR_RES_TYPE_PATIENT:
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
 
             # For patient read and search calls, we need to ensure that what is being passed, either in
             # query parameters for search calls, or in the resource_id for read calls, is valid for the
             # current session (matching the beneficiary_id). If not, raise a 404 Not found before calling BFD.
-            if not valid_patient_read_or_search_call(beneficiary_id, resource_id, query_param):
+            # 20260217 update: We will not return a Not found error when the call is for v3. Instead, we will let
+            # exceptions.py handle it, and ensure an OperationOutcome is returned.
+            if self.version != Versions.V3 and not valid_patient_read_or_search_call(
+                beneficiary_id, resource_id, query_param
+            ):
                 error = NotFound('Not found.')
                 raise error
 
@@ -210,14 +212,14 @@ class FhirDataView(APIView):
             prepped,
             cert=(fhir_server_auth['cert_file'], fhir_server_auth['key_file']),
             timeout=fhir_settings.wait_time,
-            verify=fhir_settings.verify_server
+            verify=fhir_settings.verify_server,
         )
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128
-        error = process_error_response(response)
+        error = process_error_response(response, self.version)
         if error is not None:
             raise error
 

@@ -1,12 +1,6 @@
 from rest_framework.throttling import SimpleRateThrottle
 from django.utils.deprecation import MiddlewareMixin
-
-
-HEADERS = {
-    'Remaining': 'X-RateLimit-Remaining',
-    'Limit': 'X-RateLimit-Limit',
-    'Reset': 'X-RateLimit-Reset',
-}
+from apps.dot_ext.constants import HEADERS
 
 
 class TokenRateThrottle(SimpleRateThrottle):
@@ -16,6 +10,7 @@ class TokenRateThrottle(SimpleRateThrottle):
     For anonymous requests, the IP address of the request will
     be used.
     """
+
     scope = 'token'
 
     def get_cache_key(self, request, view):

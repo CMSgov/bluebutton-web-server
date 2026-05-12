@@ -1,0 +1,37 @@
+# Bootstrap Service Variables
+
+variable "github_repo_url" {
+  description = "GitHub repository URL for CodeBuild"
+  type        = string
+  default     = "https://github.com/CMSgov/bluebutton-web-server"
+}
+
+variable "github_org" {
+  description = "GitHub organization name"
+  type        = string
+  default     = "CMSgov"
+}
+
+variable "github_repo" {
+  description = "GitHub repository name (without org)"
+  type        = string
+  default     = "bluebutton-web-server"
+}
+
+variable "github_repo_pattern" {
+  description = "GitHub repository pattern for OIDC trust policy (supports wildcards). Defaults to all BB repos."
+  type        = string
+  default     = "bluebutton*"
+}
+
+variable "static_site_github_repo_url" {
+  description = "GitHub repository URL for bb-site-static CodeBuild"
+  type        = string
+  default     = "https://github.com/CMSgov/bluebutton-site-static"
+}
+
+variable "iam_path" {
+  description = "IAM path for roles"
+  type        = string
+  default     = "/delegatedadmin/developer/"
+}

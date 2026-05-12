@@ -17,12 +17,12 @@ by default wsgi.py sets this variable to:
     
 To point to an environment specific file change DJANGO_SETTINGS_MODULE to
 
-    "hhs_oauth_server.settings.{new_environment_file_wothout_py_extension}"
+    "hhs_oauth_server.settings.{new_environment_file_without_py_extension}"
     
 eg.
 
     "hhs_oauth_server.settings.aws-test"
     
-The bluebutton-web-deplyoment scripts deploy environment-specific settings
+The bluebutton-web-deployment scripts deploy environment-specific settings
 files for each CMS Environment.
 

@@ -17,16 +17,13 @@ class LoginTestCase(TestCase):
         Helper method that creates a user instance
         with `username` and `password` set.
         """
-        user = User.objects.create_user(username,
-                                        password=password,
-                                        **extra_fields)
+        user = User.objects.create_user(username, password=password, **extra_fields)
         return user
 
     @override_switch('login', active=True)
     @override_switch('signup', active=True)
     def setUp(self):
-        self._create_user('fred', 'bedrocks', first_name='Fred',
-                          last_name='Flinstone', email='fred@example.com')
+        self._create_user('fred', 'bedrocks', first_name='Fred', last_name='Flinstone', email='fred@example.com')
         user = User.objects.get(username='fred')
         UserProfile.objects.create(user=user)
         self.client = Client()

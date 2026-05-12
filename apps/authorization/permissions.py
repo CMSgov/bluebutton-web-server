@@ -1,8 +1,8 @@
-from django.conf import settings
-from rest_framework import (permissions, exceptions)
+from rest_framework import permissions, exceptions
+from apps.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
 from apps.versions import Versions, VersionNotMatched
 
-from .models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant
 
 
 class DataAccessGrantPermission(permissions.BasePermission):
@@ -13,18 +13,13 @@ class DataAccessGrantPermission(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:  # type: ignore
         dag = None
         try:
-            dag = DataAccessGrant.objects.get(
-                beneficiary=request.auth.user,
-                application=request.auth.application
-            )
+            dag = DataAccessGrant.objects.get(beneficiary=request.auth.user, application=request.auth.application)
         except DataAccessGrant.DoesNotExist:
             return False
 
         if dag:
             if dag.has_expired():
-                raise exceptions.NotAuthenticated(
-                    settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
-                )
+                raise exceptions.NotAuthenticated(APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG)
             return True
 
         return False

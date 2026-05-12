@@ -2,10 +2,12 @@
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.
 
+
 class VersionNotMatched(Exception):
     """
     A custom exception to be thrown when we do not match a version.
     """
+
     pass
 
 
@@ -36,7 +38,7 @@ class Versions:
             case Versions.V3:
                 return 3
             case _:
-                raise VersionNotMatched(f"{version} is not a valid version constant")
+                raise VersionNotMatched(f'{version} is not a valid version constant')
 
     @staticmethod
     def supported_versions():

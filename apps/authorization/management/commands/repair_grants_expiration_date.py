@@ -2,12 +2,12 @@ import pytz
 
 from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
+from apps.authorization.constants import DATETIME_FMT
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application
 from dateutil.relativedelta import relativedelta
 
 
-DATETIME_FMT = "%m/%d/%y %H:%M:%S"
 utc=pytz.UTC
 
 

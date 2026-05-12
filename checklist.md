@@ -140,7 +140,7 @@ Security Risks](https://owasp.org/www-project-top-ten/).
 
 #### Results
 
-_An analysis of the repostiory has found multiple secrets being exposed both in the git history and the current directory but after further research, these are all old keys that were used for testing and can be disregarded_
+_An analysis of the repository has found multiple secrets being exposed both in the git history and the current directory but after further research, these are all old keys that were used for testing and can be disregarded_
 
 ### Code Analysis
 
@@ -169,7 +169,7 @@ Below is a list of suggested tools to run for code analysis:
 
 #### Results
 
-_An analysis of the repostiory has found multiple secrets being exposed both in the git history and the current directory but after further research, these are all old keys that were used for testing and can be disregarded_
+_An analysis of the repository has found multiple secrets being exposed both in the git history and the current directory but after further research, these are all old keys that were used for testing and can be disregarded_
 
 ### Review Licensing
 
@@ -211,7 +211,7 @@ Consider using the following tools to perform the tasks above:
 
 #### Results
 
-_An analysis of the repostiory has found multiple secrets being exposed both in the git history and the current directory but after further research, these are all old keys that were used for testing and can be disregarded_
+_An analysis of the repository has found multiple secrets being exposed both in the git history and the current directory but after further research, these are all old keys that were used for testing and can be disregarded_
 
 ### Review Repository Hygiene
 
@@ -394,7 +394,7 @@ _The repository details are accurate and present._
 
 ### Additional Notes & Questions
 
-This repository is close to meeting Tier 3 requirments. The documentation is accurate except for a few places where it needs to be filled out.
+This repository is close to meeting Tier 3 requirements. The documentation is accurate except for a few places where it needs to be filled out.
 
 - Roles & Responsibilities in COMMUNITY.md
 - Members in COMMUNITY.md
@@ -435,7 +435,7 @@ Requesting sign off from key people on this request.
 
 | Reviewer Organization            | Reviewer Names                                            | Reviewer’s Recommendation                                                               |
 | -------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Code Reviewer 's Reccommendation | CODE REVIEWER 1 <br> CODE REVIEWER 2 <br> CODE REVIEWER 3 | [Approved/Needs Approval] <br> [Approved/Needs Approval] <br> [Approved/Needs Approval] |
+| Code Reviewer 's Recommendation | CODE REVIEWER 1 <br> CODE REVIEWER 2 <br> CODE REVIEWER 3 | [Approved/Needs Approval] <br> [Approved/Needs Approval] <br> [Approved/Needs Approval] |
 | ISSO                             | ISSO REVIEWER                                             | [Approved/Needs Approval]                                                               |
 | ISG Technical Approval           | ISG REVIEWER                                              | [Approved/Needs Approval]                                                               |
 | Business Owner(s)                | BUSINESS OWNER 1 </n> BUSINESS OWNER 2                    | [Approved/Needs Approval] </n> [Approved/Needs Approval]                                |

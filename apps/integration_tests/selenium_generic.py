@@ -1,40 +1,53 @@
 import os
-import time
 import re
+import time
+from datetime import datetime, timedelta
+
+from dateutil.relativedelta import relativedelta
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 from apps.integration_tests.common_utils import (
+    check_element_state,
     extract_href_from_html,
     extract_last_part_of_url,
     log_step,
-    check_element_state
 )
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from selenium.common.exceptions import TimeoutException
-
-from .selenium_cases import (
-    Action,
-    TESTCASE_BANNER_FMT,
-    TESTCLIENT_LNK_TXT_RESTART,
+from apps.integration_tests.constants import (
+    ES_ES,
+    PROD_URL,
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
-    PROD_URL,
-    ES_ES,
+    TESTCASE_BANNER_FMT,
+    TESTCLIENT_LNK_TXT_RESTART,
+    X_PATH_FOR_MEDICARE_LOGIN,
+    Action,
 )
 
 LOG_FILE = './docker-compose/tmp/bb2_email_to_stdout.log'
 EN_MONTH_ABBR = ['Jan.', 'Feb.', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
-ES_MONTH_NAME = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
-                 'octubre', 'noviembre', 'diciembre']
+ES_MONTH_NAME = [
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
+]
 
 
-class SeleniumGenericTests():
+class SeleniumGenericTests:
     """
     A base selenium tests to be extended by
     other selenium tests covering functional areas
@@ -45,6 +58,7 @@ class SeleniumGenericTests():
         ValueError: _description_
 
     """
+
     driver_ready = False
 
     def setup_method(self, method):
@@ -84,10 +98,11 @@ class SeleniumGenericTests():
             hub_url = f'http://{self.selenium_grid_host}:4444/wd/hub'
             print('RemoteDriver: grid hub url={hub_url}')
             opt.binary_location = '/usr/bin/chromium'
-            self.driver = webdriver.Remote(
-                command_executor=hub_url, options=opt)
+            self.driver = webdriver.Remote(command_executor=hub_url, options=opt)
         else:
-            driver_exec = '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
+            driver_exec = (
+                '/usr/local/bin/chromedriver' if self.on_remote_ci.lower() == 'true' else '/usr/bin/chromedriver'
+            )
             print(f'Chrome Driver, location={driver_exec}')
             opt.add_argument('--window-size=1920,980')
             opt.add_argument('--headless')
@@ -107,7 +122,7 @@ class SeleniumGenericTests():
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,
-            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param
+            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param,
         }
 
     def teardown_method(self, method):
@@ -144,9 +159,7 @@ class SeleniumGenericTests():
         log_step(f"Looking for element to CLICK: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
 
         try:
-            elem = WebDriverWait(self.driver, timeout_sec).until(
-                EC.element_to_be_clickable((by, by_expr))
-            )
+            elem = WebDriverWait(self.driver, timeout_sec).until(EC.element_to_be_clickable((by, by_expr)))
             assert elem is not None
 
             # Log element info before clicking
@@ -156,12 +169,19 @@ class SeleniumGenericTests():
             return elem
 
         except TimeoutException:
+            # This is related to BB2-4503. The new CSPs are available in some environments, but not all. To work around
+            # this we will allow a TimeoutException to be raised without failing the test if the element we are trying to
+            # click is the Medicare login button
+            if by_expr == X_PATH_FOR_MEDICARE_LOGIN:
+                log_step('Element not found but expected for Medicare login, skipping click', 'WARNING')
+                return
+
             log_step('TIMEOUT waiting for clickable element', 'ERROR')
-            check_element_state(self.driver, by, by_expr, "after timeout")
+            check_element_state(self.driver, by, by_expr, 'after timeout')
             raise
         except Exception as e:
             log_step(f'Unexpected error in _find_and_click: {type(e).__name__}', 'ERROR')
-            check_element_state(self.driver, by, by_expr, "exception")
+            check_element_state(self.driver, by, by_expr, 'exception')
             raise
 
     def _testclient_home(self, **kwargs):
@@ -172,9 +192,7 @@ class SeleniumGenericTests():
         print(f"    Keys to send: '{txt}'")
 
         try:
-            elem = WebDriverWait(self.driver, timeout_sec).until(
-                EC.visibility_of_element_located((by, by_expr))
-            )
+            elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
             assert elem is not None
 
             # Log element details
@@ -190,43 +208,41 @@ class SeleniumGenericTests():
             log_step('TIMEOUT waiting for visible element', 'ERROR')
             print(f"\tWaited {timeout_sec} seconds for: {by}='{by_expr}'")
 
-            check_element_state(self.driver, by, by_expr, "after timeout")
+            check_element_state(self.driver, by, by_expr, 'after timeout')
             raise
         except Exception as e:
             log_step(f'Unexpected error in _find_and_sendkey: {type(e).__name__}', 'ERROR')
-            check_element_state(self.driver, by, by_expr, "exception")
+            check_element_state(self.driver, by, by_expr, 'exception')
             raise
 
     def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         log_step(f"Looking for element: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
 
         try:
-            elem = WebDriverWait(self.driver, timeout_sec).until(
-                EC.visibility_of_element_located((by, by_expr))
-            )
+            elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
             assert elem is not None
-            log_step("Element found", 'SUCCESS')
+            log_step('Element found', 'SUCCESS')
             return elem
         except TimeoutException:
             log_step('TIMEOUT waiting for element', 'ERROR')
-            check_element_state(self.driver, by, by_expr, "after timeout")
+            check_element_state(self.driver, by, by_expr, 'after timeout')
             raise
         except Exception as e:
             log_step(f'Unexpected error: {type(e).__name__}', 'ERROR')
-            check_element_state(self.driver, by, by_expr, "exception")
+            check_element_state(self.driver, by, by_expr, 'exception')
             raise
 
     def _load_page(self, url, **kwargs):
         if url == PROD_URL or url == PROD_URL + '/':
             print('Skip loading page: {}'.format(url))
         else:
-            log_step(f"Loading page: {url}", 'INFO')
+            log_step(f'Loading page: {url}', 'INFO')
             self.driver.get(url)
             log_step(f'Page loaded: {self.driver.title}', 'SUCCESS')
 
     def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
-        expected = fmt.format(resource_type, kwargs.get("api_ver"))
+        expected = fmt.format(resource_type, kwargs.get('api_ver'))
         if not (elem.text == expected):
             log_step('Page title mismatch!', 'ERROR')
             print(f"\tExpected: '{expected}'")
@@ -236,9 +252,9 @@ class SeleniumGenericTests():
     def _check_pkce_challenge(self, timeout_sec, by, by_expr, pkce, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         if pkce:
-            assert (('code_challenge' in elem.text and 'code_challenge_method' in elem.text))
+            assert 'code_challenge' in elem.text and 'code_challenge_method' in elem.text
         else:
-            assert not (('code_challenge' in elem.text or 'code_challenge_method' in elem.text))
+            assert not ('code_challenge' in elem.text or 'code_challenge_method' in elem.text)
 
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
@@ -283,7 +299,7 @@ class SeleniumGenericTests():
     def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         assert elem is not None
-        url = f"{elem.get_attribute('href')}&lang=es"
+        url = f'{elem.get_attribute("href")}&lang=es'
         log_step(f'Copying link and adding param: {url}', 'INFO')
         self.driver.get(url)
 
@@ -305,9 +321,12 @@ class SeleniumGenericTests():
 
     def _print_testcase_banner(self, test_name, api_ver, step_0, id_service, start=True):
         print('\n******************************************************************')
-        print(TESTCASE_BANNER_FMT.format('START' if start else 'END', test_name, api_ver, step_0,
-                                         'Mock SLS' if id_service == 'true' else 'SLSX'))
-        print(f"** Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            TESTCASE_BANNER_FMT.format(
+                'START' if start else 'END', test_name, api_ver, step_0, 'Mock SLS' if id_service == 'true' else 'SLSX'
+            )
+        )
+        print(f'** Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
         print('******************************************************************\n')
 
     def _play(self, lst, step, **kwargs):
@@ -323,7 +342,7 @@ class SeleniumGenericTests():
 
                 if action is not None:
                     display_msg = s.get('display', 'Not available')
-                    print(f"\n{'─' * 80}")
+                    print(f'\n{"─" * 80}')
                     print(f'{step[0]}:{display_msg}')
                     try:
                         if action == Action.LOGIN:

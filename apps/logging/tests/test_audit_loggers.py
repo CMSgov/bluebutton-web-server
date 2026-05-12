@@ -5,7 +5,6 @@ import requests
 
 import apps.logging.request_logger as logging
 
-from django.conf import settings
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
@@ -17,6 +16,7 @@ from oauth2_provider.models import get_access_token_model
 from rest_framework import status
 from waffle.testutils import override_switch
 
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.dot_ext.models import Application
 from apps.logging.utils import redirect_loggers, get_log_content, cleanup_logger
 from apps.mymedicare_cb.views import generate_nonce
@@ -24,8 +24,8 @@ from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
-from .audit_logger_schemas import (
-    ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA,
+
+from apps.logging.constants import (
     AUTHENTICATION_START_LOG_SCHEMA,
     AUTHENTICATION_SUCCESS_LOG_SCHEMA,
     AUTHORIZATION_LOG_SCHEMA,
@@ -43,8 +43,6 @@ from .audit_logger_schemas import (
 )
 
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
-
-FHIR_ID_V2 = settings.DEFAULT_SAMPLE_FHIR_ID_V2
 
 
 class HTTMockWithResponseHook(HTTMock):
@@ -107,7 +105,7 @@ class TestAuditEventLoggers(BaseApiTest):
         self._fhir_events_logging(2)
 
     def _fhir_events_logging(self, version=1):
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=FHIR_ID_V2)
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         AccessToken = get_access_token_model()
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
@@ -120,17 +118,14 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate FHIR Patient response
             log_entry_dict = json.loads(fhir_log_content)
-            self.assertTrue(
-                self._validateJsonSchema(
-                    get_pre_fetch_fhir_log_entry_schema(version), log_entry_dict
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(version), log_entry_dict))
 
             return {
                 'status_code': status.HTTP_200_OK,
-                # TODO replace this with true backend response, this has been post proccessed
+                # TODO replace this with true backend response, this has been post processed
                 'content': patient_response,
             }
+
         reverse_url = 'bb_oauth_fhir_patient_search'
         if version == 2:
             reverse_url += '_v2'
@@ -149,29 +144,24 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entries = fhir_log_content.splitlines()
 
             # Validate fhir_pre_fetch entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    get_pre_fetch_fhir_log_entry_schema(version), json.loads(log_entries[0])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(version), json.loads(log_entries[0])))
 
             # Validate fhir_post_fetch entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    get_post_fetch_fhir_log_entry_schema(version), json.loads(log_entries[1])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(get_post_fetch_fhir_log_entry_schema(version), json.loads(log_entries[1])))
 
             # Validate AccessToken entry
             token_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_TOKEN_LOGGER)
             self.assertIsNotNone(token_log_content)
             log_entries = token_log_content.splitlines()
 
-            self.assertTrue(
-                self._validateJsonSchema(
-                    ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, json.loads(log_entries[0])
-                )
-            )
+            # commenting out as part of 4699, as the call to create_token at the start of this test
+            # just creates DB records for the test, and does not go through post of TokenView where the log
+            # this assertion is looking for would be output
+            # self.assertTrue(
+            #     self._validateJsonSchema(
+            #         ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, json.loads(log_entries[0])
+            #     )
+            # )
 
     @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_slsx_logger(self):
@@ -250,51 +240,31 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(quoted_strings), 2)
 
             # Validate token response
-            self.assertTrue(
-                self._validateJsonSchema(SLSX_TOKEN_LOG_SCHEMA, json.loads(quoted_strings[0]))
-            )
+            self.assertTrue(self._validateJsonSchema(SLSX_TOKEN_LOG_SCHEMA, json.loads(quoted_strings[0])))
 
             # Validate userinfo response
             slsx_userinfo_dict = json.loads(quoted_strings[1])
-            self.assertTrue(
-                self._validateJsonSchema(SLSX_USERINFO_LOG_SCHEMA, slsx_userinfo_dict)
-            )
+            self.assertTrue(self._validateJsonSchema(SLSX_USERINFO_LOG_SCHEMA, slsx_userinfo_dict))
 
             authn_sls_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_SLS_LOGGER)
             log_entries = authn_sls_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 
             # Validate Authentication:start entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    AUTHENTICATION_START_LOG_SCHEMA, json.loads(log_entries[0])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(AUTHENTICATION_START_LOG_SCHEMA, json.loads(log_entries[0])))
 
             # Validate Authentication:success entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    AUTHENTICATION_SUCCESS_LOG_SCHEMA, json.loads(log_entries[1])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(AUTHENTICATION_SUCCESS_LOG_SCHEMA, json.loads(log_entries[1])))
 
             mymedicare_cb_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
             log_entries = mymedicare_cb_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 
             # Validate mymedicare_cb:create_beneficiary_record entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])))
 
             # Validate mymedicare_cb:get_and_update_user entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, json.loads(log_entries[1])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, json.loads(log_entries[1])))
 
             fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             log_entries = fhir_log_content.splitlines()
@@ -302,16 +272,10 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(log_entries), 4)
 
             # Validate fhir_auth_pre_fetch entry
-            self.assertTrue(
-                self._validateJsonSchema(FHIR_AUTH_PRE_FETCH_LOG_SCHEMA, json.loads(log_entries[0]))
-            )
+            self.assertTrue(self._validateJsonSchema(FHIR_AUTH_PRE_FETCH_LOG_SCHEMA, json.loads(log_entries[0])))
 
             # Validate fhir_auth_post_fetch entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    FHIR_AUTH_POST_FETCH_LOG_SCHEMA, json.loads(log_entries[1])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(FHIR_AUTH_POST_FETCH_LOG_SCHEMA, json.loads(log_entries[1])))
 
             match_fhir_id_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER)
 
@@ -319,9 +283,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertGreater(len(log_entries), 0)
 
             # Validate fhir.server.authentication.match_fhir_id entry
-            self.assertTrue(
-                self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, json.loads(log_entries[0]))
-            )
+            self.assertTrue(self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, json.loads(log_entries[0])))
 
             hhs_oauth_server_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
 
@@ -329,11 +291,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertGreater(len(log_entries), 0)
 
             # Validate hhs_oauth_server request/response custom middleware log entry
-            self.assertTrue(
-                self._validateJsonSchema(
-                    REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, json.loads(log_entries[0])
-                )
-            )
+            self.assertTrue(self._validateJsonSchema(REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, json.loads(log_entries[0])))
 
     def test_callback_url_slsx_tkn_error_logger(self):
         self._callback_url_slsx_tkn_error_logger(1)
@@ -516,9 +474,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         # Validate Authorization entry
         token_log_dict = json.loads(token_log_content)
-        self.assertTrue(
-            self._validateJsonSchema(AUTHORIZATION_LOG_SCHEMA, token_log_dict)
-        )
+        self.assertTrue(self._validateJsonSchema(AUTHORIZATION_LOG_SCHEMA, token_log_dict))
 
     def test_request_logger_app_not_exist(self):
         self._request_logger_app_not_exist(1)
@@ -634,8 +590,7 @@ class TestAuditEventLoggers(BaseApiTest):
             'state': '0123456789abcdef',
         }
         response = self.client.post(response['Location'], data=payload)
-        request_log_content = get_log_content(self.logger_registry,
-                                              logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+        request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
         quoted_strings = re.findall('{[^{}]+}', request_log_content)
         self.assertEqual(len(quoted_strings), 2)

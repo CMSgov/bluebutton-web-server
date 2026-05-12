@@ -1,10 +1,10 @@
 from django.http import JsonResponse
-import apps.logging.request_logger as bb2logging
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 import logging
 from apps.versions import Versions
 from http import HTTPStatus
 
-logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 HOME_PAGE = 'home.html'
 RESULTS_PAGE = 'results.html'
@@ -16,9 +16,38 @@ BAD_PATIENT_ID = 'INTERNAL_BAD_PATIENT_ID'
 
 
 # Default TestApp Values
-TEST_APP_CLIENT_ID = 'test-client-id'
-TEST_APP_CLIENT_SECRET = 'test-client-secret'
 TEST_APP_POSTMAN_CALLBACK = 'https://oauth.pstmn.io/v1/callback'
+
+APPLICATION_SCOPES_FULL = [
+    'patient/Patient.read',
+    'profile',
+    'patient/ExplanationOfBenefit.read',
+    'patient/Coverage.read',
+    'capability-a',
+    'capability-b',
+]
+APPLICATION_SCOPES_NON_DEMOGRAPHIC = [
+    'patient/ExplanationOfBenefit.read',
+    'patient/Coverage.read',
+    'capability-a',
+    'capability-b',
+]
+
+# Keep up with prod count
+DEFAULT_BENE_COUNT = 675000
+DEFAULT_DEV_COUNT = 150
+DEFAULT_MAX_APPS_PER_DEV = 5
+
+DEVELOPER_SIGNUP_ROLE_CHOICES = [
+    (1, 'I am a developer working on behalf of my organization', 'dev-of-org'),
+    (2, 'I am a developer checking out Blue Button for fun', 'dev-for-fun'),
+    (3, 'I am a student', 'dev-student'),
+    (4, 'I am part of an organization but am not a developer', 'person-part-of-org'),
+    (5, 'I am a Medicare beneficiary', 'medicare-bene'),
+    (6, 'Other', 'other'),
+]
+
+TESTCLIENT_REDIRECT_URI = '/testclient/callback'
 
 
 class EndpointFormatException(Exception):
@@ -28,16 +57,17 @@ class EndpointFormatException(Exception):
     Therefore, this exception should only be thrown in the situation where a URI was asked
     to be formatted, but no matching case could be found.
     """
+
     pass
 
 
 class EndpointUrl:
-    userinfo = "userinfo"
-    patient = "patient"
-    explanation_of_benefit = "eob"
-    coverage = "coverage"
-    digital_insurance_card = "digital_insurance_card"
-    nav = "nav"
+    userinfo = 'userinfo'
+    patient = 'patient'
+    explanation_of_benefit = 'eob'
+    coverage = 'coverage'
+    digital_insurance_card = 'digital_insurance_card'
+    nav = 'nav'
 
     @staticmethod
     def fmt(name: str, uri: str, version: int, patient: str = BAD_PATIENT_ID):
@@ -71,45 +101,52 @@ class EndpointUrl:
 class ResponseErrors:
     @classmethod
     def MissingTokenError(cls, msg):
-        return JsonResponse({
-            'error': f'Failed to get token from {msg}',
-            'code': 'MissingTokenError',
-            'help': 'Try authorizing again'},
+        return JsonResponse(
+            {'error': f'Failed to get token from {msg}', 'code': 'MissingTokenError', 'help': 'Try authorizing again'},
             # is 500, but should be a 400
-            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
     @classmethod
     def InvalidClient(cls, msg):
-        return JsonResponse({
-            'error': f'Failed to get token from {msg}',
-            'code': 'InvalidClient',
-            'help': 'Try authorizing again'},
+        return JsonResponse(
+            {'error': f'Failed to get token from {msg}', 'code': 'InvalidClient', 'help': 'Try authorizing again'},
             # is 500, but should be a 403
-            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
     @classmethod
     def MissingPatientError(cls):
-        return JsonResponse({
-            'error': 'No patient found in token; only synthetic benficiares can be used.',
-            'code': 'MissingPatientError',
-            'help': 'Try authorizing again'},
+        return JsonResponse(
+            {
+                'error': 'No patient found in token; only synthetic benficiares can be used.',
+                'code': 'MissingPatientError',
+                'help': 'Try authorizing again',
+            },
             # this was, and should be a 500
-            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
     @classmethod
     def NonSyntheticTokenError(cls):
-        return JsonResponse({
-            'error': 'Failed token is for a non-synthetic patient_id',
-            'code': 'NonSyntheticTokenError',
-            'help': 'Try authorizing again.'
-            # was, remains 403
-        }, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(
+            {
+                'error': 'Failed token is for a non-synthetic patient_id',
+                'code': 'NonSyntheticTokenError',
+                'help': 'Try authorizing again.',
+                # was, remains 403
+            },
+            status=HTTPStatus.BAD_REQUEST,
+        )
 
     @classmethod
-    def MissingCallbackVersionContext(cls):
-        return JsonResponse({
-            'error': 'Missing API version in callback session',
-            'code': 'MissingCallbackVersion',
-            'help': 'Try authorizing again'
-            # was 500, should remain 500
-        }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    def MissingCallbackVersionContext(cls, version):
+        return JsonResponse(
+            {
+                'error': f'Missing API version in callback session; received "{version}"',
+                'code': 'MissingCallbackVersion',
+                'help': 'Try authorizing again',
+                # was 500, should remain 500
+            },
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )

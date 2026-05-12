@@ -1,0 +1,3 @@
+from rest_framework.serializers import LIST_SERIALIZER_KWARGS
+
+STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS

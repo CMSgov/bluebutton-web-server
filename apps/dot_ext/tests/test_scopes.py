@@ -90,7 +90,7 @@ class TestScopesBackendClass(BaseApiTest):
             'patient/Coverage.s',
             'patient/Coverage.rs',
             'patient/ExplanationOfBenefit.r',
-            'patient/ExplanationOfBenefit.s'
+            'patient/ExplanationOfBenefit.s',
         ]
         condensed_scopes = CapabilitiesScopes().condense_scopes(scopes)
         assert len(condensed_scopes) == 3
@@ -102,7 +102,7 @@ class TestScopesBackendClass(BaseApiTest):
             'patient/Coverage.s',
             'patient/Coverage.rs',
             'patient/ExplanationOfBenefit.s',
-            'profile'
+            'profile',
         ]
         condensed_scopes = CapabilitiesScopes().condense_scopes(scopes)
         assert len(condensed_scopes) == 4

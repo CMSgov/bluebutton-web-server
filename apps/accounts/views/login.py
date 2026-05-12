@@ -14,6 +14,7 @@ class LoginView(LoginView):
     """
     Custom Django login view.
     """
+
     authentication_form = AuthenticationForm
 
     @method_decorator(axes_dispatch)
@@ -30,7 +31,7 @@ class LoginView(LoginView):
                     the_validator = v
                     break
             if the_validator is not None and the_validator.password_expired(form.get_user()):
-                return HttpResponseRedirect(reverse("expired_password_change"))
+                return HttpResponseRedirect(reverse('expired_password_change'))
         return response
 
 
@@ -38,9 +39,10 @@ class PasswordChangeView(PasswordChangeView):
     """
     Custom Django password change view.
     """
+
     @method_decorator(axes_dispatch)
     def dispatch(self, request, *args, **kwargs):
-        if "expired-password-change" in request.path:
+        if 'expired-password-change' in request.path:
             messages.warning(self.request, 'Your password has expired, change password strongly recommended.')
         return super().dispatch(request, *args, **kwargs)
 

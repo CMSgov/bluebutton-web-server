@@ -1,9 +1,8 @@
+from apps.docs.constants import OPENAPI_OAUTH2_REDIRECT_PAGE, OPENAPI_PAGE
 from django.shortcuts import render
 from rest_framework import exceptions
 from waffle import switch_is_active
 
-OPENAPI_PAGE = "openapi.html"
-OPENAPI_OAUTH2_REDIRECT_PAGE = "oauth2-redirect.html"
 
 
 def openapi(request):
