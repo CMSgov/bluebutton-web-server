@@ -1,4 +1,13 @@
 repos:
+  - repo: local
+    hooks:
+      - id: no-locust-tokens
+        name: Block committing Locust token files with tokens
+        language: script
+        entry: scripts/check-locust-tokens.sh
+        files: ^apps/tokens_(non_v3|v3)\.txt$
+        pass_filenames: false
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version
     rev: v0.15.10
