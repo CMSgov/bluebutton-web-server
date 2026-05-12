@@ -46,6 +46,10 @@ services:
         source: ../..
         target: /home/boton/bb
         read_only: ${READ_ONLY:-true}
+      - type: bind
+        source: ${HOME}/.bb2
+        target: /home/boton/.bb2
+        read_only: true
       - type: tmpfs
         target: /tmp
         tmpfs:
