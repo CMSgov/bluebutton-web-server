@@ -17,7 +17,7 @@ class ApplyDefaultScopesTest(BaseApiTest):
         """
         Assert that the command fails when running with TARGET_ENV==prod.
         """
-        with self.assertRaisesMessage(CommandError, 'Target environment not in ["local", "test", "sbx"].'):
+        with self.assertRaisesMessage(CommandError, 'Target environment not in [None, "local", "test", "sbx"].'):
             call_command('apply_default_scopes')
 
     def test_app_no_scopes(self):
