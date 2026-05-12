@@ -1,4 +1,5 @@
 from apps.constants import USER_CHOICES, USER_TYPE_DEV
+from apps.validators import phone_regex
 from apps.accounts.constants import (
     AAL_CHOICES,
     ADDITION,
@@ -100,7 +101,8 @@ class UserProfile(models.Model):
     )
 
     mobile_phone_number = models.CharField(
-        max_length=12,
+        validators=[phone_regex],
+        max_length=16,
         blank=True,
         help_text=_('US numbers only.'),
     )

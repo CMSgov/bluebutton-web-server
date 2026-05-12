@@ -3,6 +3,7 @@ import uuid
 
 from django import forms
 from django.conf import settings
+from django.core.validators import URLValidator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
@@ -12,7 +13,7 @@ from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import PRINTABLE_SPECIAL_ASCII
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.models import Application, InternalApplicationLabels
-from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
+from apps.dot_ext.validators import validate_logo_image, validate_notags
 from django.contrib.auth.models import Group, User
 from django.forms.widgets import URLInput
 
@@ -50,22 +51,22 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     policy_uri = forms.CharField(
         required=False,
-        max_length=512,
-        validators=[validate_url],
+        max_length=2048,
+        validators=[URLValidator()],
         widget=URLInput,
     )
 
     tos_uri = forms.CharField(
         required=False,
-        max_length=512,
-        validators=[validate_url],
+        max_length=2048,
+        validators=[URLValidator()],
         widget=URLInput,
     )
 
     website_uri = forms.CharField(
         required=False,
-        max_length=512,
-        validators=[validate_url],
+        max_length=2048,
+        validators=[URLValidator()],
         widget=URLInput,
     )
 
@@ -219,22 +220,22 @@ class CreateNewApplicationForm(forms.ModelForm):
 
     policy_uri = forms.CharField(
         required=False,
-        max_length=512,
-        validators=[validate_url],
+        max_length=2048,
+        validators=[URLValidator()],
         widget=URLInput,
     )
 
     tos_uri = forms.CharField(
         required=False,
-        max_length=512,
-        validators=[validate_url],
+        max_length=2048,
+        validators=[URLValidator()],
         widget=URLInput,
     )
 
     website_uri = forms.CharField(
         required=False,
-        max_length=512,
-        validators=[validate_url],
+        max_length=2048,
+        validators=[URLValidator()],
         widget=URLInput,
     )
 
