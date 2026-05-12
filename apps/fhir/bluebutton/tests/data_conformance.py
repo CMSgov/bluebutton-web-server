@@ -3405,7 +3405,7 @@ CONFORMANCE = """
                         {
                             "name":"patient",
                             "type":"reference",
-                            "documentation":"Patient receiveing the services",
+                            "documentation":"Patient receiving the services",
                             "target":[
                                 "Patient"
                             ],
@@ -19877,7 +19877,7 @@ CONFORMANCE = """
                         {
                             "name":"requestprovider",
                             "type":"reference",
-                            "documentation":"The reference to the provider who sumbitted the claim",
+                            "documentation":"The reference to the provider who submitted the claim",
                             "target":[
                                 "Practitioner"
                             ],

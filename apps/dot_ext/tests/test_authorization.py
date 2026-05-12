@@ -1158,24 +1158,24 @@ class TestAuthorizationView(BaseApiTest):
         application.active = True
         application.save()
 
-    def test_v1_token_endpoint_with_trailling_slash(self):
+    def test_v1_token_endpoint_with_trailing_slash(self):
         self._execute_token_endpoint('/v1/o/token/')
 
-    def test_v1_token_endpoint_without_trailling_slash(self):
+    def test_v1_token_endpoint_without_trailing_slash(self):
         self._execute_token_endpoint('/v1/o/token')
 
-    def test_v2_token_endpoint_with_trailling_slash(self):
+    def test_v2_token_endpoint_with_trailing_slash(self):
         self._execute_token_endpoint('/v2/o/token/')
 
-    def test_v2_token_endpoint_without_trailling_slash(self):
+    def test_v2_token_endpoint_without_trailing_slash(self):
         self._execute_token_endpoint('/v2/o/token')
 
     @override_switch('v3_endpoints', active=True)
-    def test_v3_token_endpoint_with_trailling_slash(self):
+    def test_v3_token_endpoint_with_trailing_slash(self):
         self._execute_token_endpoint('/v3/o/token/')
 
     @override_switch('v3_endpoints', active=True)
-    def test_v3_token_endpoint_without_trailling_slash(self):
+    def test_v3_token_endpoint_without_trailing_slash(self):
         self._execute_token_endpoint('/v3/o/token')
 
     def _execute_token_endpoint(self, token_path):

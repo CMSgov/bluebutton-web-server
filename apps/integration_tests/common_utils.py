@@ -1,8 +1,9 @@
-import jsonschema
-import re
 import os
+import re
 import traceback
 from functools import wraps
+
+import jsonschema
 from jsonschema import validate
 from selenium.common.exceptions import NoSuchElementException
 
@@ -34,7 +35,7 @@ def screenshot_on_exception(func):
                     print(f'Current URL: {webdriver.current_url}')
                     print(f'Page Title: {webdriver.title}')
 
-                    test_folder = os.path.join('dev-local/selenium/dump', func.__name__)
+                    test_folder = os.path.join('ops/containers/selenium/dump', func.__name__)
                     os.makedirs(test_folder, exist_ok=True)
 
                     # screenshot of failed page
@@ -137,4 +138,5 @@ def extract_last_part_of_url(url):
     parts = url.rstrip('/').split('/')
     last_part = parts[-1]
 
+    return last_part
     return last_part

@@ -29,7 +29,7 @@ echo "certs           = \$dir/certs            # Where the issued certs are kept
 echo "crl_dir         = \$dir/crl              # Where the issued crl are kept " >>$OW_OCONF
 echo "database        = \$dir/database.txt        # database index file. " >>$OW_OCONF
 echo "#unique_subject = no                    # Set to 'no' to allow creation of " >>$OW_OCONF
-echo "                                        # several ctificates with same subject. " >>$OW_OCONF
+echo "                                        # several certificates with same subject. " >>$OW_OCONF
 echo "new_certs_dir   = \$dir/newcerts         # default place for new certs. " >>$OW_OCONF
 echo " " >>$OW_OCONF
 echo "certificate     = \$dir/cacert.pem       # The CA certificate " >>$OW_OCONF
@@ -40,7 +40,7 @@ echo "crl             = \$dir/crl.pem          # The current CRL " >>$OW_OCONF
 echo "private_key     = \$dir/private/cakey.pem # The private key " >>$OW_OCONF
 echo "RANDFILE        = \$dir/private/.rand    # private random number file " >>$OW_OCONF
 echo "  " >>$OW_OCONF
-echo "x509_extensions = usr_cert              # The extentions to add to the cert " >>$OW_OCONF
+echo "x509_extensions = usr_cert              # The extensions to add to the cert " >>$OW_OCONF
 echo "  " >>$OW_OCONF
 echo "# Comment out the following two lines for the "traditional " >>$OW_OCONF
 echo " # (and highly broken) format. " >>$OW_OCONF
