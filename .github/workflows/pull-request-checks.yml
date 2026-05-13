@@ -47,7 +47,7 @@ jobs:
 
       - name: Run Django Integration Tests
         run: |
-          docker compose -f ./ops/containers/docker-compose-codebuild.yml up \
+          docker compose -f ./ops/containers/docker-compose-codebuild.yaml up \
             --build \
             --abort-on-container-exit \
             --exit-code-from app
