@@ -156,6 +156,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'patient': str,
         '_tag': list[str],
         '_source': list[str],
+        '_security:not': str,
     }
 
     def __init__(self, version=1):
@@ -166,6 +167,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         return {
             '_format': 'application/fhir+json',
             'patient': request.crosswalk.fhir_id(self.version),
+            # '_security:not': '42CFRPart2'
         }
 
     def filter_parameters(self, request):
