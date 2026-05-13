@@ -163,7 +163,7 @@ class Application(AbstractApplication):
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
 
-    # Does this application need to collect beneficiary demographic information? YES = True/Null NO = False
+    # Does this application need to collect beneficiary demographic information? YES = True NO = False/Null
     require_demographic_scopes = models.BooleanField(
         default=True, null=True, verbose_name='Are demographic scopes required?'
     )

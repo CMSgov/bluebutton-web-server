@@ -1736,7 +1736,6 @@ class TestAuthorizationView(BaseApiTest):
         # TODO pytest.mark.parameterize
         for method in ['get', 'post']:
             for version in Versions.supported_versions():
-                print(method, version)
                 payload = {
                     'client_id': application.client_id,
                     'response_type': 'code',
