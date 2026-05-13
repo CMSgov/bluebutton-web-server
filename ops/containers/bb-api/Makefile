@@ -14,17 +14,17 @@ build-local:
 		-f Dockerfile \
 		../../..
 
-build-cicd:
-	echo "build-cicd"
+build-codebuild:
+	echo "build-codebuild"
 	TARGET_ENV="test"
 	docker build \
 		--build-arg RELEASE_TAG="local" \
-		--build-arg BUILD_TARGET="local" \
+		--build-arg BUILD_TARGET="codebuild" \
 		-t bb-api:latest \
 		-f Dockerfile \
 		../../..
 
-run-cicd:
+run-codebuild:
 	echo "run-cicd"
 	bfd=${test} \
 	env=${env} \
@@ -42,19 +42,6 @@ build-local-no-cache:
 		-t bb-api:latest \
 		-f Dockerfile \
 		../../..
-
-# FIXME: This is not yet really tested.
-build-production:
-	echo "build"
-	env="local" \
-	bfd=${bfd} \
-	docker build \
-	--build-arg RELEASE_TAG="${RELEASE_TAG}" \
-	--build-arg BUILD_TARGET="production" \
-	--no-cache \
-	-t bb-api-prod:latest \
-	-f Dockerfile \
-	.
 
 run-local:
 	bfd=${bfd} \
