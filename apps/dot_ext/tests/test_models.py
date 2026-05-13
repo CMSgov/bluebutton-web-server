@@ -3,12 +3,14 @@ from unittest.mock import Mock
 
 from django.contrib import admin
 from django.contrib.auth.models import User
-from oauth2_provider.models import get_application_model
+from oauth2_provider.models import get_access_token_model, get_application_model
 
 import apps.logging.request_logger as logging
 from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.dot_ext.admin import MyApplicationAdmin
 from apps.dot_ext.models import (
+    AccessTokenExtension,
     Application,
     InternalApplicationLabels,
     get_application_counts,
@@ -17,12 +19,16 @@ from apps.dot_ext.models import (
 from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers
 from apps.test import BaseApiTest
 
+AccessToken = get_access_token_model()
+
 
 class TestDotExtModels(BaseApiTest):
     fixtures = ['internal_application_labels.json']
 
     def setUp(self):
         self.logger_registry = redirect_loggers()
+        self.read_capability = self._create_capability('Read', [])
+        self.write_capability = self._create_capability('Write', [])
 
     def tearDown(self):
         cleanup_logger(self.logger_registry)
@@ -280,3 +286,41 @@ class TestDotExtModels(BaseApiTest):
         self.assertTrue(l3.slug in internal_labels)
         self.assertTrue(l5.slug in internal_labels)
         self.assertTrue(l11.slug not in internal_labels)
+
+    def test_access_token_extension_is_created(self) -> None:
+        """Ensure that when an access token is saved, a corresponding AccessTokenExtension record
+        is created
+        """
+
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+        access_token_extension = AccessTokenExtension.objects.get(access_token=ac)
+
+        assert access_token_extension is not None
+        assert access_token_extension.access_token == ac
+
+    def test_access_token_extension_is_deleted_when_token_is_deleted(self) -> None:
+        """Ensure that when an access token is deleted, the corresponding AccessTokenExtension record
+        is deleted
+        """
+
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+        access_token_extension = AccessTokenExtension.objects.get(access_token=ac)
+        access_token_extension_id = access_token_extension.id
+
+        assert access_token_extension is not None
+        assert access_token_extension.access_token == ac
+
+        ac.delete()
+
+        with self.assertRaises(AccessTokenExtension.DoesNotExist):
+            access_token_extension = AccessTokenExtension.objects.get(id=access_token_extension_id)
