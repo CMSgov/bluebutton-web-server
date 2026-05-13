@@ -425,7 +425,7 @@ class AuthorizationView(DotAuthorizationView):
             return response
 
         # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
-        if share_demographic_scopes == 'False' or (allow is True and application.require_demographic_scopes is False):
+        if share_demographic_scopes == 'False' or (allow is True and not application.require_demographic_scopes):
             (
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
