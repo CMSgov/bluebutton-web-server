@@ -38,8 +38,8 @@ class CapabilitiesScopes(BaseScopes):
             if 'coverage-eligibility' in application.get_internal_application_labels():
                 app_scopes_avail = self.remove_eob_scopes(app_scopes_avail)
 
-        # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
-        if application.require_demographic_scopes in [True, None]:
+        # Set scopes based on application choice. Default behavior is False, if it hasn't been set yet.
+        if application.require_demographic_scopes:
             # Return all scopes
             return app_scopes_avail
         else:
@@ -61,8 +61,8 @@ class CapabilitiesScopes(BaseScopes):
             if 'coverage-eligibility' in application.get_internal_application_labels():
                 app_scopes_default = self.remove_eob_scopes(app_scopes_default)
 
-        # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
-        if application.require_demographic_scopes in [True, None]:
+        # Set scopes based on application choice. Default behavior is False, if it hasn't been set yet.
+        if application.require_demographic_scopes:
             # Return all scopes
             return app_scopes_default
         else:

@@ -92,7 +92,8 @@ USER root
 RUN dnf install -y \
     openssl \
     socat \
-    tree
+    tree \
+    make
 USER boton
 
 # Local dev brings in additional tools to support debugging, etc.

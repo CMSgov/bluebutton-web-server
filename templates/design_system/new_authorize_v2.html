@@ -65,7 +65,7 @@
 
             {% if not error %}
                 <form id="authorizationForm" method="post">
-                    {% if application.require_demographic_scopes != False %}
+                    {% if application.require_demographic_scopes %}
                         <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">{% trans "You can also grant access to your:" %}
                             <fieldset class="ds-c-fieldset ds-u-margin-top--1">
                               <legend class="ds-c-label" id="field_1-label">

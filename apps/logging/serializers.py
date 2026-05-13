@@ -88,7 +88,7 @@ class Token:
 
 
 class Request:
-    # requests.PrepairedRequest
+    # requests.PreparedRequest
     req = None
 
     def __init__(self, request):

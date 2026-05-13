@@ -38,7 +38,11 @@ class ActiveAccountFilter(admin.SimpleListFilter):
     parameter_name = 'status'
 
     def lookups(self, request, model_admin):
-        return [('active', 'Active'), ('inactive_all', 'Inactive'), ('inactive_expired', 'Inactive (expired activation key)')]
+        return [
+            ('active', 'Active'),
+            ('inactive_all', 'Inactive'),
+            ('inactive_expired', 'Inactive (expired activation key)'),
+        ]
 
     def queryset(self, request, queryset):
         if self.value() == 'inactive_expired':

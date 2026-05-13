@@ -28,7 +28,7 @@
 		<ul>
 			<li>Information about your doctor/hospital visits</li>
 			<li>Information about the prescription medications you take</li>
-			{% if application.require_demographic_scopes != False %}
+			{% if application.require_demographic_scopes %}
 				<li>Personal Information like your name, address, date of birth, race, and sex</li>
 			{% endif %}
 
@@ -36,7 +36,7 @@
 
 		{% if not error %}
 		<form id="authorizationForm" method="post">
-			{% if application.require_demographic_scopes != False %}
+			{% if application.require_demographic_scopes %}
 				<fieldset class="ds-c-fieldset bene-auth-fieldset">
 					<legend class="ds-c-label">
 						<h2 class="ds-u-font-size--h3">Privacy Options</h2>
