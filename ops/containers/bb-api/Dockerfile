@@ -68,6 +68,7 @@ RUN python3.12 -m venv ${VENVPATH} \
 #################################################################
 # BUILD FOR CLOUD CONTAINERS
 # https://stackoverflow.com/questions/44438637/arg-substitution-in-run-command-not-working-for-dockerfile
+# "production" is currently set in the Github action for building and pushing an image, nowhere else
 FROM base AS build-production
 
 # The cloud environment only installs the core requirements.

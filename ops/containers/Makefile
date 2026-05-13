@@ -20,20 +20,6 @@ build-local: css requirements
 build-local-no-cache:
 	cd bb-api ; make build-local-no-cache
 
-# This is speculative; not yet tested in production.
-build-production:
-	echo "build"
-	env="local" \
-	bfd=${bfd} \
-	docker build \
-	--platform "linux/amd64" \
-	--build-arg RELEASE_TAG="${RELEASE_TAG}" \
-	--build-arg BUILD_TARGET="production" \
-	--no-cache \
-	-t bb:latest \
-	-f bb-api/Dockerfile \
-	.
-
 run-local:
 	bfd="${bfd}" \
 	env="${env}" \
