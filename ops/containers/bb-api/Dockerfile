@@ -66,6 +66,18 @@ RUN python3.12 -m venv ${VENVPATH} \
     && ${BOTONBIN}/pip3 install pip-tools setuptools
 
 #################################################################
+# BUILD FOR CLOUD CONTAINERS
+# https://stackoverflow.com/questions/44438637/arg-substitution-in-run-command-not-working-for-dockerfile
+FROM base AS build-production
+
+# The cloud environment only installs the core requirements.
+RUN ${BOTONBIN}/pip3 install \
+    --require-hashes \
+    --no-deps \
+    --prefer-binary \
+    -r requirements/requirements.txt
+
+#################################################################
 # BUILD FOR LOCAL/CODEBUILD CONTAINERS
 # When building a local/codebuild container for, we want to use the 
 # code in the developer's tree. The docker context needs to be 
