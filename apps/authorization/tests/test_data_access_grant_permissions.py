@@ -1,27 +1,27 @@
 import json
-from datetime import datetime
-from http import HTTPStatus
-from unittest import mock
-
 import pytz
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
-from waffle.testutils import override_flag, override_switch
+from unittest import mock
+from http import HTTPStatus
 
+from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
 )
-from apps.constants import (
-    APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
-    APPLICATION_TEMPORARILY_INACTIVE,
-    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
-)
+from waffle.testutils import override_switch, override_flag
 from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation import (
     get_response_json,
 )
-from apps.test import BaseApiTest
+
+from apps.constants import (
+    APPLICATION_TEMPORARILY_INACTIVE,
+    APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+)
 from apps.versions import Versions
 
 # TODO 4430 comes back to this
@@ -515,9 +515,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self.assertFalse(dag.has_expired())
 
         #    Mock future date 13 months and 2-days in future.
-        StubDate.now = classmethod(
-            lambda cls: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, days=+2)
-        )
+        StubDate.now = classmethod(lambda cls: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, days=+2))
 
         #    Test has_expired() is true after time change
         self.assertTrue(dag.has_expired())
