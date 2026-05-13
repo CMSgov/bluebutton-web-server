@@ -49,11 +49,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauthlib.oauth2 import AccessDeniedError
-from oauthlib.oauth2.rfc6749.errors import (
-    InvalidClientError,
-    InvalidGrantError,
-    InvalidRequestError,
-)
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError, ServerError
 from rest_framework.exceptions import NotFound
 from waffle import get_waffle_flag_model, switch_is_active
 
@@ -775,74 +771,76 @@ class TokenView(DotTokenView):
         """
         if waffle.switch_is_active('client_credentials_validation'):
             signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-        try:
-            data = jwt.decode_complete(
-                id_token,
-                signing_key,
-                # leeway=timedelta(minutes=5),
-                options={
-                    'require': [
-                        'iss',
-                        'sub',
-                        'aud',
-                        'jti',
-                        'exp',
-                        'iat',
-                        'identity_assurance_level',
-                        # 'auth_time',
-                        'family_name',
-                        'given_name',
-                        'birthdate',
-                    ],
-                    'verify_aud': False,
-                },
-                algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
-            )
-        except jwt.PyJWTError as e:
-            log.warning(f'jwt.decode_complete() failed because {type(e)}')
-            raise InvalidRequestError
-        payload, header = data.get('payload'), data.get('header')
+            try:
+                data = jwt.decode_complete(
+                    id_token,
+                    signing_key,
+                    # leeway=timedelta(minutes=5),
+                    options={
+                        'require': [
+                            'iss',
+                            'sub',
+                            'aud',
+                            'jti',
+                            'exp',
+                            'iat',
+                            'identity_assurance_level',
+                            # 'auth_time',
+                            'family_name',
+                            'given_name',
+                            'birthdate',
+                        ],
+                        'verify_aud': False,
+                    },
+                    algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
+                )
+            except jwt.PyJWTError as e:
+                log.warning(f'jwt.decode_complete() failed because {type(e)}')
+                raise InvalidRequestError
+            payload, header = data.get('payload'), data.get('header')
 
-        if not payload or not header or header.get('typ') != 'JWT':
-            log.warning('Malformed header / payload')
-            raise InvalidRequestError
+            if not payload or not header or header.get('typ') != 'JWT':
+                log.warning('Malformed header / payload')
+                raise InvalidRequestError
 
-        if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
-            log.warning('The issuer of the token is not valid for this environment')
-            raise InvalidRequestError
+            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+                log.warning('The issuer of the token is not valid for this environment')
+                raise InvalidRequestError
 
-        if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-            log.warning('jti/iss combo replay')
-            raise InvalidRequestError
+            if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
+                log.warning('jti/iss combo replay')
+                raise InvalidRequestError
 
-        if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-            log.warning('JWT is older than 5 minutes (iat)')
-            raise InvalidRequestError
+            if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
+                log.warning('JWT is older than 5 minutes (iat)')
+                raise InvalidRequestError
 
-        if payload.get('identity_assurance_level') < 2:
-            log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
-            raise InvalidRequestError
+            if payload.get('identity_assurance_level') < 2:
+                log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
+                raise InvalidRequestError
 
-        # if (
-        #     datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
-        #     > 86400
-        # ):
-        #     log.warning('JWT was authorized older than 24 hours (auth_time)')
-        #     raise InvalidRequestError
+            # if (
+            #     datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
+            #     > 86400
+            # ):
+            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
+            #     raise InvalidRequestError
 
-        if not validate_latin_extended_string(payload.get('family_name')):
-            log.warning(
-                f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
-            )
-            raise InvalidRequestError
+            if not validate_latin_extended_string(payload.get('family_name')):
+                log.warning(
+                    f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
+                )
+                raise InvalidRequestError
 
-        if not validate_latin_extended_string(payload.get('given_name')):
-            log.warning(f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}')
-            raise InvalidRequestError
+            if not validate_latin_extended_string(payload.get('given_name')):
+                log.warning(
+                    f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}'
+                )
+                raise InvalidRequestError
 
-        if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
-            log.warning('birthdate was not a valid string')
-            raise InvalidRequestError
+            if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
+                log.warning('birthdate was not a valid string')
+                raise InvalidRequestError
         else:
             try:
                 payload = jwt.decode(id_token, options={'verify_signature': False})
@@ -995,8 +993,7 @@ class TokenView(DotTokenView):
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
-            # TODO : validate that app is allowed to make the type of request it is making
-            # TODO : consider conditional branching based on grant_type
+
             if grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
                     app.name
@@ -1046,9 +1043,8 @@ class TokenView(DotTokenView):
 
                         ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
                         if not ial_valid:
-                            # at the moment, any validation error raises the exception inside
-                            # probably refactor moment
-                            raise InvalidRequestError
+                            log.error('_validate_ial_jwt returned None')
+                            raise ServerError
 
                         id_match_payload = self._parse_ial_into_parameter(ial_valid)
                         # log.info(id_match_payload)
@@ -1070,9 +1066,6 @@ class TokenView(DotTokenView):
                             mbi = extract_mbi_from_patient(patient)
                             fhir_id = extract_fhir_id_from_patient(patient)
                             user = self._create_or_retrieve_user(mbi, fhir_id, request)
-
-                            # TODO: Double check that this is 100% needed
-                            request.user = user
 
                             create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
