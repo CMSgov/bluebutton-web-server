@@ -18,15 +18,20 @@ echo "🥑 TARGET_ENV   ${TARGET_ENV}"
 
 ####################################
 # ENV SETUP
+# env must be 'test' or 'local'
 check_valid_env
 gonogo "check_valid_env"
+
 check_env_preconditions
 gonogo "check_env_preconditions"
+
 # source the baseline environment variables
 load_env_vars
 gonogo "load_env_vars"
+
 check_env_after_setup
 gonogo "check_env_after_setup"
+
 set_bfd_urls
 gonogo "set_bfd_urls"
 

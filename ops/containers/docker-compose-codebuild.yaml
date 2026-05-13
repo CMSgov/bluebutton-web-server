@@ -1,0 +1,12 @@
+services:
+  ####################
+  # Blue Button
+  bb-api:
+    # build: 
+    #   # Note the context is the top of the repo, and the
+    #   # dockerfile is down in the `ops` tree.
+    #   context: ../..
+    #   dockerfile: ops/containers/bb-api/Dockerfile
+    image: bb-api:latest
+    command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
+    env_file: ./bb-api/files/external/.env.container

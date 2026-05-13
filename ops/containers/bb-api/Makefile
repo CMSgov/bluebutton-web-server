@@ -14,6 +14,24 @@ build-local:
 		-f Dockerfile \
 		../../..
 
+build-cicd:
+	echo "build-cicd"
+	TARGET_ENV="test"
+	docker build \
+		--build-arg RELEASE_TAG="local" \
+		--build-arg BUILD_TARGET="local" \
+		-t bb-api:latest \
+		-f Dockerfile \
+		../../..
+
+run-cicd:
+	echo "run-cicd"
+	bfd=${test} \
+	env=${env} \
+	auth="live" \
+	TARGET_ENV="test" \
+	./scripts/external/prepare-environment.bash
+
 build-local-no-cache:
 	echo "build-local no-cache"
 	TARGET_ENV="local" \

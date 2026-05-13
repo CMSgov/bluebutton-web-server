@@ -12,8 +12,8 @@ gonogo () {
 
 ########################################
 # check_valid_env
-# Makes sure we have one of the three valid
-# execution environments.
+# Makes sure we have one of the two valid
+# execution environments for this script
 check_valid_env () {
     if [[ "${bfd}" == "local" ]]; then
         : # This is a no-op.
@@ -22,17 +22,9 @@ check_valid_env () {
     elif [[ "${bfd}" == "test" ]]; then
         :
     #####
-    # SBX
-    elif [[ "${bfd}" == "sbx" ]]; then
-        :
-    ##### 
-    # PROD
-    elif [[ "${bfd}" == "prod" ]]; then
-        :
-    #####
     # ERR
     else
-        echo "⛔ 'bfd' must be set to 'local', 'test', 'sbx', or 'prod'."
+        echo "⛔ 'bfd' must be set to 'local' or 'test'"
         echo "⛔ 'bfd' is currently set to '${bfd}'."
         echo "Exiting."
         return 1
@@ -56,7 +48,7 @@ check_env_preconditions () {
         # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
         if [ -z ${bfd} ]; then
             echo "'bfd' not set. Cannot retrieve certs."
-            echo "'bfd' must be one of 'local', 'test', or 'sbx'."
+            echo "'bfd' must be one of 'local' or 'test'"
             echo "For example:"
             echo "  make run-local bfd=test"
             echo "Exiting."
@@ -112,12 +104,14 @@ load_env_vars () {
 # After setting up the env, we need to make sure that one or two
 # variables are now present that would not have been otherwise.
 check_env_after_setup () {
-    if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
-        echo "⛔ We need insecure transport when running locally."
-        echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."
-        echo "⛔ Something went badly wrong."
-        echo "⛔ Exiting."
-        return 1
+    if [ "${bfd}" != "local" ]; then
+        if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
+            echo "⛔ We need insecure transport when running locally."
+            echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."
+            echo "⛔ Something went badly wrong."
+            echo "⛔ Exiting."
+            return 1
+        fi
     fi
     return 0
 }

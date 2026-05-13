@@ -44,43 +44,50 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup AWS credentials
-        uses: ./.github/actions/setup-tofu
-        with:
-          environment: ${{ inputs.environment }}
-          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+      - name: Run Django Integration Tests
+        run: |
+          docker compose -f docker-compose.test.yml up \
+            --build \
+            --abort-on-container-exit \
+            --exit-code-from app
+
+      # - name: Setup AWS credentials
+      #   uses: ./.github/actions/setup-tofu
+      #   with:
+      #     environment: ${{ inputs.environment }}
+      #     non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
       
-      - name: Discover ECS environment
-        id: network
-        run: |
-          # ops/ecs-discover.sh is the Fargate equivalent of inventory/aws_ec2.yaml —
-          # dynamic resource discovery instead of hardcoded names.
-          source ops/ecs-discover.sh "${{ inputs.environment }}"
+      # - name: Discover ECS environment
+      #   id: network
+      #   run: |
+      #     # ops/ecs-discover.sh is the Fargate equivalent of inventory/aws_ec2.yaml —
+      #     # dynamic resource discovery instead of hardcoded names.
+      #     source ops/ecs-discover.sh "${{ inputs.environment }}"
 
-          echo "cluster=${ECS_CLUSTER}"   >> "$GITHUB_OUTPUT"
-          echo "family=${ECS_FAMILY}"     >> "$GITHUB_OUTPUT"
-          echo "container=${ECS_CONTAINER}" >> "$GITHUB_OUTPUT"
-          echo "net_config=${ECS_NET_CONFIG}" >> "$GITHUB_OUTPUT"
+      #     echo "cluster=${ECS_CLUSTER}"   >> "$GITHUB_OUTPUT"
+      #     echo "family=${ECS_FAMILY}"     >> "$GITHUB_OUTPUT"
+      #     echo "container=${ECS_CONTAINER}" >> "$GITHUB_OUTPUT"
+      #     echo "net_config=${ECS_NET_CONFIG}" >> "$GITHUB_OUTPUT"
 
-      - name: Run Ephemeral Fargate Task
-        id: instance
-        run: |
-          TASK_ARN=$(aws ecs run-task \
-            --cluster "${{ steps.network.outputs.cluster }}" \
-            --task-definition "${{ steps.network.outputs.family }}" \
-            --launch-type FARGATE \
-            --platform-version LATEST \
-            --network-configuration '${{ steps.network.outputs.net_config }}' \
-            --overrides "{
-              \"containerOverrides\": [{
-                \"name\": \"${{ steps.network.outputs.container }}\",
-                \"command\": [\"bash\", \"-c\", \"export DATABASES_CUSTOM=\\\"postgres://\${DB_USER_NAME}:\${DB_USER_PW}@\${DB_HOST}:15432/\${DB_NAME}?sslmode=require&options=-c+role%3D\${DB_ROLE}\\\" && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base && export PATH=\\\"\${HOME}/venv/bin:\${PATH}\\\" && echo \\\"Running: manage.py ${{ steps.cmd.outputs.resolved }} on \${DB_HOST}:15432/\${DB_NAME} as \${DB_ROLE}\\\" && python manage.py ${{ steps.cmd.outputs.resolved }} 2>&1\"]
-              }]
-            }" \
-            --query 'tasks[0].taskArn' \
-            --output text)
+      # - name: Run Ephemeral Fargate Task
+      #   id: instance
+      #   run: |
+      #     TASK_ARN=$(aws ecs run-task \
+      #       --cluster "${{ steps.network.outputs.cluster }}" \
+      #       --task-definition "${{ steps.network.outputs.family }}" \
+      #       --launch-type FARGATE \
+      #       --platform-version LATEST \
+      #       --network-configuration '${{ steps.network.outputs.net_config }}' \
+      #       --overrides "{
+      #         \"containerOverrides\": [{
+      #           \"name\": \"${{ steps.network.outputs.container }}\",
+      #           \"command\": [\"bash\", \"-c\", \"export DATABASES_CUSTOM=\\\"postgres://\${DB_USER_NAME}:\${DB_USER_PW}@\${DB_HOST}:15432/\${DB_NAME}?sslmode=require&options=-c+role%3D\${DB_ROLE}\\\" && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.test && export PATH=\\\"\${HOME}/venv/bin:\${PATH}\\\" && echo \\\"Running: manage.py ${{ steps.cmd.outputs.resolved }} on \${DB_HOST}:15432/\${DB_NAME} as \${DB_ROLE}\\\" && python manage.py ${{ steps.cmd.outputs.resolved }} 2>&1\"]
+      #         }]
+      #       }" \
+      #       --query 'tasks[0].taskArn' \
+      #       --output text)
 
-          TASK_ID=$(echo "$TASK_ARN" | awk -F/ '{print $NF}')
-          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
-          echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
-          echo "Started task: $TASK_ID"
+      #     TASK_ID=$(echo "$TASK_ARN" | awk -F/ '{print $NF}')
+      #     echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+      #     echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
+      #     echo "Started task: $TASK_ID"
