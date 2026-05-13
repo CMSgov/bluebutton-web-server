@@ -10,7 +10,7 @@ module "platform" {
   env                          = local.env
   service                      = local.service
   root_module                  = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/20-microservices"
-  kms_key_alias                = "alias/bb-${local.env}-app-key-alias"
+  kms_key_alias                = "alias/bb-${local.env == "sandbox" ? "impl" : local.env}-app-key-alias"
   enable_acm_lookup            = true
   enable_security_group_lookup = true
 }
@@ -39,6 +39,9 @@ locals {
   kms_alias            = module.platform.kms_alias
   acm_certificate      = module.platform.acm_certificate
   permissions_boundary = module.platform.permissions_boundary
+
+  # Sandbox reuses impl content bucket; bucket_env (prod) is for ECR/app-config only
+  content_env = local.parent_env == "sandbox" ? "impl" : local.parent_env
 
   # Terraservice-style SSM root mapping
   ssm_root_map = {
@@ -120,6 +123,7 @@ locals {
   # - slsx_verify_ssl_* are non-sensitive, handled via SSM nonsensitive path
   #   (SOPS → /bb/{env}/app/nonsensitive/django_slsx_verify_ssl_* → DJANGO_SLSX_VERIFY_SSL_*)
   secrets_exclude = toset([
+    # Infrastructure/EC2-only secrets — not used by the Django app in Fargate
     "ssh_users",
     "mon_nessus_pub_key",
     "mon_nessus_pwd",
@@ -129,6 +133,14 @@ locals {
     "cf_app_pyapps_pwd",
     "slsx_verify_ssl_internal",
     "slsx_verify_ssl_external",
+    # Legacy EC2 BFD cert format — Fargate uses BFD_KEY_PEM_B64 / BFD_CERT_PEM_B64 instead
+    "fhir_key_pem",
+    "fhir_cert_pem",
+    # Unused in Fargate — zero references in codebase
+    "readonly_DB",
+    "rand_secret",
+    "s3_storage_bucket_name_pfx",
+    "s3_storage_bucket_name_sfx",
   ])
 
   # SM basenames that need renaming to match Django env var names

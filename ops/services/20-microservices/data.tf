@@ -65,7 +65,7 @@ data "aws_ssm_parameters_by_path" "app_nonsensitive" {
 data "aws_security_group" "rds" {
   filter {
     name   = "group-name"
-    values = ["BB-SG-${upper(local.workspace)}-DATA-ALLZONE"]
+    values = ["BB-SG-${upper(local.workspace == "sandbox" ? "impl" : local.workspace)}-DATA-ALLZONE"]
   }
   vpc_id = local.vpc_id
 }
@@ -75,10 +75,15 @@ data "aws_security_group" "rds" {
 # ============================================================================
 
 # Discover all Secrets Manager secrets under /bb2/{env}/app/
+# Sandbox reuses legacy impl secrets (/bb2/impl/app/) rather than /bb2/sandbox/app/
+locals {
+  secrets_env = local.workspace == "sandbox" ? "impl" : local.workspace
+}
+
 data "aws_secretsmanager_secrets" "app_secrets" {
   filter {
     name   = "name"
-    values = ["/bb2/${local.workspace}/app/"]
+    values = ["/bb2/${local.secrets_env}/app/"]
   }
 }
 
