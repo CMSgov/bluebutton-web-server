@@ -46,6 +46,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Django Integration Tests
+        working-directory: ./ops/container
         run: |
           docker compose -f docker-compose-codebuild.yml up \
             --build \
