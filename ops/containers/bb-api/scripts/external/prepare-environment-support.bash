@@ -93,7 +93,7 @@ load_env_vars () {
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
         return 0
-    if [[ "${TARGET_ENV}" == "local" ]]; then
+    elif [[ "${TARGET_ENV}" == "codebuild" ]]; then
         echo "Codebuild - no-op"
     else
         echo "⛔ Cannot load env vars for non-local environments."
@@ -106,7 +106,7 @@ load_env_vars () {
 # After setting up the env, we need to make sure that one or two
 # variables are now present that would not have been otherwise.
 check_env_after_setup () {
-    if [ "${bfd}" != "local" ]; then
+    if [ "${bfd}" == "local" ]; then
         if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
             echo "⛔ We need insecure transport when running locally."
             echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."

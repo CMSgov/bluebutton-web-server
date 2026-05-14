@@ -18,7 +18,7 @@ build-local:
 
 build-codebuild:
 	echo "build-codebuild"
-	TARGET_ENV="test"
+	TARGET_ENV="codebuild"
 	docker build \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="codebuild" \
@@ -27,11 +27,11 @@ build-codebuild:
 		../../..
 
 run-codebuild:
-	@echo "run-cicd"
+	@echo "run-codebuild"
 	bfd="test" \
 	env="test" \
 	auth="live" \
-	TARGET_ENV="test" \
+	TARGET_ENV="codebuild" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 build-local-no-cache:
