@@ -134,18 +134,6 @@ set_bfd_urls () {
         FHIR_URL="${FHIR_URL_TEST}"
         FHIR_URL_V3="${FHIR_URL_V3_TEST}"
         LOCAL_TESTING_TARGET="test"
-    ############
-    # SBX
-    elif [[ "${bfd}" == "sbx" ]]; then
-        FHIR_URL="${FHIR_URL_SBX}"
-        FHIR_URL_V3="${FHIR_URL_V3_SBX}"
-        # FIXME: Do we use "impl" or "sbx"? ...
-        LOCAL_TESTING_TARGET="impl"
-    ############
-    # PROD
-    elif [[ "${bfd}" == "prod" ]]; then
-        echo "⛔ no way to set BFD urls for prod when running locally"
-        return 1
     fi
 
     return 0
@@ -244,14 +232,12 @@ configure_slsx () {
         return -2
     fi
 
-    # These seem to be the same regardless of the env (test or sbx).
     export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
     export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
     export DJANGO_SLSX_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_id --query 'SecretString' --output text)
     export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
     export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
     
-    echo "Setting SLSX endpoint/redirects..."
     export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
     export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
     export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"

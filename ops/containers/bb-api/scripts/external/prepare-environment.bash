@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT=$(git rev-parse --show-toplevel)
 source "$DIR/prepare-environment-support.bash"
 
 ####################################
@@ -69,7 +70,7 @@ cleanup_docker_stack
 # We `cd` into this directory to run the script.
 # Hence, we need to pop back up in order to get to the right
 # place to run the compose.
-cd ../..
+cd "$REPO_ROOT"
 
 
 if [[ "${daemon}" == "1" ]]; then
@@ -93,6 +94,12 @@ elif [[ "${COLLECTSTATIC}" == "1" ]]; then
         up --abort-on-container-exit
     docker compose down
     exit
+elif [[ "${TARGET_ENV}" == "codebuild" ]]; then
+    docker compose --project-directory . \
+            -f ops/container/docker-compose-codebuild.yml up \
+            --build \
+            --abort-on-container-exit \
+            --exit-code-from app
 else
     echo "📊 Tailing logs."
     echo
