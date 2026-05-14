@@ -1,16 +1,23 @@
+import json
 import logging
+import re
 
 from django.contrib.auth import get_user_model
-from oauth2_provider.views.base import get_access_token_model
+from django.db.models import Q
 from oauth2_provider.models import get_application_model
-from rest_framework import permissions, exceptions
+from oauth2_provider.views.base import get_access_token_model
+from rest_framework import exceptions, permissions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from waffle import get_waffle_flag_model
-from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET
-from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
-from apps.versions import Versions, VersionNotMatched
 
-from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.capabilities.models import ProtectedCapability
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    APPLICATION_TEMPORARILY_INACTIVE,
+    HHS_SERVER_LOGNAME_FMT,
+)
+from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
+from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -111,3 +118,40 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
             return True
         else:
             raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
+
+
+class AppScopePermission(permissions.BasePermission):
+    # v3 call, check the database for scopes
+    # Check if the resource type is within the scopes retrieved from the database for that app - otherwise throw a 403 error
+    def has_permission(self, request, view):
+        # Get the token
+        token = get_access_token_model().objects.get(token=request._auth)
+        # Ensure token exists
+        if not token:
+            return False
+        # Get the scopes for the application from the database
+        application_scopes = list(
+            ProtectedCapability.objects.filter(Q(application=token.application_id))
+            .values_list('protected_resources', flat=True)
+            .distinct()
+        )
+        if view.version == Versions.V3:
+            for scope in application_scopes:
+                for method, path in json.loads(scope):
+                    if method != request.method:
+                        continue
+                    if path == request.path:
+                        return True
+                    if re.fullmatch(path, request.path) is not None:
+                        return True
+        return False
+
+
+# for scope in scopes:
+#     for method, path in json.loads(scope):
+#         if method != request.method:
+#             continue
+#         if path == request.path:
+#             return True
+#         if re.fullmatch(path, request.path) is not None:
+#             return True
