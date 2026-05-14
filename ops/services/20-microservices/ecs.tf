@@ -53,6 +53,10 @@ resource "aws_ecs_task_definition" "ecs_task" {
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-task" }
+
+  lifecycle {
+    ignore_changes = [container_definitions]
+  }
 }
 
 # ECS Service
@@ -91,7 +95,7 @@ resource "aws_ecs_service" "ecs_service" {
   }
 
   lifecycle {
-    ignore_changes = [desired_count]
+    ignore_changes = [desired_count, task_definition]
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-service" }
