@@ -15,6 +15,7 @@ from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.permissions import (
     ApplicationActivePermission,
     ResourcePermission,
+    SamshaPermission,
     SearchCrosswalkPermission,
     V3EarlyAdopterPermission,
 )
@@ -46,6 +47,7 @@ class SearchView(FhirDataView):
         TokenHasProtectedCapability,
         HasSearchScope,
         V3EarlyAdopterPermission,
+        SamshaPermission,
     ]
 
     # Regex to match a valid _lastUpdated value that can begin with lt, le, gt and ge operators

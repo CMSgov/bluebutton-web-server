@@ -6,7 +6,7 @@ from oauth2_provider.models import get_application_model
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from waffle import get_waffle_flag_model
-from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET
+from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, FHIR_RES_TYPE_EOB
 from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
 from apps.versions import Versions, VersionNotMatched
 
@@ -111,3 +111,30 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
             return True
         else:
             raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
+
+
+class SamshaPermission(permissions.BasePermission):
+    """
+    Global permission check that the request is either:
+    1. not an EOB call
+    2. v3 (in which case SAMSHA filtering will occur)
+    3. for a token with no AccessTokenExtension (to allow older tokens to continue to work)
+    4. for a token/extension with include_samhsa==True
+    """
+
+    # TODO tests
+    def has_permission(self, request, view):
+        if view.resource_type != FHIR_RES_TYPE_EOB:
+            return True
+
+        if view.version == Versions.V3:
+            return True
+
+        token = get_access_token_model().objects.get(token=request._auth)
+
+        try:
+            extension = token.accesstokenextension
+        except get_access_token_model().accesstokenextension.RelatedObjectDoesNotExist:
+            return True
+
+        return extension.include_samhsa
