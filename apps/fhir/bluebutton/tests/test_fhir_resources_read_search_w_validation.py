@@ -715,6 +715,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
 
+    @tag('integration')
     @override_switch('v3_endpoints', active=True)
     def test_v3_eob_call_succeeds(self):
         """
@@ -726,6 +727,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {ac}')
         self.assertEqual(response.status_code, 200)
 
+    @tag('integration')
     def test_v12_no_extension_succeeds(self):
         """
         Ensure that a v1/2 call for a token with no AccessTokenExtension succeeds.
@@ -740,6 +742,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
 
+    @tag('integration')
     def test_v12_include_samhsa_false_fails(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==False fails
@@ -756,6 +759,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, 403)
             self.assertDictEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
 
+    @tag('integration')
     def test_v12_include_samhsa_true_succeeds(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==True succeeds
