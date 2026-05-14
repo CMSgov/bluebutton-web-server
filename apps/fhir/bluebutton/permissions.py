@@ -113,11 +113,11 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
             raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
 
 
-class SamshaPermission(permissions.BasePermission):
+class SamhsaPermission(permissions.BasePermission):
     """
     Global permission check that the request is either:
     1. not an EOB call
-    2. v3 (in which case SAMSHA filtering will occur)
+    2. v3 (in which case SAMHSA filtering will occur)
     3. for a token with no AccessTokenExtension (to allow older tokens to continue to work)
     4. for a token/extension with include_samhsa==True
     """
