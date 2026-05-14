@@ -163,7 +163,7 @@ class Application(AbstractApplication):
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
 
-    # Does this application need to collect beneficiary demographic information? YES = True/Null NO = False
+    # Does this application need to collect beneficiary demographic information? YES = True NO = False/Null
     require_demographic_scopes = models.BooleanField(
         default=True, null=True, verbose_name='Are demographic scopes required?'
     )
@@ -563,6 +563,21 @@ class AuthFlowUuidCopy(models.Model):
 
     def __str__(self):
         return str(self.auth_uuid)
+
+
+class AccessTokenExtension(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    access_token = models.OneToOneField(
+        settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL,
+        on_delete=models.CASCADE,
+        db_column='access_token_id',
+    )
+    include_samhsa = models.BooleanField(null=False, default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'oauth2_provider_accesstoken_extension'
 
 
 def get_application_counts():

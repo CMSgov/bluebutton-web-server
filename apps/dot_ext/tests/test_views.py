@@ -1,11 +1,13 @@
 import json
 import base64
 from datetime import date, timedelta
+from http import HTTPStatus
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.http import HttpRequest
 from django.urls import reverse
+from apps.capabilities.models import ProtectedCapability
 from httmock import HTTMock, urlmatch
 
 # from oauth2_provider.compat import parse_qs, urlparse
@@ -21,6 +23,7 @@ from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.test import BaseApiTest
 from apps.dot_ext.models import Application
 from apps.dot_ext.constants import (
+    BENE_PERSONAL_INFO_SCOPES,
     SCOPES_TO_URL_BASE_PATH,
     VIEW_OAUTH2_SCOPES_TEST_CASES,
 )
@@ -30,7 +33,78 @@ import os
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 
+class TestApplicationRegistrationView(BaseApiTest):
+    maxDiff = 2000
+
+    def test_assigns_default_scopes(self):
+        """
+        Test that the registration view assigns default scopes to apps it creates.
+        """
+        capability_a = self._create_capability('Capability A', [], default=True)
+        capability_b = self._create_capability('Capability B', [], default=True)
+        self._create_capability('Capability C', [], default=False)
+
+        self._create_user('anna', '123456')
+        self.client.login(request=HttpRequest(), username='anna', password='123456')
+
+        response = self.client.post(
+            reverse('oauth2_provider:register'),
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+        app = Application.objects.get(name='an app')
+
+        self.assertQuerySetEqual(app.scope.all(), [capability_a, capability_b], ordered=False)
+
+    def test_assigns_demographic_scopes(self):
+        """
+        Assert that the registration view assigns demographic scopes when the user
+        selects "yes" for "Does your application need to collect beneficiary demographic information"
+        """
+        call_command('create_blue_button_scopes')
+
+        self._create_user('anna', '123456')
+        self.client.login(request=HttpRequest(), username='anna', password='123456')
+
+        response = self.client.post(
+            reverse('oauth2_provider:register'),
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+        app = Application.objects.get(name='an app')
+
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        self.assertQuerySetEqual(app.scope.all(), default_scopes, ordered=False)
+
+    def test_does_not_assign_demographic_scopes(self):
+        """
+        Assert that the registration view does not assign demographic scopes when the
+        user selects "no" for "Does your application need to collect beneficiary demographic information"
+        """
+        call_command('create_blue_button_scopes')
+
+        self._create_user('anna', '123456')
+        self.client.login(request=HttpRequest(), username='anna', password='123456')
+
+        response = self.client.post(
+            reverse('oauth2_provider:register'),
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': False},
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+        app = Application.objects.get(name='an app')
+
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        self.assertQuerySetEqual(
+            app.scope.all(), default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES), ordered=False
+        )
+
+
 class TestApplicationUpdateView(BaseApiTest):
+    maxDiff = 2000
+
     def test_update_form_show(self):
         """ """
         read_group = self._create_group('read')
@@ -48,6 +122,38 @@ class TestApplicationUpdateView(BaseApiTest):
         uri = reverse('oauth2_provider:update', args=[app.pk])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
+
+    def test_adds_or_removes_demographic_scopes(self):
+        """
+        Assert that the update view adds or removes demographic scopes to match the
+        new value of require_demographic_scopes.
+        """
+        call_command('create_blue_button_scopes')
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        default_non_demographic = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
+
+        user = self._create_user('anna', '123456')
+        self.client.login(request=HttpRequest(), username='anna', password='123456')
+
+        # TODO pytest.mark.parameterize
+        for start, end in [(True, False), (False, True), (None, True), (None, False)]:
+            starting_scopes = default_scopes if start else default_non_demographic
+            desired_ending_scopes = default_scopes if end else default_non_demographic
+
+            app = self._create_application('an app', user=user)
+            app.require_demographic_scopes = start
+            app.save()
+            app.scope.set(starting_scopes)
+
+            response = self.client.post(
+                reverse('oauth2_provider:update', args=[app.pk]),
+                data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': end},
+            )
+            self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+            self.assertQuerySetEqual(app.scope.all(), desired_ending_scopes, ordered=False)
+
+            app.delete()
 
 
 class TestAuthorizationView(BaseApiTest):
