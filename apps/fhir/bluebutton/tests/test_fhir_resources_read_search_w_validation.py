@@ -742,7 +742,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
     def test_v12_include_samhsa_false_fails(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==False fails
