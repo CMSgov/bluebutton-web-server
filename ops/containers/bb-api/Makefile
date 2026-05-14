@@ -26,7 +26,7 @@ build-codebuild:
 
 run-codebuild:
 	echo "run-cicd"
-	bfd=${test} \
+	bfd="test" \
 	env=${env} \
 	auth="live" \
 	TARGET_ENV="test" \

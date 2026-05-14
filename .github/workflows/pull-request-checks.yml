@@ -45,12 +45,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Build BBAPI
+        run: |
+          cd /ops/containers/bb-api
+          make build-codebuild
+
       - name: Run Django Integration Tests
         run: |
-          docker compose -f ./ops/containers/docker-compose-codebuild.yaml up \
-            --build \
-            --abort-on-container-exit \
-            --exit-code-from app
+          cd /ops/containers/bb-api
+          make run-codebuild
 
       # - name: Setup AWS credentials
       #   uses: ./.github/actions/setup-tofu
