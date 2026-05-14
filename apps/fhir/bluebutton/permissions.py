@@ -122,7 +122,6 @@ class SamhsaPermission(permissions.BasePermission):
     4. for a token/extension with include_samhsa==True
     """
 
-    # TODO tests
     def has_permission(self, request, view):
         if view.resource_type != FHIR_RES_TYPE_EOB:
             return True
