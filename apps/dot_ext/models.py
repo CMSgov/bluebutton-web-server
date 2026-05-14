@@ -572,7 +572,7 @@ class AccessTokenExtension(models.Model):
         on_delete=models.CASCADE,
         db_column='access_token_id',
     )
-    include_samhsa = models.BooleanField(null=False, default=False)
+    include_samhsa = models.BooleanField(null=False, default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

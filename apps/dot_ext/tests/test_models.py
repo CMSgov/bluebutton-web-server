@@ -302,6 +302,7 @@ class TestDotExtModels(BaseApiTest):
 
         assert access_token_extension is not None
         assert access_token_extension.access_token == ac
+        assert access_token_extension.include_samhsa
 
     def test_access_token_extension_is_deleted_when_token_is_deleted(self) -> None:
         """Ensure that when an access token is deleted, the corresponding AccessTokenExtension record
@@ -319,6 +320,7 @@ class TestDotExtModels(BaseApiTest):
 
         assert access_token_extension is not None
         assert access_token_extension.access_token == ac
+        assert access_token_extension.include_samhsa
 
         ac.delete()
 

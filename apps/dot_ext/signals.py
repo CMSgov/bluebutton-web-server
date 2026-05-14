@@ -95,5 +95,5 @@ def create_access_token_extension(sender, instance, created, **kwargs):
     if created:
         AccessTokenExtension.objects.create(
             access_token=instance,
-            include_samhsa=False,
+            include_samhsa=True,
         )
