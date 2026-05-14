@@ -93,6 +93,8 @@ load_env_vars () {
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
         return 0
+    if [[ "${TARGET_ENV}" == "local" ]]; then
+        echo "Codebuild - no-op"
     else
         echo "⛔ Cannot load env vars for non-local environments."
         return 1
