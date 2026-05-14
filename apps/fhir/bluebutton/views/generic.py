@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.constants import FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT, HHS_SERVER_LOGNAME_FMT
+from apps.dot_ext.models import AccessTokenExtension
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
@@ -26,7 +27,7 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
 )
-from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION, EXCLUDE_SAMHSA_PARAMETER_VALUE
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server import connection as backend_connection
@@ -105,8 +106,13 @@ class FhirDataView(APIView):
                     'access_token_username': at.user.username,
                 }
                 logger.info(log_message)
+                at_extension = AccessTokenExtension.objects.get(access_token=at)
+                request.include_samhsa = at_extension.include_samhsa
             except ObjectDoesNotExist:
-                pass
+                # If for whatever reason we can't retrieve the access token or access token extension
+                # ensure we still set include_samhsa on the request so there is not an error related
+                # to accessing that attribute on the request in the fetch_data function
+                request.include_samhsa = True
 
         request.resource_type = resource_type
 
@@ -156,6 +162,19 @@ class FhirDataView(APIView):
                 # We are raising a ValidationError here so that, even when DEBUG = False, a developer
                 # making the request can see what the invalid parameters were so they can fix the request
                 raise ValidationError({'error': f'Invalid parameters: {validation_result.invalid_params}'})
+
+        # If a v3 EOB call is being made, and include_samhsa for the access token associated with the request is False
+        # make sure to add a parameter that will filter out SAMHSA data
+        if (
+            resource_type == FHIR_RES_TYPE_EOB
+            and self.version == Versions.V3
+            and not getattr(request, 'include_samhsa', True)
+            # and self._determine_if_samhsa_exclusion_filter_should_be_applied(request)
+        ):
+            get_parameters['_security:not'] = EXCLUDE_SAMHSA_PARAMETER_VALUE
+            # Reset request params after adding default _security:not param
+            req.params = get_parameters
+            prepped = s.prepare_request(req)
 
         # If a v3 EOB search call is being made, and it does not contain _tag or _source parameters
         # then append add _source=NCH to the query parameters of the call to ensure that, by default

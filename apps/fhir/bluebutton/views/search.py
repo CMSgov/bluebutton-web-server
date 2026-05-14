@@ -167,7 +167,6 @@ class SearchViewExplanationOfBenefit(SearchView):
         return {
             '_format': 'application/fhir+json',
             'patient': request.crosswalk.fhir_id(self.version),
-            # '_security:not': '42CFRPart2'
         }
 
     def filter_parameters(self, request):

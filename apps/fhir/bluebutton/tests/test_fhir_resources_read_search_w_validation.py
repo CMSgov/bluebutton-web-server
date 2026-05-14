@@ -9,11 +9,13 @@ from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
 
 from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.dot_ext.models import AccessTokenExtension
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
     DEFAULT_EOB_SOURCE,
     ENFORCE_PARAM_VALIDATAION,
+    EXCLUDE_SAMHSA_PARAMETER_VALUE,
     FHIR_CONFORMANCE_URLS,
     READ_UPDATE_DELETE_COVERAGE_URLS,
     READ_UPDATE_DELETE_EOB_URLS,
@@ -713,3 +715,57 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         )
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_call_eob_v3_include_samhsa_is_false(self) -> None:
+        """Ensure that if a v3 search EOB call is made, and if the oauth2_provider_accesstoken_extension record
+        associated with the request has include_samhsa of false, that the _security:not=42CFRPart2 is added to the
+        request
+        """
+        # create the user
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/ExplanationOfBenefit.rs'
+        ac.save()
+
+        token_extension = AccessTokenExtension.objects.get(access_token=ac)
+        token_extension.include_samhsa = False
+        token_extension.save()
+        print('token_extension: ', token_extension.__dict__)
+
+        url = SEARCH_EOB_URLS[Versions.V3]
+        response = self.client.get(
+            reverse(url),
+            {},
+            # Authorization='Bearer %s' % (first_access_token),
+            HTTP_AUTHORIZATION='Bearer %s' % first_access_token,
+        )
+        self.assertEqual(response.status_code, 200)
+        assert EXCLUDE_SAMHSA_PARAMETER_VALUE in response.json()['link'][0]['url']
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_call_eob_v3_include_samhsa_is_true(self) -> None:
+        """Ensure that if a v3 search EOB call is made, and if the oauth2_provider_accesstoken_extension record
+        associated with the request has include_samhsa of trie, that the _security:not=42CFRPart2 is NOT added to the
+        request
+        """
+        # create the user
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/ExplanationOfBenefit.rs'
+        ac.save()
+
+        url = reverse(SEARCH_EOB_URLS[Versions.V3])
+        response = self.client.get(
+            url,
+            {},
+            Authorization='Bearer %s' % (first_access_token),
+        )
+        self.assertEqual(response.status_code, 200)
+        assert EXCLUDE_SAMHSA_PARAMETER_VALUE not in response.json()['link'][0]['url']
