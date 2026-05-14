@@ -1,3 +1,5 @@
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 SHELL:=/bin/bash
 RELEASE_TAG?=TAG_NOT_SET
 bfd ?= "test"
@@ -25,12 +27,12 @@ build-codebuild:
 		../../..
 
 run-codebuild:
-	echo "run-cicd"
+	@echo "run-cicd"
 	bfd="test" \
-	env=${env} \
+	env="test" \
 	auth="live" \
 	TARGET_ENV="test" \
-	./scripts/external/prepare-environment.bash
+	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 build-local-no-cache:
 	echo "build-local no-cache"
@@ -48,4 +50,4 @@ run-local:
 	env=${env} \
 	auth=${auth} \
 	TARGET_ENV="local" \
-	./scripts/external/prepare-environment.bash
+	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
