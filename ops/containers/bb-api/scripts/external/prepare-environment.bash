@@ -96,7 +96,7 @@ elif [[ "${COLLECTSTATIC}" == "1" ]]; then
     exit
 elif [[ "${TARGET_ENV}" == "codebuild" ]]; then
     docker compose --project-directory . \
-            -f ops/container/docker-compose-codebuild.yml up \
+            -f ops/container/docker-compose-codebuild.yaml up \
             --build \
             --abort-on-container-exit \
             --exit-code-from app
