@@ -565,6 +565,21 @@ class AuthFlowUuidCopy(models.Model):
         return str(self.auth_uuid)
 
 
+class AccessTokenExtension(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    access_token = models.OneToOneField(
+        settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL,
+        on_delete=models.CASCADE,
+        db_column='access_token_id',
+    )
+    include_samhsa = models.BooleanField(null=False, default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'oauth2_provider_accesstoken_extension'
+
+
 def get_application_counts():
     """
     Get the active and inactive counts of applications.

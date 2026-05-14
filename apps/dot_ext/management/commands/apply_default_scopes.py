@@ -21,8 +21,8 @@ class Command(BaseCommand):
         self.stdout.write()
 
     def handle(self, *args, **options):
-        if os.getenv('TARGET_ENV') not in [None, 'local', 'test', 'sbx']:
-            raise CommandError('Target environment not in [None, "local", "test", "sbx"].')
+        if os.getenv('TARGET_ENV') not in [None, 'local', 'test', 'sbx', 'impl']:
+            raise CommandError('Target environment not in [None, "local", "test", "sbx", "impl"].')
 
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
