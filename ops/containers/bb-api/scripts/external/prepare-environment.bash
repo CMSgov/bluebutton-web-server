@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source bb-api/scripts/external/prepare-environment-support.bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$DIR/prepare-environment-support.bash"
 
 ####################################
 # OPERATING CONDITIONS
