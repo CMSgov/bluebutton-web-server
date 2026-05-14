@@ -47,12 +47,12 @@ jobs:
 
       - name: Build BBAPI
         run: |
-          cd /ops/containers/bb-api
+          cd ./ops/containers/bb-api
           make build-codebuild
 
       - name: Run Django Integration Tests
         run: |
-          cd /ops/containers/bb-api
+          cd ./ops/containers/bb-api
           make run-codebuild
 
       # - name: Setup AWS credentials
