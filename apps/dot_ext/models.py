@@ -567,12 +567,12 @@ class AuthFlowUuidCopy(models.Model):
 
 class AccessTokenExtension(models.Model):
     id = models.BigAutoField(primary_key=True)
-    access_token = models.ForeignKey(
+    access_token = models.OneToOneField(
         settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL,
         on_delete=models.CASCADE,
         db_column='access_token_id',
     )
-    include_samhsa = models.BooleanField(null=False, default=False)
+    include_samhsa = models.BooleanField(null=False, default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
