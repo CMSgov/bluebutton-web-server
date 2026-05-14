@@ -740,19 +740,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
 
-    # @override_switch('v3_endpoints', active=True)
-    # def test_v3_no_extension_fails(self):
-    #     """
-    #     Ensure that a v3 call for a token with no AccessTokenExtension fails.
-    #     """
-    #     ac = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3)
-    #     AccessToken.objects.get(token=ac).accesstokenextension.delete()
-    #     self.assertFalse(AccessTokenExtension.objects.all().exists())
-
-    #     response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {ac}')
-    #     # TODO should this be a 404?
-    #     self.assertEqual(response.status_code, 404)
-
     def test_v12_include_samhsa_false_fails(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==False fails
