@@ -17,6 +17,7 @@ from apps.fhir.bluebutton.permissions import (
     AppScopePermission,
     ResourcePermission,
     SearchCrosswalkPermission,
+    V2ExplanationOfBenefitPermission,
     V3EarlyAdopterPermission,
 )
 from apps.fhir.bluebutton.views.generic import FhirDataView
@@ -48,6 +49,7 @@ class SearchView(FhirDataView):
         HasSearchScope,
         V3EarlyAdopterPermission,
         AppScopePermission,
+        V2ExplanationOfBenefitPermission,
     ]
 
     # Regex to match a valid _lastUpdated value that can begin with lt, le, gt and ge operators

@@ -2,15 +2,15 @@ from rest_framework import permissions
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from apps.fhir.bluebutton.views.generic import FhirDataView
-
-from ..permissions import (
+from apps.fhir.bluebutton.permissions import (
     ApplicationActivePermission,
     AppScopePermission,
     ReadCrosswalkPermission,
     ResourcePermission,
+    V2ExplanationOfBenefitPermission,
     V3EarlyAdopterPermission,
 )
+from apps.fhir.bluebutton.views.generic import FhirDataView
 
 #####################################################################
 # These functions are a stepping stone to a single class based view #
@@ -30,6 +30,7 @@ class ReadView(FhirDataView):
         TokenHasProtectedCapability,
         V3EarlyAdopterPermission,
         AppScopePermission,
+        V2ExplanationOfBenefitPermission,
     ]
 
     def __init__(self, version=1):

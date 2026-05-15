@@ -14,6 +14,7 @@ from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
     APPLICATION_TEMPORARILY_INACTIVE,
+    FHIR_RES_TYPE_EOB,
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
@@ -150,3 +151,29 @@ class AppScopePermission(permissions.BasePermission):
                     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
                 )
             return is_valid
+
+
+class V2ExplanationOfBenefitPermission(permissions.BasePermission):
+    """
+    Global permission check that the request is either:
+    1. not an EOB call
+    2. v3 (in which case SAMHSA filtering will occur)
+    3. for a token with no AccessTokenExtension (to allow older tokens to continue to work)
+    4. for a token/extension with include_samhsa==True
+    """
+
+    def has_permission(self, request, view):
+        if view.resource_type != FHIR_RES_TYPE_EOB:
+            return True
+
+        if view.version == Versions.V3:
+            return True
+
+        token = get_access_token_model().objects.get(token=request.auth)
+
+        try:
+            extension = token.accesstokenextension
+        except get_access_token_model().accesstokenextension.RelatedObjectDoesNotExist:
+            return True
+
+        return extension.include_samhsa
