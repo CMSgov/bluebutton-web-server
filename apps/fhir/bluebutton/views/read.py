@@ -6,7 +6,7 @@ from apps.fhir.bluebutton.permissions import (
     ReadCrosswalkPermission,
     ResourcePermission,
     ApplicationActivePermission,
-    SamhsaPermission,
+    V12ExplanationOfBenefitPermission,
     V3EarlyAdopterPermission,
 )
 from apps.fhir.bluebutton.views.generic import FhirDataView
@@ -29,7 +29,7 @@ class ReadView(FhirDataView):
         DataAccessGrantPermission,
         TokenHasProtectedCapability,
         V3EarlyAdopterPermission,
-        SamhsaPermission,
+        V12ExplanationOfBenefitPermission,
     ]
 
     def __init__(self, version=1):

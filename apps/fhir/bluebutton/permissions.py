@@ -113,7 +113,7 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
             raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
 
 
-class SamhsaPermission(permissions.BasePermission):
+class V12ExplanationOfBenefitPermission(permissions.BasePermission):
     """
     Global permission check that the request is either:
     1. not an EOB call
