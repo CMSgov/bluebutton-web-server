@@ -44,16 +44,6 @@ class TokenHasProtectedCapability(permissions.BasePermission):
             is_valid = is_valid_scope(scopes, request)
             return is_valid
 
-            # for scope in scopes:
-            #     for method, path in json.loads(scope):
-            #         if method != request.method:
-            #             continue
-            #         if path == request.path:
-            #             return True
-            #         if re.fullmatch(path, request.path) is not None:
-            #             return True
-
-            # return False
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
             mesg = (
