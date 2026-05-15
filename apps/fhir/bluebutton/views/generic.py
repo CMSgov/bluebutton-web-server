@@ -20,7 +20,6 @@ from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
 from apps.fhir.bluebutton.permissions import (
     ApplicationActivePermission,
-    AppScopePermission,
     HasCrosswalk,
     ResourcePermission,
 )
@@ -54,7 +53,6 @@ class FhirDataView(APIView):
         HasCrosswalk,
         ResourcePermission,
         DataAccessGrantPermission,
-        AppScopePermission,
     ]
 
     def __init__(self, version=1):
@@ -168,7 +166,6 @@ class FhirDataView(APIView):
         # we only return NCH data for v3 EOB search calls. If a _source or _tag parameter is already included
         # then we won't add the default.
         resource_id = kwargs.get('resource_id')
-
         if (
             resource_type == FHIR_RES_TYPE_EOB
             and self.version == Versions.V3

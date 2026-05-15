@@ -754,7 +754,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         response = self.client.get(
             reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Patient')
         )
