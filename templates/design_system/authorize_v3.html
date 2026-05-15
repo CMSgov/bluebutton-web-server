@@ -109,7 +109,36 @@
 							<li>{% trans "Prescription Medications" %}</li>
 						</ul>
 					</div>
-					{% endif %}
+
+					<p class="ds-u-margin-top--2 ds-u-margin-bottom--0">{% trans "You can also grant access to your:" %}
+						<fieldset class="ds-c-fieldset ds-u-margin-top--1">
+							<legend class="ds-c-label" id="field_1-label">
+							</legend>
+							<div>
+							<div class="ds-c-choice-wrapper ds-u-margin-bottom--2" style="align-items: center;">
+								<input type="hidden" name="share_demographic_scopes" value="False" />
+								<input
+								onChange="toggleHintText()"
+								class="ds-c-choice"
+								id="radio_1"
+								name="share_demographic_scopes"
+								type="checkbox"
+								value="True"
+								checked=""
+								aria-describedby="allow_access block_access"
+								/>
+								<label class="ds-c-label ds-u-text-align--left" for="radio_1">
+
+								<span class="ds-text-body--md">{% trans "Include my alcohol and substance use information" %}</span>
+								</label>
+							</div>
+								<span class="ds-c-field__hint" id="allow_access_samhsa" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to your sensitive health information." %}</span>
+								<span class="ds-c-field__hint" id="block_access_samhsa"  role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to your sensitive health information." %}</span>
+							</div>
+						</fieldset>
+					</p>
+					<hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
+                    {% endif %}
 
 					{% csrf_token %}
 
