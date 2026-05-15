@@ -1,6 +1,4 @@
-import json
 import logging
-import re
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -13,10 +11,12 @@ from waffle import get_waffle_flag_model
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
     APPLICATION_TEMPORARILY_INACTIVE,
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
+from apps.utils import is_valid_scope
 from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -121,37 +121,31 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
 
 
 class AppScopePermission(permissions.BasePermission):
-    # v3 call, check the database for scopes
-    # Check if the resource type is within the scopes retrieved from the database for that app - otherwise throw a 403 error
     def has_permission(self, request, view):
-        # Get the token
+        """
+        Determines if the user has permission to make the call it's trying to make. Takes care of the
+        case where an app goes through a v1/v2 auth flow and tries to make a v3 call that it's not authorized to make.
+
+        args:
+          - request: The API Request
+          - view: The view
+        returns:
+          - True if there is a match with the current request and the scopes it has in the database
+          - Raises a custom 403 Forbidden error if not
+        """
         token = get_access_token_model().objects.get(token=request._auth)
-        # Ensure token exists
-        if not token:
+        print(type(request))
+        if not token or not token.application_id:
             return False
-        # Get the scopes for the application from the database
         application_scopes = list(
             ProtectedCapability.objects.filter(Q(application=token.application_id))
             .values_list('protected_resources', flat=True)
             .distinct()
         )
         if view.version == Versions.V3:
-            for scope in application_scopes:
-                for method, path in json.loads(scope):
-                    if method != request.method:
-                        continue
-                    if path == request.path:
-                        return True
-                    if re.fullmatch(path, request.path) is not None:
-                        return True
-        return False
-
-
-# for scope in scopes:
-#     for method, path in json.loads(scope):
-#         if method != request.method:
-#             continue
-#         if path == request.path:
-#             return True
-#         if re.fullmatch(path, request.path) is not None:
-#             return True
+            is_valid = is_valid_scope(application_scopes, request)
+            if not is_valid:
+                raise PermissionDenied(
+                    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
+                )
+            return is_valid

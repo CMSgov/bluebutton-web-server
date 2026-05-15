@@ -1,12 +1,10 @@
-import json
-import re
-
-from apps.dot_ext.scopes import CapabilitiesScopes
 from rest_framework import permissions, status
 from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.utils import is_valid_scope
 
 
 class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
@@ -38,19 +36,24 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                     token_scopes = CapabilitiesScopes().remove_eob_scopes(token_scopes)
 
             scopes = list(
-                ProtectedCapability.objects.filter(slug__in=token_scopes).values_list('protected_resources', flat=True).all()
+                ProtectedCapability.objects.filter(slug__in=token_scopes)
+                .values_list('protected_resources', flat=True)
+                .all()
             )
 
-            for scope in scopes:
-                for method, path in json.loads(scope):
-                    if method != request.method:
-                        continue
-                    if path == request.path:
-                        return True
-                    if re.fullmatch(path, request.path) is not None:
-                        return True
+            is_valid = is_valid_scope(scopes, request)
+            return is_valid
 
-            return False
+            # for scope in scopes:
+            #     for method, path in json.loads(scope):
+            #         if method != request.method:
+            #             continue
+            #         if path == request.path:
+            #             return True
+            #         if re.fullmatch(path, request.path) is not None:
+            #             return True
+
+            # return False
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
             mesg = (
