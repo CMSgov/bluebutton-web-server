@@ -31,7 +31,7 @@ from apps.fhir.bluebutton.utils import (
     valid_patient_read_or_search_call,
     validate_query_parameters,
 )
-from apps.fhir.constants import ENFORCE_PARAM_VALIDATAION
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATION
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server import connection as backend_connection
@@ -155,7 +155,7 @@ class FhirDataView(APIView):
         accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
         request_prefer_header = request.META.get('HTTP_PREFER')
 
-        if request_prefer_header == ENFORCE_PARAM_VALIDATAION and query_param and self.version == Versions.V3:
+        if request_prefer_header == ENFORCE_PARAM_VALIDATION and query_param and self.version == Versions.V3:
             accepted_query_parameters = getattr(self, 'QUERY_SCHEMA', {})
             validation_result = validate_query_parameters(accepted_query_parameters, query_param)
             if not validation_result.valid:
