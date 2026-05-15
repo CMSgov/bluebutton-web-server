@@ -7,6 +7,9 @@ from apps.fhir.bluebutton.permissions import (
     AppScopePermission,
     ReadCrosswalkPermission,
     ResourcePermission,
+    ReadCrosswalkPermission,
+    ResourcePermission,
+    ApplicationActivePermission,
     V2ExplanationOfBenefitPermission,
     V3EarlyAdopterPermission,
 )

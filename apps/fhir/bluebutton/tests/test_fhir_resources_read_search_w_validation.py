@@ -14,6 +14,7 @@ from apps.constants import (
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
 )
+from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.dot_ext.models import AccessTokenExtension
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
