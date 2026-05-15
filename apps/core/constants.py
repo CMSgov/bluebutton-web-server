@@ -8,7 +8,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ('login', True, 'This enables login related URLs and code. See apps/accounts/urls.py file for more info.'),
     ('logout', True, 'This enables logout related URLs and code. See apps/accounts/urls.py file for more info.'),
     ('outreach_email', True, 'This enables developer outreach emails. Not active in prod.'),
-    ('require-scopes', True, 'Thie enables enforcement of permission checking of scopes.'),
+    ('require-scopes', True, 'This enables enforcement of permission checking of scopes.'),
     (
         'show_django_message_sdk',
         True,
