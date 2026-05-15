@@ -129,7 +129,7 @@ class SamhsaPermission(permissions.BasePermission):
         if view.version == Versions.V3:
             return True
 
-        token = get_access_token_model().objects.get(token=request._auth)
+        token = get_access_token_model().objects.get(token=request.auth)
 
         try:
             extension = token.accesstokenextension
