@@ -8,7 +8,12 @@ from httmock import HTTMock, all_requests
 from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
 
-from apps.constants import C4BB_PROFILE_URLS, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
+    C4BB_PROFILE_URLS,
+    DEFAULT_SAMPLE_FHIR_ID_V2,
+    DEFAULT_SAMPLE_FHIR_ID_V3,
+)
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
@@ -713,3 +718,41 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         )
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_invalid_scope_returns_403(self):
+        """
+        Returns a 403 since the scope is for a patient and they are trying to make a coverage call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.search'
+        ac.save()
+
+        response = self.client.get(
+            reverse(SEARCH_COVERAGE_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Coverage')
+        )
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_valid_scope_returns_200(self):
+        """
+        Returns a 200 since the scope is for a patient and they are trying to make a patient call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.search'
+        ac.save()
+
+        response = self.client.get(
+            reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Patient')
+        )

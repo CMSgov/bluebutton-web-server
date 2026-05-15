@@ -6,6 +6,7 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.views.base import get_access_token_model
 from rest_framework import exceptions, permissions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from rest_framework.request import Request
 from waffle import get_waffle_flag_model
 
 from apps.capabilities.models import ProtectedCapability
@@ -121,28 +122,28 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
 
 
 class AppScopePermission(permissions.BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request: Request, view) -> bool:
         """
-        Determines if the user has permission to make the call it's trying to make. Takes care of the
-        case where an app goes through a v1/v2 auth flow and tries to make a v3 call that it's not authorized to make.
+        Determines if the user/app has permission to make the call it's trying to make. Takes care of the
+        case where a user/app goes through a v1/v2 auth flow and tries to make a v3 call that it's not authorized to make.
 
         args:
           - request: The API Request
           - view: The view
         returns:
-          - True if there is a match with the current request and the scopes it has in the database
+          - True if there is a match with the current request and the scopes the app has in the database
           - Raises a custom 403 Forbidden error if not
         """
         token = get_access_token_model().objects.get(token=request._auth)
-        print(type(request))
         if not token or not token.application_id:
             return False
-        application_scopes = list(
-            ProtectedCapability.objects.filter(Q(application=token.application_id))
-            .values_list('protected_resources', flat=True)
-            .distinct()
-        )
+
         if view.version == Versions.V3:
+            application_scopes = list(
+                ProtectedCapability.objects.filter(Q(application=token.application_id))
+                .values_list('protected_resources', flat=True)
+                .distinct()
+            )
             is_valid = is_valid_scope(application_scopes, request)
             if not is_valid:
                 raise PermissionDenied(
