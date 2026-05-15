@@ -13,7 +13,7 @@ from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
     DEFAULT_EOB_SOURCE,
-    ENFORCE_PARAM_VALIDATAION,
+    ENFORCE_PARAM_VALIDATION,
     FHIR_CONFORMANCE_URLS,
     READ_UPDATE_DELETE_COVERAGE_URLS,
     READ_UPDATE_DELETE_EOB_URLS,
@@ -589,36 +589,36 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_EOB_URLS[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
     @tag('integration')
     def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_COVERAGE_URLS[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
     @tag('integration')
     def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_PATIENT_URLS[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATAION)
+            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_EOB_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
-            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_COVERAGE_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
-            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
     def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_PATIENT_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
-            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATAION
+            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
     @tag('integration')
@@ -662,7 +662,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             HTTP_PREFER=prefer_header,
         )
         self.assertEqual(response.status_code, expected_response_code)
-        if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATAION:
+        if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATION:
             self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
 
     @tag('integration')
