@@ -18,16 +18,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
-from django.db.models import Q
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
-from apps.capabilities.models import ProtectedCapability
-from django.urls import reverse
 from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
@@ -52,6 +50,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauthlib.oauth2 import AccessDeniedError
+from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
     InvalidGrantError,
@@ -64,6 +63,7 @@ from apps.authorization.models import (
     DataAccessGrant,
     create_or_update_data_access_grant_client_credential_flow,
 )
+from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     CLIENT_CREDENTIALS,
@@ -254,7 +254,7 @@ class AuthorizationView(DotAuthorizationView):
             # for the access token are in the intersection of what the application is allowed to have and
             # what the request is asking for
             context['form'].initial['scope'] = ' '.join(list(matching_scopes))
-
+        print('RETURNING CONTEXT: ', context)
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -414,6 +414,10 @@ class AuthorizationView(DotAuthorizationView):
         # Get beneficiary demographic scopes sharing choice
         share_demographic_scopes = form.cleaned_data.get('share_demographic_scopes')
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
+
+        share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+        print('share_samhsa_data: ', share_samhsa_data)
+        # set include_samhsa on request
 
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)

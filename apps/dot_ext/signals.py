@@ -92,6 +92,10 @@ pre_save.connect(outreach_first_api_call, sender=AccessToken)
 def create_access_token_extension(sender, instance, created, **kwargs):
     # TODO: Need to update to take into account what was passed for include_samhsa
     # Once the checkbox is in place on v3 permissions screen
+    print('sender: ', sender.__dict__)
+    print('instance: ', instance)
+    print('created: ', created)
+    print('kwargs: ', kwargs)
     if created:
         AccessTokenExtension.objects.create(
             access_token=instance,
