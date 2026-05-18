@@ -51,8 +51,6 @@ gonogo "retrieve_bfd_certs"
 configure_slsx
 gonogo "configure_slsx"
 
-
-
 echo "🚀 Launching the stack for '${bfd}/${auth}'."
 
 if [[ "${bfd}" == "local" ]]; then

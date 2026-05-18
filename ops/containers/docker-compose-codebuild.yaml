@@ -9,4 +9,4 @@ services:
     #   dockerfile: ops/containers/bb-api/Dockerfile
     image: bb-api:latest
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
-    env_file: .env.codebuild
+    env_file: /home/boton/bb/ops/containers/bb-api/external/.env.codebuild
