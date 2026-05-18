@@ -10,5 +10,5 @@ services:
     volumes:
       - ./bb-api/scripts:/home/boton/bb/ops/containers/bb-api/scripts
       - type: bind
-        source: ../..
+        source: ../../..
         target: /home/boton/bb
