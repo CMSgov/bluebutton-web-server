@@ -1,8 +1,7 @@
 from datetime import timedelta
-from urllib.parse import parse_qs
+
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 
-from apps.constants import CLIENT_CREDENTIALS
 from apps.pkce.oauth2_server import PKCEServerMixin
 
 
@@ -11,9 +10,6 @@ def my_token_expires_in(request):
     Function that returns the expires_in value used to create
     tokens.
     """
-    request_body = parse_qs(request.body)
-    grant_type = request_body.get('grant_type', [None])
-
     one_hour_delta = timedelta(hours=1)
     seconds_in_one_hour = int(one_hour_delta.total_seconds())
     return seconds_in_one_hour

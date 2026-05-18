@@ -1082,7 +1082,7 @@ class TokenView(DotTokenView):
                                 status=HTTPStatus.NOT_FOUND,
                             )
                     except Exception as e:
-                        log.error(f'Error validating jwt: {e}')
+                        log.error(f'Error validating jwt: {type(e)}')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
