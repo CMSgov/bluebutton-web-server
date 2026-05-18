@@ -1,31 +1,30 @@
 import json
-import apps.fhir.bluebutton.utils
+from http import HTTPStatus
+from unittest.mock import patch
+from urllib.parse import unquote
 
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from django.test.client import Client
 from django.urls import reverse
-from httmock import all_requests, HTTMock, urlmatch
-from http import HTTPStatus
+from httmock import HTTMock, all_requests, urlmatch
 from oauth2_provider.models import get_access_token_model
-from urllib.parse import unquote
-from unittest.mock import patch
 
+import apps.fhir.bluebutton.utils
 from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, DEFAULT_SAMPLE_FHIR_ID_V2
-from apps.fhir.constants import (
-    READ_UPDATE_DELETE_PATIENT_URLS,
-    READ_UPDATE_DELETE_EOB_URLS,
-    READ_UPDATE_DELETE_COVERAGE_URLS,
-    SEARCH_EOB_URLS,
-    SEARCH_PATIENT_URLS,
-)
-from apps.fhir.bluebutton.views.home import conformance_filter
-from apps.mymedicare_cb.tests.responses import patient_response
-from apps.test import BaseApiTest
-
-from hhs_oauth_server.settings.base import FHIR_SERVER
 
 # Get the pre-defined Conformance statement
 from apps.fhir.bluebutton.tests.data_conformance import CONFORMANCE
+from apps.fhir.bluebutton.views.home import conformance_filter
+from apps.fhir.constants import (
+    READ_UPDATE_DELETE_COVERAGE_URLS,
+    READ_UPDATE_DELETE_EOB_URLS,
+    READ_UPDATE_DELETE_PATIENT_URLS,
+    SEARCH_EOB_URLS,
+    SEARCH_PATIENT_URLS,
+)
+from apps.mymedicare_cb.tests.responses import patient_response
+from apps.test import BaseApiTest
+from hhs_oauth_server.settings.base import FHIR_SERVER
 
 AccessToken = get_access_token_model()
 
@@ -45,7 +44,9 @@ def get_expected_read_request(version: int):
             'X-Forwarded-For': '127.0.0.1',
             'keep-alive': 'timeout=120, max=10',
             'BlueButton-OriginalUrl': f'/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}',
-            'BlueButton-BackendCall': (f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}/'),
+            'BlueButton-BackendCall': (
+                f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}/'
+            ),
         },
     }
 
@@ -194,7 +195,10 @@ class ThrottleReadRequestTest(BaseApiTest):
                         }
                     ],
                     'identifier': [
-                        {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': DEFAULT_SAMPLE_FHIR_ID_V2},
+                        {
+                            'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                            'value': DEFAULT_SAMPLE_FHIR_ID_V2,
+                        },
                         {
                             'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash',
                             'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5',
@@ -246,7 +250,9 @@ class ThrottleReadRequestTest(BaseApiTest):
             self.assertEqual(response.get('Retry-After'), '86400')
 
             # Assert that the search endpoint is also ratelimited
-            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 429)
 
@@ -394,7 +400,9 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 404)
 
@@ -430,7 +438,9 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(SEARCH_EOB_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 200)
 
@@ -470,7 +480,9 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 502)
 
@@ -527,7 +539,9 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(fhir_request, catchall):
-            response = self.client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token))
+            response = self.client.get(
+                reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer %s' % (first_access_token)
+            )
 
             self.assertEqual(response.status_code, 502)
 
@@ -700,7 +714,10 @@ class BackendConnectionTest(BaseApiTest):
                         }
                     ],
                     'identifier': [
-                        {'system': 'https://bluebutton.cms.gov/resources/variables/bene_id', 'value': DEFAULT_SAMPLE_FHIR_ID_V2},
+                        {
+                            'system': 'https://bluebutton.cms.gov/resources/variables/bene_id',
+                            'value': DEFAULT_SAMPLE_FHIR_ID_V2,
+                        },
                         {
                             'system': 'https://bluebutton.cms.gov/resources/identifier/hicn-hash',
                             'value': '2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5',
@@ -951,7 +968,9 @@ class BackendConnectionTest(BaseApiTest):
             return {'status_code': HTTPStatus.NOT_FOUND, 'detail': 'Not found.'}
 
         with HTTMock(catchall):
-            response = self.client.get('/v2/fhir/Patient/' + non_token_fhir_id_v2, Authorization='Bearer %s' % (access_token))
+            response = self.client.get(
+                '/v2/fhir/Patient/' + non_token_fhir_id_v2, Authorization='Bearer %s' % (access_token)
+            )
 
         json_response = response.json()
         assert response.status_code == HTTPStatus.NOT_FOUND
@@ -976,7 +995,9 @@ class BackendConnectionTest(BaseApiTest):
             return {'status_code': HTTPStatus.NOT_FOUND, 'detail': 'Not found.'}
 
         with HTTMock(catchall):
-            response = self.client.get('/v2/fhir/Patient/' + non_token_fhir_id_v2, Authorization='Bearer %s' % (access_token))
+            response = self.client.get(
+                '/v2/fhir/Patient/' + non_token_fhir_id_v2, Authorization='Bearer %s' % (access_token)
+            )
 
         json_response = response.json()
         assert response.status_code == HTTPStatus.NOT_FOUND

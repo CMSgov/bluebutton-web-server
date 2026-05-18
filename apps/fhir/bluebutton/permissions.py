@@ -151,6 +151,7 @@ class AppScopePermission(permissions.BasePermission):
                     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
                 )
             return is_valid
+        return True
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):

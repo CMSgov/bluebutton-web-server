@@ -609,18 +609,21 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             url = SEARCH_PATIENT_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
+    @tag('integration')
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_EOB_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
             url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
+    @tag('integration')
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_COVERAGE_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
             url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
+    @tag('integration')
     def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_PATIENT_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
@@ -758,6 +761,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Patient')
         )
 
+    @tag('integration')
     def test_v3_eob_call_succeeds(self):
         """
         Ensure that a v3 EOB call succeeds despite the presence of SamhsaPermission.
@@ -783,6 +787,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
 
+    @tag('integration')
     def test_v12_include_samhsa_false_fails(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==False fails
