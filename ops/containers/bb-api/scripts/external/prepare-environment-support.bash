@@ -60,11 +60,11 @@ check_env_preconditions () {
 
 ########################################
 # load_env_vars
-# By definition, this should only be used when TARGET_ENV == "local"
+# By definition, this should only be used when TARGET_ENV == "local" or "codebuild"
 # We should not be getting variables in this manner when we are running
 # in a production-like environment.
 load_env_vars () {
-    if [[ "${TARGET_ENV}" == "local" ]]; then
+    if [[ "$TARGET_ENV" == "local" || "$TARGET_ENV" == "codebuild" ]]; then
         export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
         export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
         export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
@@ -93,8 +93,6 @@ load_env_vars () {
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
         return 0
-    elif [[ "${TARGET_ENV}" == "codebuild" ]]; then
-        echo "Codebuild - no-op"
     else
         echo "⛔ Cannot load env vars for non-local environments."
         return 1
@@ -106,7 +104,7 @@ load_env_vars () {
 # After setting up the env, we need to make sure that one or two
 # variables are now present that would not have been otherwise.
 check_env_after_setup () {
-    if [ "${bfd}" == "local" ]; then
+    if [ "${TARGET_ENV}" == "local" ]; then
         if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
             echo "⛔ We need insecure transport when running locally."
             echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."
@@ -232,12 +230,14 @@ configure_slsx () {
         return -2
     fi
 
+    # These seem to be the same regardless of the env (test or sbx).
     export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
     export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
     export DJANGO_SLSX_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_id --query 'SecretString' --output text)
     export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
     export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
     
+    echo "Setting SLSX endpoint/redirects..."
     export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
     export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
     export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"

@@ -93,11 +93,10 @@ elif [[ "${COLLECTSTATIC}" == "1" ]]; then
     docker compose down
     exit
 elif [[ "${TARGET_ENV}" == "codebuild" ]]; then
-    docker compose --project-directory . \
-            -f ops/containers/docker-compose-codebuild.yaml up \
-            --build \
-            --abort-on-container-exit \
-            --exit-code-from app
+    docker compose -f ops/containers/docker-compose-codebuild.yaml \
+                up \
+                --abort-on-container-exit \
+                --exit-code-from app
 else
     echo "📊 Tailing logs."
     echo
