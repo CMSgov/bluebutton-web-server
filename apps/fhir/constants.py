@@ -114,7 +114,7 @@ PAGE_NOT_FOUND_TESTS = [
     Status('.well-known/openid-configuration-v3', 404),
 ]
 
-ENFORCE_PARAM_VALIDATAION = 'handling=strict'
+ENFORCE_PARAM_VALIDATION = 'handling=strict'
 
 """
     (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
