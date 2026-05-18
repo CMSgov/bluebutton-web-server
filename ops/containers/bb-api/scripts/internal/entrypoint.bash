@@ -5,6 +5,8 @@ source ops/containers/bb-api/scripts/internal/entrypoint-support.bash
 
 echo "TARGET_ENV: $TARGET_ENV"
 
+set -e -o pipefail
+
 # ========== ENV VARS ==========
 # (Re-)export the variables we need for the rest of the launch.
 # Any per-environment choices for vars happens here, too.
@@ -16,7 +18,7 @@ export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 # ========== DATABASE ==========
 # Construct DATABASES_CUSTOM from individual SM secrets (supports credential rotation)
 # Django uses dj_database_url to parse this connection string
-if [[ $TARGET_ENV == "local" ]]; then
+if [[ $TARGET_ENV == "local" || $TARGET_ENV == "codebuild" ]]; then
     echo "🔵 using DATABASES_CUSTOM from local environment"
 else
     if [[ -n "$DB_USER_NAME" ]]; then
@@ -47,6 +49,7 @@ gonogo "run_socat_locally"
 
 # Must come after socat, so we can talk to the s3mock.
 possibly_migrate_or_collectstatic_if_local
+
 # Setup the database and users.
 setup_database_and_users_if_local
 gonogo "setup_database_and_users_if_local"

@@ -198,6 +198,18 @@ retrieve_bfd_certs () {
 }
 
 ########################################
+# verify_certs
+verify_certs() {
+    echo "🟦 Verifying BFD certificates are loaded..."
+    
+    : "${BFD_CERT_PEM_B64:?⛔ ERROR: BFD_CERT_PEM_B64 is empty or not set.}"
+    : "${BFD_KEY_PEM_B64:?⛔ ERROR: BFD_KEY_PEM_B64 is empty or not set.}"
+    
+    echo "🆗 BFD certificates verified."
+    return 0
+}
+
+########################################
 # configure_slsx
 # How do we want to authenticate? Mock or live?
 configure_slsx () {
@@ -264,22 +276,25 @@ configure_slsx () {
 # this will probably close things. In short: if you have a `postgres` container, this
 # function will try and stop ALL docker containers.
 cleanup_docker_stack () {
-    DOCKER_PS=$(docker ps -q)
 
-    TAKE_IT_DOWN="NO"
-    for id in $DOCKER_PS; do
-        NAME=$(docker inspect --format '{{.Config.Image}}' $id)
-        if [[ "${NAME}" =~ "postgres" ]]; then
-            echo "🤔 I think things are still running. Bringing the stack down."
-            TAKE_IT_DOWN="YES"
-        fi
-    done
-
-    if [ "${TAKE_IT_DOWN}" = "YES" ]; then
+    if [ "${TARGET_ENV}" == "local" ]; then
+        echo "🆗 Cleaning up local docker stack."
+        DOCKER_PS=$(docker ps -q)
+        TAKE_IT_DOWN="NO"
         for id in $DOCKER_PS; do
-            echo "🛑 Stopping container $id"
-            docker stop $id
+            NAME=$(docker inspect --format '{{.Config.Image}}' $id)
+            if [[ "${NAME}" =~ "postgres" ]]; then
+                echo "🤔 I think things are still running. Bringing the stack down."
+                TAKE_IT_DOWN="YES"
+            fi
         done
+
+        if [ "${TAKE_IT_DOWN}" = "YES" ]; then
+            for id in $DOCKER_PS; do
+                echo "🛑 Stopping container $id"
+                docker stop $id
+            done
+        fi
     fi
 }
 

@@ -11,7 +11,7 @@ run_socat_locally () {
             return 1
         fi
     else
-        echo "🔵 choosing not to run socat in production."
+        echo "🔵 choosing not to run socat in AWS."
         return 0
     fi
 }
@@ -45,6 +45,12 @@ check_bfd_certs_are_not_empty () {
 
 possibly_migrate_or_collectstatic_if_local () {
     echo "🟦 possibly migrate or collectstatic"
+    echo $TARGET_ENV
+    if [[ $TARGET_ENV == "codebuild" ]]; then
+        echo "🔵 running migrate"
+        python manage.py migrate
+        echo "🔵 done running migrate ; bring down the stack"
+    fi
 
     if [[ $TARGET_ENV == "local" ]]; then
         if [[ "${MIGRATE}" == "1" ]]
@@ -97,7 +103,7 @@ launch_blue_button () {
     echo "🟦 Launch Blue Button"
     mkdir -p /tmp/gunicorn
     # Start BBAPI via `gunicorn`
-    if [[ $TARGET_ENV == "local" ]]; then
+    if [[ $TARGET_ENV == "local" || $TARGET_ENV == "codebuild" ]]; then
         if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]; then
             echo "🔵 local run options (wait for attach...)"
             python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn \
@@ -148,6 +154,24 @@ launch_blue_button () {
 # Function for setting up local stack
 setup_database_and_users_if_local () {
     echo "🟦 Setup database and users if local"
+
+    if [[ $TARGET_ENV == "codebuild" ]]; then
+        python manage.py create_test_feature_switches
+        echo "🆗 create_test_feature_switches"
+
+        python manage.py create_admin_groups
+        echo "🆗 create_admin_groups"
+
+        python manage.py create_blue_button_scopes
+        echo "🆗 create_blue_button_scopes"
+
+        python manage.py create_test_user_and_application
+
+        echo "🆗 create_test_user_and_application"
+
+        python manage.py create_user_identification_label_selection
+        echo "🆗 create_user_identification_label_selection"
+    fi
 
     if [[ $TARGET_ENV == "local" ]]; then
 

@@ -7,7 +7,7 @@ env ?= "local"
 auth ?= "live"
 
 build-local:
-	echo "build-local"
+	@echo "build-local"
 	TARGET_ENV="local" \
 	docker build \
 		--build-arg RELEASE_TAG="local" \
@@ -17,12 +17,12 @@ build-local:
 		../../..
 
 build-codebuild:
-	echo "build-codebuild"
+	@echo "build-codebuild"
 	TARGET_ENV="codebuild"
 	docker build \
-		--build-arg RELEASE_TAG="local" \
+		--build-arg RELEASE_TAG="codebuild" \
 		--build-arg BUILD_TARGET="codebuild" \
-		-t bb-api:latest \
+		-t bb-api:codebuild \
 		-f Dockerfile \
 		../../..
 
@@ -32,6 +32,7 @@ run-codebuild:
 	env="test" \
 	auth="live" \
 	TARGET_ENV="codebuild" \
+	MIGRATE=1 \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 build-local-no-cache:

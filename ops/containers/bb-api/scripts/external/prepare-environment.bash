@@ -44,6 +44,9 @@ gonogo "set_bfd_urls"
 retrieve_bfd_certs
 gonogo "retrieve_bfd_certs"
 
+verify_certs
+gonogo "verify_certs"
+
 ####################################
 # SLSX
 # We may want to run against a mock, or against
@@ -70,40 +73,43 @@ cleanup_docker_stack
 # place to run the compose.
 cd "$REPO_ROOT"
 
-
-if [[ "${daemon}" == "1" ]]; then
+if [[ "${TARGET_ENV}" == "codebuild" ]]; then
     docker compose \
-    -f ops/containers/docker-compose-local.yaml \
-    up \
-    --detach
-elif [[ "${MIGRATE}" == "1"  ]]; then
-    echo "📊 Migrating."
-    echo
-    docker compose \
-        -f ops/containers/docker-compose-local.yaml \
-        up --abort-on-container-exit
-    docker compose down
-    exit
-elif [[ "${COLLECTSTATIC}" == "1" ]]; then
-    echo "📊 Collecting static."
-    echo
-    docker compose \
-        -f ops/containers/docker-compose-local.yaml \
-        up --abort-on-container-exit
-    docker compose down
-    exit
-elif [[ "${TARGET_ENV}" == "codebuild" ]]; then
-    docker compose -f ops/containers/docker-compose-codebuild.yaml \
-                up \
-                --abort-on-container-exit \
-                --exit-code-from app
+        -f ops/containers/docker-compose-codebuild.yaml \
+        up \
+        --abort-on-container-exit \
+        --exit-code-from app
 else
-    echo "📊 Tailing logs."
-    echo
-    BUILD_TARGET=local \
-    RELEASE_TAG=local \
-    TARGET_ENV="local" \
-    docker compose \
+    if [[ "${daemon}" == "1" ]]; then
+        docker compose \
         -f ops/containers/docker-compose-local.yaml \
-        up --abort-on-container-exit
+        up \
+        --detach
+    elif [[ "${MIGRATE}" == "1"  ]]; then
+        echo "📊 Migrating."
+        echo
+        docker compose \
+            -f ops/containers/docker-compose-local.yaml \
+            up --abort-on-container-exit
+        docker compose down
+        exit
+    elif [[ "${COLLECTSTATIC}" == "1" ]]; then
+        echo "📊 Collecting static."
+        echo
+        docker compose \
+            -f ops/containers/docker-compose-local.yaml \
+            up --abort-on-container-exit
+        docker compose down
+        exit
+
+    else
+        echo "📊 Tailing logs."
+        echo
+        BUILD_TARGET=local \
+        RELEASE_TAG=local \
+        TARGET_ENV="local" \
+        docker compose \
+            -f ops/containers/docker-compose-local.yaml \
+            up --abort-on-container-exit
+    fi
 fi

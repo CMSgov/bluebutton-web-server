@@ -2,11 +2,19 @@ services:
   ####################
   # Blue Button
   bb-api:
-    # build: 
-    #   # Note the context is the top of the repo, and the
-    #   # dockerfile is down in the `ops` tree.
-    #   context: ../..
-    #   dockerfile: ops/containers/bb-api/Dockerfile
-    image: bb-api:latest
+    image: bb-api:codebuild
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
     env_file: ./bb-api/files/external/.env.codebuild
+    environment:
+      TARGET_ENV: "codebuild"
+    volumes:
+      - ./bb-api/scripts:/home/boton/bb/ops/containers/bb-api/scripts
+      - type: bind
+        source: ../..
+        target: /home/boton/bb
+        read_only: ${READ_ONLY:-true}
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 200000000 # 200MB
+          mode: "0777"
