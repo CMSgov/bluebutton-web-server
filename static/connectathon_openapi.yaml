@@ -1558,7 +1558,7 @@ components:
                       health efforts to advance the behavioral health of the nation.
   
                       Setting this flag to _true_, modifies the request to filter out
-                      all SAMSHA-related claims from the response.
+                      all SAMHSA-related claims from the response.
   
   
                       Examples:
@@ -1931,7 +1931,7 @@ components:
                       health efforts to advance the behavioral health of the nation.
         
                       Setting this flag to _true_, modifies the request to filter out
-                      all SAMSHA-related claims from the response.
+                      all SAMHSA-related claims from the response.
         
         
                       Examples:
@@ -2338,7 +2338,7 @@ components:
                       health efforts to advance the behavioral health of the nation.
                       
                       Setting this flag to _true_, modifies the request to filter out
-                      all SAMSHA-related claims from the response.
+                      all SAMHSA-related claims from the response.
                       
                       
                       Examples:
