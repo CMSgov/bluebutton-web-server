@@ -442,7 +442,7 @@ class PatientMatchTestCase(BaseApiTest):
 
         expected_patient = patient_bundle.get('entry', [])[1].get('resource', {})
 
-        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+        patient_match_found, patient = is_patient_match_found(patient_bundle)
 
         assert patient_match_found is True
         assert patient == expected_patient
@@ -453,7 +453,7 @@ class PatientMatchTestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
             patient_bundle = json.load(f)
 
-        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+        patient_match_found, patient = is_patient_match_found(patient_bundle)
         assert patient_match_found is False
         assert patient is None
 

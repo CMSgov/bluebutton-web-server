@@ -651,6 +651,10 @@ class TokenView(DotTokenView):
             log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
             raise InvalidRequestError('client_assertion_type was wrong')
 
+        if request.POST.get('client_secret'):
+            log.warning('client_secret should not be included in client_credentials call')
+            raise InvalidRequestError('client_secret should not be included in client_credentials call')
+
         return None
 
     def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
@@ -1061,7 +1065,7 @@ class TokenView(DotTokenView):
                             headers=headers,
                             method='POST',
                         )
-                        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+                        patient_match_found, patient = is_patient_match_found(patient_bundle)
                         if patient_match_found and patient:
                             mbi = extract_mbi_from_patient(patient)
                             fhir_id = extract_fhir_id_from_patient(patient)

@@ -6,7 +6,6 @@ from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 from waffle import switch_is_active
 
 from apps.constants import CLIENT_CREDENTIALS
-from apps.dot_ext.models import ExpiresIn
 from apps.pkce.oauth2_server import PKCEServerMixin
 
 
@@ -15,31 +14,15 @@ def my_token_expires_in(request):
     Function that returns the expires_in value used to create
     tokens.
     """
-    # first we try to retrieve the expires_in from the ExpiresIn
-    # table.
-    client_id = request.client.client_id
     request_body = parse_qs(request.body)
     grant_type = request_body.get('grant_type', [None])
 
-    # TODO: Figure this out or open ticket?
-    if grant_type[0] and grant_type[0] != CLIENT_CREDENTIALS:
-        user_id = request.user.pk
+    if switch_is_active('one_hour_token_expiry') or (grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS):
+        one_hour_delta = timedelta(hours=1)
+        seconds_in_one_hour = int(one_hour_delta.total_seconds())
+        return seconds_in_one_hour
     else:
-        user_id = request.client.user.pk
-
-    expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
-    # if no record is found we default to the value defined in the
-    # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
-    # or one hour if the one_hour_token_expiry switch is active
-    if expires_in is None:
-        if switch_is_active('one_hour_token_expiry') or (grant_type[0] and grant_type[0] == CLIENT_CREDENTIALS):
-            one_hour_delta = timedelta(hours=1)
-            seconds_in_one_hour = int(one_hour_delta.total_seconds())
-            expires_in = seconds_in_one_hour
-        else:
-            expires_in = oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
-
-    return expires_in
+        return oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
 
 
 class Server(PKCEServerMixin, OAuthLibServer):

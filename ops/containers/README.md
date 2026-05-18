@@ -95,6 +95,30 @@ The external files are used before running the stack; the internal files are use
 
 The Makefile should always have a `build-local` and `run-local` target.
 
+## handling migrations
+
+Before logging in to a running stack, ensure you ran the stack with READ_ONLY set to false like below:
+
+```
+make run-local bfd=test auth=live READ_ONLY=false
+```
+
+This will allow you to make a new migration and not run into any read-only file system issues.
+
+After altering models, open a new terminal and log into a running stack (e.g. `docker exec`) and run
+
+```
+python manage.py makemigrations
+```
+
+This will generate the migrations file. If you then want to apply those, exit the container and run
+
+```
+make migrate
+```
+
+to run the Makefile target that stands up the stack and runs `python manage.py migrate`.
+
 ### dockerfile
 
 Each application folder contains a Dockerfile specifying how to build a container that can be run locally or, in some cases, in production.

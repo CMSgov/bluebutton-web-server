@@ -10,6 +10,7 @@ import pytz
 import requests
 from django.conf import settings
 from django.contrib import messages
+from fhir.resources.bundle import Bundle, Patient
 from oauth2_provider.models import AccessToken
 from pytz import timezone
 
@@ -799,33 +800,32 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     return False
 
 
-def is_patient_match_found(response_json: Dict[str, Any], index: int) -> tuple[bool, dict | None]:
+def is_patient_match_found(response_json: Dict[str, Any]) -> tuple[bool, dict | None]:
     """
     This is a utility function to check if a patient match is found. If a patient match is found,
     a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned.
 
     Args:
-        response_json: The response from BFD as a json/dict object
+        response_json: The response from BFD as a json/dict object, should include an organization and a patient resource
         index: The index of the patient entry to check
 
     Returns:
         bool: True and the patient resource if a patient match is found, False and None otherwise
     """
-    entries = response_json.get('entry', [])
+    # try to use fhir.resources
+    bundle = Bundle.parse_obj(response_json)
 
-    if index < 0 or index >= len(entries):
+    patient_count = 0
+    patient = None
+    for entry in bundle.entry or []:
+        if entry.resource.resource_type == PATIENT_RESOURCE_TYPE:
+            patient_count += 1
+            patient = entry.resource
+
+    if patient_count == 1:
+        return True, patient
+    else:
         return False, None
-
-    # The code below can probably be modified in the future to check for other resourceTypes besides patient,
-    # but for now this is sufficient to determine if a patient match was found or not,
-    # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
-    if len(entries) > 1:
-        # The length of the 'entry' list is greater than 1, which indicates a patient match was found,
-        # but we want to make sure the resourceType of the entry is patient before returning True
-        patient = entries[index].get('resource', {})
-        if patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
-            return True, patient
-    return False, None
 
 
 def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
@@ -891,4 +891,5 @@ def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
     if not patient:
         return None
 
-    return patient.get('id')
+    patient = Patient.parse_obj(patient)
+    return patient.id
