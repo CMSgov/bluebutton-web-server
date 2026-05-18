@@ -819,7 +819,7 @@ def is_patient_match_found(response_json: Dict[str, Any]) -> tuple[bool, dict | 
     patient_count = 0
     patient = None
     for entry in bundle.entry or []:
-        if entry.resource.resource_type == PATIENT_RESOURCE_TYPE:
+        if isinstance(entry.resource, Patient) and entry.resource.resource_type == PATIENT_RESOURCE_TYPE:
             patient_count += 1
             patient = entry.resource
 
