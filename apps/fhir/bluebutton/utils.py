@@ -10,7 +10,8 @@ import pytz
 import requests
 from django.conf import settings
 from django.contrib import messages
-from fhir.resources.bundle import Bundle, Patient
+from fhir.resources.bundle import Bundle
+from fhir.resources.patient import Patient
 from oauth2_provider.models import AccessToken
 from pytz import timezone
 
