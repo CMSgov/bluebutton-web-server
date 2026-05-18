@@ -4,7 +4,7 @@ services:
   bb-api:
     image: bb-api:codebuild
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
-    env_file: ./bb-api/files/external/.env.codebuild
+    env_file: ./files/external/.env.codebuild
     tmpfs:
       - /tmp:mode=1777,size=200m
     volumes:
