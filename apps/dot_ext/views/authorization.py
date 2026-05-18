@@ -101,7 +101,7 @@ from apps.dot_ext.loggers import (
 from apps.dot_ext.models import Application, Approval
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.signals import beneficiary_authorized_application
+from apps.dot_ext.signals import beneficiary_authorized_application, include_samhsa_var
 from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
@@ -418,6 +418,8 @@ class AuthorizationView(DotAuthorizationView):
         share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
         print('share_samhsa_data: ', share_samhsa_data)
         # set include_samhsa on request
+        include_samhsa_var.set(bool(share_samhsa_data))
+        print('SELF.request: ', self.request.session.__dict__)
 
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
@@ -1025,6 +1027,7 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
+        print('request in token post: ', request.session.__dict__)
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -1151,7 +1154,7 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
-
+                include_samhsa_var.reset(token)
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id
                     token.save()

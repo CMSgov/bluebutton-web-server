@@ -1,4 +1,5 @@
 import logging
+from contextvars import ContextVar
 
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
@@ -16,6 +17,8 @@ logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 beneficiary_authorized_application = Signal()
+
+include_samhsa_var: ContextVar[bool] = ContextVar('include_samhsa', default=False)
 
 
 @waffle_function_switch('outreach_email')
@@ -97,7 +100,9 @@ def create_access_token_extension(sender, instance, created, **kwargs):
     print('created: ', created)
     print('kwargs: ', kwargs)
     if created:
+        include_samhsa = include_samhsa_var.get()
+        print('include_samhsa checking: ', include_samhsa)
         AccessTokenExtension.objects.create(
             access_token=instance,
-            include_samhsa=True,
+            include_samhsa=include_samhsa,
         )
