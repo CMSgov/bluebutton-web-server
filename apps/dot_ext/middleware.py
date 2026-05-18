@@ -1,5 +1,3 @@
-
-
 class AuthorizationViewMiddleware:
     AUTHORIZATION_PATH = '/o/authorize/'
 

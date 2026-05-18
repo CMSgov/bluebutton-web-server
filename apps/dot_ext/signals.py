@@ -1,12 +1,11 @@
 import logging
-from contextvars import ContextVar
 
 from django.db.models.signals import post_save, pre_save
-from django.dispatch import Signal, receiver
+from django.dispatch import Signal
 from oauth2_provider.models import get_access_token_model, get_application_model
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.models import AccessTokenExtension, ArchivedToken
+from apps.dot_ext.models import ArchivedToken
 from libs.decorators import waffle_function_switch
 from libs.mail import Mailer
 
@@ -17,8 +16,6 @@ logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 beneficiary_authorized_application = Signal()
-
-include_samhsa_var: ContextVar[bool] = ContextVar('include_samhsa', default=False)
 
 
 @waffle_function_switch('outreach_email')
@@ -89,20 +86,3 @@ def outreach_first_api_call(sender, instance=None, **kwargs):
 
 post_save.connect(outreach_first_application, sender=Application)
 pre_save.connect(outreach_first_api_call, sender=AccessToken)
-
-
-@receiver(post_save, sender=AccessToken)
-def create_access_token_extension(sender, instance, created, **kwargs):
-    # TODO: Need to update to take into account what was passed for include_samhsa
-    # Once the checkbox is in place on v3 permissions screen
-    print('sender: ', sender.__dict__)
-    print('instance: ', instance)
-    print('created: ', created)
-    print('kwargs: ', kwargs)
-    if created:
-        include_samhsa = include_samhsa_var.get()
-        print('include_samhsa checking: ', include_samhsa)
-        AccessTokenExtension.objects.create(
-            access_token=instance,
-            include_samhsa=include_samhsa,
-        )

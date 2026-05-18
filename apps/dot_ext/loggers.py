@@ -1,12 +1,13 @@
 import re
 import uuid
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
+
 from apps.dot_ext.constants import AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, SESSION_AUTH_FLOW_TRACE_KEYS
 from apps.dot_ext.models import AuthFlowUuid
-
 
 """
   Logger related functions for dot_ext/mymedicare_cb modules.

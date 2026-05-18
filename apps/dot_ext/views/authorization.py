@@ -98,10 +98,10 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import Application, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.signals import beneficiary_authorized_application, include_samhsa_var
+from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
@@ -254,7 +254,7 @@ class AuthorizationView(DotAuthorizationView):
             # for the access token are in the intersection of what the application is allowed to have and
             # what the request is asking for
             context['form'].initial['scope'] = ' '.join(list(matching_scopes))
-        print('RETURNING CONTEXT: ', context)
+
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -415,12 +415,6 @@ class AuthorizationView(DotAuthorizationView):
         share_demographic_scopes = form.cleaned_data.get('share_demographic_scopes')
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
-        share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-        print('share_samhsa_data: ', share_samhsa_data)
-        # set include_samhsa on request
-        include_samhsa_var.set(bool(share_samhsa_data))
-        print('SELF.request: ', self.request.session.__dict__)
-
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
 
@@ -500,6 +494,9 @@ class AuthorizationView(DotAuthorizationView):
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
+
+        share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+        cache.set(f'include_samhsa:{code}', share_samhsa_data, timeout=600)
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1027,7 +1024,7 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
-        print('request in token post: ', request.session.__dict__)
+
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -1145,6 +1142,15 @@ class TokenView(DotTokenView):
                 {'status_code': HTTPStatus.FORBIDDEN, 'message': 'Request denied'},
                 status=HTTPStatus.FORBIDDEN,
             )
+        prior_include_samhsa = True
+        if grant_type == 'refresh_token':
+            refresh_token_str = request.POST.get('refresh_token')
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_str)
+
+            prior_access_token_extension = AccessTokenExtension.objects.get(
+                access_token_id=refresh_token.access_token_id
+            )
+            prior_include_samhsa = prior_access_token_extension.include_samhsa
 
         url, headers, body, status = self.create_token_response(request)
 
@@ -1154,7 +1160,20 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
-                include_samhsa_var.reset(token)
+                code = request.POST.get('code', [None])
+                include_samhsa = True
+                if cache.get(f'include_samhsa:{code}'):
+                    include_samhsa = cache.get(f'include_samhsa:{code}')
+
+                if grant_type == 'refresh_token':
+                    include_samhsa = prior_include_samhsa
+
+                AccessTokenExtension.objects.get_or_create(
+                    access_token=token,
+                    include_samhsa=include_samhsa,
+                )
+                cache.delete(f'include_samhsa:{code}')
+
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id
                     token.save()
