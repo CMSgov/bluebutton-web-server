@@ -38,12 +38,14 @@ run-codebuild:
 
 run-codebuild-integration:
 	@echo "integration tests in Codebuild"
+	cd ..
 	docker compose \
 		-f docker-compose-codebuild.yaml \
 		exec -T bb-api make integration-test
 
 teardown-codebuild:
 	@echo "teardown codebuild"
+	cd ..
 	docker compose \
 		-f docker-compose-codebuild.yaml \
 		down -v
