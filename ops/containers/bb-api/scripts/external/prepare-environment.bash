@@ -101,7 +101,6 @@ else
             up --abort-on-container-exit
         docker compose down
         exit
-
     else
         echo "📊 Tailing logs."
         echo

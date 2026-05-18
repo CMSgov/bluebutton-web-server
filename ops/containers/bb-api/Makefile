@@ -32,6 +32,7 @@ run-codebuild:
 	env="test" \
 	auth="live" \
 	TARGET_ENV="codebuild" \
+	COLLECTSTATIC=0 \
 	MIGRATE=1 \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
