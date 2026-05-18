@@ -46,11 +46,13 @@ check_bfd_certs_are_not_empty () {
 possibly_migrate_or_collectstatic_if_local () {
     echo "🟦 possibly migrate or collectstatic"
     if [[ $TARGET_ENV == "codebuild" ]]; then
-        echo "🔵 running migrate"
-        python manage.py migrate
-        echo "🔵 done running migrate"
-        return 0
-    fi
+            echo "🔵 running migrate"
+            
+            touch /tmp/db.sqlite3 || { echo "⛔ ERROR: Cannot write to /tmp!"; exit 1; }
+            chmod 666 /tmp/db.sqlite3
+
+            python manage.py migrate
+        fi
 
     if [[ $TARGET_ENV == "local" ]]; then
         if [[ "${MIGRATE}" == "1" ]]
