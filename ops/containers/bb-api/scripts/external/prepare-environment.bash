@@ -77,7 +77,8 @@ if [[ "${TARGET_ENV}" == "codebuild" ]]; then
     docker compose \
         -f ops/containers/docker-compose-codebuild.yaml \
         up \
-        --abort-on-container-exit
+        -d \
+        --wait
 else
     if [[ "${daemon}" == "1" ]]; then
         docker compose \

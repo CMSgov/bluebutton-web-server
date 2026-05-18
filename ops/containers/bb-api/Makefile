@@ -36,6 +36,18 @@ run-codebuild:
 	MIGRATE=1 \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
+run-codebuild-integration:
+	@echo "integration tests in Codebuild"
+	docker compose \
+		-f docker-compose-codebuild.yaml \
+		exec -T bb-api make integration-test
+
+teardown-codebuild:
+	@echo "teardown codebuild"
+	docker compose \
+		-f docker-compose-codebuild.yaml \
+		down -v
+
 build-local-no-cache:
 	echo "build-local no-cache"
 	TARGET_ENV="local" \

@@ -47,10 +47,6 @@ possibly_migrate_or_collectstatic_if_local () {
     echo "🟦 possibly migrate or collectstatic"
     if [[ $TARGET_ENV == "codebuild" ]]; then
             echo "🔵 running migrate"
-            
-            touch /tmp/db.sqlite3 || { echo "⛔ ERROR: Cannot write to /tmp!"; exit 1; }
-            chmod 666 /tmp/db.sqlite3
-
             python manage.py migrate
         fi
 
