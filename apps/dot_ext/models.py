@@ -25,7 +25,6 @@ from oauth2_provider.models import (
     get_application_model,
 )
 from oauth2_provider.settings import oauth2_settings
-from waffle import switch_is_active
 
 import apps.logging.request_logger as logging
 from apps.capabilities.models import ProtectedCapability
@@ -38,7 +37,6 @@ from apps.dot_ext.constants import (
 )
 
 ONE_HOUR = _('for 1 hour')
-TEN_HOURS = _('for 10 hours')
 THIRTEEN_MONTHS = _('for 13 months, until ')
 
 
@@ -218,10 +216,7 @@ class Application(AbstractApplication):
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
         if self.has_one_time_only_data_access():
-            if switch_is_active('one_hour_token_expiry'):
-                return ONE_HOUR
-            else:
-                return TEN_HOURS
+            return ONE_HOUR
 
         # no message displayed for RESEARCH_STUDY
         else:
@@ -516,12 +511,12 @@ class AuthFlowUuidCopy(models.Model):
 
 class AccessTokenExtension(models.Model):
     id = models.BigAutoField(primary_key=True)
-    access_token = models.ForeignKey(
+    access_token = models.OneToOneField(
         settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL,
         on_delete=models.CASCADE,
         db_column='access_token_id',
     )
-    include_samhsa = models.BooleanField(null=False, default=False)
+    include_samhsa = models.BooleanField(null=False, default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

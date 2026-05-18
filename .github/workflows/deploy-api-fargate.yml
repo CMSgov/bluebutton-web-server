@@ -40,6 +40,8 @@ jobs:
           environment: ${{ inputs.environment || 'test' }}
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
           prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -48,8 +50,10 @@ jobs:
           mask-password: true
 
       - name: Mask ECR registry
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo "::add-mask::${{ steps.login-ecr.outputs.registry }}"
+          echo "::add-mask::${ECR_REGISTRY}"
 
       - name: Verify image exists in ECR
         id: verify-image
