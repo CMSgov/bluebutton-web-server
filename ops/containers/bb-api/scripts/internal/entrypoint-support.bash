@@ -103,7 +103,7 @@ launch_blue_button () {
     echo "🟦 Launch Blue Button"
     mkdir -p /tmp/gunicorn
     # Start BBAPI via `gunicorn`
-    if [[ $TARGET_ENV == "local" || $TARGET_ENV == "codebuild" ]]; then
+    if [[ $TARGET_ENV == "local"  ]]; then
         if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]; then
             echo "🔵 local run options (wait for attach...)"
             python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn \
@@ -130,7 +130,7 @@ launch_blue_button () {
             RESULT=$?
         fi
     elif [[ $TARGET_ENV == "codebuild" ]]; then
-        python3 -m debugpy --listen 0.0.0.0:5678 -m gunicorn \
+        python3 -m gunicorn \
             hhs_oauth_server.wsgi:application \
             --worker-tmp-dir /tmp/gunicorn \
             --bind 0.0.0.0:${GUNICORN_PORT} \

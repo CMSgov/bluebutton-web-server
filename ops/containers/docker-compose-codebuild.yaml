@@ -1,6 +1,6 @@
 services:
   ####################
-  # Blue Button
+  # Blue Button - Codebuild
   bb-api:
     image: bb-api:codebuild
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
