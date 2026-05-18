@@ -10,7 +10,6 @@ services:
       - type: bind
         source: ../..
         target: /home/boton/bb
-        read_only: ${READ_ONLY:-true}
       - type: tmpfs
         target: /tmp
         tmpfs:
