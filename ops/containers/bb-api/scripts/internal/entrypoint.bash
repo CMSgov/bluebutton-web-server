@@ -51,8 +51,8 @@ gonogo "run_socat_locally"
 possibly_migrate_or_collectstatic_if_local
 
 # Setup the database and users.
-setup_database_and_users_if_local
-gonogo "setup_database_and_users_if_local"
+setup_database_and_users
+gonogo "setup_database_and_users"
 
 # ========== BFD ==========
 # We need certs to talk to BFD. These are grabbed
@@ -65,7 +65,7 @@ gonogo "check_bfd_certs_are_not_empty"
 
 # ========== TLS CERTS ==========
 # DigiCert certs for HTTPS termination — gunicorn (Fargate)
-if [[ $TARGET_ENV != "local" ]]; then
+if [[ $TARGET_ENV != "local" && $TARGET_ENV != "codebuild" ]]; then
     write_tls_certs_to_tmp
     gonogo "write_tls_certs_to_tmp"
     check_tls_certs_are_not_empty

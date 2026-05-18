@@ -45,11 +45,11 @@ check_bfd_certs_are_not_empty () {
 
 possibly_migrate_or_collectstatic_if_local () {
     echo "🟦 possibly migrate or collectstatic"
-    echo $TARGET_ENV
     if [[ $TARGET_ENV == "codebuild" ]]; then
         echo "🔵 running migrate"
         python manage.py migrate
-        echo "🔵 done running migrate ; bring down the stack"
+        echo "🔵 done running migrate"
+        return 0
     fi
 
     if [[ $TARGET_ENV == "local" ]]; then
@@ -129,6 +129,17 @@ launch_blue_button () {
                 --log-level debug
             RESULT=$?
         fi
+    elif [[ $TARGET_ENV == "codebuild" ]]; then
+        python3 -m debugpy --listen 0.0.0.0:5678 -m gunicorn \
+            hhs_oauth_server.wsgi:application \
+            --worker-tmp-dir /tmp/gunicorn \
+            --bind 0.0.0.0:${GUNICORN_PORT} \
+            --workers 1 \
+            --threads 4 \
+            --timeout 0 \
+            --reload \
+            --log-level debug
+        RESULT=$?
     else
         # Fargate: gunicorn handles TLS directly with DigiCert certs (no nginx)
         # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
@@ -152,28 +163,10 @@ launch_blue_button () {
 
 ########################################
 # Function for setting up local stack
-setup_database_and_users_if_local () {
-    echo "🟦 Setup database and users if local"
+setup_database_and_users () {
+    echo "🟦 Setup database and users if local or codebuild"
 
-    if [[ $TARGET_ENV == "codebuild" ]]; then
-        python manage.py create_test_feature_switches
-        echo "🆗 create_test_feature_switches"
-
-        python manage.py create_admin_groups
-        echo "🆗 create_admin_groups"
-
-        python manage.py create_blue_button_scopes
-        echo "🆗 create_blue_button_scopes"
-
-        python manage.py create_test_user_and_application
-
-        echo "🆗 create_test_user_and_application"
-
-        python manage.py create_user_identification_label_selection
-        echo "🆗 create_user_identification_label_selection"
-    fi
-
-    if [[ $TARGET_ENV == "local" ]]; then
+    if [[ $TARGET_ENV == "local" || $TARGET_ENV == "codebuild" ]]; then
 
         # Only create the root user if it doesn't exist.
         result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")
