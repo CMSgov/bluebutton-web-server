@@ -46,6 +46,8 @@ jobs:
           environment: ${{ github.event.inputs.environment }}
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
           prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
 
       - name: Tofu Plan
         run: scripts/tofu-run
@@ -70,6 +72,8 @@ jobs:
           environment: ${{ github.event.inputs.environment }}
           non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
           prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
 
       - name: Tofu Apply
         run: scripts/tofu-run

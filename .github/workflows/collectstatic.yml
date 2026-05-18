@@ -13,15 +13,15 @@ on:
           # - prod
 
 env:
-  AWS_REGION: us-east-1 
+  AWS_REGION: us-east-1
   TARGET_ENV: ${{ inputs.environment }}
   DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
   AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
 
 permissions:
-  id-token: write 
-  contents: write 
-  actions: write  
+  id-token: write
+  contents: write
+  actions: write
 
 jobs:
   collect-and-deploy:
@@ -38,6 +38,20 @@ jobs:
           pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
           pyenv global 3.12 || pyenv global 3.12.0
 
+      # Mask sensitive values BEFORE assuming the role so the configure-aws-credentials
+      # action output is redacted. ::add-mask:: only affects subsequent log lines.
+      - name: Pre-mask sensitive values
+        env:
+          ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_TEST }}
+          TEST_ROLE_ID: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+        run: |
+          echo "::add-mask::${ROLE_ARN}"
+          # Mask the account ID extracted from the ARN
+          ACCOUNT_ID=$(echo "${ROLE_ARN}" | cut -d: -f5)
+          echo "::add-mask::${ACCOUNT_ID}"
+          # Mask the IAM role unique ID (AROA...) to prevent it from appearing in logs
+          [[ -n "$TEST_ROLE_ID" ]] && echo "::add-mask::${TEST_ROLE_ID}"
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -48,9 +62,18 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }} 
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
           aws-region: ${{ env.AWS_REGION }}
           mask-aws-account-id: true
+
+      # Post-creds: mask the runtime caller identity values (UserId, full ARN)
+      - name: Post-mask caller identity
+        run: |
+          CALLER=$(aws sts get-caller-identity --output json)
+          ROLE_ID=$(echo "$CALLER" | jq -r '.UserId' | cut -d: -f1)
+          echo "::add-mask::${ROLE_ID}"
+          FULL_USER_ID=$(echo "$CALLER" | jq -r '.UserId')
+          echo "::add-mask::${FULL_USER_ID}"
 
       - name: Determine Akamai upload path
         id: akamai
