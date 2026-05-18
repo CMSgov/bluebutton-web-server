@@ -24,9 +24,6 @@ def my_token_expires_in(request):
         user_id = request.client.user.pk
 
     expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
-    # if no record is found we default to the value defined in the
-    # oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
-    # or one hour if the one_hour_token_expiry switch is active
     if expires_in is None:
         one_hour_delta = timedelta(hours=1)
         seconds_in_one_hour = int(one_hour_delta.total_seconds())
