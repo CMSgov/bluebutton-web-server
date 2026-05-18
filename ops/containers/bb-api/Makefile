@@ -36,16 +36,17 @@ run-codebuild:
 	MIGRATE=1 \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
+# makes sense for these two to live here, but the path of the compose makes it odd
 run-codebuild-integration:
 	@echo "integration tests in Codebuild"
 	docker compose \
-		-f docker-compose-codebuild.yaml \
+		-f ../docker-compose-codebuild.yaml \
 		exec -T bb-api make integration-test
 
 teardown-codebuild:
 	@echo "teardown codebuild"
 	docker compose \
-		-f docker-compose-codebuild.yaml \
+		-f ../docker-compose-codebuild.yaml \
 		down -v
 
 build-local-no-cache:

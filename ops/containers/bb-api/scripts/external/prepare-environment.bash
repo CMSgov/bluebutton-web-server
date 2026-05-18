@@ -75,7 +75,7 @@ cd "$REPO_ROOT"
 
 if [[ "${TARGET_ENV}" == "codebuild" ]]; then
     docker compose \
-        -f ops/containers/bb-api/docker-compose-codebuild.yaml \
+        -f ops/containers/docker-compose-codebuild.yaml \
         up \
         -d \
         --wait
