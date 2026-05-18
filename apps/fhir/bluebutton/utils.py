@@ -22,7 +22,6 @@ from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.fhir.constants import (
     FHIR_PARAM_FORMAT,
     MBI_URL,
-    PATIENT_RESOURCE_TYPE,
     REQUEST_EOB_KEEP_ALIVE,
 )
 from apps.fhir.server.settings import fhir_settings
@@ -813,13 +812,12 @@ def is_patient_match_found(response_json: Dict[str, Any]) -> tuple[bool, dict | 
     Returns:
         bool: True and the patient resource if a patient match is found, False and None otherwise
     """
-    # try to use fhir.resources
     bundle = Bundle.parse_obj(response_json)
 
     patient_count = 0
     patient = None
     for entry in bundle.entry or []:
-        if isinstance(entry.resource, Patient) and entry.resource.resource_type == PATIENT_RESOURCE_TYPE:
+        if isinstance(entry.resource, Patient):
             patient_count += 1
             patient = entry.resource
 
@@ -856,12 +854,12 @@ def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str]
     return response.json()
 
 
-def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+def extract_mbi_from_patient(patient: Patient) -> Optional[str]:
     """
     Extracts the MBI from a patient entry in a FHIR Bundle.
 
     Args:
-        patient: A patient entry from a FHIR Bundle as a json/dict object
+        patient: A patient entry from a FHIR Bundle as a Patient object
 
     Returns:
         str: The MBI if found, None otherwise
@@ -871,20 +869,20 @@ def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
 
     # Look for the identifier with the MBI system and return the value
     # (returns None if 'identifier' key is missing or if no identifier with the MBI system is found)
-    identifiers = patient.get('identifier', [])
+    identifiers = patient.identifier or []
     for ident in identifiers:
-        if ident.get('system') == MBI_URL and 'value' in ident:
-            return ident.get('value')
+        if ident.system == MBI_URL:
+            return ident.value
 
     return None
 
 
-def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+def extract_fhir_id_from_patient(patient: Patient) -> Optional[str]:
     """
     Extracts the FHIR ID from a patient entry in a FHIR Bundle.
 
     Args:
-        patient: A patient entry from a FHIR Bundle as a json/dict object
+        patient: A patient entry from a FHIR Bundle as a Patient object
 
     Returns:
         str: The FHIR ID if found, None otherwise
@@ -892,5 +890,4 @@ def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
     if not patient:
         return None
 
-    patient = Patient.parse_obj(patient)
     return patient.id

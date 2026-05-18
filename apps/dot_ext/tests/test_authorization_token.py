@@ -424,6 +424,7 @@ class TestTokenResponseFields(BaseApiTest):
         # Mock patient match result
         # is_patient_match_found expects at least 2 entries in successful match
         mock_get_patient.return_value = {
+            'type': 'searchset',
             'entry': [
                 {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
                 {
@@ -438,7 +439,7 @@ class TestTokenResponseFields(BaseApiTest):
                         ],
                     }
                 },
-            ]
+            ],
         }
 
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
