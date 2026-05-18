@@ -502,7 +502,8 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         """
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
-        patient = patient_bundle.get('entry', [])[1].get('resource', {})
+        bundle = Bundle.parse_obj(patient_bundle)
+        patient = bundle.entry[1].resource
 
         result = extract_fhir_id_from_patient(patient)
         assert result == '-502120048'
