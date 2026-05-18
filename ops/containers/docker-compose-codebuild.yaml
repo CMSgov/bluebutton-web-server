@@ -5,13 +5,10 @@ services:
     image: bb-api:codebuild
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
     env_file: ./bb-api/files/external/.env.codebuild
+    tmpfs:
+      - /tmp:mode=1777,size=200m
     volumes:
       - ./bb-api/scripts:/home/boton/bb/ops/containers/bb-api/scripts
       - type: bind
         source: ../..
         target: /home/boton/bb
-      - type: tmpfs
-        target: /tmp
-        tmpfs:
-          size: 200000000 # 200MB
-          mode: 1777
