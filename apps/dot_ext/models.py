@@ -1,8 +1,8 @@
 import hashlib
 import itertools
-import sys
 import uuid
 from datetime import datetime
+from typing import override
 from urllib.parse import urlparse
 
 from dateutil.relativedelta import relativedelta
@@ -254,6 +254,7 @@ class Application(AbstractApplication):
 
         return resource_scopes.issubset(provided_scopes)
 
+    @override
     def allows_grant_type(self, *grant_types):
         allowed = []
         if self.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES:
@@ -342,8 +343,8 @@ class Application(AbstractApplication):
                         'type': 'application_allowed_auth_type_change',
                         'application_id': self.id,
                         'application_name': self.name,
-                        'data_access_type_old': app_from_db.allowed_auth_type,
-                        'data_access_type_new': self.allowed_auth_type,
+                        'allowed_auth_type_old': app_from_db.allowed_auth_type,
+                        'allowed_auth_type_new': self.allowed_auth_type,
                     }
                     logger.info(log_dict)
         except Application.DoesNotExist:
@@ -387,45 +388,6 @@ class ApplicationLabel(models.Model):
     @property
     def short_description(self):
         return truncatechars(self.description, 80)
-
-
-class ExpiresInManager(models.Manager):
-    """
-    Provide a `set_expires_in` and `get_expires_in` methods that
-    work as a cache. The key is generated from `client_id` and `user_id`.
-    """
-
-    @staticmethod
-    def make_key(client_id, user_id):
-        """
-        Generate a unique key using client_id and user_id args.
-        """
-        arg = '%s_%s' % (client_id, user_id)
-        # Python 3 - avoid TypeError: Unicode-objects
-        # must be encoded before hashing
-        if sys.version_info > (3, 2):
-            arg = arg.encode('utf-8')
-        return hashlib.sha256(arg).hexdigest()
-
-    def set_expires_in(self, client_id, user_id, expires_in):
-        """
-        Set the expires_in value for the key generated with
-        client_id and user_id.
-        """
-        key = self.make_key(client_id, user_id)
-        instance, _ = self.update_or_create(key=key, defaults={'expires_in': expires_in})
-
-    def get_expires_in(self, client_id, user_id):
-        """
-        Return the expires_in value for the key generated with
-        client_id and user_id. Returns None when the key is not
-        found.
-        """
-        key = self.make_key(client_id, user_id)
-        try:
-            return self.get(key=key).expires_in
-        except self.model.DoesNotExist:
-            return None
 
 
 class Approval(models.Model):
@@ -472,19 +434,6 @@ class ArchivedToken(models.Model):
     created = models.DateTimeField()
     updated = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
-
-
-class ExpiresIn(models.Model):
-    """
-    This model is used to save the expires_in value selected
-    in the allow form view. Then it can be queried when the token is
-    issued to the user.
-    """
-
-    key = models.CharField(max_length=64, unique=True)
-    expires_in = models.IntegerField()
-
-    objects = ExpiresInManager()
 
 
 def archive_token(sender, instance=None, **kwargs):

@@ -1,12 +1,14 @@
 import re
 import uuid
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
+
 from apps.dot_ext.constants import AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, SESSION_AUTH_FLOW_TRACE_KEYS
 from apps.dot_ext.models import AuthFlowUuid
-
+from apps.dot_ext.utils import get_application_from_data
 
 """
   Logger related functions for dot_ext/mymedicare_cb modules.
@@ -227,10 +229,8 @@ def update_session_auth_flow_trace_from_code(request, code):
 
 
 def update_session_auth_flow_trace_from_request(request):
-    Application = get_application_model()
-    client_id = request.POST.get('client_id')
     try:
-        application = Application.objects.get(client_id=client_id)
+        application = get_application_from_data(request)
 
         # Set values in session.
         request.session['auth_app_id'] = str(application.id)
@@ -238,7 +238,8 @@ def update_session_auth_flow_trace_from_request(request):
         request.session['auth_app_data_access_type'] = application.data_access_type
         request.session['auth_require_demographic_scopes'] = str(application.require_demographic_scopes)
         request.session['auth_client_id'] = application.client_id
-    except Application.DoesNotExist:
+    except Exception:
+        # Don't throw exceptions, since they should be handled elsewhere
         pass
 
 
