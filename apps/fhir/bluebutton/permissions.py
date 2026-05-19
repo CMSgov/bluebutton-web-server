@@ -1,7 +1,6 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from oauth2_provider.models import get_application_model
 from oauth2_provider.views.base import get_access_token_model
 from rest_framework import exceptions, permissions
@@ -135,23 +134,24 @@ class AppScopePermission(permissions.BasePermission):
           - True if there is a match with the current request and the scopes the app has in the database
           - Raises a custom 403 Forbidden error if not
         """
+        # if it is not version 3, we do not need to check the scopes
+        if view.version < Versions.V3:
+            return True
         token = get_access_token_model().objects.get(token=request._auth)
-        if not token or not token.application_id:
+        token_app_id = token.application_id
+        if not token or not token_app_id:
             return False
-
-        if view.version == Versions.V3:
-            application_scopes = list(
-                ProtectedCapability.objects.filter(Q(application=token.application_id))
-                .values_list('protected_resources', flat=True)
-                .distinct()
+        application_scopes = list(
+            ProtectedCapability.objects.filter(application=token.application_id)
+            .values_list('protected_resources', flat=True)
+            .distinct()
+        )
+        is_valid = is_valid_scope(application_scopes, request)
+        if not is_valid:
+            raise PermissionDenied(
+                APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
             )
-            is_valid = is_valid_scope(application_scopes, request)
-            if not is_valid:
-                raise PermissionDenied(
-                    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
-                )
-            return is_valid
-        return True
+        return is_valid
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):

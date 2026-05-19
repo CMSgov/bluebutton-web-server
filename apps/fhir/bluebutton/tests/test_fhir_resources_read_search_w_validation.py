@@ -14,7 +14,7 @@ from apps.constants import (
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
 )
-from apps.dot_ext.models import AccessTokenExtension
+from apps.dot_ext.models import AccessTokenExtension, Application, ProtectedCapability
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
@@ -725,25 +725,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     @tag('integration')
     @override_switch('v3_endpoints', active=True)
-    def test_invalid_scope_returns_403(self):
-        """
-        Returns a 403 since the scope is for a patient and they are trying to make a coverage call.
-        """
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token=first_access_token)
-        ac.scope = 'patient/Patient.search'
-        ac.save()
-
-        response = self.client.get(
-            reverse(SEARCH_COVERAGE_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
-        )
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Coverage')
-        )
-
-    @tag('integration')
-    @override_switch('v3_endpoints', active=True)
     def test_valid_scope_returns_200(self):
         """
         Returns a 200 since the scope is for a patient and they are trying to make a patient call.
@@ -757,6 +738,27 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
         )
         self.assertEqual(response.status_code, 200)
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_invalid_scope_returns_403(self):
+        """
+        Returns a 403 since the scope is for a patient and they are trying to make a coverage call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Patient.search'
+        ac.save()
+
+        # Remove the patient scope for that app and try to make a call
+        application = Application.objects.get(name='John_Smith_test')
+        patient_scope = ProtectedCapability.objects.get(title='patient/Patient.rs')
+        application.scope.remove(patient_scope)
+
+        response = self.client.get(
+            reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(
             response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Patient')
         )

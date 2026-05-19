@@ -15,7 +15,10 @@ def is_valid_scope(scopes: list[str], request: Request) -> bool:
       - True if there is a match with the current request and the scope it has in the database, False if not
     """
     for scope in scopes:
-        for method, path in json.loads(scope):
+        data = json.loads(scope)
+        if isinstance(data, list) and len(data) == 0:
+            continue
+        for method, path in data:
             if method != request.method:
                 continue
             if path == request.path:
