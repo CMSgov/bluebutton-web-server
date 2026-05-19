@@ -13,22 +13,6 @@ data "aws_ecs_cluster" "main" {
 }
 
 # ============================================================================
-# Per-Service Configuration from SSM (single JSON parameter per service)
-# SSM path: /bb/{env}/{service}/config — stores all ECS/scaling/ALB config as JSON
-#
-# Expected JSON structure:
-# {
-#   "port": 8000,
-#   "cpu": 512,
-#   "memory": 1024,
-#   "count": 1,
-#   "scaling_min": 1,
-#   "scaling_max": 2,
-#   "health_check_path": "/health",
-#   "alb_enabled": true,
-#   "autoscale_enabled": false
-# }
-# ============================================================================
 data "aws_ssm_parameter" "service_config" {
   for_each = var.enable_ssm_config ? var.backend_services : toset([])
   name     = "/bb/${local.workspace}/${each.key}/config"
@@ -50,9 +34,18 @@ data "aws_ecr_repository" "api" {
   name = "${local.app_prefix}-${local.bucket_env}-api"
 }
 
+# Find latest release image when no tag is explicitly passed
+data "aws_ecr_image" "latest_release" {
+  repository_name = data.aws_ecr_repository.api.name
+  most_recent     = true
+}
+
 locals {
   ecr_repository_url = data.aws_ecr_repository.api.repository_url
   ecr_repository_arn = data.aws_ecr_repository.api.arn
+  resolved_image_tag = var.image_tag != null ? var.image_tag : one([
+    for tag in data.aws_ecr_image.latest_release.image_tags : tag if can(regex("^r[0-9]+$", tag))
+  ])
 }
 
 # ============================================================================
@@ -72,7 +65,7 @@ data "aws_ssm_parameters_by_path" "app_nonsensitive" {
 data "aws_security_group" "rds" {
   filter {
     name   = "group-name"
-    values = ["BB-SG-${upper(local.workspace)}-DATA-ALLZONE"]
+    values = ["BB-SG-${upper(local.workspace == "sandbox" ? "impl" : local.workspace)}-DATA-ALLZONE"]
   }
   vpc_id = local.vpc_id
 }
@@ -82,10 +75,15 @@ data "aws_security_group" "rds" {
 # ============================================================================
 
 # Discover all Secrets Manager secrets under /bb2/{env}/app/
+# Sandbox reuses legacy impl secrets (/bb2/impl/app/) rather than /bb2/sandbox/app/
+locals {
+  secrets_env = local.workspace == "sandbox" ? "impl" : local.workspace
+}
+
 data "aws_secretsmanager_secrets" "app_secrets" {
   filter {
     name   = "name"
-    values = ["/bb2/${local.workspace}/app/"]
+    values = ["/bb2/${local.secrets_env}/app/"]
   }
 }
 

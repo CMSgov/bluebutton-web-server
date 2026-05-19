@@ -13,7 +13,7 @@ REQUEST_CALL_TIMEOUT = (5, 120)
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
 # REQUIRE_HTTPS_REDIRECT_URIS = True
 BLOCK_HTTP_REDIRECT_URIS = False
-
+OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'oauth2_provider.AccessToken'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
@@ -21,6 +21,7 @@ OAUTH2_PROVIDER = {
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
     'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
+    'APPLICATION_ADMIN_CLASS': 'apps.dot_ext.admin_overrides.ValidatedApplicationAdmin',
 }
 
 CACHES = {
