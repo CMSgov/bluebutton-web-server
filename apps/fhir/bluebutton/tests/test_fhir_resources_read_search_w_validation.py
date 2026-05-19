@@ -743,7 +743,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             # Authorization='Bearer %s' % (first_access_token),
             HTTP_AUTHORIZATION='Bearer %s' % first_access_token,
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         assert EXCLUDE_SAMHSA_PARAMETER_VALUE in response.json()['link'][0]['url']
 
     @tag('integration')
@@ -767,7 +767,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             {},
             Authorization='Bearer %s' % (first_access_token),
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         assert EXCLUDE_SAMHSA_PARAMETER_VALUE not in response.json()['link'][0]['url']
 
     @tag('integration')

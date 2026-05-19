@@ -169,7 +169,6 @@ class FhirDataView(APIView):
             resource_type == FHIR_RES_TYPE_EOB
             and self.version == Versions.V3
             and not getattr(request, 'include_samhsa', True)
-            # and self._determine_if_samhsa_exclusion_filter_should_be_applied(request)
         ):
             get_parameters['_security:not'] = EXCLUDE_SAMHSA_PARAMETER_VALUE
             # Reset request params after adding default _security:not param
