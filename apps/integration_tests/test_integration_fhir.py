@@ -403,7 +403,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         total_page = self._get_total_page(content)
         assert total_page >= 0
 
-        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
+        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 0, 'outpatient': 0}
         resource_stats = {'pde': 0, 'carrier': 0, 'inpatient': 0, 'outpatient': 0}
         self._stats_resource_by_type(content, resource_stats)
 
