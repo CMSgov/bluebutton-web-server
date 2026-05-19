@@ -1,72 +1,134 @@
-name: Build and Upload Static Assets
+name: Build and Deploy Static Assets to Akamai
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy to
+        required: true
+        type: choice
+        options:
+          - test
+          # - sandbox
+          # - prod
 
 env:
-  AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
+  AWS_REGION: us-east-1
+  TARGET_ENV: ${{ inputs.environment }}
   DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
-  TARGET_ENV: test
+  AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
 
 permissions:
-  id-token: write # Required for requesting the AWS IAM OIDC JWT
-  contents: write # Required for actions/checkout
-  actions: write # Required for GHA cache
+  id-token: write
+  contents: write
+  actions: write
 
 jobs:
-  collectstatic:
-    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+  collect-and-deploy:
+    name: Collect and Deploy (${{ inputs.environment }})
+    runs-on: codebuild-bb-${{ inputs.environment }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # TO DO: Look into using setup-python github action in the future
       - name: Setup Python 3.12
         run: |
-          echo "Setting up Python 3.12 via pyenv..."
           pyenv install 3.12 --skip-existing || pyenv install 3.12.0 --skip-existing
           pyenv global 3.12 || pyenv global 3.12.0
 
+      # Mask sensitive values BEFORE assuming the role so the configure-aws-credentials
+      # action output is redacted. ::add-mask:: only affects subsequent log lines.
+      - name: Pre-mask sensitive values
+        env:
+          ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_TEST }}
+          TEST_ROLE_ID: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+        run: |
+          echo "::add-mask::${ROLE_ARN}"
+          # Mask the account ID extracted from the ARN
+          ACCOUNT_ID=$(echo "${ROLE_ARN}" | cut -d: -f5)
+          echo "::add-mask::${ACCOUNT_ID}"
+          # Mask the IAM role unique ID (AROA...) to prevent it from appearing in logs
+          [[ -n "$TEST_ROLE_ID" ]] && echo "::add-mask::${TEST_ROLE_ID}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: static/bluebutton-css/package-lock.json
+
       - name: Configure AWS credentials
-        id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_TEST }}
           aws-region: ${{ env.AWS_REGION }}
           mask-aws-account-id: true
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install python dependencies
+      # Post-creds: mask the runtime caller identity values (UserId, full ARN)
+      - name: Post-mask caller identity
         run: |
-          python3 -m venv venv
+          CALLER=$(aws sts get-caller-identity --output json)
+          ROLE_ID=$(echo "$CALLER" | jq -r '.UserId' | cut -d: -f1)
+          echo "::add-mask::${ROLE_ID}"
+          FULL_USER_ID=$(echo "$CALLER" | jq -r '.UserId')
+          echo "::add-mask::${FULL_USER_ID}"
+
+      - name: Determine Akamai upload path
+        id: akamai
+        run: |
+          case "${TARGET_ENV}" in
+            test)    echo "path=/1197010/test.static.bluebutton.cms.gov/bbapi-static/" >> "$GITHUB_OUTPUT" ;;
+            staging) echo "path=/1197010/staging.bluebutton.cms.gov/bbapi-static/" >> "$GITHUB_OUTPUT" ;;
+            prod)    echo "path=/1197010/bluebutton.cms.gov/bbapi-static/" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Install Python dependencies
+        run: |
+          python -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.txt
 
       - name: Compile and Build CSS assets
-        run:  |
-            cd static/bluebutton-css
-            npm i 
-            npm run gulp
-
-      - name: Mask additional sensitive values
+        working-directory: static/bluebutton-css
         run: |
-            # Mask the role ARN
-            echo "::add-mask::${{ secrets.AWS_ROLE_ARN_TEST }}"
-            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_IMPL }}"
-            # echo "::add-mask::${{ secrets.AWS_ROLE_ARN_PROD }}"
-            # Get and mask account ID
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            echo "::add-mask::$ACCOUNT_ID"
-            echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          npm ci
+          npm run gulp
 
+      # these `find` commands are being left in to speed up the process
+      # TODO - remove this, either after cleaning up static files or pointing the API to Akamai instead of S3
       - name: Collect static files
         run: |
           source venv/bin/activate
-          python3 manage.py collectstatic --noinput
-    
+          find static/ -type f ! -name "*.css" -delete
+          find static/ -empty -type d -delete
+          python manage.py collectstatic --noinput
+
+      - name: Setup Akamai SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AKAMAI_SCP_SSH_KEY }}" > ~/.ssh/akamai_key
+          chmod 600 ~/.ssh/akamai_key
+          cat > ~/.ssh/config <<'EOF'
+          Host bluebuttoncms.rsync.upload.akamai.com
+            HostKeyAlgorithms +ssh-dss
+            StrictHostKeyChecking no
+            IdentityFile ~/.ssh/akamai_key
+          EOF
+
+      - name: Deploy to Akamai NetStorage
+        run: |
+          echo "Syncing static files to Akamai..."
+          # Masking the updated path
+          echo "::add-mask::${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}"
+          
+          rsync -avz --delete \
+            -e "ssh" \
+            ./static/ \
+            ${{ secrets.AKAMAI_SSH_USER }}@bluebuttoncms.rsync.upload.akamai.com:${{ steps.akamai.outputs.path }}
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/akamai_key ~/.ssh/config

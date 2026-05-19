@@ -140,8 +140,6 @@ class BaseApiTest(TestCase):
 
         if data_access_type:
             application.data_access_type = data_access_type
-
-        if data_access_type:
             application.save()
 
         # add capability
