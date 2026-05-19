@@ -724,46 +724,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
 
     @tag('integration')
-    @override_switch('v3_endpoints', active=True)
-    def test_valid_scope_returns_200(self):
-        """
-        Returns a 200 since the scope is for a patient and they are trying to make a patient call.
-        """
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token=first_access_token)
-        ac.scope = 'patient/Patient.search'
-        ac.save()
-
-        response = self.client.get(
-            reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
-        )
-        self.assertEqual(response.status_code, 200)
-
-    @tag('integration')
-    @override_switch('v3_endpoints', active=True)
-    def test_invalid_scope_returns_403(self):
-        """
-        Returns a 403 since the scope is for a patient and they are trying to make a coverage call.
-        """
-        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token=first_access_token)
-        ac.scope = 'patient/Patient.search'
-        ac.save()
-
-        # Remove the patient scope for that app and try to make a call
-        application = Application.objects.get(name='John_Smith_test')
-        patient_scope = ProtectedCapability.objects.get(title='patient/Patient.rs')
-        application.scope.remove(patient_scope)
-
-        response = self.client.get(
-            reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
-        )
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Patient')
-        )
-
-    @tag('integration')
     def test_v3_eob_call_succeeds(self):
         """
         Ensure that a v3 EOB call succeeds despite the presence of SamhsaPermission.
@@ -821,3 +781,102 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         for version in [Versions.V1, Versions.V2]:
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_matching_patient_protected_resource_returns_200(self):
+        """
+        Returns a 200 since the patient resource is for a patient and they are trying to make a patient call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        response = self.client.get(
+            reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_matching_coverage_protected_resource_returns_200(self):
+        """
+        Returns a 200 since the coverage resource is for coverage and they are trying to make a coverage call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        response = self.client.get(
+            reverse(SEARCH_COVERAGE_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 200)
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_matching_eob_protected_resource_returns_200(self):
+        """
+        Returns a 200 since the eob resource is for eob and they are trying to make a eob call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}')
+        self.assertEqual(response.status_code, 200)
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_no_matching_patient_protected_resource_returns_403(self):
+        """
+        Returns a 403 since the patient resource is removed from the database and they are trying to make a patient call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        # Remove the patient scope for that app and try to make a call
+        application = Application.objects.get(name='John_Smith_test')
+        patient_protected_resource = ProtectedCapability.objects.get(title='patient/Patient.rs')
+        application.scope.remove(patient_protected_resource)
+
+        response = self.client.get(
+            reverse(SEARCH_PATIENT_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Patient')
+        )
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_no_matching_coverage_protected_resource_returns_403(self):
+        """
+        Returns a 403 since the coverage resource is removed from the database and they are trying to make a coverage call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        # Remove the coverage scope for that app and try to make a call
+        application = Application.objects.get(name='John_Smith_test')
+        coverage_protected_resource = ProtectedCapability.objects.get(title='coverage/Coverage.rs')
+        application.scope.remove(coverage_protected_resource)
+
+        response = self.client.get(
+            reverse(SEARCH_COVERAGE_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Coverage')
+        )
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_no_matching_eob_protected_resource_returns_403(self):
+        """
+        Returns a 403 since the eob resource is removed from the database and they are trying to make an eob call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        # Remove the eob scope for that app and try to make a call
+        application = Application.objects.get(name='John_Smith_test')
+        eob_protected_resource = ProtectedCapability.objects.get(title='eob/EOB.rs')
+        application.scope.remove(eob_protected_resource)
+
+        response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}')
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'],
+            APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'ExplanationOfBenefit'),
+        )
