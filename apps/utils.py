@@ -16,18 +16,21 @@ def has_matching_protected_resource(protected_resources: list[str], request: Req
     """
     for protected_resource in protected_resources:
         try:
-            data = json.loads(protected_resource)
+            protected_resource_json = json.loads(protected_resource)
         except (json.JSONDecodeError, TypeError):
-            continue  # Skip invalid JSON strings
+            continue
 
-        # Check if the parsed JSON is empty (e.g., None, {}, or [])
-        if not data:
+        if not protected_resource_json:
             continue
 
         # Ensure it's always a list of lists
-        rules = data if any(isinstance(i, list) for i in data) else [data]
+        protected_resource_json_list = (
+            protected_resource_json
+            if any(isinstance(resource, list) for resource in protected_resource_json)
+            else [protected_resource_json]
+        )
 
-        for method, path in rules:
+        for method, path in protected_resource_json_list:
             if method.upper() == request.method.upper():
                 if path == request.path or re.fullmatch(path, request.path):
                     return True
