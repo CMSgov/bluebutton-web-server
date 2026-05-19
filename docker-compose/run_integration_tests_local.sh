@@ -59,7 +59,7 @@ then
     echo
     echo "    dc-debug  = Same as 'dc' with tests run waiting on port 5678 to be attached"
     echo
-    echo "    cbc = Run using the docker CBC (Cloud Bees Core) containter image (FULL test)"
+    echo "    cbc = Run using the docker CBC (Cloud Bees Core) container image (FULL test)"
     echo
     exit 1
 fi
@@ -186,7 +186,7 @@ else
         docker compose stop web
         docker compose restart db
 
-        # Run docker compose containter one-off
+        # Run docker compose container one-off
         echo_msg
         echo_msg "------RUNNING DOCKER-COMPOSE CONTAINER WITH INTEGRATION TESTS------"
         echo_msg

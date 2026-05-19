@@ -435,7 +435,7 @@ def _validate_asserts(logger, log_dict, asserts):
             elif err_enum == MedicareCallbackExceptionType.VALIDATION_ERROR:
                 err = ValidationError(mesg, t[3:])
             else:
-                err = Exception('Unkown medicare callback crosswalk exception type: {}'.format(err_enum))
+                err = Exception('Unknown medicare callback crosswalk exception type: {}'.format(err_enum))
             raise err
 
 

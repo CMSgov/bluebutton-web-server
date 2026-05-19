@@ -347,7 +347,7 @@ class OAuth2ConfigSLSx(object):
                 elif err_enum == MedicareCallbackExceptionType.AUTHN_USERINFO:
                     err = BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
                 else:
-                    err = Exception('Unkown medicare callback exception type: {}'.format(err_enum))
+                    err = Exception('Unknown medicare callback exception type: {}'.format(err_enum))
                 raise err
 
     def log_event(self, request, extra):

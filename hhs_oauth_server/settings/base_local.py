@@ -16,7 +16,7 @@ env = environ.Env()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Take environment variables from .env.local file
-environ.Env.read_env(os.path.join(BASE_DIR + '/dev-local', '.env.local'))
+environ.Env.read_env(os.path.join(BASE_DIR + '/ops/container', '.env.local'))
 
 ###############################################################################
 # DJANGO BASE SETTINGS
@@ -392,6 +392,7 @@ SILENCED_SYSTEM_CHECKS = ['urls.W002']
 
 # Django Oauth Toolkit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
+OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL = 'oauth2_provider.AccessToken'
 OAUTH2_PROVIDER = {
     'PKCE_REQUIRED': False,
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
@@ -401,6 +402,7 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
     'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
     'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
+    'APPLICATION_ADMIN_CLASS': 'apps.dot_ext.admin_overrides.ValidatedApplicationAdmin',
 }
 
 # These choices will be available in the expires_in field

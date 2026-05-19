@@ -122,17 +122,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/palazzem">
-                    <img src="https://avatars.githubusercontent.com/u/1560405?v=4" width="100;" alt="palazzem"/>
-                    <br />
-                    <sub><b>Emanuele Palazzetti</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/clewellyn-nava">
                     <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
                     <br />
                     <sub><b>Connor Lewellyn</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/palazzem">
+                    <img src="https://avatars.githubusercontent.com/u/1560405?v=4" width="100;" alt="palazzem"/>
+                    <br />
+                    <sub><b>Emanuele Palazzetti</b></sub>
                 </a>
             </td>
 		</tr>
@@ -233,10 +233,10 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/alex-dzeda">
-                    <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
+                <a href="https://github.com/annamontare-nava">
+                    <img src="https://avatars.githubusercontent.com/u/267455234?v=4" width="100;" alt="annamontare-nava"/>
                     <br />
-                    <sub><b>alex-dzeda</b></sub>
+                    <sub><b>annamontare-nava</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -247,10 +247,10 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/annamontare-nava">
-                    <img src="https://avatars.githubusercontent.com/u/267455234?v=4" width="100;" alt="annamontare-nava"/>
+                <a href="https://github.com/alex-dzeda">
+                    <img src="https://avatars.githubusercontent.com/u/120701369?v=4" width="100;" alt="alex-dzeda"/>
                     <br />
-                    <sub><b>annamontare-nava</b></sub>
+                    <sub><b>alex-dzeda</b></sub>
                 </a>
             </td>
             <td align="center">
