@@ -387,7 +387,6 @@ class SimpleAllowForm(DotAllowForm):
     def clean(self):
         cleaned_data = super().clean()
         scope = cleaned_data.get('scope', None)
-        print('cleaned_data: ', cleaned_data)
 
         if scope is None:
             cleaned_data['scope'] = ''

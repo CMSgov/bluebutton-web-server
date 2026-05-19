@@ -496,7 +496,7 @@ class AuthorizationView(DotAuthorizationView):
         code = url_query.get('code', [None])[0]
 
         share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-        cache.set(f'include_samhsa:{code}', share_samhsa_data, timeout=600)
+        cache.set(f'include_samhsa:{code}', share_samhsa_data, timeout=300)
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1020,6 +1020,21 @@ class TokenView(DotTokenView):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
+    def _retrieve_prior_include_samhsa_value(self, grant_type: str, request: HttpRequest) -> bool:
+        prior_include_samhsa = True
+        if grant_type == 'refresh_token':
+            refresh_token_str = request.POST.get('refresh_token')
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_str)
+            try:
+                prior_access_token_extension = AccessTokenExtension.objects.get(
+                    access_token_id=refresh_token.access_token_id
+                )
+                prior_include_samhsa = prior_access_token_extension.include_samhsa
+            except AccessTokenExtension.DoesNotExist:
+                # this case indicates it was an access token created before the access token extension was added
+                log.info(f'No access token extension for access token id: {refresh_token.access_token_id}')
+        return prior_include_samhsa
+
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
@@ -1142,15 +1157,8 @@ class TokenView(DotTokenView):
                 {'status_code': HTTPStatus.FORBIDDEN, 'message': 'Request denied'},
                 status=HTTPStatus.FORBIDDEN,
             )
-        prior_include_samhsa = True
-        if grant_type == 'refresh_token':
-            refresh_token_str = request.POST.get('refresh_token')
-            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_str)
 
-            prior_access_token_extension = AccessTokenExtension.objects.get(
-                access_token_id=refresh_token.access_token_id
-            )
-            prior_include_samhsa = prior_access_token_extension.include_samhsa
+        prior_include_samhsa = self._retrieve_prior_include_samhsa_value(grant_type, request)
 
         url, headers, body, status = self.create_token_response(request)
 

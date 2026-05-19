@@ -749,9 +749,11 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        extension = AccessToken.objects.get(token=ac).accesstokenextension
-        extension.include_samhsa = False
-        extension.save()
+        ac_record = AccessToken.objects.get(token=ac)
+        access_token_extension = AccessTokenExtension()
+        access_token_extension.access_token = ac_record
+        access_token_extension.include_samhsa = False
+        access_token_extension.save()
 
         for version in [Versions.V1, Versions.V2]:
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
@@ -766,9 +768,11 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        extension = AccessToken.objects.get(token=ac).accesstokenextension
-        extension.include_samhsa = True
-        extension.save()
+        ac_record = AccessToken.objects.get(token=ac)
+        access_token_extension = AccessTokenExtension()
+        access_token_extension.access_token = ac_record
+        access_token_extension.include_samhsa = True
+        access_token_extension.save()
 
         for version in [Versions.V1, Versions.V2]:
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
