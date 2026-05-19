@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "secrets" {
     sid     = "AllowSecretsManagerAccess"
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
-      "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb2/${local.workspace}/*",
+      "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb2/${local.secrets_env}/*",
       "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb/${local.workspace}/*"
     ]
   }
@@ -102,12 +102,12 @@ data "aws_iam_policy_document" "ses" {
 data "aws_iam_policy_document" "s3" {
   statement {
     sid     = "AllowS3Access"
-    actions = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+    actions = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"]
     resources = [
       "arn:aws:s3:::${local.app_config_bucket}",
       "arn:aws:s3:::${local.app_config_bucket}/*",
-      "arn:aws:s3:::bb-${local.bucket_env}-content-cms-gov",
-      "arn:aws:s3:::bb-${local.bucket_env}-content-cms-gov/*"
+      "arn:aws:s3:::bb-${local.content_env}-content-cms-gov",
+      "arn:aws:s3:::bb-${local.content_env}-content-cms-gov/*"
     ]
   }
 }
