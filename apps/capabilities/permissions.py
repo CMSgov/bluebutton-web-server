@@ -35,13 +35,13 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                 if 'coverage-eligibility' in request.auth.application.get_internal_application_labels():
                     token_scopes = CapabilitiesScopes().remove_eob_scopes(token_scopes)
 
-            scopes = list(
+            protected_resources = list(
                 ProtectedCapability.objects.filter(slug__in=token_scopes)
                 .values_list('protected_resources', flat=True)
                 .all()
             )
 
-            has_match = has_matching_protected_resource(scopes, request)
+            has_match = has_matching_protected_resource(protected_resources, request)
             return has_match
 
         else:

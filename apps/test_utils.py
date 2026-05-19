@@ -29,7 +29,3 @@ class IsValidScopeTest(TestCase):
         has_match = has_matching_protected_resource(self.protected_resources, request)
 
         assert has_match is True
-
-
-[['GET', '/v[123]/fhir/Coverage[/?].*$'], ['GET', '/v[123]/fhir/Coverage[/]?$']]
-[['GET', '/v[123]/fhir/Coverage[/?].*$']]

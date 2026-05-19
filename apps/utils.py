@@ -9,7 +9,7 @@ def has_matching_protected_resource(protected_resources: list[str], request: Req
     Determines if the protected resource from the request and the app has a match.
 
     args:
-      - scopes: The protected resources retreived from the database
+      - protected_resources: The protected resources retreived from the database
       - request: The API request
     returns:
       - True if there is a match with the current request and the protected resource it has in the database, False if not
