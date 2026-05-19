@@ -97,12 +97,7 @@ def create_or_update_data_access_grant_client_credential_flow(user, application)
 
     Return the data_access_grant for use in post function of TokenView
     """
-    # data_access_grant = DataAccessGrant.objects.update_or_create(
-    #     beneficiary=user,
-    #     application=application,
-    #     expiration_date=expiration_date,
-    # )
-    data_access_grant, created = DataAccessGrant.objects.get_or_create(
+    data_access_grant, _ = DataAccessGrant.objects.get_or_create(
         beneficiary=user,
         application=application,
     )

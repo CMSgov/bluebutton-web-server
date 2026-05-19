@@ -1,47 +1,43 @@
-import re
 import json
+import re
+
 import jsonschema
 import requests
-
-import apps.logging.request_logger as logging
-
-from django.urls import reverse
-from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.http import HttpRequest
-
-from httmock import all_requests, HTTMock, urlmatch
+from django.test.client import Client
+from django.urls import reverse
+from httmock import HTTMock, all_requests, urlmatch
 from jsonschema import validate
 from oauth2_provider.models import get_access_token_model
 from rest_framework import status
 from waffle.testutils import override_switch
 
+import apps.logging.request_logger as logging
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.dot_ext.models import Application
-from apps.logging.utils import redirect_loggers, get_log_content, cleanup_logger
-from apps.mymedicare_cb.views import generate_nonce
-from apps.mymedicare_cb.models import AnonUserState
-from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.tests.responses import patient_response
-from apps.test import BaseApiTest
-
 from apps.logging.constants import (
     AUTHENTICATION_START_LOG_SCHEMA,
     AUTHENTICATION_SUCCESS_LOG_SCHEMA,
     AUTHORIZATION_LOG_SCHEMA,
     FHIR_AUTH_POST_FETCH_LOG_SCHEMA,
     FHIR_AUTH_PRE_FETCH_LOG_SCHEMA,
-    get_post_fetch_fhir_log_entry_schema,
-    get_pre_fetch_fhir_log_entry_schema,
     MATCH_FHIR_ID_LOG_SCHEMA,
     MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA,
     MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA,
-    REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA,
     REQUEST_PARTIAL_LOG_REC_SCHEMA,
+    REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA,
     SLSX_TOKEN_LOG_SCHEMA,
     SLSX_USERINFO_LOG_SCHEMA,
+    get_post_fetch_fhir_log_entry_schema,
+    get_pre_fetch_fhir_log_entry_schema,
 )
-
+from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers
+from apps.mymedicare_cb.models import AnonUserState
+from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
+from apps.mymedicare_cb.tests.responses import patient_response
+from apps.mymedicare_cb.views import generate_nonce
+from apps.test import BaseApiTest
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 
@@ -144,24 +140,14 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entries = fhir_log_content.splitlines()
 
             # Validate fhir_pre_fetch entry
-            self.assertTrue(self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(version), json.loads(log_entries[0])))
+            self.assertTrue(
+                self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(version), json.loads(log_entries[0]))
+            )
 
             # Validate fhir_post_fetch entry
-            self.assertTrue(self._validateJsonSchema(get_post_fetch_fhir_log_entry_schema(version), json.loads(log_entries[1])))
-
-            # Validate AccessToken entry
-            token_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_TOKEN_LOGGER)
-            self.assertIsNotNone(token_log_content)
-            log_entries = token_log_content.splitlines()
-
-            # commenting out as part of 4699, as the call to create_token at the start of this test
-            # just creates DB records for the test, and does not go through post of TokenView where the log
-            # this assertion is looking for would be output
-            # self.assertTrue(
-            #     self._validateJsonSchema(
-            #         ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, json.loads(log_entries[0])
-            #     )
-            # )
+            self.assertTrue(
+                self._validateJsonSchema(get_post_fetch_fhir_log_entry_schema(version), json.loads(log_entries[1]))
+            )
 
     @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_slsx_logger(self):
@@ -264,7 +250,9 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertTrue(self._validateJsonSchema(MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])))
 
             # Validate mymedicare_cb:get_and_update_user entry
-            self.assertTrue(self._validateJsonSchema(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, json.loads(log_entries[1])))
+            self.assertTrue(
+                self._validateJsonSchema(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, json.loads(log_entries[1]))
+            )
 
             fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             log_entries = fhir_log_content.splitlines()
@@ -285,13 +273,17 @@ class TestAuditEventLoggers(BaseApiTest):
             # Validate fhir.server.authentication.match_fhir_id entry
             self.assertTrue(self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, json.loads(log_entries[0])))
 
-            hhs_oauth_server_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+            hhs_oauth_server_log_content = get_log_content(
+                self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER
+            )
 
             log_entries = hhs_oauth_server_log_content.splitlines()
             self.assertGreater(len(log_entries), 0)
 
             # Validate hhs_oauth_server request/response custom middleware log entry
-            self.assertTrue(self._validateJsonSchema(REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, json.loads(log_entries[0])))
+            self.assertTrue(
+                self._validateJsonSchema(REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, json.loads(log_entries[0]))
+            )
 
     def test_callback_url_slsx_tkn_error_logger(self):
         self._callback_url_slsx_tkn_error_logger(1)

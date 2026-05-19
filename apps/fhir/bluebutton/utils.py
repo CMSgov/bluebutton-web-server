@@ -10,6 +10,8 @@ import pytz
 import requests
 from django.conf import settings
 from django.contrib import messages
+from fhir.resources.bundle import Bundle
+from fhir.resources.patient import Patient
 from oauth2_provider.models import AccessToken
 from pytz import timezone
 
@@ -20,7 +22,6 @@ from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.fhir.constants import (
     FHIR_PARAM_FORMAT,
     MBI_URL,
-    PATIENT_RESOURCE_TYPE,
     REQUEST_EOB_KEEP_ALIVE,
 )
 from apps.fhir.server.settings import fhir_settings
@@ -799,33 +800,30 @@ def is_operation_outcome(response_json: Dict[str, Any]) -> bool:
     return False
 
 
-def is_patient_match_found(response_json: Dict[str, Any], index: int) -> tuple[bool, dict | None]:
+def is_patient_match_found(response_json: Dict[str, Any]) -> tuple[bool, dict | None]:
     """
     This is a utility function to check if a patient match is found. If a patient match is found,
     a boolean value of True will be returned. If no patient match is found, a boolean value of False will be returned.
 
     Args:
-        response_json: The response from BFD as a json/dict object
-        index: The index of the patient entry to check
+        response_json: The response from BFD as a json/dict object, should include an organization and a patient resource
 
     Returns:
         bool: True and the patient resource if a patient match is found, False and None otherwise
     """
-    entries = response_json.get('entry', [])
+    bundle = Bundle.parse_obj(response_json)
 
-    if index < 0 or index >= len(entries):
+    patient_count = 0
+    patient = None
+    for entry in bundle.entry or []:
+        if isinstance(entry.resource, Patient):
+            patient_count += 1
+            patient = entry.resource
+
+    if patient_count == 1:
+        return True, patient
+    else:
         return False, None
-
-    # The code below can probably be modified in the future to check for other resourceTypes besides patient,
-    # but for now this is sufficient to determine if a patient match was found or not,
-    # since the only resource that should be returned in the 'entry' list for a patient match call is a patient resource
-    if len(entries) > 1:
-        # The length of the 'entry' list is greater than 1, which indicates a patient match was found,
-        # but we want to make sure the resourceType of the entry is patient before returning True
-        patient = entries[index].get('resource', {})
-        if patient.get('resourceType') == PATIENT_RESOURCE_TYPE:
-            return True, patient
-    return False, None
 
 
 def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str], method: str) -> Dict[str, Any]:
@@ -855,12 +853,12 @@ def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str]
     return response.json()
 
 
-def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+def extract_mbi_from_patient(patient: Patient) -> Optional[str]:
     """
     Extracts the MBI from a patient entry in a FHIR Bundle.
 
     Args:
-        patient: A patient entry from a FHIR Bundle as a json/dict object
+        patient: A patient entry from a FHIR Bundle as a Patient object
 
     Returns:
         str: The MBI if found, None otherwise
@@ -870,20 +868,20 @@ def extract_mbi_from_patient(patient: Dict[str, Any]) -> Optional[str]:
 
     # Look for the identifier with the MBI system and return the value
     # (returns None if 'identifier' key is missing or if no identifier with the MBI system is found)
-    identifiers = patient.get('identifier', [])
+    identifiers = patient.identifier or []
     for ident in identifiers:
-        if ident.get('system') == MBI_URL and 'value' in ident:
-            return ident.get('value')
+        if ident.system == MBI_URL:
+            return ident.value
 
     return None
 
 
-def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
+def extract_fhir_id_from_patient(patient: Patient) -> Optional[str]:
     """
     Extracts the FHIR ID from a patient entry in a FHIR Bundle.
 
     Args:
-        patient: A patient entry from a FHIR Bundle as a json/dict object
+        patient: A patient entry from a FHIR Bundle as a Patient object
 
     Returns:
         str: The FHIR ID if found, None otherwise
@@ -891,4 +889,4 @@ def extract_fhir_id_from_patient(patient: Dict[str, Any]) -> Optional[str]:
     if not patient:
         return None
 
-    return patient.get('id')
+    return patient.id

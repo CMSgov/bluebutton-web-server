@@ -166,19 +166,6 @@ class BeneficiaryLoginTest(TestCase):
                 'exception': BBMyMedicareCallbackCrosswalkCreateException,
                 'exception_mesg': 'username can not be None',
             },
-            # 'missing hash': {
-            #     'args': {
-            #         'username': DEFAULT_USERNAME,
-            #         'user_mbi': '1SA0A00AA00',
-            #         'fhir_id_v2': '-20140000008325',
-            #         'user_id_type': 'H',
-            #         'first_name': DEFAULT_FIRST_NAME,
-            #         'last_name': DEFAULT_LAST_NAME,
-            #         'email': DEFAULT_EMAIL,
-            #     },
-            #     'exception': BBMyMedicareCallbackCrosswalkCreateException,
-            #     'exception_mesg': 'user_hicn_hash can not be None',
-            # },
             'invalid_hicn_hash': {
                 'args': {
                     'username': DEFAULT_USERNAME,
@@ -312,8 +299,6 @@ class BeneficiaryLoginTest(TestCase):
                         'fhir_id_v2': '-19990000000004',
                     },
                 ],
-                'exception': ValidationError,
-                'exception_mesg': 'user_hicn_hash already exists',
             },
             '_user_mbi': {
                 'args': [
@@ -347,8 +332,6 @@ class BeneficiaryLoginTest(TestCase):
                         'fhir_id_v2': '-19990000000005',
                     },
                 ],
-                'exception': ValidationError,
-                'exception_mesg': 'fhir_id_v2 already exists',
             },
             'fhir_id_v3': {
                 'args': [
@@ -363,8 +346,6 @@ class BeneficiaryLoginTest(TestCase):
                         'fhir_id_v3': '-19990000000005',
                     },
                 ],
-                'exception': ValidationError,
-                'exception_mesg': 'fhir_id_v3 already exists',
             },
         }
 

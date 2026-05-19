@@ -13,46 +13,6 @@ AUTHENTICATION_PATH_PATTERN = r'v[0-9]/mymedicare/sls-callback'
 AUTHORIZATION_PATH_PATTERN = r'v[0-9]/o/authorize'
 ACCESS_TOKEN_PATH_PATTERN = r'v[0-9]/o/token'
 
-ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA = {
-    'title': 'AccessTokenAuthorizedLogSchema',
-    'type': 'object',
-    'properties': {
-        'type': {'pattern': 'AccessToken'},
-        'path': {'pattern': ACCESS_TOKEN_PATH_PATTERN},
-        'action': {'pattern': 'authorized'},
-        'auth_grant_type': {'pattern': 'password'},
-        'id': {'type': 'integer'},
-        'scopes': {'pattern': 'read write patient'},
-        'user': {
-            'type': 'object',
-            'properties': {'id': {'type': 'integer'}, 'username': {'pattern': 'John'}},
-        },
-        'crosswalk': {
-            'type': 'object',
-            'properties': {
-                'id': {'type': 'integer'},
-                'user_hicn_hash': {'pattern': '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7'},
-                'user_mbi': {
-                    'type': 'string',
-                    'pattern': '1SA0A00AA00',
-                },
-                'fhir_id_v2': {'pattern': '-20140000008325'},
-                'user_id_type': {'pattern': 'H'},
-            },
-        },
-    },
-    'required': [
-        'type',
-        'path',
-        'action',
-        'auth_grant_type',
-        'id',
-        'scopes',
-        'user',
-        'crosswalk',
-    ],
-}
-
 AUTHENTICATION_START_LOG_SCHEMA = {
     'title': 'AuthenticationStartLogSchema',
     'type': 'object',
