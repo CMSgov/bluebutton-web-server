@@ -87,12 +87,14 @@ else
         --detach
     elif [[ "${MIGRATE}" == "1"  ]]; then
         echo "📊 Migrating."
-        echo
+
         docker compose \
             -f ops/containers/docker-compose-local.yaml \
-            up --abort-on-container-exit
-        docker compose down
-        exit
+            run --rm bb-api bash -c "python manage.py migrate && python manage.py create_admin_groups"
+
+        docker compose \
+            -f ops/containers/docker-compose-local.yaml down
+            
     elif [[ "${COLLECTSTATIC}" == "1" ]]; then
         echo "📊 Collecting static."
         echo

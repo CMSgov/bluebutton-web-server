@@ -92,6 +92,8 @@ load_env_vars () {
         export SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
+        export MIGRATE="${MIGRATE}"
+        export COLLECTSTATIC="${COLLECTSTATIC}"
         return 0
     else
         echo "⛔ Cannot load env vars for non-local environments."

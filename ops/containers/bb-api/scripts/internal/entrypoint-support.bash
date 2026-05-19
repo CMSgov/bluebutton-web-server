@@ -45,6 +45,9 @@ check_bfd_certs_are_not_empty () {
 
 possibly_migrate_or_collectstatic_if_local () {
     echo "🟦 possibly migrate or collectstatic"
+    echo $TARGET_ENV
+    echo $MIGRATE
+
     if [[ $TARGET_ENV == "codebuild" ]]; then
             echo "🔵 running migrate"
             python manage.py migrate
