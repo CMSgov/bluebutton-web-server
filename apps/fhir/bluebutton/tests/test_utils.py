@@ -6,6 +6,7 @@ import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
+from fhir.resources.bundle import Bundle
 from voluptuous import (
     All,
     Coerce,
@@ -478,9 +479,10 @@ class PatientMatchTestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
 
-        expected_patient = patient_bundle.get('entry', [])[1].get('resource', {})
+        bundle = Bundle.parse_obj(patient_bundle)
+        expected_patient = bundle.entry[1].resource
 
-        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+        patient_match_found, patient = is_patient_match_found(patient_bundle)
 
         assert patient_match_found is True
         assert patient == expected_patient
@@ -491,7 +493,7 @@ class PatientMatchTestCase(BaseApiTest):
         with open('apps/fhir/bluebutton/tests/sample_responses/no_patient_match_response.json') as f:
             patient_bundle = json.load(f)
 
-        patient_match_found, patient = is_patient_match_found(patient_bundle, index=1)
+        patient_match_found, patient = is_patient_match_found(patient_bundle)
         assert patient_match_found is False
         assert patient is None
 
@@ -510,7 +512,9 @@ class ExtractMBITestCase(BaseApiTest):
         """
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
-        patient = patient_bundle.get('entry', [])[1].get('resource', {})
+
+        bundle = Bundle.parse_obj(patient_bundle)
+        patient = bundle.entry[1].resource
         result = extract_mbi_from_patient(patient)
         assert result == '1S00E00AG54'
 
@@ -536,7 +540,8 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         """
         with open('apps/fhir/bluebutton/tests/sample_responses/patient_match_all_response.json') as f:
             patient_bundle = json.load(f)
-        patient = patient_bundle.get('entry', [])[1].get('resource', {})
+        bundle = Bundle.parse_obj(patient_bundle)
+        patient = bundle.entry[1].resource
 
         result = extract_fhir_id_from_patient(patient)
         assert result == '-502120048'

@@ -1,9 +1,6 @@
-from datetime import timedelta
-from urllib.parse import parse_qs
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 
-from apps.constants import CLIENT_CREDENTIALS
-from apps.dot_ext.models import ExpiresIn
+from apps.dot_ext.constants import SECONDS_IN_ONE_HOUR
 from apps.pkce.oauth2_server import PKCEServerMixin
 
 
@@ -12,29 +9,18 @@ def my_token_expires_in(request):
     Function that returns the expires_in value used to create
     tokens.
     """
-    # first we try to retrieve the expires_in from the ExpiresIn
-    # table.
-    client_id = request.client.client_id
-    request_body = parse_qs(request.body)
-    grant_type = request_body.get('grant_type', [None])
-
-    if grant_type[0] and grant_type[0] != CLIENT_CREDENTIALS:
-        user_id = request.user.pk
-    else:
-        user_id = request.client.user.pk
-
-    expires_in = ExpiresIn.objects.get_expires_in(client_id, user_id)
-    if expires_in is None:
-        one_hour_delta = timedelta(hours=1)
-        seconds_in_one_hour = int(one_hour_delta.total_seconds())
-        expires_in = seconds_in_one_hour
-
-    return expires_in
+    return SECONDS_IN_ONE_HOUR
 
 
 class Server(PKCEServerMixin, OAuthLibServer):
     def __init__(
-        self, request_validator, token_expires_in=None, token_generator=None, refresh_token_generator=None, *args, **kwargs
+        self,
+        request_validator,
+        token_expires_in=None,
+        token_generator=None,
+        refresh_token_generator=None,
+        *args,
+        **kwargs,
     ):
         super(Server, self).__init__(
             request_validator,
