@@ -4,7 +4,7 @@ from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.utils import is_valid_scope
+from apps.utils import has_matching_protected_resource
 
 
 class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
@@ -41,8 +41,8 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                 .all()
             )
 
-            is_valid = is_valid_scope(scopes, request)
-            return is_valid
+            has_match = has_matching_protected_resource(scopes, request)
+            return has_match
 
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.

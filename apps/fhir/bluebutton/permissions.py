@@ -17,7 +17,7 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
-from apps.utils import is_valid_scope
+from apps.utils import has_matching_protected_resource
 from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -129,29 +129,30 @@ class AppScopePermission(permissions.BasePermission):
 
         args:
           - request: The API Request
-          - view: The view
+          - view: The view (search, read, etc.)
         returns:
-          - True if there is a match with the current request and the scopes the app has in the database
+          - True if there is a match with the current request and the protected resources the app has in the database.
           - Raises a custom 403 Forbidden error if not
         """
         # if it is not version 3, we do not need to check the scopes
         if view.version < Versions.V3:
             return True
+
         token = get_access_token_model().objects.get(token=request._auth)
         token_app_id = token.application_id
         if not token or not token_app_id:
             return False
-        application_scopes = list(
-            ProtectedCapability.objects.filter(application=token.application_id)
+        app_protected_resources = list(
+            ProtectedCapability.objects.filter(application=token_app_id)
             .values_list('protected_resources', flat=True)
-            .distinct()
+            .all()
         )
-        is_valid = is_valid_scope(application_scopes, request)
-        if not is_valid:
+        has_match = has_matching_protected_resource(app_protected_resources, request)
+        if not has_match:
             raise PermissionDenied(
                 APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
             )
-        return is_valid
+        return has_match
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):
