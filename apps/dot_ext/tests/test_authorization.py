@@ -24,7 +24,7 @@ from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_CREDENTIALS_TYPE,
 )
-from apps.dot_ext.models import Application, ArchivedToken
+from apps.dot_ext.models import AccessTokenExtension, Application, ArchivedToken
 from apps.dot_ext.views import AuthorizationView, TokenView
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
@@ -300,6 +300,16 @@ class TestAuthorizationView(BaseApiTest):
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
+
+        access_token = get_access_token_model().objects.get(token=tkn)
+        access_token_extension = AccessTokenExtension.objects.get(access_token=access_token)
+        access_token_extension_id = access_token_extension.id
+
+        # Confirm that access token extension records are created after going through TokenView.post
+        # with grant_type = 'authorization_code'
+        assert access_token_extension
+        assert access_token_extension.include_samhsa
+
         refresh_request_data = {
             'grant_type': 'refresh_token',
             'refresh_token': refresh_tkn,
@@ -322,6 +332,9 @@ class TestAuthorizationView(BaseApiTest):
             response = self.client.post(
                 reverse('oauth2_provider:token'), data=body, content_type='application/x-www-form-urlencoded'
             )
+            new_access_token = get_access_token_model().objects.get(token=response.json()['access_token'])
+            new_access_token_extension = AccessTokenExtension.objects.get(access_token=new_access_token)
+            assert new_access_token_extension
 
         # refresh crosswalk to see if it was properly updated
         crosswalk.refresh_from_db()
@@ -330,6 +343,10 @@ class TestAuthorizationView(BaseApiTest):
         self.assertEqual(crosswalk.fhir_id_v3, '-30250000008325')
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(response.json()['access_token'], tkn)
+
+        # assert that the previously created AccessTokenExtension has been deleted
+        with self.assertRaises(AccessTokenExtension.DoesNotExist):
+            AccessTokenExtension.objects.get(id=access_token_extension_id)
 
     def test_refresh_with_expired_token(self):
         redirect_uri = 'http://localhost'
