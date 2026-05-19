@@ -106,7 +106,7 @@ make run-local bfd=test auth=live READ_ONLY=false
 This will allow you to make a new migration and not run into any read-only file system issues.
 
 After altering models, open a new terminal and log into a running stack using
-`docker exec -u root -it <contatinerid> bash` (for root permissions), and then run
+`docker exec -u root -it <contatiner_id> bash` (for root permissions), and then run
 
 ```
 python manage.py makemigrations

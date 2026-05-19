@@ -807,7 +807,6 @@ def is_patient_match_found(response_json: Dict[str, Any]) -> tuple[bool, dict | 
 
     Args:
         response_json: The response from BFD as a json/dict object, should include an organization and a patient resource
-        index: The index of the patient entry to check
 
     Returns:
         bool: True and the patient resource if a patient match is found, False and None otherwise
