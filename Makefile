@@ -1,11 +1,9 @@
-.PHONY: build-local build-local-no-cache run-local exec-web build-selenium \
+.PHONY: build-local build-local-no-cache run-local build-selenium \
         run-selenium reqs-install reqs-install-dev generate \
-        generate-requirements retrieve-certs migrate collectstatic \
+        generate-requirements migrate collectstatic \
         unit-test integration-test
 
-# Grouped passthrough targets to ops/containers
-build-local build-local-no-cache run-local exec-web build-selenium \
-retrieve-certs migrate collectstatic:
+build-local build-local-no-cache run-local build-selenium migrate collectstatic:
 	$(MAKE) -C ops/containers $@
 
 run-selenium:

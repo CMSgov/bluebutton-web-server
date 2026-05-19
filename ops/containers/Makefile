@@ -4,8 +4,8 @@ bfd         ?= test
 env         ?= local
 auth        ?= live
 
-.PHONY: css requirements build-local build-local-no-cache build-production run-local migrate collectstatic \
-		run-selenium-target-local build-selenium
+.PHONY: css requirements build-local build-local-no-cache build-production run-local \
+		migrate collectstatic run-selenium-target-local build-selenium
 
 css:
 	$(MAKE) -C bb-css build-local run-local
