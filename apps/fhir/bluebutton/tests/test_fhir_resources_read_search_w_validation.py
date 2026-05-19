@@ -11,8 +11,11 @@ from waffle.testutils import override_switch
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
     C4BB_PROFILE_URLS,
+    COVERAGE_SCOPE,
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
+    EOB_SCOPE,
+    PATIENT_SCOPE,
 )
 from apps.dot_ext.models import AccessTokenExtension, Application, ProtectedCapability
 from apps.fhir.constants import (
@@ -829,7 +832,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the patient scope for that app and try to make a call
         application = Application.objects.get(name='John_Smith_test')
-        patient_protected_resource = ProtectedCapability.objects.get(title='patient/Patient.rs')
+        patient_protected_resource = ProtectedCapability.objects.get(title=PATIENT_SCOPE)
         application.scope.remove(patient_protected_resource)
 
         response = self.client.get(
@@ -850,7 +853,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the coverage scope for that app and try to make a call
         application = Application.objects.get(name='John_Smith_test')
-        coverage_protected_resource = ProtectedCapability.objects.get(title='coverage/Coverage.rs')
+        coverage_protected_resource = ProtectedCapability.objects.get(title=COVERAGE_SCOPE)
         application.scope.remove(coverage_protected_resource)
 
         response = self.client.get(
@@ -871,7 +874,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the eob scope for that app and try to make a call
         application = Application.objects.get(name='John_Smith_test')
-        eob_protected_resource = ProtectedCapability.objects.get(title='eob/EOB.rs')
+        eob_protected_resource = ProtectedCapability.objects.get(title=EOB_SCOPE)
         application.scope.remove(eob_protected_resource)
 
         response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}')

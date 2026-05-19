@@ -21,8 +21,11 @@ from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     CODE_CHALLENGE_METHOD_S256,
+    COVERAGE_SCOPE,
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
+    EOB_SCOPE,
+    PATIENT_SCOPE,
     USER_TYPE_BENEFICIARY,
     USER_TYPE_DEV,
 )
@@ -490,13 +493,13 @@ class BaseApiTest(TestCase):
             email='%s@%s.notanagency.gov' % (first_name, last_name),
         )
         patient_capability = self._create_capability(
-            'patient/Patient.rs', [['GET', '/v[123]/fhir/Patient[/?].*$'], ['GET', '/v[123]/fhir/Patient[/]?$']]
+            PATIENT_SCOPE, [['GET', '/v[123]/fhir/Patient[/?].*$'], ['GET', '/v[123]/fhir/Patient[/]?$']]
         )
         coverage_capability = self._create_capability(
-            'coverage/Coverage.rs', [['GET', '/v[123]/fhir/Coverage[/?].*$'], ['GET', '/v[123]/fhir/Coverage[/]?$']]
+            COVERAGE_SCOPE, [['GET', '/v[123]/fhir/Coverage[/?].*$'], ['GET', '/v[123]/fhir/Coverage[/]?$']]
         )
         eob_capability = self._create_capability(
-            'eob/EOB.rs',
+            EOB_SCOPE,
             [['GET', '/v[123]/fhir/ExplanationOfBenefit[/?].*$'], ['GET', '/v[123]/fhir/ExplanationOfBenefit[/]?$']],
         )
 
