@@ -1,13 +1,14 @@
-import pytz
 from datetime import datetime
+
+import pytz
 from dateutil.relativedelta import relativedelta
-from django.db import models
-from django.db.models import Count, Min, Q
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models import Count, Min, Q
 from django.utils import timezone
-from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
+from oauth2_provider.settings import oauth2_settings
 
 from apps.constants import USER_TYPE_BENEFICIARY
 
@@ -96,12 +97,7 @@ def create_or_update_data_access_grant_client_credential_flow(user, application)
 
     Return the data_access_grant for use in post function of TokenView
     """
-    # data_access_grant = DataAccessGrant.objects.update_or_create(
-    #     beneficiary=user,
-    #     application=application,
-    #     expiration_date=expiration_date,
-    # )
-    data_access_grant, created = DataAccessGrant.objects.get_or_create(
+    data_access_grant, _ = DataAccessGrant.objects.get_or_create(
         beneficiary=user,
         application=application,
     )
@@ -283,14 +279,20 @@ def get_beneficiary_counts():
     counts_returned['synthetic_grant_archived'] = synthetic_queryset.filter(Q(grant_archived_count__gt=0)).count()
 
     # Count only if in grant OR archived
-    counts_returned['total_grant_or_archived'] = queryset.filter(Q(grant_count__gt=0) | Q(grant_archived_count__gt=0)).count()
-    counts_returned['real_grant_or_archived'] = real_queryset.filter(Q(grant_count__gt=0) | Q(grant_archived_count__gt=0)).count()
+    counts_returned['total_grant_or_archived'] = queryset.filter(
+        Q(grant_count__gt=0) | Q(grant_archived_count__gt=0)
+    ).count()
+    counts_returned['real_grant_or_archived'] = real_queryset.filter(
+        Q(grant_count__gt=0) | Q(grant_archived_count__gt=0)
+    ).count()
     counts_returned['synthetic_grant_or_archived'] = synthetic_queryset.filter(
         Q(grant_count__gt=0) | Q(grant_archived_count__gt=0)
     ).count()
 
     # Count only if in grant AND archived
-    counts_returned['total_grant_and_archived'] = queryset.filter(Q(grant_count__gt=0) & Q(grant_archived_count__gt=0)).count()
+    counts_returned['total_grant_and_archived'] = queryset.filter(
+        Q(grant_count__gt=0) & Q(grant_archived_count__gt=0)
+    ).count()
     counts_returned['real_grant_and_archived'] = real_queryset.filter(
         Q(grant_count__gt=0) & Q(grant_archived_count__gt=0)
     ).count()
@@ -299,7 +301,9 @@ def get_beneficiary_counts():
     ).count()
 
     # Count only if in grant NOT archived
-    counts_returned['total_grant_not_archived'] = queryset.filter(Q(grant_count__gt=0) & ~Q(grant_archived_count__gt=0)).count()
+    counts_returned['total_grant_not_archived'] = queryset.filter(
+        Q(grant_count__gt=0) & ~Q(grant_archived_count__gt=0)
+    ).count()
     counts_returned['real_grant_not_archived'] = real_queryset.filter(
         Q(grant_count__gt=0) & ~Q(grant_archived_count__gt=0)
     ).count()
@@ -308,7 +312,9 @@ def get_beneficiary_counts():
     ).count()
 
     # Count only if in archived NOT grant
-    counts_returned['total_archived_not_grant'] = queryset.filter(~Q(grant_count__gt=0) & Q(grant_archived_count__gt=0)).count()
+    counts_returned['total_archived_not_grant'] = queryset.filter(
+        ~Q(grant_count__gt=0) & Q(grant_archived_count__gt=0)
+    ).count()
     counts_returned['real_archived_not_grant'] = real_queryset.filter(
         ~Q(grant_count__gt=0) & Q(grant_archived_count__gt=0)
     ).count()
@@ -328,12 +334,16 @@ def get_beneficiary_counts():
     counts_returned['real_grant_to_apps_eq_3'] = real_queryset.filter(Q(grant_count=3)).count()
     counts_returned['synthetic_grant_to_apps_eq_3'] = synthetic_queryset.filter(Q(grant_count=3)).count()
 
-    counts_returned['real_grant_to_apps_eq_4thru5'] = real_queryset.filter(Q(grant_count__gte=4) & Q(grant_count__lte=5)).count()
+    counts_returned['real_grant_to_apps_eq_4thru5'] = real_queryset.filter(
+        Q(grant_count__gte=4) & Q(grant_count__lte=5)
+    ).count()
     counts_returned['synthetic_grant_to_apps_eq_4thru5'] = synthetic_queryset.filter(
         Q(grant_count__gte=4) & Q(grant_count__lte=5)
     ).count()
 
-    counts_returned['real_grant_to_apps_eq_6thru8'] = real_queryset.filter(Q(grant_count__gte=6) & Q(grant_count__lte=8)).count()
+    counts_returned['real_grant_to_apps_eq_6thru8'] = real_queryset.filter(
+        Q(grant_count__gte=6) & Q(grant_count__lte=8)
+    ).count()
     counts_returned['synthetic_grant_to_apps_eq_6thru8'] = synthetic_queryset.filter(
         Q(grant_count__gte=6) & Q(grant_count__lte=8)
     ).count()
@@ -352,13 +362,19 @@ def get_beneficiary_counts():
     Bene archived grants to applications break down count section
     """
     counts_returned['real_grant_archived_to_apps_eq_1'] = real_queryset.filter(Q(grant_archived_count=1)).count()
-    counts_returned['synthetic_grant_archived_to_apps_eq_1'] = synthetic_queryset.filter(Q(grant_archived_count=1)).count()
+    counts_returned['synthetic_grant_archived_to_apps_eq_1'] = synthetic_queryset.filter(
+        Q(grant_archived_count=1)
+    ).count()
 
     counts_returned['real_grant_archived_to_apps_eq_2'] = real_queryset.filter(Q(grant_archived_count=2)).count()
-    counts_returned['synthetic_grant_archived_to_apps_eq_2'] = synthetic_queryset.filter(Q(grant_archived_count=2)).count()
+    counts_returned['synthetic_grant_archived_to_apps_eq_2'] = synthetic_queryset.filter(
+        Q(grant_archived_count=2)
+    ).count()
 
     counts_returned['real_grant_archived_to_apps_eq_3'] = real_queryset.filter(Q(grant_archived_count=3)).count()
-    counts_returned['synthetic_grant_archived_to_apps_eq_3'] = synthetic_queryset.filter(Q(grant_archived_count=3)).count()
+    counts_returned['synthetic_grant_archived_to_apps_eq_3'] = synthetic_queryset.filter(
+        Q(grant_archived_count=3)
+    ).count()
 
     counts_returned['real_grant_archived_to_apps_eq_4thru5'] = real_queryset.filter(
         Q(grant_archived_count__gte=4) & Q(grant_archived_count__lte=5)
@@ -382,7 +398,9 @@ def get_beneficiary_counts():
     ).count()
 
     counts_returned['real_grant_archived_to_apps_gt_13'] = real_queryset.filter(Q(grant_archived_count__gt=13)).count()
-    counts_returned['synthetic_grant_archived_to_apps_gt_13'] = synthetic_queryset.filter(Q(grant_archived_count__gt=13)).count()
+    counts_returned['synthetic_grant_archived_to_apps_gt_13'] = synthetic_queryset.filter(
+        Q(grant_archived_count__gt=13)
+    ).count()
 
     counts_returned['elapsed'] = round(datetime.utcnow().timestamp() - start_time, 3)
 
