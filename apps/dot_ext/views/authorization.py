@@ -49,7 +49,13 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauthlib.oauth2 import AccessDeniedError
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError, ServerError
+from oauthlib.oauth2.rfc6749.errors import (
+    InvalidClientError,
+    InvalidGrantError,
+    InvalidRequestError,
+    OAuth2Error,
+    ServerError,
+)
 from rest_framework.exceptions import NotFound
 from waffle import get_waffle_flag_model, switch_is_active
 
@@ -177,6 +183,22 @@ class AuthorizationView(DotAuthorizationView):
         """True if param exists in either GET or POST."""
         return (key in request.GET) or (key in request.POST)
 
+    def _validate_code_challenge_method(self, code_challenge_method):
+        """Validate code_challenge_method is S256 if provided.
+
+        Returns None if valid, JsonResponse error if invalid.
+        """
+        if code_challenge_method and code_challenge_method != 'S256':
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'error': 'invalid_request',
+                    'error_description': f'code_challenge_method must be S256, got: {code_challenge_method}',
+                },
+                status=HTTPStatus.BAD_REQUEST,
+            )
+        return None
+
     def _check_for_required_params(self, request):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
@@ -272,6 +294,13 @@ class AuthorizationView(DotAuthorizationView):
         if sensitive_info_detected:
             return sensitive_info_detected
 
+        # Validating before medicare login step that code_challenge_method is correct as per BB2-4805
+        # We could consider adding other checks at this step as well. Open to the team's suggestions
+        code_challenge_method = self._get_param(request, 'code_challenge_method')
+        validation_error = self._validate_code_challenge_method(code_challenge_method)
+        if validation_error:
+            return validation_error
+
         request.session['version'] = self.version
 
         # Accept lang from GET or POST
@@ -320,14 +349,24 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
+        code_challenge_method = request.POST.get('code_challenge_method')
+        validation_error = self._validate_code_challenge_method(code_challenge_method)
+        if validation_error:
+            return validation_error
         kwargs['code_challenge'] = request.POST.get('code_challenge')
-        kwargs['code_challenge_method'] = request.POST.get('code_challenge_method')
+        kwargs['code_challenge_method'] = code_challenge_method
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
+        code_challenge_method = request.GET.get('code_challenge_method')
+        validation_error = self._validate_code_challenge_method(code_challenge_method)
+        if validation_error:
+            return validation_error
+
         param_check = self._check_for_required_params(request)
         if param_check:
             return param_check
+
         kwargs['code_challenge'] = request.GET.get('code_challenge', None)
         kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
@@ -398,7 +437,7 @@ class AuthorizationView(DotAuthorizationView):
                 credentials=credentials,
                 allow=allow,
             )
-        except OAuthToolkitError as error:
+        except (OAuthToolkitError, OAuth2Error, InvalidRequestError) as error:
             response = self.error_response(error, application)
             if not scopes:
                 (
