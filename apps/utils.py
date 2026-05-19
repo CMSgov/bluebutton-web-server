@@ -15,7 +15,14 @@ def has_matching_protected_resource(protected_resources: list[str], request: Req
       - True if there is a match with the current request and the protected resource it has in the database, False if not
     """
     for protected_resource in protected_resources:
-        data = json.loads(protected_resource)
+        try:
+            data = json.loads(protected_resource)
+        except (json.JSONDecodeError, TypeError):
+            continue  # Skip invalid JSON strings
+
+        # Check if the parsed JSON is empty (e.g., None, {}, or [])
+        if not data:
+            continue
 
         # Ensure it's always a list of lists
         rules = data if any(isinstance(i, list) for i in data) else [data]
