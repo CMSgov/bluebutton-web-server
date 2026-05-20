@@ -3,14 +3,14 @@ from rest_framework import permissions
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.permissions import (
+    ApplicationActivePermission,
+    AppScopePermission,
     ReadCrosswalkPermission,
     ResourcePermission,
-    ApplicationActivePermission,
     V2ExplanationOfBenefitPermission,
     V3EarlyAdopterPermission,
 )
 from apps.fhir.bluebutton.views.generic import FhirDataView
-
 
 #####################################################################
 # These functions are a stepping stone to a single class based view #
@@ -29,6 +29,7 @@ class ReadView(FhirDataView):
         DataAccessGrantPermission,
         TokenHasProtectedCapability,
         V3EarlyAdopterPermission,
+        AppScopePermission,
         V2ExplanationOfBenefitPermission,
     ]
 
