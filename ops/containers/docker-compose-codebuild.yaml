@@ -9,7 +9,7 @@ services:
       - type: tmpfs
         target: /tmp
         tmpfs:
-          size: 200m
+          size: 20m
           mode: 1777
       - type: bind
         source: ./bb-api/scripts
