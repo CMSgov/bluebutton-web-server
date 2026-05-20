@@ -727,6 +727,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
 
     @tag('integration')
+    @override_switch('v3_endpoints', active=True)
     def test_v3_eob_call_succeeds(self):
         """
         Ensure that a v3 EOB call succeeds despite the presence of SamhsaPermission.
