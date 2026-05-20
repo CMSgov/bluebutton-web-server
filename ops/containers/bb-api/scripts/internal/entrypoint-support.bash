@@ -54,13 +54,16 @@ possibly_migrate_or_collectstatic_if_local () {
         fi
 
     if [[ $TARGET_ENV == "local" ]]; then
-        if [[ "${MIGRATE}" == "1" ]]
-        then
+        if [[ "${MIGRATE}" == "1" ]]; then
             echo "🔵 running migrate"
             python manage.py migrate
             echo "🔵 done running migrate ; bring down the stack"
             exit 0
+        else
+            echo "🔵 running migrate"
+            python manage.py migrate
         fi
+
 
         # TODO - collectstatic does not tear down the stack currently
         if [[ "${COLLECTSTATIC}" == "1" ]]

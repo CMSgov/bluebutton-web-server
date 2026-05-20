@@ -82,18 +82,18 @@ if [[ "${TARGET_ENV}" == "codebuild" ]]; then
 else
     if [[ "${daemon}" == "1" ]]; then
         docker compose \
-        -f ops/containers/docker-compose-local.yaml \
-        up \
-        --detach
+            --env-file ops/containers/bb-api/files/external/.env.container \
+            -f ops/containers/docker-compose-local.yaml \
+            up \
+            --detach
+
     elif [[ "${MIGRATE}" == "1"  ]]; then
         echo "📊 Migrating..."
         echo
 
         docker compose \
             -f ops/containers/docker-compose-local.yaml \
-            # This may be unnecessary, but because of some weirdness in podman-compose, it may be worth keeping
-            # as documentation. You might need this!
-            # --env-file ops/containers/bb-api/files/external/.env.container \
+            --env-file ops/containers/bb-api/files/external/.env.container \
             up --abort-on-container-exit
 
         echo "💥 Teardown..."
@@ -105,6 +105,7 @@ else
 
         docker compose \
             -f ops/containers/docker-compose-local.yaml \
+            --env-file ops/containers/bb-api/files/external/.env.container \
             up --abort-on-container-exit
 
         echo "💥 Teardown..."
@@ -118,6 +119,7 @@ else
         TARGET_ENV="local" \
         docker compose \
             -f ops/containers/docker-compose-local.yaml \
+            --env-file ops/containers/bb-api/files/external/.env.container \
             up --abort-on-container-exit
     fi
 fi
