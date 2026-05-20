@@ -23,6 +23,8 @@ services:
       POSTGRES_DB: "bluebutton"
       POSTGRES_PASSWORD: "toor"
       POSTGRES_PORT: 5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -87,4 +89,5 @@ services:
       - 9090:9090
 
 volumes:
+    db_data:
     s3mock-data:
