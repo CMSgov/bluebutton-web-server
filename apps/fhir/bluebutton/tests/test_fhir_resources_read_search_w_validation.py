@@ -745,13 +745,11 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         token_extension = AccessTokenExtension.objects.get(access_token=ac)
         token_extension.include_samhsa = False
         token_extension.save()
-        print('token_extension: ', token_extension.__dict__)
 
         url = SEARCH_EOB_URLS[Versions.V3]
         response = self.client.get(
             reverse(url),
             {},
-            # Authorization='Bearer %s' % (first_access_token),
             HTTP_AUTHORIZATION='Bearer %s' % first_access_token,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -761,7 +759,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_include_samhsa_is_true(self) -> None:
         """Ensure that if a v3 search EOB call is made, and if the oauth2_provider_accesstoken_extension record
-        associated with the request has include_samhsa of trie, that the _security:not=42CFRPart2 is NOT added to the
+        associated with the request has include_samhsa of true, that the _security:not=42CFRPart2 is NOT added to the
         request
         """
         # create the user
@@ -776,7 +774,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         response = self.client.get(
             url,
             {},
-            Authorization='Bearer %s' % (first_access_token),
+            HTTP_AUTHORIZATION='Bearer %s' % first_access_token,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         assert EXCLUDE_SAMHSA_PARAMETER_VALUE not in response.json()['link'][0]['url']

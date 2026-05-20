@@ -113,10 +113,7 @@ class FhirDataView(APIView):
                 at_extension = AccessTokenExtension.objects.get(access_token=at)
                 request.include_samhsa = at_extension.include_samhsa
             except ObjectDoesNotExist:
-                # If for whatever reason we can't retrieve the access token or access token extension
-                # ensure we still set include_samhsa on the request so there is not an error related
-                # to accessing that attribute on the request in the fetch_data function
-                request.include_samhsa = True
+                pass
 
         request.resource_type = resource_type
 
