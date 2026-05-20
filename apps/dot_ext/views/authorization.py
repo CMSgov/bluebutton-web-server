@@ -18,16 +18,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
-from django.db.models import Q
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
-from apps.capabilities.models import ProtectedCapability
-from django.urls import reverse
 from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
@@ -52,6 +50,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauthlib.oauth2 import AccessDeniedError
+from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError, ServerError
 from rest_framework.exceptions import NotFound
 from waffle import get_waffle_flag_model, switch_is_active
@@ -61,6 +60,7 @@ from apps.authorization.models import (
     DataAccessGrant,
     create_or_update_data_access_grant_client_credential_flow,
 )
+from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     CLIENT_CREDENTIALS,

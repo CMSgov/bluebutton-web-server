@@ -19,7 +19,7 @@ from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedToke
 from waffle.testutils import override_switch
 
 from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
-from apps.constants import CODE_CHALLENGE_METHOD_S256
+from apps.constants import CODE_CHALLENGE_METHOD_S256, PATIENT_SCOPE
 from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     CLIENT_CREDENTIALS_TYPE,
@@ -34,8 +34,6 @@ from apps.versions import Versions
 
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
-
-PATIENT_SCOPE = ['patient/Patient.rs']
 
 
 class TestAuthorizationView(BaseApiTest):
@@ -1546,9 +1544,10 @@ class TestAuthorizationView(BaseApiTest):
         set correctly on the context when get_context_data is called, and that the
         ProtectedCapability query is called with the correct application filter.
         """
-        mock_pc.objects.filter.return_value.values_list.return_value.distinct.return_value = PATIENT_SCOPE
+        scope_list = [PATIENT_SCOPE]
+        mock_pc.objects.filter.return_value.values_list.return_value.distinct.return_value = scope_list
 
-        requested_scopes = PATIENT_SCOPE
+        requested_scopes = scope_list
 
         view = AuthorizationView(version=Versions.V3)
         mock_application = MagicMock()
@@ -1573,7 +1572,7 @@ class TestAuthorizationView(BaseApiTest):
             context = view.get_context_data(scopes=requested_scopes)
 
         mock_pc.objects.filter.assert_called_once_with(Q(application=mock_application))
-        assert context['scopes'] == PATIENT_SCOPE
+        assert context['scopes'] == scope_list
         assert context['beneficiary_name'] == 'Test A User'
 
     @patch('apps.dot_ext.views.authorization.ProtectedCapability')
@@ -1581,7 +1580,8 @@ class TestAuthorizationView(BaseApiTest):
         """Ensure that for a AuthorizationView initialized for v2, that we do not run
         a query on ProtectedCapability
         """
-        mock_pc.objects.filter.return_value.values_list.return_value.distinct.return_value = PATIENT_SCOPE
+        scope_list = [PATIENT_SCOPE]
+        mock_pc.objects.filter.return_value.values_list.return_value.distinct.return_value = scope_list
 
         view = AuthorizationView(version=Versions.V2)
         mock_application = MagicMock()

@@ -68,7 +68,7 @@
 
 				<form id="authorizationForm" method="post">
 
-					{% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes %}
+					{% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes or 'profile' in scopes %}
 					<div>
 						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
 						<input type="hidden" name="share_demographic_scopes" value="True" />

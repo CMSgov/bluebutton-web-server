@@ -824,16 +824,17 @@ def format_patient_name(patient_data: dict) -> str:
     if not names:
         return 'Unknown'
 
-    name_entry = next((n for n in names), names[0])
+    try:
+        given_names = names[0].get('given', [])
+        family_name = names[0].get('family', '')
 
-    given_names = name_entry.get('given', [])
-    family_name = name_entry.get('family', '')
+        # Join all given names (handles 1 or more)
+        given_str = ' '.join(given_names)
 
-    # Join all given names (handles 1 or more)
-    given_str = ' '.join(given_names)
-
-    parts = [p for p in [given_str, family_name] if p]
-    return ' '.join(parts) if parts else 'Unknown'
+        parts = [p for p in [given_str, family_name] if p]
+        return ' '.join(parts) if parts else 'Unknown'
+    except IndexError:
+        return 'Unknown'
 
 
 def is_patient_match_found(response_json: Dict[str, Any]) -> tuple[bool, dict | None]:
