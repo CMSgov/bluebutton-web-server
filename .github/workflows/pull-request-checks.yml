@@ -55,6 +55,10 @@ jobs:
           cd ./ops/containers/bb-api
           make run-codebuild
 
+      - name: Check Memory
+        run: |
+          free -h
+
       - name: Execute Integration Tests
         run: |
           cd ./ops/containers/bb-api
