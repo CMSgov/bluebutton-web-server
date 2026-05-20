@@ -11,11 +11,9 @@ services:
         tmpfs:
           size: 200m
           mode: 1777
-
       - type: bind
         source: ./bb-api/scripts
         target: /home/boton/bb/ops/containers/bb-api/scripts
-
       - type: bind
         source: ../..
         target: /home/boton/bb
