@@ -31,14 +31,11 @@ build-codebuild:
 
 run-codebuild:
 	@echo "Running codebuild environment"
-	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" COLLECTSTATIC=0 MIGRATE=1 \
+	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 run-codebuild-integration:
 	@echo "integration tests in Codebuild"
-	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api env | grep CERTSTORE || echo "No Certstore"
-	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /tmp/certstore || echo "Directory missing!"
-	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /ca.cert.pem || echo "Not at root."
 	docker compose \
 		-f ../docker-compose-codebuild.yaml \
 		exec -T bb-api make integration-test
