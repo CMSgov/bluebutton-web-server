@@ -1,68 +1,45 @@
-ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+ROOT_DIR    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+SHELL       := /bin/bash
+RELEASE_TAG ?= TAG_NOT_SET
+bfd         ?= test
+env         ?= local
+auth        ?= live
 
-SHELL:=/bin/bash
-RELEASE_TAG?=TAG_NOT_SET
-bfd ?= "test"
-env ?= "local"
-auth ?= "live"
+.PHONY: build-local build-local-no-cache build-codebuild run-codebuild \
+        run-codebuild-integration teardown-codebuild run-local
 
 build-local:
-	@echo "build-local"
-	TARGET_ENV="local" \
+	@echo "Building local"
 	docker build \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
-		-t bb-api:latest \
-		-f Dockerfile \
-		../../..
+		-t bb-api:latest -f Dockerfile ../../..
+
+build-local-no-cache:
+	@echo "Building local no cache"
+	docker build --no-cache \
+		--build-arg RELEASE_TAG="local" \
+		--build-arg BUILD_TARGET="local" \
+		-t bb-api:latest -f Dockerfile ../../..
 
 build-codebuild:
-	@echo "build-codebuild"
-	TARGET_ENV="codebuild"
+	@echo "Building codebuild"
 	docker build \
 		--build-arg RELEASE_TAG="codebuild" \
 		--build-arg BUILD_TARGET="codebuild" \
-		-t bb-api:codebuild \
-		-f Dockerfile \
-		../../..
+		-t bb-api:codebuild -f Dockerfile ../../..
 
 run-codebuild:
-	@echo "run-codebuild"
-	bfd="test" \
-	env="test" \
-	auth="live" \
-	TARGET_ENV="codebuild" \
-	COLLECTSTATIC=0 \
-	MIGRATE=1 \
+	@echo "Running codebuild environment"
+	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" COLLECTSTATIC=0 MIGRATE=1 \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
-# makes sense for these two to live here, but the path of the compose makes it odd
 run-codebuild-integration:
-	@echo "integration tests in Codebuild"
-	docker compose \
-		-f ../docker-compose-codebuild.yaml \
-		exec -T bb-api make integration-test
+	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api make integration-test
 
 teardown-codebuild:
-	@echo "teardown codebuild"
-	docker compose \
-		-f ../docker-compose-codebuild.yaml \
-		down -v
-
-build-local-no-cache:
-	echo "build-local no-cache"
-	TARGET_ENV="local" \
-	docker build \
-		--build-arg RELEASE_TAG="local" \
-		--build-arg BUILD_TARGET="local" \
-		--no-cache \
-		-t bb-api:latest \
-		-f Dockerfile \
-		../../..
+	docker compose -f ../docker-compose-codebuild.yaml down -v
 
 run-local:
-	bfd=${bfd} \
-	env=${env} \
-	auth=${auth} \
-	TARGET_ENV="local" \
+	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash

@@ -86,22 +86,29 @@ else
         up \
         --detach
     elif [[ "${MIGRATE}" == "1"  ]]; then
-        echo "📊 Migrating."
+        echo "📊 Migrating..."
+        echo
 
         docker compose \
             -f ops/containers/docker-compose-local.yaml \
-            run --rm bb-api bash -c "python manage.py migrate && python manage.py create_admin_groups"
+            # This may be unnecessary, but because of some weirdness in podman-compose, it may be worth keeping
+            # as documentation. You might need this!
+            # --env-file ops/containers/bb-api/files/external/.env.container \
+            up --abort-on-container-exit
 
-        docker compose \
-            -f ops/containers/docker-compose-local.yaml down
-            
+        echo "💥 Teardown..."
+        docker compose -f ops/containers/docker-compose-local.yaml down --remove-orphans -t 1
+        exit
     elif [[ "${COLLECTSTATIC}" == "1" ]]; then
         echo "📊 Collecting static."
         echo
+
         docker compose \
             -f ops/containers/docker-compose-local.yaml \
             up --abort-on-container-exit
-        docker compose down
+
+        echo "💥 Teardown..."
+        docker compose -f ops/containers/docker-compose-local.yaml down --remove-orphans -t 1
         exit
     else
         echo "📊 Tailing logs."
