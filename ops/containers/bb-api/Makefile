@@ -35,17 +35,13 @@ run-codebuild:
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 run-codebuild-integration:
-    @echo "integration tests in Codebuild"
-    
-    docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api env | grep CERTSTORE
-    
-    docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /tmp/certstore || echo "Directory missing!"
-    
-    docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /ca.cert.pem || echo "Not at root."
-    
+	@echo "integration tests in Codebuild"
+	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api env | grep CERTSTORE || echo "No Certstore"
+	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /tmp/certstore || echo "Directory missing!"
+	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /ca.cert.pem || echo "Not at root."
     docker compose \
-        -f ../docker-compose-codebuild.yaml \
-        exec -T bb-api make integration-test
+    	-f ../docker-compose-codebuild.yaml \
+		exec -T bb-api make integration-test
 
 teardown-codebuild:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
