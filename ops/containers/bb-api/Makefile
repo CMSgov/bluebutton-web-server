@@ -38,7 +38,7 @@ run-codebuild-integration:
 	@echo "integration tests in Codebuild"
 	docker compose \
 		-f ../docker-compose-codebuild.yaml \
-		--env-file ops/containers/bb-api/files/external/.env.codebuild \
+		--env-file files/external/.env.codebuild \
 		exec -T bb-api make integration-test
 
 teardown-codebuild:
