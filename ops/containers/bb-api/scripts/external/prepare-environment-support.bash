@@ -12,8 +12,8 @@ gonogo () {
 
 ########################################
 # check_valid_env
-# Makes sure we have one of the three valid
-# execution environments.
+# Makes sure we have one of the two valid
+# execution environments for this script
 check_valid_env () {
     if [[ "${bfd}" == "local" ]]; then
         : # This is a no-op.
@@ -22,17 +22,9 @@ check_valid_env () {
     elif [[ "${bfd}" == "test" ]]; then
         :
     #####
-    # SBX
-    elif [[ "${bfd}" == "sbx" ]]; then
-        :
-    ##### 
-    # PROD
-    elif [[ "${bfd}" == "prod" ]]; then
-        :
-    #####
     # ERR
     else
-        echo "⛔ 'bfd' must be set to 'local', 'test', 'sbx', or 'prod'."
+        echo "⛔ 'bfd' must be set to 'local' or 'test'"
         echo "⛔ 'bfd' is currently set to '${bfd}'."
         echo "Exiting."
         return 1
@@ -56,7 +48,7 @@ check_env_preconditions () {
         # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
         if [ -z ${bfd} ]; then
             echo "'bfd' not set. Cannot retrieve certs."
-            echo "'bfd' must be one of 'local', 'test', or 'sbx'."
+            echo "'bfd' must be one of 'local' or 'test'"
             echo "For example:"
             echo "  make run-local bfd=test"
             echo "Exiting."
@@ -68,11 +60,11 @@ check_env_preconditions () {
 
 ########################################
 # load_env_vars
-# By definition, this should only be used when TARGET_ENV == "local"
+# By definition, this should only be used when TARGET_ENV == "local" or "codebuild"
 # We should not be getting variables in this manner when we are running
 # in a production-like environment.
 load_env_vars () {
-    if [[ "${TARGET_ENV}" == "local" ]]; then
+    if [[ "$TARGET_ENV" == "local" || "$TARGET_ENV" == "codebuild" ]]; then
         export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
         export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
         export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
@@ -100,6 +92,8 @@ load_env_vars () {
         export SUPER_USER_EMAIL="${SUPER_USER_EMAIL:-bluebutton@example.com}"
         export SUPER_USER_NAME="${SUPER_USER_NAME:-root}"
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
+        export MIGRATE="${MIGRATE}"
+        export COLLECTSTATIC="${COLLECTSTATIC}"
         return 0
     else
         echo "⛔ Cannot load env vars for non-local environments."
@@ -112,12 +106,14 @@ load_env_vars () {
 # After setting up the env, we need to make sure that one or two
 # variables are now present that would not have been otherwise.
 check_env_after_setup () {
-    if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
-        echo "⛔ We need insecure transport when running locally."
-        echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."
-        echo "⛔ Something went badly wrong."
-        echo "⛔ Exiting."
-        return 1
+    if [ "${TARGET_ENV}" == "local" ]; then
+        if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
+            echo "⛔ We need insecure transport when running locally."
+            echo "⛔ OAUTHLIB_INSECURE_TRANSPORT was not set to true."
+            echo "⛔ Something went badly wrong."
+            echo "⛔ Exiting."
+            return 1
+        fi
     fi
     return 0
 }
@@ -138,18 +134,6 @@ set_bfd_urls () {
         FHIR_URL="${FHIR_URL_TEST}"
         FHIR_URL_V3="${FHIR_URL_V3_TEST}"
         LOCAL_TESTING_TARGET="test"
-    ############
-    # SBX
-    elif [[ "${bfd}" == "sbx" ]]; then
-        FHIR_URL="${FHIR_URL_SBX}"
-        FHIR_URL_V3="${FHIR_URL_V3_SBX}"
-        # FIXME: Do we use "impl" or "sbx"? ...
-        LOCAL_TESTING_TARGET="impl"
-    ############
-    # PROD
-    elif [[ "${bfd}" == "prod" ]]; then
-        echo "⛔ no way to set BFD urls for prod when running locally"
-        return 1
     fi
 
     return 0
@@ -212,6 +196,18 @@ retrieve_bfd_certs () {
         return 1
     fi
 
+    return 0
+}
+
+########################################
+# verify_certs
+verify_certs() {
+    echo "🟦 Verifying BFD certificates are loaded..."
+    
+    : "${BFD_CERT_PEM_B64:?⛔ ERROR: BFD_CERT_PEM_B64 is empty or not set.}"
+    : "${BFD_KEY_PEM_B64:?⛔ ERROR: BFD_KEY_PEM_B64 is empty or not set.}"
+    
+    echo "🆗 BFD certificates verified."
     return 0
 }
 
@@ -282,22 +278,25 @@ configure_slsx () {
 # this will probably close things. In short: if you have a `postgres` container, this
 # function will try and stop ALL docker containers.
 cleanup_docker_stack () {
-    DOCKER_PS=$(docker ps -q)
 
-    TAKE_IT_DOWN="NO"
-    for id in $DOCKER_PS; do
-        NAME=$(docker inspect --format '{{.Config.Image}}' $id)
-        if [[ "${NAME}" =~ "postgres" ]]; then
-            echo "🤔 I think things are still running. Bringing the stack down."
-            TAKE_IT_DOWN="YES"
-        fi
-    done
-
-    if [ "${TAKE_IT_DOWN}" = "YES" ]; then
+    if [ "${TARGET_ENV}" == "local" ]; then
+        echo "🆗 Cleaning up local docker stack."
+        DOCKER_PS=$(docker ps -q)
+        TAKE_IT_DOWN="NO"
         for id in $DOCKER_PS; do
-            echo "🛑 Stopping container $id"
-            docker stop $id
+            NAME=$(docker inspect --format '{{.Config.Image}}' $id)
+            if [[ "${NAME}" =~ "postgres" ]]; then
+                echo "🤔 I think things are still running. Bringing the stack down."
+                TAKE_IT_DOWN="YES"
+            fi
         done
+
+        if [ "${TAKE_IT_DOWN}" = "YES" ]; then
+            for id in $DOCKER_PS; do
+                echo "🛑 Stopping container $id"
+                docker stop $id
+            done
+        fi
     fi
 }
 

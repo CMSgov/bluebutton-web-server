@@ -1,0 +1,19 @@
+services:
+  ####################
+  # Blue Button - Codebuild
+  bb-api:
+    image: bb-api:codebuild
+    command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
+    env_file: ./bb-api/files/external/.env.codebuild
+    volumes:
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 500m
+          mode: 1777
+      - type: bind
+        source: ./bb-api/scripts
+        target: /home/boton/bb/ops/containers/bb-api/scripts
+      - type: bind
+        source: ../..
+        target: /home/boton/bb

@@ -9,11 +9,9 @@ env = environ.Env(
     TARGET_ENV=(str, ''),
 )
 
-environ.Env.read_env(os.path.join(BASE_DIR + '/ops/containers', '.env.local'))
-
 TARGET_ENV = env('TARGET_ENV')
 
-if TARGET_ENV == 'local':
-    from hhs_oauth_server.settings.base_local import *  # noqa
+if TARGET_ENV == 'local' or TARGET_ENV == 'codebuild':
+    from hhs_oauth_server.settings.base_local import *
 else:
-    from hhs_oauth_server.settings.base_ec2 import *  # noqa
+    from hhs_oauth_server.settings.base_ec2 import *

@@ -1,0 +1,72 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  ruff-unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install python dependencies
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.dev.txt --no-deps --prefer-binary --require-hashes
+
+      - name: Run Ruff Linter
+        run: |
+          source venv/bin/activate
+          ruff check
+
+      - name: Run Unit Tests
+        run: |
+          source venv/bin/activate
+          python manage.py test --exclude=integration
+
+  integration-test:
+    env:
+      AWS_REGION: us-east-1
+
+    permissions:
+      id-token: write
+      contents: read
+
+    # This will only run on test
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build BBAPI
+        run: |
+          cd ./ops/containers/bb-api
+          make build-codebuild
+
+      - name: Start Stack
+        run: |
+          cd ./ops/containers/bb-api
+          make run-codebuild
+
+      # comment
+      - name: Check Memory
+        run: |
+          free -h
+
+      - name: Execute Integration Tests
+        run: |
+          cd ./ops/containers/bb-api
+          make run-codebuild-integration
+
+      - name: Teardown Stack
+        if: always()
+        run: |
+          cd ./ops/containers/bb-api
+          make teardown-codebuild
