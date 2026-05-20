@@ -9,7 +9,7 @@ class TestDOTUtils(TestCase):
     def test_get_api_version_number(self):
         for test in SUPPORTED_VERSION_TEST_CASES:
             result = get_api_version_number_from_url(test['url_path'])
-            assert result == 1
+            assert result == test['expected']
 
     def test_get_api_version_number_unsupported_version(self):
         # unsupported version will raise an exception
