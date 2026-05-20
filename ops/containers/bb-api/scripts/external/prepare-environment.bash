@@ -74,12 +74,13 @@ cleanup_docker_stack
 cd "$REPO_ROOT"
 
 if [[ "${TARGET_ENV}" == "codebuild" ]]; then
+    echo "📊 Starting codebuild..."
     docker compose \
         -f ops/containers/docker-compose-codebuild.yaml \
-        --env-file ops/containers/bb-api/files/external/.env.container \
+        --env-file ops/containers/bb-api/files/external/.env.codebuild \
         up \
-        -d \
-        --wait
+        -d --wait
+
 else
     if [[ "${daemon}" == "1" ]]; then
         docker compose \

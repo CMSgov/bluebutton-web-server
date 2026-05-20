@@ -48,6 +48,7 @@ possibly_migrate_or_collectstatic_if_local () {
 
     if [[ $TARGET_ENV == "codebuild" ]]; then
             echo "🔵 running migrate"
+            echo $DATABASES_CUSTOM
             python manage.py migrate
         fi
 
