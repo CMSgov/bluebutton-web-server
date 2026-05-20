@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.http import HttpRequest
 from freezegun import freeze_time
 from oauth2_provider.models import get_access_token_model
-from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidRequestError
 from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
@@ -326,15 +326,14 @@ class TestClientIdExtraction(BaseApiTest):
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
             'grant_type': 'client_credentials',
-            'client_id': self.application.client_id,
         }
         mock_request.GET = {}
         mock_request.META = {}
 
-        with self.assertRaises(InvalidRequestError) as cm:
+        with self.assertRaises(InvalidClientError) as cm:
             validate_app_is_active(mock_request)
         self.assertIn(
-            'Missing client_assertion',
+            'App id failed',
             cm.exception.description,
         )
 
@@ -425,6 +424,7 @@ class TestTokenResponseFields(BaseApiTest):
         # Mock patient match result
         # is_patient_match_found expects at least 2 entries in successful match
         mock_get_patient.return_value = {
+            'type': 'searchset',
             'entry': [
                 {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
                 {
@@ -439,7 +439,7 @@ class TestTokenResponseFields(BaseApiTest):
                         ],
                     }
                 },
-            ]
+            ],
         }
 
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')

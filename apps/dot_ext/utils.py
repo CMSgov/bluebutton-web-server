@@ -56,7 +56,9 @@ def remove_application_user_pair_tokens_data_access(application, user):
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(application=application, beneficiary=user).delete()[0]
+        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
+            application=application, beneficiary=user
+        ).delete()[0]
 
         # Delete refresh token records
         refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
@@ -123,6 +125,7 @@ def get_application_from_data(request):
         client_id = request.GET.get('client_id')
     elif request.POST.get('client_id'):
         client_id = request.POST.get('client_id')
+
     if request.POST.get('client_assertion'):
         # for client credentials flow, we need to get the client_id from the client_assertion
         try:
@@ -183,20 +186,22 @@ def get_application_from_data(request):
             status_code=HTTPStatus.BAD_REQUEST,
         )
 
-    # If we get here, we should fail. We don't have an app.
-    # raise InvalidClientError(
-    #     description='Application does not exist (at all)',
-    #     status_code=HTTPStatus.IM_A_TEAPOT
-    # )
-
-    # 20251105
-    # It turns out, if we get here, we have to return None. There are tests
-    # that use this pathway to *get set up*, and therefore they expect
-    # this function to return None when none of the above conditions are met.
-    # In production, this should *fail*, or return an error. However,
-    # that would require refactoring many tests, as they are cyclically dependent
-    # on the production code.
+    # Return None if we get to this point, partially to match behavior expected in tests.
     return None
+
+
+def get_application_from_request(request):
+    meta_app = get_application_from_meta(request)
+    data_app = get_application_from_data(request)
+    if meta_app and data_app and meta_app != data_app:
+        raise InvalidRequestError(
+            description='different app in headers than in request data',
+            status_code=HTTPStatus.BAD_REQUEST,
+        )
+    if meta_app is None:
+        return data_app
+    else:
+        return meta_app
 
 
 def validate_app_is_active(request: HttpRequest) -> Application:
@@ -215,14 +220,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
     Returns:
         Model: Application model
     """
-    app = get_application_from_meta(request)
-    if not app:
-        app = get_application_from_data(request)
-
-    # client_creds/CAN-specific (for now) validation
-    if request.POST.get('grant_type') == 'client_credentials':
-        if not request.POST.get('client_assertion'):
-            raise InvalidRequestError('Missing client_assertion for client_credentials grant')
+    app = get_application_from_request(request)
 
     if not app:
         raise InvalidClientError('App id failed')

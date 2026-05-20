@@ -394,18 +394,6 @@ OAUTH2_PROVIDER = {
     'APPLICATION_ADMIN_CLASS': 'apps.dot_ext.admin_overrides.ValidatedApplicationAdmin',
 }
 
-# These choices will be available in the expires_in field
-# of the oauth2 authorization page.
-DOT_EXPIRES_IN = (
-    (86400 * 365 * 5, _('5 Years')),
-    (86400, _('1 Day')),
-    (86400 * 7, _('1 Week')),
-    (86400 * 365, _('1 Year')),
-    (86400 * 365 * 3, _('3 Years')),
-    (86400 * 365 * 10, _('10 Years')),
-    (86400 * 365 * 100, _('Forever')),
-)
-
 GRANT_AUTHORIZATION_CODE = 'authorization-code'
 GRANT_IMPLICIT = 'implicit'
 GRANT_TYPES = (
