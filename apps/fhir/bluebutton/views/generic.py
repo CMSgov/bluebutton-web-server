@@ -19,7 +19,11 @@ from apps.dot_ext.models import AccessTokenExtension
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
-from apps.fhir.bluebutton.permissions import ApplicationActivePermission, HasCrosswalk, ResourcePermission
+from apps.fhir.bluebutton.permissions import (
+    ApplicationActivePermission,
+    HasCrosswalk,
+    ResourcePermission,
+)
 from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
