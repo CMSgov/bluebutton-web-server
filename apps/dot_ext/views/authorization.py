@@ -203,10 +203,10 @@ class AuthorizationView(DotAuthorizationView):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
 
-        if not request.GET.get('code_challenge', None):
+        if not self._get_param(request, 'code_challenge'):
             missing_params.append('code_challenge')
 
-        code_challenge_method = request.GET.get('code_challenge_method', None)
+        code_challenge_method = self._get_param(request, 'code_challenge_method')
         if not code_challenge_method:
             missing_params.append('code_challenge_method')
         elif code_challenge_method != 'S256':
@@ -219,9 +219,10 @@ class AuthorizationView(DotAuthorizationView):
                 status=HTTPStatus.BAD_REQUEST,
             )
 
-        if not request.GET.get('state', None):
+        state = self._get_param(request, 'state')
+        if not state:
             missing_params.append('state')
-        elif len(request.GET.get('state', None)) < 16:
+        elif len(state) < 16:
             error_message = 'State parameter should have a minimum of 16 characters'
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': error_message},
@@ -231,7 +232,7 @@ class AuthorizationView(DotAuthorizationView):
         # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
         # so it will not be modified as part of BB2-4250
         if switch_is_active('v3_endpoints') and v3:
-            if 'scope' not in request.GET:
+            if not self._has_param(request, 'scope'):
                 missing_params.append('scope')
 
         if missing_params:
@@ -358,11 +359,10 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
-        # kwargs['code_challenge'] = request.POST.get('code_challenge')
-        # kwargs['code_challenge_method'] = request.POST.get('code_challenge_method')
+        code_challenge_method = request.POST.get('code_challenge_method')
+        validation_error = self._validate_code_challenge_method(code_challenge_method)
+        if validation_error:
+            return validation_error
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
