@@ -1,4 +1,5 @@
 import logging
+import re
 
 from django.contrib.auth import get_user_model
 from oauth2_provider.models import get_application_model
@@ -16,8 +17,7 @@ from apps.constants import (
     FHIR_RES_TYPE_EOB,
     HHS_SERVER_LOGNAME_FMT,
 )
-from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
-from apps.utils import has_matching_protected_resource
+from apps.fhir.constants import ALLOWED_RESOURCE_TYPES, READ_SEARCH_SCOPE_LOOKUP
 from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -122,7 +122,7 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
 
 
 class AppScopePermission(permissions.BasePermission):
-    def has_permission(self, request: Request, view) -> bool:
+    def has_permission(self, request: Request, view, **kwargs) -> bool:
         """
         Determines if the user/app has permission to make the call it's trying to make. Takes care of the
         case where a user/app goes through a v1/v2 auth flow and tries to make a v3 call that it's not authorized to make.
@@ -142,17 +142,21 @@ class AppScopePermission(permissions.BasePermission):
         token_app_id = token.application_id
         if not token or not token_app_id:
             return False
-        app_protected_resources = list(
-            ProtectedCapability.objects.filter(application=token_app_id)
-            .values_list('protected_resources', flat=True)
-            .all()
+        app_scopes = list(
+            ProtectedCapability.objects.filter(application=token_app_id).values_list('slug', flat=True).distinct()
         )
-        has_match = has_matching_protected_resource(app_protected_resources, request)
-        if not has_match:
-            raise PermissionDenied(
-                APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type)
-            )
-        return has_match
+        # Determine if the request is read or search
+        resource_id = bool(re.search(r'\d', request.path))
+        request_type = ''
+        if not resource_id:
+            request_type = 'search'
+        else:
+            request_type = 'read'
+        # Determine if scopes from database have correct permission
+        for scope in app_scopes:
+            if scope in READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type]:
+                return True
+        raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type))
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):

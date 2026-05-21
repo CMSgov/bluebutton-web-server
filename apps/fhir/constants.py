@@ -139,3 +139,42 @@ USER_ID_TYPE_DEFAULT = 'H'
 IDI_MATCH_ENDPOINT = '$idi-match'
 
 DEFAULT_EOB_SOURCE = '_source=NCH'
+
+READ_SEARCH_SCOPE_LOOKUP = {
+    'Patient': {
+        'read': [
+            'patient/Patient.read',
+            'patient/Patient.r',
+            'patient/Patient.rs',
+        ],
+        'search': [
+            'patient/Patient.read',
+            'patient/Patient.s',
+            'patient/Patient.rs',
+        ],
+    },
+    'ExplanationOfBenefit': {
+        'read': [
+            'patient/ExplanationOfBenefit.read',
+            'patient/ExplanationOfBenefit.r',
+            'patient/ExplanationOfBenefit.rs',
+        ],
+        'search': [
+            'patient/ExplanationOfBenefit.read',
+            'patient/ExplanationOfBenefit.s',
+            'patient/ExplanationOfBenefit.rs',
+        ],
+    },
+    'Coverage': {
+        'read': [
+            'patient/Coverage.read',
+            'patient/Coverage.r',
+            'patient/Coverage.rs',
+        ],
+        'search': [
+            'patient/Coverage.read',
+            'patient/Coverage.s',
+            'patient/Coverage.rs',
+        ],
+    },
+}
