@@ -26,6 +26,20 @@ on:
         description: 'Custom manage.py command — if provided, overrides the dropdown above (e.g. dbshell, shell_plus --print-sql)'
         required: false
         type: string
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to run against'
+        required: true
+        type: choice
+        options:
+          - test
+          - sandbox
+          - prod
+      command:
+        description: 'manage.py command (e.g. dbshell, shell_plus --print-sql)'
+        required: true
+        type: string
 
 env:
   AWS_REGION: us-east-1
