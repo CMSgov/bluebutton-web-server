@@ -8,7 +8,14 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
-from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from django.utils import timezone
+from oauth2_provider.models import (
+    AccessToken,
+    RefreshToken,
+    get_access_token_model,
+    get_application_model,
+    get_refresh_token_model,
+)
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
     InvalidGrantError,
@@ -326,3 +333,42 @@ def validate_latin_extended_string(text: str) -> bool:
         bool: if all strings are encoded less than U+017F (383) and it is not empty
     """
     return all(ord(char) <= 383 for char in text) and bool(text)
+
+
+def revoke_prior_tokens_for_user_and_app_if_they_exist(user_id: int, app_id: int) -> None:
+    """Revoke prior tokens for a user/app id pair to ensure that if a user has reauthorized
+    that prior tokens can't be used, in case any of those prior tokens have more scopes than
+    the newly created one
+
+    Args:
+        user_id (int): ID for the user who just re-authorized an app they have authorized previously
+        app_id (int): ID for the application the user just re-authorized for
+    """
+    AccessToken = get_access_token_model()
+    RefreshToken = get_refresh_token_model()
+    prior_access_tokens = list(AccessToken.objects.filter(user=user_id, application=app_id).order_by('-created'))
+
+    # If there is only one access token for a user_id/app_id, we don't need to revoke any prior tokens
+    if len(prior_access_tokens) <= 1:
+        return
+
+    prior_access_tokens.pop(0)
+
+    for access_token in prior_access_tokens:
+        try:
+            refresh_token = get_refresh_token_model().objects.get(access_token=access_token.id)
+
+            # Only update the access token expires value if it is in the future
+            if access_token.expires > timezone.now():
+                access_token.expires = timezone.now()
+                access_token.save()
+
+            if refresh_token.revoked is None:
+                refresh_token.revoked = timezone.now()
+                refresh_token.access_token_id = None
+                refresh_token.save()
+
+        except RefreshToken.DoesNotExist:
+            # indicates it is a access token created via CAN flow, as it does not have an associated refresh token
+            access_token.expires = timezone.now()
+            access_token.save()

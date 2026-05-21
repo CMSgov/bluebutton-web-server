@@ -100,6 +100,7 @@ from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
+    revoke_prior_tokens_for_user_and_app_if_they_exist,
     validate_app_is_active,
     validate_latin_extended_string,
 )
@@ -1107,6 +1108,7 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
+                revoke_prior_tokens_for_user_and_app_if_they_exist(token.user_id, app.id)
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id
