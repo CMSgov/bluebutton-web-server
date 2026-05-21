@@ -205,8 +205,19 @@ class AuthorizationView(DotAuthorizationView):
 
         if not request.GET.get('code_challenge', None):
             missing_params.append('code_challenge')
-        if not request.GET.get('code_challenge_method', None):
+
+        code_challenge_method = request.GET.get('code_challenge_method', None)
+        if not code_challenge_method:
             missing_params.append('code_challenge_method')
+        elif code_challenge_method != 'S256':
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'error': 'invalid_request',
+                    'error_description': f'code_challenge_method must be S256, got: {code_challenge_method}',
+                },
+                status=HTTPStatus.BAD_REQUEST,
+            )
 
         if not request.GET.get('state', None):
             missing_params.append('state')
@@ -294,8 +305,6 @@ class AuthorizationView(DotAuthorizationView):
         if sensitive_info_detected:
             return sensitive_info_detected
 
-        # Validating before medicare login step that code_challenge_method is correct as per BB2-4805
-        # We could consider adding other checks at this step as well. Open to the team's suggestions
         code_challenge_method = self._get_param(request, 'code_challenge_method')
         validation_error = self._validate_code_challenge_method(code_challenge_method)
         if validation_error:
@@ -349,26 +358,20 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        code_challenge_method = request.POST.get('code_challenge_method')
-        validation_error = self._validate_code_challenge_method(code_challenge_method)
-        if validation_error:
-            return validation_error
-        kwargs['code_challenge'] = request.POST.get('code_challenge')
-        kwargs['code_challenge_method'] = code_challenge_method
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
+        # kwargs['code_challenge'] = request.POST.get('code_challenge')
+        # kwargs['code_challenge_method'] = request.POST.get('code_challenge_method')
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        code_challenge_method = request.GET.get('code_challenge_method')
-        validation_error = self._validate_code_challenge_method(code_challenge_method)
-        if validation_error:
-            return validation_error
-
         param_check = self._check_for_required_params(request)
         if param_check:
             return param_check
 
-        kwargs['code_challenge'] = request.GET.get('code_challenge', None)
-        kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
+        # kwargs['code_challenge'] = request.GET.get('code_challenge', None)
+        # kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
