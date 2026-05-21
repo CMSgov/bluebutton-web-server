@@ -1,38 +1,39 @@
 # import io
-from datetime import timedelta, datetime
-from http import HTTPStatus
 import json
 import random
 import re
 import secrets
 import string
-
-from django.contrib.auth.models import User, Group
-from django.http import HttpRequest
-from django.urls import reverse
-from django.test import TestCase
-from django.utils.text import slugify
-from oauth2_provider.models import get_access_token_model
+from datetime import datetime, timedelta
+from http import HTTPStatus
 from urllib.parse import parse_qs, urlparse
 
+from django.contrib.auth.models import Group, User
+from django.http import HttpRequest
+from django.test import TestCase
+from django.urls import reverse
+from django.utils.text import slugify
+from oauth2_provider.models import get_access_token_model
+from waffle import get_waffle_flag_model
 
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
+from apps.constants import (
+    CODE_CHALLENGE_METHOD_S256,
+    COVERAGE_SCOPE,
+    DEFAULT_SAMPLE_FHIR_ID_V2,
+    DEFAULT_SAMPLE_FHIR_ID_V3,
+    EOB_SCOPE,
+    PATIENT_SCOPE,
+    USER_TYPE_BENEFICIARY,
+    USER_TYPE_DEV,
+)
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.constants import (
-    CODE_CHALLENGE_METHOD_S256,
-    DEFAULT_SAMPLE_FHIR_ID_V2,
-    DEFAULT_SAMPLE_FHIR_ID_V3,
-    USER_TYPE_BENEFICIARY,
-    USER_TYPE_DEV,
-)
 from apps.fhir.bluebutton.models import Crosswalk
-from waffle import get_waffle_flag_model
-
 
 MBI_CHARS = string.ascii_uppercase + string.digits
 LETTERS = string.ascii_uppercase
@@ -133,7 +134,9 @@ class BaseApiTest(TestCase):
         )
 
         label = self._create_internal_application_labels(
-            label='Research app - multiple studies', slug='research-app-multiple-studies', description='Desc: place holder'
+            label='Research app - multiple studies',
+            slug='research-app-multiple-studies',
+            description='Desc: place holder',
         )
 
         application.internal_application_labels.add(label)
@@ -489,10 +492,22 @@ class BaseApiTest(TestCase):
             user_mbi=mbi if mbi is not None else self.test_mbi,
             email='%s@%s.notanagency.gov' % (first_name, last_name),
         )
+        patient_capability = self._create_capability(
+            PATIENT_SCOPE, [['GET', '/v[123]/fhir/Patient[/?].*$'], ['GET', '/v[123]/fhir/Patient[/]?$']]
+        )
+        coverage_capability = self._create_capability(
+            COVERAGE_SCOPE, [['GET', '/v[123]/fhir/Coverage[/?].*$'], ['GET', '/v[123]/fhir/Coverage[/]?$']]
+        )
+        eob_capability = self._create_capability(
+            EOB_SCOPE,
+            [['GET', '/v[123]/fhir/ExplanationOfBenefit[/?].*$'], ['GET', '/v[123]/fhir/ExplanationOfBenefit[/]?$']],
+        )
 
         # create a oauth2 application and add capabilities
         application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
-        application.scope.add(self.read_capability, self.write_capability)
+        application.scope.add(
+            self.read_capability, self.write_capability, patient_capability, coverage_capability, eob_capability
+        )
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, application)
 
