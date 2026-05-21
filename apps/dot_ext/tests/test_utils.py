@@ -1,3 +1,4 @@
+import django
 from django.test import TestCase
 
 from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
