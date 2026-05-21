@@ -370,8 +370,6 @@ class AuthorizationView(DotAuthorizationView):
         if param_check:
             return param_check
 
-        # kwargs['code_challenge'] = request.GET.get('code_challenge', None)
-        # kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
