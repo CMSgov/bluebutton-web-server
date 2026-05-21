@@ -1,3 +1,5 @@
+name: Scheduled Django Manage Commands
+
 on:
   schedule:
     - cron: "0 3 * * *"
