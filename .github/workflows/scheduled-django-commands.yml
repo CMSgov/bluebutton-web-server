@@ -19,13 +19,13 @@ on:
 jobs:
   scheduled-lower-environment:
     uses: ./.github/workflows/run-manage-command.yml
-    if: inputs.environment_level == "lower" or github.event.schedule == "0 18 * * *"
+    if: ${{ inputs.environment_level == "lower" or github.event.schedule == "0 18 * * *" }}
     with:
       environment: test
       command: log_global_state_metrics
   scheduled-higher-environments:
     uses: ./.github/workflows/run-manage-command.yml
-    if: inputs.environment_level == "higher" or github.event.schedule == "0 3 * * *"
+    if: ${{ inputs.environment_level == "higher" or github.event.schedule == "0 3 * * *" }}
     strategy:
       matrix:
         environment:
