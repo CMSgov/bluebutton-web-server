@@ -122,7 +122,7 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
 
 
 class AppScopePermission(permissions.BasePermission):
-    def has_permission(self, request: Request, view, **kwargs) -> bool:
+    def has_permission(self, request: Request, view) -> bool:
         """
         Determines if the user/app has permission to make the call it's trying to make. Takes care of the
         case where a user/app goes through a v1/v2 auth flow and tries to make a v3 call that it's not authorized to make.
