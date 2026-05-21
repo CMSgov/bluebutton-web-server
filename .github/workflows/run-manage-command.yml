@@ -31,11 +31,7 @@ on:
       environment:
         description: 'Environment to run against'
         required: true
-        type: choice
-        options:
-          - test
-          - sandbox
-          - prod
+        type: string
       command:
         description: 'manage.py command (e.g. dbshell, shell_plus --print-sql)'
         required: true
