@@ -49,25 +49,28 @@ def get_response_json(resource_file_name):
 class FHIRResourcesReadSearchTest(BaseApiTest):
     def setUp(self):
         # create read and write capabilities
-        self.read_capability = self._create_capability('Read', [])
-        self.write_capability = self._create_capability('Write', [])
-        self._create_capability(
-            'patient',
+        self.read_capability = self._create_capability_without_sluggifying('Read', 'read', [])
+        self.write_capability = self._create_capability_without_sluggifying('Write', 'write', [])
+        self.patient_capability = self._create_capability_without_sluggifying(
+            'Patient Read and Search',
+            'patient/Patient.rs',
             [
                 ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
                 ['GET', r'\/v1\/fhir\/Patient\/\d+'],
                 ['GET', '/v1/fhir/Patient'],
             ],
         )
-        self._create_capability(
-            'coverage',
+        self.coverage_capability = self._create_capability_without_sluggifying(
+            'Coverage Read and Search',
+            'patient/Coverage.rs',
             [
                 ['GET', r'\/v1\/fhir\/Coverage\/.+'],
                 ['GET', '/v1/fhir/Coverage'],
             ],
         )
-        self._create_capability(
-            'eob',
+        self.eob_capability = self._create_capability_without_sluggifying(
+            'EOB Read and Search',
+            'patient/ExplanationOfBenefit.rs',
             [
                 ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
                 ['GET', '/v1/fhir/ExplanationOfBenefit'],
@@ -833,7 +836,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the patient scope for that app and try to make a call
         application = Application.objects.get(name='John_Smith_test')
-        patient_protected_resource = ProtectedCapability.objects.get(title=PATIENT_SCOPE)
+        patient_protected_resource = ProtectedCapability.objects.get(slug=PATIENT_SCOPE)
         application.scope.remove(patient_protected_resource)
 
         response = self.client.get(
@@ -846,7 +849,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     @tag('integration')
     @override_switch('v3_endpoints', active=True)
-    def test_no_matching_patient__search_scope_returns_403(self):
+    def test_no_matching_patient_search_scope_returns_403(self):
         """
         Returns a 403 since the patient search scope is removed from the database and they are trying to make a patient search call.
         """
@@ -854,11 +857,13 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the patient search scope for that app
         application = Application.objects.get(name='John_Smith_test')
-        patient_protected_resource = ProtectedCapability.objects.get(title=PATIENT_SCOPE)
+        patient_protected_resource = ProtectedCapability.objects.get(slug=PATIENT_SCOPE)
         application.scope.remove(patient_protected_resource)
 
         # Add just a read scope
-        patient_read_capability = self._create_capability('patient/Patient.r', [])
+        patient_read_capability = self._create_capability_without_sluggifying(
+            'Read Patient Info', 'patient/Patient.r', []
+        )
         application.scope.add(patient_read_capability)
 
         # Try to make a search fhir request
@@ -872,6 +877,61 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     @tag('integration')
     @override_switch('v3_endpoints', active=True)
+    def test_no_matching_eob_search_scope_returns_403(self):
+        """
+        Returns a 403 since the patient search scope is removed from the database and they are trying to make a patient search call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        # Remove the patient search scope for that app
+        application = Application.objects.get(name='John_Smith_test')
+        eob_protected_resource = ProtectedCapability.objects.get(slug=EOB_SCOPE)
+        application.scope.remove(eob_protected_resource)
+
+        # Add just a read scope
+        eob_read_capability = self._create_capability_without_sluggifying(
+            'Read EOB Info', 'patient/ExplanationOfBenefit.r', []
+        )
+        application.scope.add(eob_read_capability)
+
+        # Try to make a search fhir request
+        response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}')
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'],
+            APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'ExplanationOfBenefit'),
+        )
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
+    def test_no_matching_coverage_search_scope_returns_403(self):
+        """
+        Returns a 403 since the patient search scope is removed from the database and they are trying to make a patient search call.
+        """
+        first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
+
+        # Remove the patient search scope for that app
+        application = Application.objects.get(name='John_Smith_test')
+        coverage_protected_resource = ProtectedCapability.objects.get(slug=COVERAGE_SCOPE)
+        application.scope.remove(coverage_protected_resource)
+
+        # Add just a read scope
+        coverage_read_capability = self._create_capability_without_sluggifying(
+            'Read Coverage Info', 'patient/Coverage.r', []
+        )
+        application.scope.add(coverage_read_capability)
+
+        # Try to make a search fhir request
+        response = self.client.get(
+            reverse(SEARCH_COVERAGE_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}'
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()['detail'], APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'Coverage')
+        )
+
+    @tag('integration')
+    @override_switch('v3_endpoints', active=True)
     def test_no_matching_coverage_scope_returns_403(self):
         """
         Returns a 403 since the coverage resource is removed from the database and they are trying to make a coverage call.
@@ -880,7 +940,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the coverage scope for that app and try to make a call
         application = Application.objects.get(name='John_Smith_test')
-        coverage_protected_resource = ProtectedCapability.objects.get(title=COVERAGE_SCOPE)
+        coverage_protected_resource = ProtectedCapability.objects.get(slug=COVERAGE_SCOPE)
         application.scope.remove(coverage_protected_resource)
 
         response = self.client.get(
@@ -901,7 +961,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         # Remove the eob scope for that app and try to make a call
         application = Application.objects.get(name='John_Smith_test')
-        eob_protected_resource = ProtectedCapability.objects.get(title=EOB_SCOPE)
+        eob_protected_resource = ProtectedCapability.objects.get(slug=EOB_SCOPE)
         application.scope.remove(eob_protected_resource)
 
         response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}')

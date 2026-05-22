@@ -21,11 +21,8 @@ from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     CODE_CHALLENGE_METHOD_S256,
-    COVERAGE_SCOPE,
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
-    EOB_SCOPE,
-    PATIENT_SCOPE,
     USER_TYPE_BENEFICIARY,
     USER_TYPE_DEV,
 )
@@ -492,22 +489,17 @@ class BaseApiTest(TestCase):
             user_mbi=mbi if mbi is not None else self.test_mbi,
             email='%s@%s.notanagency.gov' % (first_name, last_name),
         )
-        patient_capability = self._create_capability(
-            PATIENT_SCOPE, [['GET', '/v[123]/fhir/Patient[/?].*$'], ['GET', '/v[123]/fhir/Patient[/]?$']]
-        )
-        coverage_capability = self._create_capability(
-            COVERAGE_SCOPE, [['GET', '/v[123]/fhir/Coverage[/?].*$'], ['GET', '/v[123]/fhir/Coverage[/]?$']]
-        )
-        eob_capability = self._create_capability(
-            EOB_SCOPE,
-            [['GET', '/v[123]/fhir/ExplanationOfBenefit[/?].*$'], ['GET', '/v[123]/fhir/ExplanationOfBenefit[/]?$']],
-        )
 
         # create a oauth2 application and add capabilities
         application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
         application.scope.add(
-            self.read_capability, self.write_capability, patient_capability, coverage_capability, eob_capability
+            self.read_capability,
+            self.write_capability,
+            self.patient_capability,
+            self.coverage_capability,
+            self.eob_capability,
         )
+
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, application)
 
@@ -523,3 +515,25 @@ class BaseApiTest(TestCase):
         """
         pattern = [MBI_CHARS, DIGITS, LETTERS, MBI_CHARS, DIGITS, LETTERS, LETTERS, DIGITS, DIGITS]
         return '1S' + ''.join(random.choice(chars) for chars in pattern)
+
+    def _create_capability_without_sluggifying(self, name, slug, urls, group=None, default=True):
+        """
+        Helper method that creates a ProtectedCapability instance
+        that controls the access for the set of `urls`.
+        """
+        # Create capability, if does not already exist
+        try:
+            capability = ProtectedCapability.objects.get(title=name)
+            return capability
+        except ProtectedCapability.DoesNotExist:
+            pass
+
+        group = group or self._create_group('test')
+        capability = ProtectedCapability.objects.create(
+            default=default,
+            title=name,
+            slug=slug,
+            protected_resources=json.dumps(urls),
+            group=group,
+        )
+        return capability

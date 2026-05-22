@@ -143,15 +143,18 @@ class AppScopePermission(permissions.BasePermission):
         if not token or not token_app_id:
             return False
         app_scopes = list(
-            ProtectedCapability.objects.filter(application=token_app_id).values_list('slug', flat=True).distinct()
+            ProtectedCapability.objects.filter(application=token_app_id).values_list('slug', flat=True).all()
         )
         # Determine if the request is read or search
-        resource_id = bool(re.search(r'\d', request.path))
+        request_path = request.path
+        url_list = request_path.split('/')
+        last_item = url_list[-1]
+        resource_id = bool(re.search(r'\d', last_item))
         request_type = ''
-        if not resource_id:
-            request_type = 'search'
-        else:
+        if resource_id:
             request_type = 'read'
+        else:
+            request_type = 'search'
         # Determine if scopes from database have correct permission
         for scope in app_scopes:
             if scope in READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type]:
