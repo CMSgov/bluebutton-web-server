@@ -494,7 +494,7 @@ class AuthorizationView(DotAuthorizationView):
         code = url_query.get('code', [None])[0]
 
         share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-        cache.set(f'include_samhsa:{code}', share_samhsa_data, timeout=300)
+        cache.add(f'include_samhsa:{code}', share_samhsa_data, timeout=300)
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1168,7 +1168,7 @@ class TokenView(DotTokenView):
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
 
-                code = request.POST.get('code', [None])
+                code = request.POST.get('code', None)
                 check_samhsa_cache_and_create_access_token_extension(prior_include_samhsa, code, grant_type, token)
 
                 if grant_type == CLIENT_CREDENTIALS:
