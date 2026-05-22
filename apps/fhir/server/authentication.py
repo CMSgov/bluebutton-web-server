@@ -1,19 +1,23 @@
-import requests
 import os
-from urllib.parse import quote
 from typing import NamedTuple, Optional
+from urllib.parse import quote
 
-from apps.versions import Versions
-from apps.dot_ext.loggers import get_session_auth_flow_trace
-from apps.fhir.bluebutton.signals import pre_fetch, post_fetch
-from apps.fhir.constants import FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH, FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI
-from apps.fhir.bluebutton.utils import generate_info_headers, set_default_header
-
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.utils import FhirServerAuth
-from apps.fhir.server.settings import fhir_settings
-from apps.fhir.server.loggers import log_match_fhir_id
+import requests
 from waffle import switch_is_active
+
+from apps.dot_ext.loggers import get_session_auth_flow_trace
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
+from apps.fhir.bluebutton.utils import (
+    FhirServerAuth,
+    format_patient_name,
+    generate_info_headers,
+    set_default_header,
+)
+from apps.fhir.constants import FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI, FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH
+from apps.fhir.server.loggers import log_match_fhir_id
+from apps.fhir.server.settings import fhir_settings
+from apps.versions import Versions
 
 
 def search_fhir_id_by_identifier_mbi(mbi, request=None, version=Versions.NOT_AN_API_VERSION):
@@ -98,6 +102,14 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
             post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
             response.raise_for_status()
             backend_data = response.json()
+
+            # retrieve the beneficiary name from the response in order to display it
+            # on the v3 permissions page. The AuthorizationViewMiddleware class will read the beneficiary name
+            # from the session and attach it to the request object if the request path is the authorization path,
+            # so it can be accessed in the AuthorizationView get_context_data method.
+            beneficiary_name = format_patient_name(backend_data)
+            request.session['beneficiary_name'] = beneficiary_name
+
             # Parse and validate backend_data (bundle of patients) response.
             fhir_id, err_detail = _validate_patient_search_result(backend_data)
             if err_detail is not None:
@@ -197,7 +209,9 @@ def match_fhir_id(mbi, hicn_hash, request=None, version=Versions.NOT_AN_API_VERS
         except UpstreamServerException as err:
             log_match_fhir_id(request, version, None, hicn_hash, False, 'H', str(err))
             return MatchFhirIdResult(
-                error=str(err.detail), error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.HICN_HASH
+                error=str(err.detail),
+                error_type=MatchFhirIdErrorType.UPSTREAM,
+                lookup_type=MatchFhirIdLookupType.HICN_HASH,
             )
 
         if fhir_id:
