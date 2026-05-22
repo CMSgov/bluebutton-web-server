@@ -183,22 +183,6 @@ class AuthorizationView(DotAuthorizationView):
         """True if param exists in either GET or POST."""
         return (key in request.GET) or (key in request.POST)
 
-    def _validate_code_challenge_method(self, code_challenge_method):
-        """Validate code_challenge_method is S256 if provided.
-
-        Returns None if valid, JsonResponse error if invalid.
-        """
-        if code_challenge_method and code_challenge_method != 'S256':
-            return JsonResponse(
-                {
-                    'status_code': HTTPStatus.BAD_REQUEST,
-                    'error': 'invalid_request',
-                    'error_description': f'code_challenge_method must be S256, got: {code_challenge_method}',
-                },
-                status=HTTPStatus.BAD_REQUEST,
-            )
-        return None
-
     def _check_for_required_params(self, request):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
@@ -306,10 +290,9 @@ class AuthorizationView(DotAuthorizationView):
         if sensitive_info_detected:
             return sensitive_info_detected
 
-        code_challenge_method = self._get_param(request, 'code_challenge_method')
-        validation_error = self._validate_code_challenge_method(code_challenge_method)
-        if validation_error:
-            return validation_error
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
 
         request.session['version'] = self.version
 
@@ -359,17 +342,15 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        code_challenge_method = request.POST.get('code_challenge_method')
-        validation_error = self._validate_code_challenge_method(code_challenge_method)
-        if validation_error:
-            return validation_error
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         param_check = self._check_for_required_params(request)
         if param_check:
             return param_check
-
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
@@ -396,15 +377,9 @@ class AuthorizationView(DotAuthorizationView):
             'redirect_uri': form.cleaned_data.get('redirect_uri'),
             'response_type': form.cleaned_data.get('response_type', None),
             'state': form.cleaned_data.get('state', None),
-            # "code_challenge": form.cleaned_data.get("code_challenge", None),
-            # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+            'code_challenge': form.cleaned_data.get('code_challenge', None),
+            'code_challenge_method': form.cleaned_data.get('code_challenge_method', None),
         }
-
-        if form.cleaned_data.get('code_challenge'):
-            credentials['code_challenge'] = form.cleaned_data.get('code_challenge')
-
-        if form.cleaned_data.get('code_challenge_method'):
-            credentials['code_challenge_method'] = form.cleaned_data.get('code_challenge_method')
 
         scopes = form.cleaned_data.get('scope')
         allow = form.cleaned_data.get('allow')
