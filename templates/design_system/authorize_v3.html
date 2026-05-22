@@ -167,6 +167,10 @@
 										</path>
 									</svg>
 								</a>.
+								{% if application.support_email %}
+									{% trans " Contact "%}{{ application.name }}{% trans " at " %}
+									<a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
+								{% endif %}
 							</span>
 						</p>
 
