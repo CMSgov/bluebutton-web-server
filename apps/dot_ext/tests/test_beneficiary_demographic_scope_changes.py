@@ -264,8 +264,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Test access to userinfo end point?
         response = client.get('/v1/connect/userinfo')
         content = json.loads(response.content)
-        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
-        self.assertEqual(content.get('detail', None), 'Authentication credentials were not provided.')
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(content.get('detail', None), 'You do not have permission to perform this action.')
 
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 2)

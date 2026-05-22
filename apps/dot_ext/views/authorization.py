@@ -1108,7 +1108,11 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
-                revoke_prior_tokens_for_user_and_app_if_they_exist(token.user_id, app.id)
+
+                # If it's version 3, we want to check for prior tokens to ensure they can't continue
+                # to be used
+                if version == Versions.V3:
+                    revoke_prior_tokens_for_user_and_app_if_they_exist(token.user_id, app.id)
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id
