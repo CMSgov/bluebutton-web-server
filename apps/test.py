@@ -22,8 +22,11 @@ from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     CODE_CHALLENGE_METHOD_S256,
+    COVERAGE_SCOPE,
     DEFAULT_SAMPLE_FHIR_ID_V2,
     DEFAULT_SAMPLE_FHIR_ID_V3,
+    EOB_SCOPE,
+    PATIENT_SCOPE,
     USER_TYPE_BENEFICIARY,
     USER_TYPE_DEV,
 )
@@ -496,9 +499,7 @@ class BaseApiTest(TestCase):
         application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
         # Get available read/search scopes from database and add them to the app's scopes
         self.coverage_capability, self.eob_capability, self.patient_capability = (
-            ProtectedCapability.objects.filter(
-                slug__in=['patient/Patient.rs', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs']
-            )
+            ProtectedCapability.objects.filter(slug__in=[PATIENT_SCOPE, COVERAGE_SCOPE, EOB_SCOPE])
             .all()
             .order_by('slug')
         )

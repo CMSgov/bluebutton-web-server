@@ -159,7 +159,9 @@ class AppScopePermission(permissions.BasePermission):
         for scope in app_scopes:
             if scope in READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type]:
                 return True
-        raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request.resource_type))
+        raise PermissionDenied(
+            APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request_type, request.resource_type)
+        )
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):
