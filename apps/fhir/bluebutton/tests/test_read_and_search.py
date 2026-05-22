@@ -3,7 +3,6 @@ from http import HTTPStatus
 from unittest.mock import patch
 from urllib.parse import unquote
 
-from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.test.client import Client
 from django.urls import reverse
@@ -150,7 +149,6 @@ class ThrottleReadRequestTest(BaseApiTest):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        call_command('create_blue_button_scopes')
         # Setup the RequestFactory
         self.client = Client()
 
@@ -265,7 +263,6 @@ class ThrottleReadRequestTest(BaseApiTest):
 
 class BackendConnectionTest(BaseApiTest):
     def setUp(self):
-        call_command('create_blue_button_scopes')
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])

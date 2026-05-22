@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-from django.core.management import call_command
 from django.test.client import Client
 from django.urls import reverse
 from httmock import HTTMock, all_requests
@@ -32,7 +31,6 @@ class InsuranceCardTest(BaseApiTest):
 
     def setUp(self):
         # create read and write capabilities
-        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         self.client = Client()

@@ -1,4 +1,3 @@
-from django.core.management import call_command
 from django.test import tag
 from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
@@ -14,7 +13,6 @@ AccessToken = get_access_token_model()
 class BlueButtonTestEndpoints(BaseApiTest):
     def setUp(self):
         self.client = Client()
-        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
 

@@ -1,7 +1,6 @@
 import json
 from http import HTTPStatus
 
-from django.core.management import call_command
 from django.test import tag
 from django.test.client import Client
 from django.urls import reverse
@@ -50,8 +49,6 @@ def get_response_json(resource_file_name):
 
 class FHIRResourcesReadSearchTest(BaseApiTest):
     def setUp(self):
-        call_command('create_blue_button_scopes')
-
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])

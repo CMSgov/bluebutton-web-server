@@ -9,6 +9,7 @@ from http import HTTPStatus
 from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth.models import Group, User
+from django.core.management import call_command
 from django.http import HttpRequest
 from django.test import TestCase
 from django.urls import reverse
@@ -489,6 +490,7 @@ class BaseApiTest(TestCase):
             user_mbi=mbi if mbi is not None else self.test_mbi,
             email='%s@%s.notanagency.gov' % (first_name, last_name),
         )
+        call_command('create_blue_button_scopes')
 
         # create a oauth2 application and add capabilities
         application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
