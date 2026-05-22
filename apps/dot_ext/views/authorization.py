@@ -446,7 +446,7 @@ class AuthorizationView(DotAuthorizationView):
                 credentials=credentials,
                 allow=allow,
             )
-        except (OAuthToolkitError, OAuth2Error, InvalidRequestError) as error:
+        except OAuthToolkitError as error:
             response = self.error_response(error, application)
             if not scopes:
                 (
