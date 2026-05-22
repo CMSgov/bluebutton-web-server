@@ -160,6 +160,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'patient': str,
         '_tag': list[str],
         '_source': list[str],
+        '_security:not': str,
     }
 
     def __init__(self, version=1):
