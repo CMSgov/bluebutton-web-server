@@ -1,6 +1,7 @@
 import json
 from http import HTTPStatus
 
+from django.core.management import call_command
 from django.test import tag
 from django.test.client import Client
 from django.urls import reverse
@@ -49,34 +50,18 @@ def get_response_json(resource_file_name):
 
 class FHIRResourcesReadSearchTest(BaseApiTest):
     def setUp(self):
+        call_command('create_blue_button_scopes')
+
+        self.coverage_capability, self.eob_capability, self.patient_capability = (
+            ProtectedCapability.objects.filter(
+                slug__in=['patient/Patient.rs', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs']
+            )
+            .all()
+            .order_by('slug')
+        )
         # create read and write capabilities
-        self.read_capability = self._create_capability_without_sluggifying('Read', 'read', [])
-        self.write_capability = self._create_capability_without_sluggifying('Write', 'write', [])
-        self.patient_capability = self._create_capability_without_sluggifying(
-            'Patient Read and Search',
-            'patient/Patient.rs',
-            [
-                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-                ['GET', r'\/v1\/fhir\/Patient\/\d+'],
-                ['GET', '/v1/fhir/Patient'],
-            ],
-        )
-        self.coverage_capability = self._create_capability_without_sluggifying(
-            'Coverage Read and Search',
-            'patient/Coverage.rs',
-            [
-                ['GET', r'\/v1\/fhir\/Coverage\/.+'],
-                ['GET', '/v1/fhir/Coverage'],
-            ],
-        )
-        self.eob_capability = self._create_capability_without_sluggifying(
-            'EOB Read and Search',
-            'patient/ExplanationOfBenefit.rs',
-            [
-                ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
-                ['GET', '/v1/fhir/ExplanationOfBenefit'],
-            ],
-        )
+        self.read_capability = self._create_capability('Read', [])
+        self.write_capability = self._create_capability('Write', [])
         # Setup the RequestFactory
         self.client = Client()
 
