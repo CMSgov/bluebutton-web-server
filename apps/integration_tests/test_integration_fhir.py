@@ -6,7 +6,6 @@ from django.test import tag
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
-from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     C4BB_PROFILE_URLS,
     DEFAULT_SAMPLE_FHIR_ID_V2,
@@ -51,13 +50,6 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
     def setUp(self):
         call_command('create_blue_button_scopes')
 
-        self.coverage_capability, self.eob_capability, self.patient_capability = (
-            ProtectedCapability.objects.filter(
-                slug__in=['patient/Patient.rs', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs']
-            )
-            .all()
-            .order_by('slug')
-        )
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])

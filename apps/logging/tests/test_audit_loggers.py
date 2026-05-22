@@ -4,6 +4,7 @@ import re
 import jsonschema
 import requests
 from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.http import HttpRequest
 from django.test.client import Client
 from django.urls import reverse
@@ -66,17 +67,9 @@ class TestAuditEventLoggers(BaseApiTest):
     def setUp(self):
         Group.objects.create(name='BlueButton')
         self.callback_url = reverse('mymedicare-sls-callback')
+        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability(
-            'patient',
-            [
-                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-                ['GET', '/v1/fhir/Patient'],
-                ['GET', r'\/v2\/fhir\/Patient\/\-\d+'],
-                ['GET', '/v2/fhir/Patient'],
-            ],
-        )
         # Setup the RequestFactory
         self.client = Client()
         self.logger_registry = redirect_loggers()

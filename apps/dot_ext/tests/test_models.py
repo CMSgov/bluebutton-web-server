@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from oauth2_provider.models import get_access_token_model, get_application_model
 
 import apps.logging.request_logger as logging
@@ -26,6 +27,7 @@ class TestDotExtModels(BaseApiTest):
     fixtures = ['internal_application_labels.json']
 
     def setUp(self):
+        call_command('create_blue_button_scopes')
         self.logger_registry = redirect_loggers()
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])

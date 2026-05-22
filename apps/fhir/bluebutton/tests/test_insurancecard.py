@@ -1,14 +1,16 @@
+from http import HTTPStatus
+
+from django.core.management import call_command
 from django.test.client import Client
 from django.urls import reverse
-from httmock import all_requests, HTTMock
-from http import HTTPStatus
+from httmock import HTTMock, all_requests
 from oauth2_provider.models import get_access_token_model
-
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
-from apps.test import BaseApiTest
 
 # Get the pre-defined Conformance statement
 from waffle.testutils import override_switch
+
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
+from apps.test import BaseApiTest
 
 AccessToken = get_access_token_model()
 
@@ -30,6 +32,7 @@ class InsuranceCardTest(BaseApiTest):
 
     def setUp(self):
         # create read and write capabilities
+        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         self.client = Client()

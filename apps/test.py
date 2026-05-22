@@ -492,41 +492,21 @@ class BaseApiTest(TestCase):
 
         # create a oauth2 application and add capabilities
         application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
-        # application.scope.add(
-        #     self.read_capability,
-        #     self.write_capability,
-        #     self.patient_capability,
-        #     self.coverage_capability,
-        #     self.eob_capability,
-        # )
-        app_scopes_to_add = [
+        # Get available read/search scopes from database and add them to the app's scopes
+        self.coverage_capability, self.eob_capability, self.patient_capability = (
+            ProtectedCapability.objects.filter(
+                slug__in=['patient/Patient.rs', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs']
+            )
+            .all()
+            .order_by('slug')
+        )
+        application.scope.add(
+            self.coverage_capability,
+            self.eob_capability,
+            self.patient_capability,
             self.read_capability,
             self.write_capability,
-            self.patient_capability,
-            self.eob_capability,
-            self.coverage_capability,
-        ]
-        for scope in app_scopes_to_add:
-            try:
-                application.scope.add(scope)
-            except Exception as e:
-                print(type(e), e)
-                raise
-        # application.scope.add(
-        #     self.read_capability,
-        # )
-        # application.scope.add(
-        #     self.write_capability,
-        # )
-        # application.scope.add(
-        #     self.patient_capability,
-        # )
-        # application.scope.add(
-        #     self.eob_capability,
-        # )
-        # application.scope.add(
-        #     self.coverage_capability,
-        # )
+        )
 
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, application)

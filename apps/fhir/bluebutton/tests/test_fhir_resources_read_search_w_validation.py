@@ -52,13 +52,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def setUp(self):
         call_command('create_blue_button_scopes')
 
-        self.coverage_capability, self.eob_capability, self.patient_capability = (
-            ProtectedCapability.objects.filter(
-                slug__in=['patient/Patient.rs', 'patient/Coverage.rs', 'patient/ExplanationOfBenefit.rs']
-            )
-            .all()
-            .order_by('slug')
-        )
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
@@ -899,9 +892,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         application.scope.remove(patient_protected_resource)
 
         # Add just a read scope
-        patient_read_capability = self._create_capability_without_sluggifying(
-            'Read Patient Info', 'patient/Patient.r', []
-        )
+        patient_read_capability = ProtectedCapability.objects.get(slug='patient/Patient.r')
         application.scope.add(patient_read_capability)
 
         # Try to make a search fhir request
@@ -927,9 +918,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         application.scope.remove(eob_protected_resource)
 
         # Add just a read scope
-        eob_read_capability = self._create_capability_without_sluggifying(
-            'Read EOB Info', 'patient/ExplanationOfBenefit.r', []
-        )
+        eob_read_capability = ProtectedCapability.objects.get(slug='patient/ExplanationOfBenefit.r')
         application.scope.add(eob_read_capability)
 
         # Try to make a search fhir request
@@ -954,9 +943,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         application.scope.remove(coverage_protected_resource)
 
         # Add just a read scope
-        coverage_read_capability = self._create_capability_without_sluggifying(
-            'Read Coverage Info', 'patient/Coverage.r', []
-        )
+        coverage_read_capability = ProtectedCapability.objects.get(slug='patient/Coverage.r')
         application.scope.add(coverage_read_capability)
 
         # Try to make a search fhir request
