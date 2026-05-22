@@ -269,28 +269,6 @@ class BackendConnectionTest(BaseApiTest):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        # self._create_capability(
-        #     'patient',
-        #     [
-        #         ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-        #         ['GET', r'\/v1\/fhir\/Patient\/\d+'],
-        #         ['GET', '/v1/fhir/Patient'],
-        #     ],
-        # )
-        # self._create_capability(
-        #     'coverage',
-        #     [
-        #         ['GET', r'\/v1\/fhir\/Coverage\/.+'],
-        #         ['GET', '/v1/fhir/Coverage'],
-        #     ],
-        # )
-        # self._create_capability(
-        #     'eob',
-        #     [
-        #         ['GET', r'\/v1\/fhir\/ExplanationOfBenefit\/.+'],
-        #         ['GET', '/v1/fhir/ExplanationOfBenefit'],
-        #     ],
-        # )
         # Setup the RequestFactory
         self.client = Client()
 

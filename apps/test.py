@@ -523,25 +523,3 @@ class BaseApiTest(TestCase):
         """
         pattern = [MBI_CHARS, DIGITS, LETTERS, MBI_CHARS, DIGITS, LETTERS, LETTERS, DIGITS, DIGITS]
         return '1S' + ''.join(random.choice(chars) for chars in pattern)
-
-    def _create_capability_without_sluggifying(self, name, slug, urls, group=None, default=True):
-        """
-        Helper method that creates a ProtectedCapability instance
-        that controls the access for the set of `urls`.
-        """
-        # Create capability, if does not already exist
-        try:
-            capability = ProtectedCapability.objects.get(title=name)
-            return capability
-        except ProtectedCapability.DoesNotExist:
-            pass
-
-        group = group or self._create_group('test')
-        capability = ProtectedCapability.objects.create(
-            default=default,
-            title=name,
-            slug=slug,
-            protected_resources=json.dumps(urls),
-            group=group,
-        )
-        return capability

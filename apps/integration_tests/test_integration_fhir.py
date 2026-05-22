@@ -49,11 +49,8 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
 
     def setUp(self):
         call_command('create_blue_button_scopes')
-
-        # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-
         super().setUp()
 
     def _get_fhir_url(self, resource_name, params=None, version=Versions.V2):
