@@ -95,11 +95,12 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import Application, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
+    check_samhsa_cache_and_create_access_token_extension,
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -491,6 +492,9 @@ class AuthorizationView(DotAuthorizationView):
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
+
+        share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+        cache.set(f'include_samhsa:{code}', share_samhsa_data, timeout=300)
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1024,6 +1028,21 @@ class TokenView(DotTokenView):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
+    def _retrieve_prior_include_samhsa_value(self, grant_type: str, request: HttpRequest) -> bool:
+        prior_include_samhsa = True
+        if grant_type == 'refresh_token':
+            refresh_token_str = request.POST.get('refresh_token')
+            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_str)
+            try:
+                prior_access_token_extension = AccessTokenExtension.objects.get(
+                    access_token_id=refresh_token.access_token_id
+                )
+                prior_include_samhsa = prior_access_token_extension.include_samhsa
+            except AccessTokenExtension.DoesNotExist:
+                # this case indicates it was an access token created before the access token extension was added
+                log.info(f'No access token extension for access token id: {refresh_token.access_token_id}')
+        return prior_include_samhsa
+
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
@@ -1138,6 +1157,8 @@ class TokenView(DotTokenView):
                 status=HTTPStatus.FORBIDDEN,
             )
 
+        prior_include_samhsa = self._retrieve_prior_include_samhsa_value(grant_type, request)
+
         url, headers, body, status = self.create_token_response(request)
 
         # retrieve the access token, update user_id with the user.id sourced above
@@ -1146,6 +1167,9 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
+
+                code = request.POST.get('code', [None])
+                check_samhsa_cache_and_create_access_token_extension(prior_include_samhsa, code, grant_type, token)
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id

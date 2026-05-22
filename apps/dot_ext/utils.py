@@ -5,6 +5,7 @@ from http import HTTPStatus
 
 import jwt
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
@@ -23,7 +24,7 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
@@ -326,3 +327,31 @@ def validate_latin_extended_string(text: str) -> bool:
         bool: if all strings are encoded less than U+017F (383) and it is not empty
     """
     return all(ord(char) <= 383 for char in text) and bool(text)
+
+
+def check_samhsa_cache_and_create_access_token_extension(
+    prior_include_samhsa: bool, code: str, grant_type: str, token: AccessToken
+) -> None:
+    """Retrieve a value from the cache, if available, for the code being used in the authorization or refresh request
+
+    Args:
+        prior_include_samhsa (bool): The value the prior access_token_extension record had for include_samhsa
+        code (str): The code for the auth or refresh request, used to retrieve cached value
+        grant_type (str): Grant type of the call to TokenView.post
+        token (AccessToken): The access token that was generated
+    """
+    include_samhsa = True
+
+    # This was evaluating even if the cache had False for the value, but modifying the conditional like this
+    # allowed for better unit test coverage
+    if cache.get(f'include_samhsa:{code}') is not None and cache.get(f'include_samhsa:{code}') != '':
+        include_samhsa = cache.get(f'include_samhsa:{code}')
+
+    if grant_type == 'refresh_token':
+        include_samhsa = prior_include_samhsa
+
+    AccessTokenExtension.objects.get_or_create(
+        access_token=token,
+        include_samhsa=include_samhsa,
+    )
+    cache.delete(f'include_samhsa:{code}')

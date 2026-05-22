@@ -28,7 +28,7 @@ from apps.dot_ext.constants import (
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
 )
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.dot_ext.utils import (
     get_application_from_data,
     get_application_from_meta,
@@ -264,6 +264,59 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         os.environ['TARGET_ENV'] = 'prod'
         result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
         assert result
+
+    def test_retrieve_prior_include_samhsa_value_non_refresh_token_grant_type(self) -> None:
+        view_instance = TokenView()
+        prior_include_samhsa = view_instance._retrieve_prior_include_samhsa_value('authorization_code', None)
+        assert prior_include_samhsa
+
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
+    def test_retrieve_prior_include_samhsa_value(self, mock_access_token_extension, mock_refresh_model) -> None:
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_refresh_token = MagicMock()
+        mock_request.POST = {
+            'grant_type': 'refresh_token',
+            'refresh_token': 'tkn',
+        }
+        mock_refresh_model.return_value.objects.get.return_value = mock_refresh_token
+        mock_access_token_extension.return_value = AccessTokenExtension(include_samhsa=True)
+        prior_include_samhsa = view_instance._retrieve_prior_include_samhsa_value('refresh_token', mock_request)
+        assert prior_include_samhsa
+
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
+    def test_retrieve_prior_include_samhsa_value_false(self, mock_access_token_extension, mock_refresh_model) -> None:
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_refresh_token = MagicMock()
+        mock_request.POST = {
+            'grant_type': 'refresh_token',
+            'refresh_token': 'tkn',
+        }
+        mock_refresh_model.return_value.objects.get.return_value = mock_refresh_token
+        mock_access_token_extension.return_value = AccessTokenExtension(include_samhsa=False)
+        prior_include_samhsa = view_instance._retrieve_prior_include_samhsa_value('refresh_token', mock_request)
+        assert not prior_include_samhsa
+
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
+    def test_retrieve_prior_include_samhsa_value_access_token_extension_dne(
+        self, mock_access_token_extension, mock_refresh_model
+    ) -> None:
+        """Confirm that when there is no access_token_extension record returned, a value of True is returned"""
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_refresh_token = MagicMock()
+        mock_request.POST = {
+            'grant_type': 'refresh_token',
+            'refresh_token': 'tkn',
+        }
+        mock_refresh_model.return_value.objects.get.return_value = mock_refresh_token
+        mock_access_token_extension.side_effect = AccessTokenExtension.DoesNotExist
+        prior_include_samhsa = view_instance._retrieve_prior_include_samhsa_value('refresh_token', mock_request)
+        assert prior_include_samhsa
 
 
 # we set empty GET/META/POST because get_application_from_data does not like it if a GET is missing.
