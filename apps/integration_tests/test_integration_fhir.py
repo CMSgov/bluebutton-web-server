@@ -51,6 +51,9 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
+        self.patient_capability = self._create_capability('Patient', [])
+        self.coverage_capability = self._create_capability('Coverage', [])
+        self.eob_capability = self._create_capability('EOB', [])
         super().setUp()
 
     def _get_fhir_url(self, resource_name, params=None, version=Versions.V2):
