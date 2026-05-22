@@ -33,7 +33,7 @@ on:
         required: true
         type: string
       command:
-        description: 'manage.py command (e.g. dbshell, shell_plus --print-sql)'
+        description: 'Non-interactive manage.py command to run (e.g. log_global_state_metrics, authflow_id_delete)'
         required: true
         type: string
 
