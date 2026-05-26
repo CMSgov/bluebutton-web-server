@@ -1,5 +1,4 @@
 import logging
-import re
 
 from django.contrib.auth import get_user_model
 from oauth2_provider.models import get_application_model
@@ -139,22 +138,15 @@ class AppScopePermission(permissions.BasePermission):
             return True
 
         token = get_access_token_model().objects.get(token=request._auth)
-        token_app_id = token.application_id
-        if not token or not token_app_id:
+        if not token or not token.application_id:
             return False
         app_scopes = list(
-            ProtectedCapability.objects.filter(application=token_app_id).values_list('slug', flat=True).all()
+            ProtectedCapability.objects.filter(application=token.application_id).values_list('slug', flat=True).all()
         )
-        # Determine if the request is read or search
-        request_path = request.path
-        url_list = request_path.split('/')
-        last_item = url_list[-1]
-        resource_id = bool(re.search(r'\d', last_item))
+        # Determine if the request is read or search based upon if it has a resource id or not
         request_type = ''
-        if resource_id:
-            request_type = 'read'
-        else:
-            request_type = 'search'
+        url_list = request.path.rstrip('/').split('/')
+        request_type = 'read' if any(char.isdigit() for char in url_list[-1]) else 'search'
         # Determine if scopes from database have correct permission
         for scope in app_scopes:
             if scope in READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type]:
