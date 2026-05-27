@@ -1040,7 +1040,7 @@ UI Widget text: texts on e.g. buttons, links, labels etc.
 
 # Synthetic beneficiary login info
 BENE_TXT_USERNAME = 'BBUser09003'
-BENE_TXT_PASSWORD_TEST = 'PW09003!@'
+BENE_TXT_PASSWORD_TEST = 'PW09003!'
 BENE_TXT_PASSWORD_PROD = 'PW09003!'
 BENE_TXT_PASSWORD = (
     BENE_TXT_PASSWORD_PROD
