@@ -146,7 +146,7 @@ class AppScopePermission(permissions.BasePermission):
         app_scopes = list(
             ProtectedCapability.objects.filter(application=token.application_id).values_list('slug', flat=True).all()
         )
-        # Determine if the request is read or search based upon if it has a resource id or not
+        # Determine if the request is read, search, or c4dic
         view_name = type(view).__name__.lower()
         request_type = ''
         if 'search' in view_name:
@@ -156,26 +156,25 @@ class AppScopePermission(permissions.BasePermission):
         else:
             request_type = 'c4dic'
 
+        app_token_set = set(app_scopes)
         if request_type == 'c4dic':
             # Determine if app has both patient read and coverage search scopes for a dic call
             patient_set = set(READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_PATIENT][READ_SCOPE])
             coverage_set = set(
                 READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_COVERAGE][SEARCH_SCOPE]
             )
-            app_token_set = set(app_scopes)
             if is_not_empty(coverage_set.intersection(app_token_set)) and is_not_empty(
                 patient_set.intersection(app_token_set)
             ):
                 return True
-            else:
-                raise PermissionDenied(
-                    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, 'any', 'digital insurance card')
-                )
+            raise PermissionDenied(
+                APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, 'any', 'digital insurance card')
+            )
         else:
             # Determine if scopes from database have correct permission if view was search/read FHIR call
-            for scope in app_scopes:
-                if scope in READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][request_type]:
-                    return True
+            resource_set = set(READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][request_type])
+            if is_not_empty(resource_set.intersection(app_token_set)):
+                return True
             raise PermissionDenied(
                 APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request_type, request.resource_type)
             )

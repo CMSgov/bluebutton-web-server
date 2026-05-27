@@ -16,9 +16,6 @@ from apps.versions import Versions
 
 
 class HasDigitalInsuranceCardScope(permissions.BasePermission):
-    # required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
-    # required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
-
     def has_permission(self, request, view) -> bool:  # type: ignore
         # Is this an authorized request? If not, exit.
         if not hasattr(request, 'auth'):
