@@ -103,7 +103,13 @@
                                         </g>
                                     </g>
                                 </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Learn more about how " %}{{ application.name }}{% trans " uses your data in their " %}<a href="{{ application.policy_uri }}">{% trans "Privacy Policy" %}</a>{% trans " and " %}<a href="{{ application.tos_uri }}">{% trans "Terms and Conditions" %}</a>.</span>
+                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">
+                                {% trans "Learn more about how " %}{{ application.name }}{% trans " uses your data in their " %}<a href="{{ application.policy_uri }}">{% trans "Privacy Policy" %}</a>{% trans " and " %}<a href="{{ application.tos_uri }}">{% trans "Terms and Conditions" %}</a>.
+                                {% if application.support_email %}
+                                    {% trans " For additional inquiries, you can send an email to " %}
+                                    <a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
+                                {% endif %}
+                            </span>
                         </p>
 
                         {% if application.data_access_type != 'RESEARCH_STUDY' %}
