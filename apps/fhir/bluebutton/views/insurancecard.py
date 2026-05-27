@@ -1,10 +1,15 @@
-from apps.fhir.bluebutton.views.generic import FhirDataView
-from apps.fhir.bluebutton.permissions import SearchCrosswalkPermission, ResourcePermission, ApplicationActivePermission
+from rest_framework import permissions  # pyright: ignore[reportMissingImports]
+
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.permissions import (
+    ApplicationActivePermission,
+    AppScopePermission,
+    ResourcePermission,
+    SearchCrosswalkPermission,
+)
+from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.versions import Versions
-
-from rest_framework import permissions  # pyright: ignore[reportMissingImports]
 
 
 class HasDigitalInsuranceCardScope(permissions.BasePermission):
@@ -54,6 +59,7 @@ class DigitalInsuranceCardView(FhirDataView):
         # handles the set checks that are required for this particular API call.
         # TokenHasProtectedCapability
         HasDigitalInsuranceCardScope,
+        AppScopePermission,
     ]
 
     def __init__(self, version=Versions.V3):
