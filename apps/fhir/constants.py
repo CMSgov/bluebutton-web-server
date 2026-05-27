@@ -177,5 +177,23 @@ READ_SEARCH_SCOPE_LOOKUP = {
             'patient/Coverage.rs',
         ],
     },
+    'Bundle': {
+        'read': [
+            'patient/Coverage.read',
+            'patient/Coverage.r',
+            'patient/Coverage.rs',
+            'patient/Patient.read',
+            'patient/Patient.r',
+            'patient/Patient.rs',
+        ],
+        'search': [
+            'patient/Coverage.read',
+            'patient/Coverage.s',
+            'patient/Coverage.rs',
+            'patient/Patient.read',
+            'patient/Patient.s',
+            'patient/Patient.rs',
+        ],
+    },
 }
 EXCLUDE_SAMHSA_PARAMETER_VALUE = '42CFRPart2'
