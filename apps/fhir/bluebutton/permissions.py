@@ -13,10 +13,13 @@ from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
     APPLICATION_TEMPORARILY_INACTIVE,
+    FHIR_RES_TYPE_COVERAGE,
     FHIR_RES_TYPE_EOB,
+    FHIR_RES_TYPE_PATIENT,
     HHS_SERVER_LOGNAME_FMT,
 )
-from apps.fhir.constants import ALLOWED_RESOURCE_TYPES, READ_SEARCH_SCOPE_LOOKUP
+from apps.fhir.bluebutton.utils import is_not_empty
+from apps.fhir.constants import ALLOWED_RESOURCE_TYPES, READ_SCOPE, READ_SEARCH_C4DIC_SCOPE_LOOKUP, SEARCH_SCOPE
 from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -144,16 +147,38 @@ class AppScopePermission(permissions.BasePermission):
             ProtectedCapability.objects.filter(application=token.application_id).values_list('slug', flat=True).all()
         )
         # Determine if the request is read or search based upon if it has a resource id or not
+        view_name = type(view).__name__.lower()
         request_type = ''
-        url_list = request.path.rstrip('/').split('/')
-        request_type = 'read' if any(char.isdigit() for char in url_list[-1]) else 'search'
-        # Determine if scopes from database have correct permission
-        for scope in app_scopes:
-            if scope in READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type]:
+        if 'search' in view_name:
+            request_type = 'search'
+        elif 'read' in view_name:
+            request_type = 'read'
+        else:
+            request_type = 'c4dic'
+
+        if request_type == 'c4dic':
+            # Determine if app has both patient read and coverage search scopes for a dic call
+            patient_set = set(READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_PATIENT][READ_SCOPE])
+            coverage_set = set(
+                READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_COVERAGE][SEARCH_SCOPE]
+            )
+            app_token_set = set(app_scopes)
+            if is_not_empty(coverage_set.intersection(app_token_set)) and is_not_empty(
+                patient_set.intersection(app_token_set)
+            ):
                 return True
-        raise PermissionDenied(
-            APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request_type, request.resource_type)
-        )
+            else:
+                raise PermissionDenied(
+                    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, 'any', 'digital insurance card')
+                )
+        else:
+            # Determine if scopes from database have correct permission if view was search/read FHIR call
+            for scope in app_scopes:
+                if scope in READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][request_type]:
+                    return True
+            raise PermissionDenied(
+                APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request_type, request.resource_type)
+            )
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):

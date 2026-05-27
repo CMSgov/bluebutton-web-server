@@ -1,6 +1,7 @@
 from rest_framework import permissions  # pyright: ignore[reportMissingImports]
 
 from apps.authorization.permissions import DataAccessGrantPermission
+from apps.constants import FHIR_RES_TYPE_COVERAGE, FHIR_RES_TYPE_PATIENT
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import (
     ApplicationActivePermission,
@@ -8,17 +9,15 @@ from apps.fhir.bluebutton.permissions import (
     ResourcePermission,
     SearchCrosswalkPermission,
 )
+from apps.fhir.bluebutton.utils import is_not_empty
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.constants import READ_SCOPE, READ_SEARCH_C4DIC_SCOPE_LOOKUP, SEARCH_SCOPE
 from apps.versions import Versions
 
 
 class HasDigitalInsuranceCardScope(permissions.BasePermission):
-    required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
-    required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
-
-    @staticmethod
-    def _is_not_empty(s: set) -> bool:
-        return len(s) > 0
+    # required_coverage_search_scopes = ['patient/Coverage.rs', 'patient/Coverage.s', 'patient/Coverage.read']
+    # required_patient_read_scopes = ['patient/Patient.r', 'patient/Patient.rs', 'patient/Patient.read']
 
     def has_permission(self, request, view) -> bool:  # type: ignore
         # Is this an authorized request? If not, exit.
@@ -35,13 +34,11 @@ class HasDigitalInsuranceCardScope(permissions.BasePermission):
         # Two things need to be true:
         #  1. At least one of the scopes in the token needs to be one of the above coverage scopes.
         #  2. At least one of the scopes in the token needs to be one of the above read scopes.
-        coverage_set = set(HasDigitalInsuranceCardScope.required_coverage_search_scopes)
-        patient_set = set(HasDigitalInsuranceCardScope.required_patient_read_scopes)
+        patient_set = set(READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_PATIENT][READ_SCOPE])
+        coverage_set = set(READ_SEARCH_C4DIC_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_COVERAGE][SEARCH_SCOPE])
         token_set = set(token_scopes)
 
-        return HasDigitalInsuranceCardScope._is_not_empty(
-            coverage_set.intersection(token_set)
-        ) and HasDigitalInsuranceCardScope._is_not_empty(patient_set.intersection(token_set))
+        return is_not_empty(coverage_set.intersection(token_set)) and is_not_empty(patient_set.intersection(token_set))
 
 
 class DigitalInsuranceCardView(FhirDataView):

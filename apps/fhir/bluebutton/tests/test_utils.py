@@ -27,6 +27,7 @@ from apps.fhir.bluebutton.utils import (
     format_patient_name,
     get_host_url,
     get_patient_match_response_json,
+    is_not_empty,
     is_operation_outcome,
     is_patient_match_found,
     mask_with_this_url,
@@ -554,3 +555,25 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         patient = None
         result = extract_fhir_id_from_patient(patient)
         assert result is None
+
+
+class IsNotEmptyTestCase(BaseApiTest):
+    """
+    Test cases for is_not_empty function for testing if a set is empty or not
+    """
+
+    def test_is_not_empty_returns_true(self):
+        """
+        Test that is_not_empty returns true if you pass it a set with more than one entry
+        """
+        example_set = set(['a', 'b', 'c'])
+        result = is_not_empty(example_set)
+        assert result is True
+
+    def test_is_not_empty_returns_false(self):
+        """
+        Test that is_not_empty returns false if you pass it a set with no entries
+        """
+        example_set = set([])
+        result = is_not_empty(example_set)
+        assert result is False

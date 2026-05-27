@@ -927,3 +927,16 @@ def extract_fhir_id_from_patient(patient: Patient) -> Optional[str]:
         return None
 
     return patient.id
+
+
+def is_not_empty(s: set) -> bool:
+    """
+    Determines if a set is empty or not
+
+    Args:
+        set: The set to determine if it sempty or not
+
+    Returns:
+        True if it's not empty, False if it is empty
+    """
+    return len(s) > 0
