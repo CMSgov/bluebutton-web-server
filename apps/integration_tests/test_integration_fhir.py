@@ -1,7 +1,6 @@
 from http import HTTPStatus
 from urllib.parse import urlparse
 
-from django.core.management import call_command
 from django.test import tag
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
@@ -48,7 +47,6 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
     """
 
     def setUp(self):
-        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         super().setUp()

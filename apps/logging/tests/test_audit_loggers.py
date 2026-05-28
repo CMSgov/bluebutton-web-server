@@ -68,15 +68,6 @@ class TestAuditEventLoggers(BaseApiTest):
         self.callback_url = reverse('mymedicare-sls-callback')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability(
-            'patient',
-            [
-                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-                ['GET', '/v1/fhir/Patient'],
-                ['GET', r'\/v2\/fhir\/Patient\/\-\d+'],
-                ['GET', '/v2/fhir/Patient'],
-            ],
-        )
         # Setup the RequestFactory
         self.client = Client()
         self.logger_registry = redirect_loggers()
