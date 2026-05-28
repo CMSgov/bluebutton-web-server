@@ -30,7 +30,7 @@ APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET = (
 
 # Message output when an app attempts a v3 call but they don't have the correct scopes
 APPLICATION_DOES_NOT_HAVE_VALID_SCOPES = (
-    'This application, {}, does not have access to make calls for {} resources.'
+    'This application, {}, does not have access to make {} calls for {} resources.'
     ' If you are the app maintainer, please contact the Blue Button API team.'
     ' If you are a Medicare Beneficiary and need assistance, please contact'
     ' the support team for the application you are trying to access.'
@@ -144,3 +144,4 @@ CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS = [
 
 FHIR_RES_TYPE_EOB = 'ExplanationOfBenefit'
 FHIR_RES_TYPE_PATIENT = 'Patient'
+FHIR_RES_TYPE_COVERAGE = 'Coverage'
