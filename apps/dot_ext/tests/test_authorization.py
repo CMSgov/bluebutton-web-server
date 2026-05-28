@@ -42,6 +42,13 @@ class TestAuthorizationView(BaseApiTest):
             base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8')
         )
 
+    def _add_pkce_defaults(self, payload):
+        auth_payload = dict(payload)
+        auth_payload.setdefault('state', '0123456789abcdef')
+        auth_payload.setdefault('code_challenge', 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo')
+        auth_payload.setdefault('code_challenge_method', CODE_CHALLENGE_METHOD_S256)
+        return auth_payload
+
     def test_post_with_valid_non_standard_scheme_granttype_authcode_clienttype_public(self):
         # Test with application setup as grant_type=authorization_code and client_type=public
         redirect_uri = 'com.custom.bluebutton://example.it'
@@ -71,7 +78,7 @@ class TestAuthorizationView(BaseApiTest):
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.get('/v1/o/authorize', data=payload)
+        response = self.client.get('/v1/o/authorize', data=self._add_pkce_defaults(payload))
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -95,6 +102,7 @@ class TestAuthorizationView(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         # Test that using a BAD code_verifier has a bad request response
         token_request_data.update({'code_verifier': 'test1234567bad9verifier23456789123456789123456789'})
@@ -138,7 +146,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.assertEqual(response.status_code, 400)
 
     def test_post_with_valid_non_standard_scheme_granttype_authcode_clienttype_confidential(self):
@@ -170,7 +178,7 @@ class TestAuthorizationView(BaseApiTest):
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.get('/v1/o/authorize', data=payload)
+        response = self.client.get('/v1/o/authorize', data=self._add_pkce_defaults(payload))
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -194,6 +202,7 @@ class TestAuthorizationView(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         # Test that request is unauthorized WITH OUT the client_secret.
         token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
@@ -246,7 +255,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.assertEqual(response.status_code, 400)
 
     @override_switch('v3_endpoints', active=True)
@@ -279,7 +288,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -291,6 +300,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
@@ -356,7 +366,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -368,6 +378,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -414,7 +425,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -426,6 +437,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -475,7 +487,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -487,6 +499,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -532,7 +545,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -544,6 +557,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -596,7 +610,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -609,6 +623,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
@@ -665,7 +680,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -678,6 +693,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post(f'/v{Versions.V2}/o/token/', data=token_request_data)
@@ -741,7 +757,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
 
         # now extract the authorization code and use it to request an access_token
@@ -753,6 +769,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -798,7 +815,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -810,6 +827,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -857,7 +875,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -869,6 +887,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -925,7 +944,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -937,6 +956,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -983,7 +1003,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -995,6 +1015,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -1045,7 +1066,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -1057,6 +1078,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -1116,7 +1138,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -1128,6 +1150,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -1203,7 +1226,7 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -1215,6 +1238,7 @@ class TestAuthorizationView(BaseApiTest):
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
             'client_secret': application.client_secret_plain,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         c = Client()
         response = c.post(token_path, data=token_request_data)
@@ -1321,6 +1345,7 @@ class TestAuthorizationView(BaseApiTest):
         That we do not delete the associated data_access_grant, access_token, and refresh_token
         """
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         # create a user
         self._create_user('anna', '123456')
         capability_patient = self._create_capability('patient/Patient.rs', [])
@@ -1350,8 +1375,10 @@ class TestAuthorizationView(BaseApiTest):
             'expires_in': 86400,
             'allow': False,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.assertEqual(response.status_code, 302)
 
         query_dict = parse_qs(urlparse(response['Location']).query)
@@ -1369,6 +1396,7 @@ class TestAuthorizationView(BaseApiTest):
         That we do not delete the associated data_access_grant, access_token, and refresh_token
         """
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         # create a user
         self._create_user('anna', '123456')
         capability_patient = self._create_capability('patient/Patient.rs', [])
@@ -1399,8 +1427,10 @@ class TestAuthorizationView(BaseApiTest):
             'expires_in': 86400,
             'allow': False,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
         self.assertEqual(response.status_code, 302)
 
         query_dict = parse_qs(urlparse(response['Location']).query)
@@ -1429,13 +1459,22 @@ class TestAuthorizationView(BaseApiTest):
     def test_valid_uuid_authorize_call(self):
         """BB2-4326: Ensure a 302 is thrown if a valid UUID is passed to an authorize endpoint"""
         app = self._create_application('an app')
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+        query_data = {
+            'client_id': app.client_id,
+            'response_type': 'code',
+            'redirect_uri': 'http://localhost',
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
         auth_uri_v1 = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
         auth_uri_v2 = reverse('oauth2_provider_v2:authorize-instance-v2', args=[uuid.uuid4()])
         auth_uri_v3 = reverse('oauth2_provider_v3:authorize-instance-v3', args=[uuid.uuid4()])
 
-        response_v1 = self.client.get(auth_uri_v1, data={'client_id': app.client_id})
-        response_v2 = self.client.get(auth_uri_v2, data={'client_id': app.client_id})
-        response_v3 = self.client.get(auth_uri_v3, data={'client_id': app.client_id})
+        response_v1 = self.client.get(auth_uri_v1, data=query_data)
+        response_v2 = self.client.get(auth_uri_v2, data=query_data)
+        response_v3 = self.client.get(auth_uri_v3, data=query_data)
 
         assert response_v1.status_code == HTTPStatus.FOUND
         assert response_v2.status_code == HTTPStatus.FOUND
@@ -1481,7 +1520,7 @@ class TestAuthorizationView(BaseApiTest):
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.get('/v1/o/authorize', data=payload)
+        response = self.client.get('/v1/o/authorize', data=self._add_pkce_defaults(payload))
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,

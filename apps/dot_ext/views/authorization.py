@@ -320,10 +320,6 @@ class AuthorizationView(DotAuthorizationView):
         if sensitive_info_detected:
             return sensitive_info_detected
 
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
-
         request.session['version'] = self.version
 
         # Accept lang from GET or POST
@@ -375,15 +371,15 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
+        # param_check = self._check_for_required_params(request)
+        # if param_check:
+        #     return param_check
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
+        # param_check = self._check_for_required_params(request)
+        # if param_check:
+        #     return param_check
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):

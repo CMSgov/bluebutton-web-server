@@ -101,3 +101,6 @@ test_report.txt
 *.css.map
 .DS_Store
 static/bluebutton-css/dist
+
+/sdk-node
+/sdk-python

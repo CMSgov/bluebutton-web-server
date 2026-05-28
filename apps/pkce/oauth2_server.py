@@ -1,12 +1,13 @@
 import base64
 import hashlib
 from urllib.parse import urlparse
-from oauthlib.oauth2.rfc6749.errors import OAuth2Error, InvalidRequestError
 
+from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import get_grant_model
 from oauth2_provider.settings import oauth2_settings
-from django.core.exceptions import ObjectDoesNotExist
-from apps.pkce.constants import ERR_CC_REQUIRED, ERR_CCM_S256_REQUIRED, ERR_CCM_REQUIRED
+from oauthlib.oauth2.rfc6749.errors import InvalidRequestError, OAuth2Error
+
+from apps.pkce.constants import ERR_CC_REQUIRED, ERR_CCM_REQUIRED, ERR_CCM_S256_REQUIRED
 
 Grant = get_grant_model()
 
@@ -15,7 +16,7 @@ class PKCEServerMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.response_types['code'].custom_validators.pre_auth.append(validate_redirect_uri_pkce)
-        self.response_types['code'].custom_validators.post_auth.append(validate_code_challenge_method)
+        self.response_types['code'].custom_validators.pre_auth.append(validate_code_challenge_method)
         self.response_types['code'].custom_validators.post_token.append(validate_code_verifier)
 
 

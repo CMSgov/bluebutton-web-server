@@ -190,6 +190,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+            'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -202,7 +204,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'client_id': application.client_id,
                 'redirect_uri': 'http://test.com',
                 'response_type': 'code',
-                'state': '1234567890',
+                'state': '0123456789abcdef',
+                'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -1079,13 +1083,19 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
     def test_callback_usrinfo_invalid_hicn_none(self):
-        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_none_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE)
+        self._callback_usrinfo_invalid_hicn_mbi(
+            self.mock_response.slsx_user_info_none_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE
+        )
 
     def test_callback_usrinfo_invalid_hicn_empty(self):
-        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_empty_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE)
+        self._callback_usrinfo_invalid_hicn_mbi(
+            self.mock_response.slsx_user_info_empty_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE
+        )
 
     def test_callback_usrinfo_invalid_hicn_non_str(self):
-        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_non_str_hicn_mock, ERR_MSG_HICN_NOT_STR)
+        self._callback_usrinfo_invalid_hicn_mbi(
+            self.mock_response.slsx_user_info_non_str_hicn_mock, ERR_MSG_HICN_NOT_STR
+        )
 
     def test_callback_usrinfo_invalid_mbi_non_str(self):
         self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_non_str_mbi_mock, ERR_MSG_MBI_NOT_STR)
@@ -1120,7 +1130,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 }
             )
             s.save()
-            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
+            response = self.client.get(
+                self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state}
+            )
             resp_json = response.json()
             self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
             self.assertIsNotNone(resp_json)
@@ -1139,7 +1151,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     @patch(
         'apps.mymedicare_cb.models.match_fhir_id',
         return_value=(
-            MatchFhirIdResult(error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI)
+            MatchFhirIdResult(
+                error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI
+            )
         ),
     )
     def test_failure_response_v1_auth_flow_match_fhir_id_failure(self, mock_match_fhir):
