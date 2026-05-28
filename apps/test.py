@@ -9,6 +9,7 @@ from http import HTTPStatus
 from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth.models import Group, User
+from django.core.management import call_command
 from django.http import HttpRequest
 from django.test import TestCase
 from django.urls import reverse
@@ -492,22 +493,24 @@ class BaseApiTest(TestCase):
             user_mbi=mbi if mbi is not None else self.test_mbi,
             email='%s@%s.notanagency.gov' % (first_name, last_name),
         )
-        patient_capability = self._create_capability(
-            PATIENT_SCOPE, [['GET', '/v[123]/fhir/Patient[/?].*$'], ['GET', '/v[123]/fhir/Patient[/]?$']]
-        )
-        coverage_capability = self._create_capability(
-            COVERAGE_SCOPE, [['GET', '/v[123]/fhir/Coverage[/?].*$'], ['GET', '/v[123]/fhir/Coverage[/]?$']]
-        )
-        eob_capability = self._create_capability(
-            EOB_SCOPE,
-            [['GET', '/v[123]/fhir/ExplanationOfBenefit[/?].*$'], ['GET', '/v[123]/fhir/ExplanationOfBenefit[/]?$']],
-        )
+        call_command('create_blue_button_scopes')
 
         # create a oauth2 application and add capabilities
         application = self._create_application('%s_%s_test' % (first_name, last_name), user=user)
-        application.scope.add(
-            self.read_capability, self.write_capability, patient_capability, coverage_capability, eob_capability
+        # Get available read/search scopes from database and add them to the app's scopes
+        self.coverage_capability, self.eob_capability, self.patient_capability = (
+            ProtectedCapability.objects.filter(slug__in=[PATIENT_SCOPE, COVERAGE_SCOPE, EOB_SCOPE])
+            .all()
+            .order_by('slug')
         )
+        application.scope.add(
+            self.coverage_capability,
+            self.eob_capability,
+            self.patient_capability,
+            self.read_capability,
+            self.write_capability,
+        )
+
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, application)
 

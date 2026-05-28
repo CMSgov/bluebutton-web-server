@@ -2,7 +2,6 @@ import json
 from http import HTTPStatus
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.core.management import call_command
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
@@ -56,7 +55,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     """
 
     def setUp(self):
-        call_command('create_blue_button_scopes')
         super().setUp()
 
     def _get_fhir_url(self, resource_name, params, v2=False):
