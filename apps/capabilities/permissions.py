@@ -1,10 +1,12 @@
+import json
+import re
+
 from rest_framework import permissions, status
 from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.utils import has_matching_protected_resource
 
 
 class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
@@ -41,8 +43,16 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                 .all()
             )
 
-            has_match = has_matching_protected_resource(protected_resources, request)
-            return has_match
+            for protected_resource in protected_resources:
+                for method, path in json.loads(protected_resource):
+                    if method != request.method:
+                        continue
+                    if path == request.path:
+                        return True
+                    if re.fullmatch(path, request.path) is not None:
+                        return True
+
+            return False
 
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
