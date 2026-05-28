@@ -1,7 +1,6 @@
 from http import HTTPStatus
 from urllib.parse import urlparse
 
-from django.core.management import call_command
 from django.test import tag
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
@@ -48,7 +47,6 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
     """
 
     def setUp(self):
-        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         super().setUp()
@@ -403,7 +401,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         total_page = self._get_total_page(content)
         assert total_page >= 0
 
-        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 0, 'outpatient': 0}
+        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
         resource_stats = {'pde': 0, 'carrier': 0, 'inpatient': 0, 'outpatient': 0}
         self._stats_resource_by_type(content, resource_stats)
 
