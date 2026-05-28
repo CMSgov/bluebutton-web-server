@@ -47,7 +47,6 @@
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 /bb/prod/app/sensitive/aws_s3_custom_domain: ENC[AES256_GCM,data:r16O6tJqvmmBXmIQ0lDLWxMpL7Cid8Wgj+JF5byXBo0yVtWyTr16AA==,iv:WvmeyN0XFzv2wfgLbf4iAbPIfH5x+6+ud/dEvNTHaKk=,tag:IFlyBrilSzkB7hG/6e0Uow==,type:str]
 /bb/prod/app/sensitive/aws_storage_bucket_name: ENC[AES256_GCM,data:Ck29Wtcvjji0s2aT0wlZ37HHJI2UJXY=,iv:+qW+vivonoNCuC9j7iE0TaUuskNiDHDWILB/maYv5/s=,tag:YPpeBMvob+VNF/VwQbr6pA==,type:str]
-
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 #ENC[AES256_GCM,data:QPaoPeqRc1Yc,iv:cBZBXHpwNqXFTuaFBEz3CqRsMezvrhIwcTTBTOfMCQY=,tag:ypzDp7BenulssierCxxJCw==,type:comment]
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
@@ -88,8 +87,7 @@
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 /bb/prod/app/sensitive/new_relic_license_key: ENC[AES256_GCM,data:0Z8M8LYy0Q0a,iv:7mW/0Uw07YJhGZkWhGXKiUu06GvnaLkg23rXGamWjIA=,tag:N9/mH7XiHl+p5t986BLHrw==,type:str]
 /bb/prod/app/nonsensitive/new_relic_app_name: BlueButton-prod
-/bb/prod/app/nonsensitive/new_relic_host: gov-collector.newrelic.co
-
+/bb/prod/app/nonsensitive/new_relic_host: gov-collector.newrelic.com
 /bb/prod/app/nonsensitive/aws_s3_custom_domain: s3.amazonaws.com/bb-prod-content-cms-gov
 /bb/prod/app/nonsensitive/aws_storage_bucket_name: bb-prod-content-cms-gov
 sops:
