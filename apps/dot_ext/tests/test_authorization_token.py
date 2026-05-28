@@ -273,6 +273,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
     @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
     @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
     def test_retrieve_prior_include_samhsa_value(self, mock_access_token_extension, mock_refresh_model) -> None:
+        """Confirm that if the prior access_token_extension record has include_samhsa set to True, that True is returned"""
         view_instance = TokenView()
         mock_request = MagicMock()
         mock_refresh_token = MagicMock()
@@ -288,6 +289,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
     @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
     @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
     def test_retrieve_prior_include_samhsa_value_false(self, mock_access_token_extension, mock_refresh_model) -> None:
+        """Confirm that if the prior access_token_extension record has include_samhsa set to False, that False is returned"""
         view_instance = TokenView()
         mock_request = MagicMock()
         mock_refresh_token = MagicMock()
