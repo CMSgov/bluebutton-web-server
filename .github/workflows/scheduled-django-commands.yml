@@ -1,0 +1,42 @@
+name: Scheduled Django Manage Commands
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+      timezone: "America/New_York"
+    - cron: "0 18 * * *"
+      timezone: "America/New_York"
+  workflow_dispatch:
+    inputs:
+      environment_level:
+        description: 'Environment(s) to run against'
+        required: true
+        type: choice
+        options:
+          - lower
+          - higher
+
+jobs:
+  scheduled-lower-environment:
+    uses: ./.github/workflows/run-manage-command.yml
+    if: ${{ inputs.environment_level == 'lower' || github.event.schedule == '0 18 * * *' }}
+    with:
+      environment: test
+      command: log_global_state_metrics
+    secrets: inherit
+  scheduled-higher-environments:
+    uses: ./.github/workflows/run-manage-command.yml
+    if: ${{ inputs.environment_level == 'higher' || github.event.schedule == '0 3 * * *' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - sandbox
+          - prod
+        command:
+          - log_global_state_metrics
+          - authflow_id_delete
+    with:
+      environment: ${{ matrix.environment }}
+      command: ${{ matrix.command }}
+    secrets: inherit
