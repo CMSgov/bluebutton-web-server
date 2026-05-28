@@ -502,6 +502,9 @@ class AuthorizationView(DotAuthorizationView):
         # Update AuthFlowUuid instance with code.
         update_instance_auth_flow_trace_with_code(auth_dict, code)
 
+        # Check for prior tokens to ensure they can't continue to be used
+        revoke_prior_tokens_for_user_and_app_if_they_exist(self.request.user.id, application.id)
+
         return self.redirect(self.success_url, application)
 
 
@@ -1148,10 +1151,8 @@ class TokenView(DotTokenView):
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
 
-                # If it's version 3, we want to check for prior tokens to ensure they can't continue
-                # to be used
-                if version == Versions.V3:
-                    revoke_prior_tokens_for_user_and_app_if_they_exist(token.user_id, app.id)
+                # # Check for prior tokens to ensure they can't continue to be used
+                # revoke_prior_tokens_for_user_and_app_if_they_exist(token.user_id, app.id)
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id

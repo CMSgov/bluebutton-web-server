@@ -352,8 +352,6 @@ def revoke_prior_tokens_for_user_and_app_if_they_exist(user_id: int, app_id: int
     if len(prior_access_tokens) <= 1:
         return
 
-    prior_access_tokens.pop(0)
-
     for access_token in prior_access_tokens:
         try:
             refresh_token = get_refresh_token_model().objects.get(access_token=access_token.id)
