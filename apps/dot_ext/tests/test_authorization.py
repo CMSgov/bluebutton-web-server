@@ -1467,6 +1467,7 @@ class TestAuthorizationView(BaseApiTest):
             'state': '0123456789abcdef',
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+            'scope': 'patient/Patient.read',
         }
         auth_uri_v1 = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
         auth_uri_v2 = reverse('oauth2_provider_v2:authorize-instance-v2', args=[uuid.uuid4()])
@@ -1479,6 +1480,83 @@ class TestAuthorizationView(BaseApiTest):
         assert response_v1.status_code == HTTPStatus.FOUND
         assert response_v2.status_code == HTTPStatus.FOUND
         assert response_v3.status_code == HTTPStatus.FOUND
+
+    @override_switch('v3_endpoints', active=True)
+    def test_missing_code_challenge_returns_400(self):
+        """Ensure a 400 is returned when code_challenge is missing from the authorize request."""
+        app = self._create_application('an app')
+        for version in Versions.latest_versions():
+            auth_uri = f'/v{version}/o/authorize/'
+            response = self.client.get(
+                auth_uri,
+                data={
+                    'client_id': app.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': 'http://localhost',
+                    'state': '0123456789abcdef',
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                },
+            )
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertIn('code_challenge', response.json()['message'])
+
+    @override_switch('v3_endpoints', active=True)
+    def test_missing_code_challenge_method_returns_400(self):
+        """Ensure a 400 is returned when code_challenge_method is missing from the authorize request."""
+        app = self._create_application('an app')
+        for version in Versions.latest_versions():
+            auth_uri = f'/v{version}/o/authorize/'
+            response = self.client.get(
+                auth_uri,
+                data={
+                    'client_id': app.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': 'http://localhost',
+                    'state': '0123456789abcdef',
+                    'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+                },
+            )
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertIn('code_challenge_method', response.json()['message'])
+
+    @override_switch('v3_endpoints', active=True)
+    def test_invalid_code_challenge_method_returns_400(self):
+        """Ensure a 400 is returned when code_challenge_method is not S256."""
+        app = self._create_application('an app')
+        for version in Versions.latest_versions():
+            auth_uri = f'/v{version}/o/authorize/'
+            response = self.client.get(
+                auth_uri,
+                data={
+                    'client_id': app.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': 'http://localhost',
+                    'state': '0123456789abcdef',
+                    'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+                    'code_challenge_method': 'plain',
+                },
+            )
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertIn('must be S256', response.json()['error_description'])
+
+    @override_switch('v3_endpoints', active=True)
+    def test_missing_state_returns_400(self):
+        """Ensure a 400 is returned when state is missing from the authorize request."""
+        app = self._create_application('an app')
+        for version in Versions.latest_versions():
+            auth_uri = f'/v{version}/o/authorize/'
+            response = self.client.get(
+                auth_uri,
+                data={
+                    'client_id': app.client_id,
+                    'response_type': 'code',
+                    'redirect_uri': 'http://localhost',
+                    'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+                    'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                },
+            )
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+            self.assertIn('state', response.json()['message'])
 
     @patch(
         'apps.mymedicare_cb.models.match_fhir_id',
