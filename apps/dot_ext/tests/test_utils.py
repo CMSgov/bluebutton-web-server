@@ -42,23 +42,6 @@ class TestDOTUtils(TestCase):
         for text in invalid_inputs:
             assert not validate_latin_extended_string(text)
 
-    @patch('apps.dot_ext.utils.get_refresh_token_model')
-    @patch('apps.dot_ext.utils.get_access_token_model')
-    def test_revoke_prior_tokens_for_user_and_app_if_they_exist_no_prior_tokens(
-        self, mock_get_access_token, mock_get_refresh_token
-    ):
-        """Confirm that if only one access token is returned, that we never query for refresh tokens"""
-        mock_access_token_model = MagicMock()
-        mock_access_token_model.objects.filter.return_value.order_by.return_value = [MagicMock()]
-        mock_get_access_token.return_value = mock_access_token_model
-
-        mock_refresh_token_model = MagicMock()
-        mock_get_refresh_token.return_value = mock_refresh_token_model
-
-        revoke_prior_tokens_for_user_and_app_if_they_exist(1, 1)
-
-        mock_get_refresh_token.objects.get.assert_not_called()
-
     @patch('apps.dot_ext.utils.timezone')
     @patch('apps.dot_ext.utils.get_refresh_token_model')
     @patch('apps.dot_ext.utils.get_access_token_model')

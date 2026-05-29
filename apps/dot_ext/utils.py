@@ -348,18 +348,9 @@ def revoke_prior_tokens_for_user_and_app_if_they_exist(user_id: int, app_id: int
     RefreshToken = get_refresh_token_model()
     prior_access_tokens = list(AccessToken.objects.filter(user=user_id, application=app_id).order_by('-created'))
 
-    # If there is only one access token for a user_id/app_id, we don't need to revoke any prior tokens
-    if len(prior_access_tokens) <= 1:
-        return
-
     for access_token in prior_access_tokens:
         try:
-            refresh_token = get_refresh_token_model().objects.get(access_token=access_token.id)
-
-            # Only update the access token expires value if it is in the future
-            if access_token.expires > timezone.now():
-                access_token.expires = timezone.now()
-                access_token.save()
+            refresh_token = RefreshToken.objects.get(access_token=access_token.id)
 
             if refresh_token.revoked is None:
                 refresh_token.revoked = timezone.now()
@@ -367,6 +358,11 @@ def revoke_prior_tokens_for_user_and_app_if_they_exist(user_id: int, app_id: int
                 refresh_token.save()
 
         except RefreshToken.DoesNotExist:
-            # indicates it is a access token created via CAN flow, as it does not have an associated refresh token
+            # indicates it is an access token created via CAN flow, as it does not have an associated refresh token
+            # no action needed
+            pass
+
+        # Only update the access token expires value if it is in the future
+        if access_token.expires > timezone.now():
             access_token.expires = timezone.now()
             access_token.save()

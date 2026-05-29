@@ -377,6 +377,10 @@ class AuthorizationView(DotAuthorizationView):
         try:
             application_user = get_user_model().objects.get(id=self.application.user_id)
 
+            # If the v3_early_adopter does not exist in the database, a WaffleFlag object is returned,
+            # but the id is None. In that case, we want to return and leave it up to the v3_endpoints switch
+            # as to whether v3 calls can be made. If the flag does exist, then the id will not be None
+            # and we will check to see if the flag is active for the application
             if flag.id is None or flag.is_active_for_user(application_user):
                 # Update the class variable to ensure subsequent calls to dispatch don't call this function
                 # more times than is needed
@@ -1150,9 +1154,6 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
-
-                # # Check for prior tokens to ensure they can't continue to be used
-                # revoke_prior_tokens_for_user_and_app_if_they_exist(token.user_id, app.id)
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id
