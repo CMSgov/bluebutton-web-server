@@ -49,7 +49,7 @@ jobs:
     name: Run "${{ inputs.custom_command || inputs.command }}" on ${{ inputs.environment }}
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    environment: ${{ inputs.environment }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || '' }}
 
     steps:
       - uses: actions/checkout@v4
