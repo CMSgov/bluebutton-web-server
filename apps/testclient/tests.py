@@ -1,9 +1,10 @@
 import json
 import os
 
+import pytest
 from django.core.management import call_command
 from django.http import HttpRequest
-from django.test import TestCase, tag
+from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
 
@@ -161,7 +162,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     #     self._test_get_userinfo(Versions.V3)
 
 
-@tag('integration')
+@pytest.mark.integration
 class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
@@ -425,7 +426,7 @@ class BlueButtonClientApiFhirTest(TestCase):
     #     self.assertContains(response, "Bundle")
 
 
-@tag('integration')
+@pytest.mark.integration
 class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints
