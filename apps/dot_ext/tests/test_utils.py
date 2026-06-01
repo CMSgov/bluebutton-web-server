@@ -1,13 +1,8 @@
-from datetime import timedelta
-from unittest.mock import MagicMock, patch
-
 from django.test import TestCase
-from django.utils import timezone
 
 from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
 from apps.dot_ext.utils import (
     get_api_version_number_from_url,
-    revoke_prior_tokens_for_user_and_app_if_they_exist,
     validate_latin_extended_string,
 )
 from apps.versions import VersionNotMatched
@@ -41,74 +36,3 @@ class TestDOTUtils(TestCase):
 
         for text in invalid_inputs:
             assert not validate_latin_extended_string(text)
-
-    @patch('apps.dot_ext.utils.timezone')
-    @patch('apps.dot_ext.utils.get_refresh_token_model')
-    @patch('apps.dot_ext.utils.get_access_token_model')
-    def test_revoke_prior_tokens_for_user_and_app_if_they_exist_prior_tokens_exit(
-        self, mock_get_access_token, mock_get_refresh_token, mock_timezone
-    ):
-        """Confirm that if there are multiple access tokens, the prior ones will have their expires value updated.
-        Also, any associated refresh tokens will have their access_token_id set to null, and their revoked value
-        set to the current time (UTC)
-        """
-        mock_timezone.now.return_value = timezone.now()
-
-        new_access_token = MagicMock(
-            id=1, user_id=1, expires=timezone.now() + timedelta(hours=2), created=timezone.now()
-        )
-        prior_access_token = MagicMock(
-            id=2, user_id=1, expires=timezone.now() + timedelta(minutes=30), created=timezone.now() - timedelta(days=10)
-        )
-        prior_access_token_two = MagicMock(
-            id=3, user_id=1, expires=timezone.now() - timedelta(days=20), created=timezone.now() - timedelta(days=20)
-        )
-
-        mock_access_token_model = MagicMock()
-        mock_access_token_model.objects.filter.return_value.order_by.return_value = [
-            new_access_token,
-            prior_access_token,
-            prior_access_token_two,
-        ]
-        mock_get_access_token.return_value = mock_access_token_model
-
-        refresh_token = MagicMock(access_token_id=2, revoked=None)
-        mock_refresh_token_model = MagicMock()
-        mock_refresh_token_model.objects.get.return_value = refresh_token
-        mock_get_refresh_token.return_value = mock_refresh_token_model
-
-        revoke_prior_tokens_for_user_and_app_if_they_exist(1, 10)
-
-        prior_access_token.save.assert_called_once()
-        prior_access_token_two.save.assert_not_called()
-
-        assert refresh_token.revoked is not None
-        assert refresh_token.access_token_id is None
-        refresh_token.save.assert_called_once()
-
-    @patch('apps.dot_ext.utils.timezone')
-    @patch('apps.dot_ext.utils.get_access_token_model')
-    def test_revoke_prior_tokens_for_user_and_app_if_they_exist_no_associated_refresh_token(
-        self, mock_get_access_token, mock_timezone
-    ):
-        """Confirm that even if there is no associated refresh_token for an access_token, that the access_token
-        still has its expires value updated.
-        """
-        mock_timezone.now.return_value = timezone.now()
-
-        new_access_token = MagicMock(
-            id=1, user_id=1, expires=timezone.now() + timedelta(hours=2), created=timezone.now()
-        )
-        prior_access_token = MagicMock(
-            id=2, user_id=1, expires=timezone.now() + timedelta(minutes=30), created=timezone.now() - timedelta(days=10)
-        )
-
-        mock_access_token_model = MagicMock()
-        mock_access_token_model.objects.filter.return_value.order_by.return_value = [
-            new_access_token,
-            prior_access_token,
-        ]
-        mock_get_access_token.return_value = mock_access_token_model
-
-        revoke_prior_tokens_for_user_and_app_if_they_exist(1, 10)
-        prior_access_token.save.assert_called_once()

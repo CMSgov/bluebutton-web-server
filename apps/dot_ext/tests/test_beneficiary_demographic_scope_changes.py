@@ -268,9 +268,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(content.get('detail', None), 'Authentication credentials were not provided.')
 
         # Verify token counts expected.
-        self.assertEqual(AccessToken.objects.count(), 2)
-        self.assertEqual(RefreshToken.objects.count(), 2)
-        self.assertEqual(ArchivedToken.objects.count(), 2)
+        self.assertEqual(AccessToken.objects.count(), 1)
+        self.assertEqual(RefreshToken.objects.count(), 1)
+        self.assertEqual(ArchivedToken.objects.count(), 3)
 
         # Verify grant counts expected.
         self.assertEqual(DataAccessGrant.objects.count(), 1)

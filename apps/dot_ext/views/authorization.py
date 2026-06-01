@@ -103,7 +103,6 @@ from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
-    revoke_prior_tokens_for_user_and_app_if_they_exist,
     validate_app_is_active,
     validate_latin_extended_string,
 )
@@ -449,7 +448,7 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -473,7 +472,7 @@ class AuthorizationView(DotAuthorizationView):
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+            ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -506,8 +505,8 @@ class AuthorizationView(DotAuthorizationView):
         # Update AuthFlowUuid instance with code.
         update_instance_auth_flow_trace_with_code(auth_dict, code)
 
-        # Check for prior tokens to ensure they can't continue to be used
-        revoke_prior_tokens_for_user_and_app_if_they_exist(self.request.user.id, application.id)
+        # Check for prior tokens and remove them if they exost to ensure they can't continue to be used
+        remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
 
         return self.redirect(self.success_url, application)
 

@@ -8,13 +8,10 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
-from django.utils import timezone
 from oauth2_provider.models import (
     AccessToken,
     RefreshToken,
-    get_access_token_model,
     get_application_model,
-    get_refresh_token_model,
 )
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
@@ -38,7 +35,9 @@ User = get_user_model()
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def remove_application_user_pair_tokens_data_access(application, user):
+def remove_application_user_pair_tokens_data_access(
+    application, user, delete_data_access_grant: bool, delete_access_tokens: bool
+):
     """
     Utility function to revoke and delete current application/user pair
     access_token, refresh_token and DataAccessGrant records.
@@ -57,15 +56,21 @@ def remove_application_user_pair_tokens_data_access(application, user):
     CALLED FROM:
         apps.dot_ext.views.authorization.authorization.AuthorizationView.form_valid()
     """
+    data_access_grant_delete_cnt = 0
     with transaction.atomic():
-        # Get count of access tokens to be deleted.
-        access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
+        if delete_access_tokens:
+            # Get count of access tokens to be deleted and actually delete them
+            access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).delete()[0]
+        else:
+            # Get count of access tokens to be deleted.
+            access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
-            application=application, beneficiary=user
-        ).delete()[0]
+        if delete_data_access_grant:
+            data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
+                application=application, beneficiary=user
+            ).delete()[0]
 
         # Delete refresh token records
         refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
@@ -333,36 +338,3 @@ def validate_latin_extended_string(text: str) -> bool:
         bool: if all strings are encoded less than U+017F (383) and it is not empty
     """
     return all(ord(char) <= 383 for char in text) and bool(text)
-
-
-def revoke_prior_tokens_for_user_and_app_if_they_exist(user_id: int, app_id: int) -> None:
-    """Revoke prior tokens for a user/app id pair to ensure that if a user has reauthorized
-    that prior tokens can't be used, in case any of those prior tokens have more scopes than
-    the newly created one
-
-    Args:
-        user_id (int): ID for the user who just re-authorized an app they have authorized previously
-        app_id (int): ID for the application the user just re-authorized for
-    """
-    AccessToken = get_access_token_model()
-    RefreshToken = get_refresh_token_model()
-    prior_access_tokens = list(AccessToken.objects.filter(user=user_id, application=app_id).order_by('-created'))
-
-    for access_token in prior_access_tokens:
-        try:
-            refresh_token = RefreshToken.objects.get(access_token=access_token.id)
-
-            if refresh_token.revoked is None:
-                refresh_token.revoked = timezone.now()
-                refresh_token.access_token_id = None
-                refresh_token.save()
-
-        except RefreshToken.DoesNotExist:
-            # indicates it is an access token created via CAN flow, as it does not have an associated refresh token
-            # no action needed
-            pass
-
-        # Only update the access token expires value if it is in the future
-        if access_token.expires > timezone.now():
-            access_token.expires = timezone.now()
-            access_token.save()
