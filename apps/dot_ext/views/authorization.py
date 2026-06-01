@@ -505,7 +505,7 @@ class AuthorizationView(DotAuthorizationView):
         # Update AuthFlowUuid instance with code.
         update_instance_auth_flow_trace_with_code(auth_dict, code)
 
-        # Check for prior tokens and remove them if they exost to ensure they can't continue to be used
+        # Check for prior tokens and remove them if they exist to ensure they can't continue to be used
         remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
 
         return self.redirect(self.success_url, application)
