@@ -195,7 +195,7 @@ class AuthorizationView(DotAuthorizationView):
                 {
                     'status_code': HTTPStatus.BAD_REQUEST,
                     'error': 'invalid_request',
-                    'error_description': f'code_challenge_method must be S256, got: {code_challenge_method}',
+                    'error_description': 'code_challenge_method must be S256',
                 },
                 status=HTTPStatus.BAD_REQUEST,
             )
