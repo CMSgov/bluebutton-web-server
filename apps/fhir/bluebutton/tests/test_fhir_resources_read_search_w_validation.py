@@ -720,9 +720,10 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac.scope = 'patient/ExplanationOfBenefit.rs'
         ac.save()
 
-        token_extension = AccessTokenExtension.objects.get(access_token=ac)
-        token_extension.include_samhsa = False
-        token_extension.save()
+        access_token_extension = AccessTokenExtension()
+        access_token_extension.access_token = ac
+        access_token_extension.include_samhsa = False
+        access_token_extension.save()
 
         url = SEARCH_EOB_URLS[Versions.V3]
         response = self.client.get(
@@ -777,6 +778,12 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
+        ac_record = AccessToken.objects.get(token=ac)
+        access_token_extension = AccessTokenExtension()
+        access_token_extension.access_token = ac_record
+        access_token_extension.include_samhsa = False
+        access_token_extension.save()
+
         AccessToken.objects.get(token=ac).accesstokenextension.delete()
         self.assertFalse(AccessTokenExtension.objects.all().exists())
 

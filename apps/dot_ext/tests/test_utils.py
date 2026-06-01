@@ -1,10 +1,12 @@
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
 from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
+from apps.dot_ext.models import AuthFlowTracking
 from apps.dot_ext.utils import (
-    check_samhsa_cache_and_create_access_token_extension,
+    check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
     validate_latin_extended_string,
 )
@@ -46,17 +48,22 @@ class TestDOTUtils(TestCase):
             assert not validate_latin_extended_string(text)
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.cache')
+    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
     def test_check_samhsa_cache_and_create_access_token_extension_use_cached_value(
-        self, mock_cache, mock_access_token_extension
+        self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """
-        When cache has a value for the code and grant_type is NOT refresh_token,
-        the cached value should be used for include_samhsa.
+        When dot_ext_auth_flow_tracking has a record for the code and grant_type is NOT refresh_token,
+        the dot_ext_auth_flow_tracking.include_samhsa value should be used for include_samhsa.
         """
-        mock_cache.get.return_value = False
+        tracking_object = AuthFlowTracking.objects.create(
+            code=self.code,
+            include_samhsa=False,
+            expires=datetime.now(),
+        )
+        mock_auth_flow_tracking.return_value = tracking_object
 
-        check_samhsa_cache_and_create_access_token_extension(
+        check_auth_tracking_and_create_access_token_extension(
             prior_include_samhsa=False,
             code=self.code,
             grant_type='authorization_code',
@@ -67,21 +74,25 @@ class TestDOTUtils(TestCase):
             access_token=self.token,
             include_samhsa=False,
         )
-        mock_cache.delete.assert_called_once_with(f'include_samhsa:{self.code}')
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.cache')
-    def test_check_samhsa_cache_and_create_access_token_extension_no_cache_value(
-        self, mock_cache, mock_access_token_extension
+    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
+    def test_check_samhsa_cache_and_create_access_token_extension_use_cached_true_value(
+        self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """
-        When cache has NO value for the code and grant_type is NOT refresh_token,
-        include_samhsa should default to True.
+        When dot_ext_auth_flow_tracking has a record for the code and grant_type is NOT refresh_token,
+        the dot_ext_auth_flow_tracking.include_samhsa value should be used for include_samhsa.
         """
-        mock_cache.get.return_value = None
+        tracking_object = AuthFlowTracking.objects.create(
+            code=self.code,
+            include_samhsa=True,
+            expires=datetime.now(),
+        )
+        mock_auth_flow_tracking.return_value = tracking_object
 
-        check_samhsa_cache_and_create_access_token_extension(
-            prior_include_samhsa=False,
+        check_auth_tracking_and_create_access_token_extension(
+            prior_include_samhsa=True,
             code=self.code,
             grant_type='authorization_code',
             token=self.token,
@@ -91,20 +102,46 @@ class TestDOTUtils(TestCase):
             access_token=self.token,
             include_samhsa=True,
         )
-        mock_cache.delete.assert_called_once_with(f'include_samhsa:{self.code}')
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.cache')
+    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
+    def test_check_samhsa_cache_and_create_access_token_extension_no_cache_value(
+        self, mock_auth_flow_tracking, mock_access_token_extension
+    ):
+        """
+        When there is no dot_ext_auth_flow_tracking record, just use the default of True
+        """
+        mock_auth_flow_tracking.side_effect = AuthFlowTracking.DoesNotExist
+
+        check_auth_tracking_and_create_access_token_extension(
+            prior_include_samhsa=True,
+            code=self.code,
+            grant_type='authorization_code',
+            token=self.token,
+        )
+
+        mock_access_token_extension.objects.get_or_create.assert_called_once_with(
+            access_token=self.token,
+            include_samhsa=True,
+        )
+
+    @patch('apps.dot_ext.utils.AccessTokenExtension')
+    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
     def test_check_samhsa_cache_and_create_access_token_extension_refresh_token_grant(
-        self, mock_cache, mock_access_token_extension
+        self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """
         When grant_type is 'refresh_token', prior_include_samhsa=False
-        should override any cache value.
+        should override any dot_ext_auth_flow_tracking record include_samhsa value.
         """
-        mock_cache.get.return_value = True
+        tracking_object = AuthFlowTracking.objects.create(
+            code=self.code,
+            include_samhsa=True,
+            expires=datetime.now(),
+        )
+        mock_auth_flow_tracking.return_value = tracking_object
 
-        check_samhsa_cache_and_create_access_token_extension(
+        check_auth_tracking_and_create_access_token_extension(
             prior_include_samhsa=False,
             code=self.code,
             grant_type='refresh_token',
@@ -115,4 +152,3 @@ class TestDOTUtils(TestCase):
             access_token=self.token,
             include_samhsa=False,
         )
-        mock_cache.delete.assert_called_once_with(f'include_samhsa:{self.code}')

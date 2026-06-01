@@ -95,12 +95,12 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import AccessTokenExtension, Application, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval, AuthFlowTracking
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
-    check_samhsa_cache_and_create_access_token_extension,
+    check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -494,7 +494,17 @@ class AuthorizationView(DotAuthorizationView):
         code = url_query.get('code', [None])[0]
 
         share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-        cache.add(f'include_samhsa:{code}', share_samhsa_data, timeout=300)
+        # Because share_samhsa_data comes back as a blank string on v2 screens, even when passing a default of True
+        # set it to True if it returns as a blank string
+        if share_samhsa_data == '':
+            share_samhsa_data = True
+
+        # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
+        # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
+        # once the post of TokenView has completed successfully
+        AuthFlowTracking.objects.create(
+            code=code, include_samhsa=share_samhsa_data, expires=datetime.now(timezone.utc) + timedelta(minutes=5)
+        )
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1169,7 +1179,7 @@ class TokenView(DotTokenView):
                 token = get_access_token_model().objects.get(token=access_token)
 
                 code = request.POST.get('code', None)
-                check_samhsa_cache_and_create_access_token_extension(prior_include_samhsa, code, grant_type, token)
+                check_auth_tracking_and_create_access_token_extension(prior_include_samhsa, code, grant_type, token)
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id

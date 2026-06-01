@@ -5,7 +5,6 @@ from http import HTTPStatus
 
 import jwt
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
@@ -24,7 +23,7 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
-from apps.dot_ext.models import AccessTokenExtension, Application
+from apps.dot_ext.models import AccessTokenExtension, Application, AuthFlowTracking
 from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
@@ -329,10 +328,11 @@ def validate_latin_extended_string(text: str) -> bool:
     return all(ord(char) <= 383 for char in text) and bool(text)
 
 
-def check_samhsa_cache_and_create_access_token_extension(
+def check_auth_tracking_and_create_access_token_extension(
     prior_include_samhsa: bool, code: str, grant_type: str, token: AccessToken
 ) -> None:
-    """Retrieve a value from the cache, if available, for the code being used in the authorization or refresh request
+    """Retrieve a record from the AuthFlowTracking table, if available, for the code being used in the authorization
+    or refresh request
 
     Args:
         prior_include_samhsa (bool): The value the prior access_token_extension record had for include_samhsa
@@ -342,10 +342,18 @@ def check_samhsa_cache_and_create_access_token_extension(
     """
     include_samhsa = True
 
-    # This was evaluating even if the cache had False for the value, but modifying the conditional like this
-    # allowed for better unit test coverage
-    if cache.get(f'include_samhsa:{code}') is not None and cache.get(f'include_samhsa:{code}') != '':
-        include_samhsa = cache.get(f'include_samhsa:{code}')
+    # Try to retrieve the value from the AuthFlowTracking model based on the code
+    # If we do retrieve one, set include_samhsa to that value, gathered from the v3 permissions screen
+    # and afterwards delete the record so the table doesn't grow overly large. If there is no record,
+    # continue with the execution
+    try:
+        auth_flow_tracking = AuthFlowTracking.objects.get(code=code)
+        include_samhsa = auth_flow_tracking.include_samhsa
+        auth_flow_tracking.delete()
+
+    except AuthFlowTracking.DoesNotExist:
+        # If the AuthFlowTracking object does not exist, go with the default include_samhsa of True
+        pass
 
     if grant_type == 'refresh_token':
         include_samhsa = prior_include_samhsa
@@ -354,4 +362,3 @@ def check_samhsa_cache_and_create_access_token_extension(
         access_token=token,
         include_samhsa=include_samhsa,
     )
-    cache.delete(f'include_samhsa:{code}')
