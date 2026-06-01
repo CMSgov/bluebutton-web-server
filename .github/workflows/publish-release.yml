@@ -23,7 +23,7 @@ jobs:
       - name: Verify on master branch
         run: |
           CURRENT_BRANCH="${{ github.ref_name }}"
-          if [[ "$CURRENT_BRANCH" != "master" && "$CURRENT_BRANCH" != "Noor1027/BB2-4816-Release-notes-missing-last-commit" ]]; then
+          if [[ "$CURRENT_BRANCH" != "master" ]]; then
             echo "::error::Release must be created from master branch. Current branch: $CURRENT_BRANCH"
             exit 1
           fi
