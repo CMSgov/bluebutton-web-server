@@ -1,0 +1,5 @@
+---
+shadow_mode: true
+notifications:
+  channels:
+    - "@bb2-alerts"
