@@ -31,6 +31,7 @@ jobs:
           python manage.py test --exclude=integration
 
   integration-test:
+    needs: ruff-unit-test
     env:
       AWS_REGION: us-east-1
 
