@@ -20,15 +20,10 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
   secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.env}/datadog/cicd/application-key"
 }
 
-provider "datadog" {
-  api_key = sensitive(data.aws_secretsmanager_secret.datadog_cicd_api_key.value)
-  app_key = sensitive(data.aws_secretsmanager_secret.datadog_cicd_application_key.value)
-  api_url = "https://api.ddog-gov.com"
-}
-
 locals {
   env     = terraform.workspace
-  service = "monitors"
+  service = "datadog"
+  root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
 
   default_tags = module.platform.default_tags
 
