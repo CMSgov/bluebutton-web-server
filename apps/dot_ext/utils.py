@@ -358,14 +358,15 @@ def check_auth_tracking_and_create_access_token_extension(
     # If we do retrieve one, set include_samhsa to that value, gathered from the v3 permissions screen
     # and afterwards delete the record so the table doesn't grow overly large. If there is no record,
     # continue with the execution
-    try:
-        auth_flow_tracking = AuthFlowTracking.objects.get(code=code)
-        include_samhsa = auth_flow_tracking.include_samhsa
-        auth_flow_tracking.delete()
+    if grant_type != 'refresh_token' and code:
+        try:
+            auth_flow_tracking = AuthFlowTracking.objects.get(code=code)
+            include_samhsa = auth_flow_tracking.include_samhsa
+            auth_flow_tracking.delete()
 
-    except AuthFlowTracking.DoesNotExist:
-        # If the AuthFlowTracking object does not exist, go with the default include_samhsa of True
-        pass
+        except AuthFlowTracking.DoesNotExist:
+            # If the AuthFlowTracking object does not exist, go with the default include_samhsa of True
+            pass
 
     if grant_type == 'refresh_token':
         include_samhsa = prior_include_samhsa

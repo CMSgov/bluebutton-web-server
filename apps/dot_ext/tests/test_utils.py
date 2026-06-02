@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
@@ -60,7 +60,7 @@ class TestDOTUtils(TestCase):
         tracking_object = AuthFlowTracking.objects.create(
             code=self.code,
             include_samhsa=False,
-            expires=datetime.now(),
+            expires=datetime.now(UTC),
         )
         mock_auth_flow_tracking.return_value = tracking_object
 
@@ -88,7 +88,7 @@ class TestDOTUtils(TestCase):
         tracking_object = AuthFlowTracking.objects.create(
             code=self.code,
             include_samhsa=True,
-            expires=datetime.now(),
+            expires=datetime.now(UTC),
         )
         mock_auth_flow_tracking.return_value = tracking_object
 
@@ -138,7 +138,7 @@ class TestDOTUtils(TestCase):
         tracking_object = AuthFlowTracking.objects.create(
             code=self.code,
             include_samhsa=True,
-            expires=datetime.now(),
+            expires=datetime.now(UTC),
         )
         mock_auth_flow_tracking.return_value = tracking_object
 

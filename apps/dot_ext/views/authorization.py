@@ -497,17 +497,19 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
-        share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+        user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
         # Because share_samhsa_data comes back as a blank string on v2 screens, even when passing a default of True
         # set it to True if it returns as a blank string
-        if not share_samhsa_data:
-            share_samhsa_data = True
+        if not user_approves_sharing_samhsa_data:
+            user_approves_sharing_samhsa_data = True
 
         # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
         # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
         # once the post of TokenView has completed successfully
         AuthFlowTracking.objects.create(
-            code=code, include_samhsa=share_samhsa_data, expires=datetime.now(timezone.utc) + timedelta(minutes=5)
+            code=code,
+            include_samhsa=user_approves_sharing_samhsa_data,
+            expires=datetime.now(timezone.utc) + timedelta(minutes=5),
         )
 
         # Get auth flow trace session values dict.
@@ -1047,9 +1049,21 @@ class TokenView(DotTokenView):
 
     def _retrieve_prior_include_samhsa_value(self, grant_type: str, request: HttpRequest) -> bool:
         prior_include_samhsa = True
+        refresh_token_str = None
+        RefreshToken = get_refresh_token_model()
         if grant_type == 'refresh_token':
-            refresh_token_str = request.POST.get('refresh_token')
-            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_str)
+            if request:
+                refresh_token_str = request.POST.get('refresh_token')
+
+            if not refresh_token_str:
+                return prior_include_samhsa
+
+            try:
+                refresh_token = RefreshToken.objects.get(token=refresh_token_str)
+            except RefreshToken.DoesNotExist:
+                log.info('Could not find refresh token when retrieving prior samhsa value')
+                return prior_include_samhsa
+
             try:
                 prior_access_token_extension = AccessTokenExtension.objects.get(
                     access_token_id=refresh_token.access_token_id
