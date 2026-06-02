@@ -8,6 +8,7 @@ from apps.dot_ext.models import AuthFlowTracking
 from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
+    remove_application_user_pair_tokens_data_access,
     validate_latin_extended_string,
 )
 from apps.versions import VersionNotMatched
@@ -152,3 +153,28 @@ class TestDOTUtils(TestCase):
             access_token=self.token,
             include_samhsa=False,
         )
+
+    @patch('apps.dot_ext.utils.AccessToken')
+    @patch('apps.dot_ext.utils.DataAccessGrant')
+    @patch('apps.dot_ext.utils.RefreshToken')
+    def test_remove_application_user_pair_tokens_data_access_delete_access_tokens_not_grant(
+        self, mock_refresh_token, mock_data_access_grant, mock_access_token
+    ) -> None:
+        application = MagicMock()
+        user = MagicMock()
+        access_token_queryset = MagicMock()
+        mock_access_token.objects.filter.return_value = access_token_queryset
+        data_access_grant_queryset = MagicMock()
+        mock_data_access_grant.objects.filter.return_value = data_access_grant_queryset
+        refresh_token_queryset = MagicMock()
+        mock_refresh_token.objects.filter.return_value = refresh_token_queryset
+
+        remove_application_user_pair_tokens_data_access(application, user, False, True)
+
+        mock_access_token.objects.filter.assert_called_once_with(application=application, user=user)
+        access_token_queryset.delete.assert_called_once()
+
+        data_access_grant_queryset.delete.assert_not_called()
+
+        mock_refresh_token.objects.filter.assert_called_once_with(application=application, user=user)
+        refresh_token_queryset.delete.assert_called_once()

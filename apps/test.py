@@ -477,7 +477,7 @@ class BaseApiTest(TestCase):
             fhir_id = start_fhir_id + str(i)
             cw = Crosswalk.objects.get(fhir_id_v2=fhir_id)
             app = Application.objects.get(name=app_name)
-            remove_application_user_pair_tokens_data_access(app, cw.user)
+            remove_application_user_pair_tokens_data_access(app, cw.user, True, False)
 
     def create_token(self, first_name, last_name, fhir_id_v2=None, fhir_id_v3=None, hicn_hash=None, mbi=None):
         passwd = '123456'
