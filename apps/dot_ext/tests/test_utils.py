@@ -3,15 +3,11 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 
 from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
-<<<<<<< HEAD
-from apps.dot_ext.utils import get_api_version_number_from_url, validate_latin_extended_string
-=======
 from apps.dot_ext.utils import (
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_latin_extended_string,
 )
->>>>>>> 2e2d4da2 (BB2-4781: Revoke prior tokens on new auth flow (#1605))
 from apps.versions import VersionNotMatched
 
 
