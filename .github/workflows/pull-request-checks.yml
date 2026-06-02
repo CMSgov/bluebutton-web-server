@@ -71,11 +71,6 @@ jobs:
           docker ps -a
           docker status
 
-      - name: Inspect faile container
-        if: always()
-        run: |
-          docker inspect containers-bb-api-1
-
       - name: Teardown Stack
         if: always()
         run: |
