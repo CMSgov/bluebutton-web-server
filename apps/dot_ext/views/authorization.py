@@ -385,6 +385,10 @@ class AuthorizationView(DotAuthorizationView):
         try:
             application_user = get_user_model().objects.get(id=self.application.user_id)
 
+            # If the v3_early_adopter does not exist in the database, a WaffleFlag object is returned,
+            # but the id is None. In that case, we want to return and leave it up to the v3_endpoints switch
+            # as to whether v3 calls can be made. If the flag does exist, then the id will not be None
+            # and we will check to see if the flag is active for the application
             if flag.id is None or flag.is_active_for_user(application_user):
                 # Update the class variable to ensure subsequent calls to dispatch don't call this function
                 # more times than is needed
@@ -447,7 +451,7 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -471,7 +475,7 @@ class AuthorizationView(DotAuthorizationView):
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+            ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -503,6 +507,9 @@ class AuthorizationView(DotAuthorizationView):
 
         # Update AuthFlowUuid instance with code.
         update_instance_auth_flow_trace_with_code(auth_dict, code)
+
+        # Check for prior tokens and remove them if they exist to ensure they can't continue to be used
+        remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
 
         return self.redirect(self.success_url, application)
 
