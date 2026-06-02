@@ -49,7 +49,7 @@ class TestDOTUtils(TestCase):
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
     @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_samhsa_cache_and_create_access_token_extension_use_cached_value(
+    def test_check_auth_tracking_and_create_access_token_extension_use_database_value(
         self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """
@@ -77,7 +77,7 @@ class TestDOTUtils(TestCase):
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
     @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_samhsa_cache_and_create_access_token_extension_use_cached_true_value(
+    def test_check_auth_tracking_and_create_access_token_extension_use_database_value_true(
         self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """
@@ -105,7 +105,7 @@ class TestDOTUtils(TestCase):
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
     @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_samhsa_cache_and_create_access_token_extension_no_cache_value(
+    def test_check_auth_tracking_and_create_access_token_extension_no_database_value(
         self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """
@@ -127,7 +127,7 @@ class TestDOTUtils(TestCase):
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
     @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_samhsa_cache_and_create_access_token_extension_refresh_token_grant(
+    def test_check_auth_tracking_and_create_access_token_extension_refresh_token_grant(
         self, mock_auth_flow_tracking, mock_access_token_extension
     ):
         """

@@ -336,7 +336,7 @@ def check_auth_tracking_and_create_access_token_extension(
 
     Args:
         prior_include_samhsa (bool): The value the prior access_token_extension record had for include_samhsa
-        code (str): The code for the auth or refresh request, used to retrieve cached value
+        code (str): The code for the auth or refresh request, used to retrieve AuthFlowTracking record
         grant_type (str): Grant type of the call to TokenView.post
         token (AccessToken): The access token that was generated
     """

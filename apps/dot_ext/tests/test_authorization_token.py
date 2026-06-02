@@ -266,6 +266,10 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         assert result
 
     def test_retrieve_prior_include_samhsa_value_non_refresh_token_grant_type(self) -> None:
+        """The _retrieve_prior_include_samhsa_value will always return a value of True if the grant_type is
+        authorization_code, as we only attempt to retrieve the prior include samhsa value if the grant_type is
+        refresh_token
+        """
         view_instance = TokenView()
         prior_include_samhsa = view_instance._retrieve_prior_include_samhsa_value('authorization_code', None)
         assert prior_include_samhsa
