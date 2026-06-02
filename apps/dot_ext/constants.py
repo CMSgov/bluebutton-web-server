@@ -339,9 +339,9 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': APPLICATION_SCOPES_NON_DEMOGRAPHIC,
-        'result_access_token_count': 2,
-        'result_refresh_token_count': 2,
-        'result_archived_token_count': 2,
+        'result_access_token_count': 1,
+        'result_refresh_token_count': 1,
+        'result_archived_token_count': 3,
         'result_archived_data_access_grant_count': 2,
     },
     'test 5: app_requires = True bene_share = False': {
@@ -365,9 +365,9 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': APPLICATION_SCOPES_FULL,
-        'result_access_token_count': 2,
-        'result_refresh_token_count': 2,
-        'result_archived_token_count': 4,
+        'result_access_token_count': 1,
+        'result_refresh_token_count': 1,
+        'result_archived_token_count': 5,
         'result_archived_data_access_grant_count': 3,
     },
     # Tests for request_app_requires_demographic = False
@@ -419,9 +419,9 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': SCOPES_JUST_EOB_AND_B,
-        'result_access_token_count': 2,
-        'result_refresh_token_count': 2,
-        'result_archived_token_count': 8,
+        'result_access_token_count': 1,
+        'result_refresh_token_count': 1,
+        'result_archived_token_count': 9,
         'result_archived_data_access_grant_count': 6,
     },
     'test 11: app_requires = None bene_share = None request just PATIENT and A': {
@@ -445,9 +445,9 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         # Result:
         'result_has_error': False,
         'result_token_scopes_granted': SCOPES_JUST_PATIENT_AND_A,
-        'result_access_token_count': 2,
-        'result_refresh_token_count': 2,
-        'result_archived_token_count': 10,
+        'result_access_token_count': 1,
+        'result_refresh_token_count': 1,
+        'result_archived_token_count': 11,
         'result_archived_data_access_grant_count': 7,
     },
     'test 13: app_requires = False bene_share = True request just PATIENT and A': {
