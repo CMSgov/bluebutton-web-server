@@ -1,32 +1,33 @@
 import copy
 import json
-import jsonschema
 import re
 import uuid
-
-import apps.logging.request_logger as logging
-
 from datetime import datetime
+from http import HTTPStatus
+from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlparse
+
+import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.test.client import Client
+from django.urls import reverse
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
-from django.urls import reverse
-from django.test.client import Client
-from httmock import urlmatch, all_requests, HTTMock
+from httmock import HTTMock, all_requests, urlmatch
 from jsonschema import validate
 from requests.exceptions import HTTPError
 from rest_framework import status
-from unittest.mock import patch, MagicMock
-from urllib.parse import urlparse, parse_qs
 from waffle.testutils import override_switch
 
+import apps.logging.request_logger as logging
 from apps.accounts.models import UserProfile
-from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdResult, MatchFhirIdLookupType
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.models import Approval, Application
+from apps.constants import CODE_CHALLENGE_METHOD_S256, MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
+from apps.dot_ext.models import Application, Approval
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
-from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
+from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
+from apps.logging.utils import cleanup_logger, get_log_content, get_log_lines_list, redirect_loggers
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.constants import (
     ERR_MSG_HICN_EMPTY_OR_NONE,
@@ -37,15 +38,10 @@ from apps.mymedicare_cb.constants import (
 )
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.views import generate_nonce
-from apps.constants import CODE_CHALLENGE_METHOD_S256, MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
-from apps.test import BaseApiTest
-
 from apps.mymedicare_cb.tests.responses import patient_response
-
+from apps.mymedicare_cb.views import generate_nonce
+from apps.test import BaseApiTest
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
-
-from http import HTTPStatus
 
 
 class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
@@ -133,7 +129,15 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def test_authorize_uuid_dne(self):
         app = self._create_application('an app')
         auth_uri = reverse('oauth2_provider:authorize-instance', args=[uuid.uuid4()])
-        response = self.client.get(auth_uri, data={'client_id': app.client_id})
+        response = self.client.get(
+            auth_uri,
+            data={
+                'client_id': app.client_id,
+                'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+                'code_challenge_method': 'S256',
+                'state': '0123456789abcdef',
+            },
+        )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
     def test_authorize_uuid(self):
@@ -190,6 +194,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+            'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
         }
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -202,7 +208,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'client_id': application.client_id,
                 'redirect_uri': 'http://test.com',
                 'response_type': 'code',
-                'state': '1234567890',
+                'state': '0123456789abcdef',
+                'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
             },
         )
         self.assertEqual(status.HTTP_302_FOUND, response.status_code)
@@ -213,9 +221,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 'client_id': application.client_id,
                 'redirect_uri': 'http://test.com',
                 'response_type': 'code',
+                'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+                'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
             },
         )
-        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
 
     def test_callback_url_success_v1(self):
         self._test_callback_url_success(1)
@@ -1079,13 +1089,19 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
     def test_callback_usrinfo_invalid_hicn_none(self):
-        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_none_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE)
+        self._callback_usrinfo_invalid_hicn_mbi(
+            self.mock_response.slsx_user_info_none_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE
+        )
 
     def test_callback_usrinfo_invalid_hicn_empty(self):
-        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_empty_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE)
+        self._callback_usrinfo_invalid_hicn_mbi(
+            self.mock_response.slsx_user_info_empty_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE
+        )
 
     def test_callback_usrinfo_invalid_hicn_non_str(self):
-        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_non_str_hicn_mock, ERR_MSG_HICN_NOT_STR)
+        self._callback_usrinfo_invalid_hicn_mbi(
+            self.mock_response.slsx_user_info_non_str_hicn_mock, ERR_MSG_HICN_NOT_STR
+        )
 
     def test_callback_usrinfo_invalid_mbi_non_str(self):
         self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_non_str_mbi_mock, ERR_MSG_MBI_NOT_STR)
@@ -1120,7 +1136,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 }
             )
             s.save()
-            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
+            response = self.client.get(
+                self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state}
+            )
             resp_json = response.json()
             self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
             self.assertIsNotNone(resp_json)
@@ -1139,7 +1157,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     @patch(
         'apps.mymedicare_cb.models.match_fhir_id',
         return_value=(
-            MatchFhirIdResult(error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI)
+            MatchFhirIdResult(
+                error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI
+            )
         ),
     )
     def test_failure_response_v1_auth_flow_match_fhir_id_failure(self, mock_match_fhir):

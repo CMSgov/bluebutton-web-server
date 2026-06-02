@@ -129,7 +129,7 @@ AUTHORIZATION_LOG_SCHEMA = {
         'auth_app_id': {'pattern': '^1$'},
         'auth_app_name': {'pattern': 'an app'},
         'auth_app_data_access_type': {'pattern': 'THIRTEEN_MONTH'},
-        'auth_pkce_method': {'type': 'null'},
+        'auth_pkce_method': {'type': 'string', 'pattern': '^S256$'},
         'auth_share_demographic_scopes': {'pattern': '^$'},
         'auth_require_demographic_scopes': {'pattern': '^True$'},
     },

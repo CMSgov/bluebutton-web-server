@@ -1,35 +1,32 @@
-import json
 import base64
+import json
+import os
 from datetime import date, timedelta
 from http import HTTPStatus
+
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.http import HttpRequest
 from django.urls import reverse
-from apps.capabilities.models import ProtectedCapability
 from httmock import HTTMock, urlmatch
-
-# from oauth2_provider.compat import parse_qs, urlparse
-from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
-from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
-from apps.dot_ext.models import ArchivedToken
-from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
 
+from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
+from apps.capabilities.models import ProtectedCapability
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
-from apps.test import BaseApiTest
-from apps.dot_ext.models import Application
 from apps.dot_ext.constants import (
     BENE_PERSONAL_INFO_SCOPES,
     SCOPES_TO_URL_BASE_PATH,
     VIEW_OAUTH2_SCOPES_TEST_CASES,
 )
-
-import os
-
+from apps.dot_ext.models import Application, ArchivedToken
+from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
+from apps.test import BaseApiTest
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
 
 
@@ -185,7 +182,11 @@ class TestAuthorizationView(BaseApiTest):
 
     @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        auth_payload = dict(payload)
+        auth_payload.setdefault('state', '0123456789abcdef')
+        auth_payload.setdefault('code_challenge', 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo')
+        auth_payload.setdefault('code_challenge_method', 'S256')
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=auth_payload)
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
         query_dict = parse_qs(urlparse(response['Location']).query)
@@ -195,6 +196,7 @@ class TestAuthorizationView(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': 'http://example.it',
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         return self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
 
@@ -440,6 +442,8 @@ class TestTokenView(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+            'code_challenge_method': 'S256',
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
             payload['response_type'] = 'token'
@@ -461,6 +465,7 @@ class TestTokenView(BaseApiTest):
                 'redirect_uri': application.redirect_uris,
                 'client_id': application.client_id,
                 'client_secret': application.client_secret_plain,
+                'code_verifier': 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',
             }
 
             response = self.client.post('/v1/o/token/', data=token_request_data)
@@ -474,7 +479,9 @@ class TestTokenView(BaseApiTest):
         return t
 
     def _create_authorization_header(self, client_id, client_secret):
-        return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
+        return 'Basic {0}'.format(
+            base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8')
+        )
 
     def _create_authentication_header(self, username):
         return 'SLS {0}'.format(base64.b64encode(username.encode('utf-8')).decode('utf-8'))
@@ -494,7 +501,9 @@ class TestTokenView(BaseApiTest):
         response = self.client.get(
             reverse('token_management:token-list'),
             headers={
-                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'authorization': self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
                 'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
@@ -519,7 +528,10 @@ class TestTokenView(BaseApiTest):
 
         # Check tokens endpoint doesn't return expired
         application2 = self._create_application(
-            'an expired app', grant_type=Application.GRANT_AUTHORIZATION_CODE, redirect_uris='http://example.it', user=anna
+            'an expired app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris='http://example.it',
+            user=anna,
         )
         DataAccessGrant.objects.update_or_create(
             beneficiary=anna, application=application2, expiration_date=date.today() - timedelta(days=1)
@@ -527,7 +539,9 @@ class TestTokenView(BaseApiTest):
         response = self.client.get(
             '/v1/o/tokens/',
             headers={
-                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'authorization': self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
                 'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
@@ -653,7 +667,9 @@ class TestTokenView(BaseApiTest):
         url_1 = reverse('token_management:token-detail', args=[grant_list[0]['id']])
         http_authz = self._create_authorization_header(anna_application.client_id, anna_application.client_secret_plain)
         http_authn = self._create_authentication_header(self.test_uuid)
-        failed_response = self.client.delete(url_1, headers={'authorization': http_authz, 'x-authentication': http_authn})
+        failed_response = self.client.delete(
+            url_1, headers={'authorization': http_authz, 'x-authentication': http_authn}
+        )
         self.assertEqual(failed_response.status_code, 404)
         response = self.client.get('/v1/fhir/Patient', headers={'authorization': 'Bearer ' + anna_token.token})
         self.assertEqual(response.status_code, 401)
@@ -705,7 +721,9 @@ class TestTokenView(BaseApiTest):
         response = self.client.post(
             reverse('token_management:token-list'),
             headers={
-                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'authorization': self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
                 'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
@@ -726,7 +744,9 @@ class TestTokenView(BaseApiTest):
         response = self.client.put(
             reverse('token_management:token-detail', args=[tkn.pk]),
             headers={
-                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'authorization': self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
                 'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )
@@ -749,7 +769,9 @@ class TestTokenView(BaseApiTest):
         response = self.client.get(
             reverse('token_management:token-list'),
             headers={
-                'authorization': self._create_authorization_header(application.client_id, application.client_secret_plain),
+                'authorization': self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
                 'x-authentication': self._create_authentication_header(self.test_uuid),
             },
         )

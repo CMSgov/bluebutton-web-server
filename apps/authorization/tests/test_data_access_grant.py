@@ -35,7 +35,9 @@ AccessToken = get_access_token_model()
 class TestDataAccessGrant(BaseApiTest):
     @staticmethod
     def _create_authorization_header(client_id, client_secret):
-        return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
+        return 'Basic {0}'.format(
+            base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8')
+        )
 
     def test_create_update_delete(self):
         # 1. Test create and default expiration_date
@@ -76,7 +78,9 @@ class TestDataAccessGrant(BaseApiTest):
         dag.delete()
 
         #     Verify it does exist and archived.
-        arch_dag = ArchivedDataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')
+        arch_dag = ArchivedDataAccessGrant.objects.get(
+            beneficiary__username='test_beneficiary', application__name='test_app'
+        )
 
         #    Verify expiration_date copied OK.
         self.assertEqual('2030-01-15 00:00:00+00:00', str(arch_dag.expiration_date))
@@ -190,6 +194,7 @@ class TestDataAccessGrant(BaseApiTest):
 
     def setup_test_application_with_user(self, test_user, application_name='an app'):
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
         # create an application and add capabilities
@@ -207,6 +212,9 @@ class TestDataAccessGrant(BaseApiTest):
             'client_id': application.client_id,
             'response_type': 'code',
             'redirect_uri': redirect_uri,
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
@@ -218,6 +226,8 @@ class TestDataAccessGrant(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.post(response['Location'], data=payload)
         self.assertEqual(response.status_code, 302)
@@ -229,6 +239,7 @@ class TestDataAccessGrant(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         fhir_id = json.loads(response.content)['patient']
@@ -237,6 +248,7 @@ class TestDataAccessGrant(BaseApiTest):
 
     def test_no_action_on_reapproval(self):
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
 
         user = self._create_user('anna', '123456')
         application, fhir_id = self.setup_test_application_with_user(user)
@@ -248,6 +260,9 @@ class TestDataAccessGrant(BaseApiTest):
             'client_id': application.client_id,
             'response_type': 'code',
             'redirect_uri': redirect_uri,
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
@@ -259,6 +274,8 @@ class TestDataAccessGrant(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.post(response['Location'], data=payload)
 
@@ -271,6 +288,7 @@ class TestDataAccessGrant(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, 200)
@@ -342,6 +360,7 @@ class TestDataAccessGrant(BaseApiTest):
         to an application or applications under a user (organization)
         """
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         # create a user
         user = self._create_user('anna', '123456')
         capability_a = self._create_capability('Capability A', [])
@@ -363,6 +382,9 @@ class TestDataAccessGrant(BaseApiTest):
             'client_id': application.client_id,
             'response_type': 'code',
             'redirect_uri': redirect_uri,
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.get('/v1/o/authorize', data=payload)
         payload = {
@@ -373,6 +395,8 @@ class TestDataAccessGrant(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
 
         response = self.client.post(response['Location'], data=payload)

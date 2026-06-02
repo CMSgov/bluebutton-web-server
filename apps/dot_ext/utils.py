@@ -8,7 +8,11 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
-from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from oauth2_provider.models import (
+    AccessToken,
+    RefreshToken,
+    get_application_model,
+)
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
     InvalidGrantError,
@@ -31,7 +35,9 @@ User = get_user_model()
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def remove_application_user_pair_tokens_data_access(application, user):
+def remove_application_user_pair_tokens_data_access(
+    application, user, delete_data_access_grant: bool, delete_access_tokens: bool
+):
     """
     Utility function to revoke and delete current application/user pair
     access_token, refresh_token and DataAccessGrant records.
@@ -50,15 +56,21 @@ def remove_application_user_pair_tokens_data_access(application, user):
     CALLED FROM:
         apps.dot_ext.views.authorization.authorization.AuthorizationView.form_valid()
     """
+    data_access_grant_delete_cnt = 0
     with transaction.atomic():
-        # Get count of access tokens to be deleted.
-        access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
+        if delete_access_tokens:
+            # Get count of access tokens to be deleted and actually delete them
+            access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).delete()[0]
+        else:
+            # Get count of access tokens to be deleted.
+            access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
-            application=application, beneficiary=user
-        ).delete()[0]
+        if delete_data_access_grant:
+            data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
+                application=application, beneficiary=user
+            ).delete()[0]
 
         # Delete refresh token records
         refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
