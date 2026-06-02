@@ -182,7 +182,11 @@ class TestAuthorizationView(BaseApiTest):
 
     @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        auth_payload = dict(payload)
+        auth_payload.setdefault('state', '0123456789abcdef')
+        auth_payload.setdefault('code_challenge', 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo')
+        auth_payload.setdefault('code_challenge_method', 'S256')
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=auth_payload)
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
         query_dict = parse_qs(urlparse(response['Location']).query)
@@ -192,6 +196,7 @@ class TestAuthorizationView(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': 'http://example.it',
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         return self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
 
@@ -437,6 +442,8 @@ class TestTokenView(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+            'code_challenge_method': 'S256',
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
             payload['response_type'] = 'token'
@@ -458,6 +465,7 @@ class TestTokenView(BaseApiTest):
                 'redirect_uri': application.redirect_uris,
                 'client_id': application.client_id,
                 'client_secret': application.client_secret_plain,
+                'code_verifier': 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',
             }
 
             response = self.client.post('/v1/o/token/', data=token_request_data)
