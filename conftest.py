@@ -1,4 +1,3 @@
-# import django
 import pytest
 
 # Ignore specific test files during collection
@@ -11,13 +10,6 @@ collect_ignore = [
 ]
 
 
-def pytest_configure(config):
-    """Ensure Django is fully set up before any test collection or execution."""
-    import django
-
-    django.setup()
-
-
 @pytest.fixture
 def enable_switch():
     """Fixture to activate a waffle switch for a test."""
@@ -27,8 +19,3 @@ def enable_switch():
         return override_switch(switch_name, active=active)
 
     return _enable
-
-
-# @pytest.fixture(scope='session')
-# def django_db_use_migrations():
-#     return True
