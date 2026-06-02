@@ -56,8 +56,9 @@ echo "  aws logs tail --since 1h --follow '$cw_log_group'"
 #   01-config     → SOPS → SSM parameters
 #   10-cluster    → ECS Fargate cluster
 #   20-microservices → ECS services, ALB, IAM, autoscaling
+#   30-datadog
 # ============================================================
-all_services=(00-bootstrap 01-config 10-cluster 20-microservices)
+all_services=(00-bootstrap 01-config 10-cluster 20-microservices 30-datadog)
 
 if [[ -n "${SERVICE:-}" && "$SERVICE" != "all" ]]; then
   # Validate service name

@@ -22,6 +22,7 @@ on:
           - 01-config
           - 10-cluster
           - 20-microservices
+          - 30-datadog
 
 concurrency:
   group: tofu-plan-or-apply-${{ github.ref }}
