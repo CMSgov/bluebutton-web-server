@@ -496,8 +496,6 @@ class AuthorizationView(DotAuthorizationView):
         share_samhsa_data = form.cleaned_data.get('share_samhsa_data')
         # Because share_samhsa_data comes back as a blank string on v2 screens, even when passing a default of True
         # set it to True if it returns as a blank string
-        # if share_samhsa_data == '':
-
         if not share_samhsa_data:
             share_samhsa_data = True
 
