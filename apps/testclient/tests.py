@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.testclient.constants import EndpointUrl, ResponseErrors
-from apps.testclient.utils import _deepfind, _ormap, _start_url_with_http_or_https, testclient_http_response_setup
+from apps.testclient.utils import _deepfind, _ormap, _start_url_with_http_or_https, setup_testclient_http_response
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
 from apps.versions import VersionNotMatched, Versions
 
@@ -120,7 +120,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     def versionedSetUp(self, version=Versions.NOT_AN_API_VERSION):
         call_command('create_blue_button_scopes')
         call_command('create_test_user_and_application')
-        self.testclient_setup = testclient_http_response_setup(version=version)
+        self.testclient_setup = setup_testclient_http_response(version=version)
         self.token = 'sample-token-string'
         self.client = Client(Authorization='Bearer %s' % (self.token))
         match version:
@@ -174,7 +174,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         # TODO V3: The testclient response setup prepares URLs; the URLs we pass back
         # are not the same as those produced by EndpointUrl. We may want to centralized/
         # standardize those URLs for robustness.
-        self.testclient_setup = testclient_http_response_setup(version=version)
+        self.testclient_setup = setup_testclient_http_response(version=version)
         self.token = 'sample-token-string'
         self.client = Client(Authorization='Bearer %s' % (self.token))
         match version:

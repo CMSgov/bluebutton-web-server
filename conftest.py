@@ -1,10 +1,14 @@
 # import django
 import pytest
 
-# from django.conf import settings
-
 # Ignore specific test files during collection
-collect_ignore = ['scripts/medicare-test-synth-logins/test_medicare_logins.py']
+collect_ignore = [
+    'scripts/medicare-test-synth-logins/test_medicare_logins.py',
+    'apps/integration_tests/logging_tests.py',
+    'apps/integration_tests/selenium_accounts_tests.py',
+    'apps/integration_tests/selenium_spanish_tests.py',
+    'apps/integration_tests/selenium_tests.py',
+]
 
 
 def pytest_configure(config):
@@ -23,3 +27,8 @@ def enable_switch():
         return override_switch(switch_name, active=active)
 
     return _enable
+
+
+# @pytest.fixture(scope='session')
+# def django_db_use_migrations():
+#     return True

@@ -59,3 +59,4 @@ urllib3 == 2.7.0
 voluptuous == 0.13.1
 watchtower == 3.4.0
 zipp == 3.19.2
+pytest-django == 4.11.1

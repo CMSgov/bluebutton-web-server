@@ -176,7 +176,7 @@ Setup your local venv (or whatever flavor of local python environment) and insta
 
 1. Activate your environment
 2. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
-3. Run `python manage.py test --exclude=integration` or `make unit-test`
+3. Run `pytest -m 'not integration'` or `make unit-test`
 
 #### debugging - unit
 
@@ -188,16 +188,18 @@ After running this in the terminal, navigate to `Run and Debug` extension and ru
 
 #### specific tests - unit
 
-To target a specific test, add the full class path of the test /after/ `test` in the manage.py command. For example:
+To target a specific test, add the file path of the test and the test name. If the test is within a class, also include the class name. For example:
 
-`python -m debugpy --listen 0.0.0.0:6789 --wait-for-client manage.py test apps.dot_ext.tests.test_scopes.TestScopesBackendClass.test_get_available_scopes`
+`pytest apps/dot_ext/tests/test_scopes.py::TestScopesBackendClass::test_get_available_scopes`
+
+Note that if the test is not within a class, you can just use ::test_name
 
 ### integration testing
 
 You'll need to exec into your running instance of bb-api to do this
 
 1. Exec into bb-api
-2. Run `python manage.py test --tag=integration` or `make integration-test`
+2. Run `pytest -m 'integration'` or `make integration-test`
 
 #### debugging - integration
 
