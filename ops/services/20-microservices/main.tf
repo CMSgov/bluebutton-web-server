@@ -13,6 +13,7 @@ module "platform" {
   kms_key_alias                = "alias/bb-${local.env == "sandbox" ? "impl" : local.env}-app-key-alias"
   enable_acm_lookup            = true
   enable_security_group_lookup = true
+  acm_domain                   = local.env == "prod" ? "api.bluebutton.cms.gov" : ""
 }
 
 # ============================================================================
