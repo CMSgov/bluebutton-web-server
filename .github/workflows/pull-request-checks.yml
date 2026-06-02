@@ -69,12 +69,12 @@ jobs:
         if: always()
         run: |
           docker ps -a
-          docker status --no-stream
+          docker status
 
       - name: Inspect faile container
         if: always()
         run: |
-          docker inspect bb-api
+          docker inspect containers-bb-api-1
 
       - name: Teardown Stack
         if: always()
