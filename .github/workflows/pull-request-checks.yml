@@ -31,7 +31,6 @@ jobs:
           python manage.py test --exclude=integration
 
   integration-test:
-    needs: ruff-unit-test
     env:
       AWS_REGION: us-east-1
 
@@ -65,6 +64,17 @@ jobs:
         run: |
           cd ./ops/containers/bb-api
           make run-codebuild-integration
+
+      - name: Docker container status
+        if: always()
+        run: |
+          docker ps -a
+          docker status --no-stream
+
+      - name: Inspect faile container
+        if: always()
+        run: |
+          docker inspect bb-api
 
       - name: Teardown Stack
         if: always()
