@@ -65,12 +65,6 @@ jobs:
           cd ./ops/containers/bb-api
           make run-codebuild-integration
 
-      - name: Docker container status
-        if: always()
-        run: |
-          docker ps -a
-          docker status
-
       - name: Teardown Stack
         if: always()
         run: |
