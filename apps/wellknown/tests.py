@@ -16,7 +16,6 @@ from apps.constants import (
 )
 
 
-# @pytest.mark.django_db
 class OpenIDConnectConfigurationTestCase(TestCase):
     """
     Test OpenIDConnectConfiguration URI
@@ -41,8 +40,6 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         self.assertEqual(type(json.loads(response_content)), type({}))
 
 
-# @pytest.mark.django_db
-# class SmartConfigurationV3TestCase(TestCase):
 class SmartConfigurationV3TestCase:
     """
     Test SMART Configuration V3
@@ -52,7 +49,6 @@ class SmartConfigurationV3TestCase:
         self.client = Client()
         self.url = reverse('smart_configuration_v3')
 
-    # @override_switch('v3_endpoints', active=True)
     def test_v3_config_fields(self, enable_switch):
         with enable_switch('v3_endpoints', active=True):
             response = self.client.get(self.url)
