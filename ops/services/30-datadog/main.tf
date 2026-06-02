@@ -73,6 +73,6 @@ module "common_datadog_monitors" {
 
 module "datadog_dashboard" {
   source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard" # you can specify the commit hash here by appending ?ref=<latest-commit-hash> ; though I'd wait as we all iterate together on improvements to the modules
-  app         = "bbapi"                                                      #or just "bb"
+  app         = local.app                                                      #or just "bb"
   runbook_url = "https://thisisatest.cdap.internal.cms.gov"
 }
