@@ -500,11 +500,10 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
-        user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-        # Because share_samhsa_data comes back as a blank string on v2 screens, even when passing a default of True
-        # set it to True if it returns as a blank string
-        if not user_approves_sharing_samhsa_data:
-            user_approves_sharing_samhsa_data = True
+        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        user_approves_sharing_samhsa_data = True
+        if self.version == Versions.V3:
+            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
 
         # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
         # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted

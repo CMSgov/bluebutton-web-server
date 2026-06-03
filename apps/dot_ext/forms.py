@@ -382,7 +382,7 @@ class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
     share_demographic_scopes = forms.CharField(required=False)
-    share_samhsa_data = forms.CharField(required=False)
+    share_samhsa_data = forms.BooleanField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
