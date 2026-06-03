@@ -184,14 +184,26 @@ class AuthorizationView(DotAuthorizationView):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
 
-        if not request.GET.get('code_challenge', None):
+        if not self._get_param(request, 'code_challenge'):
             missing_params.append('code_challenge')
-        if not request.GET.get('code_challenge_method', None):
-            missing_params.append('code_challenge_method')
 
-        if not request.GET.get('state', None):
+        code_challenge_method = self._get_param(request, 'code_challenge_method')
+        if not code_challenge_method:
+            missing_params.append('code_challenge_method')
+        elif code_challenge_method != 'S256':
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'error': 'invalid_request',
+                    'error_description': 'code_challenge_method must be S256',
+                },
+                status=HTTPStatus.BAD_REQUEST,
+            )
+
+        state = self._get_param(request, 'state')
+        if not state:
             missing_params.append('state')
-        elif len(request.GET.get('state', None)) < 16:
+        elif len(state) < 16:
             error_message = 'State parameter should have a minimum of 16 characters'
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': error_message},
@@ -201,7 +213,7 @@ class AuthorizationView(DotAuthorizationView):
         # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
         # so it will not be modified as part of BB2-4250
         if switch_is_active('v3_endpoints') and v3:
-            if 'scope' not in request.GET:
+            if not self._has_param(request, 'scope'):
                 missing_params.append('scope')
 
         if missing_params:
@@ -308,6 +320,10 @@ class AuthorizationView(DotAuthorizationView):
         if sensitive_info_detected:
             return sensitive_info_detected
 
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
+
         request.session['version'] = self.version
 
         # Accept lang from GET or POST
@@ -359,16 +375,9 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        kwargs['code_challenge'] = request.POST.get('code_challenge')
-        kwargs['code_challenge_method'] = request.POST.get('code_challenge_method')
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
-        kwargs['code_challenge'] = request.GET.get('code_challenge', None)
-        kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
@@ -376,6 +385,10 @@ class AuthorizationView(DotAuthorizationView):
         try:
             application_user = get_user_model().objects.get(id=self.application.user_id)
 
+            # If the v3_early_adopter does not exist in the database, a WaffleFlag object is returned,
+            # but the id is None. In that case, we want to return and leave it up to the v3_endpoints switch
+            # as to whether v3 calls can be made. If the flag does exist, then the id will not be None
+            # and we will check to see if the flag is active for the application
             if flag.id is None or flag.is_active_for_user(application_user):
                 # Update the class variable to ensure subsequent calls to dispatch don't call this function
                 # more times than is needed
@@ -395,15 +408,9 @@ class AuthorizationView(DotAuthorizationView):
             'redirect_uri': form.cleaned_data.get('redirect_uri'),
             'response_type': form.cleaned_data.get('response_type', None),
             'state': form.cleaned_data.get('state', None),
-            # "code_challenge": form.cleaned_data.get("code_challenge", None),
-            # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+            'code_challenge': form.cleaned_data.get('code_challenge', None),
+            'code_challenge_method': form.cleaned_data.get('code_challenge_method', None),
         }
-
-        if form.cleaned_data.get('code_challenge'):
-            credentials['code_challenge'] = form.cleaned_data.get('code_challenge')
-
-        if form.cleaned_data.get('code_challenge_method'):
-            credentials['code_challenge_method'] = form.cleaned_data.get('code_challenge_method')
 
         scopes = form.cleaned_data.get('scope')
         allow = form.cleaned_data.get('allow')
@@ -444,7 +451,7 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -468,7 +475,7 @@ class AuthorizationView(DotAuthorizationView):
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+            ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -500,6 +507,9 @@ class AuthorizationView(DotAuthorizationView):
 
         # Update AuthFlowUuid instance with code.
         update_instance_auth_flow_trace_with_code(auth_dict, code)
+
+        # Check for prior tokens and remove them if they exist to ensure they can't continue to be used
+        remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
 
         return self.redirect(self.success_url, application)
 
