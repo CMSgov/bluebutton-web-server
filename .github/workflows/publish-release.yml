@@ -18,6 +18,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          ref: ${{ github.ref }}
 
       - name: Verify on master branch
         run: |
@@ -70,7 +71,7 @@ jobs:
           BODY="${NEW_TAG} - ${RELEASE_DATE}"
           BODY="${BODY}\n================"
 
-          while IFS= read -r line; do
+          while IFS= read -r line || [[ -n "$line" ]]; do
             HASH=$(echo "$line" | cut -d' ' -f1)
             SUBJECT=$(echo "$line" | cut -d' ' -f2-)
 
@@ -85,7 +86,7 @@ jobs:
                 BODY="${BODY}\n- ${SUBJECT}"
               fi
             fi
-          done < <(git log --pretty=format:'%H %s' ${PREV_TAG}..HEAD)
+          done < <(git log --pretty=tformat:'%H %s' ${PREV_TAG}..HEAD)
 
           echo -e "$BODY" > /tmp/release_notes.md
 
