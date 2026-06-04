@@ -37,14 +37,10 @@ on:
         required: true
         type: string
       skip_protection:
-        description: 'Set to true to bypass environment protection rules (useful for scheduled jobs).'
+        description: 'Skip environment protection rules — set true for automated/scheduled callers'
         required: false
         type: boolean
         default: true
-      task_definition_arn:
-        description: 'Optional task definition to run the command against. Use this to target a specific image revision instead of the active one.'
-        required: false
-        type: string
 
 env:
   AWS_REGION: us-east-1
@@ -100,7 +96,7 @@ jobs:
         run: |
           TASK_ARN=$(aws ecs run-task \
             --cluster "${{ steps.network.outputs.cluster }}" \
-            --task-definition "${{ inputs.task_definition_arn || steps.network.outputs.family }}" \
+            --task-definition "${{ steps.network.outputs.family }}" \
             --launch-type FARGATE \
             --platform-version LATEST \
             --network-configuration '${{ steps.network.outputs.net_config }}' \
@@ -125,13 +121,12 @@ jobs:
             --cluster "${{ steps.network.outputs.cluster }}" \
             --tasks "${{ steps.run-task.outputs.task_arn }}"
 
-          # Match by container name so sidecar containers don't affect the result
+          # Check exit code
           EXIT_CODE=$(aws ecs describe-tasks \
             --cluster "${{ steps.network.outputs.cluster }}" \
             --tasks "${{ steps.run-task.outputs.task_arn }}" \
-            --output json | jq -r \
-            --arg NAME "${{ steps.network.outputs.container }}" \
-            '.tasks[0].containers[] | select(.name == $NAME) | .exitCode')
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
 
           echo "Exit code: $EXIT_CODE"
 
