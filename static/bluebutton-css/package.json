@@ -18,9 +18,11 @@
     "gulp-sourcemaps": "^2.6.5"
   },
   "dependencies": {
-    "@cmsgov/design-system": "^4.0.4",
-    "gulp": "^5.0.0",
-    "sass": "^1.97.3"
+    "@cmsgov/design-system": "^18.0.0",
+    "gulp": "^5.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sass": "^1.100.0"
   },
   "overrides": {
     "immutable": "^5.1.5"
