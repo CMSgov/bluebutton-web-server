@@ -720,10 +720,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac.scope = 'patient/ExplanationOfBenefit.rs'
         ac.save()
 
-        access_token_extension = AccessTokenExtension()
-        access_token_extension.access_token = ac
-        access_token_extension.include_samhsa = False
-        access_token_extension.save()
+        token_extension = AccessTokenExtension.objects.get(access_token=ac)
+        token_extension.include_samhsa = False
+        token_extension.save()
 
         url = SEARCH_EOB_URLS[Versions.V3]
         response = self.client.get(
@@ -778,12 +777,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token=ac)
-        access_token_extension = AccessTokenExtension()
-        access_token_extension.access_token = ac_record
-        access_token_extension.include_samhsa = False
-        access_token_extension.save()
-
         AccessToken.objects.get(token=ac).accesstokenextension.delete()
         self.assertFalse(AccessTokenExtension.objects.all().exists())
 
@@ -799,11 +792,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token=ac)
-        access_token_extension = AccessTokenExtension()
-        access_token_extension.access_token = ac_record
-        access_token_extension.include_samhsa = False
-        access_token_extension.save()
+        extension = AccessToken.objects.get(token=ac).accesstokenextension
+        extension.include_samhsa = False
+        extension.save()
 
         for version in [Versions.V1, Versions.V2]:
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
@@ -818,11 +809,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token=ac)
-        access_token_extension = AccessTokenExtension()
-        access_token_extension.access_token = ac_record
-        access_token_extension.include_samhsa = True
-        access_token_extension.save()
+        extension = AccessToken.objects.get(token=ac).accesstokenextension
+        extension.include_samhsa = True
+        extension.save()
 
         for version in [Versions.V1, Versions.V2]:
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
