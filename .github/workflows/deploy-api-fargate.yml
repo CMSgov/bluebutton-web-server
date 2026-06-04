@@ -15,6 +15,15 @@ on:
         description: 'ECR image tag to deploy (e.g. r33)'
         required: true
         type: string
+      migration_type:
+        description: 'Choose when to run database migrations: before updating the service (pre-deploy) or after (post-deploy).'
+        required: true
+        type: choice
+        default: 'none'
+        options:
+          - none
+          - pre-deploy
+          - post-deploy
 
 env:
   AWS_REGION: us-east-1
@@ -23,13 +32,21 @@ permissions:
   id-token: write
   contents: read
 
+# One active deployment per environment at a time — queue rather than cancel
+# so in-progress deploys finish before the next one starts.
+concurrency:
+  group: deploy-api-${{ inputs.environment }}
+  cancel-in-progress: false
+
 jobs:
-  deploy:
-    name: Deploy ${{ inputs.image_tag || github.sha }} to ${{ inputs.environment || 'test' }}
-    # sandbox uses prod CodeBuild runner (same account)
+  prepare:
+    name: Prepare ${{ inputs.image_tag }} for ${{ inputs.environment || 'test' }}
+    # sandbox shares the prod CodeBuild runner and ECR repo
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
     environment: ${{ inputs.environment || 'test' }}
+    outputs:
+      task_definition_arn: ${{ steps.register-task.outputs.task_definition_arn }}
 
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +76,6 @@ jobs:
         id: verify-image
         run: |
           ENV="${{ inputs.environment || 'test' }}"
-          # sandbox and prod share the same ECR repo (bb-prod-api)
           BUCKET_ENV="${ENV}"
           if [[ "$ENV" == "sandbox" ]]; then
             BUCKET_ENV="prod"
@@ -79,7 +95,6 @@ jobs:
           echo "Image verified: ${REPO_NAME}:${IMAGE_TAG}"
 
       - name: Get current task definition
-        id: current-task
         run: |
           ENV="${{ inputs.environment || 'test' }}"
           FAMILY="bb-${ENV}-api-family"
@@ -87,12 +102,12 @@ jobs:
           echo "Fetching current task definition for ${FAMILY}..."
           TASK_DEF=$(aws ecs describe-task-definition --task-definition "$FAMILY" --query 'taskDefinition')
 
-          # Update the image in the container definition
+          CONTAINER_NAME="bb-${ENV}-api"
           UPDATED=$(echo "$TASK_DEF" | jq \
             --arg IMAGE "${{ steps.verify-image.outputs.image }}" \
-            '.containerDefinitions[0].image = $IMAGE')
+            --arg CONTAINER "$CONTAINER_NAME" \
+            '(.containerDefinitions[] | select(.name == $CONTAINER) | .image) = $IMAGE')
 
-          # Strip fields that cannot be included in register-task-definition
           CLEANED=$(echo "$UPDATED" | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
 
           echo "$CLEANED" > /tmp/task-definition.json
@@ -109,6 +124,64 @@ jobs:
           echo "task_definition_arn=$NEW_TASK_DEF" >> "$GITHUB_OUTPUT"
           echo "Registered: $NEW_TASK_DEF"
 
+  # Run migrations before the service update.
+  # First, we check for pending migrations. Then, we wait for a team member to approve the deployment.
+  # Finally, we run the migrations. If any of these steps fail, the deployment stops to prevent issues.
+
+  pre-showmigrations:
+    name: Pre-deploy showmigrations on ${{ inputs.environment || 'test' }}
+    needs: prepare
+    if: inputs.migration_type == 'pre-deploy'
+    uses: ./.github/workflows/run-manage-command.yml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      command: showmigrations
+      task_definition_arn: ${{ needs.prepare.outputs.task_definition_arn }}
+    secrets: inherit
+
+  approve-pre-migration:
+    name: Approve pre-deploy migration on ${{ inputs.environment || 'test' }}
+    needs: pre-showmigrations
+    if: inputs.migration_type == 'pre-deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}-migration-gate
+    steps:
+      - name: Confirm approval
+        run: echo "Approved by ${{ github.actor }} — running migrate --noinput against the new image."
+
+  pre-migrate:
+    name: Pre-deploy migrate --noinput on ${{ inputs.environment || 'test' }}
+    needs: [prepare, approve-pre-migration]
+    if: inputs.migration_type == 'pre-deploy'
+    uses: ./.github/workflows/run-manage-command.yml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      command: migrate --noinput
+      task_definition_arn: ${{ needs.prepare.outputs.task_definition_arn }}
+    secrets: inherit
+
+  update-service:
+    name: Deploy ${{ inputs.image_tag || github.sha }} to ${{ inputs.environment || 'test' }}
+    needs: [prepare, pre-showmigrations, approve-pre-migration, pre-migrate]
+    # proceed if prepare succeeded and all pre-deploy jobs either passed or were skipped
+    if: always() && needs.prepare.result == 'success' && (needs.pre-showmigrations.result == 'success' || needs.pre-showmigrations.result == 'skipped') && (needs.approve-pre-migration.result == 'success' || needs.approve-pre-migration.result == 'skipped') && (needs.pre-migrate.result == 'success' || needs.pre-migrate.result == 'skipped')
+    runs-on:
+      - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+    environment: ${{ inputs.environment || 'test' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: ${{ inputs.environment || 'test' }}
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
+
       - name: Update ECS service
         run: |
           ENV="${{ inputs.environment || 'test' }}"
@@ -119,7 +192,7 @@ jobs:
           aws ecs update-service \
             --cluster "$CLUSTER" \
             --service "$SERVICE" \
-            --task-definition "${{ steps.register-task.outputs.task_definition_arn }}" \
+            --task-definition "${{ needs.prepare.outputs.task_definition_arn }}" \
             --force-new-deployment \
             --query 'service.serviceName' \
             --output text
@@ -139,3 +212,38 @@ jobs:
             }
 
           echo "Deployment complete and stable."
+
+  # Run migrations after the service update.
+  # The new code is already running, so we run migrations on the live database.
+  # We still check for pending migrations, wait for approval, and then run them.
+
+  post-showmigrations:
+    name: Post-deploy showmigrations on ${{ inputs.environment || 'test' }}
+    needs: update-service
+    if: inputs.migration_type == 'post-deploy'
+    uses: ./.github/workflows/run-manage-command.yml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      command: showmigrations
+    secrets: inherit
+
+  approve-post-migration:
+    name: Approve post-deploy migration on ${{ inputs.environment || 'test' }}
+    needs: post-showmigrations
+    if: inputs.migration_type == 'post-deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment || 'test' }}-migration-gate
+    steps:
+      - name: Confirm approval
+        run: echo "Approved by ${{ github.actor }} — running migrate --noinput against the live service."
+
+  post-migrate:
+    name: Post-deploy migrate --noinput on ${{ inputs.environment || 'test' }}
+    needs: approve-post-migration
+    if: inputs.migration_type == 'post-deploy'
+    uses: ./.github/workflows/run-manage-command.yml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      command: migrate --noinput
+    secrets: inherit
