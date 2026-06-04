@@ -1,11 +1,11 @@
 import logging
 
 from django.db.models.signals import post_save, pre_save
-from django.dispatch import Signal
+from django.dispatch import Signal, receiver
 from oauth2_provider.models import get_access_token_model, get_application_model
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.models import ArchivedToken
+from apps.dot_ext.models import AccessTokenExtension, ArchivedToken
 from libs.decorators import waffle_function_switch
 from libs.mail import Mailer
 
@@ -86,3 +86,14 @@ def outreach_first_api_call(sender, instance=None, **kwargs):
 
 post_save.connect(outreach_first_application, sender=Application)
 pre_save.connect(outreach_first_api_call, sender=AccessToken)
+
+
+@receiver(post_save, sender=AccessToken)
+def create_access_token_extension(sender, instance, created, **kwargs):
+    # TODO: Need to update to take into account what was passed for include_samhsa
+    # Once the checkbox is in place on v3 permissions screen
+    if created:
+        AccessTokenExtension.objects.create(
+            access_token=instance,
+            include_samhsa=True,
+        )
