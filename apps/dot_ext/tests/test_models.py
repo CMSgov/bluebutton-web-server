@@ -287,6 +287,23 @@ class TestDotExtModels(BaseApiTest):
         self.assertTrue(l5.slug in internal_labels)
         self.assertTrue(l11.slug not in internal_labels)
 
+    def test_access_token_extension_is_created(self) -> None:
+        """Ensure that when an access token is saved, a corresponding AccessTokenExtension record
+        is created
+        """
+
+        first_access_token = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac = AccessToken.objects.get(token=first_access_token)
+        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
+        ac.save()
+        access_token_extension = AccessTokenExtension.objects.get(access_token=ac)
+
+        assert access_token_extension is not None
+        assert access_token_extension.access_token == ac
+        assert access_token_extension.include_samhsa
+
     def test_access_token_extension_is_deleted_when_token_is_deleted(self) -> None:
         """Ensure that when an access token is deleted, the corresponding AccessTokenExtension record
         is deleted
@@ -298,11 +315,8 @@ class TestDotExtModels(BaseApiTest):
         ac = AccessToken.objects.get(token=first_access_token)
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
         ac.save()
-
-        access_token_extension = AccessTokenExtension()
-        access_token_extension.access_token = ac
-        access_token_extension.include_samhsa = True
-        access_token_extension.save()
+        access_token_extension = AccessTokenExtension.objects.get(access_token=ac)
+        access_token_extension_id = access_token_extension.id
 
         assert access_token_extension is not None
         assert access_token_extension.access_token == ac
@@ -311,4 +325,4 @@ class TestDotExtModels(BaseApiTest):
         ac.delete()
 
         with self.assertRaises(AccessTokenExtension.DoesNotExist):
-            access_token_extension = AccessTokenExtension.objects.get(id=access_token_extension.id)
+            access_token_extension = AccessTokenExtension.objects.get(id=access_token_extension_id)

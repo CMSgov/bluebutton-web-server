@@ -27,7 +27,7 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
-from apps.dot_ext.models import AccessTokenExtension, Application, AuthFlowTracking
+from apps.dot_ext.models import Application
 from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
@@ -338,40 +338,3 @@ def validate_latin_extended_string(text: str) -> bool:
         bool: if all strings are encoded less than U+017F (383) and it is not empty
     """
     return all(ord(char) <= 383 for char in text) and bool(text)
-
-
-def check_auth_tracking_and_create_access_token_extension(
-    prior_include_samhsa: bool, code: str, grant_type: str, token: AccessToken
-) -> None:
-    """Retrieve a record from the AuthFlowTracking table, if available, for the code being used in the authorization
-    or refresh request
-
-    Args:
-        prior_include_samhsa (bool): The value the prior access_token_extension record had for include_samhsa
-        code (str): The code for the auth or refresh request, used to retrieve AuthFlowTracking record
-        grant_type (str): Grant type of the call to TokenView.post
-        token (AccessToken): The access token that was generated
-    """
-    include_samhsa = True
-
-    # Try to retrieve the value from the AuthFlowTracking model based on the code
-    # If we do retrieve one, set include_samhsa to that value, gathered from the v3 permissions screen
-    # and afterwards delete the record so the table doesn't grow overly large. If there is no record,
-    # continue with the execution
-    if grant_type != 'refresh_token' and code:
-        try:
-            auth_flow_tracking = AuthFlowTracking.objects.get(code=code)
-            include_samhsa = auth_flow_tracking.include_samhsa
-            auth_flow_tracking.delete()
-
-        except AuthFlowTracking.DoesNotExist:
-            # If the AuthFlowTracking object does not exist, go with the default include_samhsa of True
-            pass
-
-    if grant_type == 'refresh_token':
-        include_samhsa = prior_include_samhsa
-
-    AccessTokenExtension.objects.get_or_create(
-        access_token=token,
-        include_samhsa=include_samhsa,
-    )
