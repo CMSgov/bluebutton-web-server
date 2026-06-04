@@ -24,6 +24,7 @@
   },
   "overrides": {
     "immutable": "^5.1.5",
-    "lodash": "^4.18.1"
+    "lodash": "^4.18.1",
+    "tmp": "^0.2.6"
   }
 }
