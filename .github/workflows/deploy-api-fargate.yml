@@ -44,7 +44,6 @@ jobs:
     # sandbox shares the prod CodeBuild runner and ECR repo
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    environment: ${{ inputs.environment || 'test' }}
     outputs:
       task_definition_arn: ${{ steps.register-task.outputs.task_definition_arn }}
 
@@ -164,11 +163,12 @@ jobs:
   update-service:
     name: Deploy ${{ inputs.image_tag || github.sha }} to ${{ inputs.environment || 'test' }}
     needs: [prepare, pre-showmigrations, approve-pre-migration, pre-migrate]
-    # proceed if prepare succeeded and all pre-deploy jobs either passed or were skipped
-    if: always() && needs.prepare.result == 'success' && (needs.pre-showmigrations.result == 'success' || needs.pre-showmigrations.result == 'skipped') && (needs.approve-pre-migration.result == 'success' || needs.approve-pre-migration.result == 'skipped') && (needs.pre-migrate.result == 'success' || needs.pre-migrate.result == 'skipped')
+    if: ${{ !failure() && !cancelled() }}
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    environment: ${{ inputs.environment || 'test' }}
+    # If no migrations are running, we require approval for the deployment itself.
+    # Otherwise, the migration steps have already handled the approval gate!
+    environment: ${{ inputs.migration_type == 'none' && (inputs.environment || 'test') || '' }}
 
     steps:
       - uses: actions/checkout@v4

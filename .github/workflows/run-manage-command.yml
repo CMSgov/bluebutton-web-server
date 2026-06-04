@@ -107,7 +107,7 @@ jobs:
             --overrides "{
               \"containerOverrides\": [{
                 \"name\": \"${{ steps.network.outputs.container }}\",
-                \"command\": [\"bash\", \"-c\", \"export DATABASES_CUSTOM=\\\"postgres://\${DB_USER_NAME}:\${DB_USER_PW}@\${DB_HOST}:15432/\${DB_NAME}?sslmode=require&options=-c+role%3D\${DB_ROLE}\\\" && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base && export PATH=\\\"\${HOME}/venv/bin:\${PATH}\\\" && echo \\\"Running: manage.py ${{ steps.cmd.outputs.resolved }} on \${DB_HOST}:15432/\${DB_NAME} as \${DB_ROLE}\\\" && python manage.py ${{ steps.cmd.outputs.resolved }} 2>&1\"]
+                \"command\": [\"bash\", \"-c\", \"export DATABASES_CUSTOM=\\\"postgres://\${DB_USER_NAME}:\${DB_USER_PW}@\${DB_HOST}:15432/\${DB_NAME}?sslmode=require&options=-c+role%3D\${DB_ROLE}\\\" && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base && export PATH=\\\"\${HOME}/venv/bin:\${PATH}\\\" && python manage.py ${{ steps.cmd.outputs.resolved }} 2>&1\"]
               }]
             }" \
             --query 'tasks[0].taskArn' \
