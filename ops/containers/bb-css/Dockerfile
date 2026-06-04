@@ -7,7 +7,8 @@ ENV PYTHON_VERSION=3.12
 RUN apt-get update \
     && apt-get install -y \
         nodejs \
-        npm
+        npm \
+        libgnutls30=3.7.9-2+deb12u7
 
 # Add in the codebase
 ADD .. /code
