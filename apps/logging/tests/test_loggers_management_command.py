@@ -1,29 +1,27 @@
 import copy
 import json
-import jsonschema
+from io import StringIO
 
+import jsonschema
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test.client import Client
 from django.utils import timezone
 from jsonschema import validate
-from io import StringIO
 from oauth2_provider.models import get_access_token_model, get_application_model
 
+import apps.logging.request_logger as logging
 from apps.constants import USER_TYPE_BENEFICIARY
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.fhir.bluebutton.models import Crosswalk, ArchivedCrosswalk
-import apps.logging.request_logger as logging
-from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
-from apps.test import BaseApiTest
-
+from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.logging.constants import (
     GLOBAL_STATE_METRICS_LOG_SCHEMA,
     GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA,
 )
-
+from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers
+from apps.test import BaseApiTest
 
 AccessToken = get_access_token_model()
 Application = get_application_model()
@@ -49,7 +47,9 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
     def tearDown(self):
         cleanup_logger(self.logger_registry)
 
-    def _call_management_command_log_global_state_metrics(self, report_to_console=CALL_MANAGEMENT_COMMAND_REPORT_TO_CONSOLE):
+    def _call_management_command_log_global_state_metrics(
+        self, report_to_console=CALL_MANAGEMENT_COMMAND_REPORT_TO_CONSOLE
+    ):
         """
         Method to call the management command in tests.
 
@@ -270,11 +270,17 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
             for f in fields_list:
                 if TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['type'] == 'boolean':
-                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['enum'] = validate_apps_dict[app_name][f]
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['enum'] = validate_apps_dict[
+                        app_name
+                    ][f]
                 elif TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['type'] == 'string':
-                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['enum'] = validate_apps_dict[app_name][f]
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['enum'] = validate_apps_dict[
+                        app_name
+                    ][f]
                 else:
-                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['enum'] = [validate_apps_dict[app_name][f]]
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA['properties'][f]['enum'] = [
+                        validate_apps_dict[app_name][f]
+                    ]
 
             # Validate with test schema copy.
             self.assertTrue(self._validateJsonSchema(TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA, log_dict))
@@ -617,7 +623,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                         have been updated).
         """
         for app, user in remove_grant_access_list:
-            remove_application_user_pair_tokens_data_access(app, user)
+            remove_application_user_pair_tokens_data_access(app, user, True, False)
 
         self._call_management_command_log_global_state_metrics()
 
