@@ -144,7 +144,7 @@ jobs:
     if: inputs.migration_type == 'pre-deploy'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: ${{ inputs.environment || 'test' }}-migration-gate
+    environment: ${{ inputs.environment || 'test' }}
     steps:
       - name: Confirm approval
         run: echo "Approved by ${{ github.actor }} — running migrate --noinput against the new image."
@@ -244,7 +244,7 @@ jobs:
     if: inputs.migration_type == 'post-deploy'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: ${{ inputs.environment || 'test' }}-migration-gate
+    environment: ${{ inputs.environment || 'test' }}
     steps:
       - name: Confirm approval
         run: echo "Approved by ${{ github.actor }} — running migrate --noinput against the live service."
