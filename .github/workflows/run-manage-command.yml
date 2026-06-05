@@ -79,10 +79,14 @@ jobs:
           # dynamic resource discovery instead of hardcoded names.
           source ops/ecs-discover.sh "${{ inputs.environment }}"
 
-          echo "cluster=${ECS_CLUSTER}"   >> "$GITHUB_OUTPUT"
-          echo "family=${ECS_FAMILY}"     >> "$GITHUB_OUTPUT"
+          echo "cluster=${ECS_CLUSTER}"     >> "$GITHUB_OUTPUT"
+          echo "family=${ECS_FAMILY}"       >> "$GITHUB_OUTPUT"
           echo "container=${ECS_CONTAINER}" >> "$GITHUB_OUTPUT"
           echo "net_config=${ECS_NET_CONFIG}" >> "$GITHUB_OUTPUT"
+
+
+          echo "$ECS_NET_CONFIG" | jq -r '.awsvpcConfiguration.subnets[], .awsvpcConfiguration.securityGroups[]' | \
+            while IFS= read -r val; do echo "::add-mask::$val"; done
 
       - name: Resolve command
         id: cmd
