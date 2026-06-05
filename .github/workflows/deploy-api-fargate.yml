@@ -187,12 +187,23 @@ jobs:
           ENV="${{ inputs.environment || 'test' }}"
           CLUSTER="bb-${ENV}-cluster"
           SERVICE="bb-${ENV}-api-service"
+          TASK_DEF="${{ needs.prepare.outputs.task_definition_arn }}"
 
-          echo "Updating ${SERVICE} on ${CLUSTER}..."
+          if [[ -z "$TASK_DEF" ]]; then
+            echo "Warning: TASK_DEF from prepare job is empty. Querying the latest task definition for family bb-${ENV}-api-family..."
+            TASK_DEF=$(aws ecs describe-task-definition --task-definition "bb-${ENV}-api-family" --query 'taskDefinition.taskDefinitionArn' --output text)
+          fi
+
+          if [[ -z "$TASK_DEF" ]]; then
+            echo "::error::Could not resolve task definition ARN."
+            exit 1
+          fi
+
+          echo "Updating ${SERVICE} on ${CLUSTER} with task definition ${TASK_DEF}..."
           aws ecs update-service \
             --cluster "$CLUSTER" \
             --service "$SERVICE" \
-            --task-definition "${{ needs.prepare.outputs.task_definition_arn }}" \
+            --task-definition "$TASK_DEF" \
             --force-new-deployment \
             --query 'service.serviceName' \
             --output text
