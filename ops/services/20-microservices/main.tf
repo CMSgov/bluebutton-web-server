@@ -199,6 +199,7 @@ locals {
     { name = "NEW_RELIC_LOG", value = "stdout" },
     { name = "NEW_RELIC_LOG_LEVEL", value = "info" },
     { name = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED", value = "true" },
+    { name = "NEW_RELIC_ERROR_COLLECTOR_IGNORE_STATUS_CODES", value = "401 403 405" },
   ]
 
   # SSM individual params → ECS environment format
