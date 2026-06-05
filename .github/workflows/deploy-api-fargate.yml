@@ -166,9 +166,11 @@ jobs:
     if: ${{ !failure() && !cancelled() }}
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    # If no migrations are running, we require approval for the deployment itself.
-    # Otherwise, the migration steps have already handled the approval gate!
-    environment: ${{ inputs.migration_type == 'none' && (inputs.environment || 'test') || '' }}
+    # Gate the deploy for 'none' and 'post-deploy' — in both cases the deploy happens
+    # before any migration approval, so it needs its own gate.
+    # Only 'pre-deploy' skips this gate: its approval already ran upstream (approve-pre-migration),
+    # and the deploy auto-follows the same image right after the migration.
+    environment: ${{ inputs.migration_type != 'pre-deploy' && (inputs.environment || 'test') || '' }}
 
     steps:
       - uses: actions/checkout@v4
