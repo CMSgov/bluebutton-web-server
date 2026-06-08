@@ -1,31 +1,28 @@
-import requests
 import datetime
 
-import apps.logging.request_logger as logging
-
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from rest_framework import status
 
-
+import apps.logging.request_logger as logging
 from apps.fhir.bluebutton.models import hash_hicn
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
-
+from apps.logging.utils import construct_quicksuite_logging_path
 from apps.mymedicare_cb.constants import (
     MSG_SLS_RESP_MISSING_AUTHTOKEN,
     MSG_SLS_RESP_MISSING_USERID,
     MSG_SLS_RESP_MISSING_USERINFO_USERID,
     MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID,
-    MedicareCallbackExceptionType,
+    BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException,
     BBMyMedicareSLSxSignoutException,
     BBMyMedicareSLSxTokenException,
     BBMyMedicareSLSxUserinfoException,
     BBMyMedicareSLSxValidateSignoutException,
-    BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException,
+    MedicareCallbackExceptionType,
 )
 from apps.mymedicare_cb.signals import response_hook_wrapper
-from apps.mymedicare_cb.validators import is_mbi_format_valid, is_mbi_format_synthetic
-from apps.logging.utils import construct_quicksuite_logging_path
+from apps.mymedicare_cb.validators import is_mbi_format_synthetic, is_mbi_format_valid
 
 
 class OAuth2ConfigSLSx(object):
@@ -92,7 +89,11 @@ class OAuth2ConfigSLSx(object):
 
         if request is not None:
             headers.update(
-                {'X-Request-ID': str(getattr(request, '_logging_uuid', None) if hasattr(request, '_logging_uuid') else '')}
+                {
+                    'X-Request-ID': str(
+                        getattr(request, '_logging_uuid', None) if hasattr(request, '_logging_uuid') else ''
+                    )
+                }
             )
         return headers
 
@@ -265,7 +266,9 @@ class OAuth2ConfigSLSx(object):
             [
                 (
                     self.signout_status_code != status.HTTP_302_FOUND,
-                    'SLSx signout response_code = {code}. Expecting HTTP_302_FOUND.'.format(code=self.signout_status_code),
+                    'SLSx signout response_code = {code}. Expecting HTTP_302_FOUND.'.format(
+                        code=self.signout_status_code
+                    ),
                 )
             ],
             MedicareCallbackExceptionType.SIGNOUT,

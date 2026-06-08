@@ -134,22 +134,8 @@ We follow standard GitHub Flow practices:
 ### Testing Conventions
 
 **Running Tests:**
-```bash
-# Run all tests
-python runtests.py
 
-# Run specific application tests
-python runtests.py apps.dot_ext.tests
-
-# Run specific test modules
-python runtests.py apps.dot_ext.tests.test_templates
-
-# Run individual test methods
-python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
-
-# Run multiple test suites
-python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
-```
+- For details on how to run tests, please review the testing section in the ops/containers README
 
 **Test Requirements:**
 - Write tests for new functionality
