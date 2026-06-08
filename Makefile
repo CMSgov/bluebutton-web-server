@@ -19,7 +19,7 @@ generate generate-requirements:
 	$(MAKE) -C ops/containers requirements
 
 unit-test:
-	python manage.py test --exclude=integration
+	pytest -m 'not integration'
 
 integration-test:
-	python manage.py test --tag=integration
+	pytest -m 'integration'
