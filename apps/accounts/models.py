@@ -1,4 +1,28 @@
-from apps.constants import USER_CHOICES, USER_TYPE_DEV
+import binascii
+import random
+import uuid
+from datetime import datetime, timedelta
+
+import pytz
+from django.conf import settings
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.hashers import PBKDF2PasswordHasher
+from django.contrib.auth.models import User
+from django.db import models
+from django.db.models import (
+    CASCADE,
+    Count,
+    Max,
+    Min,
+)
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
+
+import apps.logging.request_logger as logging
 from apps.accounts.constants import (
     AAL_CHOICES,
     ADDITION,
@@ -10,34 +34,9 @@ from apps.accounts.constants import (
     QUESTION_2_CHOICES,
     QUESTION_3_CHOICES,
 )
-import apps.logging.request_logger as logging
-
-import binascii
-import pytz
-import random
-import uuid
-from datetime import datetime, timedelta
-
-from django.conf import settings
-from django.contrib.admin.models import LogEntry
-from django.contrib.auth.hashers import PBKDF2PasswordHasher
-from django.contrib.auth.models import User
-from django.db import models
-from django.db.models import (
-    CASCADE,
-    Count,
-    Min,
-    Max,
-)
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.utils import timezone
-from django.utils.crypto import get_random_string
-from django.utils.translation import gettext_lazy as _
-from django.utils.translation import gettext
+from apps.constants import USER_CHOICES, USER_TYPE_DEV
 
 from .emails import send_activation_key_via_email
-
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 admin_logger = logging.getLogger('admin_interface')
@@ -242,7 +241,9 @@ def export_admin_log(sender, instance, **kwargs):
             }
 
         elif instance.action_flag == CHANGE:
-            msg = gettext('User "%(user)s" changed %(content_type)s object. "%(object)s" - %(changes)s at %(action_time)s') % {
+            msg = gettext(
+                'User "%(user)s" changed %(content_type)s object. "%(object)s" - %(changes)s at %(action_time)s'
+            ) % {
                 'user': instance.user,
                 'content_type': instance.content_type,
                 'object': instance.object_repr,
@@ -251,7 +252,9 @@ def export_admin_log(sender, instance, **kwargs):
             }
 
         elif instance.action_flag == DELETION:
-            msg = gettext('User  "%(user)s" deleted %(content_type)s object. "%(object)s" deleted at %(action_time)s') % {
+            msg = gettext(
+                'User  "%(user)s" deleted %(content_type)s object. "%(object)s" deleted at %(action_time)s'
+            ) % {
                 'user': instance.user,
                 'content_type': instance.content_type,
                 'object': instance.object_repr,
