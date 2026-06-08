@@ -1,12 +1,16 @@
 [pytest]
-DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.test"
+DJANGO_SETTINGS_MODULE = 'hhs_oauth_server.settings.test'
 
 python_files = [
-    "tests.py",
-    "test_*.py",
-    "*_tests.py"
+    'tests.py',
+    'test_*.py',
+    '*_tests.py'
 ]
 
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')"
+]
+
+addopts = [
+    '--strict-markers',
 ]
