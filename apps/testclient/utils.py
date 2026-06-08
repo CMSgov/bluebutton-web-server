@@ -2,14 +2,14 @@ import base64
 import hashlib
 import secrets
 import string
-
 from collections import OrderedDict
-from django.conf import settings
 from urllib.parse import parse_qs, urlparse
-from apps.versions import Versions
+
+from django.conf import settings
 
 from apps.dot_ext.models import Application
 from apps.testclient.constants import TESTCLIENT_REDIRECT_URI
+from apps.versions import Versions
 
 
 def _start_url_with_http_or_https(host: str) -> str:
@@ -35,7 +35,9 @@ def _start_url_with_http_or_https(host: str) -> str:
     return host
 
 
-def testclient_http_response_setup(include_client_secret: bool = True, version: int = Versions.NOT_AN_API_VERSION) -> OrderedDict:
+def setup_testclient_http_response(
+    include_client_secret: bool = True, version: int = Versions.NOT_AN_API_VERSION
+) -> OrderedDict:
     """Prepare testclient response environment
 
     When navigating through the testclient, we need to update the Django session

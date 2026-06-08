@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from django.test import tag
+import pytest
 from django.test.client import Client
 from django.urls import reverse
 from httmock import HTTMock, all_requests
@@ -64,7 +64,7 @@ class InsuranceCardTest(BaseApiTest):
                     response = self.client.get(reverse('bb_oauth_fhir_dic_read'), Authorization='Bearer %s' % (token))
                     self.assertEqual(response.status_code, tt['status'])
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_app_scope_permissions_no_patient_read_scope_returns_403(self):
         """
@@ -84,7 +84,7 @@ class InsuranceCardTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'any', 'digital insurance card'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_app_scope_permissions_no_coverage_search_scope_returns_403(self):
         """
@@ -104,7 +104,7 @@ class InsuranceCardTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'any', 'digital insurance card'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_app_scope_permissions_has_both_patient_read_and_coverage_search_scopes_returns_200(self):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
