@@ -1,16 +1,25 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from oauth2_provider.views.base import get_access_token_model
 from oauth2_provider.models import get_application_model
-from rest_framework import permissions, exceptions
+from oauth2_provider.views.base import get_access_token_model
+from rest_framework import exceptions, permissions
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from rest_framework.request import Request
 from waffle import get_waffle_flag_model
-from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, FHIR_RES_TYPE_EOB
-from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
-from apps.versions import Versions, VersionNotMatched
 
-from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.capabilities.models import ProtectedCapability
+from apps.constants import (
+    APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
+    APPLICATION_TEMPORARILY_INACTIVE,
+    FHIR_RES_TYPE_COVERAGE,
+    FHIR_RES_TYPE_EOB,
+    FHIR_RES_TYPE_PATIENT,
+    HHS_SERVER_LOGNAME_FMT,
+)
+from apps.fhir.constants import ALLOWED_RESOURCE_TYPES, READ_SCOPE, READ_SEARCH_SCOPE_LOOKUP, SEARCH_SCOPE
+from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -111,6 +120,59 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
             return True
         else:
             raise PermissionDenied(APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET.format(application.name))
+
+
+class AppScopePermission(permissions.BasePermission):
+    def has_permission(self, request: Request, view) -> bool:
+        """
+        Determines if the user/app has permission to make the call it's trying to make. Takes care of the
+        case where a user/app goes through a v1/v2 auth flow and tries to make a v3 call that it's not authorized to make.
+
+        args:
+          - request: The API Request
+          - view: The view (search, read, etc.)
+        returns:
+          - True if there is a match with the current request and the protected resources the app has in the database.
+          - Raises a custom 403 Forbidden error if not
+        """
+        # if it is not version 3, we do not need to check the scopes
+        if view.version < Versions.V3:
+            return True
+
+        token = get_access_token_model().objects.get(token=request._auth)
+        if not token or not token.application_id:
+            return False
+        app_scopes = list(
+            ProtectedCapability.objects.filter(application=token.application_id).values_list('slug', flat=True).all()
+        )
+        # Determine if the request is read, search, or c4dic
+        view_name = type(view).__name__.lower()
+        request_type = ''
+        if 'search' in view_name:
+            request_type = 'search'
+        elif 'read' in view_name:
+            request_type = 'read'
+        else:
+            request_type = 'c4dic'
+
+        app_token_set = set(app_scopes)
+        if request_type == 'c4dic':
+            # Determine if app has both patient read and coverage search scopes for a dic call
+            patient_set = set(READ_SEARCH_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_PATIENT][READ_SCOPE])
+            coverage_set = set(READ_SEARCH_SCOPE_LOOKUP[request.resource_type][FHIR_RES_TYPE_COVERAGE][SEARCH_SCOPE])
+            if coverage_set.intersection(app_token_set) and patient_set.intersection(app_token_set):
+                return True
+            raise PermissionDenied(
+                APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, 'any', 'digital insurance card')
+            )
+        else:
+            # Determine if scopes from database have correct permission if view was search/read FHIR call
+            resource_set = set(READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type])
+            if resource_set.intersection(app_token_set):
+                return True
+            raise PermissionDenied(
+                APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, request_type, request.resource_type)
+            )
 
 
 class V2ExplanationOfBenefitPermission(permissions.BasePermission):

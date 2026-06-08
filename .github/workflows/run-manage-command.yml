@@ -26,6 +26,21 @@ on:
         description: 'Custom manage.py command — if provided, overrides the dropdown above (e.g. dbshell, shell_plus --print-sql)'
         required: false
         type: string
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to run against'
+        required: true
+        type: string
+      command:
+        description: 'Non-interactive manage.py command to run (e.g. log_global_state_metrics, authflow_id_delete)'
+        required: true
+        type: string
+      skip_protection:
+        description: 'Skip environment protection rules — set true for automated/scheduled callers'
+        required: false
+        type: boolean
+        default: true
 
 env:
   AWS_REGION: us-east-1
@@ -39,7 +54,7 @@ jobs:
     name: Run "${{ inputs.custom_command || inputs.command }}" on ${{ inputs.environment }}
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
-    environment: ${{ inputs.environment }}
+    environment: ${{ !inputs.skip_protection && inputs.environment || '' }}
 
     steps:
       - uses: actions/checkout@v4

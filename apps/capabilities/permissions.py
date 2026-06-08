@@ -1,12 +1,12 @@
 import json
 import re
 
-from apps.dot_ext.scopes import CapabilitiesScopes
 from rest_framework import permissions, status
 from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.scopes import CapabilitiesScopes
 
 
 class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
@@ -37,12 +37,14 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                 if 'coverage-eligibility' in request.auth.application.get_internal_application_labels():
                     token_scopes = CapabilitiesScopes().remove_eob_scopes(token_scopes)
 
-            scopes = list(
-                ProtectedCapability.objects.filter(slug__in=token_scopes).values_list('protected_resources', flat=True).all()
+            protected_resources = list(
+                ProtectedCapability.objects.filter(slug__in=token_scopes)
+                .values_list('protected_resources', flat=True)
+                .all()
             )
 
-            for scope in scopes:
-                for method, path in json.loads(scope):
+            for protected_resource in protected_resources:
+                for method, path in json.loads(protected_resource):
                     if method != request.method:
                         continue
                     if path == request.path:
@@ -51,6 +53,7 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                         return True
 
             return False
+
         else:
             # BB2-237: Replaces ASSERT with exception. We should never reach here.
             mesg = (

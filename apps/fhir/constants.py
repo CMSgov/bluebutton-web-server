@@ -7,6 +7,7 @@ from voluptuous import (
     Range,
 )
 
+from apps.constants import FHIR_RES_TYPE_COVERAGE, FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT
 from apps.versions import Versions
 
 ALLOWED_RESOURCE_TYPES = ['Patient', 'Coverage', 'ExplanationOfBenefit', 'Bundle']
@@ -139,3 +140,48 @@ USER_ID_TYPE_DEFAULT = 'H'
 IDI_MATCH_ENDPOINT = '$idi-match'
 
 DEFAULT_EOB_SOURCE = '_source=NCH'
+COVERAGE_READ_SCOPES = [
+    'patient/Coverage.read',
+    'patient/Coverage.r',
+    'patient/Coverage.rs',
+]
+COVERAGE_SEARCH_SCOPES = [
+    'patient/Coverage.read',
+    'patient/Coverage.s',
+    'patient/Coverage.rs',
+]
+EOB_READ_SCOPES = [
+    'patient/ExplanationOfBenefit.read',
+    'patient/ExplanationOfBenefit.r',
+    'patient/ExplanationOfBenefit.rs',
+]
+EOB_SEARCH_SCOPES = [
+    'patient/ExplanationOfBenefit.read',
+    'patient/ExplanationOfBenefit.s',
+    'patient/ExplanationOfBenefit.rs',
+]
+
+PATIENT_READ_SCOPES = [
+    'patient/Patient.read',
+    'patient/Patient.r',
+    'patient/Patient.rs',
+]
+PATIENT_SEARCH_SCOPES = [
+    'patient/Patient.read',
+    'patient/Patient.s',
+    'patient/Patient.rs',
+]
+READ_SCOPE = 'read'
+SEARCH_SCOPE = 'search'
+BUNDLE_RESOURCE_TYPE = 'Bundle'
+
+READ_SEARCH_SCOPE_LOOKUP = {
+    FHIR_RES_TYPE_PATIENT: {READ_SCOPE: PATIENT_READ_SCOPES, SEARCH_SCOPE: PATIENT_SEARCH_SCOPES},
+    FHIR_RES_TYPE_EOB: {READ_SCOPE: EOB_READ_SCOPES, SEARCH_SCOPE: EOB_SEARCH_SCOPES},
+    FHIR_RES_TYPE_COVERAGE: {READ_SCOPE: COVERAGE_READ_SCOPES, SEARCH_SCOPE: COVERAGE_SEARCH_SCOPES},
+    BUNDLE_RESOURCE_TYPE: {
+        FHIR_RES_TYPE_PATIENT: {READ_SCOPE: PATIENT_READ_SCOPES},
+        FHIR_RES_TYPE_COVERAGE: {SEARCH_SCOPE: COVERAGE_SEARCH_SCOPES},
+    },
+}
+EXCLUDE_SAMHSA_PARAMETER_VALUE = '42CFRPart2'
