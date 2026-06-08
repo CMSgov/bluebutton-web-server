@@ -27,4 +27,4 @@ jobs:
             - name: Run unit tests
               run: |
                 source venv/bin/activate
-                python manage.py test --exclude=integration
+                pytest -m 'not integration'
