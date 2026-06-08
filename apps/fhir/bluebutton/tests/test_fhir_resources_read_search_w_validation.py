@@ -1,7 +1,7 @@
 import json
 from http import HTTPStatus
 
-from django.test import tag
+import pytest
 from django.test.client import Client
 from django.urls import reverse
 from httmock import HTTMock, all_requests
@@ -573,56 +573,56 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
             self.assertEqual(response.status_code, expected_code)
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_EOB_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_COVERAGE_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
         for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
             url = SEARCH_PATIENT_URLS[version]
             self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_EOB_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
             url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_COVERAGE_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
             url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
         url = SEARCH_PATIENT_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(
             url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = SEARCH_EOB_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = SEARCH_COVERAGE_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
         url = SEARCH_PATIENT_URLS[Versions.V3]
         self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
@@ -656,7 +656,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATION:
             self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, that the _source=NCH parameter
@@ -680,7 +680,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_not_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, and a _tag parameter is being passed,
@@ -705,7 +705,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_include_samhsa_is_false(self) -> None:
         """Ensure that if a v3 search EOB call is made, and if the oauth2_provider_accesstoken_extension record
@@ -733,7 +733,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         assert EXCLUDE_SAMHSA_PARAMETER_VALUE in response.json()['link'][0]['url']
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_include_samhsa_is_true(self) -> None:
         """Ensure that if a v3 search EOB call is made, and if the oauth2_provider_accesstoken_extension record
@@ -757,7 +757,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         assert EXCLUDE_SAMHSA_PARAMETER_VALUE not in response.json()['link'][0]['url']
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_v3_eob_call_succeeds(self):
         """
@@ -769,7 +769,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {ac}')
         self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_v12_no_extension_succeeds(self):
         """
         Ensure that a v1/2 call for a token with no AccessTokenExtension succeeds.
@@ -784,7 +784,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_v12_include_samhsa_false_fails(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==False fails
@@ -801,7 +801,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, 403)
             self.assertDictEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_v12_include_samhsa_true_succeeds(self):
         """
         Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==True succeeds
@@ -817,7 +817,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_matching_patient_scope_returns_200(self):
         """
@@ -830,7 +830,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         )
         self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_matching_coverage_scope_returns_200(self):
         """
@@ -843,7 +843,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         )
         self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_matching_eob_scope_returns_200(self):
         """
@@ -854,7 +854,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         response = self.client.get(reverse(SEARCH_EOB_URLS[Versions.V3]), Authorization=f'Bearer {first_access_token}')
         self.assertEqual(response.status_code, 200)
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_no_matching_patient_scope_returns_403(self):
         """
@@ -876,7 +876,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'search', 'Patient'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_no_matching_patient_search_scope_returns_403(self):
         """
@@ -903,7 +903,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'search', 'Patient'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_no_matching_coverage_scope_returns_403(self):
         """
@@ -925,7 +925,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'search', 'Coverage'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_no_matching_coverage_search_scope_returns_403(self):
         """
@@ -952,7 +952,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'search', 'Coverage'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_no_matching_eob_scope_returns_403(self):
         """
@@ -972,7 +972,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'search', 'ExplanationOfBenefit'),
         )
 
-    @tag('integration')
+    @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_no_matching_eob_search_scope_returns_403(self):
         """
