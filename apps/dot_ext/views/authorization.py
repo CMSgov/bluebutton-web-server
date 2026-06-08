@@ -1202,7 +1202,9 @@ class TokenView(DotTokenView):
                 token = get_access_token_model().objects.get(token=access_token)
 
                 code = request.POST.get('code', None)
-                check_auth_tracking_and_create_access_token_extension(prior_include_samhsa, code, grant_type, token)
+                check_auth_tracking_and_create_access_token_extension(
+                    prior_include_samhsa, code, grant_type, token, app.part_d_eob_only
+                )
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id

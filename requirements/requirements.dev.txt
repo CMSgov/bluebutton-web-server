@@ -529,9 +529,9 @@ flask==3.1.3 \
     #   flask-login
     #   flask-wtf
     #   locust
-flask-cors==6.0.4 \
-    --hash=sha256:adb537b3923788b327187dd375ddb09be4ed0b5595cab016bac2ed30a0de7b79 \
-    --hash=sha256:cf3db91a0874aecde0a276565bf4adf4a458edcfd42e668fb0a260549f129317
+flask-cors==6.0.3 \
+    --hash=sha256:d8b13989a630eef065a7b8ff10a183761be5abbb7f001294bd2963e10946cadd \
+    --hash=sha256:f49be9b367355a1ad3a871be5cfd1c4ef97100c81b2078b2cea1db8cd4e42389
     # via locust
 flask-login==0.6.3 \
     --hash=sha256:5e23d14a607ef12806c699590b89d0f0e0d67baeec599d75947bf9c147330333 \

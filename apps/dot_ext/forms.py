@@ -270,6 +270,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             'internal_application_labels',
             'jwks_uri',
             'allowed_auth_type',
+            'part_d_eob_only',
         )
 
     # Duplication of clean_name() from above form, see TODO comment at start of file
