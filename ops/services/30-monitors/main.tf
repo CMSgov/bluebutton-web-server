@@ -22,7 +22,7 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 
 locals {
   env     = terraform.workspace
-  service = "datadog"
+  service = "monitors"
   root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
 
   default_tags = module.platform.default_tags
@@ -64,10 +64,4 @@ module "common_datadog_monitors" {
   env            = local.env
   monitor_config = local.monitor_config
   notify         = local.notify
-}
-
-module "datadog_dashboard" {
-  source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard" # you can specify the commit hash here by appending ?ref=<latest-commit-hash> ; though I'd wait as we all iterate together on improvements to the modules
-  app         = local.app                                                      #or just "bb"
-  runbook_url = "https://thisisatest.cdap.internal.cms.gov"
 }
