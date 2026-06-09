@@ -1,5 +1,7 @@
 ---
 shadow_mode: true
 notifications:
+  slack: true
+  victorops: true
   channels:
     - "@bb2-alerts"
