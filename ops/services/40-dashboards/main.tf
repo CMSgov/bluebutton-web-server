@@ -26,10 +26,14 @@ locals {
   root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
 
   default_tags = module.platform.default_tags
+
+  create_dashboards = local.env == "prod"
 }
 
 module "datadog_dashboard" {
   source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard" # you can specify the commit hash here by appending ?ref=<latest-commit-hash> ; though I'd wait as we all iterate together on improvements to the modules
   app         = local.app                                                      #or just "bb"
   runbook_url = "https://thisisatest.cdap.internal.cms.gov"
+
+  count = local.create_dashboards ? 1 : 0
 }
