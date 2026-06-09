@@ -109,7 +109,38 @@
 							<li>{% trans "Prescription Medications" %}</li>
 						</ul>
 					</div>
-					{% endif %}
+
+					<span style="font-family: 'Montserrat'; font-weight: 600; font-size: 20px;">Alcohol and substance use information</span>
+					<p style="margin-top: 4px !important; margin-bottom: 8px !important;">These include claims related to <b>alcohol</b> and/or <b>substance use disorder treatment</b>.</p>
+					<p style="margin-top: 4px !important;"><b>You may or may not have these claims</b> - not all Medicare enrollees do.</p>
+					<p class="ds-u-margin-top--2 ds-u-margin-bottom--0">
+						<fieldset class="ds-c-fieldset ds-u-margin-top--1">
+							<legend class="ds-c-label" id="field_1-label">
+							</legend>
+							<div>
+							<div class="ds-c-choice-wrapper ds-u-margin-bottom--2" style="align-items: center;">
+								<input type="hidden" name="share_samhsa_data" value="False" />
+								<input
+									onChange="toggleHintText()"
+									class="ds-c-choice"
+									id="radio_1"
+									name="share_samhsa_data"
+									type="checkbox"
+									value="True"
+									aria-describedby="allow_access block_access"
+								/>
+								<label class="ds-c-label ds-u-text-align--left" for="radio_1">
+
+								<span class="ds-text-body--md">{% trans "Include my alcohol and substance use information" %}</span>
+								</label>
+							</div>
+								<span class="ds-c-field__hint" id="allow_access" role="presentation" aria-hidden="true">{% trans "Check to allow access to your sensitive health information." %}</span>
+								<span class="ds-c-field__hint" id="block_access" role="presentation" aria-hidden="true" style="display:none;">{% trans "Uncheck to block access to your sensitive health information." %}</span>
+							</div>
+						</fieldset>
+					</p>
+					<hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
+                    {% endif %}
 
 					{% csrf_token %}
 
