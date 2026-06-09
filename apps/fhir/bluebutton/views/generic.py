@@ -115,6 +115,7 @@ class FhirDataView(APIView):
                 request.include_samhsa = at_extension.include_samhsa
                 request.part_d_eob_only = at_extension.part_d_eob_only
             except ObjectDoesNotExist:
+                print('OBJECT DNE')
                 pass
 
         request.resource_type = resource_type
@@ -252,5 +253,17 @@ class FhirDataView(APIView):
         out_data = r.json()
 
         self.check_object_permissions(request, out_data)
+
+        # If it is a v3 read EOB, make sure we are not returning non-part D data for an access token that can only
+        # access part D data. This is a temporary implementation as part of BB2-4901, will likely change in near term.
+        if (
+            resource_type == FHIR_RES_TYPE_EOB
+            and self.version == Versions.V3
+            and resource_id
+            and getattr(request, 'part_d_eob_only', False)
+        ):
+            if out_data.get('meta', {}).get('source') != 'DDPS':
+                error = NotFound('Not found.')
+                raise error
 
         return out_data
