@@ -782,6 +782,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         access_token_extension = AccessTokenExtension()
         access_token_extension.access_token = ac_record
         access_token_extension.include_samhsa = False
+        access_token_extension.part_d_eob_only = True
         access_token_extension.save()
 
         AccessToken.objects.get(token=ac).accesstokenextension.delete()
@@ -827,6 +828,46 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         for version in [Versions.V1, Versions.V2]:
             response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
             self.assertEqual(response.status_code, 200)
+
+    @pytest.mark.integration
+    def test_v12_include_samhsa_true_part_d_eob_false_succeeds(self):
+        """
+        Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==True succeeds
+        """
+        ac = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac_record = AccessToken.objects.get(token=ac)
+        access_token_extension = AccessTokenExtension()
+        access_token_extension.access_token = ac_record
+        access_token_extension.include_samhsa = True
+        access_token_extension.part_d_eob_only = False
+        access_token_extension.save()
+
+        for version in [Versions.V1, Versions.V2]:
+            response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
+            self.assertEqual(response.status_code, 200)
+
+    @pytest.mark.integration
+    def test_v12_include_samhsa_true_part_d_eob_true_fails(self):
+        """
+        Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==True and
+        AccessTokenExtension.part_d_eob_only = True fails
+        """
+        ac = self.create_token(
+            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+        )
+        ac_record = AccessToken.objects.get(token=ac)
+        access_token_extension = AccessTokenExtension()
+        access_token_extension.access_token = ac_record
+        access_token_extension.include_samhsa = True
+        access_token_extension.part_d_eob_only = True
+        access_token_extension.save()
+
+        for version in [Versions.V1, Versions.V2]:
+            response = self.client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {ac}')
+            self.assertEqual(response.status_code, 403)
+            self.assertDictEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
