@@ -524,6 +524,17 @@ class AccessTokenExtension(models.Model):
         db_table = 'oauth2_provider_accesstoken_extension'
 
 
+class AuthFlowTracking(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    code = models.CharField(max_length=255, null=True, unique=True, db_index=True)
+    include_samhsa = models.BooleanField(null=False, default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    expires = models.DateTimeField()
+
+    class Meta:
+        db_table = 'dot_ext_auth_flow_tracking'
+
+
 def get_application_counts():
     """
     Get the active and inactive counts of applications.
