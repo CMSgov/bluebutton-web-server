@@ -13,6 +13,8 @@ ops/services/
 ├── 01-config/                  # SOPS → SSM parameter provisioning
 ├── 10-cluster/                 # ECS Fargate Cluster
 └── 20-microservices/           # ECS Services, ALB, IAM, Auto-scaling
+└── 30-monitors/                # Datadog monitors
+└── 40-dashboards/              # Datadog dashboards
 ```
 
 ## Symlinked Root Configuration
@@ -24,6 +26,9 @@ Each service directory contains a symlink to `root.tofu.tf`:
 10-cluster/tofu.tf       -> ../root.tofu.tf
 20-microservices/tofu.tf -> ../root.tofu.tf
 ```
+
+30-monitors and 40-dashboards do not contain the symlinked tofu file because they
+require an additional provider.
 
 The shared root provides:
 - S3 backend: `bb-{bucket_env}-app-config` bucket, `ops/services/{service}/tofu.tfstate` key
@@ -40,6 +45,8 @@ Each service defines its own `local.env = terraform.workspace` and `local.servic
 | `01-` | config | SOPS-encrypted config → SSM | 00-bootstrap (KMS) |
 | `10-` | cluster | ECS Fargate Cluster | 00-bootstrap |
 | `20-` | microservices | ECS Services, ALB, IAM | 01-config, 10-cluster |
+| `30-` | monitors | Datadog monitors | all previous |
+| `40-` | dashboards | Datadog dashboards | all previous |
 
 ## Initialize a Service
 
@@ -58,7 +65,7 @@ tofu workspace select test
 
 ```bash
 # Deploy in dependency order
-for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
+for dir in 00-bootstrap 01-config 10-cluster 20-microservices 30-monitors 40-dashboards; do
   echo "=== Deploying $dir ==="
   (cd $dir && tofu apply -auto-approve)
 done
@@ -150,6 +157,18 @@ ECS Fargate application services with ALB, auto-scaling, and IAM.
 
 **Outputs:** `service_names`, `alb_dns_names`, `target_group_arns`, `log_group_names`
 
+---
+
+### 30-monitors
+
+Datadog monitors using the CDAP shared monitors module.
+
+---
+
+### 40-dashboards
+
+Datadog dashboards using the CDAP shared dashboards module.
+
 ## Backend Configuration
 
 - **Bucket:** `bb-{bucket_env}-app-config` (sandbox uses prod bucket)
@@ -171,7 +190,7 @@ Managed via OpenTofu workspaces:
 
 ```bash
 cd ops/services
-for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
+for dir in 00-bootstrap 01-config 10-cluster 20-microservices 30-monitors 40-dashboards; do
   echo "=== Validating $dir ==="
   (cd $dir && tofu validate)
 done

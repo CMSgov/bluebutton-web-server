@@ -29,6 +29,10 @@ export TF_VAR_parent_env=test   # or prod
 10-cluster      ECS Fargate Cluster
      |
 20-microservices  ECS Services, ALB, IAM, Auto-scaling
+     |
+30-monitors     Datadog monitors
+     |
+40-dashboards   Datadog dashboards
 ```
 
 Always deploy top-to-bottom. Destroy bottom-to-top.
@@ -122,6 +126,32 @@ aws ecs describe-services \
   --cluster bb-${ENV}-cluster \
   --services bb-${ENV}-api-service \
   --query 'services[0].{status:status,desired:desiredCount,running:runningCount}'
+
+# ============================================================
+# Step 5: 30-monitors
+# ============================================================
+cd ../30-monitors
+export TF_VAR_parent_env=$TF_VAR_parent_env
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+tofu plan
+tofu apply
+
+# Verify
+TODO
+
+# ============================================================
+# Step 5: 40-dashboards
+# ============================================================
+cd ../40-monitors
+export TF_VAR_parent_env=$TF_VAR_parent_env
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+tofu plan
+tofu apply
+
+# Verify
+TODO
 ```
 
 ---
@@ -130,7 +160,7 @@ aws ecs describe-services \
 
 ```bash
 cd ops/services
-for dir in 20-microservices 10-cluster 01-config 00-bootstrap; do
+for dir in 40-dashboards 30-monitors 20-microservices 10-cluster 01-config 00-bootstrap; do
   echo "=== Destroying $dir ==="
   (cd $dir && tofu workspace select $ENV && tofu destroy -auto-approve)
   echo ""
@@ -161,7 +191,7 @@ tofu apply
 
 ```bash
 cd ops/services
-for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
+for dir in 00-bootstrap 01-config 10-cluster 20-microservices 30-monitors 40-dashboards; do
   echo "=== Planning $dir ==="
   (cd $dir && tofu workspace select $ENV && tofu plan -detailed-exitcode) || true
   echo ""
@@ -172,7 +202,7 @@ done
 
 ```bash
 cd ops/services
-for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
+for dir in 00-bootstrap 01-config 10-cluster 20-microservices 30-monitors 40-dashboards; do
   echo "=== Deploying $dir ==="
   (cd $dir && tofu workspace select $ENV && tofu apply -auto-approve)
   echo ""
@@ -183,7 +213,7 @@ done
 
 ```bash
 cd ops/services
-for dir in 00-bootstrap 01-config 10-cluster 20-microservices; do
+for dir in 00-bootstrap 01-config 10-cluster 20-microservices 30-monitors 40-dashboards; do
   echo "=== Validating $dir ==="
   (cd $dir && tofu validate)
 done

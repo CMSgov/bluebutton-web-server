@@ -18,6 +18,8 @@ ops/
     ├── 01-config/              # SOPS-managed configuration (SSM parameter provisioning)
     ├── 10-cluster/             # ECS Fargate Cluster
     └── 20-microservices/       # Application services (ECS Services, ALB, IAM)
+    └── 30-monitors/            # Datadog monitors
+    └── 40-dashboards/          # Datadog dashboards
 ```
 
 ## Deployment Order
@@ -30,6 +32,10 @@ ops/
 10-cluster      (ECS Fargate Cluster)
      ↓
 20-microservices (ECS Services, ALB, Auto-scaling)
+     ↓
+30-monitors     (Datadog monitors)
+     ↓
+40-dashboards   (Datadog dashboards)
 ```
 
 Always deploy top-to-bottom. Destroy bottom-to-top.
@@ -131,13 +137,39 @@ aws ecs describe-services \
   --cluster bb-${ENV}-cluster \
   --services bb-${ENV}-api-service \
   --query 'services[0].{status:status,desired:desiredCount,running:runningCount}'
+
+# ============================================================
+# Step 5: 30-monitors
+# ============================================================
+cd ../30-monitors
+export TF_VAR_parent_env=$TF_VAR_parent_env
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+tofu plan
+tofu apply
+
+# Verify
+TODO
+
+# ============================================================
+# Step 5: 40-dashboards
+# ============================================================
+cd ../40-dashboards
+export TF_VAR_parent_env=$TF_VAR_parent_env
+tofu init
+tofu workspace select $ENV || tofu workspace new $ENV
+tofu plan
+tofu apply
+
+# Verify
+TODO
 ```
 
 ## Teardown (Reverse Order)
 
 ```bash
 cd ops/services
-for dir in 20-microservices 10-cluster 01-config 00-bootstrap; do
+for dir in 40-dashboards 30-monitors 20-microservices 10-cluster 01-config 00-bootstrap; do
   echo "=== Destroying $dir ==="
   (cd $dir && tofu workspace select $ENV && tofu destroy -auto-approve)
   echo ""
