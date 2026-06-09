@@ -832,7 +832,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     @pytest.mark.integration
     def test_v12_include_samhsa_true_part_d_eob_false_succeeds(self):
         """
-        Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==True succeeds
+        Ensure that a v1/2 call for a token with AccessTokenExtension.include_samhsa==True and
+        AccessTokenExtension.part_d_eob_only==False succeeds
         """
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
