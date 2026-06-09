@@ -163,11 +163,20 @@ ECS Fargate application services with ALB, auto-scaling, and IAM.
 
 Datadog monitors using the CDAP shared monitors module.
 
+**Resources:**
+
+**Configuration sources (priority order):**
+YAML files in `ops/services/30-monitors/config`:
+1. `{env}.yml`
+2. `defaults.yml`
+
 ---
 
 ### 40-dashboards
 
 Datadog dashboards using the CDAP shared dashboards module.
+
+**Resources:**
 
 ## Backend Configuration
 
