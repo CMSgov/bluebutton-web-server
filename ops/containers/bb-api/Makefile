@@ -38,7 +38,7 @@ run-codebuild-integration:
 	@echo "integration tests in Codebuild"
 	docker compose \
 		-f ../docker-compose-codebuild.yaml \
-		exec -T bb-api pytest -m 'integration' apps/integration_tests/test_integration_fhir.py::ContainerizedFhirApiIntegrationTests::test_health_endpoint
+		exec -T bb-api make integration-test
 
 teardown-codebuild:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
