@@ -127,7 +127,7 @@ jobs:
           echo "Waiting for task to finish..."
           until aws ecs wait tasks-stopped \
               --cluster "${{ steps.network.outputs.cluster }}" \
-              --tasks "${{ steps.run-task.outputs.task_arn }}"; do
+              --tasks "${{ steps.run-task.outputs.task_arn }}" 2>/dev/null; do
             echo "..."
           done
 
