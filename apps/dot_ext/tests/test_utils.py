@@ -69,11 +69,13 @@ class TestDOTUtils(TestCase):
             code=self.code,
             grant_type='authorization_code',
             token=self.token,
+            prior_part_d_eob_only=False,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
             access_token=self.token,
             include_samhsa=False,
+            part_d_eob_only=False,
         )
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
@@ -97,7 +99,7 @@ class TestDOTUtils(TestCase):
             code=self.code,
             grant_type='authorization_code',
             token=self.token,
-            app_part_d_eob_only=False,
+            prior_part_d_eob_only=False,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -121,7 +123,7 @@ class TestDOTUtils(TestCase):
             code=self.code,
             grant_type='authorization_code',
             token=self.token,
-            app_part_d_eob_only=False,
+            prior_part_d_eob_only=False,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -151,7 +153,7 @@ class TestDOTUtils(TestCase):
             code=self.code,
             grant_type='refresh_token',
             token=self.token,
-            app_part_d_eob_only=False,
+            prior_part_d_eob_only=False,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(

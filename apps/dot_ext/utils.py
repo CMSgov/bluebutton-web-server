@@ -341,7 +341,11 @@ def validate_latin_extended_string(text: str) -> bool:
 
 
 def check_auth_tracking_and_create_access_token_extension(
-    prior_include_samhsa: bool, code: str, grant_type: str, token: AccessToken, app_part_d_eob_only: bool
+    prior_include_samhsa: bool,
+    code: str,
+    grant_type: str,
+    token: AccessToken,
+    prior_part_d_eob_only: bool,
 ) -> None:
     """Retrieve a record from the AuthFlowTracking table, if available, for the code being used in the authorization
     or refresh request
@@ -351,7 +355,9 @@ def check_auth_tracking_and_create_access_token_extension(
         code (str): The code for the auth or refresh request, used to retrieve AuthFlowTracking record
         grant_type (str): Grant type of the call to TokenView.post
         token (AccessToken): The access token that was generated
-        app_part_d_eob_only (bool): The application part_d_eob_only setting
+        prior_part_d_eob_only (bool): The prior part_d_eob_only for the previously existing AccessTokenExtension. Used
+        to make sure that if the app setting has changed, that the prior part_d_eob_only value is preserved on a token
+        refresh
     """
     include_samhsa = True
 
@@ -373,5 +379,5 @@ def check_auth_tracking_and_create_access_token_extension(
         include_samhsa = prior_include_samhsa
 
     AccessTokenExtension.objects.get_or_create(
-        access_token=token, include_samhsa=include_samhsa, part_d_eob_only=app_part_d_eob_only
+        access_token=token, include_samhsa=include_samhsa, part_d_eob_only=prior_part_d_eob_only
     )
