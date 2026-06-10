@@ -212,6 +212,8 @@ class Application(AbstractApplication):
         verbose_name='JSON Web Key Set URI',
     )
 
+    part_d_eob_only = models.BooleanField(null=False, default=False, verbose_name='Part D EOB Claims Only')
+
     # Text and date must be separated so that built-in Django localization
     # will recognize that the date should be localized when tagged
     def access_end_date_text(self):
@@ -519,6 +521,7 @@ class AccessTokenExtension(models.Model):
     include_samhsa = models.BooleanField(null=False, default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    part_d_eob_only = models.BooleanField(null=False, default=False, verbose_name='Part D EOB Claims Only')
 
     class Meta:
         db_table = 'oauth2_provider_accesstoken_extension'
