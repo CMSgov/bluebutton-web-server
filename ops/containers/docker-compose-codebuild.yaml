@@ -5,6 +5,8 @@ services:
     image: bb-api:codebuild
     command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
     env_file: ./bb-api/files/external/.env.codebuild
+    volumes:
+      - certstore:/tmp/certstore
     # volumes:
     #   - type: tmpfs
     #     target: /tmp
@@ -17,3 +19,6 @@ services:
     #   - type: bind
     #     source: ../..
     #     target: /home/boton/bb
+
+volumes:
+  certstore:
