@@ -125,9 +125,11 @@ jobs:
       - name: Wait for task to complete
         run: |
           echo "Waiting for task to finish..."
-          aws ecs wait tasks-stopped \
-            --cluster "${{ steps.network.outputs.cluster }}" \
-            --tasks "${{ steps.run-task.outputs.task_arn }}"
+          while [ "$EXIT_CODE" != "0" ]; do
+            EXIT_CODE=$(aws ecs wait tasks-stopped \
+              --cluster "${{ steps.network.outputs.cluster }}" \
+              --tasks "${{ steps.run-task.outputs.task_arn }}")
+          done
 
           # Match by container name so sidecar containers don't affect the result
           EXIT_CODE=$(aws ecs describe-tasks \
