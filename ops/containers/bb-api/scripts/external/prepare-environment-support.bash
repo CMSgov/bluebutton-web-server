@@ -76,6 +76,7 @@ load_env_vars () {
         export DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/certstore}"
         export DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
         export DJANGO_SECRET_KEY=$(openssl rand -hex 32)
+        echo "::add-mask::${DJANGO_SECRET_KEY}"
         export DJANGO_SECURE_SESSION="${DJANGO_SECURE_SESSION:-false}"
         export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-hhs_oauth_server.settings.base}"
         export DJANGO_USER_ID_ITERATIONS="${DJANGO_USER_ID_ITERATIONS:-2}"
@@ -167,8 +168,10 @@ retrieve_bfd_certs () {
             >/dev/null 2>&1
         _BFD_KEY_PEM_B64=$(<$KEY_TEMP)
         export BFD_KEY_PEM_B64=$(echo "${_BFD_KEY_PEM_B64}" | base64)
+        echo "::add-mask::${BFD_KEY_PEM_B64}"
         _BFD_CERT_PEM_B64=$(<$CERT_TEMP)
         export BFD_CERT_PEM_B64=$(echo "${_BFD_CERT_PEM_B64}" | base64)
+        echo "::add-mask::${BFD_CERT_PEM_B64}"
         rm -f $KEY_TEMP
         rm -f $CERT_TEMP
     elif [[ "${bfd}" == "test" ]]; then
@@ -177,20 +180,24 @@ retrieve_bfd_certs () {
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
             --query 'SecretString' \
             --output text)
+        echo "::add-mask::${BFD_CERT_PEM_B64}"
         export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
             --query 'SecretString' \
             --output text)
+        echo "::add-mask::${BFD_KEY_PEM_B64}"
     elif [[ "${bfd}" == "sbx" ]]; then
         echo "🆗 BFD for sbx"
         export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
             --query 'SecretString' \
             --output text)
+        echo "::add-mask::${BFD_CERT_PEM_B64}"
         export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
             --query 'SecretString' \
             --output text)
+        echo "::add-mask::${BFD_KEY_PEM_B64}"
     elif [[ "${bfd}" == "prod" ]]; then
         echo "⛔ Fetching BFD certs for prod target not supported locally."
         return 1
@@ -246,9 +253,12 @@ configure_slsx () {
 
     # These seem to be the same regardless of the env (test or sbx).
     export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
+    echo "::add-mask::${DJANGO_USER_ID_SALT}"
     export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
     export DJANGO_SLSX_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_id --query 'SecretString' --output text)
+    echo "::add-mask::${DJANGO_SLSX_CLIENT_ID}"
     export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
+    echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
     export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
     
     echo "Setting SLSX endpoint/redirects..."
