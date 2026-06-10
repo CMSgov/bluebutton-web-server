@@ -54,7 +54,7 @@ permissions:
   contents: read
 
 jobs:
-  migrate:
+  manage-command:
     name: Run "${{ inputs.custom_command || inputs.command }}" on ${{ inputs.environment }}
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
@@ -99,7 +99,7 @@ jobs:
           echo "resolved=${CMD}" >> "$GITHUB_OUTPUT"
           echo "Running: manage.py ${CMD}"
 
-      - name: Run migration task
+      - name: Run task
         id: run-task
         run: |
           TASK_ARN=$(aws ecs run-task \
