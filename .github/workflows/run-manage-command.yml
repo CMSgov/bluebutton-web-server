@@ -130,6 +130,7 @@ jobs:
               --cluster "${{ steps.network.outputs.cluster }}" \
               --tasks "${{ steps.run-task.outputs.task_arn }}"
             EXIT_CODE="$?"
+            echo "wait exit code: $EXIT_CODE"
           done
 
           # Match by container name so sidecar containers don't affect the result
