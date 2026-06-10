@@ -36,6 +36,8 @@ run-codebuild:
 
 run-codebuild-integration:
 	@echo "integration tests in Codebuild"
+	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api env | grep DJANGO_FHIR_CERTSTORE || true
+	docker compose -f ../docker-compose-codebuild.yaml exec -T bb-api ls -la /tmp/certstore || true
 	docker compose \
 		-f ../docker-compose-codebuild.yaml \
 		exec -T bb-api pytest -m 'integration' -x -vv --tb=short
