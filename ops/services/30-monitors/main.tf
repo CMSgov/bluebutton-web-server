@@ -51,7 +51,7 @@ locals {
 module "common_datadog_monitors" {
   source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors" # you can specify the commit hash here by appending ?ref=<latest-commit-hash> ; though I'd wait as we all iterate together on improvements to the modules
 
-  app            = "bbapi"
+  app            = local.app
   env            = local.env
   monitor_config = local.monitor_config
 }
