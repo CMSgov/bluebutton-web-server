@@ -82,6 +82,7 @@ jobs:
         run: |
           cd ./ops/containers/bb-api
           make run-codebuild-integration
+          ls -la
 
       - name: Teardown Stack
         if: always()
