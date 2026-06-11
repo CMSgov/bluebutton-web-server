@@ -45,7 +45,7 @@ run-codebuild-integration:
 	   wc -c /tmp/certstore/ca.cert.pem /tmp/certstore/ca.key.nocrypt.pem 2>&1'
 	docker compose \
 		-f ../docker-compose-codebuild.yaml \
-		exec -T bb-api pytest -m 'integration' -x -vv --tb=short
+		exec -T -e LOCAL_TESTING_TARGET=impl bb-api pytest -m 'integration' -x -vv --tb=short
 
 teardown-codebuild:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
