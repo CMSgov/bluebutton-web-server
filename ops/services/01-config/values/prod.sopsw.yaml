@@ -93,7 +93,7 @@
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 #ENC[AES256_GCM,data:akyZQZ1Mb5M=,iv:K5KLDnAafZlFZt9XgGwsbrRpXpx3Dd9ATPikQw4esKU=,tag:cDuGvvXArfdO0xliP9gkug==,type:comment]
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
-/bb/prod/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:hskf6yL7Yxp/Q36W,iv:8LbyDqfe5it5vmw3j/naJFld53ifCXJAj9PKGhX0Phw=,tag:fVhxkpzT1KF/7ISMCZoUBQ==,type:int]
+/bb/prod/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:Y3OGR0m44tKiM3n8,iv:ECtCys8q7KjiAWwlW2a9dgrQFQRZGzZ11En3OUAsKHU=,tag:I18ZEN66og+nYPGzggwlxg==,type:int]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-prod-app-key-alias

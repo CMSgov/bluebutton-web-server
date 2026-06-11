@@ -93,7 +93,7 @@
 #ENC[AES256_GCM,data:etJuMbKWQ0eVN2BYCoqNPOCysTgkaSkJlDAhs4q7QcdoMf8EN+xJ4RwNOf+xCRGcOZeHkzUJlCETeZ179TWzfB3N49R8p3LU2ZrSF54=,iv:ZwQ7c8FbeCF4jQKXALyxcK+WXwV5o6X2/QFGqAeo2tI=,tag:4Utwk/gsCx+eMXSo5L9SCw==,type:comment]
 #ENC[AES256_GCM,data:xVV3YM3JaLI=,iv:Vk1eeQ1Elneu1L8MOTLARlqHZKHXQ9UJkwL+yjA6lcQ=,tag:S356SiMEgd5lMyRRxkOPEA==,type:comment]
 #ENC[AES256_GCM,data:etJuMbKWQ0eVN2BYCoqNPOCysTgkaSkJlDAhs4q7QcdoMf8EN+xJ4RwNOf+xCRGcOZeHkzUJlCETeZ179TWzfB3N49R8p3LU2ZrSF54=,iv:ZwQ7c8FbeCF4jQKXALyxcK+WXwV5o6X2/QFGqAeo2tI=,tag:4Utwk/gsCx+eMXSo5L9SCw==,type:comment]
-/bb/sandbox/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:b2j0A0OgcWek65l4,iv:R3SiaZwQr7PL4292UgX+VbrsAZLokH/rY6hhYnnnBWQ=,tag:lKOelJwHf+m8RnfqIE7V4w==,type:int]
+/bb/sandbox/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:NKOUxTgd35iCmuvw,iv:EX4LxUyHDz+OnXW+wtYQsJCSVmCQqRwlz/IxpImmVnc=,tag:FlIC14H/hBaZxJWw+kya2A==,type:int]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-sandbox-app-key-alias
