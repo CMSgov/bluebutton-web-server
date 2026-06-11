@@ -200,7 +200,6 @@ class BlueButtonClientApiFhirTest(TestCase):
         self.assertEqual(response['Content-Type'], 'application/fhir+json')
         self.assertContains(response, self.patient)
 
-    @pytest.mark.integration
     def test_get_patient_v2(self):
         self._test_get_patient(Versions.V2)
 

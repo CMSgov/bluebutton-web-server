@@ -28,9 +28,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           source venv/bin/activate
-          mkdir -p tmp/certstore
-          touch tmp/certstore/ca.cert.pem tmp/certstore/ca.key.nocrypt.pem
-          python manage.py test --exclude=integration
+          pytest -m 'not integration'
 
   integration-test:
     env:
