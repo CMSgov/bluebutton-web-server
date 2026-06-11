@@ -5,3 +5,10 @@ notifications:
   victorops: true
   channels:
     - "@bb2-alerts"
+enabled:
+  ecs: true
+  sqs: false
+  sns: true
+  lambda: true
+  s3: true
+  rds: true
