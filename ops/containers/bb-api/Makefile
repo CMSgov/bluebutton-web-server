@@ -38,7 +38,7 @@ run-codebuild-integration:
 	@echo "integration tests in Codebuild"
 	docker compose \
 		-f ../docker-compose-codebuild.yaml \
-		exec -T bb-api pytest --collect-only -m 'not integration' -vv --tb=short >> collectedtests.txt
+		exec -T bb-api pytest --collect-only -m 'integration' -vv --tb=short >> collectedtests.txt
 
 teardown-codebuild:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
