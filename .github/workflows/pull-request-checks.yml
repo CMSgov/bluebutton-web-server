@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ruff-unit-test:
+  ruff:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,20 @@ jobs:
         run: |
           source venv/bin/activate
           ruff check
+
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install python dependencies
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements/requirements.dev.txt --no-deps --prefer-binary --require-hashes
 
       - name: Run Unit Tests
         run: |
