@@ -3,7 +3,7 @@ services:
   # Blue Button - Codebuild
   bb-api:
     image: bb-api:codebuild
-    command: /home/boton/bb/ops/containers/bb-api/scripts/internal/entrypoint.bash
+    network_mode: "host"
     env_file: ./bb-api/files/external/.env.codebuild
     # volumes:
     #   - type: tmpfs
