@@ -5,15 +5,9 @@ services:
     image: bb-api:codebuild
     network_mode: "host"
     env_file: ./bb-api/files/external/.env.codebuild
-    # volumes:
-    #   - type: tmpfs
-    #     target: /tmp
-    #     tmpfs:
-    #       size: 500m
-    #       mode: 1777
-    #   - type: bind
-    #     source: ./bb-api/scripts
-    #     target: /home/boton/bb/ops/containers/bb-api/scripts
-    #   - type: bind
-    #     source: ../..
-    #     target: /home/boton/bb
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /tmp/certstore/ca.cert.pem && test -s /tmp/certstore/ca.key.nocrypt.pem"]
+      interval: 3s
+      timeout: 2s
+      retries: 30
+      start_period: 90s
