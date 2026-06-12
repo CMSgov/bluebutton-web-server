@@ -5,8 +5,6 @@ source ops/containers/bb-api/scripts/internal/entrypoint-support.bash
 
 echo "TARGET_ENV: $TARGET_ENV"
 
-set -e -o pipefail
-
 # ========== ENV VARS ==========
 # (Re-)export the variables we need for the rest of the launch.
 # Any per-environment choices for vars happens here, too.

@@ -5,7 +5,7 @@ env         ?= local
 auth        ?= live
 
 .PHONY: css requirements build-local build-local-no-cache build-production run-local \
-		migrate collectstatic run-selenium-target-local build-selenium
+		migrate collectstatic run-selenium-local build-selenium
 
 css:
 	$(MAKE) -C bb-css build-local run-local
@@ -43,9 +43,9 @@ collectstatic:
 	COLLECTSTATIC=1 bfd="test" env="local" TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
-run-selenium-target-local:
+run-selenium-local:
 	@echo "Running Selenium: Local"
-	$(MAKE) -C selenium run-selenium-target-local AUTH="$(auth)"
+	$(MAKE) -C selenium run-selenium-local AUTH="$(auth)" DEBUG="$(debug)"
 
 build-selenium:
 	@echo "Building Selenium..."

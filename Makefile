@@ -1,13 +1,10 @@
 .PHONY: build-local build-local-no-cache run-local build-selenium \
-        run-selenium reqs-install reqs-install-dev generate \
+        run-selenium-local reqs-install reqs-install-dev generate \
         generate-requirements migrate collectstatic \
         unit-test integration-test
 
-build-local build-local-no-cache run-local build-selenium migrate collectstatic:
+build-local build-local-no-cache run-local build-selenium migrate collectstatic run-selenium-local:
 	$(MAKE) -C ops/containers $@
-
-run-selenium:
-	$(MAKE) -C ops/containers run-selenium-target-local
 
 reqs-install:
 	pip install -r requirements/requirements.txt
