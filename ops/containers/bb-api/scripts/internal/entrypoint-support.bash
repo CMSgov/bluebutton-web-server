@@ -106,7 +106,7 @@ launch_blue_button () {
     echo "🟦 Launch Blue Button"
     mkdir -p /tmp/gunicorn
     # Start BBAPI via `gunicorn`
-    if [[ $TARGET_ENV == "local"  ]]; then
+    if [[ $TARGET_ENV == "local" ]]; then
         if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]; then
             echo "🔵 local run options (wait for attach...)"
             python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m gunicorn \

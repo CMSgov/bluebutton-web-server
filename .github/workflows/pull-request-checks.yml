@@ -83,12 +83,6 @@ jobs:
           cd ./ops/containers/bb-api
           make run-codebuild-integration
 
-      - name: Upload Collected Tests File
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-collected-tests-file
-          path: ./ops/containers/bb-api/collectedtests.txt
-
       - name: Teardown Stack
         if: always()
         run: |
