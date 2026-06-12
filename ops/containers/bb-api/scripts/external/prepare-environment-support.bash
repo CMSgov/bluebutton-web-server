@@ -22,6 +22,14 @@ check_valid_env () {
     elif [[ "${bfd}" == "test" ]]; then
         :
     #####
+    # SBX
+    elif [[ "${bfd}" == "sbx" ]]; then
+        :
+    ##### 
+    # PROD
+    elif [[ "${bfd}" == "prod" ]]; then
+        :
+    #####
     # ERR
     else
         echo "⛔ 'bfd' must be set to 'local' or 'test'"
@@ -135,6 +143,18 @@ set_bfd_urls () {
         FHIR_URL="${FHIR_URL_TEST}"
         FHIR_URL_V3="${FHIR_URL_V3_TEST}"
         LOCAL_TESTING_TARGET="test"
+    ############
+    # SBX
+    elif [[ "${bfd}" == "sbx" ]]; then
+        FHIR_URL="${FHIR_URL_SBX}"
+        FHIR_URL_V3="${FHIR_URL_V3_SBX}"
+        # FIXME: Do we use "impl" or "sbx"? ...
+        LOCAL_TESTING_TARGET="impl"
+    ############
+    # PROD
+    elif [[ "${bfd}" == "prod" ]]; then
+        echo "⛔ no way to set BFD urls for prod when running locally"
+        return 1
     fi
 
     return 0
