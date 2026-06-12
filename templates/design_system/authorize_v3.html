@@ -277,6 +277,16 @@
 						You can also grant access to (Optional):
 					</div>
 
+					{% if application.part_d_eob_only %}
+
+					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #404040">
+						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
+						<input type="hidden" name="share_demographic_scopes" value="True" />
+						<span class="ds-text-body--md" style="font-weight: 600;">Prescription drug claims (required)</span>
+						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 12px;">This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments</p>
+					</div>
+
+					{% else %}
 					<div class="ds-c-accordion" id="my-accordion" style="color: #404040">
 
 						<div class="ds-c-accordion__item">
@@ -321,7 +331,8 @@
 								</ul>
 						</div>
 					</div>
-
+					
+					{% endif %}
                     {% endif %}
 
 					{% csrf_token %}
