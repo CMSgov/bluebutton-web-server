@@ -54,7 +54,7 @@ run-codebuild-selenium:
 	@echo "Running selenium tests in codebuild"
 	docker compose \
 		-f ../docker-compose-codebuild-selenium.yaml \
-		run --rm selenium-tests
+		../selenium/run-selenium-local.sh
 
 teardown-codebuild-selenium:
 	docker compose -f ../docker-compose-codebuild-selenium.yaml down -v
