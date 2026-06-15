@@ -403,7 +403,7 @@ class AuthorizationView(DotAuthorizationView):
 
     def form_valid(self, form):
         client_id = form.cleaned_data['client_id']
-        print('form cleaned data: ', form.cleaned_data)
+
         application = get_application_model().objects.get(client_id=client_id)
         credentials = {
             'client_id': form.cleaned_data.get('client_id'),
