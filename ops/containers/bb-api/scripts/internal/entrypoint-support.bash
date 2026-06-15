@@ -43,7 +43,7 @@ check_bfd_certs_are_not_empty () {
     return 0
 }
 
-possibly_migrate_or_collectstatic_if_local () {
+possibly_migrate_or_collectstatic () {
     echo "🟦 possibly migrate or collectstatic"
 
     if [[ $TARGET_ENV == "codebuild" ]]; then
@@ -175,7 +175,7 @@ launch_blue_button () {
 }
 
 ########################################
-# Function for setting up local stack
+# Function for setting up local or codebuild stack
 setup_database_and_users () {
     echo "🟦 Setup database and users if local or codebuild"
 

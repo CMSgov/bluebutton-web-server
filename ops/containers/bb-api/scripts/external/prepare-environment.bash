@@ -20,7 +20,6 @@ echo "🥑 TARGET_ENV   ${TARGET_ENV}"
 
 ####################################
 # ENV SETUP
-# env must be 'test' or 'local'
 check_valid_env
 gonogo "check_valid_env"
 

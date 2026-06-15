@@ -27,7 +27,6 @@ ENV VENVPATH="${BASE}/venv"
 ENV BOTONBIN="${VENVPATH}/bin"
 # Add this directory to PATH
 ENV PATH="${BOTONBIN}:${PATH}"
-# We run nginx in front of the app for HTTPS termination.
 ENV GUNICORN_PORT=${GUNICORN_PORT:-8000}
 EXPOSE ${GUNICORN_PORT}
 

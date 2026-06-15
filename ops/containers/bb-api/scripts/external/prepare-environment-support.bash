@@ -12,7 +12,7 @@ gonogo () {
 
 ########################################
 # check_valid_env
-# Makes sure we have one of the two valid
+# Makes sure we have one of the four valid
 # execution environments for this script
 check_valid_env () {
     if [[ "${bfd}" == "local" ]]; then
@@ -32,7 +32,7 @@ check_valid_env () {
     #####
     # ERR
     else
-        echo "⛔ 'bfd' must be set to 'local' or 'test'"
+        echo "⛔ 'bfd' must be set to 'local', 'test', 'sbx', or 'prod'."
         echo "⛔ 'bfd' is currently set to '${bfd}'."
         echo "Exiting."
         return 1
@@ -56,7 +56,7 @@ check_env_preconditions () {
         # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
         if [ -z ${bfd} ]; then
             echo "'bfd' not set. Cannot retrieve certs."
-            echo "'bfd' must be one of 'local' or 'test'"
+            echo "'bfd' must be one of 'local', 'test', or 'sbx'."
             echo "For example:"
             echo "  make run-local bfd=test"
             echo "Exiting."
