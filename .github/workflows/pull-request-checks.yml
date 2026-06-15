@@ -88,3 +88,45 @@ jobs:
         run: |
           cd ./ops/containers/bb-api
           make teardown-codebuild
+
+  selenium-tests:
+    env:
+      AWS_REGION: us-east-1
+
+    permissions:
+      id-token: write
+      contents: read
+
+    # This will only run on test
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build BBAPI
+        run: |
+          cd ./ops/containers/bb-api
+          make build-codebuild
+
+      - name: Start Stack
+        run: |
+          cd ./ops/containers/bb-api
+          make run-codebuild
+      
+      - name: Build Selenium
+        run: |
+          cd ./ops/containers/selenium
+          make build-selenium
+
+      - name: Run Selenium Tests
+        run: |
+          cd ./ops/containers/selenium
+          make run-selenium-local
+
+      - name: Teardown Stack
+        if: always()
+        run: |
+          cd ./ops/containers/bb-api
+          make teardown-codebuild
+          make teardown-codebuild-selenium
