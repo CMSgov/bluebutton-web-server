@@ -52,9 +52,8 @@ build-codebuild-selenium:
 
 run-codebuild-selenium:
 	@echo "Running selenium tests in codebuild"
-	docker compose \
-		-f ../docker-compose-codebuild-selenium.yaml \
-		exec -T bb-api ../selenium/run-selenium-local.sh
+	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" \
+	bash ../selenium/run_selenium-local.sh
 
 teardown-codebuild-selenium:
 	docker compose -f ../docker-compose-codebuild-selenium.yaml down -v
