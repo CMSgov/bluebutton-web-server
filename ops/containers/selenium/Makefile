@@ -13,6 +13,9 @@ build-selenium:
 		-t selenium-local:latest \
 		-f Dockerfile.selenium .
 
+selenium-test:
+	$(MAKE) -C ../../.. selenium-test
+
 run-remote:
 	@echo "Running Selenium: Remote"
 	@echo "TODO:"

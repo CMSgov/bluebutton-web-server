@@ -1,0 +1,38 @@
+services:
+  ####################
+  # Selenium Tests - Codebuild
+  selenium-tests:
+    image: selenium-local:latest
+    command: /code/ops/containers/selenium/start-selenium-codebuild.sh
+    environment:
+      - HOSTNAME_URL=http://bb-api:8000
+      - USE_MSLSX=false
+      - USE_LOGIN_WITH_MEDICARE_BUTTON=true
+      - USE_NEW_PERM_SCREEN=true
+      - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.test
+      - SELENIUM_GRID=true
+      - DEBUG_MODE=false
+      - TARGET_ENV=codebuild
+      - PYTEST_SHOW_TRACE_OPT=
+    volumes:
+      - type: bind
+        source: ../..
+        target: /code
+    depends_on:
+      chrome:
+        condition: service_started
+    networks:
+      - codebuild
+
+  ####################
+  # Chrome for Selenium Remote
+  chrome:
+    image: selenium/standalone-chromium
+    hostname: chrome
+    networks:
+      - codebuild
+
+networks:
+  codebuild:
+    external: true
+    name: containers_default

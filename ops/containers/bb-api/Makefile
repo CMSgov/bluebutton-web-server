@@ -6,7 +6,8 @@ env         ?= local
 auth        ?= live
 
 .PHONY: build-local build-local-no-cache build-codebuild run-codebuild \
-        run-codebuild-integration teardown-codebuild run-local
+        run-codebuild-integration run-codebuild-selenium teardown-codebuild \
+        teardown-codebuild-selenium run-local
 
 build-local:
 	@echo "Building local"
@@ -42,6 +43,21 @@ run-codebuild-integration:
 
 teardown-codebuild:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
+
+build-codebuild-selenium:
+	@echo "Building selenium image for codebuild"
+	docker build \
+		-t selenium-local:latest \
+		-f ../selenium/Dockerfile.selenium ../../..
+
+run-codebuild-selenium:
+	@echo "Running selenium tests in codebuild"
+	docker compose \
+		-f ../docker-compose-codebuild-selenium.yaml \
+		run --rm selenium-tests
+
+teardown-codebuild-selenium:
+	docker compose -f ../docker-compose-codebuild-selenium.yaml down -v
 
 run-local:
 	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" \

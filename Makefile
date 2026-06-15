@@ -1,7 +1,7 @@
 .PHONY: build-local build-local-no-cache run-local build-selenium \
         run-selenium-local reqs-install reqs-install-dev generate \
         generate-requirements migrate collectstatic \
-        unit-test integration-test
+        unit-test integration-test selenium-test
 
 build-local build-local-no-cache run-local build-selenium migrate collectstatic run-selenium-local:
 	$(MAKE) -C ops/containers $@
@@ -20,3 +20,6 @@ unit-test:
 
 integration-test:
 	pytest -m 'integration'
+
+selenium-test:
+	pytest -s --tb=line ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py

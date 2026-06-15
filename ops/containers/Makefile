@@ -5,7 +5,7 @@ env         ?= local
 auth        ?= live
 
 .PHONY: css requirements build-local build-local-no-cache build-production run-local \
-		migrate collectstatic run-selenium-local build-selenium
+		migrate collectstatic run-selenium-target-local build-selenium selenium-test
 
 css:
 	$(MAKE) -C bb-css build-local run-local
@@ -50,3 +50,14 @@ run-selenium-local:
 build-selenium:
 	@echo "Building Selenium..."
 	$(MAKE) -C selenium build-selenium
+
+selenium-test:
+	@echo "--- Selenium Test Environment ---"
+	@echo "HOSTNAME_URL:        $${HOSTNAME_URL}"
+	@echo "DJANGO_SETTINGS_MODULE: $${DJANGO_SETTINGS_MODULE}"
+	@echo "SELENIUM_GRID:       $${SELENIUM_GRID}"
+	@echo "USE_MSLSX:           $${USE_MSLSX}"
+	@echo "TARGET_ENV:          $${TARGET_ENV}"
+	@echo "DEBUG_MODE:          $${DEBUG_MODE}"
+	@echo "---------------------------------"
+	$(MAKE) -C ../.. selenium-test
