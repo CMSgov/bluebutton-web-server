@@ -54,6 +54,7 @@
 .ds-c-accordion__button-line2 {
 	font-weight: 400;
 	font-size: 14px;
+	line-height: 150%;
 }
 .ds-c-accordion__item{
 	border: 1px solid #D9D9D9;
@@ -69,6 +70,7 @@
   align-items: center;
   margin-right: 0.75rem;
   flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .ds-c-accordion__button-checkbox-wrap input[type="checkbox"] {
@@ -82,7 +84,7 @@
 
 <section class="ds-content">
 
-	<div class="ds-l-container ds-u-padding-top--4 ds-u-padding-bottom--2" style="max-width: 820px;">
+	<div class="ds-l-container ds-u-padding-top--4 ds-u-padding-bottom--2" style="max-width: 900px;">
 		<div class="ds-u-text-align--center">
 			<svg
 			role="img"
@@ -167,12 +169,11 @@
 								<div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
 									<span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
 								</div>
-								{{application.name}} {% trans " will have access to your data for " %}{%trans permission_end_date_text %}
-								{% if permission_end_date is None %}.
+								{{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
                                 {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
 								{% endif %}
 								{% trans "Afterwards, you will need to give permission again. To stop sharing your data, visit " %}
-								<a href="https://www.medicare.gov/my/connected-apps" target="_blank" style="text-decoration: underline;">Medicare.gov/my/connected-apps</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)" %}
+								<a href="https://www.medicare.gov/my/connected-apps" target="_blank" style="text-decoration: underline;">Medicare.gov/my/connected-apps</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)." %}
 							</div>
 						</div>
 					</div>
@@ -189,7 +190,7 @@
 						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
 						<input type="hidden" name="share_demographic_scopes" value="True" />
 						<span class="ds-text-body--md" style="font-weight: 600;">Personal Information (required)</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 12px;">Your name, date of birth, race, and sex</p>
+						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">Your name, date of birth, race, and sex</p>
 					</div>
 					{% endif %}
 
@@ -227,7 +228,7 @@
 								<p style="font-size: 14px; font-weight: 700; margin-bottom: 8px !important;">Medicare coverage data, if applicable:</p>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
 									<li>Medicaid dual eligibility status</li>
-									<li>Medicaid state and elgibility date</li>
+									<li>Medicaid state and eligibility date</li>
 									<li>Low-income subsidy details (determination, copayment level, premium percentage)</li>
 								</ul>
 						</div>
@@ -283,7 +284,7 @@
 						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
 						<input type="hidden" name="share_demographic_scopes" value="True" />
 						<span class="ds-text-body--md" style="font-weight: 600;">Prescription drug claims (required)</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 12px;">This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments</p>
+						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments</p>
 					</div>
 
 					{% else %}
