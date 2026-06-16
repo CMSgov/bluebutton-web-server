@@ -1049,32 +1049,37 @@ class TokenView(DotTokenView):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
-    def _retrieve_prior_include_samhsa_value(self, grant_type: str, request: HttpRequest) -> bool:
+    def _retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+        self, grant_type: str, request: HttpRequest, app_part_d_eob_only: bool
+    ) -> bool:
         prior_include_samhsa = True
+        prior_part_d_eob_only = app_part_d_eob_only
         refresh_token_str = None
         RefreshToken = get_refresh_token_model()
+
         if grant_type == 'refresh_token':
             if request:
                 refresh_token_str = request.POST.get('refresh_token')
 
             if not refresh_token_str:
-                return prior_include_samhsa
+                return prior_include_samhsa, prior_part_d_eob_only
 
             try:
                 refresh_token = RefreshToken.objects.get(token=refresh_token_str)
             except RefreshToken.DoesNotExist:
                 log.info('Could not find refresh token when retrieving prior samhsa value')
-                return prior_include_samhsa
+                return prior_include_samhsa, prior_part_d_eob_only
 
             try:
                 prior_access_token_extension = AccessTokenExtension.objects.get(
                     access_token_id=refresh_token.access_token_id
                 )
                 prior_include_samhsa = prior_access_token_extension.include_samhsa
+                prior_part_d_eob_only = prior_access_token_extension.part_d_eob_only
             except AccessTokenExtension.DoesNotExist:
                 # this case indicates it was an access token created before the access token extension was added
                 log.info(f'No access token extension for access token id: {refresh_token.access_token_id}')
-        return prior_include_samhsa
+        return prior_include_samhsa, prior_part_d_eob_only
 
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -1190,7 +1195,9 @@ class TokenView(DotTokenView):
                 status=HTTPStatus.FORBIDDEN,
             )
 
-        prior_include_samhsa = self._retrieve_prior_include_samhsa_value(grant_type, request)
+        prior_include_samhsa, prior_part_d_eob_only = self._retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+            grant_type, request, app.part_d_eob_only
+        )
 
         url, headers, body, status = self.create_token_response(request)
 
@@ -1202,7 +1209,9 @@ class TokenView(DotTokenView):
                 token = get_access_token_model().objects.get(token=access_token)
 
                 code = request.POST.get('code', None)
-                check_auth_tracking_and_create_access_token_extension(prior_include_samhsa, code, grant_type, token)
+                check_auth_tracking_and_create_access_token_extension(
+                    prior_include_samhsa, code, grant_type, token, prior_part_d_eob_only
+                )
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id
