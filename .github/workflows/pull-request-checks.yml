@@ -105,6 +105,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup AWS credentials
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: test
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
+
       - name: Build BBAPI
         run: |
           cd ./ops/containers/bb-api
@@ -114,7 +123,7 @@ jobs:
         run: |
           cd ./ops/containers/bb-api
           make run-codebuild
-      
+
       - name: Build Selenium
         run: |
           cd ./ops/containers/selenium
@@ -122,12 +131,13 @@ jobs:
 
       - name: Run Selenium Tests
         run: |
-          cd ./ops/containers/selenium
-          make run-selenium-local
+          docker compose \
+            -f ops/containers/docker-compose-codebuild-selenium.yaml \
+            run --rm selenium-tests
 
       - name: Teardown Stack
         if: always()
         run: |
+          docker compose -f ops/containers/docker-compose-codebuild-selenium.yaml down -v || true
           cd ./ops/containers/bb-api
           make teardown-codebuild
-          make teardown-codebuild-selenium
