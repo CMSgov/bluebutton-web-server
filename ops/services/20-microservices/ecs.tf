@@ -38,6 +38,33 @@ resource "aws_ecs_task_definition" "ecs_task" {
         "awslogs-stream-prefix" = "ecs"
       }
     }
+  }, {
+    name = "datadog-agent"
+    image = "public.ecr.aws/datadog/agent:latest"
+    essential = true
+
+    environment = [
+      {
+        name = "DD_API_KEY"
+        value = sensitive(data.aws_secretsmanager_secret_version.datadog_agents_api_key.secret_string)
+      },
+      {
+        name = "DD_SITE"
+        value = "ddog-gov.com"
+      },
+      {
+        name = "ECS_FARGATE"
+        value = "true"
+      }
+    ]
+
+    healthCheck = {
+      retries = 3
+      command = ["CMD-SHELL", "agent health"]
+      timeout = 5
+      interval = 30
+      startPeriod = 15
+    }
   }])
 
   task_role_arn            = aws_iam_role.task[each.key].arn
