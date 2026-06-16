@@ -4,8 +4,9 @@ services:
   selenium-tests:
     image: selenium-local:latest
     command: /code/ops/containers/selenium/start-selenium-codebuild.sh
+    network_mode: "host"
     environment:
-      - HOSTNAME_URL=http://bb-api:8000
+      - HOSTNAME_URL=http://localhost:8000
       - USE_MSLSX=false
       - USE_LOGIN_WITH_MEDICARE_BUTTON=true
       - USE_NEW_PERM_SCREEN=true
@@ -18,21 +19,10 @@ services:
       - type: bind
         source: ../..
         target: /code
-    depends_on:
-      chrome:
-        condition: service_started
-    networks:
-      - codebuild
 
   ####################
   # Chrome for Selenium Remote
   chrome:
     image: selenium/standalone-chromium
     hostname: chrome
-    networks:
-      - codebuild
-
-networks:
-  codebuild:
-    external: true
-    name: containers_default
+    network_mode: "host"
