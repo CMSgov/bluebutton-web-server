@@ -20,6 +20,12 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
   secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.env}/datadog/cicd/application-key"
 }
 
+provider "datadog" {
+  api_key = sensitive(data.aws_secretsmanager_secret_version.datadog_cicd_api_key.secret_string)
+  app_key = sensitive(data.aws_secretsmanager_secret_version.datadog_cicd_application_key.secret_string)
+  api_url = "https://api.ddog-gov.com"
+}
+
 locals {
   env     = terraform.workspace
   service = "dashboards"
