@@ -6,7 +6,6 @@ from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.scopes import CapabilitiesScopes
 
 
 class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
@@ -32,10 +31,6 @@ class TokenHasProtectedCapability(permissions.BasePermission):
 
         if hasattr(token, 'scope'):  # OAuth 2
             token_scopes = token.scope.split()
-
-            if switch_is_active('enable_coverage_only'):
-                if 'coverage-eligibility' in request.auth.application.get_internal_application_labels():
-                    token_scopes = CapabilitiesScopes().remove_eob_scopes(token_scopes)
 
             protected_resources = list(
                 ProtectedCapability.objects.filter(slug__in=token_scopes)

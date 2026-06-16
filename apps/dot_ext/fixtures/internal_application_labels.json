@@ -82,15 +82,6 @@
     },
     {
         "model": "dot_ext.internalapplicationlabels",
-        "pk": 11,
-        "fields": {
-            "label": "Coverage / Eligibility",
-            "slug": "coverage-eligibility",
-            "description": "Desc: place holder"
-        }
-    },
-    {
-        "model": "dot_ext.internalapplicationlabels",
         "pk": 12,
         "fields": {
             "label": "Other",
