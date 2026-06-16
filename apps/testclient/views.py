@@ -1,36 +1,32 @@
 import json
 import logging
-from django.http import HttpRequest
-from django.conf import settings
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import MissingTokenError, InvalidClientIdError
-from requests_oauthlib import OAuth2Session
-from urllib.parse import parse_qs, urlparse
-from json import JSONDecodeError
-from typing import Dict
 import re
 from collections import namedtuple
+from json import JSONDecodeError
+from typing import Dict
+from urllib.parse import parse_qs, urlparse
 
+from django.conf import settings
+from django.http import HttpRequest
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, MissingTokenError
+from requests_oauthlib import OAuth2Session
 from waffle.decorators import waffle_switch
 
-from apps.testclient.utils import (
-    testclient_http_response_setup,
-    get_client_secret,
-    extract_page_nav,
-    _start_url_with_http_or_https,
-)
-
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
-from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
-
-from apps.constants import HHS_SERVER_LOGNAME_FMT
-
-from apps.versions import Versions, VersionNotMatched
-
 from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, ResponseErrors
+from apps.testclient.utils import (
+    _start_url_with_http_or_https,
+    extract_page_nav,
+    get_client_secret,
+    setup_testclient_http_response,
+)
+from apps.versions import VersionNotMatched, Versions
+from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -200,7 +196,9 @@ def callback(request: HttpRequest):
         # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
         # cannot be pulled from the session.
         cv = request.session.get('code_verifier', '')
-        token = oas.fetch_token(token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv)
+        token = oas.fetch_token(
+            token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv
+        )
     except MissingTokenError:
         token_uri = request.session['token_uri']
         logger.error(f'MissingToken: failed to get token from {token_uri}')
@@ -315,7 +313,7 @@ def _link_session_or_version_is_bad(session, version):
 
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    request.session.update(testclient_http_response_setup(version=version))
+    request.session.update(setup_testclient_http_response(version=version))
 
     oas = _get_oauth2_session_with_redirect(request)
 
@@ -500,7 +498,11 @@ def _test_openid_config(request: HttpRequest, version=Versions.NOT_AN_API_VERSIO
     return render(
         request,
         RESULTS_PAGE,
-        {'fhir_json_pretty': json.dumps(json_response, indent=3), 'response_type': 'OIDC Discovery', 'api_ver': version},
+        {
+            'fhir_json_pretty': json.dumps(json_response, indent=3),
+            'response_type': 'OIDC Discovery',
+            'api_ver': version,
+        },
     )
 
 
@@ -513,11 +515,14 @@ def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         return _link_session_or_version_is_bad(request.session, version)
 
     patient = _get_fhir_data_as_json(
-        request, FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient'])
+        request,
+        FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']),
     )
 
     return render(
-        request, RESULTS_PAGE, {'fhir_json_pretty': json.dumps(patient, indent=3), 'response_type': 'Patient', 'api_ver': version}
+        request,
+        RESULTS_PAGE,
+        {'fhir_json_pretty': json.dumps(patient, indent=3), 'response_type': 'Patient', 'api_ver': version},
     )
 
 
@@ -536,7 +541,11 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     return render(
         request,
         RESULTS_PAGE,
-        {'fhir_json_pretty': json.dumps(user_info, indent=3), 'response_type': 'Profile (OIDC Userinfo)', 'api_ver': version},
+        {
+            'fhir_json_pretty': json.dumps(user_info, indent=3),
+            'response_type': 'Profile (OIDC Userinfo)',
+            'api_ver': version,
+        },
     )
 
 
@@ -546,7 +555,9 @@ def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_A
 
     c4dic_info = _get_fhir_data_as_json(
         request,
-        FhirDataParams(EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']),
+        FhirDataParams(
+            EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']
+        ),
     )
 
     return render(

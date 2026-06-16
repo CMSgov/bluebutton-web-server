@@ -3,8 +3,7 @@ from typing import override
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
-from oauth2_provider.models import AccessToken
-from oauth2_provider.models import get_application_model
+from oauth2_provider.models import AccessToken, get_application_model
 
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 from apps.dot_ext.csv import ExportCsvMixin
@@ -87,6 +86,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             'last_active',
             'allowed_auth_type',
             'jwks_uri',
+            'part_d_eob_only',
         )
 
     @override
@@ -134,6 +134,7 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
             'get_internal_application_labels',
             'allowed_auth_type',
             'jwks_uri',
+            'part_d_eob_only',
         )
 
     list_filter = (
@@ -183,6 +184,7 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
             'internal_application_labels',
             'allowed_auth_type',
             'jwks_uri',
+            'part_d_eob_only',
         )
 
     raw_id_fields = ('user',)
@@ -212,6 +214,7 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
         'get_internal_application_labels',
         'allowed_auth_type',
         'jwks_uri',
+        'part_d_eob_only',
     )
     list_filter = (
         'client_type',

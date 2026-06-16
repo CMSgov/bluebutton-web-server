@@ -3,21 +3,21 @@ import uuid
 
 from django import forms
 from django.conf import settings
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
+from django.forms.widgets import URLInput
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
+
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, PRINTABLE_SPECIAL_ASCII
-from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.models import Application, InternalApplicationLabels
-from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
-from django.contrib.auth.models import Group, User
-from django.forms.widgets import URLInput
-
 from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, PRINTABLE_SPECIAL_ASCII
+from apps.dot_ext.models import Application, InternalApplicationLabels
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -71,8 +71,9 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     )
 
     def __init__(self, user, *args, **kwargs):
-        agree_label = 'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
-            settings.TOS_URI
+        agree_label = (
+            'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*'
+            % (settings.TOS_URI)
         )
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
@@ -269,6 +270,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             'internal_application_labels',
             'jwks_uri',
             'allowed_auth_type',
+            'part_d_eob_only',
         )
 
     # Duplication of clean_name() from above form, see TODO comment at start of file
@@ -381,6 +383,7 @@ class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
     share_demographic_scopes = forms.CharField(required=False)
+    share_samhsa_data = forms.BooleanField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()

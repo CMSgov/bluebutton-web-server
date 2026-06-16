@@ -95,11 +95,12 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import Application, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval, AuthFlowTracking
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
+    check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -500,6 +501,20 @@ class AuthorizationView(DotAuthorizationView):
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
+
+        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        user_approves_sharing_samhsa_data = True
+        if self.version == Versions.V3:
+            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+
+        # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
+        # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
+        # once the post of TokenView has completed successfully
+        AuthFlowTracking.objects.create(
+            code=code,
+            include_samhsa=user_approves_sharing_samhsa_data,
+            expires=datetime.now(timezone.utc) + timedelta(minutes=5),
+        )
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1036,6 +1051,38 @@ class TokenView(DotTokenView):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
+    def _retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+        self, grant_type: str, request: HttpRequest, app_part_d_eob_only: bool
+    ) -> bool:
+        prior_include_samhsa = True
+        prior_part_d_eob_only = app_part_d_eob_only
+        refresh_token_str = None
+        RefreshToken = get_refresh_token_model()
+
+        if grant_type == 'refresh_token':
+            if request:
+                refresh_token_str = request.POST.get('refresh_token')
+
+            if not refresh_token_str:
+                return prior_include_samhsa, prior_part_d_eob_only
+
+            try:
+                refresh_token = RefreshToken.objects.get(token=refresh_token_str)
+            except RefreshToken.DoesNotExist:
+                log.info('Could not find refresh token when retrieving prior samhsa value')
+                return prior_include_samhsa, prior_part_d_eob_only
+
+            try:
+                prior_access_token_extension = AccessTokenExtension.objects.get(
+                    access_token_id=refresh_token.access_token_id
+                )
+                prior_include_samhsa = prior_access_token_extension.include_samhsa
+                prior_part_d_eob_only = prior_access_token_extension.part_d_eob_only
+            except AccessTokenExtension.DoesNotExist:
+                # this case indicates it was an access token created before the access token extension was added
+                log.info(f'No access token extension for access token id: {refresh_token.access_token_id}')
+        return prior_include_samhsa, prior_part_d_eob_only
+
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
@@ -1150,6 +1197,10 @@ class TokenView(DotTokenView):
                 status=HTTPStatus.FORBIDDEN,
             )
 
+        prior_include_samhsa, prior_part_d_eob_only = self._retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+            grant_type, request, app.part_d_eob_only
+        )
+
         url, headers, body, status = self.create_token_response(request)
 
         # retrieve the access token, update user_id with the user.id sourced above
@@ -1158,6 +1209,11 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
+
+                code = request.POST.get('code', None)
+                check_auth_tracking_and_create_access_token_extension(
+                    prior_include_samhsa, code, grant_type, token, prior_part_d_eob_only
+                )
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id

@@ -64,6 +64,7 @@ class ValidatedApplicationAdminForm(forms.ModelForm):
             'last_active',
             'allowed_auth_type',
             'jwks_uri',
+            'part_d_eob_only',
         ]
 
 
