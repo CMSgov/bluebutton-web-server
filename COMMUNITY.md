@@ -173,26 +173,26 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/noor1027">
+                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
+                    <br />
+                    <sub><b>noor1027</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
                 <a href="https://github.com/JFU-NAVA-PBC">
                     <img src="https://avatars.githubusercontent.com/u/135686833?v=4" width="100;" alt="JFU-NAVA-PBC"/>
                     <br />
                     <sub><b>Jim Fuqian</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/rnagle">
                     <img src="https://avatars.githubusercontent.com/u/72608?v=4" width="100;" alt="rnagle"/>
                     <br />
                     <sub><b>Ryan Nagle</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/noor1027">
-                    <img src="https://avatars.githubusercontent.com/u/19860385?v=4" width="100;" alt="noor1027"/>
-                    <br />
-                    <sub><b>noor1027</b></sub>
                 </a>
             </td>
             <td align="center">
