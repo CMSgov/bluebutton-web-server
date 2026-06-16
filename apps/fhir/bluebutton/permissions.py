@@ -198,4 +198,4 @@ class V2ExplanationOfBenefitPermission(permissions.BasePermission):
         except get_access_token_model().accesstokenextension.RelatedObjectDoesNotExist:
             return True
 
-        return extension.include_samhsa
+        return extension.include_samhsa and not extension.part_d_eob_only

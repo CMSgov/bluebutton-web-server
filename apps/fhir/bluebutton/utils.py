@@ -927,3 +927,27 @@ def extract_fhir_id_from_patient(patient: Patient) -> Optional[str]:
         return None
 
     return patient.id
+
+
+def determine_eob_search_parameter_to_add(query_param: str, part_d_eob_only: bool) -> Optional[str]:
+    """For v3 EOB search calls, if it is a request associated with an acccess_token_extension that has
+    part_d_eob_only = True, we will add a _source=DDPS query parameter, to ensure only Part D claims data is returned.
+    If part_d_eob_only is False, and no other _source and _tag parameters are present in the call, we will return NCH,
+    as we want to return National Claim History data by default
+
+    Args:
+        query_param (str): The query parameter(s) associated with the v3 EOB search call
+        part_d_eob_only (bool): The part_d_eob_only from the accesstoken_extension DB record associated with the call
+
+    Returns:
+        Optional[str]: What _source value to add to the v3 EOB searcg call. It is optional because there are cases
+        (part_d_eob_only is false, and a _source or _tag param is present), where we do not want to specify a
+        _source value
+    """
+
+    if part_d_eob_only:
+        return 'DDPS'
+    if '_tag' not in query_param and '_source' not in query_param:
+        return 'NCH'
+
+    return None

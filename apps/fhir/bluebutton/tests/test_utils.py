@@ -21,6 +21,7 @@ from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_oauth_resource,
     crosswalk_patient_id,
+    determine_eob_search_parameter_to_add,
     dt_patient_reference,
     extract_fhir_id_from_patient,
     extract_mbi_from_patient,
@@ -554,3 +555,19 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         patient = None
         result = extract_fhir_id_from_patient(patient)
         assert result is None
+
+
+@pytest.mark.parametrize(
+    'query_param,part_d_eob_only,expected',
+    [
+        ('', True, 'DDPS'),
+        ('_source=NCH', True, 'DDPS'),
+        ('_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory', True, 'DDPS'),
+        ('_source=NCH&_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory', True, 'DDPS'),
+        ('', False, 'NCH'),
+        ('_source=NCH', False, None),
+    ],
+)
+def test_determine_eob_search_parameter_to_add(query_param, part_d_eob_only, expected):
+    result = determine_eob_search_parameter_to_add(query_param, part_d_eob_only)
+    assert result == expected
