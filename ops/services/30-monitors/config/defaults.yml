@@ -12,3 +12,23 @@ enabled:
   lambda: true
   s3: true
   rds: true
+ecs:
+  # cpu_threshold: 0.1
+  notify_no_data: true
+  no_data_timeframe_minutes: 10
+  timeframe: "last_10m"
+sqs:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+sns:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+lambda:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+s3:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+rds:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_10m"

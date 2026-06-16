@@ -1,5 +1,5 @@
 ---
-shadow_mode: true
+shadow_mode: false
 notifications:
   slack: true
   victorops: false
