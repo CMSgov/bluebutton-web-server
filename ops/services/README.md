@@ -25,10 +25,9 @@ Each service directory contains a symlink to `root.tofu.tf`:
 01-config/tofu.tf        -> ../root.tofu.tf
 10-cluster/tofu.tf       -> ../root.tofu.tf
 20-microservices/tofu.tf -> ../root.tofu.tf
+30-monitors/tofu.tf      -> ../root.tofu.tf
+40-dashboards/tofu.tf    -> ../root.tofu.tf
 ```
-
-30-monitors and 40-dashboards do not contain the symlinked tofu file because they
-require an additional provider.
 
 The shared root provides:
 - S3 backend: `bb-{bucket_env}-app-config` bucket, `ops/services/{service}/tofu.tfstate` key
