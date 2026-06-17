@@ -4,7 +4,7 @@
 AUTH  ?= live
 DEBUG ?= false
 
-run-selenium-target-local:
+run-selenium-local:
 	auth=$(AUTH) debug=$(DEBUG) ./run-selenium-local.sh
 
 build-selenium:

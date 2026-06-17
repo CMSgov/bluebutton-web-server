@@ -11,7 +11,7 @@ run_socat_locally () {
             return 1
         fi
     else
-        echo "🔵 choosing not to run socat in production."
+        echo "🔵 choosing not to run socat in AWS."
         return 0
     fi
 }
@@ -43,17 +43,26 @@ check_bfd_certs_are_not_empty () {
     return 0
 }
 
-possibly_migrate_or_collectstatic_if_local () {
+possibly_migrate_or_collectstatic () {
     echo "🟦 possibly migrate or collectstatic"
 
+    if [[ $TARGET_ENV == "codebuild" ]]; then
+            echo "🔵 running migrate"
+            echo $DATABASES_CUSTOM
+            python manage.py migrate
+        fi
+
     if [[ $TARGET_ENV == "local" ]]; then
-        if [[ "${MIGRATE}" == "1" ]]
-        then
+        if [[ "${MIGRATE}" == "1" ]]; then
             echo "🔵 running migrate"
             python manage.py migrate
             echo "🔵 done running migrate ; bring down the stack"
             exit 0
+        else
+            echo "🔵 running migrate"
+            python manage.py migrate
         fi
+
 
         # TODO - collectstatic does not tear down the stack currently
         if [[ "${COLLECTSTATIC}" == "1" ]]
@@ -123,6 +132,17 @@ launch_blue_button () {
                 --log-level debug
             RESULT=$?
         fi
+    elif [[ $TARGET_ENV == "codebuild" ]]; then
+        python3 -m gunicorn \
+            hhs_oauth_server.wsgi:application \
+            --worker-tmp-dir /tmp/gunicorn \
+            --bind 0.0.0.0:${GUNICORN_PORT} \
+            --workers 1 \
+            --threads 4 \
+            --timeout 0 \
+            --reload \
+            --log-level debug
+        RESULT=$?
     else
         # Fargate: gunicorn handles TLS directly with DigiCert certs (no nginx)
         # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
@@ -155,11 +175,11 @@ launch_blue_button () {
 }
 
 ########################################
-# Function for setting up local stack
-setup_database_and_users_if_local () {
-    echo "🟦 Setup database and users if local"
+# Function for setting up local or codebuild stack
+setup_database_and_users () {
+    echo "🟦 Setup database and users if local or codebuild"
 
-    if [[ $TARGET_ENV == "local" ]]; then
+    if [[ $TARGET_ENV == "local" || $TARGET_ENV == "codebuild" ]]; then
 
         # Only create the root user if it doesn't exist.
         result=$(python manage.py shell --verbosity 0 -c "from django.contrib.auth.models import User; print(1) if User.objects.filter(username='${SUPER_USER_NAME}').exists() else print(0)")

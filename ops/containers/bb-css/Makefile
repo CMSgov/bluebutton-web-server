@@ -1,3 +1,5 @@
+.PHONY: build-local run-local
+
 build-local:
 	docker build \
 		-t bb-css:latest \
@@ -5,5 +7,5 @@ build-local:
 
 run-local:
 	docker run \
-		-v ./scripts/internal/build-css.bash:/code/build-css.bash \
+		-v "$(CURDIR)/scripts/internal/build-css.bash:/code/build-css.bash" \
 		bb-css:latest
