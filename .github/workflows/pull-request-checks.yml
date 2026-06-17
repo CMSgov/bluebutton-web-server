@@ -3,6 +3,9 @@ name: Pull Request Checks
 on:
   pull_request:
     branches: [master]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
   workflow_dispatch:
 
 jobs:
@@ -45,6 +48,7 @@ jobs:
           pytest -m 'not integration'
 
   integration-tests:
+    needs: [ruff, unit-tests]
     env:
       AWS_REGION: us-east-1
 
