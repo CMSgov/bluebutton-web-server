@@ -48,7 +48,7 @@ If `DEBUG_MODE` is `true`, the pytest script runs a debugpy and listens on port 
 
 ## Command Reference
 
-All of these should be run via the Makefile in `dev-local`
+All of these can be run from root.
 
 - Build Selenium image:
 
@@ -56,10 +56,10 @@ All of these should be run via the Makefile in `dev-local`
 
 - Run Selenium tests locally:
 
-  make run-selenium auth=live debug=false
+  make run-selenium-local auth=live debug=false
 
 - Run with debugger attached (waits for debugger connect on 7890):
 
-  make run-selenium auth=live debug=true
+  make run-selenium-local auth=live debug=true
 
 ---

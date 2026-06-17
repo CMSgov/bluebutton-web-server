@@ -16,8 +16,8 @@ export GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 # ========== DATABASE ==========
 # Construct DATABASES_CUSTOM from individual SM secrets (supports credential rotation)
 # Django uses dj_database_url to parse this connection string
-if [[ $TARGET_ENV == "local" ]]; then
-    echo "🔵 using DATABASES_CUSTOM from local environment"
+if [[ $TARGET_ENV == "local" || $TARGET_ENV == "codebuild" ]]; then
+    echo "🔵 using DATABASES_CUSTOM from local or codebuild environment"
 else
     if [[ -n "$DB_USER_NAME" ]]; then
         export DATABASES_CUSTOM="postgres://${DB_USER_NAME}:${DB_USER_PW}@${DB_HOST}:15432/${DB_NAME}?sslmode=require&options=-c role=${DB_ROLE}"
@@ -46,10 +46,11 @@ gonogo "run_socat_locally"
 # either MIGRATE=1 or COLLECTSTATIC=1
 
 # Must come after socat, so we can talk to the s3mock.
-possibly_migrate_or_collectstatic_if_local
+possibly_migrate_or_collectstatic
+
 # Setup the database and users.
-setup_database_and_users_if_local
-gonogo "setup_database_and_users_if_local"
+setup_database_and_users
+gonogo "setup_database_and_users"
 
 # ========== BFD ==========
 # We need certs to talk to BFD. These are grabbed
@@ -62,7 +63,7 @@ gonogo "check_bfd_certs_are_not_empty"
 
 # ========== TLS CERTS ==========
 # DigiCert certs for HTTPS termination — gunicorn (Fargate)
-if [[ $TARGET_ENV != "local" ]]; then
+if [[ $TARGET_ENV != "local" && $TARGET_ENV != "codebuild" ]]; then
     write_tls_certs_to_tmp
     gonogo "write_tls_certs_to_tmp"
     check_tls_certs_are_not_empty
