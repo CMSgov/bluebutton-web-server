@@ -256,6 +256,17 @@ a {
 					{% endif %}
 
 					{% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
+
+					{% if application.part_d_eob_only %}
+
+					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
+						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
+						<input type="hidden" name="share_demographic_scopes" value="True" />
+						<span class="ds-text-body--md" style="font-weight: 600;">Prescription drug claims (required)</span>
+						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments</p>
+					</div>
+
+					{% else %}
 					<div class="ds-c-accordion" id="my-accordion" style="color: #262626">
 
 						<div class="ds-c-accordion__item">
@@ -297,16 +308,6 @@ a {
 						You can also grant access to (Optional):
 					</div>
 
-					{% if application.part_d_eob_only %}
-
-					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
-						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
-						<input type="hidden" name="share_demographic_scopes" value="True" />
-						<span class="ds-text-body--md" style="font-weight: 600;">Prescription drug claims (required)</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments</p>
-					</div>
-
-					{% else %}
 					<div class="ds-c-accordion" id="my-accordion" style="color: #262626">
 
 						<div class="ds-c-accordion__item">
@@ -342,7 +343,7 @@ a {
 								aria-labelledby="accordion-btn-3"
 								hidden
 							>
-								<p style="font-size: 14px; font-weight: 700; margin-bottom: 8px !important;">Other Substance Abuse and Mental Health Services Administration (SAMHSA) data (you may or may not have these claims - no all Medicare enrollees do):</p>
+								<p style="font-size: 14px; font-weight: 700; margin-bottom: 8px !important;">Alcohol and substance abuse claims, if applicable</p>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
 									<li><b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)</li>
 									<li><b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)</li>
