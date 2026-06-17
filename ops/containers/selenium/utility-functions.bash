@@ -38,7 +38,6 @@ check_valid_env () {
 # via sourcing the .env. Unset them first.
 clear_canary_variables () {
     unset OATHLIB_INSECURE_TRANSPORT
-    unset DB_MIGRATIONS
 }
 
 ########################################
@@ -76,13 +75,6 @@ check_env_after_source () {
     if [ -z ${OAUTHLIB_INSECURE_TRANSPORT} ]; then
         echo "We need insecure transport when running locally."
         echo "OAUTHLIB_INSECURE_TRANSPORT was not set to true."
-        echo "Something went badly wrong."
-        echo "Exiting."
-        return -1
-    fi
-
-    if [ -z ${DB_MIGRATIONS} ]; then
-        echo "There should be a DB_MIGRATIONS flag."
         echo "Something went badly wrong."
         echo "Exiting."
         return -1
