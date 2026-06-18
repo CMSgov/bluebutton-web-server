@@ -3,3 +3,5 @@ shadow_mode: false
 notifications:
   slack: true
   victorops: false
+ecs:
+  notify_no_data: false # test shuts down overnight
