@@ -4,9 +4,11 @@ from django.contrib.auth.models import Group
 from django.test import TestCase
 from waffle.testutils import override_switch
 
-from apps.capabilities.permissions import BBCapabilitiesPermissionTokenScopeMissingException
 from apps.capabilities.models import ProtectedCapability
-from apps.capabilities.permissions import TokenHasProtectedCapability
+from apps.capabilities.permissions import (
+    BBCapabilitiesPermissionTokenScopeMissingException,
+    TokenHasProtectedCapability,
+)
 
 
 class SimpleToken(object):
