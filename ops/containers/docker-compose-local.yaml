@@ -23,6 +23,8 @@ services:
       POSTGRES_DB: "bluebutton"
       POSTGRES_PASSWORD: "toor"
       POSTGRES_PORT: 5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -50,11 +52,6 @@ services:
         source: ${HOME}/.bb2
         target: /home/boton/.bb2
         read_only: true
-      - type: tmpfs
-        target: /tmp
-        tmpfs:
-          size: 200000000 # 200MB
-          mode: 0777
     ports:
       - "8000:8000"
       - "8443:8443"
@@ -87,4 +84,5 @@ services:
       - 9090:9090
 
 volumes:
+    db_data:
     s3mock-data:
