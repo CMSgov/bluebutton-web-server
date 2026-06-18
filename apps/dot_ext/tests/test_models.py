@@ -223,7 +223,7 @@ class TestDotExtModels(BaseApiTest):
         """
         internal_labels = InternalApplicationLabels.objects.all()
         self.assertIsNotNone(internal_labels)
-        self.assertEqual(len(internal_labels), 10)
+        self.assertEqual(len(internal_labels), 11)
 
     def test_internal_application_labels_getter(self):
         """
@@ -231,7 +231,7 @@ class TestDotExtModels(BaseApiTest):
         """
         internal_labels = InternalApplicationLabels.objects.all()
         self.assertIsNotNone(internal_labels)
-        self.assertEqual(len(internal_labels), 10)
+        self.assertEqual(len(internal_labels), 11)
 
         # Create dev user for tests.
         dev_user = self._create_user('john', '123456')
@@ -241,7 +241,7 @@ class TestDotExtModels(BaseApiTest):
         l1 = internal_labels[0]
         l3 = internal_labels[2]
         l5 = internal_labels[4]
-        l11 = internal_labels[9]
+        l11 = internal_labels[10]
         test_app.internal_application_labels.add(l1, l3, l5)
         labels = test_app.get_internal_application_labels()
         self.assertTrue(l1.slug in labels)
@@ -255,7 +255,7 @@ class TestDotExtModels(BaseApiTest):
         """
         internal_labels = InternalApplicationLabels.objects.all()
         self.assertIsNotNone(internal_labels)
-        self.assertEqual(len(internal_labels), 10)
+        self.assertEqual(len(internal_labels), 11)
 
         # Create dev user for tests.
         dev_user = self._create_user('john', '123456')
@@ -265,7 +265,7 @@ class TestDotExtModels(BaseApiTest):
         l1 = internal_labels[0]
         l3 = internal_labels[2]
         l5 = internal_labels[4]
-        l11 = internal_labels[9]
+        l11 = internal_labels[10]
         test_app.internal_application_labels.add(l1, l3, l5)
 
         app_admin = MyApplicationAdmin(Application, admin.site)
