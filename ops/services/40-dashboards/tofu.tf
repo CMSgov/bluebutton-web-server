@@ -1,3 +1,5 @@
+# COPY of ../root.tofu.tf with added datadog provider -- keep in sync manually
+
 locals {
   app              = "bb"
   established_envs = ["test", "sandbox", "prod"]
