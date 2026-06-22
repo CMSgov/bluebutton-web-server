@@ -138,7 +138,7 @@ tofu plan
 tofu apply
 
 # Verify
-TODO
+# verify monitors appear in the Datadog dashboard
 
 # ============================================================
 # Step 6: 40-dashboards
@@ -151,7 +151,7 @@ tofu plan
 tofu apply
 
 # Verify
-TODO
+# verify Blue Button dashboard appears in Datadog and is populating
 ```
 
 ---
