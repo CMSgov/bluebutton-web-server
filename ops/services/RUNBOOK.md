@@ -143,7 +143,7 @@ TODO
 # ============================================================
 # Step 6: 40-dashboards
 # ============================================================
-cd ../40-monitors
+cd ../40-dashboards
 export TF_VAR_parent_env=$TF_VAR_parent_env
 tofu init
 tofu workspace select $ENV || tofu workspace new $ENV

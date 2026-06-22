@@ -152,7 +152,7 @@ tofu apply
 TODO
 
 # ============================================================
-# Step 5: 40-dashboards
+# Step 6: 40-dashboards
 # ============================================================
 cd ../40-dashboards
 export TF_VAR_parent_env=$TF_VAR_parent_env
