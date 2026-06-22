@@ -12,8 +12,8 @@ ops/services/
 ├── 00-bootstrap/               # ECR, KMS, CodeBuild, GitHub OIDC
 ├── 01-config/                  # SOPS → SSM parameter provisioning
 ├── 10-cluster/                 # ECS Fargate Cluster
-└── 20-microservices/           # ECS Services, ALB, IAM, Auto-scaling
-└── 30-monitors/                # Datadog monitors
+├── 20-microservices/           # ECS Services, ALB, IAM, Auto-scaling
+├── 30-monitors/                # Datadog monitors
 └── 40-dashboards/              # Datadog dashboards
 ```
 
