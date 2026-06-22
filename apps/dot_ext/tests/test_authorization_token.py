@@ -325,7 +325,7 @@ class TestClientIdExtraction(BaseApiTest):
         """Verify validate_app_is_active fails if grant_type=client_credentials but no assertion."""
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
-            'grant_type': 'client_credentials',
+            'grant_type': CLIENT_CREDENTIALS,
         }
         mock_request.GET = {}
         mock_request.META = {}
@@ -342,7 +342,7 @@ class TestClientIdExtraction(BaseApiTest):
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
-            'grant_type': 'client_credentials',
+            'grant_type': CLIENT_CREDENTIALS,
             'client_assertion': assertion,
         }
         mock_request.GET = {}
