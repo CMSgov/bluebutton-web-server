@@ -33,8 +33,8 @@ locals {
 module "datadog_dashboard" {
   source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
 
-  app         = local.app                                                                                                 #or just "bb"
-  runbook_url = "https://thisisatest.cdap.internal.cms.gov"
+  app         = local.app
+  runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
 
   count = local.create_dashboards ? 1 : 0
 }
