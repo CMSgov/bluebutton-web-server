@@ -165,6 +165,8 @@ Datadog monitors using the CDAP shared monitors module.
 
 **Resources:**
 
+- **Datadog monitors** per resource
+
 **Configuration sources (priority order):**
 YAML files in `ops/services/30-monitors/config`:
 1. `{env}.yml`
@@ -177,6 +179,8 @@ YAML files in `ops/services/30-monitors/config`:
 Datadog dashboards using the CDAP shared dashboards module.
 
 **Resources:**
+
+- **Datadog dashboard** using CDAP's pattern
 
 ## Backend Configuration
 

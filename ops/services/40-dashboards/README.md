@@ -1,3 +1,15 @@
+# Dashboards Layer
+
+## Overview
+
+Datadog dashboards created using the CDAP shared monitors module.
+
+See https://github.com/CMSgov/cdap/tree/main/terraform/modules/datadog_dashboard for info about the module.
+
+## Resources Managed
+
+- **Datadog dashboard** using CDAP's pattern
+
 ## Requirements
 
 | Name | Version |

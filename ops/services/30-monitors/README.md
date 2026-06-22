@@ -1,3 +1,21 @@
+# Monitors Layer
+
+## Overview
+
+Datadog monitors created using the CDAP shared monitors module.
+
+See https://github.com/CMSgov/cdap/tree/main/terraform/modules/datadog_monitors for info about the module.
+
+## Resources Managed
+
+- **Datadog monitors** per resource
+
+## Configuration
+
+YAML files in `ops/services/30-monitors/config`:
+1. `{env}.yml`
+2. `defaults.yml`
+
 ## Requirements
 
 | Name | Version |
