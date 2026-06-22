@@ -352,15 +352,8 @@ class AuthorizationView(DotAuthorizationView):
         # Default template
         default_tpl = 'design_system/new_authorize_v2.html'
 
-        if not switch_is_active('enable_coverage_only'):
-            return [default_tpl]
-
         if self.version == Versions.V3:
             return ['design_system/authorize_v3.html']
-
-        app = getattr(self, 'application', None)
-        if app is not None and 'coverage-eligibility' in app.get_internal_application_labels():
-            return ['design_system/authorize_v3_coverage_only.html']
 
         return [default_tpl]
 
@@ -403,6 +396,7 @@ class AuthorizationView(DotAuthorizationView):
 
     def form_valid(self, form):
         client_id = form.cleaned_data['client_id']
+
         application = get_application_model().objects.get(client_id=client_id)
         credentials = {
             'client_id': form.cleaned_data.get('client_id'),
@@ -504,6 +498,8 @@ class AuthorizationView(DotAuthorizationView):
         user_approves_sharing_samhsa_data = True
         if self.version == Versions.V3:
             user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            if application.part_d_eob_only:
+                user_approves_sharing_samhsa_data = True
 
         # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
         # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
