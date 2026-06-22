@@ -682,6 +682,7 @@ class TokenView(DotTokenView):
                     signing_key,
                     issuer=client_id,
                     audience=host + reverse('oauth2_provider_v3:token-v3'),
+                    leeway=timedelta(minutes=5),
                     options={
                         'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
                     },
@@ -778,6 +779,7 @@ class TokenView(DotTokenView):
                 data = jwt.decode_complete(
                     id_token,
                     signing_key,
+                    # leeway=timedelta(minutes=5),
                     options={
                         'require': [
                             'iss',
@@ -787,7 +789,7 @@ class TokenView(DotTokenView):
                             'exp',
                             'iat',
                             'identity_assurance_level',
-                            'auth_time',
+                            # 'auth_time',
                             'family_name',
                             'given_name',
                             'birthdate',
@@ -821,9 +823,12 @@ class TokenView(DotTokenView):
                 log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
                 raise InvalidRequestError
 
-            if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 300:
-                log.warning('JWT was authorized older than 5 minutes (auth_time)')
-                raise InvalidRequestError
+            # if (
+            #     datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
+            #     > 86400
+            # ):
+            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
+            #     raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
                 log.warning(
