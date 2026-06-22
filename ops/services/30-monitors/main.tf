@@ -27,7 +27,7 @@ locals {
 
   default_tags = module.platform.default_tags
 
-  ## Evaluates config/defaults.yml and overwrites values with those from config/${var.env}.yml for each
+  ## Evaluates config/defaults.yml and overwrites values with those from config/${local.env}.yml for each
   ## variable/key type. Creates a hierarchy of defaults, so the modules/datadog_monitors defaults are
   ## the least prioritized, followed by config/defaults.yml, followed by the environment specific settings.
 
