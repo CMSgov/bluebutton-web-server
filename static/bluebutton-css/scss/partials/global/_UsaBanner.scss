@@ -110,12 +110,18 @@ $usa-banner-lock-icon__color: $color-green-light;
   text-align: left;
 
   &:focus {
-    @include focus-styles;
+    outline: 3px solid $color-primary-darker;
+    outline-offset: 3px;
   }
 }
 
 .ds-c-usa-banner__button-text {
-  @extend .ds-c-link;
+  color: $color-primary-darker;
+  text-decoration: underline;
+
+  &:hover {
+    color: darken($color-primary-darker, 10%);
+  }
 }
 
 .ds-c-usa-banner__content {

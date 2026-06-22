@@ -10,6 +10,10 @@
 $font-path: 'fonts/';
 $image-path: 'images/';
 
+// Legacy design-system tokens removed in v18
+$color-green-light: #94BFA2 !default;
+$width-sm: $media-width-sm !default;
+
 //
 // Design
 //

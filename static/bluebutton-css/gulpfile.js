@@ -5,17 +5,25 @@ const sass = require('gulp-sass')(require('sass'));
 const sourcemaps = require('gulp-sourcemaps');
 
 // CSS Build Task
-gulp.task('default', gulp.parallel(function (done) {
-	gulp.src(['scss/static-main.scss', 'scss/sandbox-main.scss'],)
-		.pipe(sourcemaps.init())
-		.pipe(sass({
-			includePaths: ['node_modules']
-		}).on('error', sass.logError))
-		.pipe(cleanCSS())
-		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest('dist'));
-	done();
-}));
+gulp.task('default', gulp.parallel(
+	function buildSass(done) {
+		gulp.src(['scss/static-main.scss', 'scss/sandbox-main.scss'],)
+			.pipe(sourcemaps.init())
+			.pipe(sass({
+				includePaths: ['node_modules']
+			}).on('error', sass.logError))
+			.pipe(cleanCSS())
+			.pipe(sourcemaps.write('.'))
+			.pipe(gulp.dest('dist'));
+		done();
+	},
+	function copyDesignSystem(done) {
+		gulp.src('node_modules/@cmsgov/design-system/dist/css/index.css')
+			.pipe(cleanCSS())
+			.pipe(gulp.dest('dist'));
+		done();
+	}
+));
 
 // CSS Watch Task
 gulp.task('watch', function () {
