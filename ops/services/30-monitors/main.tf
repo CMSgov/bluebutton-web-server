@@ -32,7 +32,6 @@ locals {
   ## the least prioritized, followed by config/defaults.yml, followed by the environment specific settings.
 
   defaults = yamldecode(file("config/defaults.yml"))
-  # TODO local.workspace or should this be local.env?
   env_config = yamldecode(file("config/${local.env}.yml"))
 
   shadow_mode = lookup(local.env_config, "shadow_mode", local.defaults.shadow_mode)
