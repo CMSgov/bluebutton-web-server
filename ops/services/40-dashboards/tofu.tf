@@ -94,7 +94,7 @@ terraform {
     # kms_key_id = "alias/bb-${local.bucket_env}-cmk"
   }
 
-  required_version = ">= 1.0"
+  required_version = ">= 1.8"
 
   required_providers {
     aws = {
