@@ -2,9 +2,9 @@ module "platform" {
   source    = "../../modules/platform"
   providers = { aws = aws, aws.secondary = aws.secondary }
 
-  app         = local.app
-  env         = local.env
-  service     = local.service
+  app                 = local.app
+  env                 = local.env
+  service             = local.service
   ssm_hierarchy_roots = ["bb"]
 }
 
@@ -21,8 +21,8 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 }
 
 locals {
-  env     = terraform.workspace
-  service = "dashboards"
+  env         = terraform.workspace
+  service     = "dashboards"
   root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
 
   default_tags = module.platform.default_tags
@@ -32,7 +32,7 @@ locals {
 
 module "datadog_dashboard" {
   source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=6ded520857376f46bb317dca898e5df6a9ecc93b" # you can specify the commit hash here by appending ?ref=<latest-commit-hash> ; though I'd wait as we all iterate together on improvements to the modules
-  app         = local.app                                                      #or just "bb"
+  app         = local.app                                                                                                 #or just "bb"
   runbook_url = "https://thisisatest.cdap.internal.cms.gov"
 
   count = local.create_dashboards ? 1 : 0

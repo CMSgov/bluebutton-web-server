@@ -102,7 +102,7 @@ terraform {
       version = "~> 6"
     }
     datadog = {
-      source = "datadog/datadog"
+      source  = "datadog/datadog"
       version = "~> 4.4"
     }
   }

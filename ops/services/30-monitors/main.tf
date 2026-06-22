@@ -2,9 +2,9 @@ module "platform" {
   source    = "../../modules/platform"
   providers = { aws = aws, aws.secondary = aws.secondary }
 
-  app         = local.app
-  env         = local.env
-  service     = local.service
+  app                 = local.app
+  env                 = local.env
+  service             = local.service
   ssm_hierarchy_roots = ["bb"]
 }
 
@@ -21,8 +21,8 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 }
 
 locals {
-  env     = terraform.workspace
-  service = "monitors"
+  env         = terraform.workspace
+  service     = "monitors"
   root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
 
   default_tags = module.platform.default_tags
@@ -31,7 +31,7 @@ locals {
   ## variable/key type. Creates a hierarchy of defaults, so the modules/datadog_monitors defaults are
   ## the least prioritized, followed by config/defaults.yml, followed by the environment specific settings.
 
-  defaults = yamldecode(file("config/defaults.yml"))
+  defaults   = yamldecode(file("config/defaults.yml"))
   env_config = yamldecode(file("config/${local.env}.yml"))
 
   shadow_mode = lookup(local.env_config, "shadow_mode", local.defaults.shadow_mode)
