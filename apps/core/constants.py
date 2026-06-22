@@ -1,7 +1,6 @@
 WAFFLE_FEATURE_FLAGS = ()
 
 WAFFLE_FEATURE_SWITCHES = (
-    ('enable_coverage_only', True, 'This enables the coverage-only use case.'),
     ('enable_swaggerui', True, 'This enables a page for the openapi docs and a link to the page from the main page.'),
     ('enable_testclient', True, 'This enables the test client.'),
     ('expire_grant_endpoint', True, 'This enables the /v<1/2>/o/expire_authenticated_user/<patient_id>/ endpoint.'),
@@ -23,5 +22,9 @@ WAFFLE_FEATURE_SWITCHES = (
         True,
         'This enables the /.well-known/applications end-point. Active in prod, but not in sbx/test.',
     ),
-    ('client_credentials_validation', True, 'Are we verifying JWT properties and signatures on client_credentials flow'),
+    (
+        'client_credentials_validation',
+        True,
+        'Are we verifying JWT properties and signatures on client_credentials flow',
+    ),
 )
