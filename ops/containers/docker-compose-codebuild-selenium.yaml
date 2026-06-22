@@ -12,6 +12,7 @@ services:
       - USE_NEW_PERM_SCREEN=true
       - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.test
       - SELENIUM_GRID=true
+      - SELENIUM_GRID_HOST=localhost
       - DEBUG_MODE=false
       - TARGET_ENV=codebuild
       - PYTEST_SHOW_TRACE_OPT=
