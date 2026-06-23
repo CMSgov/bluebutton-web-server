@@ -1340,7 +1340,7 @@ if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
         {
             'display': "Click 'Log in with Medicare.gov' button",
             'action': Action.FIND_CLICK,
-            'params': [20, By.XPATH, "//button[.//h2[text()='Medicare.gov']]"],
+            'params': [20, By.CSS_SELECTOR, "button[class*='ds-c-button--solid']"],
         }
     ]
 

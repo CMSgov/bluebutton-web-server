@@ -11,7 +11,7 @@ services:
     environment:
       - HOSTNAME_URL=http://localhost:8000
       - USE_MSLSX=false
-      - USE_LOGIN_WITH_MEDICARE_BUTTON=true
+      - USE_LOGIN_WITH_MEDICARE_BUTTON=false
       - USE_NEW_PERM_SCREEN=true
       - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.test
       - SELENIUM_GRID=true
