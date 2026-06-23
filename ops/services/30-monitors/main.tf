@@ -2,9 +2,10 @@ module "platform" {
   source    = "../../modules/platform"
   providers = { aws = aws, aws.secondary = aws.secondary }
 
-  app         = local.app
-  env         = local.env
-  service     = local.service
+  app                 = local.app
+  env                 = local.env
+  service             = local.service
+  root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
   ssm_hierarchy_roots = ["bb"]
 }
 
@@ -21,18 +22,16 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 }
 
 locals {
-  env     = terraform.workspace
-  service = "monitors"
-  root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
+  env         = terraform.workspace
+  service     = "monitors"
 
   default_tags = module.platform.default_tags
 
-  ## Evaluates config/defaults.yml and overwrites values with those from config/${var.env}.yml for each
+  ## Evaluates config/defaults.yml and overwrites values with those from config/${local.env}.yml for each
   ## variable/key type. Creates a hierarchy of defaults, so the modules/datadog_monitors defaults are
   ## the least prioritized, followed by config/defaults.yml, followed by the environment specific settings.
 
-  defaults = yamldecode(file("config/defaults.yml"))
-  # TODO local.workspace or should this be local.env?
+  defaults   = yamldecode(file("config/defaults.yml"))
   env_config = yamldecode(file("config/${local.env}.yml"))
 
   shadow_mode = lookup(local.env_config, "shadow_mode", local.defaults.shadow_mode)
@@ -49,7 +48,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors" # you can specify the commit hash here by appending ?ref=<latest-commit-hash> ; though I'd wait as we all iterate together on improvements to the modules
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
 
   app            = local.app
   env            = local.env

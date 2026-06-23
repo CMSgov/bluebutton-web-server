@@ -12,8 +12,8 @@ ops/services/
 ├── 00-bootstrap/               # ECR, KMS, CodeBuild, GitHub OIDC
 ├── 01-config/                  # SOPS → SSM parameter provisioning
 ├── 10-cluster/                 # ECS Fargate Cluster
-└── 20-microservices/           # ECS Services, ALB, IAM, Auto-scaling
-└── 30-monitors/                # Datadog monitors
+├── 20-microservices/           # ECS Services, ALB, IAM, Auto-scaling
+├── 30-monitors/                # Datadog monitors
 └── 40-dashboards/              # Datadog dashboards
 ```
 
@@ -165,6 +165,8 @@ Datadog monitors using the CDAP shared monitors module.
 
 **Resources:**
 
+- **Datadog monitors** per resource
+
 **Configuration sources (priority order):**
 YAML files in `ops/services/30-monitors/config`:
 1. `{env}.yml`
@@ -177,6 +179,8 @@ YAML files in `ops/services/30-monitors/config`:
 Datadog dashboards using the CDAP shared dashboards module.
 
 **Resources:**
+
+- **Datadog dashboard** using CDAP's pattern
 
 ## Backend Configuration
 

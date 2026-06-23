@@ -138,12 +138,12 @@ tofu plan
 tofu apply
 
 # Verify
-TODO
+# verify monitors appear in the Datadog dashboard
 
 # ============================================================
-# Step 5: 40-dashboards
+# Step 6: 40-dashboards
 # ============================================================
-cd ../40-monitors
+cd ../40-dashboards
 export TF_VAR_parent_env=$TF_VAR_parent_env
 tofu init
 tofu workspace select $ENV || tofu workspace new $ENV
@@ -151,7 +151,7 @@ tofu plan
 tofu apply
 
 # Verify
-TODO
+# verify Blue Button dashboard appears in Datadog and is populating
 ```
 
 ---

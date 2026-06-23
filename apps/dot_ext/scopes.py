@@ -1,9 +1,10 @@
+from typing import List
+
 from django.db.models import Q
 from oauth2_provider.scopes import BaseScopes
-from typing import List
+
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
-from waffle import switch_is_active
 
 
 class CapabilitiesScopes(BaseScopes):
@@ -34,10 +35,6 @@ class CapabilitiesScopes(BaseScopes):
             .distinct()
         )
 
-        if switch_is_active('enable_coverage_only'):
-            if 'coverage-eligibility' in application.get_internal_application_labels():
-                app_scopes_avail = self.remove_eob_scopes(app_scopes_avail)
-
         # Set scopes based on application choice. Default behavior is False, if it hasn't been set yet.
         if application.require_demographic_scopes:
             # Return all scopes
@@ -56,10 +53,6 @@ class CapabilitiesScopes(BaseScopes):
 
         # at the moment we assume that the default scopes are all those availables
         app_scopes_default = list(ProtectedCapability.objects.filter(default=True).values_list('slug', flat=True))
-
-        if switch_is_active('enable_coverage_only'):
-            if 'coverage-eligibility' in application.get_internal_application_labels():
-                app_scopes_default = self.remove_eob_scopes(app_scopes_default)
 
         # Set scopes based on application choice. Default behavior is False, if it hasn't been set yet.
         if application.require_demographic_scopes:

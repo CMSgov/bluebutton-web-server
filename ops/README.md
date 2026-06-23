@@ -17,8 +17,8 @@ ops/
     ├── 00-bootstrap/           # Foundational resources (ECR, CodeBuild, OIDC, KMS)
     ├── 01-config/              # SOPS-managed configuration (SSM parameter provisioning)
     ├── 10-cluster/             # ECS Fargate Cluster
-    └── 20-microservices/       # Application services (ECS Services, ALB, IAM)
-    └── 30-monitors/            # Datadog monitors
+    ├── 20-microservices/       # Application services (ECS Services, ALB, IAM)
+    ├── 30-monitors/            # Datadog monitors
     └── 40-dashboards/          # Datadog dashboards
 ```
 
@@ -149,10 +149,10 @@ tofu plan
 tofu apply
 
 # Verify
-TODO
+# verify monitors appear in the Datadog dashboard
 
 # ============================================================
-# Step 5: 40-dashboards
+# Step 6: 40-dashboards
 # ============================================================
 cd ../40-dashboards
 export TF_VAR_parent_env=$TF_VAR_parent_env
@@ -162,7 +162,7 @@ tofu plan
 tofu apply
 
 # Verify
-TODO
+# verify Blue Button dashboard appears in Datadog and is populating
 ```
 
 ## Teardown (Reverse Order)

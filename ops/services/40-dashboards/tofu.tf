@@ -1,3 +1,5 @@
+# COPY of ../root.tofu.tf with added datadog provider -- keep in sync manually
+
 locals {
   app              = "bb"
   established_envs = ["test", "sandbox", "prod"]
@@ -92,7 +94,7 @@ terraform {
     # kms_key_id = "alias/bb-${local.bucket_env}-cmk"
   }
 
-  required_version = ">= 1.0"
+  required_version = ">= 1.8"
 
   required_providers {
     aws = {
@@ -100,7 +102,7 @@ terraform {
       version = "~> 6"
     }
     datadog = {
-      source = "datadog/datadog"
+      source  = "datadog/datadog"
       version = "~> 4.4"
     }
   }
