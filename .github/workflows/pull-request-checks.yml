@@ -114,6 +114,14 @@ jobs:
           prod-account: ${{ secrets.PROD_ACCOUNT }}
           test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
           prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
+          
+      - name: Build CSS assets
+        run: |
+          docker run --rm \
+            -v "$(pwd)/static/bluebutton-css:/work" \
+            -w /work \
+            node:18-slim \
+            sh -c "npm ci && npx gulp"
 
       - name: Build BBAPI
         run: |
