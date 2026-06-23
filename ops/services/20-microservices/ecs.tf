@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   }, {
     name = "datadog-agent"
     image = "public.ecr.aws/datadog/agent:latest"
-    essential = true
+    essential = false
 
     environment = [
       {
