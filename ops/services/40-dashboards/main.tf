@@ -47,5 +47,16 @@ module "datadog_dashboard" {
     apm    = true
   }
 
+  widget_live_spans = {
+    lambda = "2d"
+    s3     = "1w"
+    sqs    = "4h"
+    sns    = "4h"
+    ecs    = "1d"
+    alb    = "1d"
+    aurora = "4h"
+    apm    = "1h"
+  }
+
   count = local.create_dashboards ? 1 : 0
 }
