@@ -128,6 +128,11 @@ jobs:
           cd ./ops/containers/bb-api
           make build-codebuild
 
+      - name: Test external connectivity
+        run: |
+          curl -sS -o /dev/null -w "%{http_code}" https://test.accounts.cms.gov/health || echo "FAILED"
+          curl -sS -o /dev/null -w "%{http_code}" https://test.medicare.gov/sso/authorize || echo "FAILED"
+
       - name: Start Stack
         run: |
           cd ./ops/containers/bb-api
