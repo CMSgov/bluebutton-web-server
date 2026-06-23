@@ -5,6 +5,9 @@ services:
     image: selenium-local:latest
     command: /code/ops/containers/selenium/start-selenium-codebuild.sh
     network_mode: "host"
+    depends_on:
+      chrome:
+        condition: service_healthy
     environment:
       - HOSTNAME_URL=http://localhost:8000
       - USE_MSLSX=false
@@ -20,10 +23,15 @@ services:
       - type: bind
         source: ../..
         target: /code
-
   ####################
   # Chrome for Selenium Remote
   chrome:
     image: selenium/standalone-chromium
     hostname: chrome
     network_mode: "host"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4444/wd/hub/status || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
