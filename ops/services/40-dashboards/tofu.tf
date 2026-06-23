@@ -1,5 +1,4 @@
-# This root tofu.tf is symlinked to by all per-env services. Changes to this tofu.tf apply to
-# _all_ services, so be careful!
+# COPY of ../root.tofu.tf with added datadog provider -- keep in sync manually
 
 locals {
   app              = "bb"
@@ -76,6 +75,12 @@ provider "aws" {
   }
 }
 
+provider "datadog" {
+  api_key = sensitive(data.aws_secretsmanager_secret_version.datadog_cicd_api_key.secret_string)
+  app_key = sensitive(data.aws_secretsmanager_secret_version.datadog_cicd_application_key.secret_string)
+  api_url = "https://api.ddog-gov.com"
+}
+
 terraform {
   backend "s3" {
     # Dynamic backend configuration
@@ -95,6 +100,10 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 6"
+    }
+    datadog = {
+      source  = "datadog/datadog"
+      version = "~> 4.4"
     }
   }
 }

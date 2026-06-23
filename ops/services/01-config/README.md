@@ -14,6 +14,10 @@ SOPS-managed configuration layer. Decrypts encrypted `.sopsw.yaml` files and pro
 
 ## Usage
 
+Activate your kion shell.
+
+You will need to have sops, GNU gettext, and yq installed, all of which can be installed via Homebrew.
+
 ```bash
 cd ops/services/01-config
 
@@ -22,7 +26,7 @@ tofu init -var="parent_env=test"
 tofu workspace select test
 
 # Edit encrypted config
-bin/sopsw -e values/test.sopsw.yaml
+./sopsw -e values/test.sopsw.yaml
 
 # Plan and apply
 tofu plan
@@ -55,7 +59,7 @@ values/
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
