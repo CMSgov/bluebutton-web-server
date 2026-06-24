@@ -3,7 +3,7 @@
 # Used by both tofu-plan and tofu-apply workflows.
 #
 # Follows the BB2 Fargate deploy order:
-#   00-bootstrap → 01-config → 10-cluster → 20-microservices
+#   00-bootstrap → 01-config → ...
 # See ops/services/RUNBOOK.md for the full manual procedure.
 # test tofu
 #
@@ -56,8 +56,10 @@ echo "  aws logs tail --since 1h --follow '$cw_log_group'"
 #   01-config     → SOPS → SSM parameters
 #   10-cluster    → ECS Fargate cluster
 #   20-microservices → ECS services, ALB, IAM, autoscaling
+#   30-monitors   → Datadog monitors
+#   40-dashboards → Datadog dashboards
 # ============================================================
-all_services=(00-bootstrap 01-config 10-cluster 20-microservices)
+all_services=(00-bootstrap 01-config 10-cluster 20-microservices 30-monitors 40-dashboards)
 
 if [[ -n "${SERVICE:-}" && "$SERVICE" != "all" ]]; then
   # Validate service name
@@ -155,6 +157,7 @@ for service in "${services[@]}"; do
           --query 'services[0].{status:status,desired:desiredCount,running:runningCount}' \
           --output table 2>/dev/null || true
         ;;
+      # TODO monitors and dashboards
     esac
   fi
 
