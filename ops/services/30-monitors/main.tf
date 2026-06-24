@@ -34,17 +34,18 @@ locals {
   defaults   = yamldecode(file("config/defaults.yml"))
   env_config = yamldecode(file("config/${local.env}.yml"))
 
-  shadow_mode = lookup(local.env_config, "shadow_mode", local.defaults.shadow_mode)
-
-  # map-typed keys
-  monitor_config = merge(
-    { for key in keys(local.defaults) : key => merge(
-      lookup(local.defaults, key, {}),
-      lookup(local.env_config, key, {})
-      ) if can(keys(local.defaults[key])) # only process map-typed keys
-    },
-    { shadow_mode = local.shadow_mode }
-  )
+  monitor_config = {
+    for key in distinct(concat(keys(local.defaults), keys(local.env_config))) :
+    key => try(
+      # Attempt map merge (works if both values are map/object-typed)
+      merge(
+        lookup(local.defaults, key, {}),
+        lookup(local.env_config, key, {})
+      ),
+      # Fallback to scalar: env wins, then default
+      lookup(local.env_config, key, lookup(local.defaults, key, null))
+    )
+  }
 }
 
 module "common_datadog_monitors" {
