@@ -45,6 +45,10 @@ resource "aws_ecs_task_definition" "ecs_task" {
 
     environment = [
       {
+        name = "DD_API_KEY"
+        value = sensitive(data.aws_secretsmanager_secret_version.datadog_agents_api_key.secret_string)
+      },
+      {
         name = "DD_SITE"
         value = "ddog-gov.com"
       },
@@ -56,13 +60,6 @@ resource "aws_ecs_task_definition" "ecs_task" {
         name = "DD_APM_ENABLED"
         value = "true"
       }
-    ]
-
-    secrets = [
-      {
-        name = "DD_API_KEY"
-        valueFrom = data.aws_secretsmanager_secret_version.datadog_agents_api_key.secret_arn
-      },
     ]
 
     healthCheck = {
