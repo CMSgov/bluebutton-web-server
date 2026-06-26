@@ -703,3 +703,30 @@ class TestTokenPrivateMethods(BaseApiTest):
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+
+    @override_switch('client_credentials_validation', active=True)
+    @patch('jwt.decode_complete')
+    def test_validate_ial_jwt_fails_when_auth_time_exceeds_5_minutes(
+        self,
+        mock_decode_complete,
+    ):
+        """Test _validate_ial_jwt fails when auth time is greater than 5 minutes."""
+
+        mock_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_ial_jwt_cache_replay',
+            'iat': datetime.datetime.now().timestamp(),
+            'auth_time': datetime.datetime.now().timestamp() - 301,
+            'identity_assurance_level': 2,
+            'family_name': 'Doe',
+            'given_name': 'John',
+            'birthdate': '1990-01-01',
+        }
+        mock_decode_complete.return_value = {
+            'payload': mock_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        # Call fails when auth time is greater than 5 minutes
+        with pytest.raises(InvalidRequestError):
+            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
