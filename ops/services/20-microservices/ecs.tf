@@ -90,6 +90,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
         "awslogs-region"        = data.aws_region.current.id
         "awslogs-stream-prefix" = "ecs"
       }
+    }
 
     healthCheck = {
       retries = 3
