@@ -63,6 +63,8 @@ class TestBFDHeaders(BaseApiTest):
             'allow': True,
             'state': '0123456789abcdef',
             'share_demographic_scopes': True,
+            'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+            'code_challenge_method': 'S256',
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
             payload['response_type'] = 'token'
@@ -84,6 +86,7 @@ class TestBFDHeaders(BaseApiTest):
                 'redirect_uri': application.redirect_uris,
                 'client_id': application.client_id,
                 'client_secret': application.client_secret_plain,
+                'code_verifier': 'test123456789123456789123456789123456789123456789',
             }
 
             response = self.client.post('/v1/o/token/', data=token_request_data)

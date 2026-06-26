@@ -68,15 +68,6 @@ class TestAuditEventLoggers(BaseApiTest):
         self.callback_url = reverse('mymedicare-sls-callback')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability(
-            'patient',
-            [
-                ['GET', r'\/v1\/fhir\/Patient\/\-\d+'],
-                ['GET', '/v1/fhir/Patient'],
-                ['GET', r'\/v2\/fhir\/Patient\/\-\d+'],
-                ['GET', '/v2/fhir/Patient'],
-            ],
-        )
         # Setup the RequestFactory
         self.client = Client()
         self.logger_registry = redirect_loggers()
@@ -428,6 +419,7 @@ class TestAuditEventLoggers(BaseApiTest):
     def _creation_on_approval_token_logger(self, version=1):
         # copy and adapted to test token logger
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         self._create_user('anna', '123456')
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
@@ -447,6 +439,9 @@ class TestAuditEventLoggers(BaseApiTest):
             'client_id': application.client_id,
             'response_type': 'code',
             'redirect_uri': redirect_uri,
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.get('/{}/o/authorize'.format(api_ver), data=payload)
         payload = {
@@ -457,6 +452,8 @@ class TestAuditEventLoggers(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.post(response['Location'], data=payload)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -553,6 +550,7 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_auth_flow_lang_logger(self, version=1):
         # copy and adapted to test auth flow logger
         redirect_uri = 'http://localhost'
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
         application = self._create_application(
@@ -569,6 +567,9 @@ class TestAuditEventLoggers(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': redirect_uri,
             'lang': 'es',
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
 
         response = self.client.get('/v2/o/authorize', data=payload)
@@ -580,6 +581,8 @@ class TestAuditEventLoggers(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
         response = self.client.post(response['Location'], data=payload)
         request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)

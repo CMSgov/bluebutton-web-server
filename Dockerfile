@@ -1,7 +1,7 @@
 FROM --platform=linux/amd64 python:3.12
 ENV PYTHONUNBUFFERED 1
 ENV PYDEVD_DISABLE_FILE_VALIDATION 1
-RUN apt-get update && apt-get install -y gettext
+RUN apt-get update && apt-get install -y gettext liblcms2-2=2.16-2+deb13u2 libgnutls30t64=3.8.9-3+deb13u4
 RUN useradd -m -s /bin/bash DEV
 USER DEV
 ADD . /code

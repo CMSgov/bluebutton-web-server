@@ -22,6 +22,8 @@ on:
           - 01-config
           - 10-cluster
           - 20-microservices
+          - 30-monitors
+          - 40-dashboards
 
 concurrency:
   group: tofu-plan-or-apply-${{ github.ref }}

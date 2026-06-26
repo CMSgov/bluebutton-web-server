@@ -28,7 +28,7 @@ from apps.dot_ext.constants import (
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
 )
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.dot_ext.utils import (
     get_application_from_data,
     get_application_from_meta,
@@ -264,6 +264,89 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         os.environ['TARGET_ENV'] = 'prod'
         result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
         assert result
+
+    def test_retrieve_prior_include_samhsa_and_part_d_eob_only_values_non_refresh_token_grant_type(self) -> None:
+        """The _retrieve_prior_include_samhsa_and_part_d_eob_only_values will always return a value of True for
+        include_samhsa, and whatever is passed for app.part_d_eob_only if the grant_type is authorization_code,
+        as we only attempt to retrieve the prior include samhsa value if the grant_type is refresh_token
+        """
+        view_instance = TokenView()
+        prior_include_samhsa, prior_part_d_eob_only = (
+            view_instance._retrieve_prior_include_samhsa_and_part_d_eob_only_values('authorization_code', None, True)
+        )
+        assert prior_include_samhsa
+        assert prior_part_d_eob_only
+
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
+    def test_retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+        self, mock_access_token_extension, mock_refresh_model
+    ) -> None:
+        """Confirm that if the prior access_token_extension record has include_samhsa set to True, that True is returned
+        and that if part_d_eob_only on the prior access_token_extension was False, that False is returned, even if the app
+        now has part_d_eob_only equal to True"""
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_refresh_token = MagicMock()
+        mock_request.POST = {
+            'grant_type': 'refresh_token',
+            'refresh_token': 'tkn',
+        }
+        mock_refresh_model.return_value.objects.get.return_value = mock_refresh_token
+        mock_access_token_extension.return_value = AccessTokenExtension(include_samhsa=True, part_d_eob_only=False)
+        prior_include_samhsa, prior_part_d_eob_only = (
+            view_instance._retrieve_prior_include_samhsa_and_part_d_eob_only_values('refresh_token', mock_request, True)
+        )
+        assert prior_include_samhsa
+        assert not prior_part_d_eob_only
+
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
+    def test_retrieve_prior_include_samhsa_and_part_d_eob_only_values_false(
+        self, mock_access_token_extension, mock_refresh_model
+    ) -> None:
+        """Confirm that if the prior access_token_extension record has include_samhsa set to False, that False is returned
+        and that if part_d_eob_only on the prior access_token_extension was True, that True is returned, even if the app
+        now has part_d_eob_only equal to False"""
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_refresh_token = MagicMock()
+        mock_request.POST = {
+            'grant_type': 'refresh_token',
+            'refresh_token': 'tkn',
+        }
+        mock_refresh_model.return_value.objects.get.return_value = mock_refresh_token
+        mock_access_token_extension.return_value = AccessTokenExtension(include_samhsa=False, part_d_eob_only=True)
+        prior_include_samhsa, prior_part_d_eob_only = (
+            view_instance._retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+                'refresh_token', mock_request, False
+            )
+        )
+        assert not prior_include_samhsa
+        assert prior_part_d_eob_only
+
+    @patch('apps.dot_ext.views.authorization.get_refresh_token_model')
+    @patch('apps.dot_ext.models.AccessTokenExtension.objects.get')
+    def test_retrieve_prior_include_samhsa_and_part_d_eob_only_values_access_token_extension_dne(
+        self, mock_access_token_extension, mock_refresh_model
+    ) -> None:
+        """Confirm that when there is no access_token_extension record returned, a value of True is returned
+        for include_samhsa, and prior_part_d_eob_only is equal to whatever was passed in (the app part_d_eob_only
+        value)"""
+        view_instance = TokenView()
+        mock_request = MagicMock()
+        mock_refresh_token = MagicMock()
+        mock_request.POST = {
+            'grant_type': 'refresh_token',
+            'refresh_token': 'tkn',
+        }
+        mock_refresh_model.return_value.objects.get.return_value = mock_refresh_token
+        mock_access_token_extension.side_effect = AccessTokenExtension.DoesNotExist
+        prior_include_samhsa, prior_part_d_eob_only = (
+            view_instance._retrieve_prior_include_samhsa_and_part_d_eob_only_values('refresh_token', mock_request, True)
+        )
+        assert prior_include_samhsa
+        assert prior_part_d_eob_only
 
 
 # we set empty GET/META/POST because get_application_from_data does not like it if a GET is missing.

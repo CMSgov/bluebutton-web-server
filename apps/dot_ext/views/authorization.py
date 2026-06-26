@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
@@ -49,6 +50,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauthlib.oauth2 import AccessDeniedError
+from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError, ServerError
 from rest_framework.exceptions import NotFound
 from waffle import get_waffle_flag_model, switch_is_active
@@ -58,6 +60,7 @@ from apps.authorization.models import (
     DataAccessGrant,
     create_or_update_data_access_grant_client_credential_flow,
 )
+from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     CLIENT_CREDENTIALS,
@@ -92,11 +95,12 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import Application, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval, AuthFlowTracking
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
+    check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -181,14 +185,26 @@ class AuthorizationView(DotAuthorizationView):
         missing_params = []
         v3 = True if request.path.startswith('/v3/o/authorize') else False
 
-        if not request.GET.get('code_challenge', None):
+        if not self._get_param(request, 'code_challenge'):
             missing_params.append('code_challenge')
-        if not request.GET.get('code_challenge_method', None):
-            missing_params.append('code_challenge_method')
 
-        if not request.GET.get('state', None):
+        code_challenge_method = self._get_param(request, 'code_challenge_method')
+        if not code_challenge_method:
+            missing_params.append('code_challenge_method')
+        elif code_challenge_method != 'S256':
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'error': 'invalid_request',
+                    'error_description': 'code_challenge_method must be S256',
+                },
+                status=HTTPStatus.BAD_REQUEST,
+            )
+
+        state = self._get_param(request, 'state')
+        if not state:
             missing_params.append('state')
-        elif len(request.GET.get('state', None)) < 16:
+        elif len(state) < 16:
             error_message = 'State parameter should have a minimum of 16 characters'
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': error_message},
@@ -198,7 +214,7 @@ class AuthorizationView(DotAuthorizationView):
         # BB2-4250: This code will not execute if the application is not in the v3_early_adopter flag
         # so it will not be modified as part of BB2-4250
         if switch_is_active('v3_endpoints') and v3:
-            if 'scope' not in request.GET:
+            if not self._has_param(request, 'scope'):
                 missing_params.append('scope')
 
         if missing_params:
@@ -213,9 +229,42 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
+        if self.version == Versions.V3:
+            kwargs['beneficiary_name'] = self.request.beneficiary_name
+            scopes_from_request = kwargs.get('scopes', [])
+            application_scopes = list(
+                ProtectedCapability.objects.filter(Q(application=self.application))
+                .values_list('slug', flat=True)
+                .distinct()
+            )
+
+            if not application_scopes:
+                raise AccessDeniedTokenCustomError(description='No scopes provided.')
+
+            scopes_from_request = set(scopes_from_request)
+            application_scopes_set = set(application_scopes)
+            matching_scopes = application_scopes_set & scopes_from_request
+
+            # Ensure we only populate kwargs['scopes'] with scopes that are both in the request and available to the application
+            # This is what controls what shows on the permissions screen
+            kwargs['scopes'] = list(matching_scopes)
+
+            # Note: scopes_from_request should always have a value if it is a v3 request, including it here is a
+            # precaution. This conditional will need to be modified or expanded in case the request asks for
+            # patient/Coverage.read and in the database, the application has patient/Coverage.rs for example
+            if scopes_from_request and not matching_scopes:
+                raise AccessDeniedTokenCustomError(description='No scopes provided.')
+
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
+
+        if 'form' in context and self.version == Versions.V3:
+            # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
+            # for the access token are in the intersection of what the application is allowed to have and
+            # what the request is asking for
+            context['form'].initial['scope'] = ' '.join(list(matching_scopes))
+
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -272,6 +321,10 @@ class AuthorizationView(DotAuthorizationView):
         if sensitive_info_detected:
             return sensitive_info_detected
 
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
+
         request.session['version'] = self.version
 
         # Accept lang from GET or POST
@@ -299,12 +352,8 @@ class AuthorizationView(DotAuthorizationView):
         # Default template
         default_tpl = 'design_system/new_authorize_v2.html'
 
-        if not switch_is_active('enable_coverage_only'):
-            return [default_tpl]
-
-        app = getattr(self, 'application', None)
-        if app is not None and 'coverage-eligibility' in app.get_internal_application_labels():
-            return ['design_system/authorize_v3_coverage_only.html']
+        if self.version == Versions.V3:
+            return ['design_system/authorize_v3.html']
 
         return [default_tpl]
 
@@ -320,16 +369,9 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        kwargs['code_challenge'] = request.POST.get('code_challenge')
-        kwargs['code_challenge_method'] = request.POST.get('code_challenge_method')
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
-        kwargs['code_challenge'] = request.GET.get('code_challenge', None)
-        kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
         return super().get(request, *args, **kwargs)
 
     def validate_v3_authorization_request(self):
@@ -337,6 +379,10 @@ class AuthorizationView(DotAuthorizationView):
         try:
             application_user = get_user_model().objects.get(id=self.application.user_id)
 
+            # If the v3_early_adopter does not exist in the database, a WaffleFlag object is returned,
+            # but the id is None. In that case, we want to return and leave it up to the v3_endpoints switch
+            # as to whether v3 calls can be made. If the flag does exist, then the id will not be None
+            # and we will check to see if the flag is active for the application
             if flag.id is None or flag.is_active_for_user(application_user):
                 # Update the class variable to ensure subsequent calls to dispatch don't call this function
                 # more times than is needed
@@ -350,21 +396,16 @@ class AuthorizationView(DotAuthorizationView):
 
     def form_valid(self, form):
         client_id = form.cleaned_data['client_id']
+
         application = get_application_model().objects.get(client_id=client_id)
         credentials = {
             'client_id': form.cleaned_data.get('client_id'),
             'redirect_uri': form.cleaned_data.get('redirect_uri'),
             'response_type': form.cleaned_data.get('response_type', None),
             'state': form.cleaned_data.get('state', None),
-            # "code_challenge": form.cleaned_data.get("code_challenge", None),
-            # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+            'code_challenge': form.cleaned_data.get('code_challenge', None),
+            'code_challenge_method': form.cleaned_data.get('code_challenge_method', None),
         }
-
-        if form.cleaned_data.get('code_challenge'):
-            credentials['code_challenge'] = form.cleaned_data.get('code_challenge')
-
-        if form.cleaned_data.get('code_challenge_method'):
-            credentials['code_challenge_method'] = form.cleaned_data.get('code_challenge_method')
 
         scopes = form.cleaned_data.get('scope')
         allow = form.cleaned_data.get('allow')
@@ -405,7 +446,7 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -429,7 +470,7 @@ class AuthorizationView(DotAuthorizationView):
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+            ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -453,6 +494,22 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
+        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        user_approves_sharing_samhsa_data = True
+        if self.version == Versions.V3:
+            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            if application.part_d_eob_only:
+                user_approves_sharing_samhsa_data = True
+
+        # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
+        # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
+        # once the post of TokenView has completed successfully
+        AuthFlowTracking.objects.create(
+            code=code,
+            include_samhsa=user_approves_sharing_samhsa_data,
+            expires=datetime.now(timezone.utc) + timedelta(minutes=5),
+        )
+
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
 
@@ -461,6 +518,9 @@ class AuthorizationView(DotAuthorizationView):
 
         # Update AuthFlowUuid instance with code.
         update_instance_auth_flow_trace_with_code(auth_dict, code)
+
+        # Check for prior tokens and remove them if they exist to ensure they can't continue to be used
+        remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
 
         return self.redirect(self.success_url, application)
 
@@ -985,6 +1045,38 @@ class TokenView(DotTokenView):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
+    def _retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+        self, grant_type: str, request: HttpRequest, app_part_d_eob_only: bool
+    ) -> bool:
+        prior_include_samhsa = True
+        prior_part_d_eob_only = app_part_d_eob_only
+        refresh_token_str = None
+        RefreshToken = get_refresh_token_model()
+
+        if grant_type == 'refresh_token':
+            if request:
+                refresh_token_str = request.POST.get('refresh_token')
+
+            if not refresh_token_str:
+                return prior_include_samhsa, prior_part_d_eob_only
+
+            try:
+                refresh_token = RefreshToken.objects.get(token=refresh_token_str)
+            except RefreshToken.DoesNotExist:
+                log.info('Could not find refresh token when retrieving prior samhsa value')
+                return prior_include_samhsa, prior_part_d_eob_only
+
+            try:
+                prior_access_token_extension = AccessTokenExtension.objects.get(
+                    access_token_id=refresh_token.access_token_id
+                )
+                prior_include_samhsa = prior_access_token_extension.include_samhsa
+                prior_part_d_eob_only = prior_access_token_extension.part_d_eob_only
+            except AccessTokenExtension.DoesNotExist:
+                # this case indicates it was an access token created before the access token extension was added
+                log.info(f'No access token extension for access token id: {refresh_token.access_token_id}')
+        return prior_include_samhsa, prior_part_d_eob_only
+
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
@@ -1099,6 +1191,10 @@ class TokenView(DotTokenView):
                 status=HTTPStatus.FORBIDDEN,
             )
 
+        prior_include_samhsa, prior_part_d_eob_only = self._retrieve_prior_include_samhsa_and_part_d_eob_only_values(
+            grant_type, request, app.part_d_eob_only
+        )
+
         url, headers, body, status = self.create_token_response(request)
 
         # retrieve the access token, update user_id with the user.id sourced above
@@ -1107,6 +1203,11 @@ class TokenView(DotTokenView):
             access_token = body.get('access_token')
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
+
+                code = request.POST.get('code', None)
+                check_auth_tracking_and_create_access_token_extension(
+                    prior_include_samhsa, code, grant_type, token, prior_part_d_eob_only
+                )
 
                 if grant_type == CLIENT_CREDENTIALS:
                     token.user_id = user.id

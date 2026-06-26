@@ -16,7 +16,9 @@ env = environ.Env()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Take environment variables from .env.local file
-environ.Env.read_env(os.path.join(BASE_DIR + '/ops/container', '.env.local'))
+TARGET_ENV = env('TARGET_ENV')
+
+environ.Env.read_env(os.path.join(BASE_DIR + '/ops/container', f'.env.{TARGET_ENV}'))
 
 ###############################################################################
 # DJANGO BASE SETTINGS
@@ -77,6 +79,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
     'waffle.middleware.WaffleMiddleware',
+    'apps.dot_ext.middleware.AuthorizationViewMiddleware',
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
     # on failed user authentication attempts from login views.
@@ -261,12 +264,7 @@ LOGGING = {
     },
 }
 
-DATABASES = {
-    'default': env.db(
-        'DATABASES_CUSTOM',
-        default=f'sqlite:///{BASE_DIR}/db.sqlite3',
-    )
-}
+DATABASES = {'default': env.db('DATABASES_CUSTOM', default='sqlite:////tmp/db.sqlite3')}  # type: ignore
 
 # internationalization
 LANGUAGE_CODE = 'en'

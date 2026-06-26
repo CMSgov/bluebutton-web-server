@@ -1,8 +1,7 @@
 from http import HTTPStatus
 from urllib.parse import urlparse
 
-from django.core.management import call_command
-from django.test import tag
+import pytest
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 
@@ -48,7 +47,6 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
     """
 
     def setUp(self):
-        call_command('create_blue_button_scopes')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         super().setUp()
@@ -140,7 +138,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
 
             self.assertTrue(is_matched, 'Unexpected resource id prefix encountered, id={}'.format(rs_id))
 
-    @tag('integration')
+    @pytest.mark.integration
     def test_health_endpoint(self):
         """Test that checks the /health endpoint returns a HTTPStatus.OK"""
         response = self.client.get('/health')
@@ -152,12 +150,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(content.get('message'), "all's well")
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_userinfo_endpoint(self):
         self._call_userinfo_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_userinfo_endpoint_v2(self):
         self._call_userinfo_endpoint(Versions.V2)
 
@@ -181,12 +179,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(validate_json_schema(USERINFO_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_fhir_meta_endpoint(self):
         self._call_fhir_meta_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_fhir_meta_endpoint_v2(self):
         self._call_fhir_meta_endpoint(Versions.V2)
 
@@ -215,12 +213,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(validate_json_schema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_endpoint(self):
         self._call_patient_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_endpoint_v2(self):
         self._call_patient_endpoint(Versions.V2)
 
@@ -263,12 +261,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_endpoint(self):
         self._call_coverage_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_endpoint_v2(self):
         self._call_coverage_endpoint(Versions.V2)
 
@@ -305,12 +303,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_search_endpoint(self):
         self._call_coverage_search_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_search_endpoint_v2(self):
         self._call_coverage_search_endpoint(Versions.V2)
 
@@ -361,7 +359,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(resource_stats['part-d'], expected_resource_stats['part-d'])
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_search_endpoint(self):
         """
         Search EOB v1, navigate pages and collect stats of different types of claims
@@ -380,7 +378,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_eob_search_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_search_endpoint_v2(self):
         """
         Search EOB v2, navigate pages and collect stats of different types of claims
@@ -403,7 +401,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         total_page = self._get_total_page(content)
         assert total_page >= 0
 
-        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 0, 'outpatient': 0}
+        expected_resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
         resource_stats = {'pde': 0, 'carrier': 0, 'inpatient': 0, 'outpatient': 0}
         self._stats_resource_by_type(content, resource_stats)
 
@@ -434,7 +432,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(resource_stats['outpatient'], expected_resource_stats['outpatient'])
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_profiles_endpoint(self):
         # Authenticate
         self._setup_apiclient(
@@ -508,7 +506,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(resource_stats['hospice'], expected_resource_stats['hospice'])
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint(self):
         """
         Search and read EOB v1
@@ -516,7 +514,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_eob_endpoint(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_v2(self):
         """
         Search and read EOB v2
@@ -565,7 +563,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_pde(self):
         """
         EOB pde (pharmacy) profile v1
@@ -573,7 +571,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_eob_endpoint_pde(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_pde_v2(self):
         """
         EOB pde (pharmacy) profile v2
@@ -593,12 +591,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PHARMACY'], version)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_inpatient(self):
         self._call_eob_endpoint_inpatient(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_inpatient_v2(self):
         self._call_eob_endpoint_inpatient(Versions.V2)
 
@@ -616,12 +614,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], version)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_outpatient(self):
         self._call_eob_endpoint_outpatient(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_endpoint_outpatient_v2(self):
         self._call_eob_endpoint_outpatient(Versions.V2)
 
@@ -641,12 +639,12 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], version)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_err_response_caused_by_illegalarguments(self):
         self._err_response_caused_by_illegalarguments(Versions.V1)
 
     @override_switch('require-scopes', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_err_response_caused_by_illegalarguments_v2(self):
         self._err_response_caused_by_illegalarguments(Versions.V2)
 
@@ -660,7 +658,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_read_endpoint_v3_403(self):
         """
         test patient read v3 throwing a 403 when an app is not in the flag
@@ -669,7 +667,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, False, '')
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_read_endpoint_v3_403(self):
         """
         test coverage read v3 throwing a 403 when an app is not in the flag
@@ -678,7 +676,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, 'part-a-99999999999999', False, '')
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_read_endpoint_v3_403(self):
         """
         test eob read v3 throwing a 403 when an app is not in the flag
@@ -687,7 +685,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_EOB, 'outpatient--9999999999999', False, '')
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_search_endpoint_v3_403(self):
         """
         test patient search v3 throwing a 403 when an app is not in the flag
@@ -696,7 +694,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_PATIENT, DEFAULT_SAMPLE_FHIR_ID_V3, True, '_id=')
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_search_endpoint_v3_403(self):
         """
         test coverage search v3 throwing a 403 when an app is not in the flag
@@ -705,7 +703,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self._call_v3_endpoint_to_assert_403(FHIR_RES_TYPE_COVERAGE, DEFAULT_SAMPLE_FHIR_ID_V3, True, 'beneficiary=')
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_search_endpoint_v3_403(self):
         """
         test eob search v3 throwing a 403 when an app is not in the flag
@@ -729,7 +727,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         self.assertEqual(response.json()['detail'], V3_403_DETAIL)
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_search_endpoint_v3_400_operation_outcome(self):
         """
         test patient search v3 throwing a 400 operation outcome when a bad request is made
@@ -743,7 +741,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         )
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_patient_read_endpoint_v3_400_operation_outcome(self):
         """
         test patient read v3 throwing a 400 operation outcome when a bad request is made
@@ -757,7 +755,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         )
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_eob_read_endpoint_v3_400_operation_outcome(self):
         """
         test EOB read v3 throwing a 400 operation outcome when a bad request is made
@@ -771,7 +769,7 @@ class ContainerizedFhirApiIntegrationTests(BaseApiTest):
         )
 
     @override_switch('v3_endpoints', active=True)
-    @tag('integration')
+    @pytest.mark.integration
     def test_coverage_read_endpoint_v3_400_operation_outcome(self):
         """
         test coverage read v3 throwing a 400 operation outcome when a bad request is made

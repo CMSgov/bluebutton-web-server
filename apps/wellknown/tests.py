@@ -1,14 +1,16 @@
+import json
+from http import HTTPStatus
+
+from django.conf import settings
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
-from django.conf import settings
 from waffle.testutils import override_switch
-from http import HTTPStatus
-import json
+
 from apps.constants import (
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CLIENT_CONFIDENTIAL_ASYMMETRIC,
     CLIENT_CREDENTIALS,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     PRIVATE_KEY_JWT,
 )
 

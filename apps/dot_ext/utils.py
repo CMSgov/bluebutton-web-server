@@ -8,7 +8,11 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
-from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from oauth2_provider.models import (
+    AccessToken,
+    RefreshToken,
+    get_application_model,
+)
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
     InvalidGrantError,
@@ -23,7 +27,7 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import AccessTokenExtension, Application, AuthFlowTracking
 from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
@@ -31,7 +35,9 @@ User = get_user_model()
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def remove_application_user_pair_tokens_data_access(application, user):
+def remove_application_user_pair_tokens_data_access(
+    application, user, delete_data_access_grant: bool, delete_access_tokens: bool
+):
     """
     Utility function to revoke and delete current application/user pair
     access_token, refresh_token and DataAccessGrant records.
@@ -50,15 +56,21 @@ def remove_application_user_pair_tokens_data_access(application, user):
     CALLED FROM:
         apps.dot_ext.views.authorization.authorization.AuthorizationView.form_valid()
     """
+    data_access_grant_delete_cnt = 0
     with transaction.atomic():
-        # Get count of access tokens to be deleted.
-        access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
+        if delete_access_tokens:
+            # Get count of access tokens to be deleted and actually delete them
+            access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).delete()[0]
+        else:
+            # Get count of access tokens to be deleted.
+            access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
-            application=application, beneficiary=user
-        ).delete()[0]
+        if delete_data_access_grant:
+            data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
+                application=application, beneficiary=user
+            ).delete()[0]
 
         # Delete refresh token records
         refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
@@ -326,3 +338,46 @@ def validate_latin_extended_string(text: str) -> bool:
         bool: if all strings are encoded less than U+017F (383) and it is not empty
     """
     return all(ord(char) <= 383 for char in text) and bool(text)
+
+
+def check_auth_tracking_and_create_access_token_extension(
+    prior_include_samhsa: bool,
+    code: str,
+    grant_type: str,
+    token: AccessToken,
+    prior_part_d_eob_only: bool,
+) -> None:
+    """Retrieve a record from the AuthFlowTracking table, if available, for the code being used in the authorization
+    or refresh request
+
+    Args:
+        prior_include_samhsa (bool): The value the prior access_token_extension record had for include_samhsa
+        code (str): The code for the auth or refresh request, used to retrieve AuthFlowTracking record
+        grant_type (str): Grant type of the call to TokenView.post
+        token (AccessToken): The access token that was generated
+        prior_part_d_eob_only (bool): The prior part_d_eob_only for the previously existing AccessTokenExtension. Used
+        to make sure that if the app setting has changed, that the prior part_d_eob_only value is preserved on a token
+        refresh
+    """
+    include_samhsa = True
+
+    # Try to retrieve the value from the AuthFlowTracking model based on the code
+    # If we do retrieve one, set include_samhsa to that value, gathered from the v3 permissions screen
+    # and afterwards delete the record so the table doesn't grow overly large. If there is no record,
+    # continue with the execution
+    if grant_type != 'refresh_token' and code:
+        try:
+            auth_flow_tracking = AuthFlowTracking.objects.get(code=code)
+            include_samhsa = auth_flow_tracking.include_samhsa
+            auth_flow_tracking.delete()
+
+        except AuthFlowTracking.DoesNotExist:
+            # If the AuthFlowTracking object does not exist, go with the default include_samhsa of True
+            pass
+
+    if grant_type == 'refresh_token':
+        include_samhsa = prior_include_samhsa
+
+    AccessTokenExtension.objects.get_or_create(
+        access_token=token, include_samhsa=include_samhsa, part_d_eob_only=prior_part_d_eob_only
+    )

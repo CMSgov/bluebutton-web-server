@@ -13,6 +13,7 @@ module "platform" {
   kms_key_alias                = "alias/bb-${local.env == "sandbox" ? "impl" : local.env}-app-key-alias"
   enable_acm_lookup            = true
   enable_security_group_lookup = true
+  acm_domain                   = local.env == "prod" ? "api.bluebutton.cms.gov" : ""
 }
 
 # ============================================================================
@@ -198,6 +199,10 @@ locals {
     { name = "NEW_RELIC_LOG", value = "stdout" },
     { name = "NEW_RELIC_LOG_LEVEL", value = "info" },
     { name = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED", value = "true" },
+    
+    # Intercepted by entrypoint-support.bash to dynamically configure the NR agent 
+    # since it doesn't natively support ignoring status codes via env vars.
+    { name = "BB2_NR_IGNORE_STATUS_CODES", value = "401 403 405" },
   ]
 
   # SSM individual params → ECS environment format

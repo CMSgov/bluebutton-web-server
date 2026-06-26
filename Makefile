@@ -1,20 +1,10 @@
-build-local:
-	cd ops/containers ; make build-local ; cd ../..
+.PHONY: build-local build-local-no-cache run-local build-selenium \
+        run-selenium-local reqs-install reqs-install-dev generate \
+        generate-requirements migrate collectstatic \
+        unit-test integration-test
 
-build-local-no-cache:
-	cd ops/containers ; make build-local-no-cache ; cd ../..
-
-run-local:
-	cd ops/containers ; make run-local ; cd ../..
-
-exec-web:
-	cd ops/containers ; make exec-web ; cd ../..
-
-build-selenium:
-	cd ops/containers ; make build-selenium ; cd ../..
-
-run-selenium:
-	$(MAKE) -C ops/containers run-selenium-target-local
+build-local build-local-no-cache run-local build-selenium migrate collectstatic run-selenium-local:
+	$(MAKE) -C ops/containers $@
 
 reqs-install:
 	pip install -r requirements/requirements.txt
@@ -23,19 +13,10 @@ reqs-install-dev:
 	pip install -r requirements/requirements.dev.txt
 
 generate generate-requirements:
-	cd ops/containers ; make requirements ; cd ../..
-
-retrieve-certs:
-	cd ops/containers ; make retrieve-certs ; cd ../..
-
-migrate:
-	cd ops/containers ;  make migrate ; cd ../..
-
-collectstatic:
-	cd ops/containers ; make collectstatic ; cd ../..
+	$(MAKE) -C ops/containers requirements
 
 unit-test:
-	python manage.py test --exclude=integration
+	pytest -m 'not integration'
 
 integration-test:
-	python manage.py test --tag=integration
+	pytest -m 'integration'

@@ -14,9 +14,10 @@ from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.permissions import (
     ApplicationActivePermission,
+    AppScopePermission,
     ResourcePermission,
-    V2ExplanationOfBenefitPermission,
     SearchCrosswalkPermission,
+    V2ExplanationOfBenefitPermission,
     V3EarlyAdopterPermission,
 )
 from apps.fhir.bluebutton.views.generic import FhirDataView
@@ -47,6 +48,7 @@ class SearchView(FhirDataView):
         TokenHasProtectedCapability,
         HasSearchScope,
         V3EarlyAdopterPermission,
+        AppScopePermission,
         V2ExplanationOfBenefitPermission,
     ]
 
@@ -158,6 +160,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         'patient': str,
         '_tag': list[str],
         '_source': list[str],
+        '_security:not': str,
     }
 
     def __init__(self, version=1):

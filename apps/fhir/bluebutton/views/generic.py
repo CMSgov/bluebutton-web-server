@@ -15,18 +15,24 @@ from rest_framework.views import APIView
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.constants import FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT, HHS_SERVER_LOGNAME_FMT
+from apps.dot_ext.models import AccessTokenExtension
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
-from apps.fhir.bluebutton.permissions import ApplicationActivePermission, HasCrosswalk, ResourcePermission
+from apps.fhir.bluebutton.permissions import (
+    ApplicationActivePermission,
+    HasCrosswalk,
+    ResourcePermission,
+)
 from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     build_fhir_response,
+    determine_eob_search_parameter_to_add,
     valid_patient_read_or_search_call,
     validate_query_parameters,
 )
-from apps.fhir.constants import ENFORCE_PARAM_VALIDATION
+from apps.fhir.constants import ENFORCE_PARAM_VALIDATION, EXCLUDE_SAMHSA_PARAMETER_VALUE
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server import connection as backend_connection
@@ -105,6 +111,9 @@ class FhirDataView(APIView):
                     'access_token_username': at.user.username,
                 }
                 logger.info(log_message)
+                at_extension = AccessTokenExtension.objects.get(access_token=at)
+                request.include_samhsa = at_extension.include_samhsa
+                request.part_d_eob_only = at_extension.part_d_eob_only
             except ObjectDoesNotExist:
                 pass
 
@@ -157,22 +166,39 @@ class FhirDataView(APIView):
                 # making the request can see what the invalid parameters were so they can fix the request
                 raise ValidationError({'error': f'Invalid parameters: {validation_result.invalid_params}'})
 
-        # If a v3 EOB search call is being made, and it does not contain _tag or _source parameters
-        # then append add _source=NCH to the query parameters of the call to ensure that, by default
-        # we only return NCH data for v3 EOB search calls. If a _source or _tag parameter is already included
-        # then we won't add the default.
-        resource_id = kwargs.get('resource_id')
+        # If a v3 EOB call is being made, and include_samhsa for the access token associated with the request is False
+        # make sure to add a parameter that will filter out SAMHSA data
         if (
             resource_type == FHIR_RES_TYPE_EOB
             and self.version == Versions.V3
-            and not resource_id
-            and '_tag' not in query_param
-            and '_source' not in query_param
+            and not getattr(request, 'include_samhsa', True)
         ):
-            get_parameters['_source'] = 'NCH'
-            # Reset request params after adding default _source param
+            get_parameters['_security:not'] = EXCLUDE_SAMHSA_PARAMETER_VALUE
+            # Reset request params after adding default _security:not param
             req.params = get_parameters
             prepped = s.prepare_request(req)
+
+        # If a v3 EOB search call is being made, we need to check to see what _source parameter to add.
+        # If the accesstoken_extension record associated with the call has part_d_eob_only equal to True
+        # we will return 'DDPS', to ensure only Part D claims data is returned. If part_d_eob_only is False
+        # and there are no _tag or _source parameters in the query parameters, we will return 'NCH', as that
+        # is the default source we want for v3 EOB search calls
+        resource_id = kwargs.get('resource_id')
+
+        if resource_type == FHIR_RES_TYPE_EOB and self.version == Versions.V3 and not resource_id:
+            eob_search_param = determine_eob_search_parameter_to_add(
+                query_param, getattr(request, 'part_d_eob_only', False)
+            )
+
+            if eob_search_param:
+                get_parameters['_source'] = eob_search_param
+
+                # In case it is DDPS, null out the _tag parameter in case it has a non-DDPS value
+                if eob_search_param == 'DDPS':
+                    get_parameters['_tag'] = None
+                # Reset request params after adding EOB _source param
+                req.params = get_parameters
+                prepped = s.prepare_request(req)
 
         if resource_type == FHIR_RES_TYPE_PATIENT:
             beneficiary_id = prepped.headers.get('BlueButton-BeneficiaryId')
@@ -226,5 +252,17 @@ class FhirDataView(APIView):
         out_data = r.json()
 
         self.check_object_permissions(request, out_data)
+
+        # If it is a v3 read EOB, make sure we are not returning non-part D data for an access token that can only
+        # access part D data. This is a temporary implementation as part of BB2-4901, will likely change in near term.
+        if (
+            resource_type == FHIR_RES_TYPE_EOB
+            and self.version == Versions.V3
+            and resource_id
+            and getattr(request, 'part_d_eob_only', False)
+        ):
+            if out_data.get('meta', {}).get('source') != 'DDPS':
+                error = NotFound('Not found.')
+                raise error
 
         return out_data
