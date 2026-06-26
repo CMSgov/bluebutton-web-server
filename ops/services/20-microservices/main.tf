@@ -203,6 +203,10 @@ locals {
     # Intercepted by entrypoint-support.bash to dynamically configure the NR agent 
     # since it doesn't natively support ignoring status codes via env vars.
     { name = "BB2_NR_IGNORE_STATUS_CODES", value = "401 403 405" },
+
+    # Datadog configuration
+    { name = "DD_SERVICE", value = local.app },
+    { name = "DD_ENV", value = local.env },
   ]
 
   # SSM individual params → ECS environment format
