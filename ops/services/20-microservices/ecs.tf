@@ -59,7 +59,27 @@ resource "aws_ecs_task_definition" "ecs_task" {
       {
         name = "DD_APM_ENABLED"
         value = "true"
-      }
+      },
+      {
+        name = "DD_ENV"
+        value = local.env
+      },
+      {
+        name = "DD_TAGS"
+        value = "environment:${local.env},application:${local.app}"
+      },
+      {
+        name = "DD_APM_NON_LOCAL_TRAFFIC"
+        value = "true"
+      },
+      {
+        name = "DD_LOGS_ENABLED"
+        value = "false" # DD logging is currently not approved
+      },
+      {
+        name = "DD_ECS_TASK_COLLECTION_ENABLED"
+        value = "true"
+      },
     ]
 
     healthCheck = {
