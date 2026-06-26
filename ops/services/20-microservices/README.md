@@ -82,7 +82,6 @@ Set in `locals.tf` (not from secrets):
 - `PORT` — 8000
 - `DJANGO_FHIR_CERTSTORE`, `FHIR_CERT_FILE`, `FHIR_KEY_FILE` — cert paths
 - `PYTHONUNBUFFERED`, `PYTHONDONTWRITEBYTECODE`
-- `NEW_RELIC_*` — APM configuration
 
 ## Cross-Service Discovery
 
