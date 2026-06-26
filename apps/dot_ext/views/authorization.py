@@ -849,7 +849,7 @@ class TokenView(DotTokenView):
                             'exp',
                             'iat',
                             'identity_assurance_level',
-                            # 'auth_time',
+                            'auth_time',
                             'family_name',
                             'given_name',
                             'birthdate',
@@ -883,12 +883,9 @@ class TokenView(DotTokenView):
                 log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
                 raise InvalidRequestError
 
-            # if (
-            #     datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
-            #     > 86400
-            # ):
-            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
-            #     raise InvalidRequestError
+            if datetime.now(timezone.utc).timestamp() - payload.get('auth_time') > 300:
+                log.warning('JWT was authorized older than 5 minutes (auth_time)')
+                raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
                 log.warning(
