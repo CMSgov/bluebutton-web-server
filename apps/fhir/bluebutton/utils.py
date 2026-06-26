@@ -4,7 +4,7 @@ import uuid
 from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import pytz
 import requests
@@ -877,6 +877,12 @@ def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str]
     """
     auth_settings = FhirServerAuth()
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
+
+    # Validate the URL against the configured FHIR server base URL
+    parsed_url = urlparse(url)
+    allowed_base = urlparse(fhir_settings.fhir_url_v3 or fhir_settings.fhir_url)
+    if parsed_url.scheme not in ('https', 'http') or parsed_url.netloc != allowed_base.netloc:
+        raise ValueError(f'URL does not match the configured FHIR server: {allowed_base.netloc}')
 
     # We could just do a requests.post but this way is useful for debugging and testing,
     # to be able to see the prepared request and manipulate if needed before sending,
