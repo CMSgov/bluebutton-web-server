@@ -41,6 +41,11 @@ class DataAccessGrant(models.Model):
         self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+1)
         self.save()
 
+    def update_90_day_rolling_window(self):
+        # Update 90 day rolling window for DAG
+        self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90)
+        self.save()
+
     def has_expired(self):
         if self.application.data_access_type == 'THIRTEEN_MONTH':
             if self.expiration_date:
@@ -101,7 +106,7 @@ def create_or_update_data_access_grant_client_credential_flow(user, application)
         beneficiary=user,
         application=application,
     )
-    data_access_grant.update_expiration_date_one_hour()
+    data_access_grant.update_90_day_rolling_window()
     return data_access_grant
 
 

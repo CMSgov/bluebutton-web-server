@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -38,6 +39,8 @@ from fhir.resources.R4B.patient import Patient
 from jwt import PyJWKClient
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.models import (
+    AccessToken,
+    RefreshToken,
     get_access_token_model,
     get_application_model,
     get_refresh_token_model,
@@ -67,6 +70,7 @@ from apps.constants import (
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
+    REFRESH_TOKEN,
     USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
 )
 from apps.dot_ext.constants import (
@@ -1053,7 +1057,7 @@ class TokenView(DotTokenView):
         refresh_token_str = None
         RefreshToken = get_refresh_token_model()
 
-        if grant_type == 'refresh_token':
+        if grant_type == REFRESH_TOKEN:
             if request:
                 refresh_token_str = request.POST.get('refresh_token')
 
@@ -1085,7 +1089,7 @@ class TokenView(DotTokenView):
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
-            if version == Versions.V3 and grant_type == 'refresh_token':
+            if version == Versions.V3 and grant_type == REFRESH_TOKEN:
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
@@ -1210,6 +1214,19 @@ class TokenView(DotTokenView):
                 )
 
                 if grant_type == CLIENT_CREDENTIALS:
+                    if access_token:
+                        access_token_obj = AccessToken.objects.filter(token=access_token).first()
+
+                        if access_token_obj:
+                            refresh_token = RefreshToken.objects.create(
+                                user=user,
+                                user_id=user.id,
+                                token=secrets.token_urlsafe(22),  # generate a secure random token with 30 chars
+                                application=app,
+                                access_token=access_token_obj,
+                            )
+
+                            body['refresh_token'] = refresh_token.token
                     token.user_id = user.id
                     token.save()
 
@@ -1221,10 +1238,17 @@ class TokenView(DotTokenView):
                     except Crosswalk.DoesNotExist:
                         pass
 
+                user_profile = UserProfile.objects.get(user=token.user)
+
                 app_authorized.send(sender=self, request=request, token=token)
 
                 dag_expiry = ''
-                if app.data_access_type == 'THIRTEEN_MONTH':
+                if user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
+                    dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
+                    if dag is not None and grant_type == REFRESH_TOKEN:
+                        dag.update_90_day_rolling_window()
+                    dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                elif app.data_access_type == 'THIRTEEN_MONTH':
                     try:
                         dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if dag.expiration_date is not None:
@@ -1240,7 +1264,7 @@ class TokenView(DotTokenView):
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                if grant_type == 'refresh_token':
+                if grant_type == REFRESH_TOKEN:
                     try:
                         crosswalk = Crosswalk.objects.get(user=token.user)
                         get_and_update_from_refresh(
