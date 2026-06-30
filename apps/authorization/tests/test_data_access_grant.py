@@ -1,32 +1,30 @@
-import json
 import base64
-import pytz
+import json
+from datetime import datetime, timedelta
+from http import HTTPStatus
+from urllib.parse import parse_qs, urlparse
 
+import pytz
+from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.http import HttpRequest
-from django.utils import timezone
 from django.urls import reverse
-
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from http import HTTPStatus
-
-from urllib.parse import parse_qs, urlparse
-
+from django.utils import timezone
 from oauth2_provider.models import (
-    get_application_model,
     get_access_token_model,
-)
-
-from apps.test import BaseApiTest
-from apps.authorization.models import (
-    DataAccessGrant,
-    ArchivedDataAccessGrant,
-    check_grants,
-    update_grants,
+    get_application_model,
 )
 from waffle.testutils import override_switch
+
+from apps.authorization.models import (
+    ArchivedDataAccessGrant,
+    DataAccessGrant,
+    check_grants,
+    create_or_update_data_access_grant_client_credential_flow,
+    update_grants,
+)
+from apps.test import BaseApiTest
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -191,6 +189,33 @@ class TestDataAccessGrant(BaseApiTest):
             headers={'authorization': auth},
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_client_credential_dag(self):
+        # 1. Create bene and app for tests
+        dev_user = self._create_user('developer_test', '123456')
+        bene_user = self._create_user('test_beneficiary', '123456')
+        test_app = self._create_application('test_app', user=dev_user, data_access_type='THIRTEEN_MONTH')
+
+        dag = create_or_update_data_access_grant_client_credential_flow(bene_user, test_app)
+        self.assertAlmostEqual(
+            dag.expiration_date,
+            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90),
+            delta=timedelta(seconds=5),
+        )
+
+        dag.update_expiration_date()
+        self.assertNotAlmostEqual(
+            dag.expiration_date,
+            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90),
+            delta=timedelta(seconds=5),
+        )
+
+        dag.update_90_day_rolling_window()
+        self.assertAlmostEqual(
+            dag.expiration_date,
+            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90),
+            delta=timedelta(seconds=5),
+        )
 
     def setup_test_application_with_user(self, test_user, application_name='an app'):
         redirect_uri = 'http://localhost'
