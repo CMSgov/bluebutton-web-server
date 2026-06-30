@@ -1214,7 +1214,6 @@ class TokenView(DotTokenView):
                 if grant_type == CLIENT_CREDENTIALS:
                     refresh_token = get_refresh_token_model().objects.create(
                         user=user,
-                        user_id=user.id,
                         token=secrets.token_urlsafe(22),  # generate a secure random token with 30 chars
                         application=app,
                         access_token=token,
@@ -1246,7 +1245,8 @@ class TokenView(DotTokenView):
                         dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if grant_type == REFRESH_TOKEN:
                             dag.update_90_day_rolling_window()
-                        dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                        if dag.expiration_date is not None:
+                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ''
                 elif app.data_access_type == 'THIRTEEN_MONTH':
