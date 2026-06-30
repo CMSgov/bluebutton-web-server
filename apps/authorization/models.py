@@ -41,8 +41,8 @@ class DataAccessGrant(models.Model):
         self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+1)
         self.save()
 
-    def update_90_day_rolling_window(self):
-        # Update 90 day rolling window for DAG
+    def update_90_day_rolling_window(self) -> None:
+        """Update the expiration_date to a new 90-day rolling window."""
         self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90)
         self.save()
 
