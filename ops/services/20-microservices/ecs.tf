@@ -65,8 +65,11 @@ resource "aws_ecs_task_definition" "ecs_task" {
         value = local.env
       },
       {
+        # Tags to add to hosts
+        # separated by spaces
+        # https://docs.datadoghq.com/containers/docker/?tab=linux#environment-variables
         name = "DD_TAGS"
-        value = "environment:${local.env},application:${local.app}"
+        value = "environment:${local.env} application:${local.app}"
       },
       {
         name = "DD_APM_NON_LOCAL_TRAFFIC"
