@@ -206,6 +206,7 @@ locals {
 
     # Datadog configuration
     { name = "DD_SERVICE", value = local.app },
+    { name = "DD_DJANGO_SERVICE", value = local.app },
     { name = "DD_ENV", value = local.env },
   ]
 
