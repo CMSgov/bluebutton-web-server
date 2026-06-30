@@ -1244,7 +1244,7 @@ class TokenView(DotTokenView):
                 if user_is_anb:
                     try:
                         dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
-                        if dag is not None and grant_type == REFRESH_TOKEN:
+                        if grant_type == REFRESH_TOKEN:
                             dag.update_90_day_rolling_window()
                         dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
                     except DataAccessGrant.DoesNotExist:
