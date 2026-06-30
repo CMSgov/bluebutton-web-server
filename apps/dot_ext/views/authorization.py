@@ -913,7 +913,7 @@ class TokenView(DotTokenView):
 
     def _validate_time_comparison(
         self, payload_data: dict[str, Any], jwt_key: str, max_age_seconds: int
-    ) -> True | InvalidRequestError:
+    ) -> bool | InvalidRequestError:
         """
         Validates if iat or auth_time:
          1. Are numbers
@@ -935,7 +935,7 @@ class TokenView(DotTokenView):
         try:
             jwt_key_ts = float(payload_data.get(jwt_key))
         except (TypeError, ValueError):
-            log.warning(f'{jwt_key} claim was not a numeric timestamp ({jwt_key})')
+            log.warning(f'{jwt_key} was not a numeric timestamp ({jwt_key})')
             raise InvalidRequestError
 
         current_ts = datetime.now(timezone.utc).timestamp()
