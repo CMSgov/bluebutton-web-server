@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 from base64 import b64encode
+from datetime import timezone
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -572,7 +573,7 @@ class TestTokenPrivateMethods(BaseApiTest):
                 'iss': 'test_iss',
                 'jti': 'test_validate_authorization_jwt_cache_success',
                 'sub': 'test_iss',
-                'exp': datetime.datetime.now().timestamp(),
+                'exp': datetime.datetime.now(timezone.utc).timestamp(),
                 'extensions': {
                     'cms_smart': {
                         'version': '1',
@@ -609,7 +610,7 @@ class TestTokenPrivateMethods(BaseApiTest):
             'iss': 'test_iss',
             'jti': 'test_validate_authorization_jwt_cache_replay',
             'sub': 'test_iss',
-            'exp': datetime.datetime.now().timestamp(),
+            'exp': datetime.datetime.now(timezone.utc).timestamp(),
             'extensions': {
                 'cms_smart': {
                     'version': '1',
@@ -646,9 +647,9 @@ class TestTokenPrivateMethods(BaseApiTest):
             mock_payload = {
                 'iss': 'test_iss',
                 'jti': 'test_validate_ial_jwt_cache_success',
-                'iat': datetime.datetime.now().timestamp(),
+                'iat': datetime.datetime.now(timezone.utc).timestamp(),
                 # Ensure auth time is within the last 5 minutes
-                'auth_time': datetime.datetime.now().timestamp() - 60,
+                'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
                 'identity_assurance_level': 2,
                 'family_name': 'Doe',
                 'given_name': 'John',
@@ -682,8 +683,8 @@ class TestTokenPrivateMethods(BaseApiTest):
         mock_payload = {
             'iss': 'test_iss',
             'jti': 'test_validate_ial_jwt_cache_replay',
-            'iat': datetime.datetime.now().timestamp(),
-            'auth_time': datetime.datetime.now().timestamp() - 60,
+            'iat': datetime.datetime.now(timezone.utc).timestamp(),
+            'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
             'identity_assurance_level': 2,
             'family_name': 'Doe',
             'given_name': 'John',
@@ -716,8 +717,8 @@ class TestTokenPrivateMethods(BaseApiTest):
         mock_payload = {
             'iss': 'test_iss',
             'jti': 'test_validate_ial_jwt_cache_replay',
-            'iat': datetime.datetime.now().timestamp(),
-            'auth_time': datetime.datetime.now().timestamp() - 301,
+            'iat': datetime.datetime.now(timezone.utc).timestamp(),
+            'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 301,
             'identity_assurance_level': 2,
             'family_name': 'Doe',
             'given_name': 'John',
@@ -728,6 +729,6 @@ class TestTokenPrivateMethods(BaseApiTest):
             'header': {'typ': 'JWT'},
         }
 
-        # Call fails when auth time is greater than 5 minutes
+        # Call fails when auth time is longer than 5 minutes ago
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
