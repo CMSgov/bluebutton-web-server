@@ -478,8 +478,7 @@ class TestTokenResponseFields(BaseApiTest):
     def test_client_credentials_token_and_refresh(
         self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth, mock_get_and_update
     ):
-        """Verify that the client credential request includes the "patient" field and can accurately be refreshed
-        is included in the token response for client_credentials"""
+        """Verify that a client_credentials token response includes "patient" and "refresh_token", and that the refresh_token can be used to refresh the access token."""
 
         # Mocking the matched user
         mock_create_user.return_value = self.user
