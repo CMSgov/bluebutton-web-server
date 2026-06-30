@@ -1,18 +1,15 @@
-import apps.logging.request_logger as logging
-
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from rest_framework.exceptions import NotFound
-from apps.versions import Versions
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
+import apps.logging.request_logger as logging
 from apps.accounts.models import UserProfile
-from apps.constants import USER_TYPE_BENEFICIARY
-from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
-from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType
+from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, USER_TYPE_BENEFICIARY
 from apps.dot_ext.utils import get_api_version_number_from_url
-
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
+from apps.fhir.server.authentication import MatchFhirIdErrorType, match_fhir_id
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.constants import (
     MAX_HICN_HASH_LENGTH,
@@ -21,6 +18,7 @@ from apps.mymedicare_cb.constants import (
     BBMyMedicareCallbackCrosswalkUpdateException,
     MedicareCallbackExceptionType,
 )
+from apps.versions import Versions
 
 
 def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_client=None):
@@ -91,8 +89,16 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 # A future ticket should address this
                 raise NotFound
 
-    bfd_fhir_id_v2 = versioned_match_fhir_id_results[Versions.V2].fhir_id
-    bfd_fhir_id_v3 = versioned_match_fhir_id_results[Versions.V3].fhir_id
+    bfd_fhir_id_v2 = (
+        versioned_match_fhir_id_results[Versions.V2].fhir_id
+        if versioned_match_fhir_id_results[Versions.V2].fhir_id is not None
+        else ''
+    )
+    bfd_fhir_id_v3 = (
+        versioned_match_fhir_id_results[Versions.V3].fhir_id
+        if versioned_match_fhir_id_results[Versions.V3].fhir_id is not None
+        else ''
+    )
 
     # Because we still get v1 authorize and refresh token calls, we can't assume
     # that the version for the request will be 2 or 3. If the call is not for v2 or v3
@@ -117,6 +123,10 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     try:
         # Does an existing user and crosswalk exist for this username?
         user = User.objects.get(username=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+
+        if user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
+            bfd_fhir_id_v2 = ''
 
         # Did the hicn change?
         if user.crosswalk.user_hicn_hash != hicn_hash:
@@ -124,9 +134,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
 
         update_fhir_id = False
         if (
-            user.crosswalk.fhir_id(Versions.V2) == ''
-            or user.crosswalk.fhir_id(Versions.V3) == ''
-            or user.crosswalk.fhir_id(Versions.V2) != bfd_fhir_id_v2
+            user.crosswalk.fhir_id(Versions.V2) != bfd_fhir_id_v2
             or user.crosswalk.fhir_id(Versions.V3) != bfd_fhir_id_v3
         ):
             update_fhir_id = True
@@ -213,7 +221,11 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
         # will populate `fhir_id_v3` even if the session/API version was v2.
 
         user = create_beneficiary_record_from_slsx_client(
-            slsx_client, fhir_id_v2=bfd_fhir_id_v2, fhir_id_v3=bfd_fhir_id_v3, user_id_type=version_user_id_type, request=request
+            slsx_client,
+            fhir_id_v2=bfd_fhir_id_v2,
+            fhir_id_v3=bfd_fhir_id_v3,
+            user_id_type=version_user_id_type,
+            request=request,
         )
 
     log_dict.update(
