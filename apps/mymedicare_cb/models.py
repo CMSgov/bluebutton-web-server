@@ -120,6 +120,7 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
             user_profile = UserProfile.objects.get(user=user)
             if user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
                 bfd_fhir_id_v2 = None
+                log_dict['fhir_id_v2'] = None
         except UserProfile.DoesNotExist:
             # not expected, but if it happens, we will just continue and not set bfd_fhir_id_v2 to None
             pass
