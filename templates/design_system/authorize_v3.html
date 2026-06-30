@@ -151,6 +151,19 @@ a {
 						</form>
 					</div>
 
+					<div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px;">
+						{% trans "Not you? " %}
+						<form method="post" action="{% url 'oauth2_provider_v3:permission-logout' %}">
+							{% csrf_token %}
+							<button
+							type="submit"
+							style="font-family: 'Rubik'; color: #262626; background: none; border: none; cursor: pointer; padding: 0; font: inherit; text-decoration: underline;"
+							>
+							{% trans "Switch account" %}
+							</button>
+						</form>
+					</div>
+
 				</div>
 
 				{% if not error %}

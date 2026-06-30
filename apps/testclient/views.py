@@ -101,8 +101,16 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
 
 
 def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
-    client_id = request.session['client_id']
-    redirect_uri = request.session['redirect_uri']
+    print('_get_oauth2_session_with_redirect session check: ', request.session.__dict__)
+    print('_get_oauth2_session_with_redirect request check: ', request.__dict__)
+    if request.session.get('client_id'):
+        client_id = request.session['client_id']
+    else:
+        client_id = request.session['auth_client_id']
+    if request.session.get('redirect_uri'):
+        redirect_uri = request.session['redirect_uri']
+    else:
+        redirect_uri = 'http://localhost:8000/mymedicare/sls-callback'
     return OAuth2Session(client_id, redirect_uri=redirect_uri)
 
 
@@ -177,6 +185,8 @@ def callback(request: HttpRequest):
     # However, the default is `v0`, which is an invalid version. This keeps it of the
     # same type as valid values, but does not allow us to proceed if something has broken.
     version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
+    print('what is the request.session: ', request.session.__dict__)
+    print('what is the version: ', version)
     match version:
         case Versions.V1:
             token_uri += reverse('oauth2_provider:token')
@@ -187,7 +197,7 @@ def callback(request: HttpRequest):
         case _:
             logger.error(f'Failed to get valid API version back from authorizing agent. Given: [{version}]')
             return ResponseErrors.MissingCallbackVersionContext(version)
-
+    print('IN CALLBACK ABOUT TO CALL _get_oauth2_session_with_redirect')
     oas = _get_oauth2_session_with_redirect(request)
     try:
         # Default the CV to '' if it is not part of the session.
@@ -314,7 +324,7 @@ def _link_session_or_version_is_bad(session, version):
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     request.session.update(setup_testclient_http_response(version=version))
-
+    print('IN AUTHORIZE LINK ABOUT TO CALL _get_oauth2_session_with_redirect')
     oas = _get_oauth2_session_with_redirect(request)
 
     # We need scopes in V3.

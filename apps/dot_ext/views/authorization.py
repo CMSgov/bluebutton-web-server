@@ -8,12 +8,12 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
 from time import strftime
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
 import waffle
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
@@ -21,9 +21,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from fhir.resources.R4B.address import Address
@@ -65,6 +67,7 @@ from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CODE_CHALLENGE_METHOD_S256,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
     USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
@@ -101,6 +104,8 @@ from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
+    generate_code_challenge,
+    generate_code_verifier,
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -258,7 +263,7 @@ class AuthorizationView(DotAuthorizationView):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
-
+        print('self.application in get_context_data: ', self.application.__dict__)
         if 'form' in context and self.version == Versions.V3:
             # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
             # for the access token are in the intersection of what the application is allowed to have and
@@ -326,6 +331,7 @@ class AuthorizationView(DotAuthorizationView):
             return param_check
 
         request.session['version'] = self.version
+        print('WE ARE IN DISPATCH: ', request.session.__dict__)
 
         # Accept lang from GET or POST
         lang = self._get_param(request, 'lang')
@@ -334,10 +340,13 @@ class AuthorizationView(DotAuthorizationView):
 
         if request.method == 'POST' and not request.user.is_authenticated:
             post_qs = request.POST.urlencode()
+            print('POST_QS: ', post_qs)
             # preserve existing query too
             existing_qs = request.META.get('QUERY_STRING', '')
+            print('existing_qs: ', existing_qs)
             merged_qs = f'{existing_qs}&{post_qs}' if existing_qs else post_qs
             next_url = f'{request.path}?{merged_qs}'
+            print('next_url: ', next_url)
             return redirect_to_login(next_url, login_url=self.login_url)
 
         return super().dispatch(request, *args, **kwargs)
@@ -1345,3 +1354,79 @@ class IntrospectTokenView(DotIntrospectTokenView):
             return json_response_from_oauth2_error(error)
 
         return super(IntrospectTokenView, self).post(request, args, kwargs)
+
+
+class PermissionScreenLogoutView(View):
+    # def post(self, request, *args, **kwargs):
+    #     print('WE ARE IN THE POST22: ', request.__dict__)
+    #     print('WE ARE IN THE POST22 SESSION: ', request.session.__dict__)
+    #     request.session.pop('token', None)
+    #     logout(request)
+    #     request.session['version'] = 3
+    #     request.session['api_ver'] = 3
+    #     # Missing a bunch of different env vars needed to get through
+    #     # return redirect(
+    #     #     'https://test.medicare.gov/account/login/?client_id=bb2api&redirect_uri=http://localhost:8000/mymedicare/sls-callback&relay=88239279635745734637300171&lang=en-us'
+    #     # )
+    #     # state is not there with this URL
+    #     # return redirect('https://test.medicare.gov/sso/authorize?client_id=bb2api')
+    #     # Not a real URL
+    #     # return redirect('https://test.medicare.gov/sso/login?client_id=bb2api')
+    #     # Invalid
+    #     # return redirect('https://test.medicare.gov/sso/session?client_id=bb2api')
+    #     # Not a real URL either
+    #     # return redirect('https://test.medicare.gov/sso/session/authorize?client_id=bb2api')
+    #     # invalid_client - app id failed
+    #     return redirect('http://localhost:8000/mymedicare/login')
+
+    def post(self, request, *args, **kwargs):
+        # Save version before logout clears the session
+        version = request.session.get('version', None)
+        print('REQUEST POST CHECK: ', request.POST)
+        print('REQUEST GET CHECK: ', request.GET)
+        print('REQUEST SESSION CHECK: ', request.session.__dict__)
+        print('ARGS CHECK: ', args)
+        print('KWARGS CHECK: ', kwargs)
+
+        code_verifier = generate_code_verifier()
+        code_challenge = generate_code_challenge(code_verifier)
+        redirect_uri = 'http://localhost:8000/mymedicare/sls-callback'
+        state = 'IQKLuHp4pqeaGDjd'
+
+        # Save the original OAuth params before logout
+        oauth_params = {
+            'client_id': request.GET.get('client_id')
+            or request.session.get('client_id')
+            or request.session.get('auth_client_id'),
+            'redirect_uri': request.GET.get('redirect_uri') or request.session.get('redirect_uri') or redirect_uri,
+            'response_type': request.GET.get('response_type') or request.session.get('response_type'),
+            # 'scope': request.GET.get('scope') or request.session.get('scope'),
+            'state': request.GET.get('state') or request.session.get('state') or state,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+            'code_challenge': code_challenge,
+            'scope': 'patient/Patient.rs patient/Coverage.rs patient/ExplanationOfBenefit.rs profile',
+        }
+        print('oauth params: ', oauth_params)
+
+        # Remove None values
+        oauth_params = {k: v for k, v in oauth_params.items() if v is not None}
+
+        # Clear token and log out
+        request.session.pop('token', None)
+        logout(request)
+
+        # Restore version after logout
+        if version is not None:
+            request.session['version'] = version
+
+        # Rebuild the authorize URL with original params
+        base_url = request.build_absolute_uri('/').rstrip('/')
+        authorize_url = f'{base_url}/v3/o/authorize?{urlencode(oauth_params)}'
+
+        return redirect(authorize_url)
+
+    # def post(self, request, *args, **kwargs):
+    #     # SLSx client instance
+    #     slsx_client = OAuth2ConfigSLSx()
+    #     slsx_client.user_signout(request)
+    #     return redirect('http://localhost:8000/v3/o/authorize/')
