@@ -694,7 +694,7 @@ class TestTokenPrivateMethods(BaseApiTest):
     def test_validate_time_comparison_succeeds(
         self,
     ):
-        """Test _validate_time_comparison fails when longer than 5 minutes ago."""
+        """Test _validate_time_comparison succeeds when set to 3 minutes ago."""
         # Set auth time to be 3 minutes ago
         mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180}
         response = self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
