@@ -89,16 +89,8 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
                 # A future ticket should address this
                 raise NotFound
 
-    bfd_fhir_id_v2 = (
-        versioned_match_fhir_id_results[Versions.V2].fhir_id
-        if versioned_match_fhir_id_results[Versions.V2].fhir_id is not None
-        else ''
-    )
-    bfd_fhir_id_v3 = (
-        versioned_match_fhir_id_results[Versions.V3].fhir_id
-        if versioned_match_fhir_id_results[Versions.V3].fhir_id is not None
-        else ''
-    )
+    bfd_fhir_id_v2 = versioned_match_fhir_id_results[Versions.V2].fhir_id
+    bfd_fhir_id_v3 = versioned_match_fhir_id_results[Versions.V3].fhir_id
 
     # Because we still get v1 authorize and refresh token calls, we can't assume
     # that the version for the request will be 2 or 3. If the call is not for v2 or v3
@@ -123,19 +115,22 @@ def __get_and_update_user(mbi, user_id, hicn_hash, request, auth_type, slsx_clie
     try:
         # Does an existing user and crosswalk exist for this username?
         user = User.objects.get(username=user_id)
-        user_profile = UserProfile.objects.get(user=user)
 
-        if user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
-            bfd_fhir_id_v2 = ''
+        try:
+            user_profile = UserProfile.objects.get(user=user)
+            if user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
+                bfd_fhir_id_v2 = None
+        except UserProfile.DoesNotExist:
+            # not expected, but if it happens, we will just continue and not set bfd_fhir_id_v2 to None
+            pass
 
         # Did the hicn change?
         if user.crosswalk.user_hicn_hash != hicn_hash:
             hicn_updated = True
 
         update_fhir_id = False
-        if (
-            user.crosswalk.fhir_id(Versions.V2) != bfd_fhir_id_v2
-            or user.crosswalk.fhir_id(Versions.V3) != bfd_fhir_id_v3
+        if (bfd_fhir_id_v2 is not None and user.crosswalk.fhir_id(Versions.V2) != bfd_fhir_id_v2) or (
+            bfd_fhir_id_v3 is not None and user.crosswalk.fhir_id(Versions.V3) != bfd_fhir_id_v3
         ):
             update_fhir_id = True
 

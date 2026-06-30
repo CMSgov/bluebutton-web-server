@@ -39,8 +39,6 @@ from fhir.resources.R4B.patient import Patient
 from jwt import PyJWKClient
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.models import (
-    AccessToken,
-    RefreshToken,
     get_access_token_model,
     get_application_model,
     get_refresh_token_model,
@@ -1214,19 +1212,15 @@ class TokenView(DotTokenView):
                 )
 
                 if grant_type == CLIENT_CREDENTIALS:
-                    if access_token:
-                        access_token_obj = AccessToken.objects.filter(token=access_token).first()
+                    refresh_token = get_refresh_token_model().objects.create(
+                        user=user,
+                        user_id=user.id,
+                        token=secrets.token_urlsafe(22),  # generate a secure random token with 30 chars
+                        application=app,
+                        access_token=token,
+                    )
 
-                        if access_token_obj:
-                            refresh_token = RefreshToken.objects.create(
-                                user=user,
-                                user_id=user.id,
-                                token=secrets.token_urlsafe(22),  # generate a secure random token with 30 chars
-                                application=app,
-                                access_token=access_token_obj,
-                            )
-
-                            body['refresh_token'] = refresh_token.token
+                    body['refresh_token'] = refresh_token.token
                     token.user_id = user.id
                     token.save()
 
@@ -1238,16 +1232,23 @@ class TokenView(DotTokenView):
                     except Crosswalk.DoesNotExist:
                         pass
 
-                user_profile = UserProfile.objects.get(user=token.user)
+                try:
+                    user_profile = UserProfile.objects.get(user=token.user)
+                    user_is_anb = user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+                except UserProfile.DoesNotExist:
+                    user_is_anb = False
 
                 app_authorized.send(sender=self, request=request, token=token)
 
                 dag_expiry = ''
-                if user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY:
-                    dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
-                    if dag is not None and grant_type == REFRESH_TOKEN:
-                        dag.update_90_day_rolling_window()
-                    dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                if user_is_anb:
+                    try:
+                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
+                        if dag is not None and grant_type == REFRESH_TOKEN:
+                            dag.update_90_day_rolling_window()
+                        dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                    except DataAccessGrant.DoesNotExist:
+                        dag_expiry = ''
                 elif app.data_access_type == 'THIRTEEN_MONTH':
                     try:
                         dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
