@@ -553,12 +553,39 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
 
 
+# @freeze_time('2026-06-30 10:12:00')
 class TestTokenPrivateMethods(BaseApiTest):
     def setUp(self):
         super().setUp()
         self.mock_jwks_client = MagicMock()
         self.mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
         self.token_view = TokenView()
+        self.mock_authorization_jwt_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_authorization_jwt',
+            'sub': 'test_iss',
+            'exp': datetime.datetime.now(timezone.utc).timestamp(),
+            'extensions': {
+                'cms_smart': {
+                    'version': '1',
+                    'purpose_of_use': 'PATRQT',
+                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                }
+            },
+        }
+        self.mock_ial_jwt_payload = {
+            'iss': 'test_iss',
+            'jti': 'test_validate_ial_jwt',
+            'sub': 'test_sub',
+            'aud': 'test_aud',
+            'exp': datetime.datetime.now(timezone.utc).timestamp() + 300,
+            'iat': datetime.datetime.now(timezone.utc).timestamp(),
+            'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
+            'identity_assurance_level': 2,
+            'family_name': 'Doe',
+            'given_name': 'John',
+            'birthdate': '1990-01-01',
+        }
 
     @override_switch('client_credentials_validation', active=True)
     @patch('jwt.decode_complete')
@@ -569,29 +596,21 @@ class TestTokenPrivateMethods(BaseApiTest):
         """Test _validate_authorization_jwt succeeds with basic validation"""
 
         with freeze_time() as frozen_time:
-            mock_payload = {
-                'iss': 'test_iss',
-                'jti': 'test_validate_authorization_jwt_cache_success',
-                'sub': 'test_iss',
-                'exp': datetime.datetime.now(timezone.utc).timestamp(),
-                'extensions': {
-                    'cms_smart': {
-                        'version': '1',
-                        'purpose_of_use': 'PATRQT',
-                        'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
-                    }
-                },
-            }
+            self.mock_authorization_jwt_payload['jti'] = 'test_validate_authorization_jwt_cache_success'
             mock_decode_complete.return_value = {
-                'payload': mock_payload,
+                'payload': self.mock_authorization_jwt_payload,
                 'header': {'typ': 'JWT'},
             }
 
             result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
-            assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
+            assert result == self.mock_authorization_jwt_payload.get('extensions', {}).get('cms_smart', {}).get(
+                'id_token'
+            )
 
             # Assert cache has the key we'd expect and that the result is what we'd expect
-            cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+            cache_key = (
+                f'{self.mock_authorization_jwt_payload.get("iss")}-{self.mock_authorization_jwt_payload.get("jti")}'
+            )
             assert cache.get(cache_key) == 'sentinel'
 
             # Advance time by 300 seconds and assert cache no longer has key
@@ -605,30 +624,17 @@ class TestTokenPrivateMethods(BaseApiTest):
         mock_decode_complete,
     ):
         """Test _validate_authorization_jwt succeeds on first cache hit"""
-
-        mock_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_authorization_jwt_cache_replay',
-            'sub': 'test_iss',
-            'exp': datetime.datetime.now(timezone.utc).timestamp(),
-            'extensions': {
-                'cms_smart': {
-                    'version': '1',
-                    'purpose_of_use': 'PATRQT',
-                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
-                }
-            },
-        }
+        self.mock_authorization_jwt_payload['jti'] = 'test_validate_authorization_jwt_cache_replay'
         mock_decode_complete.return_value = {
-            'payload': mock_payload,
+            'payload': self.mock_authorization_jwt_payload,
             'header': {'typ': 'JWT'},
         }
 
         result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
-        assert result == mock_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
+        assert result == self.mock_authorization_jwt_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
 
         # Assert cache has the key we'd expect and that the result is what we'd expect
-        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+        cache_key = f'{self.mock_authorization_jwt_payload.get("iss")}-{self.mock_authorization_jwt_payload.get("jti")}'
         assert cache.get(cache_key) == 'sentinel'
 
         # Second call with same jti/iss fails
@@ -644,28 +650,18 @@ class TestTokenPrivateMethods(BaseApiTest):
         """Test _validate_ial_jwt succeeds with basic validation."""
 
         with freeze_time() as frozen_time:
-            mock_payload = {
-                'iss': 'test_iss',
-                'jti': 'test_validate_ial_jwt_cache_success',
-                'iat': datetime.datetime.now(timezone.utc).timestamp(),
-                # Ensure auth time is within the last 5 minutes
-                'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
-                'identity_assurance_level': 2,
-                'family_name': 'Doe',
-                'given_name': 'John',
-                'birthdate': '1990-01-01',
-            }
+            self.mock_ial_jwt_payload['jti'] = 'test_validate_ial_jwt_cache_success'
             mock_decode_complete.return_value = {
-                'payload': mock_payload,
+                'payload': self.mock_ial_jwt_payload,
                 'header': {'typ': 'JWT'},
             }
 
             # Call succeeds
             result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
-            assert result == mock_payload
+            assert result == self.mock_ial_jwt_payload
 
             # Assert cache has the key we'd expect and that the result is what we'd expect
-            cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+            cache_key = f'{self.mock_ial_jwt_payload.get("iss")}-{self.mock_ial_jwt_payload.get("jti")}'
             assert cache.get(cache_key) == 'sentinel'
 
             # Advance time by 300 seconds and assert cache no longer has key
@@ -679,19 +675,9 @@ class TestTokenPrivateMethods(BaseApiTest):
         mock_decode_complete,
     ):
         """Test _validate_ial_jwt fails on second call with same jti (replay detected)."""
-
-        mock_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_ial_jwt_cache_replay',
-            'iat': datetime.datetime.now(timezone.utc).timestamp(),
-            'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
-            'identity_assurance_level': 2,
-            'family_name': 'Doe',
-            'given_name': 'John',
-            'birthdate': '1990-01-01',
-        }
+        self.mock_ial_jwt_payload['jti'] = 'test_validate_ial_jwt_cache_replay'
         mock_decode_complete.return_value = {
-            'payload': mock_payload,
+            'payload': self.mock_ial_jwt_payload,
             'header': {'typ': 'JWT'},
         }
 
@@ -699,7 +685,7 @@ class TestTokenPrivateMethods(BaseApiTest):
         self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
 
         # Assert cache contains expected key
-        cache_key = f'{mock_payload.get("iss")}-{mock_payload.get("jti")}'
+        cache_key = f'{self.mock_ial_jwt_payload.get("iss")}-{self.mock_ial_jwt_payload.get("jti")}'
         assert cache.get(cache_key) == 'sentinel'
 
         # Second call with same jti/iss fails
@@ -713,19 +699,11 @@ class TestTokenPrivateMethods(BaseApiTest):
         mock_decode_complete,
     ):
         """Test _validate_ial_jwt fails when auth time is greater than 5 minutes."""
-
-        mock_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_ial_jwt_cache_replay',
-            'iat': datetime.datetime.now(timezone.utc).timestamp(),
-            'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 301,
-            'identity_assurance_level': 2,
-            'family_name': 'Doe',
-            'given_name': 'John',
-            'birthdate': '1990-01-01',
-        }
+        # Set the auth_time to be greater than 5 minutes
+        self.mock_ial_jwt_payload['jti'] = 'test_validate_ial_jwt_auth_time_too_old'
+        self.mock_ial_jwt_payload['auth_time'] = datetime.datetime.now(timezone.utc).timestamp() - 301
         mock_decode_complete.return_value = {
-            'payload': mock_payload,
+            'payload': self.mock_ial_jwt_payload,
             'header': {'typ': 'JWT'},
         }
 
