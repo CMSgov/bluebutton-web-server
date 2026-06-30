@@ -691,21 +691,43 @@ class TestTokenPrivateMethods(BaseApiTest):
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
 
-    @override_switch('client_credentials_validation', active=True)
-    @patch('jwt.decode_complete')
-    def test_validate_ial_jwt_fails_when_auth_time_exceeds_5_minutes(
+    def test_validate_time_comparison_succeeds(
         self,
-        mock_decode_complete,
     ):
-        """Test _validate_ial_jwt fails when auth time is greater than 5 minutes."""
-        # Set the auth_time to be greater than 5 minutes
-        self.mock_ial_jwt_payload['jti'] = 'test_validate_ial_jwt_auth_time_too_old'
-        self.mock_ial_jwt_payload['auth_time'] = datetime.datetime.now(timezone.utc).timestamp() - 301
-        mock_decode_complete.return_value = {
-            'payload': self.mock_ial_jwt_payload,
-            'header': {'typ': 'JWT'},
-        }
+        """Test _validate_time_comparison fails when longer than 5 minutes ago."""
+        # Set auth time to be 3 minutes ago
+        mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180}
+        response = self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
+        assert response is True
 
-        # Call fails when auth time is longer than 5 minutes ago
+    def test_validate_time_comparison_fails_when_auth_time_is_not_an_integer(
+        self,
+    ):
+        """Test _validate_time_comparison fails when auth time is not an number."""
+        mock_payload = {'auth_time': "I'm a string"}
+
+        # Call fails when auth time is not a number
         with pytest.raises(InvalidRequestError):
-            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
+
+    def test_validate_time_comparison_fails_when_auth_time_happens_in_the_future(
+        self,
+    ):
+        """Test _validate_time_comparison fails when auth time happens in the future."""
+        # Set time to happen in the future
+        mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() + 60}
+
+        # Call fails when auth time happens in the future
+        with pytest.raises(InvalidRequestError):
+            self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
+
+    def test_validate_time_comparison_fails_when_longer_than_5_minutes_ago(
+        self,
+    ):
+        """Test _validate_time_comparison fails when longer than 5 minutes ago."""
+        # Set time to happen in the future
+        mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 301}
+
+        # Call fails when auth time happens in the future
+        with pytest.raises(InvalidRequestError):
+            self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
