@@ -553,7 +553,6 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
 
 
-# @freeze_time('2026-06-30 10:12:00')
 class TestTokenPrivateMethods(BaseApiTest):
     def setUp(self):
         super().setUp()
