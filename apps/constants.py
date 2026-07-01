@@ -128,6 +128,7 @@ USER_CHOICES = (
 TEST_APP_CLIENT_ID = 'test-client-id'
 TEST_APP_CLIENT_SECRET = 'test-client-secret'
 CLIENT_CREDENTIALS = 'client_credentials'
+REFRESH_TOKEN = 'refresh_token'
 CLIENT_CONFIDENTIAL_ASYMMETRIC = 'client-confidential-asymmetric'
 
 PRIVATE_KEY_JWT = 'private_key_jwt'

@@ -17,7 +17,13 @@ from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidRequestErr
 from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
-from apps.constants import CLIENT_CREDENTIALS, CODE_CHALLENGE_METHOD_S256, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
+from apps.constants import (
+    CLIENT_CREDENTIALS,
+    CODE_CHALLENGE_METHOD_S256,
+    REFRESH_TOKEN,
+    TEST_APP_CLIENT_ID,
+    TEST_APP_CLIENT_SECRET,
+)
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
@@ -409,7 +415,7 @@ class TestClientIdExtraction(BaseApiTest):
         """Verify validate_app_is_active fails if grant_type=client_credentials but no assertion."""
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
-            'grant_type': 'client_credentials',
+            'grant_type': CLIENT_CREDENTIALS,
         }
         mock_request.GET = {}
         mock_request.META = {}
@@ -426,7 +432,7 @@ class TestClientIdExtraction(BaseApiTest):
         assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
         mock_request = MagicMock(spec=HttpRequest)
         mock_request.POST = {
-            'grant_type': 'client_credentials',
+            'grant_type': CLIENT_CREDENTIALS,
             'client_assertion': assertion,
         }
         mock_request.GET = {}
@@ -465,18 +471,21 @@ class TestTokenResponseFields(BaseApiTest):
         self.application.scope.add(capability_a)
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
+    @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
     @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
     @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
     @patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
-    def test_client_credentials_includes_patient_in_response(
-        self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth
+    def test_client_credentials_token_and_refresh(
+        self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth, mock_get_and_update
     ):
-        """Verify that the "patient" field is included in the token response for client_credentials"""
+        """Verify that a client_credentials token response includes "patient" and "refresh_token", and that the refresh_token can be used to refresh the access token."""
 
         # Mocking the matched user
         mock_create_user.return_value = self.user
+
+        mock_get_and_update.return_value = None
 
         # Create fake JWT for first validation step
         internal_id_token = jwt.encode(
@@ -552,6 +561,32 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertNotIn('openid', data['scope'])
         # other scopes ought to be fine, however.
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
+        self.assertIn('refresh_token', data)
+
+        refresh_request_data = {
+            'grant_type': REFRESH_TOKEN,
+            'refresh_token': data['refresh_token'],
+            'client_id': TEST_APP_CLIENT_ID,
+            'client_secret': TEST_APP_CLIENT_SECRET,
+        }
+
+        response = self.client.post(
+            f'/v{Versions.V3}/o/token/',
+            data=urlencode(refresh_request_data),
+            content_type='application/x-www-form-urlencoded',
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK, response.content)
+        data = response.json()
+
+        self.assertIn('patient', data)
+        self.assertEqual(data['patient'], self.patient_fhir_v3)
+        self.assertIn('access_token', data)
+        # see authorization.py -> we can revisit this, but UserInfo will not return anything in the client_credentials flow.
+        self.assertNotIn('openid', data['scope'])
+        # other scopes ought to be fine, however.
+        self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
+        self.assertIn('refresh_token', data)
 
 
 class TestTokenPrivateMethods(BaseApiTest):
