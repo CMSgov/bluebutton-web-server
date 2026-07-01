@@ -43,6 +43,31 @@ resource "aws_ecs_task_definition" "ecs_task" {
     image = "public.ecr.aws/datadog/agent:7.80.3"
     essential = false
 
+    readonlyRootFilesystem = true
+
+    mountPoints = [
+      {
+        sourceVolume  = "datadog-run"
+        containerPath = "/var/run/datadog"
+        readOnly      = false
+      },
+      {
+        sourceVolume  = "datadog-tmp"
+        containerPath = "/tmp"
+        readOnly      = false
+      },
+      {
+        sourceVolume  = "datadog-etc"
+        containerPath = "/etc/datadog-agent"
+        readOnly      = false
+      },
+      {
+        sourceVolume  = "datadog-confd"
+        containerPath = "/etc/datadog-agent/conf.d"
+        readOnly      = false
+      }
+    ]
+
     environment = [
       {
         name = "DD_API_KEY"
@@ -123,6 +148,18 @@ resource "aws_ecs_task_definition" "ecs_task" {
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-task" }
+
+  dynamic "volume" {
+    for_each = [
+      "datadog-run",
+      "datadog-tmp",
+      "datadog-etc",
+      "datadog-confd"
+    ]
+    content {
+      name = volume.value
+    }
+  }
 }
 
 # ECS Service
