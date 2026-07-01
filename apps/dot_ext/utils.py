@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from base64 import b64decode
 from http import HTTPStatus
@@ -33,6 +34,26 @@ from apps.versions import VersionNotMatched, Versions
 User = get_user_model()
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+CLIENT_ID_PATTERN = re.compile(r'[a-zA-Z0-9]{40}')
+
+
+def validate_client_id(client_id: str) -> None:
+    """Validate that a client_id matches the expected format (40 alphanumeric characters).
+
+    Skips validation when TARGET_ENV is 'local' or unset.
+
+    Raises:
+        InvalidClientError: If the client_id does not match the expected pattern.
+    """
+    env = os.environ.get('TARGET_ENV', 'local')
+    if env == 'local':
+        return
+    if not CLIENT_ID_PATTERN.fullmatch(client_id):
+        raise InvalidClientError(
+            description='Invalid client_id format',
+            status_code=HTTPStatus.BAD_REQUEST,
+        )
 
 
 def remove_application_user_pair_tokens_data_access(
@@ -108,6 +129,7 @@ def get_application_from_meta(request) -> Application | None:
                 client_id = decoded_credentials[0]
     try:
         if client_id is not None:
+            validate_client_id(client_id)
             app = Application.objects.get(client_id=client_id)
         elif ac is not None:
             app = Application.objects.get(id=ac.application_id)
@@ -138,6 +160,9 @@ def get_application_from_data(request):
     elif request.POST.get('client_id'):
         client_id = request.POST.get('client_id')
 
+    if client_id:
+        validate_client_id(client_id)
+
     if request.POST.get('client_assertion'):
         # for client credentials flow, we need to get the client_id from the client_assertion
         try:
@@ -153,6 +178,9 @@ def get_application_from_data(request):
                     )
             else:
                 client_id = client_assertion_client_id
+
+            if client_id:
+                validate_client_id(client_id)
         except jwt.PyJWTError:
             raise InvalidRequestError(
                 description='Malformed client_assertion',
