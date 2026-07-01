@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from http import HTTPStatus
 from unittest import mock
 
@@ -515,9 +515,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self.assertFalse(dag.has_expired())
 
         #    Mock future date 13 months and 2-days in future.
-        StubDate.now = classmethod(
-            lambda cls: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, days=+2)
-        )
+        StubDate.now = classmethod(lambda cls, tz=None: datetime.now(tz) + relativedelta(months=+13, days=+2))
 
         #    Test has_expired() is true after time change
         self.assertTrue(dag.has_expired())
@@ -525,7 +523,7 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Test expiration_date is +13 months in future
         self.assertGreater(
             dag.expiration_date,
-            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, hours=-1),
+            datetime.now(timezone.utc) + relativedelta(months=+13, hours=-1),
         )
 
         # 7. Test token refresh is disabled when data access expired

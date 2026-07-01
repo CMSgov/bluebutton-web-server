@@ -1,15 +1,16 @@
-from apps.test import BaseApiTest
-from http import HTTPStatus
 import json
-import pytz
+from datetime import datetime
+from http import HTTPStatus
 from random import randint
+from unittest import mock
+
+from dateutil.relativedelta import relativedelta
+
 from apps.authorization.models import (
     DataAccessGrant,
 )
+from apps.test import BaseApiTest
 from apps.versions import AccessType
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from unittest import mock
 
 
 class StubDate(datetime):
@@ -111,7 +112,7 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         #    Mock future date 13 months and 2-days in future.
-        StubDate.now = classmethod(lambda cls: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13, days=+2))
+        StubDate.now = classmethod(lambda cls, tz=None: datetime.now(tz) + relativedelta(months=+13, days=+2))
         # Now, we should get back a 401 because we are in the future soon
         ac = self._assert_call_token_refresh_endpoint(
             application=app,
@@ -188,7 +189,9 @@ class TestDataAccessPermissions(BaseApiTest):
             'client_secret': app.client_secret_plain,
         }
 
-        self._assert_call_with_broken_data('/v2/o/token', base_data, HTTPStatus.BAD_REQUEST, 'invalid_request', 'Missing refresh')
+        self._assert_call_with_broken_data(
+            '/v2/o/token', base_data, HTTPStatus.BAD_REQUEST, 'invalid_request', 'Missing refresh'
+        )
 
     def _assert_call_with_broken_data(self, url, data, expected_status, error_contains=None, desc_contains=None):
         response = self.client.post(url, data=data)
