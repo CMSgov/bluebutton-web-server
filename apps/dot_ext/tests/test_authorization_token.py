@@ -470,6 +470,7 @@ class TestTokenResponseFields(BaseApiTest):
         )
         self.application.scope.add(capability_a)
 
+    @patch.dict(os.environ, {'TARGET_ENV': 'local'})
     @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
     @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
     @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
