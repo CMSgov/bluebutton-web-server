@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
 from time import strftime
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 import jwt
@@ -849,7 +850,7 @@ class TokenView(DotTokenView):
                             'exp',
                             'iat',
                             'identity_assurance_level',
-                            # 'auth_time',
+                            'auth_time',
                             'family_name',
                             'given_name',
                             'birthdate',
@@ -867,6 +868,10 @@ class TokenView(DotTokenView):
                 log.warning('Malformed header / payload')
                 raise InvalidRequestError
 
+            # Validate iat and auth_time
+            self._validate_time_comparison(payload, 'iat', 300)
+            self._validate_time_comparison(payload, 'auth_time', 300)
+
             if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
                 log.warning('The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
@@ -875,20 +880,9 @@ class TokenView(DotTokenView):
                 log.warning('jti/iss combo replay')
                 raise InvalidRequestError
 
-            if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-                log.warning('JWT is older than 5 minutes (iat)')
-                raise InvalidRequestError
-
             if payload.get('identity_assurance_level') < 2:
                 log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
                 raise InvalidRequestError
-
-            # if (
-            #     datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
-            #     > 86400
-            # ):
-            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
-            #     raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
                 log.warning(
@@ -916,6 +910,45 @@ class TokenView(DotTokenView):
                 raise InvalidRequestError
 
         return payload
+
+    def _validate_time_comparison(
+        self, payload_data: dict[str, Any], jwt_key: str, max_age_seconds: int
+    ) -> bool | InvalidRequestError:
+        """
+        Validates if iat or auth_time:
+         1. Are numbers
+         2. Does not occur in the future
+         3. Is within the required amount of time.
+
+        Args:
+            payload_data: The payload of the IAL JWT after being decoded
+            jwt_key: The key to get the jwt timestamp from (iat or auth_time for now)
+            max_age_seconds: The max time window/delta (in seconds) that the jwt_key is valid for
+
+        Raises:
+            InvalidRequestError: if any validation step fails, log and raise
+
+        Returns:
+            True if no InvalidRequestError's are raised
+        """
+        # Verify we get the correct type
+        try:
+            jwt_key_ts = float(payload_data.get(jwt_key))
+        except (TypeError, ValueError):
+            log.warning(f'{jwt_key} was not a numeric timestamp ({jwt_key})')
+            raise InvalidRequestError
+
+        current_ts = datetime.now(timezone.utc).timestamp()
+        # Verify iat or auth_time isn't in the future
+        if jwt_key_ts > current_ts:
+            log.warning(f'JWT {jwt_key} is in the future ({jwt_key})')
+            raise InvalidRequestError
+
+        # Verify iat or auth_time isn't too old
+        if current_ts - jwt_key_ts > max_age_seconds:
+            log.warning(f'JWT {jwt_key} was older than {float(max_age_seconds / 60)} minutes ({jwt_key})')
+            raise InvalidRequestError
+        return True
 
     def _parse_ial_into_parameter(self, payload: dict) -> dict:
         """Parses an IAL token into a Patient and Parameters resource
