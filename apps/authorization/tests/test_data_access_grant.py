@@ -1,6 +1,6 @@
 import base64
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from urllib.parse import parse_qs, urlparse
 
@@ -10,7 +10,7 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.http import HttpRequest
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 from oauth2_provider.models import (
     get_access_token_model,
     get_application_model,
@@ -191,7 +191,9 @@ class TestDataAccessGrant(BaseApiTest):
         self.assertEqual(response.status_code, 404)
 
     def test_client_credential_dag(self):
-        # 1. Create bene and app for tests
+        """Tests that client credential flow creates a DataAccessGrant with a 90-day rolling expiration
+        date and that the expiration date can be updated."""
+
         dev_user = self._create_user('developer_test', '123456')
         bene_user = self._create_user('test_beneficiary', '123456')
         test_app = self._create_application('test_app', user=dev_user, data_access_type='THIRTEEN_MONTH')
@@ -340,7 +342,7 @@ class TestDataAccessGrant(BaseApiTest):
             token='existingtoken',
             user=user,
             application=application,
-            expires=timezone.now() + timedelta(seconds=10),
+            expires=django_timezone.now() + timedelta(seconds=10),
         )
 
         checks = check_grants()
@@ -362,7 +364,7 @@ class TestDataAccessGrant(BaseApiTest):
             token='expiredtoken',
             user=user2,
             application=application,
-            expires=timezone.now() - timedelta(seconds=10),
+            expires=django_timezone.now() - timedelta(seconds=10),
         )
 
         checks = check_grants()

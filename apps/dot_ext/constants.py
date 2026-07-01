@@ -54,6 +54,8 @@ URL_REGEX = re.compile(
     r'[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'
 )
 
+DATETIME_ISO_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+
 """
     Test Cases for demographic scopes related testing
     Dictionaries included:

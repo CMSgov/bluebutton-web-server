@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count, Min, Q
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 from oauth2_provider.models import get_access_token_model
 from oauth2_provider.settings import oauth2_settings
 
@@ -113,7 +113,7 @@ def check_grants():
     AccessToken = get_access_token_model()
     token_count = (
         AccessToken.objects.filter(
-            expires__gt=timezone.now(),
+            expires__gt=django_timezone.now(),
         )
         .values('user', 'application')
         .distinct()

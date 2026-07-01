@@ -8,7 +8,6 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
-from time import strftime
 from urllib.parse import parse_qs, urlparse
 
 import jwt
@@ -80,6 +79,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CLIENT_CREDENTIALS_TYPE,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
+    DATETIME_ISO_FORMAT,
     ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
@@ -1176,7 +1176,7 @@ class TokenView(DotTokenView):
                                 status=HTTPStatus.NOT_FOUND,
                             )
                     except Exception as e:
-                        log.error(f'Error validating jwt: {type(e)}')
+                        log.error(f'Error validating jwt: {e}')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
@@ -1246,19 +1246,19 @@ class TokenView(DotTokenView):
                         if grant_type == REFRESH_TOKEN:
                             dag.update_90_day_rolling_window()
                         if dag.expiration_date is not None:
-                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                            dag_expiry = dag.expiration_date.strftime(DATETIME_ISO_FORMAT)
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ''
                 elif app.data_access_type == 'THIRTEEN_MONTH':
                     try:
                         dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if dag.expiration_date is not None:
-                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                            dag_expiry = dag.expiration_date.strftime(DATETIME_ISO_FORMAT)
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ''
                 elif app.data_access_type == 'ONE_TIME':
-                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
-                    dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    expires_at = datetime.now(timezone.utc) + timedelta(seconds=body['expires_in'])
+                    dag_expiry = expires_at.strftime(DATETIME_ISO_FORMAT)
                 elif app.data_access_type == 'RESEARCH_STUDY':
                     dag_expiry = ''
                 # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
