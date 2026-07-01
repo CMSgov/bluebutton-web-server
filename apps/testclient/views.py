@@ -205,7 +205,12 @@ def callback(request: HttpRequest):
         # It is not clear, now (2025) why it should be '' instead of `None`.
         # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
         # cannot be pulled from the session.
+        print('REQUEST SESSION: ', request.session.__dict__)
         cv = request.session.get('code_verifier', '')
+        if not cv:
+            print('if eval')
+            cv = request.session.get('oauth_params', {}).get('code_verifier')
+        print('what is the cv: ', cv)
         token = oas.fetch_token(
             token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv
         )
