@@ -883,9 +883,9 @@ def get_patient_match_response_json(url: str, json: str, headers: Dict[str, str]
     allowed_base = urlparse(fhir_settings.fhir_url_v3)
     env = os.environ.get('TARGET_ENV')
     if env is None or env == 'local':
-        allowed_schemes = ('https', 'http')
+        allowed_schemes = ['https', 'http']
     else:
-        allowed_schemes = ('https',)
+        allowed_schemes = ['https']
     if parsed_url.scheme not in allowed_schemes or parsed_url.netloc != allowed_base.netloc:
         raise ValueError(f'URL does not match the configured FHIR server: {allowed_base.netloc}')
 
