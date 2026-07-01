@@ -83,6 +83,12 @@ resource "aws_ecs_task_definition" "ecs_task" {
         name = "DD_ECS_TASK_COLLECTION_ENABLED"
         value = "true"
       },
+      {
+        # not supported on fed site
+        # https://docs.datadoghq.com/tracing/configure_data_security/?tab=environmentvariables#telemetry-collection
+        name = "DD_APM_TELEMETRY_ENABLED"
+        value = "false"
+      },
     ]
 
     logConfiguration = {
