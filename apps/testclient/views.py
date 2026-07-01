@@ -101,8 +101,6 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
 
 
 def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
-    print('_get_oauth2_session_with_redirect session check: ', request.session.__dict__)
-    print('_get_oauth2_session_with_redirect request check: ', request.__dict__)
     if request.session.get('client_id'):
         client_id = request.session['client_id']
     else:
@@ -185,8 +183,7 @@ def callback(request: HttpRequest):
     # However, the default is `v0`, which is an invalid version. This keeps it of the
     # same type as valid values, but does not allow us to proceed if something has broken.
     version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
-    print('what is the request.session: ', request.session.__dict__)
-    print('what is the version: ', version)
+
     match version:
         case Versions.V1:
             token_uri += reverse('oauth2_provider:token')
@@ -197,7 +194,7 @@ def callback(request: HttpRequest):
         case _:
             logger.error(f'Failed to get valid API version back from authorizing agent. Given: [{version}]')
             return ResponseErrors.MissingCallbackVersionContext(version)
-    print('IN CALLBACK ABOUT TO CALL _get_oauth2_session_with_redirect')
+
     oas = _get_oauth2_session_with_redirect(request)
     try:
         # Default the CV to '' if it is not part of the session.
@@ -205,12 +202,14 @@ def callback(request: HttpRequest):
         # It is not clear, now (2025) why it should be '' instead of `None`.
         # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
         # cannot be pulled from the session.
-        print('REQUEST SESSION: ', request.session.__dict__)
+
         cv = request.session.get('code_verifier', '')
+
+        # This conditional was an attempt to retrieve the code_verifier, but it is no
+        # longer available on the request at this point, not sure why
         if not cv:
-            print('if eval')
-            cv = request.session.get('oauth_params', {}).get('code_verifier')
-        print('what is the cv: ', cv)
+            cv = request.session.get('oauth_params', {}).get('code_verifier', '')
+
         token = oas.fetch_token(
             token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv
         )
@@ -329,7 +328,6 @@ def _link_session_or_version_is_bad(session, version):
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     request.session.update(setup_testclient_http_response(version=version))
-    print('IN AUTHORIZE LINK ABOUT TO CALL _get_oauth2_session_with_redirect')
     oas = _get_oauth2_session_with_redirect(request)
 
     # We need scopes in V3.

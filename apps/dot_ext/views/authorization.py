@@ -262,8 +262,7 @@ class AuthorizationView(DotAuthorizationView):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
-        print('self.request in get_context_data: ', self.request.__dict__)
-        print('self.request.GET.code in get_context_data: ', self.request.GET.get('code'))
+
         self.request.session['oauth_params'] = {
             'client_id': self.request.GET.get('client_id'),
             'redirect_uri': self.request.GET.get('redirect_uri'),
@@ -340,7 +339,6 @@ class AuthorizationView(DotAuthorizationView):
             return param_check
 
         request.session['version'] = self.version
-        print('WE ARE IN DISPATCH: ', request.session.__dict__)
 
         # Accept lang from GET or POST
         lang = self._get_param(request, 'lang')
@@ -410,7 +408,6 @@ class AuthorizationView(DotAuthorizationView):
             raise AccessDeniedError(description='Unable to verify permission.')
 
     def form_valid(self, form):
-        print('WE ARE IN FORM_VALID')
         client_id = form.cleaned_data['client_id']
 
         application = get_application_model().objects.get(client_id=client_id)
@@ -509,7 +506,7 @@ class AuthorizationView(DotAuthorizationView):
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
-        print('code in form_valid: ', code)
+
         # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
         user_approves_sharing_samhsa_data = True
         if self.version == Versions.V3:
@@ -1129,7 +1126,7 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
-        print('we are in post of token view')
+
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -1138,7 +1135,7 @@ class TokenView(DotTokenView):
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
-            print('app post: ', app)
+
             if grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
                 error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
                     app.name
@@ -1243,9 +1240,9 @@ class TokenView(DotTokenView):
         prior_include_samhsa, prior_part_d_eob_only = self._retrieve_prior_include_samhsa_and_part_d_eob_only_values(
             grant_type, request, app.part_d_eob_only
         )
-        print('calling token response POST: ', request.POST)
+
         url, headers, body, status = self.create_token_response(request)
-        print('after token response: ', url, body, status)
+
         # retrieve the access token, update user_id with the user.id sourced above
         if status == HTTPStatus.OK:
             body = json.loads(body)
@@ -1400,9 +1397,6 @@ class PermissionScreenLogoutView(View):
     def post(self, request, *args, **kwargs):
         # Save version before logout clears the session
         version = request.session.get('version', None)
-        print('REQUEST CHECK: ', request.__dict__)
-        print('REQUEST GET CHECK: ', request.GET)
-        print('REQUEST SESSION CHECK: ', request.session.__dict__)
 
         # Save the original OAuth params before logout
         oauth_params = {
@@ -1423,7 +1417,6 @@ class PermissionScreenLogoutView(View):
             'scope': request.session['oauth_params'].get('scope'),
             'code_verifier': request.session.get('code_verifier'),
         }
-        print('oauth params: ', oauth_params)
 
         # Remove None values
         oauth_params = {k: v for k, v in oauth_params.items() if v is not None}
@@ -1432,12 +1425,13 @@ class PermissionScreenLogoutView(View):
         request.session.pop('token', None)
         logout(request)
 
-        # this is to avoid a corrupted session warning
+        # this is to avoid a corrupted session warning - though I am still seeing that warning
         request.session.cycle_key()
 
         # Restore version after logout
         if version is not None:
             request.session['version'] = version
+            # this is the key that the testclient looks for
             request.session['api_ver'] = version
 
         # Rebuild the authorize URL with original params
