@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from base64 import b64decode
 from http import HTTPStatus
@@ -40,9 +41,14 @@ CLIENT_ID_PATTERN = re.compile(r'[a-zA-Z0-9]{40}')
 def validate_client_id(client_id: str) -> None:
     """Validate that a client_id matches the expected format (40 alphanumeric characters).
 
+    Skips validation when TARGET_ENV is 'local' or unset.
+
     Raises:
         InvalidClientError: If the client_id does not match the expected pattern.
     """
+    env = os.environ.get('TARGET_ENV', 'local')
+    if env == 'local':
+        return
     if not CLIENT_ID_PATTERN.fullmatch(client_id):
         raise InvalidClientError(
             description='Invalid client_id format',

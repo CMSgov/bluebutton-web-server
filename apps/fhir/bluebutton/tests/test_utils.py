@@ -504,30 +504,6 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
             result = get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
         self.assertEqual(result, {})
 
-    @patch('apps.fhir.bluebutton.utils.FhirServerAuth')
-    def test_http_scheme_rejected_on_non_local_env(self, mock_auth):
-        """http is rejected when TARGET_ENV is set to a non-local value (e.g. 'test')."""
-        mock_auth.return_value = {'cert_file': '', 'key_file': ''}
-
-        fhir_v3_host = settings.MOCK_FHIR_V3_ENDPOINT_HOSTNAME
-        url = f'http://{fhir_v3_host}/v3/fhir/Patient/$match'
-
-        with patch.dict(os.environ, {'TARGET_ENV': 'test'}):
-            with pytest.raises(ValueError, match='URL does not match the configured FHIR server'):
-                get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
-
-    @patch('apps.fhir.bluebutton.utils.FhirServerAuth')
-    def test_http_scheme_rejected_on_prod_env(self, mock_auth):
-        """http is rejected when TARGET_ENV is 'prod'."""
-        mock_auth.return_value = {'cert_file': '', 'key_file': ''}
-
-        fhir_v3_host = settings.MOCK_FHIR_V3_ENDPOINT_HOSTNAME
-        url = f'http://{fhir_v3_host}/v3/fhir/Patient/$match'
-
-        with patch.dict(os.environ, {'TARGET_ENV': 'prod'}):
-            with pytest.raises(ValueError, match='URL does not match the configured FHIR server'):
-                get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
-
     @patch('apps.fhir.bluebutton.utils.requests.Session')
     @patch('apps.fhir.bluebutton.utils.FhirServerAuth')
     def test_https_scheme_allowed_on_non_local_env(self, mock_auth, mock_session_cls):
@@ -542,27 +518,25 @@ class PatientMatchResponseJsonTestCase(BaseApiTest):
             result = get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
         self.assertEqual(result, {})
 
-    @patch('apps.fhir.bluebutton.utils.FhirServerAuth')
-    def test_wrong_netloc_rejected_on_local_env(self, mock_auth):
-        """A URL with a different host is rejected even on local."""
-        mock_auth.return_value = {'cert_file': '', 'key_file': ''}
 
-        url = 'http://malicious.example.com/v3/fhir/Patient/$match'
+@pytest.mark.parametrize(
+    'url,target_env',
+    [
+        ('http://malicious.example.com/v3/fhir/Patient/$match', 'local'),
+        ('https://malicious.example.com/v3/fhir/Patient/$match', 'test'),
+        (f'http://{settings.MOCK_FHIR_V3_ENDPOINT_HOSTNAME}/v3/fhir/Patient/$match', 'test'),
+        (f'http://{settings.MOCK_FHIR_V3_ENDPOINT_HOSTNAME}/v3/fhir/Patient/$match', 'prod'),
+    ],
+    ids=['wrong_netloc_local', 'wrong_netloc_non_local', 'http_scheme_test', 'http_scheme_prod'],
+)
+@patch('apps.fhir.bluebutton.utils.FhirServerAuth')
+def test_invalid_url_rejected(mock_auth, url, target_env):
+    """URLs with wrong netloc or http scheme on non-local envs are rejected."""
+    mock_auth.return_value = {'cert_file': '', 'key_file': ''}
 
-        with patch.dict(os.environ, {'TARGET_ENV': 'local'}):
-            with pytest.raises(ValueError, match='URL does not match the configured FHIR server'):
-                get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
-
-    @patch('apps.fhir.bluebutton.utils.FhirServerAuth')
-    def test_wrong_netloc_rejected_on_non_local_env(self, mock_auth):
-        """A URL with a different host is always rejected."""
-        mock_auth.return_value = {'cert_file': '', 'key_file': ''}
-
-        url = 'https://malicious.example.com/v3/fhir/Patient/$match'
-
-        with patch.dict(os.environ, {'TARGET_ENV': 'test'}):
-            with pytest.raises(ValueError, match='URL does not match the configured FHIR server'):
-                get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
+    with patch.dict(os.environ, {'TARGET_ENV': target_env}):
+        with pytest.raises(ValueError, match='URL does not match the configured FHIR server'):
+            get_patient_match_response_json(url=url, json={}, headers={}, method='POST')
 
 
 class PatientMatchTestCase(BaseApiTest):
