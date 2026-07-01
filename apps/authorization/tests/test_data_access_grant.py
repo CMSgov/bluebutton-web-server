@@ -98,11 +98,11 @@ class TestDataAccessGrant(BaseApiTest):
         self.assertNotEqual(dag.expiration_date, None)
 
         # 4. Test has_expired() true for -1 hour ago
-        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=-1)
+        dag.expiration_date = datetime.now(timezone.utc) + relativedelta(hours=-1)
         self.assertEqual(dag.has_expired(), True)
 
         # 5. Test has_expired() false for +1 hour in future.
-        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+1)
+        dag.expiration_date = datetime.now(timezone.utc) + relativedelta(hours=+1)
         self.assertEqual(dag.has_expired(), False)
 
         # 6. Test has_expired() false for ONE_TIME type
@@ -199,21 +199,21 @@ class TestDataAccessGrant(BaseApiTest):
         dag = create_or_update_data_access_grant_client_credential_flow(bene_user, test_app)
         self.assertAlmostEqual(
             dag.expiration_date,
-            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90),
+            datetime.now(timezone.utc) + relativedelta(days=+90),
             delta=timedelta(seconds=5),
         )
 
         dag.update_expiration_date()
         self.assertNotAlmostEqual(
             dag.expiration_date,
-            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90),
+            datetime.now(timezone.utc) + relativedelta(days=+90),
             delta=timedelta(seconds=5),
         )
 
         dag.update_90_day_rolling_window()
         self.assertAlmostEqual(
             dag.expiration_date,
-            datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90),
+            datetime.now(timezone.utc) + relativedelta(days=+90),
             delta=timedelta(seconds=5),
         )
 

@@ -1214,7 +1214,7 @@ class TokenView(DotTokenView):
                 if grant_type == CLIENT_CREDENTIALS:
                     refresh_token = get_refresh_token_model().objects.create(
                         user=user,
-                        token=secrets.token_urlsafe(22),  # generate a secure random token with 30 chars
+                        token=secrets.token_urlsafe(22),  # generate a secure random token with 22 bytes (30 chars)
                         application=app,
                         access_token=token,
                     )

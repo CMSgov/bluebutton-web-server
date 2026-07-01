@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import pytz
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -34,22 +33,22 @@ class DataAccessGrant(models.Model):
     def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
         if self.application and self.application.data_access_type == 'THIRTEEN_MONTH':
-            self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
+            self.expiration_date = datetime.now(timezone.utc) + relativedelta(months=+13)
             self.save()
 
     def update_expiration_date_one_hour(self) -> None:
-        self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+1)
+        self.expiration_date = datetime.now(timezone.utc) + relativedelta(hours=+1)
         self.save()
 
     def update_90_day_rolling_window(self) -> None:
         """Update the expiration_date to a new 90-day rolling window."""
-        self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90)
+        self.expiration_date = datetime.now(timezone.utc) + relativedelta(days=+90)
         self.save()
 
     def has_expired(self):
         if self.application.data_access_type == 'THIRTEEN_MONTH':
             if self.expiration_date:
-                if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):
+                if self.expiration_date < datetime.now(timezone.utc):
                     return True
 
         return False
