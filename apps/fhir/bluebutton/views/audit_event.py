@@ -27,7 +27,7 @@ class AuditEventView(FhirDataView):
         ResourcePermission,
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
-        # AppScopePermission, #probably need to remove and replace with something else
+        # AppScopePermission,  # probably need to remove and replace with something else
     ]
 
     def __init__(self, version=Versions.V3):
