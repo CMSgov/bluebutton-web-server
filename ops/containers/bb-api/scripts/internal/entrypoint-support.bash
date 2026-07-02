@@ -159,6 +159,7 @@ launch_blue_button () {
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
             --log-level info
+        RESULT=$?
     fi
 
     return $RESULT
