@@ -13,7 +13,6 @@ enabled:
   s3: true
   rds: true
 ecs:
-  # cpu_threshold: 0.1
   notify_no_data: true
   no_data_timeframe_minutes: 10
   timeframe: "last_10m"
