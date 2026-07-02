@@ -8,8 +8,8 @@ notifications:
 enabled:
   ecs: true
   sqs: false
-  sns: true
-  lambda: true
+  sns: false
+  lambda: false
   s3: true
   rds: true
 ecs:

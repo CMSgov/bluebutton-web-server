@@ -38,9 +38,9 @@ module "datadog_dashboard" {
 
   enable_default_widgets = {
     ecs    = true
-    lambda = true
+    lambda = false
     alb    = true
-    sns    = true
+    sns    = false
     sqs    = false
     aurora = true
     s3     = true
