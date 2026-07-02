@@ -78,12 +78,6 @@
 /bb/test/app/nonsensitive/django_from_email: BlueButtonAPI@cms.hhs.gov
 /bb/test/app/nonsensitive/django_admin_email: BlueButtonAPI@cms.hhs.gov
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
-#ENC[AES256_GCM,data:UjWJBy8qi/s2,iv:BWPZgkyeH6r2EsJrNu7rGduK2dPo1/EX20h884ro8HQ=,tag:qFvLdcQyfNihBPEmNUzHiA==,type:comment]
-#ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
-/bb/test/app/sensitive/new_relic_license_key: ENC[AES256_GCM,data:CDzJsKc7zzU+Dk9Iny4kz7llf6RyVmrORUKsOhiGl3vpdJNDKAmZKg==,iv:GRrMFJ6fGefP9dovBu86OQ6ByVCIrs67sOP9cLck+cw=,tag:iJfn1AvFSU1zfe9K1M96Vg==,type:str]
-/bb/test/app/nonsensitive/new_relic_host: gov-collector.newrelic.com
-/bb/test/app/nonsensitive/new_relic_app_name: BlueButton-test
-#ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 #ENC[AES256_GCM,data:6KFMS3MrvNMGV2U=,iv:CHzfsjL0oRpXCPPDCEkpCHED2Qnpu5nX5/5EaFbNqPA=,tag:eBNtsfSY8pe9nAzSi75f1g==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 /bb/test/app/nonsensitive/aws_s3_custom_domain: s3.amazonaws.com/bb-test-content-cms-gov

@@ -194,15 +194,6 @@ locals {
     { name = "FHIR_KEY_FILE", value = "ca.key.nocrypt.pem" },
     { name = "PYTHONUNBUFFERED", value = "1" },
     { name = "PYTHONDONTWRITEBYTECODE", value = "1" },
-    # NewRelic APM configuration (NEW_RELIC_APP_NAME comes from SSM seed)
-    { name = "NEW_RELIC_MONITOR_MODE", value = "true" },
-    { name = "NEW_RELIC_LOG", value = "stdout" },
-    { name = "NEW_RELIC_LOG_LEVEL", value = "info" },
-    { name = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED", value = "true" },
-    
-    # Intercepted by entrypoint-support.bash to dynamically configure the NR agent 
-    # since it doesn't natively support ignoring status codes via env vars.
-    { name = "BB2_NR_IGNORE_STATUS_CODES", value = "401 403 405" },
 
     # Datadog configuration
     { name = "DD_SERVICE", value = local.app },
