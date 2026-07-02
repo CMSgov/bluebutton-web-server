@@ -332,7 +332,7 @@ def create_audit_event_capability(group):
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
                                                description=description,
-                                               default=False,
+                                               default=True,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(protected_resources, indent=4))
     return c
