@@ -64,6 +64,7 @@ from apps.authorization.models import (
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    AUDIT_EVENT_SCOPE,
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
@@ -1231,7 +1232,6 @@ class TokenView(DotTokenView):
         )
 
         url, headers, body, status = self.create_token_response(request)
-
         # retrieve the access token, update user_id with the user.id sourced above
         if status == HTTPStatus.OK:
             body = json.loads(body)
@@ -1253,6 +1253,12 @@ class TokenView(DotTokenView):
                     )
 
                     body['refresh_token'] = refresh_token.token
+
+                    # Even if the patient/AuditEvent.rs scope is not included in the request, add it to the token
+                    if AUDIT_EVENT_SCOPE not in token.scope:
+                        log.info('patient/AuditEvent.rs scope not requested for client_credentials call, adding it')
+                        token.scope += ' ' + AUDIT_EVENT_SCOPE
+
                     token.user_id = user.id
                     token.save()
 

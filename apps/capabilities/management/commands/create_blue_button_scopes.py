@@ -320,6 +320,24 @@ def create_token_introspect_capability(group):
     return c
 
 
+def create_audit_event_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource'
+    smart_scope_string = 'patient/AuditEvent.rs'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               default=False,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
 class Command(BaseCommand):
     help = 'Create BlueButton Group and Scopes'
 
@@ -342,3 +360,4 @@ class Command(BaseCommand):
         create_openid_capability(g)
         create_token_management_capability(g)
         create_token_introspect_capability(g)
+        create_audit_event_capability(g)

@@ -113,6 +113,7 @@ PATIENT_SCOPE = 'patient/Patient.rs'
 EOB_SCOPE = 'patient/ExplanationOfBenefit.rs'
 OPENID_SCOPE = 'openid'
 LAUNCH_SCOPE = 'launch/patient'
+AUDIT_EVENT_SCOPE = 'patient/AuditEvent.rs'
 
 OPERATION_OUTCOME = 'OperationOutcome'
 
