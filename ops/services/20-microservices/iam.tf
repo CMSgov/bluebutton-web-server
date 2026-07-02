@@ -55,7 +55,10 @@ data "aws_iam_policy_document" "kms" {
   statement {
     sid       = "AllowKMSDecrypt"
     actions   = ["kms:Decrypt"]
-    resources = [local.kms_key_arn]
+    resources = [
+      local.kms_key_arn,
+      data.aws_secretsmanager_secret_version.cdap_kms_key_arn.secret_string
+    ]
   }
 }
 
