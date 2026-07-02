@@ -36,5 +36,27 @@ module "datadog_dashboard" {
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
 
+  enable_default_widgets = {
+    ecs    = true
+    lambda = false
+    alb    = true
+    sns    = false
+    sqs    = false
+    aurora = true
+    s3     = true
+    apm    = true
+  }
+
+  widget_live_spans = {
+    lambda = "2d"
+    s3     = "1w"
+    sqs    = "4h"
+    sns    = "4h"
+    ecs    = "1d"
+    alb    = "1d"
+    aurora = "4h"
+    apm    = "1h"
+  }
+
   count = local.create_dashboards ? 1 : 0
 }

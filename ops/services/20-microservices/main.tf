@@ -194,6 +194,15 @@ locals {
     { name = "FHIR_KEY_FILE", value = "ca.key.nocrypt.pem" },
     { name = "PYTHONUNBUFFERED", value = "1" },
     { name = "PYTHONDONTWRITEBYTECODE", value = "1" },
+
+    # Datadog configuration
+    { name = "DD_SERVICE", value = local.app },
+    { name = "DD_DJANGO_SERVICE", value = local.app },
+    { name = "DD_ENV", value = local.env },
+
+    # not supported on fed site
+    # https://docs.datadoghq.com/tracing/configure_data_security/?tab=environmentvariables#telemetry-collection
+    { name = "DD_INSTRUMENTATION_TELEMETRY_ENABLED", value = "false" },
   ]
 
   # SSM individual params → ECS environment format

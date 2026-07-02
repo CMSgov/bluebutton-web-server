@@ -29,7 +29,8 @@ data "aws_iam_policy_document" "secrets" {
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
       "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb2/${local.secrets_env}/*",
-      "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb/${local.workspace}/*"
+      "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb/${local.workspace}/*",
+      "arn:aws:secretsmanager:${local.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.workspace}/datadog/agents/*"
     ]
   }
 }
@@ -54,7 +55,10 @@ data "aws_iam_policy_document" "kms" {
   statement {
     sid       = "AllowKMSDecrypt"
     actions   = ["kms:Decrypt"]
-    resources = [local.kms_key_arn]
+    resources = [
+      local.kms_key_arn,
+      data.aws_secretsmanager_secret_version.cdap_kms_key_arn.secret_string
+    ]
   }
 }
 
