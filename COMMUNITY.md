@@ -115,17 +115,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/synasius">
-                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
-                    <br />
-                    <sub><b>Federico Frenguelli</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/clewellyn-nava">
                     <img src="https://avatars.githubusercontent.com/u/224594471?v=4" width="100;" alt="clewellyn-nava"/>
                     <br />
                     <sub><b>Connor Lewellyn</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/synasius">
+                    <img src="https://avatars.githubusercontent.com/u/217898?v=4" width="100;" alt="synasius"/>
+                    <br />
+                    <sub><b>Federico Frenguelli</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -210,17 +210,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/oragame">
-                    <img src="https://avatars.githubusercontent.com/u/22204906?v=4" width="100;" alt="oragame"/>
-                    <br />
-                    <sub><b>Don Seymour</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/annamontare-nava">
                     <img src="https://avatars.githubusercontent.com/u/267455234?v=4" width="100;" alt="annamontare-nava"/>
                     <br />
                     <sub><b>annamontare-nava</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/oragame">
+                    <img src="https://avatars.githubusercontent.com/u/22204906?v=4" width="100;" alt="oragame"/>
+                    <br />
+                    <sub><b>Don Seymour</b></sub>
                 </a>
             </td>
 		</tr>
