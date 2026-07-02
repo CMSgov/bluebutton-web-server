@@ -119,7 +119,6 @@ resource "aws_ecs_task_definition" "ecs_task" {
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        # TODO should this go to a different log group?
         "awslogs-group"         = aws_cloudwatch_log_group.ecs[each.key].name
         "awslogs-region"        = data.aws_region.current.id
         "awslogs-stream-prefix" = "ecs"
