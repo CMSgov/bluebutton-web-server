@@ -297,7 +297,9 @@ class AuthorizationView(DotAuthorizationView):
 
         path_info = self.request.__dict__.get('path_info')
         version = get_api_version_number_from_url(path_info)
-        # If it is not version 3, we don't need to check anything, just continue
+        # Validate that the app is able to make v3 calls if it is a v3 call
+        # Otherwise, confirm patient/AuditEvent.rs is not in the scope parameter
+        # if it is a non-v3 call.
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
@@ -309,6 +311,13 @@ class AuthorizationView(DotAuthorizationView):
                     },
                     status=HTTPStatus.FORBIDDEN,
                 )
+        elif self.version != Versions.V3 and (
+            AUDIT_EVENT_SCOPE in request.GET.get('scope', '') or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
+        ):
+            return JsonResponse(
+                {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Invalid scopes.'},
+                status=HTTPStatus.BAD_REQUEST,
+            )
 
         if self.application.allowed_auth_type == CLIENT_CREDENTIALS_TYPE:
             error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(

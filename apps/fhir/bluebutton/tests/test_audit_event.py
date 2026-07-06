@@ -7,7 +7,9 @@ from waffle.testutils import override_switch
 
 from apps.integration_tests.constants import MESSAGE_NO_PERMISSION
 
-pytestmark = pytest.mark.django_db
+# pytestmark = pytest.mark.django_db
+
+client = Client()
 
 
 @pytest.mark.integration
@@ -18,7 +20,7 @@ def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token
         basic_user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile'
     )
 
-    response = Client().get(
+    response = client.get(
         reverse('bb_oauth_fhir_audit_event'),
         kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
@@ -29,6 +31,23 @@ def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token
 
 
 @pytest.mark.integration
+@override_switch('v3_endpoints', True)
+@override_switch('require-scopes', True)
+def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
+    access_token = get_access_token(
+        basic_user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile'
+    )
+
+    response = client.get(
+        '/v2/fhir/AuditEvent',
+        kwargs={'entity': 'test'},
+        Authorization='Bearer %s' % (access_token),
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.integration
 @override_switch('v3_endpoints', False)
 @override_switch('require-scopes', True)
 def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_token):
@@ -36,7 +55,7 @@ def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_to
         basic_user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile'
     )
 
-    response = Client().get(
+    response = client.get(
         reverse('bb_oauth_fhir_audit_event'),
         kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
@@ -55,7 +74,7 @@ def test_successful_audit_event_call(basic_user, get_access_token, create_capabi
     )
     create_capability('patient/AuditEvent.rs', [['GET', '/v[3]/fhir/AuditEvent[/]?$']])
 
-    response = Client().get(
+    response = client.get(
         reverse('bb_oauth_fhir_audit_event'),
         kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
