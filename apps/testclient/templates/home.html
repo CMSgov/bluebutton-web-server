@@ -34,7 +34,7 @@ an application. It allows you to see sample data returned from our various API e
 					<form method="post" action="{% url 'logout' %}">
 						{% csrf_token %}
 						<button class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white"
-							type="submit">Log Out to Continue<< /button>
+							type="submit">Log Out to Continue</button>
 					</form>
 				</div>
 			</div>
@@ -118,7 +118,7 @@ an application. It allows you to see sample data returned from our various API e
 				<li> <a href="{{ test_coverage_url }}">Coverage</a> </li>
 				<li> <a href="{{ test_userinfo_url }}">Profile </a> (OIDC Userinfo)</li>
 				{% if api_ver == 3 %}
-				<li> <a href="{{ test_digital_insurance_card_url }}">Digital Insurance Card</li>
+				<li> <a href="{{ test_digital_insurance_card_url }}">Digital Insurance Card</a></li>
 				{% endif %}
 				<li> <a href="{{ meta_url }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
 				<li> <a href="{{ openid_cfg_url }}">OIDC Discovery</a> (No Token Needed)</li>

@@ -339,7 +339,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # See:
 # * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
 # * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
-DEBUG = True  # env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=False)
 
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
 # We want the launch to generally be quiet, and only tell us things
