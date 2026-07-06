@@ -23,3 +23,7 @@ SCOPES_SUPPORTED = [
     'patient/ExplanationOfBenefit.rs',
     'patient/Coverage.rs',
 ]
+
+SCOPES_SUPPORTED_V3_ONLY = [
+    'patient/AuditEvent.rs',
+]

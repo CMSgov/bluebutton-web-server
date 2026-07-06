@@ -13,6 +13,7 @@ from apps.constants import (
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     PRIVATE_KEY_JWT,
 )
+from apps.wellknown.constants import SCOPES_SUPPORTED_V3_ONLY
 
 
 class OpenIDConnectConfigurationTestCase(TestCase):
@@ -61,3 +62,26 @@ class SmartConfigurationV3TestCase(TestCase):
             data.get('token_endpoint_auth_signing_alg_values_supported'),
             CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
         )
+
+    @override_switch('v3_endpoints', active=True)
+    @override_switch('enable_auditevents', active=False)
+    def test_v3_config_auditevent_scopes_hidden_when_switch_disabled(self):
+        """
+        Note that this can be removed when the auditevents switch is removed
+        """
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        data = response.json()
+
+        for scope in SCOPES_SUPPORTED_V3_ONLY:
+            self.assertNotIn(scope, data.get('scopes_supported', []))
+
+    @override_switch('v3_endpoints', active=True)
+    @override_switch('enable_auditevents', active=True)
+    def test_v3_config_auditevent_scopes_shown_when_switch_enabled(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        data = response.json()
+
+        for scope in SCOPES_SUPPORTED_V3_ONLY:
+            self.assertIn(scope, data.get('scopes_supported', []))
