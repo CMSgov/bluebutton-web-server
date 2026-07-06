@@ -94,7 +94,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
       },
       {
         name = "DD_APM_NON_LOCAL_TRAFFIC"
-        value = "true"
+        value = "false"
       },
       {
         name = "DD_LOGS_ENABLED"
