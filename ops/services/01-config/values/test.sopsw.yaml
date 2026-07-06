@@ -13,7 +13,7 @@
 #ENC[AES256_GCM,data:SYuWdiK35A==,iv:vx3h3u7EIBwhp4nvDoB6/Fp8b6pa+zfIOBN03fITl0k=,tag:PuE6klD3hDKPCrlL+PPfiw==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 /bb/test/app/nonsensitive/target_env: test
-/bb/test/app/nonsensitive/django_application_title: Blue Button API [TEST]
+/bb/test/app/nonsensitive/django_application_title: Blue Button 2.0 [TEST]
 /bb/test/app/nonsensitive/signup_timeout_days: "7"
 /bb/test/app/nonsensitive/cors_origin_allow_all: "True"
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]

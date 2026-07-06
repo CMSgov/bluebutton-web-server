@@ -1,12 +1,13 @@
 import logging
 import random
 
+from apps.constants import HHS_SERVER_LOGNAME_FMT
+
 from django.conf import settings
 from django.urls import reverse
-
-from apps.constants import HHS_SERVER_LOGNAME_FMT
 from libs.decorators import waffle_function_switch
 from libs.mail import Mailer
+
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -20,17 +21,13 @@ def send_activation_key_via_email(user, signup_key):
     """Send an email with activation key and welcome message."""
     activation_link = '%s%s' % (get_hostname(), reverse('activation_verify', args=(signup_key,)))
     mailer = Mailer(
-        subject='Verify Your Blue Button API Developer Sandbox Account',
+        subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
         template_text='email/email-activate.txt',
         template_html='email/email-activate.html',
         to=[
             user.email,
         ],
-        context={
-            'ACTIVATION_LINK': activation_link,
-            'ACTIVATION_KEY': signup_key,
-            'EXPIRATION': settings.SIGNUP_TIMEOUT_DAYS,
-        },
+        context={'ACTIVATION_LINK': activation_link, 'ACTIVATION_KEY': signup_key, 'EXPIRATION': settings.SIGNUP_TIMEOUT_DAYS},
     )
     mailer.send()
     logger.info('Activation link sent to {} ({})'.format(user.username, user.email))
@@ -44,9 +41,7 @@ def get_hostname():
     elif 'https://' in hostname.lower():
         pass
     else:
-        logger.debug(
-            'HOSTNAME_URL [%s] does not contain http or https prefix. Issuer:%s' % (settings.HOSTNAME_URL, hostname)
-        )
+        logger.debug('HOSTNAME_URL [%s] does not contain http or https prefix. Issuer:%s' % (settings.HOSTNAME_URL, hostname))
         # no http/https prefix in HOST_NAME_URL so we add it
         hostname = 'https://%s' % (hostname)
     return hostname
