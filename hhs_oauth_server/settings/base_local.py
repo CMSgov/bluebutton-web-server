@@ -339,7 +339,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # See:
 # * https://stackoverflow.com/questions/5836674/why-does-debug-false-setting-make-my-django-static-files-access-fail
 # * https://forum.djangoproject.com/t/django-static-files-in-deployment-debug-false/16675
-DEBUG = True  # env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=False)
 
 # SUPPRESSING WARNINGS TO QUIET THE LAUNCH PROCESS
 # We want the launch to generally be quiet, and only tell us things
@@ -472,7 +472,7 @@ LOG_JSON_FORMAT_PRETTY = env.bool('DJANGO_LOG_JSON_FORMAT_PRETTY', default=False
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button API')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button 2.0')
 ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE', default='The U.S. Centers for Medicare & Medicaid Services (CMS)')
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', default='https://cms.gov')
 

@@ -1,4 +1,4 @@
-# Blue Button API CSS Resources
+# Blue Button 2.0 CSS Resources
 
 This is meant to be the central hub for all of the CSS resources used by the the [Blue Button Developer Sandbox](https://sandbox.bluebutton.cms.gov/), as well as any other necessary or future projects.
 

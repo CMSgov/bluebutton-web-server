@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Blue Button API
+  title: BlueButton 2.0
   version: 1.0.0
   description: |
     To try out the API using Swagger UI, follow these steps:

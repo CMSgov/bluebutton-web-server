@@ -1,4 +1,4 @@
-# Blue Button API Infrastructure
+# Blue Button 2.0 Infrastructure
 
 Infrastructure as Code for the Blue Button Web Server, managed via **OpenTofu** following the **CMS Cloud Terraservice Pattern**.
 
