@@ -115,7 +115,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
     secrets = [
       {
         name = "DD_API_KEY"
-        valueFrom = data.aws_secretsmanager_secret_version.datadog_agents_api_key.secret_arn
+        valueFrom = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.workspace}/datadog/agents/api-key"
       },
     ]
 
