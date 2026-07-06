@@ -1,20 +1,19 @@
 import binascii
-
 from datetime import datetime
+from http import HTTPStatus
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import CASCADE, Q
 from django.utils.crypto import pbkdf2
 from requests import Response
 from rest_framework.exceptions import APIException
-from django.core.validators import MinLengthValidator
+
 from apps.accounts.models import get_user_id_salt
 from apps.fhir.constants import USER_ID_TYPE_CHOICES, USER_ID_TYPE_DEFAULT
-
-from apps.versions import Versions, VersionNotMatched
-
-from http import HTTPStatus
+from apps.versions import VersionNotMatched, Versions
 
 
 class BBFhirBluebuttonModelException(APIException):
@@ -147,7 +146,8 @@ class Crosswalk(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False), name='at_least_one_fhir_id_required'
+                condition=Q(fhir_id_v2__isnull=False) | Q(fhir_id_v3__isnull=False),
+                name='at_least_one_fhir_id_required',
             )
         ]
 
@@ -258,7 +258,7 @@ class ArchivedCrosswalk(models.Model):
         max_length=64,
         verbose_name='HASH of User HICN ID',
         unique=False,
-        null=False,
+        null=True,
         default=None,
         db_column='user_id_hash',
         db_index=True,

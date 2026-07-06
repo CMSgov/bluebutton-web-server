@@ -1,12 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-import pytz
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count, Min, Q
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 from oauth2_provider.models import get_access_token_model
 from oauth2_provider.settings import oauth2_settings
 
@@ -34,17 +33,22 @@ class DataAccessGrant(models.Model):
     def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
         if self.application and self.application.data_access_type == 'THIRTEEN_MONTH':
-            self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=+13)
+            self.expiration_date = datetime.now(timezone.utc) + relativedelta(months=+13)
             self.save()
 
     def update_expiration_date_one_hour(self) -> None:
-        self.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(hours=+1)
+        self.expiration_date = datetime.now(timezone.utc) + relativedelta(hours=+1)
+        self.save()
+
+    def update_90_day_rolling_window(self) -> None:
+        """Update the expiration_date to a new 90-day rolling window."""
+        self.expiration_date = datetime.now(timezone.utc) + relativedelta(days=+90)
         self.save()
 
     def has_expired(self):
         if self.application.data_access_type == 'THIRTEEN_MONTH':
             if self.expiration_date:
-                if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):
+                if self.expiration_date < datetime.now(timezone.utc):
                     return True
 
         return False
@@ -92,7 +96,7 @@ def update_grants(*args, **kwargs):
             )
 
 
-def create_or_update_data_access_grant_client_credential_flow(user, application) -> None:
+def create_or_update_data_access_grant_client_credential_flow(user, application) -> DataAccessGrant:
     """Create or update a data access grant specifically for the client_credential auth flow (CMS Aligned Networks project)
 
     Return the data_access_grant for use in post function of TokenView
@@ -101,7 +105,7 @@ def create_or_update_data_access_grant_client_credential_flow(user, application)
         beneficiary=user,
         application=application,
     )
-    data_access_grant.update_expiration_date_one_hour()
+    data_access_grant.update_90_day_rolling_window()
     return data_access_grant
 
 
@@ -109,7 +113,7 @@ def check_grants():
     AccessToken = get_access_token_model()
     token_count = (
         AccessToken.objects.filter(
-            expires__gt=timezone.now(),
+            expires__gt=django_timezone.now(),
         )
         .values('user', 'application')
         .distinct()

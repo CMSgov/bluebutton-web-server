@@ -1,7 +1,10 @@
+import os
 from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.test import TestCase
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
 from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
 from apps.dot_ext.models import AuthFlowTracking
@@ -9,6 +12,7 @@ from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
+    validate_client_id,
     validate_latin_extended_string,
 )
 from apps.versions import VersionNotMatched
@@ -186,3 +190,48 @@ class TestDOTUtils(TestCase):
 
         mock_refresh_token.objects.filter.assert_called_once_with(application=application, user=user)
         refresh_token_queryset.delete.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    'client_id',
+    [
+        'short',
+        '',
+        'a' * 39,
+        'a' * 41,
+        'abcdefghijklmnopqrstuvwxyz12345678901234!',  # 40 chars with special char
+        'abcdefghijklmnopqrstuvwxyz1234567890123 ',  # 40 chars with space
+        '../../../etc/' + 'a' * 27,  # path traversal attempt
+        "'; DROP TABLE not_a_real_table;--",  # SQL injection attempt
+    ],
+    ids=[
+        'too_short',
+        'empty',
+        '39_chars',
+        '41_chars',
+        'special_char',
+        'contains_space',
+        'path_traversal',
+        'sql_injection',
+    ],
+)
+def test_validate_client_id_rejects_invalid(client_id):
+    with patch.dict(os.environ, {'TARGET_ENV': 'test'}):
+        with pytest.raises(InvalidClientError):
+            validate_client_id(client_id)
+
+
+@pytest.mark.parametrize(
+    'client_id',
+    [
+        'a' * 40,
+        'A' * 40,
+        '0' * 40,
+        'aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4y5Z0',
+    ],
+    ids=['lowercase', 'uppercase', 'digits', 'mixed'],
+)
+def test_validate_client_id_accepts_valid(client_id):
+    # Should not raise
+    with patch.dict(os.environ, {'TARGET_ENV': 'test'}):
+        validate_client_id(client_id)
