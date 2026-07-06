@@ -7,22 +7,18 @@ services:
     ports:
       - "8910:8910"
       - "7890:7890"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "4444:4444"
+      - "5901:5901"
     env_file:
       - .env.selenium
     volumes:
       - ../../..:/code
-    depends_on:
-      chrome:
-        condition: service_started
   ####################
-  # Chrome for Selenium Remote
+  # Chrome for Selenium Remote — shares selenium-tests' network namespace so
+  # socat in selenium-tests proxies localhost:8000/8080 for Chrome as well.
   chrome:
     image: selenium/standalone-chromium
-    hostname: chrome
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "4444:4444"
-      - "5901:5901"
+    network_mode: "service:selenium-tests"
+    depends_on:
+      selenium-tests:
+        condition: service_started
