@@ -203,6 +203,10 @@ locals {
     # not supported on fed site
     # https://docs.datadoghq.com/tracing/configure_data_security/?tab=environmentvariables#telemetry-collection
     { name = "DD_INSTRUMENTATION_TELEMETRY_ENABLED", value = "false" },
+
+    # Tags to add to spans and profiles
+    # https://ddtrace.readthedocs.io/en/stable/configuration.html#DD_TAGS
+    # { name = "DD_TAGS", value = "" },
   ]
 
   # SSM individual params → ECS environment format
