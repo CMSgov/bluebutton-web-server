@@ -18,6 +18,7 @@ from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
+    AUDIT_EVENT_SCOPE,
     CLIENT_CREDENTIALS,
     CODE_CHALLENGE_METHOD_S256,
     REFRESH_TOKEN,
@@ -562,6 +563,12 @@ class TestTokenResponseFields(BaseApiTest):
         # other scopes ought to be fine, however.
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
         self.assertIn('refresh_token', data)
+
+        # BB2-4965: Even though patient/AuditEvent.rs was not in the requested scopes, it was automatically added
+        # to the token scope as all client_credentials auth flows should result in a token with patient/AuditEvent.rs
+        # on it
+        access_token = get_access_token_model().objects.get(token=data['access_token'])
+        assert AUDIT_EVENT_SCOPE in access_token.scope
 
         refresh_request_data = {
             'grant_type': REFRESH_TOKEN,

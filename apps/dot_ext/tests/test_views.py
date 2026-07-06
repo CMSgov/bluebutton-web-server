@@ -18,7 +18,7 @@ from waffle.testutils import override_switch
 
 from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
+from apps.constants import AUDIT_EVENT_SCOPE, DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.dot_ext.constants import (
     BENE_PERSONAL_INFO_SCOPES,
     SCOPES_TO_URL_BASE_PATH,
@@ -58,6 +58,7 @@ class TestApplicationRegistrationView(BaseApiTest):
         """
         Assert that the registration view assigns demographic scopes when the user
         selects "yes" for "Does your application need to collect beneficiary demographic information"
+        Asserts that the patient/AuditEvent.rs scope is added by create_blue_button_scopes.
         """
         call_command('create_blue_button_scopes')
 
@@ -74,6 +75,9 @@ class TestApplicationRegistrationView(BaseApiTest):
 
         default_scopes = ProtectedCapability.objects.filter(default=True)
         self.assertQuerySetEqual(app.scope.all(), default_scopes, ordered=False)
+
+        audit_event_scope = ProtectedCapability.objects.filter(slug=AUDIT_EVENT_SCOPE)
+        assert audit_event_scope is not None
 
     def test_does_not_assign_demographic_scopes(self):
         """
