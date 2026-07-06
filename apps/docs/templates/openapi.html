@@ -1,7 +1,7 @@
 <!-- HTML for static distribution bundle build -->
 {% load static %}
 {% comment %}
-This Django template is used to serve the 'Swagger UI' view of Blue Button 2.0 API.
+This Django template is used to serve the 'Swagger UI' view of Blue Button API.
 
 This template is derived from index.html in swagger-ui-dist release 3.52.0
 (https://github.com/swagger-api/swagger-ui/archive/refs/tags/v4.15.5.zip)
@@ -9,50 +9,48 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
 {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Swagger UI</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'swagger-ui-4.15.5-dist/swagger-ui.css' %}" />
-    <link rel="icon" type="image/png" href="{% static 'swagger-ui-4.15.5-dist/favicon-32x32.png' %}" sizes="32x32" />
-    <link rel="icon" type="image/png" href="{% static 'swagger-ui-4.15.5-dist/favicon-16x16.png' %}" sizes="16x16" />
-    <style>
-      html
-      {
-        box-sizing: border-box;
-        overflow: -moz-scrollbars-vertical;
-        overflow-y: scroll;
-      }
 
-      *,
-      *:before,
-      *:after
-      {
-        box-sizing: inherit;
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>Swagger UI</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'swagger-ui-4.15.5-dist/swagger-ui.css' %}" />
+  <link rel="icon" type="image/png" href="{% static 'swagger-ui-4.15.5-dist/favicon-32x32.png' %}" sizes="32x32" />
+  <link rel="icon" type="image/png" href="{% static 'swagger-ui-4.15.5-dist/favicon-16x16.png' %}" sizes="16x16" />
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
 
-      body
-      {
-        margin:0;
-        background: #fafafa;
-      }
-    </style>
-  </head>
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+    }
 
-  <body>
-    <div id="swagger-ui"></div>
-    <button id="custom-logout-button">Logout</button>
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
+  </style>
+</head>
 
-    <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-bundle.js' %}" charset="UTF-8"> </script>
-    <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
-    <script>
-    window.onload = function() {
+<body>
+  <div id="swagger-ui"></div>
+  <button id="custom-logout-button">Logout</button>
+
+  <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-bundle.js' %}" charset="UTF-8"> </script>
+  <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
+  <script>
+    window.onload = function () {
       let ui;
       ui = SwaggerUIBundle({
         urls: [
-            {
-                url: "{% static 'openapi.yaml' %}",
-                name: "openapi.yaml"
-            },
+          {
+            url: "{% static 'openapi.yaml' %}",
+            name: "openapi.yaml"
+          },
         ],
         dom_id: '#swagger-ui',
         deepLinking: true,
@@ -62,17 +60,17 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
         ],
         layout: "StandaloneLayout",
         requestInterceptor: (request) => {
-            if (ui) {
-              const serverUrl = ui.specSelectors.specJson().toJS().servers[0].url;
-              const accessToken = localStorage.getItem('access_token');
-              if (accessToken && request.url.startsWith(serverUrl)) {
-                  request.headers['Authorization'] = `Bearer ${accessToken}`;
-              }
+          if (ui) {
+            const serverUrl = ui.specSelectors.specJson().toJS().servers[0].url;
+            const accessToken = localStorage.getItem('access_token');
+            if (accessToken && request.url.startsWith(serverUrl)) {
+              request.headers['Authorization'] = `Bearer ${accessToken}`;
             }
-            
-            return request;
+          }
+
+          return request;
         },
-        onComplete: function() {
+        onComplete: function () {
           initializeOauthData()
           addLogoutButton();
         },
@@ -83,106 +81,107 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
       window.ui = ui;
 
       async function waitForSwaggerUIRedirectOauth2() {
-          const checkInterval = 1000; // Check every 1 sec
+        const checkInterval = 1000; // Check every 1 sec
 
-          while (!window.swaggerUIRedirectOauth2) {
-              await new Promise(resolve => setTimeout(resolve, checkInterval));
-          }
+        while (!window.swaggerUIRedirectOauth2) {
+          await new Promise(resolve => setTimeout(resolve, checkInterval));
+        }
 
-          // Save OAuth2 details to localStorage
-          const serializedData = serializeObject(window.swaggerUIRedirectOauth2)
-          /**
-           * swaggerUIRedirectOauth2 contains information regarding oauth2 clientId, clientSecret etc.
-           * This will be required by static/oauth2-redirect.html and will be deserialized there
-           */
-          localStorage.setItem('swaggerUIRedirectOauth2', serializedData);
-          window.dispatchEvent(new Event('storage'));
+        // Save OAuth2 details to localStorage
+        const serializedData = serializeObject(window.swaggerUIRedirectOauth2)
+        /**
+         * swaggerUIRedirectOauth2 contains information regarding oauth2 clientId, clientSecret etc.
+         * This will be required by static/oauth2-redirect.html and will be deserialized there
+         */
+        localStorage.setItem('swaggerUIRedirectOauth2', serializedData);
+        window.dispatchEvent(new Event('storage'));
       }
 
       function serializeObject(obj) {
-          const serializedObj = { ...obj };
-          for (const key in serializedObj) {
-              if (typeof serializedObj[key] === 'function') {
-                  serializedObj[key] = serializedObj[key].toString();
-              }
+        const serializedObj = { ...obj };
+        for (const key in serializedObj) {
+          if (typeof serializedObj[key] === 'function') {
+            serializedObj[key] = serializedObj[key].toString();
           }
-          return JSON.stringify(serializedObj);
+        }
+        return JSON.stringify(serializedObj);
       }
 
       function deserializeObject(serialized) {
-          const parsedObj = JSON.parse(serialized);
-          for (const key in parsedObj) {
-              if (typeof parsedObj[key] === 'string' && parsedObj[key].startsWith('function')) {
-                  parsedObj[key] = new Function('return ' + parsedObj[key])();
-              }
+        const parsedObj = JSON.parse(serialized);
+        for (const key in parsedObj) {
+          if (typeof parsedObj[key] === 'string' && parsedObj[key].startsWith('function')) {
+            parsedObj[key] = new Function('return ' + parsedObj[key])();
           }
-          return parsedObj;
+        }
+        return parsedObj;
       }
 
       // Event listener for authorize button click
       document.addEventListener('click', (event) => {
-          if (event.target && event.target.matches('button.btn.modal-btn.auth.authorize.button')) {
-              waitForSwaggerUIRedirectOauth2();
-          }
+        if (event.target && event.target.matches('button.btn.modal-btn.auth.authorize.button')) {
+          waitForSwaggerUIRedirectOauth2();
+        }
       });
 
       function initializeOauthData() {
-          const oauth2Data = localStorage.getItem('swaggerUIRedirectOauth2');
-          if (!oauth2Data) {
-            return;
-          }
-          const oauth2 = deserializeObject(oauth2Data)
-          const tokenUrl = oauth2.auth.schema.tokenUrl;
-          const clientId = oauth2.auth.clientId
-          const clientSecret = oauth2.auth.clientSecret;
-          const redirectUri = oauth2.redirectUrl
-          const scopes = oauth2.auth.scopes.join(" ");
-          ui.initOAuth({
-              clientId: clientId,
-              clientSecret: clientSecret,
-              scopeSeparator: " ",
-              scopes: scopes,
-              usePkceWithAuthorizationCodeGrant: true
-          })
+        const oauth2Data = localStorage.getItem('swaggerUIRedirectOauth2');
+        if (!oauth2Data) {
+          return;
+        }
+        const oauth2 = deserializeObject(oauth2Data)
+        const tokenUrl = oauth2.auth.schema.tokenUrl;
+        const clientId = oauth2.auth.clientId
+        const clientSecret = oauth2.auth.clientSecret;
+        const redirectUri = oauth2.redirectUrl
+        const scopes = oauth2.auth.scopes.join(" ");
+        ui.initOAuth({
+          clientId: clientId,
+          clientSecret: clientSecret,
+          scopeSeparator: " ",
+          scopes: scopes,
+          usePkceWithAuthorizationCodeGrant: true
+        })
       }
 
       function addLogoutButton() {
-          const accessToken = localStorage.getItem('access_token');
-          if (!accessToken) {
-            return;
-          }
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          return;
+        }
 
-          const authWrapper = document.querySelector('.auth-wrapper');
-          if (!authWrapper) {
-              return;
-          }
+        const authWrapper = document.querySelector('.auth-wrapper');
+        if (!authWrapper) {
+          return;
+        }
 
-          const customButtonsWrapper = document.createElement('div');
-          customButtonsWrapper.id = 'custom-buttons';
-          customButtonsWrapper.style.display = 'flex';
-          customButtonsWrapper.style.alignItems = 'center';
-          customButtonsWrapper.style.marginLeft = '20px';
+        const customButtonsWrapper = document.createElement('div');
+        customButtonsWrapper.id = 'custom-buttons';
+        customButtonsWrapper.style.display = 'flex';
+        customButtonsWrapper.style.alignItems = 'center';
+        customButtonsWrapper.style.marginLeft = '20px';
 
-          const classNames = ['btn', 'modal-btn', 'auth', 'button'];
-          const logoutButton = document.createElement('button');
+        const classNames = ['btn', 'modal-btn', 'auth', 'button'];
+        const logoutButton = document.createElement('button');
 
-          logoutButton.id = 'logoutButton';
-          logoutButton.classList.add(...classNames);
-          logoutButton.textContent = 'Logout';
-          logoutButton.style.marginLeft = '10px';
+        logoutButton.id = 'logoutButton';
+        logoutButton.classList.add(...classNames);
+        logoutButton.textContent = 'Logout';
+        logoutButton.style.marginLeft = '10px';
 
-          logoutButton.addEventListener('click', function() {
-              localStorage.removeItem('access_token');
-              localStorage.removeItem('swaggerUIRedirectOauth2');
-              logoutButton.style.display = 'none';
-           });
-          
-          customButtonsWrapper.appendChild(logoutButton);
-          authWrapper.parentElement.insertBefore(customButtonsWrapper, authWrapper.nextSibling);
+        logoutButton.addEventListener('click', function () {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('swaggerUIRedirectOauth2');
+          logoutButton.style.display = 'none';
+        });
+
+        customButtonsWrapper.appendChild(logoutButton);
+        authWrapper.parentElement.insertBefore(customButtonsWrapper, authWrapper.nextSibling);
       }
 
     };
 
   </script>
-  </body>
+</body>
+
 </html>

@@ -14,7 +14,7 @@
 #ENC[AES256_GCM,data:ZZCOPQu8UsGfZV45Ugxlxw==,iv:QG0fe9b4mQm7xdLeerMa5mu49HlM4C3cWxo8jyJnFmM=,tag:Y1tT6nEgefqRda/gGgBWCg==,type:comment]
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 /bb/prod/app/nonsensitive/target_env: prod
-/bb/prod/app/nonsensitive/django_application_title: Blue Button 2.0
+/bb/prod/app/nonsensitive/django_application_title: Blue Button API
 /bb/prod/app/nonsensitive/signup_timeout_days: "7"
 /bb/prod/app/nonsensitive/cors_origin_allow_all: "True"
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
