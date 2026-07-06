@@ -98,7 +98,7 @@ data "aws_ssm_parameter" "bcda_account_id" {
 }
 
 data "aws_secretsmanager_secret_version" "datadog_agents_api_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.workspace}/datadog/agents/api-key"
+  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.workspace}/datadog/agents/api-key"
 }
 
 data "aws_secretsmanager_secret_version" "cdap_kms_key_arn" {

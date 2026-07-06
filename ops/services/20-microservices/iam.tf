@@ -30,7 +30,7 @@ data "aws_iam_policy_document" "secrets" {
     resources = [
       "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb2/${local.secrets_env}/*",
       "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:/bb/${local.workspace}/*",
-      "arn:aws:secretsmanager:${local.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.workspace}/datadog/agents/*"
+      "arn:aws:secretsmanager:${local.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.workspace}/datadog/agents/*"
     ]
   }
 }
