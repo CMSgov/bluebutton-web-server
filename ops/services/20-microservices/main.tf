@@ -198,7 +198,7 @@ locals {
     # Datadog configuration
     { name = "DD_SERVICE", value = local.app },
     { name = "DD_DJANGO_SERVICE", value = local.app },
-    { name = "DD_ENV", value = local.env },
+    { name = "DD_ENV", value = local.workspace },
 
     # not supported on fed site
     # https://docs.datadoghq.com/tracing/configure_data_security/?tab=environmentvariables#telemetry-collection
