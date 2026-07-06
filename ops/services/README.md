@@ -1,4 +1,4 @@
-# Blue Button 2.0 Services
+# Blue Button API Services
 
 This directory follows the **CMS Cloud Terraservice Pattern** — numbered service layers with shared root configuration.
 
