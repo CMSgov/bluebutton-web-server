@@ -575,9 +575,9 @@ envier==0.6.1 \
     --hash=sha256:3309a01bb3d8850c9e7a31a5166d5a836846db2faecb79b9cb32654dd50ca9f9 \
     --hash=sha256:73609040a76be48bbcb97074d9969666484aa0de706183a6e9ef773156a8a6a9
     # via ddtrace
-fhir-core==1.1.8 \
-    --hash=sha256:1a576ce3f6ec2aa3e86891dd00091ee03bcdcbb5a2f179f4f8e09b25b4d75047 \
-    --hash=sha256:61b1fd984c1f3fc4ad2c4d96824d9ec6f92d19e9aa49269c89b9ebec878e778e
+fhir-core==1.1.9 \
+    --hash=sha256:61f23a711199d8d74390fd473cc5ddf75a1f4def97fd8e9f59a28bc9d5222261 \
+    --hash=sha256:e3ee5912c1203993e915730e3eb23e40234f154822a45f15fadf51c76a17e452
     # via fhir-resources
 fhir-resources==8.2.0 \
     --hash=sha256:122a8b336385d504b399df9c5f332a7d913f07bc71a52dc9dde39abb5bf29129 \
