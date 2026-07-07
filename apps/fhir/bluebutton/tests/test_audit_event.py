@@ -18,8 +18,8 @@ def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token
     """Try to make an audit_event call without having the appropriate scope, confirm a 403 is returned
 
     Args:
-        basic_user (_type_): Fixture for a basic_user
-        get_access_token (_type_): Fixture to create an access token
+        basic_user: Fixture for a basic_user
+        get_access_token: Fixture to create an access token
     """
     user = basic_user()
     access_token = get_access_token(
@@ -42,8 +42,8 @@ def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
     """Try to make a v2 audit event call, which BlueButton does not support. Confirm a 404 is returned
 
     Args:
-        basic_user (_type_): Fixture for a basic_user
-        get_access_token (_type_): Fixture to create an access token
+        basic_user: Fixture for a basic_user
+        get_access_token: Fixture to create an access token
     """
     user = basic_user()
     access_token = get_access_token(
@@ -65,8 +65,8 @@ def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_to
     """Try to make a v3 audit event call, with the v3_endpoints flag set to False. Confirm a 404 is returned.
 
     Args:
-        basic_user (_type_): Fixture for a basic_user
-        get_access_token (_type_): Fixture to create an access token
+        basic_user: Fixture for a basic_user
+        get_access_token: Fixture to create an access token
     """
     user = basic_user()
     access_token = get_access_token(
@@ -89,9 +89,9 @@ def test_mock_successful_audit_event_call(basic_user, get_access_token, create_c
     to parse the response as expected
 
     Args:
-        basic_user (_type_): Fixture for a basic_user
-        get_access_token (_type_): Fixture to create an access token
-        create_capability (_type_): Fixture to create a capabilities_protectedcapability record
+        basic_user: Fixture for a basic_user
+        get_access_token: Fixture to create an access token
+        create_capability: Fixture to create a capabilities_protectedcapability record
     """
     user = basic_user(
         username='damon',
@@ -134,9 +134,9 @@ def test_successful_audit_event_call(basic_user, get_access_token, create_capabi
     """Make an actual live call to BFD for the AuditEvent endpoint that returns a 200
 
     Args:
-        basic_user (_type_): Fixture for a basic_user
-        get_access_token (_type_): Fixture to create an access token
-        create_capability (_type_): Fixture to create a capabilities_protectedcapability record
+        basic_user: Fixture for a basic_user
+        get_access_token: Fixture to create an access token
+        create_capability: Fixture to create a capabilities_protectedcapability record
     """
     user = basic_user()
     access_token = get_access_token(
