@@ -14,11 +14,11 @@ data "aws_ssm_parameter" "bcda_account_id" {
 }
 
 data "aws_secretsmanager_secret_version" "datadog_cicd_api_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.env}/datadog/cicd/api-key"
+  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.env}/datadog/cicd/api-key"
 }
 
 data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.env}/datadog/cicd/application-key"
+  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.env}/datadog/cicd/application-key"
 }
 
 locals {
@@ -35,6 +35,28 @@ module "datadog_dashboard" {
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
+
+  enable_default_widgets = {
+    ecs    = true
+    lambda = false
+    alb    = true
+    sns    = false
+    sqs    = false
+    aurora = true
+    s3     = true
+    apm    = true
+  }
+
+  widget_live_spans = {
+    lambda = "2d"
+    s3     = "1w"
+    sqs    = "4h"
+    sns    = "4h"
+    ecs    = "1d"
+    alb    = "1d"
+    aurora = "4h"
+    apm    = "1h"
+  }
 
   count = local.create_dashboards ? 1 : 0
 }
