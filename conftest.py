@@ -174,3 +174,53 @@ def create_capability(db):
         return capability
 
     return _create_capability
+
+
+@pytest.fixture
+def create_application(db):
+    """
+    Factory fixture that creates an Application instance with a name,
+    client_type, grant_type, and optional capability.
+    The default client_type is APPLICATION.CLIENT_PUBLIC.
+    The default grant_type is APPLICATION.GRANT_PASSWORD.
+    Usage:
+        def test_something(create_application):
+            app = create_application('my_app')
+    """
+
+    def _create_application(
+        name: str,
+        client_type=None,
+        grant_type=None,
+        capability=None,
+        user=None,
+        data_access_type=None,
+        **kwargs,
+    ):
+
+        client_type = client_type or Application.CLIENT_PUBLIC
+        grant_type = grant_type or Application.GRANT_PASSWORD
+
+        # Use provided user or get/create a default dev user
+        dev_user = user or User.objects.get_or_create(username='dev', defaults={'password': '123456'})[0]
+
+        application = Application.objects.create(
+            name=name,
+            user=dev_user,
+            client_type=client_type,
+            authorization_grant_type=grant_type,
+            **kwargs,
+        )
+
+        # Set data access type if provided
+        if data_access_type:
+            application.data_access_type = data_access_type
+            application.save()
+
+        # Add capability if provided
+        if capability:
+            application.scope.add(capability)
+
+        return application
+
+    return _create_application

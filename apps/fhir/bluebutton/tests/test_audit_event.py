@@ -15,6 +15,12 @@ client = Client()
 @override_switch('v3_endpoints', True)
 @override_switch('require-scopes', True)
 def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token):
+    """Try to make an audit_event call without having the appropriate scope, confirm a 403 is returned
+
+    Args:
+        basic_user (_type_): Fixture for a basic_user
+        get_access_token (_type_): Fixture to create an access token
+    """
     user = basic_user()
     access_token = get_access_token(
         user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile'
@@ -33,6 +39,12 @@ def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token
 @override_switch('v3_endpoints', True)
 @override_switch('require-scopes', True)
 def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
+    """Try to make a v2 audit event call, which BlueButton does not support. Confirm a 404 is returned
+
+    Args:
+        basic_user (_type_): Fixture for a basic_user
+        get_access_token (_type_): Fixture to create an access token
+    """
     user = basic_user()
     access_token = get_access_token(
         user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile'
@@ -50,6 +62,12 @@ def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
 @override_switch('v3_endpoints', False)
 @override_switch('require-scopes', True)
 def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_token):
+    """Try to make a v3 audit event call, with the v3_endpoints flag set to False. Confirm a 404 is returned.
+
+    Args:
+        basic_user (_type_): Fixture for a basic_user
+        get_access_token (_type_): Fixture to create an access token
+    """
     user = basic_user()
     access_token = get_access_token(
         user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile'
@@ -67,6 +85,14 @@ def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_to
 @override_switch('v3_endpoints', True)
 @override_switch('require-scopes', True)
 def test_mock_successful_audit_event_call(basic_user, get_access_token, create_capability):
+    """With a mock AuditEvent response, confirm we get the expected resources back and are able
+    to parse the response as expected
+
+    Args:
+        basic_user (_type_): Fixture for a basic_user
+        get_access_token (_type_): Fixture to create an access token
+        create_capability (_type_): Fixture to create a capabilities_protectedcapability record
+    """
     user = basic_user(
         username='damon',
         first_name='Damon',
@@ -105,6 +131,13 @@ def test_mock_successful_audit_event_call(basic_user, get_access_token, create_c
 @override_switch('v3_endpoints', True)
 @override_switch('require-scopes', True)
 def test_successful_audit_event_call(basic_user, get_access_token, create_capability):
+    """Make an actual live call to BFD for the AuditEvent endpoint that returns a 200
+
+    Args:
+        basic_user (_type_): Fixture for a basic_user
+        get_access_token (_type_): Fixture to create an access token
+        create_capability (_type_): Fixture to create a capabilities_protectedcapability record
+    """
     user = basic_user()
     access_token = get_access_token(
         user.username,

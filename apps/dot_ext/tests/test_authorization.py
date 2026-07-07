@@ -1886,32 +1886,27 @@ class TestAuthorizationView(BaseApiTest):
                     },
                 )
 
-    def test_failure_on_authorize_non_v3_with_audit_event_scope(self):
-        """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
-        when there is a non-v3 auth request that includes patient/AuditEvent.rs in the scopes param
-        """
-        redirect_uri = 'http://localhost'
-        # create a user
-        self._create_user('anna', '123456')
-        capability_a = self._create_capability('Capability A', [])
-        capability_b = self._create_capability('Capability B', [])
-        # create an application and add capabilities
-        application = self._create_application(
-            'an app',
-            grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri,
-        )
-        application.scope.add(capability_a, capability_b)
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['patient/Patient.rs patient/AuditEvent.rs'],
-            'expires_in': 86400,
-            'allow': True,
-            'state': '0123456789abcdef',
-        }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=self._add_pkce_defaults(payload))
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.json()['message'] == 'Invalid scopes.'
+
+def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application):
+    """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
+    when there is a non-v3 auth request that includes patient/AuditEvent.rs in the scopes param
+    """
+    redirect_uri = 'http://localhost'
+
+    # create an application via fixture
+    application = create_application('an app')
+    payload = {
+        'client_id': application.client_id,
+        'response_type': 'code',
+        'redirect_uri': redirect_uri,
+        'scope': ['patient/Patient.rs patient/AuditEvent.rs'],
+        'expires_in': 86400,
+        'allow': True,
+        'state': '0123456789abcdef',
+        'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+        'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+    }
+    response = Client().post(reverse('oauth2_provider:authorize'), data=payload)
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json()['message'] == 'Invalid scopes.'
