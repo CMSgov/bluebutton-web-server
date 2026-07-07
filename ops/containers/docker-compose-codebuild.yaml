@@ -3,6 +3,7 @@ services:
   # Blue Button - Codebuild
   bb-api:
     image: bb-api:codebuild
+    pull_policy: never
     network_mode: "host"
     env_file: ./bb-api/files/external/.env.codebuild
     healthcheck:
