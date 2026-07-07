@@ -27,31 +27,61 @@ collect_ignore = [
 
 @pytest.fixture
 def basic_user(db):
-    """A basic user with default test values."""
+    """
+    Factory fixture that creates a User with associated Crosswalk data.
+    Falls back to default test values if no arguments are provided.
 
-    test_hicn_hash = '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7'
-    test_mbi = '1SA0A00AA00'
+    Usage:
+        # Use all defaults
+        def test_something(basic_user):
+            user = basic_user()
 
-    if User.objects.filter(username='john').exists():
-        return User.objects.get(username='john')
+        # Override specific values
+        def test_something(basic_user):
+            user = basic_user(
+                username='jane',
+                first_name='Jane',
+                last_name='Doe',
+                fhir_id_v2='custom_fhir_id',
+            )
+    """
 
-    user = User.objects.create_user(
-        username='john',
-        password='123456',
-        first_name='John',
-        last_name='Smith',
-        email='john.smith@test.notanagency.gov',
-    )
+    def _basic_user(
+        username: str = 'john',
+        password: str = '123456',
+        first_name: str = 'John',
+        last_name: str = 'Smith',
+        email: str = None,
+        fhir_id_v2: str = DEFAULT_SAMPLE_FHIR_ID_V2,
+        fhir_id_v3: str = DEFAULT_SAMPLE_FHIR_ID_V3,
+        hicn_hash: str = '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
+        mbi: str = '1SA0A00AA00',
+    ):
+        resolved_email = email or f'{first_name.lower()}.{last_name.lower()}@test.notanagency.gov'
 
-    Crosswalk.objects.create(
-        user=user,
-        fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2,
-        fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3,
-        user_hicn_hash=test_hicn_hash,
-        user_mbi=test_mbi,
-    )
+        # Return existing user if already created
+        if User.objects.filter(username=username).exists():
+            return User.objects.get(username=username)
 
-    return user
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=resolved_email,
+        )
+
+        Crosswalk.objects.create(
+            user=user,
+            fhir_id_v2=fhir_id_v2,
+            fhir_id_v3=fhir_id_v3,
+            user_hicn_hash=hicn_hash,
+            user_mbi=mbi,
+        )
+
+        return user
+
+    return _basic_user
 
 
 @pytest.fixture
