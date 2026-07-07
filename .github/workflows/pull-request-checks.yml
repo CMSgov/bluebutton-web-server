@@ -92,7 +92,6 @@ jobs:
           make teardown-codebuild
 
   selenium-tests:
-    needs: [ruff, unit-tests]
     env:
       AWS_REGION: us-east-1
 
