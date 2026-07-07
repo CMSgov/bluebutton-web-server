@@ -572,6 +572,10 @@ LOGGING = env(
                 'handlers': ['wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
+            'ddtrace': {
+                'handlers': ['console'],
+                'level': 'WARNING',
+            },
         },
     },
 )
