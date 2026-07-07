@@ -1,24 +1,25 @@
 import logging
-
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
 from collections import OrderedDict
+
 from django.conf import settings
+from django.http import JsonResponse
 from django.urls import reverse
+from django.views.decorators.http import require_GET
+from waffle import switch_is_active
 
 from apps.constants import (
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CLIENT_CONFIDENTIAL_ASYMMETRIC,
     CLIENT_CREDENTIALS,
+    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
     PRIVATE_KEY_JWT,
 )
-
 from apps.versions import Versions
 from apps.wellknown.constants import (
     CAPABILITIES,
     CODE_CHALLENGE_METHODS_SUPPORTED,
     SCOPES_SUPPORTED,
+    SCOPES_SUPPORTED_V3_ONLY,
 )
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -29,7 +30,9 @@ def format_v3_links(request_dict: OrderedDict) -> OrderedDict:
     request_dict['authorization_endpoint'] = (
         request_dict.get('authorization_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
     )
-    request_dict['revocation_endpoint'] = request_dict.get('revocation_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
+    request_dict['revocation_endpoint'] = (
+        request_dict.get('revocation_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
+    )
     request_dict['token_endpoint'] = request_dict.get('token_endpoint', '').replace('/v2/o/', '/v3/o/').rstrip('/')
     if request_dict.get('fhir_metadata_uri'):
         request_dict['fhir_metadata_uri'] = request_dict.get('fhir_metadata_uri', '').replace('/v2/fhir/', '/v3/fhir/')
@@ -97,6 +100,8 @@ def _smart_configuration(request, version=Versions.NOT_AN_API_VERSION):
             data['capabilities'] = list(data.get('capabilities', [])) + [CLIENT_CONFIDENTIAL_ASYMMETRIC]
             data['token_endpoint_auth_methods_supported'] = [PRIVATE_KEY_JWT]
             data['token_endpoint_auth_signing_alg_values_supported'] = CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
+            if switch_is_active('enable_auditevents'):
+                data['scopes_supported'] = list(data.get('scopes_supported', [])) + SCOPES_SUPPORTED_V3_ONLY
 
     return JsonResponse(data)
 
@@ -128,7 +133,9 @@ def base_issuer(request):
     elif 'https://' in issuer.lower():
         pass
     else:
-        logger.debug('HOSTNAME_URL [%s] does not contain http or https prefix. Issuer:%s' % (settings.HOSTNAME_URL, issuer))
+        logger.debug(
+            'HOSTNAME_URL [%s] does not contain http or https prefix. Issuer:%s' % (settings.HOSTNAME_URL, issuer)
+        )
         # no http/https prefix in HOST_NAME_URL so we add it
         if request.is_secure():
             http_mode = 'https://'
@@ -157,7 +164,9 @@ def build_endpoint_info(data=OrderedDict(), issuer=''):
     data['ui_locales_supported'] = [
         'en-US',
     ]
-    data['service_documentation'] = getattr(settings, 'DEVELOPER_DOCS_URI', 'https://cmsgov.github.io/bluebutton-developer-help/')
+    data['service_documentation'] = getattr(
+        settings, 'DEVELOPER_DOCS_URI', 'https://cmsgov.github.io/bluebutton-developer-help/'
+    )
     data['op_tos_uri'] = settings.TOS_URI
     data['grant_types_supported'] = []
 
