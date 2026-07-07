@@ -1,5 +1,5 @@
 """
-Custom middleware for Blue Button.
+Custom middleware for Blue Button API.
 
 SecurityHeadersMiddleware adds response headers that were previously
 provided by the nginx reverse proxy. With the migration to Fargate
