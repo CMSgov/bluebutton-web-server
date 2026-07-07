@@ -140,8 +140,24 @@ jobs:
 
       - name: Execute Selenium Tests
         run: |
+<<<<<<< Updated upstream
           cd ./ops/containers/bb-api
           make run-codebuild-selenium
+=======
+          cd ./ops/containers/selenium
+          make build-selenium
+
+      - name: Diagnostic - Test Akamai Bot Protection
+        run: |
+          echo "Sending curl request to Medicare.gov login to test for Akamai block page..."
+          curl -sS -v -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.198 Safari/537.36" https://test.medicare.gov/sso/authorize?client_id=bb2api
+
+      - name: Run Selenium Tests
+        run: |
+          docker compose \
+            -f ops/containers/docker-compose-codebuild-selenium.yaml \
+            run --rm selenium-tests
+>>>>>>> Stashed changes
 
       - name: Teardown Stack
         if: always()
