@@ -478,6 +478,7 @@ class TestTokenResponseFields(BaseApiTest):
     @patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
+    @override_switch('enable_auditevents', active=True)
     def test_client_credentials_token_and_refresh(
         self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth, mock_get_and_update
     ):

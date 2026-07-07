@@ -4,6 +4,7 @@ import logging
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.core.management.base import BaseCommand
+from waffle import switch_is_active
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES
 from apps.capabilities.models import ProtectedCapability
 
@@ -360,4 +361,6 @@ class Command(BaseCommand):
         create_openid_capability(g)
         create_token_management_capability(g)
         create_token_introspect_capability(g)
-        create_audit_event_capability(g)
+
+        if switch_is_active('enable_auditevents'):
+            create_audit_event_capability(g)

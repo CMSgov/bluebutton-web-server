@@ -311,8 +311,12 @@ class AuthorizationView(DotAuthorizationView):
                     },
                     status=HTTPStatus.FORBIDDEN,
                 )
-        elif self.version != Versions.V3 and (
-            AUDIT_EVENT_SCOPE in request.GET.get('scope', '') or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
+        elif (
+            switch_is_active('enable_auditevents')
+            and self.version != Versions.V3
+            and (
+                AUDIT_EVENT_SCOPE in request.GET.get('scope', '') or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
+            )
         ):
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Invalid scopes.'},
@@ -1264,7 +1268,7 @@ class TokenView(DotTokenView):
                     body['refresh_token'] = refresh_token.token
 
                     # Even if the patient/AuditEvent.rs scope is not included in the request, add it to the token
-                    if AUDIT_EVENT_SCOPE not in token.scope:
+                    if switch_is_active('enable_auditevents') and AUDIT_EVENT_SCOPE not in token.scope:
                         log.info('patient/AuditEvent.rs scope not requested for client_credentials call, adding it')
                         token.scope += ' ' + AUDIT_EVENT_SCOPE
 

@@ -12,8 +12,9 @@ from apps.integration_tests.constants import MESSAGE_NO_PERMISSION
 client = Client()
 
 
-@override_switch('v3_endpoints', True)
-@override_switch('require-scopes', True)
+@override_switch('v3_endpoints', active=True)
+@override_switch('require-scopes', active=True)
+@override_switch('enable_auditevents', active=True)
 def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token):
     """Try to make an audit_event call without having the appropriate scope, confirm a 403 is returned
 
@@ -35,8 +36,8 @@ def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token
     assert response.json()['detail'] == MESSAGE_NO_PERMISSION
 
 
-@override_switch('v3_endpoints', True)
-@override_switch('require-scopes', True)
+@override_switch('v3_endpoints', active=True)
+@override_switch('require-scopes', active=True)
 def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
     """Try to make a v2 audit event call, which BlueButton does not support. Confirm a 404 is returned
 
@@ -57,8 +58,8 @@ def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-@override_switch('v3_endpoints', False)
-@override_switch('require-scopes', True)
+@override_switch('v3_endpoints', active=False)
+@override_switch('require-scopes', active=True)
 def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_token):
     """Try to make a v3 audit event call, with the v3_endpoints flag set to False. Confirm a 404 is returned.
 
@@ -79,8 +80,9 @@ def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_to
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-@override_switch('v3_endpoints', True)
-@override_switch('require-scopes', True)
+@override_switch('v3_endpoints', active=True)
+@override_switch('require-scopes', active=True)
+@override_switch('enable_auditevents', active=True)
 def test_mock_successful_audit_event_call(basic_user, get_access_token, create_capability):
     """With a mock AuditEvent response, confirm we get the expected resources back and are able
     to parse the response as expected
@@ -123,8 +125,9 @@ def test_mock_successful_audit_event_call(basic_user, get_access_token, create_c
 
 
 @pytest.mark.integration
-@override_switch('v3_endpoints', True)
-@override_switch('require-scopes', True)
+@override_switch('v3_endpoints', active=True)
+@override_switch('require-scopes', active=True)
+@override_switch('enable_auditevents', active=True)
 def test_successful_audit_event_call(basic_user, get_access_token, create_capability):
     """Make an actual live call to BFD for the AuditEvent endpoint that returns a 200
 

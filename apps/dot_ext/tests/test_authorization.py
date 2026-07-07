@@ -1887,6 +1887,7 @@ class TestAuthorizationView(BaseApiTest):
                 )
 
 
+@override_switch('enable_auditevents', True)
 def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application):
     """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
     when there is a non-v3 auth request that includes patient/AuditEvent.rs in the scopes param

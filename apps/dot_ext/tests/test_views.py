@@ -54,6 +54,7 @@ class TestApplicationRegistrationView(BaseApiTest):
 
         self.assertQuerySetEqual(app.scope.all(), [capability_a, capability_b], ordered=False)
 
+    @override_switch('enable_auditevents', True)
     def test_assigns_demographic_scopes(self):
         """
         Assert that the registration view assigns demographic scopes when the user
