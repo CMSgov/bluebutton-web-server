@@ -77,7 +77,7 @@ class TestApplicationRegistrationView(BaseApiTest):
         self.assertQuerySetEqual(app.scope.all(), default_scopes, ordered=False)
 
         audit_event_scope = ProtectedCapability.objects.filter(slug=AUDIT_EVENT_SCOPE)
-        assert audit_event_scope is not None
+        assert audit_event_scope.exists()
 
     def test_does_not_assign_demographic_scopes(self):
         """

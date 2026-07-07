@@ -34,7 +34,7 @@ class AuditEventView(FhirDataView):
         return super().get(request, self.resource_type, *args, **kwargs)
 
     def get_full_path(self):
-        return f'/v{AuditEventView.version}/fhir/AuditEvent/'
+        return f'/v{self.version}/fhir/AuditEvent/'
 
     def build_parameters(self, request):
         return {

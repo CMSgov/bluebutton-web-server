@@ -28,7 +28,6 @@ def test_audit_event_call_without_audit_event_scope(basic_user, get_access_token
 
     response = client.get(
         reverse('bb_oauth_fhir_audit_event'),
-        kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
     )
 
@@ -52,7 +51,6 @@ def test_v2_audit_event_call_confirm_not_found(basic_user, get_access_token):
 
     response = client.get(
         '/v2/fhir/AuditEvent',
-        kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
     )
 
@@ -75,7 +73,6 @@ def test_audit_event_call_without_v3_endpoints_enabled(basic_user, get_access_to
 
     response = client.get(
         reverse('bb_oauth_fhir_audit_event'),
-        kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
     )
 
@@ -114,9 +111,7 @@ def test_mock_successful_audit_event_call(basic_user, get_access_token, create_c
         return {'status_code': HTTPStatus.OK, 'content': audit_event_bundle}
 
     with HTTMock(catchall):
-        response = client.get(
-            reverse('bb_oauth_fhir_audit_event'), kwargs={'entity': 'test'}, Authorization='Bearer %s' % (access_token)
-        )
+        response = client.get(reverse('bb_oauth_fhir_audit_event'), Authorization='Bearer %s' % (access_token))
 
     json_response = response.json()
     audit_event_resource = json_response.get('entry')[0].get('resource')
@@ -147,7 +142,6 @@ def test_successful_audit_event_call(basic_user, get_access_token, create_capabi
 
     response = client.get(
         reverse('bb_oauth_fhir_audit_event'),
-        kwargs={'entity': 'test'},
         Authorization='Bearer %s' % (access_token),
     )
 
