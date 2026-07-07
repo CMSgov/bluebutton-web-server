@@ -123,6 +123,11 @@ jobs:
             node:18-slim \
             sh -c "npm install && npx gulp"
 
+      - name: Build MSLSX
+        run: |
+          cd ./ops/containers/mslsx
+          make build-local
+
       - name: Build BBAPI
         run: |
           cd ./ops/containers/bb-api
@@ -136,7 +141,7 @@ jobs:
       - name: Start Stack
         run: |
           cd ./ops/containers/bb-api
-          make run-codebuild
+          make run-codebuild-mock
 
       - name: Diagnostic - Test Akamai Bot Protection
         run: |

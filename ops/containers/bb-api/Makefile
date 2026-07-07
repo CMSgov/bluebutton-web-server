@@ -6,7 +6,7 @@ env         ?= local
 auth        ?= live
 
 .PHONY: build-local build-local-no-cache build-codebuild build-selenium \
-        run-codebuild run-codebuild-integration run-codebuild-selenium \
+        run-codebuild run-codebuild-mock run-codebuild-integration run-codebuild-selenium \
         teardown-codebuild teardown-codebuild-selenium run-local
 
 build-local:
@@ -39,6 +39,11 @@ build-selenium:
 run-codebuild:
 	@echo "Running codebuild environment"
 	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" \
+	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
+
+run-codebuild-mock:
+	@echo "Running codebuild environment with auth=mock"
+	bfd="test" env="test" auth="mock" TARGET_ENV="codebuild" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 run-codebuild-integration:

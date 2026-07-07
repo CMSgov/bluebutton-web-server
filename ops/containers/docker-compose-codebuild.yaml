@@ -12,3 +12,11 @@ services:
       timeout: 2s
       retries: 30
       start_period: 90s
+
+  ####################
+  # Local MSLS server for Selenium Auth Mock
+  mslsx:
+    image: mslsx:latest
+    pull_policy: never
+    network_mode: "host"
+    command: scripts/internal/entrypoint.bash
