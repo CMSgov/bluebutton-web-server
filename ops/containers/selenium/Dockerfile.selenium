@@ -16,3 +16,4 @@ ENV PATH="/tmp/venv/bin:${PATH}"
 
 RUN pip3 install --upgrade pip
 RUN pip3 install selenium pytest debugpy jsonschema python-dateutil
+RUN apt-get update iproute2
