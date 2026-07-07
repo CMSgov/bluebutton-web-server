@@ -5,8 +5,9 @@ bfd         ?= test
 env         ?= local
 auth        ?= live
 
-.PHONY: build-local build-local-no-cache build-codebuild run-codebuild \
-        run-codebuild-integration teardown-codebuild run-local
+.PHONY: build-local build-local-no-cache build-codebuild build-selenium \
+        run-codebuild run-codebuild-integration run-codebuild-selenium \
+        teardown-codebuild teardown-codebuild-selenium run-local
 
 build-local:
 	@echo "Building local"
@@ -29,6 +30,12 @@ build-codebuild:
 		--build-arg BUILD_TARGET="codebuild" \
 		-t bb-api:codebuild -f Dockerfile ../../..
 
+build-selenium:
+	@echo "Building Selenium"
+	docker build \
+		-t selenium-local:latest \
+		-f ../selenium/Dockerfile.selenium ../selenium
+
 run-codebuild:
 	@echo "Running codebuild environment"
 	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" \
@@ -41,6 +48,16 @@ run-codebuild-integration:
 		exec -T bb-api pytest -m 'integration'
 
 teardown-codebuild:
+	docker compose -f ../docker-compose-codebuild.yaml down -v
+
+run-codebuild-selenium:
+	@echo "selenium tests in Codebuild"
+	docker compose \
+		-f ../docker-compose-codebuild-selenium.yaml \
+		run --rm selenium-tests
+
+teardown-codebuild-selenium:
+	docker compose -f ../docker-compose-codebuild-selenium.yaml down -v || true
 	docker compose -f ../docker-compose-codebuild.yaml down -v
 
 run-local:
