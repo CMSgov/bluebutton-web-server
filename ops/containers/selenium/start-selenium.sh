@@ -31,12 +31,14 @@ set_msls () {
 		export DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
 }
 
-# BB2 runs with network_mode: host inside the Docker Desktop VM.
-# The default bridge gateway is in the same VM network namespace and reaches BB2.
-BB2_HOST=$(ip route show default | awk '{print $3; exit}')
+# BB2 runs with network_mode: host on the Podman/Docker machine.
+# The selenium compose project has its own isolated bridge network whose gateway
+# does NOT route to the host-networked BB2. host.docker.internal (the machine
+# gateway) reaches host ports from any network, so proxy BB2 traffic through it.
+BB2_HOST="host.docker.internal"
 echo_msg "BB2 host resolved to: ${BB2_HOST}"
 
-# Start socat proxy - forward localhost ports to BB2 via the VM gateway
+# Start socat proxy - forward localhost ports to BB2 on the host
 socat TCP-LISTEN:8000,fork,reuseaddr TCP:${BB2_HOST}:8000 &
 socat TCP-LISTEN:8080,fork,reuseaddr TCP:${BB2_HOST}:8080 &
 echo_msg "Started localhost port proxy to BB2 at ${BB2_HOST}"
