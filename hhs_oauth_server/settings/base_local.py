@@ -472,7 +472,7 @@ LOG_JSON_FORMAT_PRETTY = env.bool('DJANGO_LOG_JSON_FORMAT_PRETTY', default=False
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button 2.0')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button API')
 ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE', default='The U.S. Centers for Medicare & Medicaid Services (CMS)')
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', default='https://cms.gov')
 

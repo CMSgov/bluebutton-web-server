@@ -148,7 +148,8 @@ launch_blue_button () {
         # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
         
         echo "🔵 aws run options"
-        gunicorn \
+        ddtrace-run \
+            gunicorn \
             hhs_oauth_server.wsgi:application \
             --config /home/boton/bb/gunicorn.conf.py \
             --certfile /tmp/certstore/tls/cert.pem \
@@ -158,6 +159,7 @@ launch_blue_button () {
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
             --log-level info
+        RESULT=$?
     fi
 
     return $RESULT

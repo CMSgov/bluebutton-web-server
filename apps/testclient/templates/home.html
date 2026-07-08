@@ -6,11 +6,12 @@
 {% block bannerBackButton %}{% endblock %}
 
 {% block bannerTitle %}
-Blue Button 2.0 API Test Client
+Blue Button API Test Client
 {% endblock %}
 
 {% block bannerDescription %}
-The Blue Button 2.0 API Test Client allows you to quickly see what it is like for a Medicare beneficiary to grant access to an application. It allows you to see sample data returned from our various API endpoints.
+The Blue Button API Test Client allows you to quickly see what it is like for a Medicare beneficiary to grant access to
+an application. It allows you to see sample data returned from our various API endpoints.
 {% endblock %}
 
 {% block bannerCallToActionButtons %}
@@ -18,19 +19,22 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 {% block Content %}
 <div class="container">
-  <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
-    <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+	<div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+		<div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
 
 			{% if user.is_authenticated %}
 			<div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
 				<div class="ds-c-alert__body">
 					<h3 class="ds-c-alert__heading">Log out to continue</h3>
 					<p class="ds-c-alert__text" role="alert">
-						It looks like you may be logged in to your Sandbox developer account. Because the Test Client mimics the behavior of an anonymous user authenticating with Blue Button 2.0, you must be logged out of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
+						It looks like you may be logged in to your Sandbox developer account. Because the Test Client
+						mimics the behavior of an anonymous user authenticating with Blue Button, you must be logged out
+						of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
 					</p>
 					<form method="post" action="{% url 'logout' %}">
-    					{% csrf_token %}
-    					<button class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white" type="submit">Log Out to Continue<</button>
+						{% csrf_token %}
+						<button class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white"
+							type="submit">Log Out to Continue</button>
 					</form>
 				</div>
 			</div>
@@ -43,51 +47,58 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			<h2>Step 1: Sample Authorization</h2>
 			<!-- If a user does not have a token, give clear instructions about auth flow -->
 			{% if session_token is None %}
-			<p>To simulate a Medicare beneficiary granting an application access to their Medicare claims data, start by getting a sample authorization token. You'll see how a API call URL is constructed and see what a beneficiary sees when they are granting access.</p>
+			<p>To simulate a Medicare beneficiary granting an application access to their Medicare claims data, start by
+				getting a sample authorization token. You'll see how a API call URL is constructed and see what a
+				beneficiary sees when they are granting access.</p>
 
 			<br />
 
-			<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token</a>
-			
+			<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}"
+				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization
+				Token</a>
+
 			{% switch "v3_testclient" %}
-				<a id="auth_link_v3" href="{% url 'authorize_link_v3' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token (v3)</a>
+			<a id="auth_link_v3" href="{% url 'authorize_link_v3' %}"
+				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization
+				Token (v3)</a>
 			{% endswitch %}
 
 			{% endif %}
 
-            <!-- If a user DOES have a token, reflect the success of that action -->
+			<!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_token is not None %}
 			{% url 'testclient-restart' as restart_url %}
 			{% if api_ver == 2 %}
-				{% url 'authorize_link_v2' as auth_url %}
-				{% url 'test_metadata_v2' as meta_url %}
-				{% url 'test_openid_config_v2' as openid_cfg_url %}
-				{% url 'test_userinfo_v2' as test_userinfo_url %}
-				{% url 'test_eob_v2' as test_eob_url %}
-				{% url 'test_patient_v2' as test_patient_url %}
-				{% url 'test_coverage_v2' as test_coverage_url %}
+			{% url 'authorize_link_v2' as auth_url %}
+			{% url 'test_metadata_v2' as meta_url %}
+			{% url 'test_openid_config_v2' as openid_cfg_url %}
+			{% url 'test_userinfo_v2' as test_userinfo_url %}
+			{% url 'test_eob_v2' as test_eob_url %}
+			{% url 'test_patient_v2' as test_patient_url %}
+			{% url 'test_coverage_v2' as test_coverage_url %}
 			{% elif api_ver == 3 %}
-				{% switch "v3_testclient" %}
-					{% url 'authorize_link_v3' as auth_url %}
-					{% url 'test_metadata_v3' as meta_url %}
-					{% url 'test_openid_config_v3' as openid_cfg_url %}
-					{% url 'test_userinfo_v3' as test_userinfo_url %}
-					{% url 'test_eob_v3' as test_eob_url %}
-					{% url 'test_patient_v3' as test_patient_url %}
-					{% url 'test_coverage_v3' as test_coverage_url %}
-					{% url 'test_digital_insurance_card_v3' as test_digital_insurance_card_url %}
-				{% endswitch %}
+			{% switch "v3_testclient" %}
+			{% url 'authorize_link_v3' as auth_url %}
+			{% url 'test_metadata_v3' as meta_url %}
+			{% url 'test_openid_config_v3' as openid_cfg_url %}
+			{% url 'test_userinfo_v3' as test_userinfo_url %}
+			{% url 'test_eob_v3' as test_eob_url %}
+			{% url 'test_patient_v3' as test_patient_url %}
+			{% url 'test_coverage_v3' as test_coverage_url %}
+			{% url 'test_digital_insurance_card_v3' as test_digital_insurance_card_url %}
+			{% endswitch %}
 			{% else %}
-				{% url 'authorize_link_v1' as auth_url %}
-				{% url 'test_metadata_v1' as meta_url %}
-				{% url 'test_openid_config_v1' as openid_cfg_url %}
-				{% url 'test_userinfo_v1' as test_userinfo_url %}
-				{% url 'test_eob_v1' as test_eob_url %}
-				{% url 'test_patient_v1' as test_patient_url %}
-				{% url 'test_coverage_v1' as test_coverage_url %}
+			{% url 'authorize_link_v1' as auth_url %}
+			{% url 'test_metadata_v1' as meta_url %}
+			{% url 'test_openid_config_v1' as openid_cfg_url %}
+			{% url 'test_userinfo_v1' as test_userinfo_url %}
+			{% url 'test_eob_v1' as test_eob_url %}
+			{% url 'test_patient_v1' as test_patient_url %}
+			{% url 'test_coverage_v1' as test_coverage_url %}
 			{% endif %}
 
-            <p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat this step if you need a new token.</a> or <a href="{{ restart_url }}">restart testclient</a></p>
+			<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat
+					this step if you need a new token.</a> or <a href="{{ restart_url }}">restart testclient</a></p>
 
 			<br />
 
@@ -96,8 +107,10 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			<br />
 
 			<h2>Step 2: API Calls</h2>
-			
-			<p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
+
+			<p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on
+				any of the links below to simulate calls to different endpoints and see the sample data that is
+				delivered in the response.</p>
 
 			<ul>
 				<li> <a href="{{ test_eob_url }}">ExplanationOfBenefit</a> </li>
@@ -105,7 +118,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 				<li> <a href="{{ test_coverage_url }}">Coverage</a> </li>
 				<li> <a href="{{ test_userinfo_url }}">Profile </a> (OIDC Userinfo)</li>
 				{% if api_ver == 3 %}
-					<li> <a href="{{ test_digital_insurance_card_url }}">Digital Insurance Card</li>
+				<li> <a href="{{ test_digital_insurance_card_url }}">Digital Insurance Card</a></li>
 				{% endif %}
 				<li> <a href="{{ meta_url }}?format=json">FHIR Metadata</a> (No Token Needed)</li>
 				<li> <a href="{{ openid_cfg_url }}">OIDC Discovery</a> (No Token Needed)</li>
@@ -113,13 +126,17 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<h2 class="ds-u-margin-y--2">Additional Resources</h2>
 
-			<p>If you need more information about the API or the sample data, feel free to read our <a href="https://bluebutton.cms.gov/developers/">developer documentation</a>.</p>
+			<p>If you need more information about the API or the sample data, feel free to read our <a
+					href="https://bluebutton.cms.gov/developers/">developer documentation</a>.</p>
 
 			<h3 class="ds-u-margin-y--2">Testing your own application:</h3>
 
-			<p>If you want to test the Blue Button 2.0 API with your own application, create a Sandbox account and register your application. Once registered, you can use your test credentials to re-create this experience and include synthetic Medicare data in your own application.</p>
+			<p>If you want to test the Blue Button API with your own application, create a Sandbox account and register
+				your application. Once registered, you can use your test credentials to re-create this experience and
+				include synthetic Medicare data in your own application.</p>
 
-			<a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Create a Sandbox Account</a>
+			<a href="{% url 'accounts_create_account' %}"
+				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Create a Sandbox Account</a>
 
 			{% endif %}
 
@@ -127,5 +144,5 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 		</div>
 	</div>
 </div>
-    
+
 {% endblock %}
