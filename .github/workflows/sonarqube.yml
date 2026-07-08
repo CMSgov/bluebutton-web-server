@@ -1,5 +1,5 @@
-# SonarQube Code Analysis
-# Migrated from Jenkins pipeline
+# Runs our SonarQube code analysis to check code quality and test coverage.
+# (This job was recently moved over from our old Jenkins pipeline!)
 
 name: SonarQube Analysis
 
@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  # These values come from GitHub Repository Variables
-  # Settings → Secrets and variables → Actions → Variables
+  # We pull these configuration variables directly from GitHub.
+  # (You can find them in the repo under Settings -> Secrets and variables -> Actions -> Variables)
   SONARQUBE_URL: ${{ vars.SONARQUBE_URL }}
   SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
   DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
@@ -21,7 +21,8 @@ env:
 jobs:
   sonarqube:
     name: SonarQube Analysis
-    # Use CodeBuild runner - runs inside CMS/AWS network, can reach internal SonarQube
+    # We use our custom AWS CodeBuild runner for this job because it runs 
+    # directly inside the CMS/AWS network, which allows it to securely talk to our internal SonarQube server!
     runs-on:
       - codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
     
