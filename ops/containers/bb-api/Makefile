@@ -31,10 +31,7 @@ build-codebuild:
 		-t bb-api:codebuild -f Dockerfile ../../..
 
 build-selenium:
-	@echo "Building Selenium"
-	docker build \
-		-t selenium-local:latest \
-		-f ../selenium/Dockerfile.selenium ../selenium
+	$(MAKE) -C ../selenium build-selenium
 
 run-codebuild:
 	@echo "Running codebuild environment"
