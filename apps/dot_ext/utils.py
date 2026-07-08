@@ -1,5 +1,3 @@
-import base64
-import hashlib
 import logging
 import os
 import re
@@ -411,12 +409,3 @@ def check_auth_tracking_and_create_access_token_extension(
     AccessTokenExtension.objects.get_or_create(
         access_token=token, include_samhsa=include_samhsa, part_d_eob_only=prior_part_d_eob_only
     )
-
-
-def generate_code_verifier() -> str:
-    return base64.urlsafe_b64encode(os.urandom(44)).rstrip(b'=').decode('utf-8')
-
-
-def generate_code_challenge(code_verifier: str) -> str:
-    code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode('ASCII')).digest()).decode('utf-8')
-    return code_challenge
