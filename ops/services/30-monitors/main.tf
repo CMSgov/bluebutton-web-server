@@ -51,7 +51,30 @@ locals {
 module "common_datadog_monitors" {
   source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
 
-  app            = local.app
-  env            = local.env
-  monitor_config = local.monitor_config
+  app             = local.app
+  env             = local.env
+  monitor_config  = local.monitor_config
+  custom_monitors = local.custom_monitors
+}
+
+locals {
+  custom_monitors = [
+    {
+      name    = "[${upper(local.env)}] [${local.app}] ALB — Target Response Time High"
+      type    = "metric alert"
+      message = "ALB target has high average response time."
+      query   = "avg(last_1h):avg:aws.applicationelb.target_response_time.average{application:${local.app}, environment:${local.env}} > 0.35"
+
+      thresholds = {
+        critical = 0.35
+        warning  = 0.25
+      }
+
+      notify_no_data           = local.env != "test"
+      no_data_timeframe_minute = 60
+
+      # TODO the CDAP module doesn't actually do anything with this, open a PR
+      require_full_window = false
+    },
+  ]
 }
