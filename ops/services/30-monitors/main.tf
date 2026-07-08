@@ -14,11 +14,11 @@ data "aws_ssm_parameter" "bcda_account_id" {
 }
 
 data "aws_secretsmanager_secret_version" "datadog_cicd_api_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.env}/datadog/cicd/api-key"
+  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.env}/datadog/cicd/api-key"
 }
 
 data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:cdap/bb/${local.env}/datadog/cicd/application-key"
+  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.env}/datadog/cicd/application-key"
 }
 
 locals {
@@ -34,17 +34,18 @@ locals {
   defaults   = yamldecode(file("config/defaults.yml"))
   env_config = yamldecode(file("config/${local.env}.yml"))
 
-  shadow_mode = lookup(local.env_config, "shadow_mode", local.defaults.shadow_mode)
-
-  # map-typed keys
-  monitor_config = merge(
-    { for key in keys(local.defaults) : key => merge(
-      lookup(local.defaults, key, {}),
-      lookup(local.env_config, key, {})
-      ) if can(keys(local.defaults[key])) # only process map-typed keys
-    },
-    { shadow_mode = local.shadow_mode }
-  )
+  monitor_config = {
+    for key in distinct(concat(keys(local.defaults), keys(local.env_config))) :
+    key => try(
+      # Attempt map merge (works if both values are map/object-typed)
+      merge(
+        lookup(local.defaults, key, {}),
+        lookup(local.env_config, key, {})
+      ),
+      # Fallback to scalar: env wins, then default
+      lookup(local.env_config, key, lookup(local.defaults, key, null))
+    )
+  }
 }
 
 module "common_datadog_monitors" {

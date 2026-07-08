@@ -3,6 +3,7 @@ import json
 from oauth2_provider.models import AccessToken
 from oauth2_provider.oauth2_backends import OAuthLibCore
 
+from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.loggers import (
     clear_session_auth_flow_trace,
     set_session_auth_flow_trace_value,
@@ -26,7 +27,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         if body.get('grant_type') == 'authorization_code':
             update_session_auth_flow_trace_from_code(request, body.get('code', None))
             set_session_auth_flow_trace_value(request, 'auth_grant_type', body.get('grant_type', None))
-        if body.get('grant_type') == 'client_credentials':
+        if body.get('grant_type') == CLIENT_CREDENTIALS:
             update_session_auth_flow_trace_from_request(request)
             set_session_auth_flow_trace_value(request, 'auth_grant_type', body.get('grant_type', None))
 

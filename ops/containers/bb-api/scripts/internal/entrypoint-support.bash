@@ -146,19 +146,9 @@ launch_blue_button () {
     else
         # Fargate: gunicorn handles TLS directly with DigiCert certs (no nginx)
         # Matches BFD/AB2D pattern — app server handles TLS, ALB does external termination
-        # newrelic-admin run-program auto-configures the NR agent from NEW_RELIC_* env vars
         
-        # The NR agent doesn't natively support ignoring status codes via env vars.
-        # We intercept BB2_NR_IGNORE_STATUS_CODES to dynamically write a config file
-        # to avoid baking a static newrelic.ini into the image.
-        if [[ -n "$BB2_NR_IGNORE_STATUS_CODES" && -z "$NEW_RELIC_CONFIG_FILE" ]]; then
-            printf '[newrelic]\nerror_collector.ignore_status_codes = %s\n' \
-                "$BB2_NR_IGNORE_STATUS_CODES" > /tmp/newrelic.ini
-            export NEW_RELIC_CONFIG_FILE=/tmp/newrelic.ini
-        fi
-
         echo "🔵 aws run options"
-        newrelic-admin run-program \
+        ddtrace-run \
             gunicorn \
             hhs_oauth_server.wsgi:application \
             --config /home/boton/bb/gunicorn.conf.py \
@@ -169,6 +159,7 @@ launch_blue_button () {
             --workers ${GUNICORN_WORKERS} \
             --timeout ${GUNICORN_TIMEOUT} \
             --log-level info
+        RESULT=$?
     fi
 
     return $RESULT

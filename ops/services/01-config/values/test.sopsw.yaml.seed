@@ -57,12 +57,6 @@
 /bb/${env}/app/nonsensitive/django_admin_email: "BlueButtonAPI@cms.hhs.gov"
 
 # ============================================================================
-# NewRelic
-# ============================================================================
-/bb/${env}/app/sensitive/new_relic_license_key: CHANGE_ME
-/bb/${env}/app/nonsensitive/new_relic_app_name: "BlueButton-${env}"
-
-# ============================================================================
 # S3 Storage
 # ============================================================================
 /bb/${env}/app/nonsensitive/aws_s3_custom_domain: "s3.amazonaws.com"
