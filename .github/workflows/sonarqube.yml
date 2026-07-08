@@ -65,9 +65,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           echo "Installing SonarQube scanner..."
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
           unzip -q sonar-scanner.zip
-          export PATH="$PWD/sonar-scanner-5.0.1.3006-linux/bin:$PATH"
+          export PATH="$PWD/sonar-scanner-5.0.1.3006/bin:$PATH"
           
           echo "Running SonarQube analysis..."
           sonar-scanner \
