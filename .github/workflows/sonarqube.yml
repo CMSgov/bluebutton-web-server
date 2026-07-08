@@ -51,6 +51,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           source /tmp/venv/bin/activate
+          export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.test"
           coverage run -m pytest -m 'not integration'
           coverage xml
 
