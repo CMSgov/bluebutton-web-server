@@ -40,7 +40,7 @@ a {
 	display: flex !important;
 	align-items: center;
 	background-color: white;
-	padding: 16px;
+	padding: 16px 16px 8px 16px;
 }
 
 /* Two-line heading inside the button */
@@ -137,19 +137,6 @@ a {
 					<h1 class="ds-text-heading--xl" style="margin-bottom: 16px !important; color: #262626;">
 						<span id="connect_app">{% trans "Hi, "%}</span>{{ beneficiary_name }}<span id="connect_app">.</span>
 					</h1>
-
-					<div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px;">
-						{% trans "Not you? " %}
-						<form method="post" action="{% url 'logout' %}">
-							{% csrf_token %}
-							<button
-							type="submit"
-							style="font-family: 'Rubik'; color: #262626; background: none; border: none; cursor: pointer; padding: 0; font: inherit; text-decoration: underline;"
-							>
-							{% trans "Switch account" %}
-							</button>
-						</form>
-					</div>
 
 					<div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px;">
 						{% trans "Not you? " %}
@@ -257,7 +244,7 @@ a {
 								aria-labelledby="accordion-btn-1"
 								hidden
 							>
-								<p style="font-size: 14px; font-weight: 700; margin-bottom: 8px !important;">Medicare coverage data, if applicable:</p>
+								<span class="ds-c-accordion__button-line1" style="padding-bottom: 0px;">Medicare coverage data, if applicable:</span>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
 									<li>Medicaid dual eligibility status</li>
 									<li>Medicaid state and eligibility date</li>
@@ -304,7 +291,7 @@ a {
 								aria-labelledby="accordion-btn-2"
 								hidden
 							>
-								<p style="font-size: 14px; font-weight: 700; margin-bottom: 8px !important;">Medicare claims data, if applicable:</p>
+								<span class="ds-c-accordion__button-line1" style="padding-bottom: 0px;">Medicare claims data, if applicable:</span>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
 									<li><b>Provider information</b> (provider ID number, name, specialty)</li>
 									<li><b>Diagnosis information</b> (diagnosis codes, related diagnosis group code, condition present on admission)</li>
@@ -356,7 +343,7 @@ a {
 								aria-labelledby="accordion-btn-3"
 								hidden
 							>
-								<p style="font-size: 14px; font-weight: 700; margin-bottom: 8px !important;">Alcohol and substance abuse claims, if applicable:</p>
+								<span class="ds-c-accordion__button-line1" style="padding-bottom: 0px;">Alcohol and substance abuse claims, if applicable:</span>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
 									<li><b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)</li>
 									<li><b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)</li>
@@ -374,7 +361,7 @@ a {
 					{{ form.non_field_errors }}
 
 					<div>
-						<p class="ds-u-margin-top--4 ds-u-margin-bottom--0" style="display: flex; align-items: center">
+						<p class="ds-u-margin-bottom--0" style="display: flex; align-items: center">
 							<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
 								<title>Icons/Help</title>
 								<g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -387,6 +374,8 @@ a {
 									</g>
 								</g>
 							</svg>
+
+							{% if application.support_email %}
 							<span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
 								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
 									<span style="text-decoration: underline;">Privacy Policy</span>
@@ -427,6 +416,46 @@ a {
 									<a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
 								{% endif %}
 							</span>
+							{% else %}
+
+							<span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
+								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
+									<span style="text-decoration: underline;">Privacy Policy</span>
+									<!-- {% trans "Privacy Policy" %} -->
+									<svg
+										style="height: 1em; width: 1em; top: -2px;"
+										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+										aria-hidden="true"
+										focusable="false"
+										id="icon-15"
+										viewBox="0 0 512 512"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+										</path>
+									</svg>
+								</a>
+								{% trans " and " %}
+								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
+									<!-- {% trans "Terms and Conditions" %} -->
+									<span style="text-decoration: underline;">Terms and Conditions</span>
+									<svg
+										style="height: 1em; width: 1em; top: -2px;"
+										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+										aria-hidden="true"
+										focusable="false"
+										id="icon-15"
+										viewBox="0 0 512 512"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+										</path>
+									</svg>
+								</a> to learn how they manage your data.
+							</span>
+
+							{% endif %}
+
 						</p>
 	
 					</div>

@@ -105,8 +105,10 @@ def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
         client_id = request.session['client_id']
     else:
         client_id = request.session['auth_client_id']
-    if request.session.get('redirect_uri'):
-        redirect_uri = request.session['redirect_uri']
+    if request.session.get('redirect_uri') or request.session.get('oauth_params', {}).get('redirect_uri'):
+        redirect_uri = request.session.get('redirect_uri') or request.session.get('oauth_params', {}).get(
+            'redirect_uri'
+        )
     else:
         redirect_uri = 'http://localhost:8000/mymedicare/sls-callback'
     return OAuth2Session(client_id, redirect_uri=redirect_uri)
@@ -202,13 +204,10 @@ def callback(request: HttpRequest):
         # It is not clear, now (2025) why it should be '' instead of `None`.
         # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
         # cannot be pulled from the session.
-
         cv = request.session.get('code_verifier', '')
-
-        # This conditional was an attempt to retrieve the code_verifier, but it is no
-        # longer available on the request at this point, not sure why
         if not cv:
-            cv = request.session.get('oauth_params', {}).get('code_verifier', '')
+            session_cache = getattr(request.session, '_session_cache', {})
+            cv = session_cache.get('code_verifier', '')
 
         token = oas.fetch_token(
             token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv
@@ -240,7 +239,12 @@ def callback(request: HttpRequest):
 
     # We are guaranteed at this point that the patient_id is not None, and it is a synthetic user id.
     request.session['token'] = token
-    userinfo_uri = request.session['userinfo_uri']
+
+    userinfo_uri = request.session.get('userinfo_uri')
+    # If there is no userinfo_uri in the session, that means the Switch account link on the v3 permissions screen
+    # was clicked, and we need to reset certain uri values, so the testclient works correctly
+    if not userinfo_uri:
+        request.session.update(setup_testclient_http_response(version=version, post_switch_account_link=True))
 
     try:
         userinfo = oas.get(userinfo_uri).json()
@@ -327,7 +331,7 @@ def _link_session_or_version_is_bad(session, version):
 
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    request.session.update(setup_testclient_http_response(version=version))
+    request.session.update(setup_testclient_http_response(version=version, post_switch_account_link=False))
     oas = _get_oauth2_session_with_redirect(request)
 
     # We need scopes in V3.

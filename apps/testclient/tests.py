@@ -467,3 +467,50 @@ class BlueButtonClientApiOidcDiscoveryTest(TestCase):
         response = self.client.get(reverse('openid-configuration'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'userinfo_endpoint')
+
+
+@pytest.mark.django_db
+def test_setup_testclient_http_response_is_post_switch_account() -> None:
+    # TODO: replace with fixtures once 4964/4965 branch is merged
+    call_command('create_blue_button_scopes')
+    call_command('create_test_user_and_application')
+    result = setup_testclient_http_response(version=3, post_switch_account_link=True)
+
+    assert 'code_challenge_method' not in result.keys()
+    assert 'code_verifier' not in result.keys()
+    assert 'code_challenge' not in result.keys()
+    assert 'state' not in result.keys()
+    assert 'redirect_uri' not in result.keys()
+
+    assert 'resource_uri' in result.keys()
+    assert 'coverage_uri' in result.keys()
+    assert 'authorization_uri' in result.keys()
+    assert 'token_uri' in result.keys()
+    assert 'userinfo_uri' in result.keys()
+    assert 'patient_uri' in result.keys()
+    assert 'eob_uri' in result.keys()
+    assert 'coverage_uri' in result.keys()
+    assert 'digital_insurance_card_uri' in result.keys()
+
+
+@pytest.mark.django_db
+def test_setup_testclient_http_response_not_post_switch_account() -> None:
+    # TODO: replace with fixtures once 4964/4965 branch is merged
+    call_command('create_blue_button_scopes')
+    call_command('create_test_user_and_application')
+    result = setup_testclient_http_response(version=3, post_switch_account_link=False)
+
+    assert 'code_challenge_method' in result.keys()
+    assert 'code_verifier' in result.keys()
+    assert 'code_challenge' in result.keys()
+    assert 'state' in result.keys()
+    assert 'redirect_uri' in result.keys()
+    assert 'resource_uri' in result.keys()
+    assert 'coverage_uri' in result.keys()
+    assert 'authorization_uri' in result.keys()
+    assert 'token_uri' in result.keys()
+    assert 'userinfo_uri' in result.keys()
+    assert 'patient_uri' in result.keys()
+    assert 'eob_uri' in result.keys()
+    assert 'coverage_uri' in result.keys()
+    assert 'digital_insurance_card_uri' in result.keys()

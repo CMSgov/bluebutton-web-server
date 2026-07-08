@@ -1456,8 +1456,12 @@ class PermissionScreenLogoutView(View):
         # Restore version after logout
         if version is not None:
             request.session['version'] = version
-            # this is the key that the testclient looks for
-            request.session['api_ver'] = version
+
+            if 'testclient' in oauth_params.get('redirect_uri', ''):
+                # this is the key that the testclient looks for
+                request.session['api_ver'] = version
+                request.session['code_verifier'] = oauth_params.get('code_verifier')
+                request.session['client_id'] = oauth_params.get('client_id')
 
         # Rebuild the authorize URL with original params
         base_url = request.build_absolute_uri('/').rstrip('/')

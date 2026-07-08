@@ -1669,6 +1669,7 @@ class TestAuthorizationView(BaseApiTest):
         view = AuthorizationView(version=Versions.V3)
         mock_application = MagicMock()
         request = HttpRequest()
+        request.session = {}
         request.beneficiary_name = 'Test A User'
         view.request = request
         view.application = mock_application
@@ -1703,6 +1704,7 @@ class TestAuthorizationView(BaseApiTest):
         view = AuthorizationView(version=Versions.V2)
         mock_application = MagicMock()
         request = HttpRequest()
+        request.session = {}
         view.request = request
         view.application = mock_application
 
@@ -1734,6 +1736,7 @@ class TestAuthorizationView(BaseApiTest):
         view = AuthorizationView(version=Versions.V3)
         mock_application = MagicMock()
         request = HttpRequest()
+        request.session = {}
         request.beneficiary_name = 'Test A User'
         view.request = request
         view.application = mock_application
