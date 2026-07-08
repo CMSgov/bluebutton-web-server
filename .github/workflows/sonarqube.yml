@@ -44,14 +44,14 @@ jobs:
           python3 -m venv /tmp/venv
           source /tmp/venv/bin/activate
           python3 -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements/requirements.txt --no-deps --prefer-binary || pip install -r requirements/requirements.txt
-          pip install coverage pytest
+          pip install -r requirements/requirements.dev.txt --no-deps --prefer-binary --require-hashes
+          pip install coverage
           echo "/tmp/venv/bin" >> $GITHUB_PATH
 
       - name: Run tests with coverage
         run: |
           source /tmp/venv/bin/activate
-          coverage run runtests.py
+          coverage run -m pytest -m 'not integration'
           coverage xml
 
       - name: Check SonarQube connectivity
