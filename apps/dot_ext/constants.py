@@ -1,6 +1,6 @@
 import re
 
-from apps.constants import LAUNCH_SCOPE, OPENID_SCOPE
+from apps.constants import AUDIT_EVENT_SCOPE, LAUNCH_SCOPE, OPENID_SCOPE
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = (
@@ -1648,3 +1648,8 @@ COUNTRIES = {
 
 ID_ME_URL_CONTAINS = 'oidc'
 SECONDS_IN_ONE_HOUR = 3600
+
+AUDIT_EVENT_SCOPE_ERROR_MESSAGE = (
+    AUDIT_EVENT_SCOPE
+    + ' is only valid in token requests through CMS Aligned Networks. For more information, go to this page: https://bluebutton.cms.gov/cms-aligned-networks-documentation/'
+)

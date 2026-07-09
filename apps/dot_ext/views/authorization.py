@@ -75,6 +75,7 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
     CLIENT_ASSERTION_TYPE_VALUE,
@@ -311,15 +312,12 @@ class AuthorizationView(DotAuthorizationView):
                     },
                     status=HTTPStatus.FORBIDDEN,
                 )
-        elif (
-            switch_is_active('enable_auditevents')
-            and self.version != Versions.V3
-            and (
-                AUDIT_EVENT_SCOPE in request.GET.get('scope', '') or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
-            )
+
+        if switch_is_active('enable_auditevents') and (
+            AUDIT_EVENT_SCOPE in request.GET.get('scope', '') or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
         ):
             return JsonResponse(
-                {'status_code': HTTPStatus.BAD_REQUEST, 'message': 'Invalid scopes.'},
+                {'status_code': HTTPStatus.BAD_REQUEST, 'message': AUDIT_EVENT_SCOPE_ERROR_MESSAGE},
                 status=HTTPStatus.BAD_REQUEST,
             )
 
@@ -1271,6 +1269,7 @@ class TokenView(DotTokenView):
                     if switch_is_active('enable_auditevents') and AUDIT_EVENT_SCOPE not in token.scope:
                         log.info('patient/AuditEvent.rs scope not requested for client_credentials call, adding it')
                         token.scope += ' ' + AUDIT_EVENT_SCOPE
+                        body['scope'] = token.scope
 
                     token.user_id = user.id
                     token.save()

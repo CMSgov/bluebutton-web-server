@@ -22,6 +22,7 @@ from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
 from apps.constants import CODE_CHALLENGE_METHOD_S256, PATIENT_SCOPE
 from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
     CLIENT_CREDENTIALS_TYPE,
 )
 from apps.dot_ext.models import Application, ArchivedToken
@@ -1910,4 +1911,4 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application):
     response = Client().post(reverse('oauth2_provider:authorize'), data=payload)
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert response.json()['message'] == 'Invalid scopes.'
+    assert response.json()['message'] == AUDIT_EVENT_SCOPE_ERROR_MESSAGE
