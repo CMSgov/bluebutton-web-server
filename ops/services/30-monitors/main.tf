@@ -49,7 +49,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=0aba1af484320d0d121d804c05f36cf1a4d978c9"
 
   app             = local.app
   env             = local.env
@@ -73,7 +73,7 @@ locals {
       notify_no_data           = local.env != "test"
       no_data_timeframe_minute = 60
 
-      # TODO the CDAP module doesn't actually do anything with this, open a PR
+      # TODO are we sure about this?
       require_full_window = false
     },
   ]

@@ -31,7 +31,7 @@ locals {
 }
 
 module "datadog_dashboard" {
-  source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
+  source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=0aba1af484320d0d121d804c05f36cf1a4d978c9"
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
@@ -57,6 +57,8 @@ module "datadog_dashboard" {
     aurora = "4h"
     apm    = "1h"
   }
+
+  apm_primary_operation = "django.request"
 
   count = local.create_dashboards ? 1 : 0
 }
