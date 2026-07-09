@@ -76,5 +76,22 @@ locals {
       # TODO are we sure about this?
       require_full_window = false
     },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High"
+      type    = "metric alert"
+      message = "Service ${local.app} has high error rate."
+      # TODO what evaluation window?
+      query   = "sum(last_1h):sum:trace.django.request.errors{env:${local.env},service:${local.app},span.kind:server}.as_count() / sum:trace.django.request.hits{env:${local.env},service:${local.app},span.kind:server}.as_count() > 0.02"
+
+      thresholds = {
+        critical = 0.02
+        warning  = 0.01
+      }
+
+      notify_no_data           = local.env != "test"
+      no_data_timeframe_minute = 60
+
+      require_full_window = false
+    },
   ]
 }
