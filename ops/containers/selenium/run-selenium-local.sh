@@ -45,7 +45,9 @@ echo_msg 'Blue Button is running. Starting selenium tests...'
 
 docker compose -f docker-compose-selenium.yaml down --remove-orphans || true
 
-docker compose -f docker-compose-selenium.yaml run --rm --service-ports selenium-tests
+# Use 'up' so that chrome (which shares selenium-tests' network namespace) starts
+# alongside selenium-tests. --exit-code-from captures pytest's exit code.
+docker compose -f docker-compose-selenium.yaml up --exit-code-from selenium-tests
 EXIT_CODE=$?
 
 docker compose -f docker-compose-selenium.yaml down

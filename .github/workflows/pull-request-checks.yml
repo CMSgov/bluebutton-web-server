@@ -3,9 +3,6 @@ name: Pull Request Checks
 on:
   pull_request:
     branches: [master]
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
   workflow_dispatch:
 
 jobs:
@@ -92,3 +89,58 @@ jobs:
         run: |
           cd ./ops/containers/bb-api
           make teardown-codebuild
+
+  selenium-tests:
+    env:
+      AWS_REGION: us-east-1
+
+    permissions:
+      id-token: write
+      contents: read
+
+    # This will only run on test
+    runs-on: codebuild-bb-test-web-server-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/setup-tofu
+        with:
+          environment: test
+          non-prod-account: ${{ secrets.NON_PROD_ACCOUNT }}
+          prod-account: ${{ secrets.PROD_ACCOUNT }}
+          test-role-id: ${{ secrets.TEST_AWS_ROLE_ID_MASK }}
+          prod-role-id: ${{ secrets.PROD_AWS_ROLE_ID_MASK }}
+
+      - name: Build MSLSX
+        run: |
+          cd ./ops/containers/mslsx
+          make build-local
+
+      - name: Build BBAPI
+        run: |
+          cd ./ops/containers/bb-api
+          make build-codebuild
+
+      - name: Build Selenium
+        run: |
+          cd ./ops/containers/bb-api
+          make build-selenium
+
+      - name: Start Stack
+        run: |
+          cd ./ops/containers/bb-api
+          make run-codebuild-mock
+
+      - name: Execute Selenium Tests
+        run: |
+          cd ./ops/containers/bb-api
+          make run-codebuild-selenium
+
+      - name: Teardown Stack
+        if: always()
+        run: |
+          cd ./ops/containers/bb-api
+          make teardown-codebuild-selenium

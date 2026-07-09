@@ -47,7 +47,7 @@ def validate_client_id(client_id: str) -> None:
         InvalidClientError: If the client_id does not match the expected pattern.
     """
     env = os.environ.get('TARGET_ENV', 'local')
-    if env == 'local':
+    if env in ('local', 'codebuild'):
         return
     if not CLIENT_ID_PATTERN.fullmatch(client_id):
         raise InvalidClientError(
