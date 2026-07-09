@@ -110,7 +110,11 @@ def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
             'redirect_uri'
         )
     else:
-        redirect_uri = 'http://localhost:8000/mymedicare/sls-callback'
+        # Default to /testclient/callback if there is no redirect_uri attribute. Confirmed that HOSTNAME_URL
+        # has no trailing slash in any deployed env.
+        host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
+        redirect_uri = host + '/testclient/callback'
+
     return OAuth2Session(client_id, redirect_uri=redirect_uri)
 
 

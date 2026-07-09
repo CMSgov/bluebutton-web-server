@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List
 
 import pytest
 from django.core.management import call_command
@@ -470,47 +471,58 @@ class BlueButtonClientApiOidcDiscoveryTest(TestCase):
 
 
 @pytest.mark.django_db
-def test_setup_testclient_http_response_is_post_switch_account() -> None:
+@pytest.mark.parametrize(
+    'post_switch_account_link, expected_keys, expected_excluded_keys',
+    [
+        (
+            True,
+            [
+                'resource_uri',
+                'coverage_uri',
+                'authorization_uri',
+                'token_uri',
+                'userinfo_uri',
+                'patient_uri',
+                'eob_uri',
+                'coverage_uri',
+                'digital_insurance_card_uri',
+            ],
+            ['code_challenge_method', 'code_verifier', 'code_challenge', 'state', 'redirect_uri'],
+        ),
+        (
+            False,
+            [
+                'resource_uri',
+                'coverage_uri',
+                'authorization_uri',
+                'token_uri',
+                'userinfo_uri',
+                'patient_uri',
+                'eob_uri',
+                'coverage_uri',
+                'digital_insurance_card_uri',
+                'code_challenge_method',
+                'code_verifier',
+                'code_challenge',
+                'state',
+                'redirect_uri',
+            ],
+            [],
+        ),
+    ],
+)
+def test_setup_testclient_http_response_is_post_switch_account(
+    post_switch_account_link: bool,
+    expected_keys: List[str],
+    expected_excluded_keys: List[str],
+) -> None:
     # TODO: replace with fixtures once 4964/4965 branch is merged
     call_command('create_blue_button_scopes')
     call_command('create_test_user_and_application')
-    result = setup_testclient_http_response(version=3, post_switch_account_link=True)
+    result = setup_testclient_http_response(version=3, post_switch_account_link=post_switch_account_link)
 
-    assert 'code_challenge_method' not in result.keys()
-    assert 'code_verifier' not in result.keys()
-    assert 'code_challenge' not in result.keys()
-    assert 'state' not in result.keys()
-    assert 'redirect_uri' not in result.keys()
+    for key in expected_excluded_keys:
+        assert key not in result.keys()
 
-    assert 'resource_uri' in result.keys()
-    assert 'coverage_uri' in result.keys()
-    assert 'authorization_uri' in result.keys()
-    assert 'token_uri' in result.keys()
-    assert 'userinfo_uri' in result.keys()
-    assert 'patient_uri' in result.keys()
-    assert 'eob_uri' in result.keys()
-    assert 'coverage_uri' in result.keys()
-    assert 'digital_insurance_card_uri' in result.keys()
-
-
-@pytest.mark.django_db
-def test_setup_testclient_http_response_not_post_switch_account() -> None:
-    # TODO: replace with fixtures once 4964/4965 branch is merged
-    call_command('create_blue_button_scopes')
-    call_command('create_test_user_and_application')
-    result = setup_testclient_http_response(version=3, post_switch_account_link=False)
-
-    assert 'code_challenge_method' in result.keys()
-    assert 'code_verifier' in result.keys()
-    assert 'code_challenge' in result.keys()
-    assert 'state' in result.keys()
-    assert 'redirect_uri' in result.keys()
-    assert 'resource_uri' in result.keys()
-    assert 'coverage_uri' in result.keys()
-    assert 'authorization_uri' in result.keys()
-    assert 'token_uri' in result.keys()
-    assert 'userinfo_uri' in result.keys()
-    assert 'patient_uri' in result.keys()
-    assert 'eob_uri' in result.keys()
-    assert 'coverage_uri' in result.keys()
-    assert 'digital_insurance_card_uri' in result.keys()
+    for key in expected_keys:
+        assert key in result.keys()
