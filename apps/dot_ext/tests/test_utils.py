@@ -10,6 +10,7 @@ from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
 from apps.dot_ext.models import AuthFlowTracking
 from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
+    check_can_token_scope_for_audit_event_scopes,
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_client_id,
@@ -235,3 +236,40 @@ def test_validate_client_id_accepts_valid(client_id):
     # Should not raise
     with patch.dict(os.environ, {'TARGET_ENV': 'test'}):
         validate_client_id(client_id)
+
+
+@pytest.mark.parametrize(
+    'passed_in_scope, expected_scope',
+    [
+        (
+            'profile patient/Patient.rs patient/AuditEvent.rs patient/AuditEvent.r',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        (
+            'profile patient/Patient.rs patient/AuditEvent.rs patient/AuditEvent.s',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        ('profile patient/Patient.rs patient/AuditEvent.r', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+        ('profile patient/Patient.rs patient/AuditEvent.s', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+        ('profile patient/Patient.rs', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+        (
+            'profile patient/Patient.rs patient/AuditEvent.s patient/AuditEvent.r',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        (
+            'profile patient/Patient.rs patient/AuditEvent.s patient/AuditEvent.r patient/AuditEvent.rs',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        ('profile patient/Patient.rs patient/AuditEvent.rs', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+    ],
+)
+def test_check_can_token_scope_for_audit_event_scopes(passed_in_scope, expected_scope) -> None:
+    """Confirm that no matter what combination of AuditEvent scopes is passed into
+    check_can_token_scope_for_audit_event_scopes, that only patient/AuditEvent.rs is present
+    on the returned scope.
+    Args:
+        passed_in_scope (_type_): scope being passed into check_can_token_scope_for_audit_event_scopes
+        expected_scope (_type_): expected scope to be returned
+    """
+    scope = check_can_token_scope_for_audit_event_scopes(passed_in_scope)
+    assert scope == expected_scope

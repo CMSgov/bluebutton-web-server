@@ -6,6 +6,7 @@ from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
 
+import pytest
 import pytz
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
@@ -1888,20 +1889,28 @@ class TestAuthorizationView(BaseApiTest):
                 )
 
 
+@pytest.mark.parametrize(
+    'scope',
+    [
+        ('patient/Patient.rs patient/AuditEvent.rs'),
+        ('patient/Patient.rs patient/AuditEvent.s'),
+        ('patient/Patient.rs patient/AuditEvent.r'),
+    ],
+)
 @override_switch('enable_auditevents', True)
-def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application):
+def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application, scope):
     """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
     when there is a non-v3 auth request that includes patient/AuditEvent.rs in the scopes param
     """
     redirect_uri = 'http://localhost'
-
+    print('scope: ', scope)
     # create an application via fixture
     application = create_application('an app')
     payload = {
         'client_id': application.client_id,
         'response_type': 'code',
         'redirect_uri': redirect_uri,
-        'scope': ['patient/Patient.rs patient/AuditEvent.rs'],
+        'scope': [scope],
         'expires_in': 86400,
         'allow': True,
         'state': '0123456789abcdef',

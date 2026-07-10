@@ -8,6 +8,7 @@ from apps.fhir.bluebutton.permissions import (
     SearchCrosswalkPermission,
 )
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.bluebutton.views.read import ReadView
 from apps.versions import Versions
 
 
@@ -49,3 +50,10 @@ class AuditEventView(FhirDataView):
             fhir_url = fhir_settings.fhir_url
 
         return f'{fhir_url}/v{self.version}/fhir/AuditEvent'
+
+
+class ReadViewAuditEventView(ReadView):
+    # Class used for AuditEvent resource
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = 'AuditEvent'

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import re_path
 from waffle.decorators import waffle_switch
 
-from apps.fhir.bluebutton.views.audit_event import AuditEventView
+from apps.fhir.bluebutton.views.audit_event import AuditEventView, ReadViewAuditEventView
 from apps.fhir.bluebutton.views.insurancecard import DigitalInsuranceCardView
 from apps.fhir.bluebutton.views.read import (
     ReadViewCoverage,
@@ -59,6 +59,11 @@ urlpatterns = [
         r'ExplanationOfBenefit[/]?',
         waffle_switch('v3_endpoints')(SearchViewExplanationOfBenefit.as_view(version=3)),
         name='bb_oauth_fhir_eob_search_v3',
+    ),
+    re_path(
+        r'AuditEvent/(?P<resource_id>[^/]+)',
+        waffle_switch('enable_auditevents')(waffle_switch('v3_endpoints')(ReadViewAuditEventView.as_view(version=3))),
+        name='bb_oauth_fhir_audit_event_read',
     ),
     # Audit Events View
     re_path(

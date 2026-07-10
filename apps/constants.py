@@ -114,6 +114,8 @@ EOB_SCOPE = 'patient/ExplanationOfBenefit.rs'
 OPENID_SCOPE = 'openid'
 LAUNCH_SCOPE = 'launch/patient'
 AUDIT_EVENT_SCOPE = 'patient/AuditEvent.rs'
+AUDIT_EVENT_READ_SCOPE = 'patient/AuditEvent.r'
+AUDIT_EVENT_SEARCH_SCOPE = 'patient/AuditEvent.s'
 
 OPERATION_OUTCOME = 'OperationOutcome'
 
@@ -147,3 +149,4 @@ CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS = [
 FHIR_RES_TYPE_EOB = 'ExplanationOfBenefit'
 FHIR_RES_TYPE_PATIENT = 'Patient'
 FHIR_RES_TYPE_COVERAGE = 'Coverage'
+FHIR_RES_TYPE_AUDIT_EVENT = 'AuditEvent'

@@ -64,7 +64,9 @@ from apps.authorization.models import (
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    AUDIT_EVENT_READ_SCOPE,
     AUDIT_EVENT_SCOPE,
+    AUDIT_EVENT_SEARCH_SCOPE,
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
@@ -106,6 +108,7 @@ from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
+    check_can_token_scope_for_audit_event_scopes,
     get_api_version_number_from_url,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -314,7 +317,12 @@ class AuthorizationView(DotAuthorizationView):
                 )
 
         if switch_is_active('enable_auditevents') and (
-            AUDIT_EVENT_SCOPE in request.GET.get('scope', '') or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
+            AUDIT_EVENT_SCOPE in request.GET.get('scope', '')
+            or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
+            or AUDIT_EVENT_READ_SCOPE in request.GET.get('scope', '')
+            or AUDIT_EVENT_READ_SCOPE in request.POST.get('scope', '')
+            or AUDIT_EVENT_SEARCH_SCOPE in request.GET.get('scope', '')
+            or AUDIT_EVENT_SEARCH_SCOPE in request.POST.get('scope', '')
         ):
             return JsonResponse(
                 {'status_code': HTTPStatus.BAD_REQUEST, 'message': AUDIT_EVENT_SCOPE_ERROR_MESSAGE},
@@ -1265,10 +1273,10 @@ class TokenView(DotTokenView):
 
                     body['refresh_token'] = refresh_token.token
 
-                    # Even if the patient/AuditEvent.rs scope is not included in the request, add it to the token
-                    if switch_is_active('enable_auditevents') and AUDIT_EVENT_SCOPE not in token.scope:
-                        log.info('patient/AuditEvent.rs scope not requested for client_credentials call, adding it')
-                        token.scope += ' ' + AUDIT_EVENT_SCOPE
+                    # If the enable_auditevents switch is active, make sure the only AuditEvent scope
+                    # that the token has is patient/AuditEvent.rs
+                    if switch_is_active('enable_auditevents'):
+                        token.scope = check_can_token_scope_for_audit_event_scopes(token.scope)
                         body['scope'] = token.scope
 
                     token.user_id = user.id

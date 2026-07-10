@@ -321,11 +321,48 @@ def create_token_introspect_capability(group):
     return c
 
 
-def create_audit_event_capability(group):
+def create_audit_event_read_search_capability(group):
     c = None
     description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
-    title = 'Audit Event FHIR Resource'
+    title = 'Audit Event FHIR Resource Read/Search'
     smart_scope_string = 'patient/AuditEvent.rs'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/?].*$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               default=True,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
+def create_audit_event_read_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Read'
+    smart_scope_string = 'patient/AuditEvent.r'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/?].*$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               default=True,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
+def create_audit_event_search_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Search'
+    smart_scope_string = 'patient/AuditEvent.s'
     protected_resources = []
     protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
 
@@ -363,4 +400,7 @@ class Command(BaseCommand):
         create_token_introspect_capability(g)
 
         if switch_is_active('enable_auditevents'):
-            create_audit_event_capability(g)
+            create_audit_event_read_search_capability(g)
+            create_audit_event_read_capability(g)
+            create_audit_event_search_capability(g)
+
