@@ -1903,7 +1903,7 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application, 
     when there is a non-v3 auth request that includes patient/AuditEvent.rs in the scopes param
     """
     redirect_uri = 'http://localhost'
-    print('scope: ', scope)
+
     # create an application via fixture
     application = create_application('an app')
     payload = {
