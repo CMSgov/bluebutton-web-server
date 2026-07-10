@@ -96,6 +96,26 @@ locals {
       require_full_window = false
     },
     {
+      # TODO need PR from CDAP for this to work
+      create = local.env != "test"
+
+      name    = "[${upper(local.env)}] [${local.app}] ALB — Maximum Unhealthy Hosts"
+      type    = "metric alert"
+      message = "Maximum number of unhealthy hosts passed threshold."
+      query   = "max(last_1h):sum:aws.applicationelb.un_healthy_host_count.maximum{application:${local.app} ,environment:${local.env}} >= 1"
+
+      thresholds = {
+        # TODO should this be 2 or something?
+        critical = 1
+        warning  = 0.5
+      }
+
+      notify_no_data           = true
+      no_data_timeframe_minute = 60
+
+      require_full_window = false
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High"
       type    = "metric alert"
       message = "Service ${local.app} has high error rate."
