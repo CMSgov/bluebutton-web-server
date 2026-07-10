@@ -77,6 +77,25 @@ locals {
       require_full_window = false
     },
     {
+      # TODO need PR from CDAP for this to work
+      create = local.env != "test"
+
+      name    = "[${upper(local.env)}] [${local.app}] ALB — Request Rate Low"
+      type    = "metric alert"
+      message = "Request rate / throughput is low."
+      query   = "avg(last_1h):sum:aws.applicationelb.request_count{application:${local.app}, environment:${local.env}}.as_rate() < ${local.env == "prod" ? 0.1 : 0.001}"
+
+      thresholds = {
+        critical = local.env == "prod" ? 0.1 : 0.001
+        warning  = local.env == "prod" ? 0.5 : 0.005
+      }
+
+      notify_no_data           = true
+      no_data_timeframe_minute = 60
+
+      require_full_window = false
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High"
       type    = "metric alert"
       message = "Service ${local.app} has high error rate."
