@@ -108,6 +108,7 @@ from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
     get_api_version_number_from_url,
+    get_oauth_param,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
@@ -1425,21 +1426,13 @@ class PermissionScreenLogoutView(View):
 
         # Save the original OAuth params before logout
         oauth_params = {
-            'client_id': request.GET.get('client_id')
-            or request.session.get('client_id')
-            or request.session.get('auth_client_id'),
-            'redirect_uri': request.GET.get('redirect_uri')
-            or request.session.get('redirect_uri')
-            or request.session['oauth_params'].get('redirect_uri'),
-            'response_type': request.GET.get('response_type')
-            or request.session.get('response_type')
-            or request.session['oauth_params'].get('response_type'),
-            'state': request.GET.get('state')
-            or request.session.get('state')
-            or request.session['oauth_params'].get('state'),
+            'client_id': get_oauth_param(request, 'client_id', 'auth_client_id'),
+            'redirect_uri': get_oauth_param(request, 'redirect_uri'),
+            'response_type': get_oauth_param(request, 'response_type'),
+            'state': get_oauth_param(request, 'state'),
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-            'code_challenge': request.session['oauth_params'].get('code_challenge'),
-            'scope': request.session['oauth_params'].get('scope'),
+            'code_challenge': request.session.get('oauth_params', {}).get('code_challenge'),
+            'scope': request.session.get('oauth_params', {}).get('scope'),
             'code_verifier': request.session.get('code_verifier'),
         }
 

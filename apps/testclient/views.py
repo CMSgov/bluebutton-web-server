@@ -17,6 +17,7 @@ from waffle.decorators import waffle_switch
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
+from apps.dot_ext.utils import get_oauth_param
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, ResponseErrors
 from apps.testclient.utils import (
@@ -101,15 +102,9 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
 
 
 def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
-    if request.session.get('client_id'):
-        client_id = request.session['client_id']
-    else:
-        client_id = request.session['auth_client_id']
-    if request.session.get('redirect_uri') or request.session.get('oauth_params', {}).get('redirect_uri'):
-        redirect_uri = request.session.get('redirect_uri') or request.session.get('oauth_params', {}).get(
-            'redirect_uri'
-        )
-    else:
+    client_id = get_oauth_param(request, 'client_id', 'auth_client_id')
+    redirect_uri = get_oauth_param(request, 'redirect_uri')
+    if not redirect_uri:
         # Default to /testclient/callback if there is no redirect_uri attribute. Confirmed that HOSTNAME_URL
         # has no trailing slash in any deployed env.
         host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
