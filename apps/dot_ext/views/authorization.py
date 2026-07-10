@@ -266,15 +266,19 @@ class AuthorizationView(DotAuthorizationView):
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
 
-        self.request.session['oauth_params'] = {
-            'client_id': self.request.GET.get('client_id'),
-            'redirect_uri': self.request.GET.get('redirect_uri'),
-            'response_type': self.request.GET.get('response_type'),
-            'scope': self.request.GET.get('scope'),
-            'state': self.request.GET.get('state'),
-            'code_challenge': self.request.GET.get('code_challenge'),
-            'code_challenge_method': self.request.GET.get('code_challenge_method'),
-        }
+        params = [
+            'client_id',
+            'redirect_uri',
+            'response_type',
+            'scope',
+            'state',
+            'code_challenge',
+            'code_challenge_method',
+        ]
+        oauth_params = {}
+        for param in params:
+            oauth_params[param] = self.request.GET.get(param)
+        self.request.session['oauth_params'] = oauth_params
         if 'form' in context and self.version == Versions.V3:
             # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
             # for the access token are in the intersection of what the application is allowed to have and
