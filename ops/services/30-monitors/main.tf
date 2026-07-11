@@ -102,7 +102,7 @@ locals {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Maximum Unhealthy Hosts"
       type    = "metric alert"
       message = "Maximum number of unhealthy hosts passed threshold."
-      query   = "max(last_1h):sum:aws.applicationelb.un_healthy_host_count.maximum{application:${local.app} ,environment:${local.env}} >= 1"
+      query   = "max(last_1h):sum:aws.applicationelb.un_healthy_host_count.maximum{application:${local.app}, environment:${local.env}} >= 1"
 
       thresholds = {
         # TODO should this be 2 or something?
