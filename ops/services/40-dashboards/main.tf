@@ -5,7 +5,7 @@ module "platform" {
   app                 = local.app
   env                 = local.env
   service             = local.service
-  root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
+  root_module         = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
   ssm_hierarchy_roots = ["bb"]
 }
 
@@ -22,8 +22,8 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 }
 
 locals {
-  env         = terraform.workspace
-  service     = "dashboards"
+  env     = terraform.workspace
+  service = "dashboards"
 
   default_tags = module.platform.default_tags
 
@@ -31,7 +31,7 @@ locals {
 }
 
 module "datadog_dashboard" {
-  source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=0aba1af484320d0d121d804c05f36cf1a4d978c9"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=0aba1af484320d0d121d804c05f36cf1a4d978c9"
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
