@@ -69,6 +69,6 @@ urlpatterns = [
     re_path(
         r'AuditEvent[/]?',
         waffle_switch('enable_auditevents')(waffle_switch('v3_endpoints')(AuditEventView.as_view(version=3))),
-        name='bb_oauth_fhir_audit_event',
+        name='bb_oauth_fhir_audit_event_search',
     ),
 ]

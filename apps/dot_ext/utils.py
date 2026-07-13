@@ -25,7 +25,6 @@ from apps.constants import (
     APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
     APPLICATION_TEMPORARILY_INACTIVE,
     APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
-    AUDIT_EVENT_READ_SCOPE,
     AUDIT_EVENT_SCOPE,
     AUDIT_EVENT_SEARCH_SCOPE,
     HHS_SERVER_LOGNAME_FMT,
@@ -428,10 +427,10 @@ def check_can_token_scope_for_audit_event_scopes(scope: str) -> str:
 
     audit_event_read_pattern = r'patient/AuditEvent\.r\b'
 
+    # We need a different strategy for replacing patient/AuditEvent.r as it is a substring
+    # of the patient/AuditEvent.rs scope. That is why regex is used.
     if re.search(audit_event_read_pattern, scope):
-        if AUDIT_EVENT_SCOPE in scope:
-            scope = scope.replace(AUDIT_EVENT_SCOPE, '')
-        scope = scope.replace(AUDIT_EVENT_READ_SCOPE, '')
+        scope = re.sub(audit_event_read_pattern, '', scope)
 
     if AUDIT_EVENT_SEARCH_SCOPE in scope:
         log.info('patient/AuditEvent.s scope requested for client_credentials call, removing it')

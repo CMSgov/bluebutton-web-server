@@ -323,7 +323,7 @@ def create_token_introspect_capability(group):
 
 def create_audit_event_read_search_capability(group):
     c = None
-    description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    description = 'Allow CAN patients and 3rd party apps to read and search audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
     title = 'Audit Event FHIR Resource Read/Search'
     smart_scope_string = 'patient/AuditEvent.rs'
     protected_resources = []
@@ -342,7 +342,7 @@ def create_audit_event_read_search_capability(group):
 
 def create_audit_event_read_capability(group):
     c = None
-    description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    description = 'Allow CAN patients and 3rd party apps to read audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
     title = 'Audit Event FHIR Resource Read'
     smart_scope_string = 'patient/AuditEvent.r'
     protected_resources = []
@@ -360,7 +360,7 @@ def create_audit_event_read_capability(group):
 
 def create_audit_event_search_capability(group):
     c = None
-    description = 'Allow CAN patients and 3rd party apps to retrieve audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    description = 'Allow CAN patients and 3rd party apps to search audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
     title = 'Audit Event FHIR Resource Search'
     smart_scope_string = 'patient/AuditEvent.s'
     protected_resources = []

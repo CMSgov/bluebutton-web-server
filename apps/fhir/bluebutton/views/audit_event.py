@@ -49,7 +49,7 @@ class AuditEventView(FhirDataView):
         else:
             fhir_url = fhir_settings.fhir_url
 
-        return f'{fhir_url}/v{self.version}/fhir/AuditEvent'
+        return f'{fhir_url}/v3/fhir/AuditEvent'
 
 
 class ReadViewAuditEventView(ReadView):
