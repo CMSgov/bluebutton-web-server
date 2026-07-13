@@ -1935,8 +1935,7 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(
             'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        print('what is the reverse: ', reverse(auth_url))
-        print('scope coming through? ', scope)
+
         response = Client().post(reverse(auth_url), data=payload)
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
