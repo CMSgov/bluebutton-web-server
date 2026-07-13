@@ -10,7 +10,7 @@ enabled:
   sqs: false
   sns: false
   lambda: false
-  s3: true
+  s3: false
   rds: true
 ecs:
   notify_no_data: true

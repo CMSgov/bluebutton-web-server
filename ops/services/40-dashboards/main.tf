@@ -43,7 +43,7 @@ module "datadog_dashboard" {
     sns    = false
     sqs    = false
     aurora = true
-    s3     = true
+    s3     = false
     apm    = true
   }
 
