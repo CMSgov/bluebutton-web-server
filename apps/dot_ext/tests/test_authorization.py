@@ -1890,34 +1890,54 @@ class TestAuthorizationView(BaseApiTest):
 
 
 @pytest.mark.parametrize(
-    'scope',
+    'scope, auth_url, enable_auditevents_switch_active',
     [
-        ('patient/Patient.rs patient/AuditEvent.rs'),
-        ('patient/Patient.rs patient/AuditEvent.s'),
-        ('patient/Patient.rs patient/AuditEvent.r'),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider:authorize', True),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', True),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', True),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v2:authorize-v2', True),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v2:authorize-v2', True),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v2:authorize-v2', True),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v3:authorize-v3', True),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v3:authorize-v3', True),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v3:authorize-v3', True),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider:authorize', False),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', False),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', False),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v2:authorize-v2', False),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v2:authorize-v2', False),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v2:authorize-v2', False),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v3:authorize-v3', False),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v3:authorize-v3', False),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v3:authorize-v3', False),
     ],
 )
-@override_switch('enable_auditevents', True)
-def test_failure_on_authorize_non_v3_with_audit_event_scope(create_application, scope):
+@override_switch('v3_endpoints', active=True)
+def test_failure_on_authorize_non_v3_with_audit_event_scope(
+    create_application, scope, auth_url, enable_auditevents_switch_active
+):
     """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
-    when there is a non-v3 auth request that includes patient/AuditEvent.rs in the scopes param
+    when there is a v1, 2, or 3 auth request that includes any AuditEvemnt scope in the scopes param
     """
-    redirect_uri = 'http://localhost'
+    with override_switch('enable_auditevents', active=enable_auditevents_switch_active):
+        redirect_uri = 'http://localhost'
 
-    # create an application via fixture
-    application = create_application('an app')
-    payload = {
-        'client_id': application.client_id,
-        'response_type': 'code',
-        'redirect_uri': redirect_uri,
-        'scope': [scope],
-        'expires_in': 86400,
-        'allow': True,
-        'state': '0123456789abcdef',
-        'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
-        'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-    }
-    response = Client().post(reverse('oauth2_provider:authorize'), data=payload)
+        # create an application via fixture
+        application = create_application('an app')
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': [scope],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+            'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        print('what is the reverse: ', reverse(auth_url))
+        print('scope coming through? ', scope)
+        response = Client().post(reverse(auth_url), data=payload)
 
-    assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert response.json()['message'] == AUDIT_EVENT_SCOPE_ERROR_MESSAGE
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json()['message'] == AUDIT_EVENT_SCOPE_ERROR_MESSAGE

@@ -316,7 +316,7 @@ class AuthorizationView(DotAuthorizationView):
                     status=HTTPStatus.FORBIDDEN,
                 )
 
-        if switch_is_active('enable_auditevents') and (
+        if (
             AUDIT_EVENT_SCOPE in request.GET.get('scope', '')
             or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
             or AUDIT_EVENT_READ_SCOPE in request.GET.get('scope', '')

@@ -334,7 +334,7 @@ def create_audit_event_read_search_capability(group):
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
                                                description=description,
-                                               default=True,
+                                               default=False,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(protected_resources, indent=4))
     return c
@@ -352,7 +352,7 @@ def create_audit_event_read_capability(group):
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
                                                description=description,
-                                               default=True,
+                                               default=False,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(protected_resources, indent=4))
     return c
@@ -370,7 +370,7 @@ def create_audit_event_search_capability(group):
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
                                                description=description,
-                                               default=True,
+                                               default=False,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(protected_resources, indent=4))
     return c

@@ -6,7 +6,7 @@ from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Valida
 from oauthlib.oauth2.rfc6749 import utils
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
-from apps.constants import CLIENT_CREDENTIALS
+from apps.constants import AUDIT_EVENT_SCOPE_SET, CLIENT_CREDENTIALS
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.pkce.oauth2_validators import PKCEValidatorMixin
 
@@ -104,3 +104,27 @@ class SingleAccessTokenValidator(
             return super().get_original_scopes(refresh_token, request, *args, **kwargs)
         except ObjectDoesNotExist:
             raise InvalidGrantError
+
+    def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
+        # If the grant_type is 'client_credentials', execute some custom scopes handling
+        if request.grant_type == CLIENT_CREDENTIALS:
+            # Grab a list of the scopes that do not include any AuditEvent scopes. If any scopes
+            # are in the resulting list, we will pass those scopes to the OAuth2Validator.validate_scopes
+            # to be checked as scopes normally are
+            scopes_with_audit_event_filtered_out = list(set(scopes) - AUDIT_EVENT_SCOPE_SET)
+
+            # Grab the intersection of the requested scopes and AuditEvent scopes. This value is then used
+            # if the only scopes included in the request were AuditEvent scopes. If there were only AuditEvent
+            # scopes in the request, the conditional for scopes_with_audit_event_filtered_out will not evaluate
+            # and we will need to return based on if there are any AuditEvent scopes. We want to allow
+            # client_credentials calls through, even if they only have AuditEvent scopes,
+            audit_event_scopes_in_request = set(scopes) & AUDIT_EVENT_SCOPE_SET
+
+            if scopes_with_audit_event_filtered_out:
+                return super().validate_scopes(
+                    client_id, scopes_with_audit_event_filtered_out, client, request, *args, **kwargs
+                )
+            return bool(audit_event_scopes_in_request)
+
+        # For refresh_token and authorization-code grant types, validate scopes as normal
+        return super().validate_scopes(client_id, scopes, client, request, *args, **kwargs)
