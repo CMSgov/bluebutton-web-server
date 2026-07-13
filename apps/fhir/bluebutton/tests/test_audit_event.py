@@ -7,6 +7,7 @@ from django.urls import reverse
 from httmock import HTTMock, all_requests
 from waffle.testutils import override_switch
 
+from apps.constants import SAMPLE_CAN_USER_FHIR_ID_V3
 from apps.integration_tests.constants import MESSAGE_NO_PERMISSION
 
 client = Client()
@@ -97,7 +98,7 @@ def test_mock_successful_audit_event_call(basic_user, get_access_token, create_c
         first_name='Damon',
         last_name='Mychart',
         fhir_id_v2='custom_fhir_id',
-        fhir_id_v3='-502120048',
+        fhir_id_v3=SAMPLE_CAN_USER_FHIR_ID_V3,
     )
     access_token = get_access_token(
         user.username,
@@ -121,7 +122,7 @@ def test_mock_successful_audit_event_call(basic_user, get_access_token, create_c
     assert response.status_code == HTTPStatus.OK
     assert json_response.get('resourceType') == 'Bundle'
     assert audit_event_resource.get('resourceType') == 'AuditEvent'
-    assert audit_event_resource.get('id') == '-502120048-20260706192218527441255'
+    assert audit_event_resource.get('id') == SAMPLE_CAN_USER_FHIR_ID_V3 + '-20260706192218527441255'
 
 
 @pytest.mark.integration
@@ -150,3 +151,40 @@ def test_successful_audit_event_call(basic_user, get_access_token, create_capabi
 
     assert response.status_code == HTTPStatus.OK
     assert response.json()['resourceType'] == 'Bundle'
+
+
+@pytest.mark.integration
+@override_switch('v3_endpoints', active=True)
+@override_switch('require-scopes', active=True)
+@override_switch('enable_auditevents', active=True)
+def test_successful_audit_event_read_call(basic_user, get_access_token, create_capability):
+    """Make an actual live call to BFD for the AuditEvent read endpoint that returns a 200
+
+    Args:
+        basic_user: Fixture for a basic_user
+        get_access_token: Fixture to create an access token
+        create_capability: Fixture to create a capabilities_protectedcapability record
+    """
+    # user = basic_user()
+    user = basic_user(
+        username='damonmychart',
+        first_name='Damon',
+        last_name='MyChart',
+        fhir_id_v3=SAMPLE_CAN_USER_FHIR_ID_V3,
+    )
+    access_token = get_access_token(
+        user.username,
+        'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs patient/AuditEvent.rs',
+    )
+    create_capability('patient/AuditEvent.rs', [['GET', '/v[3]/fhir/AuditEvent[/?].*$']])
+
+    response = client.get(
+        reverse(
+            'bb_oauth_fhir_audit_event_read',
+            kwargs={'resource_id': SAMPLE_CAN_USER_FHIR_ID_V3 + '-20260702123504429756967'},
+        ),
+        Authorization='Bearer %s' % (access_token),
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()['resourceType'] == 'AuditEvent'
