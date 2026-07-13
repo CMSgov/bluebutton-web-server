@@ -1917,7 +1917,8 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(
     create_application, scope, auth_url, enable_auditevents_switch_active
 ):
     """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
-    when there is a v1, 2, or 3 auth request that includes any AuditEvemnt scope in the scopes param
+    when there is a v1, 2, or 3 auth request that includes any AuditEvent scope in the scopes param
+    and regardless of if the enable_auditevents switch is true or false
     """
     with override_switch('enable_auditevents', active=enable_auditevents_switch_active):
         redirect_uri = 'http://localhost'
