@@ -149,7 +149,7 @@ def _is_synthetic_patient_id(patient_id: str) -> bool:
 def callback(request: HttpRequest):
     """Called when returning from authorizing as a beneficiary.
 
-    When using the text client, users can authorize as a beneficiary as part of the auth workflow.
+    When using the test client, users can authorize as a beneficiary as part of the auth workflow.
 
     https://bluebutton.cms.gov/developers/#authorization:~:text=Click-,Authorize%20as%20a%20Beneficiary,-.
 
