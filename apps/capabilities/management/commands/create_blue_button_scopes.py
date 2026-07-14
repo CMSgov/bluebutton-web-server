@@ -4,6 +4,7 @@ import logging
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.core.management.base import BaseCommand
+from waffle import switch_is_active
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES
 from apps.capabilities.models import ProtectedCapability
 
@@ -320,6 +321,61 @@ def create_token_introspect_capability(group):
     return c
 
 
+def create_audit_event_read_search_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to read and search audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Read/Search'
+    smart_scope_string = 'patient/AuditEvent.rs'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/?].*$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               default=False,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
+def create_audit_event_read_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to read audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Read'
+    smart_scope_string = 'patient/AuditEvent.r'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/?].*$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               default=False,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
+def create_audit_event_search_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to search audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Search'
+    smart_scope_string = 'patient/AuditEvent.s'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(group=group,
+                                               title=title,
+                                               description=description,
+                                               default=False,
+                                               slug=smart_scope_string,
+                                               protected_resources=json.dumps(protected_resources, indent=4))
+    return c
+
+
 class Command(BaseCommand):
     help = 'Create BlueButton Group and Scopes'
 
@@ -342,3 +398,9 @@ class Command(BaseCommand):
         create_openid_capability(g)
         create_token_management_capability(g)
         create_token_introspect_capability(g)
+
+        if switch_is_active('enable_auditevents'):
+            create_audit_event_read_search_capability(g)
+            create_audit_event_read_capability(g)
+            create_audit_event_search_capability(g)
+

@@ -10,7 +10,7 @@ from voluptuous import (
 from apps.constants import FHIR_RES_TYPE_COVERAGE, FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT
 from apps.versions import Versions
 
-ALLOWED_RESOURCE_TYPES = ['Patient', 'Coverage', 'ExplanationOfBenefit', 'Bundle']
+ALLOWED_RESOURCE_TYPES = ['Patient', 'Coverage', 'ExplanationOfBenefit', 'Bundle', 'AuditEvent']
 
 MBI_URL = 'http://hl7.org/fhir/sid/us-mbi'
 MAX_RETRIES = 3
