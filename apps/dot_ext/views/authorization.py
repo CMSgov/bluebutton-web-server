@@ -323,8 +323,11 @@ class AuthorizationView(DotAuthorizationView):
             or AUDIT_EVENT_SEARCH_SCOPE in request.GET.get('scope', '')
             or AUDIT_EVENT_SEARCH_SCOPE in request.POST.get('scope', '')
         ):
+            message = AUDIT_EVENT_SCOPE_ERROR_MESSAGE
+            if not switch_is_active('enable_auditevents'):
+                message = 'Invalid scopes.'
             return JsonResponse(
-                {'status_code': HTTPStatus.BAD_REQUEST, 'message': AUDIT_EVENT_SCOPE_ERROR_MESSAGE},
+                {'status_code': HTTPStatus.BAD_REQUEST, 'message': message},
                 status=HTTPStatus.BAD_REQUEST,
             )
 

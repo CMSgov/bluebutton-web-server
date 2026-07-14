@@ -113,17 +113,15 @@ class SingleAccessTokenValidator(
             # to be checked as scopes normally are
             scopes_with_audit_event_filtered_out = list(set(scopes) - AUDIT_EVENT_SCOPE_SET)
 
-            # Grab the intersection of the requested scopes and AuditEvent scopes. This value is then used
-            # if the only scopes included in the request were AuditEvent scopes. If there were only AuditEvent
-            # scopes in the request, the conditional for scopes_with_audit_event_filtered_out will not evaluate
-            # and we will need to return based on if there are any AuditEvent scopes. We want to allow
-            # client_credentials calls through, even if they only have AuditEvent scopes,
-            audit_event_scopes_in_request = set(scopes) & AUDIT_EVENT_SCOPE_SET
-
             if scopes_with_audit_event_filtered_out:
                 return super().validate_scopes(
                     client_id, scopes_with_audit_event_filtered_out, client, request, *args, **kwargs
                 )
+
+            # If this code executes, there are no non-AuditEvent scopes in the request. To determine if the requested
+            # scopes are valid, get the intersection of requested scopes and the AUDIT_EVENT_SCOPE_SET. If there is any
+            # intersection, this will return True, if not, False.
+            audit_event_scopes_in_request = set(scopes) & AUDIT_EVENT_SCOPE_SET
             return bool(audit_event_scopes_in_request)
 
         # For refresh_token and authorization-code grant types, validate scopes as normal

@@ -1890,31 +1890,66 @@ class TestAuthorizationView(BaseApiTest):
 
 
 @pytest.mark.parametrize(
-    'scope, auth_url, enable_auditevents_switch_active',
+    'scope, auth_url, enable_auditevents_switch_active, expected_message',
     [
-        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider:authorize', True),
-        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', True),
-        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', True),
-        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v2:authorize-v2', True),
-        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v2:authorize-v2', True),
-        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v2:authorize-v2', True),
-        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v3:authorize-v3', True),
-        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v3:authorize-v3', True),
-        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v3:authorize-v3', True),
-        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider:authorize', False),
-        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', False),
-        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', False),
-        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v2:authorize-v2', False),
-        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v2:authorize-v2', False),
-        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v2:authorize-v2', False),
-        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v3:authorize-v3', False),
-        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v3:authorize-v3', False),
-        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v3:authorize-v3', False),
+        (
+            'patient/Patient.rs patient/AuditEvent.rs',
+            'oauth2_provider:authorize',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', True, AUDIT_EVENT_SCOPE_ERROR_MESSAGE),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', True, AUDIT_EVENT_SCOPE_ERROR_MESSAGE),
+        (
+            'patient/Patient.rs patient/AuditEvent.rs',
+            'oauth2_provider_v2:authorize-v2',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.s',
+            'oauth2_provider_v2:authorize-v2',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.r',
+            'oauth2_provider_v2:authorize-v2',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.rs',
+            'oauth2_provider_v3:authorize-v3',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.s',
+            'oauth2_provider_v3:authorize-v3',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.r',
+            'oauth2_provider_v3:authorize-v3',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider:authorize', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v2:authorize-v2', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v2:authorize-v2', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v2:authorize-v2', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v3:authorize-v3', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v3:authorize-v3', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v3:authorize-v3', False, 'Invalid scopes.'),
     ],
 )
 @override_switch('v3_endpoints', active=True)
 def test_failure_on_authorize_non_v3_with_audit_event_scope(
-    create_application, scope, auth_url, enable_auditevents_switch_active
+    create_application, scope, auth_url, enable_auditevents_switch_active, expected_message
 ):
     """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
     when there is a v1, 2, or 3 auth request that includes any AuditEvent scope in the scopes param
@@ -1940,4 +1975,4 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(
         response = Client().post(reverse(auth_url), data=payload)
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.json()['message'] == AUDIT_EVENT_SCOPE_ERROR_MESSAGE
+        assert response.json()['message'] == expected_message
