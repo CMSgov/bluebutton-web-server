@@ -18,7 +18,12 @@ from waffle.testutils import override_switch
 
 from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
-from apps.constants import AUDIT_EVENT_SCOPE, DEFAULT_SAMPLE_FHIR_ID_V2
+from apps.constants import (
+    AUDIT_EVENT_READ_SCOPE,
+    AUDIT_EVENT_SCOPE,
+    AUDIT_EVENT_SEARCH_SCOPE,
+    DEFAULT_SAMPLE_FHIR_ID_V2,
+)
 from apps.dot_ext.constants import (
     BENE_PERSONAL_INFO_SCOPES,
     SCOPES_TO_URL_BASE_PATH,
@@ -77,8 +82,14 @@ class TestApplicationRegistrationView(BaseApiTest):
         default_scopes = ProtectedCapability.objects.filter(default=True)
         self.assertQuerySetEqual(app.scope.all(), default_scopes, ordered=False)
 
-        audit_event_scope = ProtectedCapability.objects.filter(slug=AUDIT_EVENT_SCOPE)
+        audit_event_scope = ProtectedCapability.objects.filter(slug=AUDIT_EVENT_SCOPE, default=False)
         assert audit_event_scope.exists()
+
+        audit_event_read_scope = ProtectedCapability.objects.filter(slug=AUDIT_EVENT_READ_SCOPE, default=False)
+        assert audit_event_read_scope.exists()
+
+        audit_event_search_scope = ProtectedCapability.objects.filter(slug=AUDIT_EVENT_SEARCH_SCOPE, default=False)
+        assert audit_event_search_scope.exists()
 
     def test_does_not_assign_demographic_scopes(self):
         """

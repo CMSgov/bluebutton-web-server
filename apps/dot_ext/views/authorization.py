@@ -302,8 +302,6 @@ class AuthorizationView(DotAuthorizationView):
         path_info = self.request.__dict__.get('path_info')
         version = get_api_version_number_from_url(path_info)
         # Validate that the app is able to make v3 calls if it is a v3 call
-        # Otherwise, confirm patient/AuditEvent.rs is not in the scope parameter
-        # if it is a non-v3 call.
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
@@ -316,6 +314,7 @@ class AuthorizationView(DotAuthorizationView):
                     status=HTTPStatus.FORBIDDEN,
                 )
 
+        # Confirm there are no AuditEvent scopes in the request. Fail the request if there are
         if (
             AUDIT_EVENT_SCOPE in request.GET.get('scope', '')
             or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
