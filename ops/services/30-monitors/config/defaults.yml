@@ -1,0 +1,33 @@
+---
+shadow_mode: true
+notifications:
+  slack: true
+  victorops: true
+  channels:
+    - "@bb2-alerts"
+enabled:
+  ecs: true
+  sqs: false
+  sns: false
+  lambda: false
+  s3: true
+  rds: true
+ecs:
+  notify_no_data: true
+  no_data_timeframe_minutes: 10
+  timeframe: "last_10m"
+sqs:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+sns:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+lambda:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+s3:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_5m"
+rds:
+  no_data_timeframe_minutes: 10
+  timeframe: "last_10m"

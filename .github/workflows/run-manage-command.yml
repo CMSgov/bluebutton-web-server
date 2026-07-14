@@ -54,7 +54,7 @@ permissions:
   contents: read
 
 jobs:
-  migrate:
+  manage-command:
     name: Run "${{ inputs.custom_command || inputs.command }}" on ${{ inputs.environment }}
     runs-on:
       - codebuild-bb-${{ (inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
@@ -99,7 +99,7 @@ jobs:
           echo "resolved=${CMD}" >> "$GITHUB_OUTPUT"
           echo "Running: manage.py ${CMD}"
 
-      - name: Run migration task
+      - name: Run task
         id: run-task
         run: |
           TASK_ARN=$(aws ecs run-task \
@@ -125,9 +125,11 @@ jobs:
       - name: Wait for task to complete
         run: |
           echo "Waiting for task to finish..."
-          aws ecs wait tasks-stopped \
-            --cluster "${{ steps.network.outputs.cluster }}" \
-            --tasks "${{ steps.run-task.outputs.task_arn }}"
+          until aws ecs wait tasks-stopped \
+              --cluster "${{ steps.network.outputs.cluster }}" \
+              --tasks "${{ steps.run-task.outputs.task_arn }}" 2>/dev/null; do
+            echo "..."
+          done
 
           # Match by container name so sidecar containers don't affect the result
           EXIT_CODE=$(aws ecs describe-tasks \

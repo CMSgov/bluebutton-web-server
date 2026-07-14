@@ -13,7 +13,7 @@
 #ENC[AES256_GCM,data:SYuWdiK35A==,iv:vx3h3u7EIBwhp4nvDoB6/Fp8b6pa+zfIOBN03fITl0k=,tag:PuE6klD3hDKPCrlL+PPfiw==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 /bb/test/app/nonsensitive/target_env: test
-/bb/test/app/nonsensitive/django_application_title: Blue Button 2.0 [TEST]
+/bb/test/app/nonsensitive/django_application_title: Blue Button API [TEST]
 /bb/test/app/nonsensitive/signup_timeout_days: "7"
 /bb/test/app/nonsensitive/cors_origin_allow_all: "True"
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
@@ -78,16 +78,14 @@
 /bb/test/app/nonsensitive/django_from_email: BlueButtonAPI@cms.hhs.gov
 /bb/test/app/nonsensitive/django_admin_email: BlueButtonAPI@cms.hhs.gov
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
-#ENC[AES256_GCM,data:UjWJBy8qi/s2,iv:BWPZgkyeH6r2EsJrNu7rGduK2dPo1/EX20h884ro8HQ=,tag:qFvLdcQyfNihBPEmNUzHiA==,type:comment]
-#ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
-/bb/test/app/sensitive/new_relic_license_key: ENC[AES256_GCM,data:CDzJsKc7zzU+Dk9Iny4kz7llf6RyVmrORUKsOhiGl3vpdJNDKAmZKg==,iv:GRrMFJ6fGefP9dovBu86OQ6ByVCIrs67sOP9cLck+cw=,tag:iJfn1AvFSU1zfe9K1M96Vg==,type:str]
-/bb/test/app/nonsensitive/new_relic_host: gov-collector.newrelic.com
-/bb/test/app/nonsensitive/new_relic_app_name: BlueButton-test
-#ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 #ENC[AES256_GCM,data:6KFMS3MrvNMGV2U=,iv:CHzfsjL0oRpXCPPDCEkpCHED2Qnpu5nX5/5EaFbNqPA=,tag:eBNtsfSY8pe9nAzSi75f1g==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 /bb/test/app/nonsensitive/aws_s3_custom_domain: s3.amazonaws.com/bb-test-content-cms-gov
 /bb/test/app/nonsensitive/aws_storage_bucket_name: bb-test-content-cms-gov
+#ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
+#ENC[AES256_GCM,data:7BakfoVOW7g=,iv:miOZB0Qur7PWllKHSbJavN6iZfJGaIvldNwq7BBTkEg=,tag:dHcSzQ7DuLk6u+LUT6vnSg==,type:comment]
+#ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
+/bb/test/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:yabkEYO+VELj7M71,iv:xWUnoRpGJpLtPtsT2zryBJA3asBHrtxTtrzbCIdQ6No=,tag:n7ThNYd4eCWYwc1pcoA6YA==,type:int]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias

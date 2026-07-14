@@ -3,11 +3,12 @@ import json
 import logging
 import os
 import re
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
-from time import strftime
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 import jwt
@@ -67,6 +68,7 @@ from apps.constants import (
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
+    REFRESH_TOKEN,
     USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
 )
 from apps.dot_ext.constants import (
@@ -78,6 +80,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CLIENT_CREDENTIALS_TYPE,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
+    DATETIME_ISO_FORMAT,
     ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
@@ -354,15 +357,8 @@ class AuthorizationView(DotAuthorizationView):
         # Default template
         default_tpl = 'design_system/new_authorize_v2.html'
 
-        if not switch_is_active('enable_coverage_only'):
-            return [default_tpl]
-
         if self.version == Versions.V3:
             return ['design_system/authorize_v3.html']
-
-        app = getattr(self, 'application', None)
-        if app is not None and 'coverage-eligibility' in app.get_internal_application_labels():
-            return ['design_system/authorize_v3_coverage_only.html']
 
         return [default_tpl]
 
@@ -405,6 +401,7 @@ class AuthorizationView(DotAuthorizationView):
 
     def form_valid(self, form):
         client_id = form.cleaned_data['client_id']
+
         application = get_application_model().objects.get(client_id=client_id)
         credentials = {
             'client_id': form.cleaned_data.get('client_id'),
@@ -506,6 +503,8 @@ class AuthorizationView(DotAuthorizationView):
         user_approves_sharing_samhsa_data = True
         if self.version == Versions.V3:
             user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            if application.part_d_eob_only:
+                user_approves_sharing_samhsa_data = True
 
         # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
         # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
@@ -855,7 +854,7 @@ class TokenView(DotTokenView):
                             'exp',
                             'iat',
                             'identity_assurance_level',
-                            # 'auth_time',
+                            'auth_time',
                             'family_name',
                             'given_name',
                             'birthdate',
@@ -873,6 +872,10 @@ class TokenView(DotTokenView):
                 log.warning('Malformed header / payload')
                 raise InvalidRequestError
 
+            # Validate iat and auth_time
+            self._validate_time_comparison(payload, 'iat', 300)
+            self._validate_time_comparison(payload, 'auth_time', 300)
+
             if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
                 log.warning('The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
@@ -881,20 +884,9 @@ class TokenView(DotTokenView):
                 log.warning('jti/iss combo replay')
                 raise InvalidRequestError
 
-            if datetime.now(timezone.utc).timestamp() - payload.get('iat') > 300:
-                log.warning('JWT is older than 5 minutes (iat)')
-                raise InvalidRequestError
-
             if payload.get('identity_assurance_level') < 2:
                 log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
                 raise InvalidRequestError
-
-            # if (
-            #     datetime.now(timezone.utc).timestamp() - payload.get('auth_time')
-            #     > 86400
-            # ):
-            #     log.warning('JWT was authorized older than 24 hours (auth_time)')
-            #     raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
                 log.warning(
@@ -922,6 +914,45 @@ class TokenView(DotTokenView):
                 raise InvalidRequestError
 
         return payload
+
+    def _validate_time_comparison(
+        self, payload_data: dict[str, Any], jwt_key: str, max_age_seconds: int
+    ) -> bool | InvalidRequestError:
+        """
+        Validates if iat or auth_time:
+         1. Are numbers
+         2. Does not occur in the future
+         3. Is within the required amount of time.
+
+        Args:
+            payload_data: The payload of the IAL JWT after being decoded
+            jwt_key: The key to get the jwt timestamp from (iat or auth_time for now)
+            max_age_seconds: The max time window/delta (in seconds) that the jwt_key is valid for
+
+        Raises:
+            InvalidRequestError: if any validation step fails, log and raise
+
+        Returns:
+            True if no InvalidRequestError's are raised
+        """
+        # Verify we get the correct type
+        try:
+            jwt_key_ts = float(payload_data.get(jwt_key))
+        except (TypeError, ValueError):
+            log.warning(f'{jwt_key} was not a numeric timestamp ({jwt_key})')
+            raise InvalidRequestError
+
+        current_ts = datetime.now(timezone.utc).timestamp()
+        # Verify iat or auth_time isn't in the future
+        if jwt_key_ts > current_ts:
+            log.warning(f'JWT {jwt_key} is in the future ({jwt_key})')
+            raise InvalidRequestError
+
+        # Verify iat or auth_time isn't too old
+        if current_ts - jwt_key_ts > max_age_seconds:
+            log.warning(f'JWT {jwt_key} was older than {float(max_age_seconds / 60)} minutes ({jwt_key})')
+            raise InvalidRequestError
+        return True
 
     def _parse_ial_into_parameter(self, payload: dict) -> dict:
         """Parses an IAL token into a Patient and Parameters resource
@@ -1059,7 +1090,7 @@ class TokenView(DotTokenView):
         refresh_token_str = None
         RefreshToken = get_refresh_token_model()
 
-        if grant_type == 'refresh_token':
+        if grant_type == REFRESH_TOKEN:
             if request:
                 refresh_token_str = request.POST.get('refresh_token')
 
@@ -1091,7 +1122,7 @@ class TokenView(DotTokenView):
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
             # Also, we only want to execute this on refresh_token grant types, not authorization_code
-            if version == Versions.V3 and grant_type == 'refresh_token':
+            if version == Versions.V3 and grant_type == REFRESH_TOKEN:
                 self._validate_v3_token_call(request)
 
             app = validate_app_is_active(request)
@@ -1104,7 +1135,7 @@ class TokenView(DotTokenView):
                     {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                     status=HTTPStatus.FORBIDDEN,
                 )
-            elif grant_type == 'client_credentials':
+            elif grant_type == CLIENT_CREDENTIALS:
                 # Check for malformed request
                 request_validation_result = self._validate_client_credentials_request(request)
                 if request_validation_result:
@@ -1180,7 +1211,7 @@ class TokenView(DotTokenView):
                                 status=HTTPStatus.NOT_FOUND,
                             )
                     except Exception as e:
-                        log.error(f'Error validating jwt: {type(e)}')
+                        log.error(f'Error validating jwt: {e}')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
@@ -1216,6 +1247,14 @@ class TokenView(DotTokenView):
                 )
 
                 if grant_type == CLIENT_CREDENTIALS:
+                    refresh_token = get_refresh_token_model().objects.create(
+                        user=user,
+                        token=secrets.token_urlsafe(22),  # generate a secure random token with 22 bytes (30 chars)
+                        application=app,
+                        access_token=token,
+                    )
+
+                    body['refresh_token'] = refresh_token.token
                     token.user_id = user.id
                     token.save()
 
@@ -1227,26 +1266,41 @@ class TokenView(DotTokenView):
                     except Crosswalk.DoesNotExist:
                         pass
 
+                try:
+                    user_profile = UserProfile.objects.get(user=token.user)
+                    user_is_anb = user_profile.user_type == USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY
+                except UserProfile.DoesNotExist:
+                    user_is_anb = False
+
                 app_authorized.send(sender=self, request=request, token=token)
 
                 dag_expiry = ''
-                if app.data_access_type == 'THIRTEEN_MONTH':
+                if user_is_anb:
+                    try:
+                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
+                        if grant_type == REFRESH_TOKEN:
+                            dag.update_90_day_rolling_window()
+                        if dag.expiration_date is not None:
+                            dag_expiry = dag.expiration_date.strftime(DATETIME_ISO_FORMAT)
+                    except DataAccessGrant.DoesNotExist:
+                        dag_expiry = ''
+                elif app.data_access_type == 'THIRTEEN_MONTH':
                     try:
                         dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if dag.expiration_date is not None:
-                            dag_expiry = strftime('%Y-%m-%dT%H:%M:%SZ', dag.expiration_date.timetuple())
+                            dag_expiry = dag.expiration_date.strftime(DATETIME_ISO_FORMAT)
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ''
                 elif app.data_access_type == 'ONE_TIME':
-                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
-                    dag_expiry = expires_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    expires_at = datetime.now(timezone.utc) + timedelta(seconds=body['expires_in'])
+                    dag_expiry = expires_at.strftime(DATETIME_ISO_FORMAT)
                 elif app.data_access_type == 'RESEARCH_STUDY':
                     dag_expiry = ''
                 # set dag_expiry based on 24 hours past the id_token auth time for client_credentials
 
                 # Get the crosswalk for the user from token.user
                 # This gets us the mbi and other info we need from the crosswalk
-                if grant_type == 'refresh_token':
+                if grant_type == REFRESH_TOKEN:
                     try:
                         crosswalk = Crosswalk.objects.get(user=token.user)
                         get_and_update_from_refresh(

@@ -6,6 +6,7 @@ from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Valida
 from oauthlib.oauth2.rfc6749 import utils
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
+from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.pkce.oauth2_validators import PKCEValidatorMixin
 
@@ -35,7 +36,7 @@ class OAuth2Validator(DotOAuth2Validator):
 
     def authenticate_client(self, request, *args, **kwargs):
         # Try to validate client based on issuer from the client assertion, otherwise use supermethod
-        if getattr(request, 'grant_type', None) == 'client_credentials':
+        if getattr(request, 'grant_type', None) == CLIENT_CREDENTIALS:
             if getattr(request, 'client_assertion_type', None) and getattr(request, 'client_assertion', None):
                 try:
                     payload = jwt.decode(request.client_assertion, options={'verify_signature': False})

@@ -38,6 +38,103 @@ resource "aws_ecs_task_definition" "ecs_task" {
         "awslogs-stream-prefix" = "ecs"
       }
     }
+  }, {
+    name = "datadog-agent"
+    image = "public.ecr.aws/datadog/agent:7.80.3"
+    essential = false
+
+    readonlyRootFilesystem = true
+
+    mountPoints = [
+      {
+        sourceVolume  = "datadog-run"
+        containerPath = "/var/run/datadog"
+        readOnly      = false
+      },
+      {
+        sourceVolume  = "datadog-tmp"
+        containerPath = "/tmp"
+        readOnly      = false
+      },
+      {
+        sourceVolume  = "datadog-etc"
+        containerPath = "/etc/datadog-agent"
+        readOnly      = false
+      },
+      {
+        sourceVolume  = "datadog-confd"
+        containerPath = "/etc/datadog-agent/conf.d"
+        readOnly      = false
+      }
+    ]
+
+    environment = [
+      {
+        name = "DD_SITE"
+        value = "ddog-gov.com"
+      },
+      {
+        name = "ECS_FARGATE"
+        value = "true"
+      },
+      {
+        name = "DD_APM_ENABLED"
+        value = "true"
+      },
+      {
+        name = "DD_ENV"
+        value = local.workspace
+      },
+      {
+        # Tags to add to hosts
+        # separated by spaces
+        # https://docs.datadoghq.com/containers/docker/?tab=linux#environment-variables
+        name = "DD_TAGS"
+        value = "environment:${local.workspace} application:${local.app}"
+      },
+      {
+        name = "DD_APM_NON_LOCAL_TRAFFIC"
+        value = "false"
+      },
+      {
+        name = "DD_LOGS_ENABLED"
+        value = "false" # DD logging is currently not approved
+      },
+      {
+        name = "DD_ECS_TASK_COLLECTION_ENABLED"
+        value = "true"
+      },
+      {
+        # not supported on fed site
+        # https://docs.datadoghq.com/tracing/configure_data_security/?tab=environmentvariables#telemetry-collection
+        name = "DD_APM_TELEMETRY_ENABLED"
+        value = "false"
+      },
+    ]
+
+    secrets = [
+      {
+        name = "DD_API_KEY"
+        valueFrom = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.workspace}/datadog/agents/api-key"
+      },
+    ]
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.ecs[each.key].name
+        "awslogs-region"        = data.aws_region.current.id
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+
+    healthCheck = {
+      retries = 3
+      command = ["CMD-SHELL", "agent health"]
+      timeout = 5
+      interval = 30
+      startPeriod = 15
+    }
   }])
 
   task_role_arn            = aws_iam_role.task[each.key].arn
@@ -54,8 +151,16 @@ resource "aws_ecs_task_definition" "ecs_task" {
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-task" }
 
-  lifecycle {
-    ignore_changes = [container_definitions]
+  dynamic "volume" {
+    for_each = [
+      "datadog-run",
+      "datadog-tmp",
+      "datadog-etc",
+      "datadog-confd"
+    ]
+    content {
+      name = volume.value
+    }
   }
 }
 

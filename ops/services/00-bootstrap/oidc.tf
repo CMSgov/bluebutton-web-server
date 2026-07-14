@@ -225,7 +225,7 @@ resource "aws_iam_role_policy" "github_actions_ecs_deploy" {
 # ============================================================================
 # OpenTofu CI/CD permissions (plan & apply via GitHub Actions)
 # Follows AB2D pattern: explicit actions, resources = ["*"]
-# Covers all 4 services: 00-bootstrap, 01-config, 10-cluster, 20-microservices
+# Covers all services: 00-bootstrap, 01-config, ...
 # ============================================================================
 
 data "aws_iam_policy_document" "github_actions_tofu" {

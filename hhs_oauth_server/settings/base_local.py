@@ -16,7 +16,9 @@ env = environ.Env()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Take environment variables from .env.local file
-environ.Env.read_env(os.path.join(BASE_DIR + '/ops/container', '.env.local'))
+TARGET_ENV = env('TARGET_ENV')
+
+environ.Env.read_env(os.path.join(BASE_DIR + '/ops/container', f'.env.{TARGET_ENV}'))
 
 ###############################################################################
 # DJANGO BASE SETTINGS
@@ -270,12 +272,7 @@ LOGGING = {
     },
 }
 
-DATABASES = {
-    'default': env.db(
-        'DATABASES_CUSTOM',
-        default=f'sqlite:///{BASE_DIR}/db.sqlite3',
-    )
-}
+DATABASES = {'default': env.db('DATABASES_CUSTOM', default='sqlite:////tmp/db.sqlite3')}  # type: ignore
 
 # internationalization
 LANGUAGE_CODE = 'en'
@@ -483,7 +480,7 @@ LOG_JSON_FORMAT_PRETTY = env.bool('DJANGO_LOG_JSON_FORMAT_PRETTY', default=False
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button 2.0')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', default='Blue Button API')
 ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE', default='The U.S. Centers for Medicare & Medicaid Services (CMS)')
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', default='https://cms.gov')
 

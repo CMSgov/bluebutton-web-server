@@ -82,7 +82,6 @@ Set in `locals.tf` (not from secrets):
 - `PORT` — 8000
 - `DJANGO_FHIR_CERTSTORE`, `FHIR_CERT_FILE`, `FHIR_KEY_FILE` — cert paths
 - `PYTHONUNBUFFERED`, `PYTHONDONTWRITEBYTECODE`
-- `NEW_RELIC_*` — APM configuration
 
 ## Cross-Service Discovery
 
@@ -173,7 +172,7 @@ tofu apply
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.

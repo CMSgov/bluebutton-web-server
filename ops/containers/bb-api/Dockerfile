@@ -27,7 +27,6 @@ ENV VENVPATH="${BASE}/venv"
 ENV BOTONBIN="${VENVPATH}/bin"
 # Add this directory to PATH
 ENV PATH="${BOTONBIN}:${PATH}"
-# We run nginx in front of the app for HTTPS termination.
 ENV GUNICORN_PORT=${GUNICORN_PORT:-8000}
 EXPOSE ${GUNICORN_PORT}
 
@@ -36,8 +35,8 @@ RUN dnf install -y \
     awscli \
     procps-ng \
     python3.12 \
+    bind-utils \
     shadow-utils && dnf clean all && rm -rf /var/cache/dnf
-
 
 #################################################################
 # ACTIONS TAKEN AS ROOT USER
@@ -68,9 +67,8 @@ RUN python3.12 -m venv ${VENVPATH} \
 
 #################################################################
 # BUILD FOR CLOUD CONTAINERS
-# When we build the production container, we want to check out the repo
-# and then checkout the correct release tag.
 # https://stackoverflow.com/questions/44438637/arg-substitution-in-run-command-not-working-for-dockerfile
+# "production" is currently set in the Github action for building and pushing an image, nowhere else
 FROM base AS build-production
 
 # The cloud environment only installs the core requirements.
@@ -80,13 +78,12 @@ RUN ${BOTONBIN}/pip3 install \
     --prefer-binary \
     -r requirements/requirements.txt
 
-
 #################################################################
-# BUILD FOR LOCAL CONTAINERS
-# When building a local container for dev, we want to use the 
+# BUILD FOR LOCAL/CODEBUILD CONTAINERS
+# When building a local/codebuild container for, we want to use the 
 # code in the developer's tree. The docker context needs to be 
 # set to the root of the repo.
-FROM base AS build-local
+FROM base AS build-dev
 # Only install socat if we are building the local container.
 USER root
 RUN dnf install -y \
@@ -103,6 +100,9 @@ RUN ${BOTONBIN}/pip3 install \
     --no-deps \
     --prefer-binary \
     -r requirements/requirements.dev.txt
+
+FROM build-dev AS build-local
+FROM build-dev AS build-codebuild
 
 #################################################################
 # COMMON BUILD FINALIZATION
