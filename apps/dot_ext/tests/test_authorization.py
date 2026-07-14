@@ -6,6 +6,7 @@ from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
 
+import pytest
 import pytz
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
@@ -22,6 +23,7 @@ from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
 from apps.constants import CODE_CHALLENGE_METHOD_S256, PATIENT_SCOPE
 from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
     CLIENT_CREDENTIALS_TYPE,
 )
 from apps.dot_ext.models import Application, ArchivedToken
@@ -1885,3 +1887,92 @@ class TestAuthorizationView(BaseApiTest):
                         ),
                     },
                 )
+
+
+@pytest.mark.parametrize(
+    'scope, auth_url, enable_auditevents_switch_active, expected_message',
+    [
+        (
+            'patient/Patient.rs patient/AuditEvent.rs',
+            'oauth2_provider:authorize',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', True, AUDIT_EVENT_SCOPE_ERROR_MESSAGE),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', True, AUDIT_EVENT_SCOPE_ERROR_MESSAGE),
+        (
+            'patient/Patient.rs patient/AuditEvent.rs',
+            'oauth2_provider_v2:authorize-v2',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.s',
+            'oauth2_provider_v2:authorize-v2',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.r',
+            'oauth2_provider_v2:authorize-v2',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.rs',
+            'oauth2_provider_v3:authorize-v3',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.s',
+            'oauth2_provider_v3:authorize-v3',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        (
+            'patient/Patient.rs patient/AuditEvent.r',
+            'oauth2_provider_v3:authorize-v3',
+            True,
+            AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
+        ),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider:authorize', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider:authorize', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider:authorize', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v2:authorize-v2', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v2:authorize-v2', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v2:authorize-v2', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.rs', 'oauth2_provider_v3:authorize-v3', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.s', 'oauth2_provider_v3:authorize-v3', False, 'Invalid scopes.'),
+        ('patient/Patient.rs patient/AuditEvent.r', 'oauth2_provider_v3:authorize-v3', False, 'Invalid scopes.'),
+    ],
+)
+@override_switch('v3_endpoints', active=True)
+def test_failure_on_authorize_non_v3_with_audit_event_scope(
+    create_application, scope, auth_url, enable_auditevents_switch_active, expected_message
+):
+    """Ensure a bad request 400 error, with message equal to Invalid scopes is raised
+    when there is a v1, 2, or 3 auth request that includes any AuditEvent scope in the scopes param
+    and regardless of if the enable_auditevents switch is true or false
+    """
+    with override_switch('enable_auditevents', active=enable_auditevents_switch_active):
+        redirect_uri = 'http://localhost'
+
+        # create an application via fixture
+        application = create_application('an app')
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': [scope],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+            'code_challenge': 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+
+        response = Client().post(reverse(auth_url), data=payload)
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.json()['message'] == expected_message

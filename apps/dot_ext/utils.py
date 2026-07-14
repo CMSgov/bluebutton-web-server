@@ -25,6 +25,8 @@ from apps.constants import (
     APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
     APPLICATION_TEMPORARILY_INACTIVE,
     APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
+    AUDIT_EVENT_SCOPE,
+    AUDIT_EVENT_SEARCH_SCOPE,
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
@@ -409,3 +411,34 @@ def check_auth_tracking_and_create_access_token_extension(
     AccessTokenExtension.objects.get_or_create(
         access_token=token, include_samhsa=include_samhsa, part_d_eob_only=prior_part_d_eob_only
     )
+
+
+def check_can_token_scope_for_audit_event_scopes(scope: str) -> str:
+    """Check the token being created as a result of a CAN call for AuditEvent scopes.
+    Currently, we only want to apply patient/AuditEvent.rs as a scope. If .r or .s are on
+    the token scope, remove those. If patient/AuditEvent.rs is not on the scope, add it.
+
+    Args:
+        scope (str): The scope parameter that was passed to the CAN token call
+
+    Returns:
+        str: The scope parameter after AuditEvent checks have been performed
+    """
+
+    audit_event_read_pattern = r'patient/AuditEvent\.r\b'
+
+    # We need a different strategy for replacing patient/AuditEvent.r as it is a substring
+    # of the patient/AuditEvent.rs scope. That is why regex is used.
+    if re.search(audit_event_read_pattern, scope):
+        scope = re.sub(audit_event_read_pattern, '', scope)
+
+    if AUDIT_EVENT_SEARCH_SCOPE in scope:
+        log.info('patient/AuditEvent.s scope requested for client_credentials call, removing it')
+        scope = scope.replace(AUDIT_EVENT_SEARCH_SCOPE, '')
+
+    if AUDIT_EVENT_SCOPE not in scope:
+        log.info('patient/AuditEvent.rs scope not requested for client_credentials call, adding it')
+        scope += ' ' + AUDIT_EVENT_SCOPE
+
+    # Ensure any extra spaces are filtered
+    return ' '.join(scope.split())
