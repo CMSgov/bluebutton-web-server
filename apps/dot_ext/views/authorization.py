@@ -1493,6 +1493,7 @@ class PermissionScreenLogoutView(View):
                 request.session['code_verifier'] = oauth_params.get('code_verifier')
                 request.session['client_id'] = oauth_params.get('client_id')
 
+        oauth_params.pop('code_verifier', None)
         # Rebuild the authorize URL with original params
         base_url = request.build_absolute_uri('/').rstrip('/')
         authorize_url = f'{base_url}/v3/o/authorize?{urlencode(oauth_params)}'
