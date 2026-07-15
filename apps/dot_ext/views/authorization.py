@@ -283,6 +283,11 @@ class AuthorizationView(DotAuthorizationView):
         oauth_params = {}
         for param in params:
             oauth_params[param] = self.request.GET.get(param)
+        # If the oauth_params can't be extracted from the GET, use the POST
+        if not oauth_params.get('client_id'):
+            oauth_params = {}
+            oauth_params[param] = self.request.POST.get(param)
+
         self.request.session['oauth_params'] = oauth_params
         if 'form' in context and self.version == Versions.V3:
             # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes

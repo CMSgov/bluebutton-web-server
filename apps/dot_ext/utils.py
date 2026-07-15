@@ -59,7 +59,8 @@ def validate_client_id(client_id: str) -> None:
 
 
 def get_oauth_param(request: HttpRequest, parameter: str, fallback_session_parameter: str = None) -> str | None:
-    """Resolve an OAuth parameter from GET, then session, then session['oauth_params'].
+    """Resolve an OAuth parameter from GET, then session, then session['oauth_params']. If those are not available,
+    use request.POST.
 
     Args:
         request: Django HttpRequest object
@@ -72,6 +73,9 @@ def get_oauth_param(request: HttpRequest, parameter: str, fallback_session_param
     result = request.GET.get(parameter) or request.session.get(parameter)
     if not result and fallback_session_parameter:
         result = request.session.get(fallback_session_parameter)
+    if not result and request.POST.get(parameter):
+        result = request.POST.get(parameter)
+
     return result or request.session.get('oauth_params', {}).get(parameter)
 
 
