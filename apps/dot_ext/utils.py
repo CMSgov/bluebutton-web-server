@@ -58,6 +58,27 @@ def validate_client_id(client_id: str) -> None:
         )
 
 
+def get_oauth_param(request: HttpRequest, parameter: str, fallback_session_parameter: str = None) -> str | None:
+    """Resolve an OAuth parameter from GET, then session, then session['oauth_params']. If those are not available,
+    use request.POST.
+
+    Args:
+        request: Django HttpRequest object
+        parameter: The parameter name to look up
+        fallback_session_parameter: Optional alternate session key to try (e.g. 'auth_client_id' for 'client_id')
+
+    Returns:
+        The first truthy value found, or None
+    """
+    result = request.GET.get(parameter) or request.session.get(parameter)
+    if not result and fallback_session_parameter:
+        result = request.session.get(fallback_session_parameter)
+    if not result and request.POST.get(parameter):
+        result = request.POST.get(parameter)
+
+    return result or request.session.get('oauth_params', {}).get(parameter)
+
+
 def remove_application_user_pair_tokens_data_access(
     application, user, delete_data_access_grant: bool, delete_access_tokens: bool
 ):
