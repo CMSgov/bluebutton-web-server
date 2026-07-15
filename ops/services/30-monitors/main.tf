@@ -63,11 +63,11 @@ locals {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Target Response Time High"
       type    = "metric alert"
       message = "ALB target has high average response time."
-      query   = "avg(last_1h):avg:aws.applicationelb.target_response_time.average{application:${local.app}, environment:${local.env}} > 0.35"
+      query   = "avg(last_1h):avg:aws.applicationelb.target_response_time.average{application:${local.app}, environment:${local.env}} > ${local.env == "test" ? 1 : 0.35}"
 
       thresholds = {
-        critical = 0.35
-        warning  = 0.25
+        critical = local.env == "test" ? 1 : 0.35
+        warning  = local.env == "test" ? 0.75 : 0.25
       }
 
       notify_no_data           = local.env != "test"
