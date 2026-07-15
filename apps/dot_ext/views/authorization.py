@@ -9,12 +9,12 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
 import waffle
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
@@ -22,9 +22,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from fhir.resources.R4B.address import Address
@@ -69,6 +71,7 @@ from apps.constants import (
     AUDIT_EVENT_SEARCH_SCOPE,
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CODE_CHALLENGE_METHOD_S256,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
     REFRESH_TOKEN,
@@ -110,6 +113,7 @@ from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
     check_can_token_scope_for_audit_event_scopes,
     get_api_version_number_from_url,
+    get_oauth_param,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
@@ -267,6 +271,24 @@ class AuthorizationView(DotAuthorizationView):
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
 
+        params = [
+            'client_id',
+            'redirect_uri',
+            'response_type',
+            'scope',
+            'state',
+            'code_challenge',
+            'code_challenge_method',
+        ]
+        oauth_params = {}
+        for param in params:
+            oauth_params[param] = self.request.GET.get(param)
+        # If the oauth_params can't be extracted from the GET, use the POST
+        if not oauth_params.get('client_id'):
+            oauth_params = {}
+            oauth_params[param] = self.request.POST.get(param)
+
+        self.request.session['oauth_params'] = oauth_params
         if 'form' in context and self.version == Versions.V3:
             # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
             # for the access token are in the intersection of what the application is allowed to have and
@@ -1138,6 +1160,7 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
+
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -1431,3 +1454,48 @@ class IntrospectTokenView(DotIntrospectTokenView):
             return json_response_from_oauth2_error(error)
 
         return super(IntrospectTokenView, self).post(request, args, kwargs)
+
+
+class PermissionScreenLogoutView(View):
+    def post(self, request, *args, **kwargs):
+        # Save version before logout clears the session
+        version = request.session.get('version', None)
+
+        # Save the original OAuth params before logout
+        oauth_params = {
+            'client_id': get_oauth_param(request, 'client_id', 'auth_client_id'),
+            'redirect_uri': get_oauth_param(request, 'redirect_uri'),
+            'response_type': get_oauth_param(request, 'response_type'),
+            'state': get_oauth_param(request, 'state'),
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+            'code_challenge': request.session.get('oauth_params', {}).get('code_challenge'),
+            'scope': request.session.get('oauth_params', {}).get('scope'),
+            'code_verifier': request.session.get('code_verifier'),
+        }
+
+        # Remove None values
+        oauth_params = {k: v for k, v in oauth_params.items() if v is not None}
+
+        # Clear token and log out
+        request.session.pop('token', None)
+        logout(request)
+
+        # this is to avoid a corrupted session warning - though I am still seeing that warning
+        request.session.cycle_key()
+
+        # Restore version after logout
+        if version is not None:
+            request.session['version'] = version
+
+            if 'testclient' in oauth_params.get('redirect_uri', ''):
+                # this is the key that the testclient looks for
+                request.session['api_ver'] = version
+                request.session['code_verifier'] = oauth_params.get('code_verifier')
+                request.session['client_id'] = oauth_params.get('client_id')
+
+        oauth_params.pop('code_verifier', None)
+        # Rebuild the authorize URL with original params
+        base_url = request.build_absolute_uri('/').rstrip('/')
+        authorize_url = f'{base_url}/v3/o/authorize?{urlencode(oauth_params)}'
+
+        return redirect(authorize_url)

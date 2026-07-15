@@ -3,17 +3,21 @@ import secrets
 from datetime import datetime, timedelta
 
 import pytest
-from django.contrib.auth.models import Group, User
-from oauth2_provider.models import get_access_token_model
 
-from apps.authorization.models import DataAccessGrant
-from apps.capabilities.models import ProtectedCapability
-from apps.constants import (
-    DEFAULT_SAMPLE_FHIR_ID_V2,
-    DEFAULT_SAMPLE_FHIR_ID_V3,
-)
-from apps.dot_ext.models import Application
-from apps.fhir.bluebutton.models import Crosswalk
+try:
+    from django.contrib.auth.models import Group, User
+    from oauth2_provider.models import get_access_token_model
+
+    from apps.authorization.models import DataAccessGrant
+    from apps.capabilities.models import ProtectedCapability
+    from apps.constants import (
+        DEFAULT_SAMPLE_FHIR_ID_V2,
+        DEFAULT_SAMPLE_FHIR_ID_V3,
+    )
+    from apps.dot_ext.models import Application
+    from apps.fhir.bluebutton.models import Crosswalk
+except ModuleNotFoundError:
+    pass
 
 # Ignore specific test files during collection
 collect_ignore = [
