@@ -31,7 +31,7 @@ locals {
 }
 
 module "datadog_dashboard" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=0aba1af484320d0d121d804c05f36cf1a4d978c9"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=d0f66be83b0cf14fd21e7795eff2ae31128621bf"
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"

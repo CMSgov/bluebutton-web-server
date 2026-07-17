@@ -49,7 +49,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=0aba1af484320d0d121d804c05f36cf1a4d978c9"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=d0f66be83b0cf14fd21e7795eff2ae31128621bf"
 
   app             = local.app
   env             = local.env
@@ -77,7 +77,6 @@ locals {
       require_full_window = false
     },
     {
-      # TODO need PR from CDAP for this to work
       create = local.env != "test"
 
       name    = "[${upper(local.env)}] [${local.app}] ALB — Request Rate Low"
@@ -96,7 +95,6 @@ locals {
       require_full_window = false
     },
     {
-      # TODO need PR from CDAP for this to work
       create = local.env != "test"
 
       name    = "[${upper(local.env)}] [${local.app}] ALB — Maximum Unhealthy Hosts"
