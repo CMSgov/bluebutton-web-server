@@ -95,8 +95,6 @@ locals {
       require_full_window = false
     },
     {
-      create = local.env != "test"
-
       name    = "[${upper(local.env)}] [${local.app}] ALB — Maximum Unhealthy Hosts"
       type    = "metric alert"
       message = "Maximum number of unhealthy hosts passed threshold."
