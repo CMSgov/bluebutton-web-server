@@ -85,19 +85,19 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/johnfrenchxyz">
-                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
+                <a href="https://github.com/JamesDemeryNava">
+                    <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
                     <br />
-                    <sub><b>John French</b></sub>
+                    <sub><b>James Demery</b></sub>
                 </a>
             </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/JamesDemeryNava">
-                    <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
+                <a href="https://github.com/johnfrenchxyz">
+                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
                     <br />
-                    <sub><b>James Demery</b></sub>
+                    <sub><b>John French</b></sub>
                 </a>
             </td>
             <td align="center">
