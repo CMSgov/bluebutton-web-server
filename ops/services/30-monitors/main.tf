@@ -73,7 +73,6 @@ locals {
       notify_no_data           = local.env != "test"
       no_data_timeframe_minute = 60
 
-      # TODO are we sure about this?
       require_full_window = false
     },
     {
