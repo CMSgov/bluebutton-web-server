@@ -410,9 +410,9 @@ envier==0.6.1 \
     --hash=sha256:3309a01bb3d8850c9e7a31a5166d5a836846db2faecb79b9cb32654dd50ca9f9 \
     --hash=sha256:73609040a76be48bbcb97074d9969666484aa0de706183a6e9ef773156a8a6a9
     # via ddtrace
-fhir-core==1.1.8 \
-    --hash=sha256:1a576ce3f6ec2aa3e86891dd00091ee03bcdcbb5a2f179f4f8e09b25b4d75047 \
-    --hash=sha256:61b1fd984c1f3fc4ad2c4d96824d9ec6f92d19e9aa49269c89b9ebec878e778e
+fhir-core==1.1.9 \
+    --hash=sha256:61f23a711199d8d74390fd473cc5ddf75a1f4def97fd8e9f59a28bc9d5222261 \
+    --hash=sha256:e3ee5912c1203993e915730e3eb23e40234f154822a45f15fadf51c76a17e452
     # via fhir-resources
 fhir-resources==8.2.0 \
     --hash=sha256:122a8b336385d504b399df9c5f332a7d913f07bc71a52dc9dde39abb5bf29129 \
@@ -979,9 +979,9 @@ six==1.16.0 \
     # via
     #   -r /code/requirements/requirements.in
     #   python-dateutil
-soupsieve==2.4.1 \
-    --hash=sha256:1c1bfee6819544a3447586c889157365a27e10d88cde3ad3da0cf0ddf646feb8 \
-    --hash=sha256:89d12b2d5dfcd2c9e8c22326da9d9aa9cb3dfab0a83a024f05704076ee8d35ea
+soupsieve==2.8.4 \
+    --hash=sha256:e121fd02e975c695e4e9e8774a5ee35d74714b59307868dcc5319ad2d9e3328e \
+    --hash=sha256:e7e6b0769c8f51ed59acab6e994b00621096cfb1c640a7509295987388fbaf65
     # via
     #   -r /code/requirements/requirements.in
     #   beautifulsoup4

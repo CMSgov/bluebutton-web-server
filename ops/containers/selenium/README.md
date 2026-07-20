@@ -7,10 +7,14 @@ This document describes the selenium test harness for Blue Button
 ## Overview
 
 - Selenium tests are run inside a Docker image (`selenium-local:latest`) defined in `ops/containers/selenium/Dockerfile.selenium`.
-- The compose file `ops/containers/selenium/docker-compose-selenium.yaml` starts two services:
+- Locally, the compose file `ops/containers/selenium/docker-compose-selenium.yaml` starts two services:
   - `selenium-tests` — Django app / Selenium instance / do-it-all
   - `chrome` — a standalone Chrome instance for hitting local and remote
-- Tests are invoked via the helper Makefile in `ops/containers`
+- In CI (CodeBuild), the compose file `ops/containers/docker-compose-codebuild-selenium.yaml` starts:
+  - `selenium-tests` — runs the pytest Selenium suite
+  - `chrome` — standalone Chrome
+  - `mslsx` — the mock SLS (Medicare login) service used in place of live SLSx
+- Tests are invoked via the helper Makefiles in `ops/containers/bb-api` (CI) and `ops/containers/selenium` (local).
 
 ---
 
@@ -63,3 +67,51 @@ All of these can be run from root.
   make run-selenium-local auth=live debug=true
 
 ---
+
+## CI / Pull Request Checks
+
+The `selenium-tests` job in `.github/workflows/pull-request-checks.yml` runs the
+Selenium suite inside the CodeBuild runner on every pull request against `master`
+(and on new commits pushed to a PR branch). It uses the **mock SLS** (`mslsx`)
+service rather than the live SLSx endpoints.
+
+All commands are driven through the helper targets in
+`ops/containers/bb-api/Makefile`. The job runs them in this order:
+
+1. **Build MSLSX** — `cd ops/containers/mslsx && make build-local`
+   Builds the `mslsx:latest` mock Medicare login image.
+
+2. **Build BBAPI** — `cd ops/containers/bb-api && make build-codebuild`
+   Builds the `bb-api:codebuild` application image.
+
+3. **Build Selenium** — `cd ops/containers/bb-api && make build-selenium`
+   Delegates to `ops/containers/selenium` to build `selenium-local:latest`.
+
+4. **Start Stack** — `cd ops/containers/bb-api && make run-codebuild-mock`
+   Brings up the CodeBuild stack with `auth=mock`, so `bb-api` points at the
+   `mslsx` endpoints instead of live SLSx.
+
+5. **Execute Selenium Tests** — `cd ops/containers/bb-api && make run-codebuild-selenium`
+   Runs the `selenium-tests` service from
+   `ops/containers/docker-compose-codebuild-selenium.yaml`, which also starts the
+   `mslsx` and `chrome` services.
+
+6. **Teardown Stack** — `cd ops/containers/bb-api && make teardown-codebuild-selenium`
+   Tears down both the selenium and codebuild compose stacks (runs with
+   `if: always()`).
+
+### Mock SLS networking
+
+In CodeBuild, all compose services use `network_mode: "host"`, so there is no
+Docker DNS. Containers reach each other over `localhost`:
+
+- `mslsx` listens on `localhost:8080`
+- `bb-api` listens on `localhost:8000`
+
+`configure_slsx` in
+`ops/containers/bb-api/scripts/external/prepare-environment-support.bash` uses
+`localhost` for the `mslsx` endpoints when `TARGET_ENV=codebuild`, and the Docker
+DNS name `mslsx` when running locally.
+
+---
+

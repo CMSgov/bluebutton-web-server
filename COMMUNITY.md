@@ -85,19 +85,19 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/johnfrenchxyz">
-                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
+                <a href="https://github.com/JamesDemeryNava">
+                    <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
                     <br />
-                    <sub><b>John French</b></sub>
+                    <sub><b>James Demery</b></sub>
                 </a>
             </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/JamesDemeryNava">
-                    <img src="https://avatars.githubusercontent.com/u/226581456?v=4" width="100;" alt="JamesDemeryNava"/>
+                <a href="https://github.com/johnfrenchxyz">
+                    <img src="https://avatars.githubusercontent.com/u/5551607?v=4" width="100;" alt="johnfrenchxyz"/>
                     <br />
-                    <sub><b>James Demery</b></sub>
+                    <sub><b>John French</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -203,17 +203,17 @@ Total number of contributors: <!--CONTRIBUTOR COUNT START--> <!--CONTRIBUTOR COU
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/sharonfruit">
-                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
-                    <br />
-                    <sub><b>Sharon Su</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/annamontare-nava">
                     <img src="https://avatars.githubusercontent.com/u/267455234?v=4" width="100;" alt="annamontare-nava"/>
                     <br />
                     <sub><b>annamontare-nava</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/sharonfruit">
+                    <img src="https://avatars.githubusercontent.com/u/22648742?v=4" width="100;" alt="sharonfruit"/>
+                    <br />
+                    <sub><b>Sharon Su</b></sub>
                 </a>
             </td>
             <td align="center">

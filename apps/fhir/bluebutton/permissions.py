@@ -13,6 +13,8 @@ from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
     APPLICATION_TEMPORARILY_INACTIVE,
+    AUDIT_EVENT_SCOPE,
+    FHIR_RES_TYPE_AUDIT_EVENT,
     FHIR_RES_TYPE_COVERAGE,
     FHIR_RES_TYPE_EOB,
     FHIR_RES_TYPE_PATIENT,
@@ -61,6 +63,13 @@ class ReadCrosswalkPermission(HasCrosswalk):
                     raise exceptions.NotFound()
             elif request.resource_type == 'ExplanationOfBenefit':
                 reference = obj['patient']['reference']
+                reference_id = reference.split('/')[1]
+                if reference_id != fhir_id:
+                    raise exceptions.NotFound()
+            elif request.resource_type == FHIR_RES_TYPE_AUDIT_EVENT:
+                entity = obj.get('entity', [{}])
+                patient_info = entity[0].get('what', {})
+                reference = patient_info.get('reference', '')
                 reference_id = reference.split('/')[1]
                 if reference_id != fhir_id:
                     raise exceptions.NotFound()
@@ -165,6 +174,12 @@ class AppScopePermission(permissions.BasePermission):
             raise PermissionDenied(
                 APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format(token.application, 'any', 'digital insurance card')
             )
+        # If we ever decide we want to put patient/AuditEvent scopes on applications, this elif will need to be modified
+        # We should be able to just use the else block, as long as we correctly add the scopes to READ_SEARCH_SCOPE_LOOKUP
+        elif request.resource_type == FHIR_RES_TYPE_AUDIT_EVENT:
+            if AUDIT_EVENT_SCOPE in token.scope:
+                return True
+            return False
         else:
             # Determine if scopes from database have correct permission if view was search/read FHIR call
             resource_set = set(READ_SEARCH_SCOPE_LOOKUP[request.resource_type][request_type])
