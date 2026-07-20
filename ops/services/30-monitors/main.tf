@@ -140,7 +140,7 @@ locals {
         warning  = 0.01
       }
 
-      notify_no_data           = local.env != "test"
+      notify_no_data           = false
       no_data_timeframe_minute = 60
 
       require_full_window = false
