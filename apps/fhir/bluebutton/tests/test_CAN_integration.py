@@ -22,6 +22,8 @@ BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
 # The key id advertised in the testclient's self-hosted JWKS and stamped on the
 # client_assertion header. Must match apps.testclient.cc_selftest.TESTCLIENT_CC_KID.
 TESTCLIENT_CC_KID = f'bb2-{os.getenv("TARGET_ENV", "local")}-cc-1'
+DAMON_MYCHART_PHONE_NUMBER = '6082113314'
+OTP_CODE = '123456'
 
 # Start with building the url
 # https://verified.clearme.com/integrations/oauth2/auth?response_type=code&client_id=bluebutton-sample&state=teststate&redirect_uri=http://localhost:3001/api/clear/callback&scope=offline%20openid%20offline_access&code_challenge=<insert_generated_code_challenge_here>&code_challenge_method=S256
@@ -81,7 +83,9 @@ def generate_pkce_data() -> tuple:
     code_verifier = secrets.token_urlsafe(64)
 
     # Generate the code challenge using SHA256 and base64url encoding
-    code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode('utf-8')).digest()).decode('utf-8')
+    code_challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode('ascii')).digest()).decode('ascii').rstrip('=')
+    )
 
     return code_verifier, code_challenge
 
@@ -104,29 +108,29 @@ def get_clear_authorization_code(code_challenge: str) -> str:
     driver.implicitly_wait(10)  # Wait for the page to load
 
     phone_input = driver.find_element(By.XPATH, '//input[@placeholder="Phone"]')
-    phone_input.send_keys('6082113314')  # Replace with Daymoen Mychart's phone number
+    phone_input.send_keys(DAMON_MYCHART_PHONE_NUMBER)
 
-    time.sleep(1)  # Wait for a few seconds before clicking the continue button
+    time.sleep(3)  # Wait for a few seconds before clicking the continue button
 
     continue_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
     continue_button.click()
 
-    time.sleep(1)  # Wait for a few seconds after clicking the continue button
+    time.sleep(3)  # Wait for a few seconds after clicking the continue button
 
     agree_and_continue_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Agree & Continue')]")
     agree_and_continue_button.click()
 
-    time.sleep(1)
+    time.sleep(3)
 
     code_input = driver.find_element(By.XPATH, '//input[@placeholder="Enter your Code"]')
-    code_input.send_keys('123456')
+    code_input.send_keys(OTP_CODE)
 
-    time.sleep(1)
+    time.sleep(3)
 
     skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
     skip_button.click()
 
-    time.sleep(10)
+    time.sleep(20)
 
     url = driver.current_url
 
@@ -210,14 +214,10 @@ def get_access_token_response(client_assertion: str, client_assertion_type: str,
 
     response = requests.post(url, headers=headers, data=data)
     response.raise_for_status()
-    return response.json()
+    return response
 
 
-# What it would look like all together in a test function
 def test_clear_integration_flow():
-    """
-    Test the Clear integration flow by simulating the steps to obtain an access token from the Blue Button API.
-    """
     code_verifier, code_challenge = generate_pkce_data()
     # Use selenium to simulate the user login and authorization flow to get the authorization code
     auth_code = get_clear_authorization_code(code_challenge)
@@ -244,4 +244,11 @@ def test_clear_integration_flow():
 
     access_token_response = get_access_token_response(client_assertion, client_assertion_type, grant_type, scope)
 
-    assert 'access_token' in access_token_response, 'Access token not found in response'
+    assert access_token_response.status_code == 200, (
+        f'Expected status code 200, got {access_token_response.status_code}'
+    )
+
+    access_token_response_json = access_token_response.json()
+
+    assert 'access_token' in access_token_response_json, 'Access token not found in response'
+    assert 'refresh_token' in access_token_response_json, 'Refresh token not found in response'
