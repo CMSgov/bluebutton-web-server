@@ -700,7 +700,7 @@ class TestTokenPrivateMethods(BaseApiTest):
             }
 
             # Call succeeds
-            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client, False)
             assert result == self.mock_ial_jwt_payload
 
             # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -725,7 +725,7 @@ class TestTokenPrivateMethods(BaseApiTest):
         }
 
         # First call succeeds
-        self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+        self.token_view._validate_ial_jwt('token', self.mock_jwks_client, False)
 
         # Assert cache contains expected key
         cache_key = f'{self.mock_ial_jwt_payload.get("iss")}-{self.mock_ial_jwt_payload.get("jti")}'
@@ -733,7 +733,7 @@ class TestTokenPrivateMethods(BaseApiTest):
 
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
-            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            self.token_view._validate_ial_jwt('token', self.mock_jwks_client, False)
 
     def test_validate_time_comparison_succeeds(
         self,

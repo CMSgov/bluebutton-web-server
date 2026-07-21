@@ -92,8 +92,10 @@ from apps.dot_ext.constants import (
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
     JWKS_URLS,
+    OIDC4IDC_TOKEN_REQUIRE_LIST_FOR_JWT_DECODE,
     PARAMETERS_ID_MATCH_META,
     PATIENT_ID_MATCH_META,
+    PRIOR_IAL_TOKEN_REQUIRE_LIST_FOR_JWT_DECODE,
     YYYY_MM_DD_REGEX,
 )
 from apps.dot_ext.forms import SimpleAllowForm
@@ -867,12 +869,13 @@ class TokenView(DotTokenView):
 
         return True
 
-    def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient) -> dict:
+    def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient, oidc4ida_token_format: bool) -> dict:
         """Validates an IAL JWT from a trusted CSP
 
         Args:
             id_token (str): base64 encoded id_token jwt from cms_smart extension
             jwks_client (PyJWKClient): instantiated client for the authorization jwt
+            oidc4ida_token_format (bool): Flag for if the token is in OIDC4IDA format
 
         Raises:
             InvalidRequestError: if any validation step fails, log and raise
@@ -882,25 +885,17 @@ class TokenView(DotTokenView):
         """
         if waffle.switch_is_active('client_credentials_validation'):
             signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+
+            require_list = PRIOR_IAL_TOKEN_REQUIRE_LIST_FOR_JWT_DECODE
+            if oidc4ida_token_format:
+                require_list = OIDC4IDC_TOKEN_REQUIRE_LIST_FOR_JWT_DECODE
             try:
                 data = jwt.decode_complete(
                     id_token,
                     signing_key,
                     # leeway=timedelta(minutes=5),
                     options={
-                        'require': [
-                            'iss',
-                            'sub',
-                            'aud',
-                            'jti',
-                            'exp',
-                            'iat',
-                            'identity_assurance_level',
-                            'auth_time',
-                            'family_name',
-                            'given_name',
-                            'birthdate',
-                        ],
+                        'require': require_list,
                         'verify_aud': False,
                     },
                     algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
@@ -908,15 +903,23 @@ class TokenView(DotTokenView):
             except jwt.PyJWTError as e:
                 log.warning(f'jwt.decode_complete() failed because {type(e)}')
                 raise InvalidRequestError
-            payload, header = data.get('payload'), data.get('header')
+            payload_to_return, header = data.get('payload'), data.get('header')
+
+            payload = payload_to_return
+            if oidc4ida_token_format:
+                payload = payload_to_return.get('verified_claims')
 
             if not payload or not header or header.get('typ') != 'JWT':
                 log.warning('Malformed header / payload')
                 raise InvalidRequestError
 
             # Validate iat and auth_time
-            self._validate_time_comparison(payload, 'iat', 300)
-            self._validate_time_comparison(payload, 'auth_time', 300)
+            if oidc4ida_token_format:
+                self._validate_time_comparison(payload_to_return, 'iat', 300)
+                self._validate_time_comparison(payload_to_return, 'auth_time', 300)
+            else:
+                self._validate_time_comparison(payload, 'iat', 300)
+                self._validate_time_comparison(payload, 'auth_time', 300)
 
             if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
                 log.warning('The issuer of the token is not valid for this environment')
@@ -926,9 +929,21 @@ class TokenView(DotTokenView):
                 log.warning('jti/iss combo replay')
                 raise InvalidRequestError
 
-            if payload.get('identity_assurance_level') < 2:
-                log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
-                raise InvalidRequestError
+            if oidc4ida_token_format:
+                if payload.get('verification', {}).get('trust_framework', '') != 'nist_800_63a':
+                    log.warning(
+                        f'trust_framework was invalid: {payload.get("verification", {}).get("trust_framework")}'
+                    )
+                    raise InvalidRequestError
+                if payload.get('verification', {}).get('assurance_level', '') not in ['ial2', 'ial3']:
+                    log.warning(
+                        f'assurance_level was invalid: {payload.get("verification", {}).get("assurance_level")}'
+                    )
+                    raise InvalidRequestError
+            else:
+                if payload.get('identity_assurance_level') < 2:
+                    log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
+                    raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
                 log.warning(
@@ -947,15 +962,15 @@ class TokenView(DotTokenView):
                 raise InvalidRequestError
         else:
             try:
-                payload = jwt.decode(id_token, options={'verify_signature': False})
+                payload_to_return = jwt.decode(id_token, options={'verify_signature': False})
             except jwt.PyJWTError as e:
                 log.warning(f'jwt.decode_complete() failed because {type(e)}')
                 raise InvalidRequestError
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+            if not self._validate_idme_url_for_id_token_and_environment(payload_to_return.get('iss', '')):
                 log.warning('The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
 
-        return payload
+        return payload_to_return
 
     def _validate_time_comparison(
         self, payload_data: dict[str, Any], jwt_key: str, max_age_seconds: int
@@ -996,15 +1011,19 @@ class TokenView(DotTokenView):
             raise InvalidRequestError
         return True
 
-    def _parse_ial_into_parameter(self, payload: dict) -> dict:
+    def _parse_ial_into_parameter(self, payload: dict, oidc4ida_token_format: bool) -> dict:
         """Parses an IAL token into a Patient and Parameters resource
 
         Args:
             payload (dict): the IAL token
+            oidc4ida_token_format (bool): Flag for if the token is in OIDC4IDA format
 
         Returns:
             Parameters: a json dump of the Parameters object
         """
+        if oidc4ida_token_format:
+            payload = payload.get('verified_claims')
+
         patient_name = HumanName(
             use='official',
             family=payload.get('family_name'),
@@ -1012,22 +1031,38 @@ class TokenView(DotTokenView):
         )
 
         telecoms = []
-        if payload.get('phone_number') and payload.get('phone_number_verified'):
-            telecoms.append(
-                ContactPoint(
-                    system='phone',
-                    value=payload.get('phone_number'),
-                    use='mobile',
-                    rank=1,
+        # To support both token types we need this check here, as OIDC4IDA does not have a phone_number_verified
+        # attribute
+        if oidc4ida_token_format:
+            if payload.get('phone_number'):
+                telecoms.append(
+                    ContactPoint(
+                        system='phone',
+                        value=payload.get('phone_number'),
+                        use='mobile',
+                        rank=1,
+                    )
                 )
-            )
+        else:
+            if payload.get('phone_number') and payload.get('phone_number_verified'):
+                telecoms.append(
+                    ContactPoint(
+                        system='phone',
+                        value=payload.get('phone_number'),
+                        use='mobile',
+                        rank=1,
+                    )
+                )
 
         if payload.get('email'):
             telecoms.append(ContactPoint(system='email', value=payload.get('email'), use='home', rank=2))
 
-        gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
-        gender = payload.get('gender', 'u').lower()
-        patient_gender = gender_map.get(gender[0], 'unknown')
+        if oidc4ida_token_format:
+            patient_gender = payload.get('gender', 'unknown').lower()
+        else:
+            gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
+            gender = payload.get('gender', 'u').lower()
+            patient_gender = gender_map.get(gender[0], 'unknown')
 
         patient_birthdate = payload.get('birthdate')
 
@@ -1217,12 +1252,15 @@ class TokenView(DotTokenView):
                             log.warning('id_token did not have a valid iss')
                             raise InvalidRequestError
 
-                        ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
+                        oidc4token_format = 'verified_claims' in pre_verified_ial.keys()
+
+                        ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks), oidc4token_format)
                         if not ial_valid:
                             log.error('_validate_ial_jwt returned None')
                             raise ServerError
 
-                        id_match_payload = self._parse_ial_into_parameter(ial_valid)
+                        id_match_payload = self._parse_ial_into_parameter(ial_valid, oidc4token_format)
+
                         # log.info(id_match_payload)
                         headers = {
                             'X-CLIENT-ID': app.client_id,

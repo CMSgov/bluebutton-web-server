@@ -1650,3 +1650,30 @@ ID_ME_URL_CONTAINS = 'oidc'
 SECONDS_IN_ONE_HOUR = 3600
 
 AUDIT_EVENT_SCOPE_ERROR_MESSAGE = 'Requesting an AuditEvent scope is only valid in token requests through CMS Aligned Networks. For more information, go to this page: https://bluebutton.cms.gov/cms-aligned-networks-documentation/'
+
+PRIOR_IAL_TOKEN_REQUIRE_LIST_FOR_JWT_DECODE = [
+    'iss',
+    'sub',
+    'aud',
+    'jti',
+    'exp',
+    'iat',
+    'identity_assurance_level',
+    'auth_time',
+    'family_name',
+    'given_name',
+    'birthdate',
+]
+
+OIDC4IDC_TOKEN_REQUIRE_LIST_FOR_JWT_DECODE = [
+    'iss',
+    'sub',
+    'aud',
+    'jti',
+    'exp',
+    'iat',
+    'verified_claims',
+    'uuid',
+    'auth_time',
+    'at_hash',
+]
