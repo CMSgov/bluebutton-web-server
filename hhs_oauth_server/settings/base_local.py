@@ -566,6 +566,17 @@ SLSX_USERINFO_ENDPOINT = env('DJANGO_SLSX_USERINFO_ENDPOINT', default='https://t
 SLSX_VERIFY_SSL_INTERNAL = env.bool('DJANGO_SLSX_VERIFY_SSL_INTERNAL', default=False)
 SLSX_VERIFY_SSL_EXTERNAL = env.bool('DJANGO_SLSX_VERIFY_SSL_EXTERNAL', default=False)
 
+# CSP (Credential Service Provider) JWKS URLs used to validate IAL id_tokens from
+# CLEAR / ID.me. These are configured per environment: the 'prod' TARGET_ENV uses
+# the production ("higher") trust anchors, all other environments use the sandbox
+# ("lower") trust anchors. The active tier is selected in apps/dot_ext/constants.py.
+CLEAR_HIGHER_JWKS_URL = env(
+    'DJANGO_CLEAR_HIGHER_JWKS_URL', default='https://verified.clearme.com/integrations/.well-known/jwks.json'
+)
+CLEAR_LOWER_JWKS_URL = env('DJANGO_CLEAR_LOWER_JWKS_URL', default='https://please-find-out-what-i.am')
+IDME_HIGHER_JWKS_URL = env('DJANGO_IDME_HIGHER_JWKS_URL', default='https://api.id.me/oidc/.well-known/jwks')
+IDME_LOWER_JWKS_URL = env('DJANGO_IDME_LOWER_JWKS_URL', default='https://api.idmelabs.com/oidc/.well-known/jwks')
+
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = 'An error occurred connecting to medicare.gov account'
 

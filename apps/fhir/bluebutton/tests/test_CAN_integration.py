@@ -14,6 +14,15 @@ from selenium.webdriver.common.by import By
 from apps.constants import CLIENT_CREDENTIALS, TEST_APP_CLIENT_ID
 from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE
 
+# The v3 token endpoint. This MUST be identical everywhere it appears: it is both
+# the URL we POST to and the `aud` claim inside the client_assertion, which the
+# token endpoint validates for an exact match (see _validate_authorization_jwt).
+BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
+
+# The key id advertised in the testclient's self-hosted JWKS and stamped on the
+# client_assertion header. Must match apps.testclient.cc_selftest.TESTCLIENT_CC_KID.
+TESTCLIENT_CC_KID = f'bb2-{os.getenv("TARGET_ENV", "local")}-cc-1'
+
 # Start with building the url
 # https://verified.clearme.com/integrations/oauth2/auth?response_type=code&client_id=bluebutton-sample&state=teststate&redirect_uri=http://localhost:3001/api/clear/callback&scope=offline%20openid%20offline_access&code_challenge=<insert_generated_code_challenge_here>&code_challenge_method=S256
 # Get the generation of the code challenge and the code verifier
@@ -170,7 +179,7 @@ def construct_ial_payload(id_token: str) -> dict:
     return {
         'iss': TEST_APP_CLIENT_ID,
         'sub': TEST_APP_CLIENT_ID,
-        'aud': 'https://localhost:8000/bluebutton.cms.gov/v3/o/token',
+        'aud': BB2_TOKEN_URL,
         'jti': str(uuid.uuid4()),
         'exp': int(time.time()) + 300,  # Current time + 5 minutes (300 seconds)
         'extensions': {'cms_smart': {'version': '1', 'purpose_of_use': 'PATRQT', 'id_token': id_token}},
@@ -190,7 +199,7 @@ def get_access_token_response(client_assertion: str, client_assertion_type: str,
     Returns:
         dict: A dictionary containing the access token and other related information.
     """
-    url = 'https://localhost:8000/bluebutton.cms.gov/v3/o/token'
+    url = BB2_TOKEN_URL
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {
         'client_assertion': client_assertion,
@@ -219,10 +228,14 @@ def test_clear_integration_flow():
 
     ial_payload = construct_ial_payload(id_token)
 
-    # Get the private key from AWS SSM as an environment variable
-    # TODO: Replace with actual env var name
+    # Long term we want to manage our own private key in SSM
     private_key = os.getenv('PRIVATE_KEY', 'your_private_key_here')
-    client_assertion = jwt.encode(ial_payload, private_key, algorithm='RS384')
+    client_assertion = jwt.encode(
+        ial_payload,
+        private_key,
+        algorithm='RS384',
+        headers={'kid': TESTCLIENT_CC_KID, 'typ': 'JWT'},
+    )
 
     # Make the call to the token endpoint with the client_assertion and other params to get back access_token and refresh_token
     client_assertion_type = CLIENT_ASSERTION_TYPE_VALUE
