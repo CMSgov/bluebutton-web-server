@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
     }
   }, {
     name = "datadog-agent"
-    image = "public.ecr.aws/datadog/agent:7.80.3"
+    image = "public.ecr.aws/datadog/agent:7.81.0-fips"
     essential = false
 
     readonlyRootFilesystem = true
