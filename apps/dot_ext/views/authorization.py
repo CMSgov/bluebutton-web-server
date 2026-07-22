@@ -1401,7 +1401,7 @@ class RevokeTokenView(DotRevokeTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except InvalidClientError as error:
+        except (InvalidClientError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
 
         return super().post(request, args, kwargs)

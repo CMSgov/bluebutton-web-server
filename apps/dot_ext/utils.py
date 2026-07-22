@@ -28,6 +28,7 @@ from apps.constants import (
     AUDIT_EVENT_SCOPE,
     AUDIT_EVENT_SEARCH_SCOPE,
     HHS_SERVER_LOGNAME_FMT,
+    REFRESH_TOKEN,
 )
 from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
 from apps.dot_ext.models import AccessTokenExtension, Application, AuthFlowTracking
@@ -170,7 +171,7 @@ def get_application_from_data(request):
     RETURN:
         application or None
     """
-    client_id, ac, rt, app = None, None, None, None
+    client_id, token, rt, app = None, None, None, None
     Application = get_application_model()
 
     # Try and get the application via `client_id`
@@ -224,10 +225,25 @@ def get_application_from_data(request):
     # If we manage to find an access token, but then not an application, we
     # have a problem, and should return an error.
     if request.POST.get('token', None):
-        ac = AccessToken.objects.get(token=request.POST.get('token', None))
+        try:
+            token = AccessToken.objects.get(token=request.POST.get('token', None))
+        except AccessToken.DoesNotExist:
+            if request.POST.get('token_type_hint', None) == REFRESH_TOKEN:
+                try:
+                    token = RefreshToken.objects.get(token=request.POST.get('token', None))
+                except RefreshToken.DoesNotExist:
+                    raise InvalidClientError(
+                        description='Token not found.',
+                        status_code=HTTPStatus.BAD_REQUEST,
+                    )
+            else:
+                raise InvalidClientError(
+                    description='Token not found.',
+                    status_code=HTTPStatus.BAD_REQUEST,
+                )
     try:
-        if ac is not None:
-            app = Application.objects.get(id=ac.application_id)
+        if token is not None:
+            app = Application.objects.get(id=token.application_id)
             return app
     except Application.DoesNotExist:
         raise InvalidClientError(
@@ -238,7 +254,13 @@ def get_application_from_data(request):
     # Try via refresh_token
     # Finally, if we have a refresh token, but cannot find an app, that's not good.
     if request.POST.get('refresh_token'):
-        rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
+        try:
+            rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
+        except RefreshToken.DoesNotExist:
+            raise InvalidClientError(
+                description='Refresh token not found.',
+                status_code=HTTPStatus.BAD_REQUEST,
+            )
     try:
         if rt is not None:
             app = Application.objects.get(id=rt.application_id)
