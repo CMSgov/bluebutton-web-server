@@ -86,6 +86,7 @@
 #ENC[AES256_GCM,data:7BakfoVOW7g=,iv:miOZB0Qur7PWllKHSbJavN6iZfJGaIvldNwq7BBTkEg=,tag:dHcSzQ7DuLk6u+LUT6vnSg==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 /bb/test/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:yabkEYO+VELj7M71,iv:xWUnoRpGJpLtPtsT2zryBJA3asBHrtxTtrzbCIdQ6No=,tag:n7ThNYd4eCWYwc1pcoA6YA==,type:int]
+/bb/test/app/sensitive/akamai_aca_token: ENC[AES256_GCM,data:MG7oneOeULRhPT8KonL6pw==,iv:QBvIV4GunNkX3jakCkdUF9aGtjGYzZ7YwWUK0lmEmbg=,tag:2yyYWWqn8rnYW4Gr16wxcg==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias
