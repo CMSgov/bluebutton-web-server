@@ -1,6 +1,10 @@
+import base64
+import hashlib
 import os
 import re
+import secrets
 import time
+import urllib
 from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
@@ -154,6 +158,74 @@ class SeleniumGenericTests:
                 assert key_cnt == 1
                 assert ak is not None
             return ak
+
+    def _get_clear_authorization_code(self, client_id: str, code_challenge: str) -> str:
+        """
+        Retrieves the authorization code from the Clear integration.
+
+        client_id: The client ID for the Clear integration.
+        code_challenge: The code challenge generated for the PKCE flow.
+
+        Returns:
+            str: The authorization code.
+        """
+        # See here for building the url: https://docs.clearme.com/docs/individual-access-token
+        clear_login_url = f'https://verified.clearme.com/integrations/oauth2/auth?response_type=code&client_id={client_id}&state=teststate&redirect_uri=http://localhost:3001/api/clear/callback&scope=offline%20openid%20offline_access&code_challenge={code_challenge}&code_challenge_method=S256'
+
+        # Simulate the user login and authorization flow
+        self.driver.get(clear_login_url)
+
+        self.driver.implicitly_wait(10)  # Wait for the page to load
+
+        phone_input = self.driver.find_element(By.XPATH, '//input[@placeholder="Phone"]')
+        phone_input.send_keys('6082113314')
+
+        time.sleep(3)
+
+        continue_button = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
+        continue_button.click()
+
+        time.sleep(3)
+
+        agree_and_continue_button = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Agree & Continue')]")
+        agree_and_continue_button.click()
+
+        time.sleep(3)
+
+        code_input = self.driver.find_element(By.XPATH, '//input[@placeholder="Enter your Code"]')
+        code_input.send_keys('123456')
+
+        time.sleep(3)
+
+        skip_button = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
+        skip_button.click()
+
+        time.sleep(20)
+
+        url = self.driver.current_url
+
+        parsed_url = urllib.parse.urlparse(url)
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+
+        authorization_code = query_params.get('code', [None])[0]
+        return authorization_code
+
+    def _generate_pkce_data(self) -> tuple:
+        """
+        Generates a code verifier and code challenge for the PKCE flow.
+
+        Returns:
+            tuple: A tuple containing the code verifier and code challenge.
+        """
+        # Generate a random code verifier
+        code_verifier = secrets.token_urlsafe(64)
+
+        # Generate the code challenge using SHA256 and base64url encoding
+        code_challenge = (
+            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode('ascii')).digest()).decode('ascii').rstrip('=')
+        )
+
+        return code_verifier, code_challenge
 
     def _find_and_click(self, timeout_sec, by, by_expr, **kwargs):
         log_step(f"Looking for element to CLICK: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
