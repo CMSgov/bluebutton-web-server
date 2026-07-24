@@ -157,5 +157,21 @@ locals {
 
       require_full_window = false
     },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] Watchdog — Alert"
+      type    = "event-v2 alert"
+      message = "Watchdog reported an alert."
+      query = <<-EOT
+      events("source:watchdog tags:\"service:${local.app}\" env:${local.env}").rollup("count").by("story_key").last("30m") > 0
+      EOT
+
+      thresholds = {
+        critical = 0
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+    },
   ]
 }
