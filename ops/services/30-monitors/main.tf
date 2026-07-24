@@ -158,6 +158,38 @@ locals {
       require_full_window = false
     },
     {
+      name    = "[${upper(local.env)}] [${local.app}] APM — New Issue to Review ({{ issue.alert_reason }})"
+      type    = "error-tracking alert"
+      message = ""
+      query   = <<-EOT
+      error-tracking("application:${local.app} environment:${local.env}").source("all").new().rollup("count").by("issue.id").last("1d") > 0
+      EOT
+
+      thresholds = {
+        critical = 0
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+    },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] APM — Issue with High Number of Errors"
+      type    = "error-tracking alert"
+      message = ""
+      query   = <<-EOT
+      error-tracking("application:${local.app} environment:${local.env}").source("all").impact().rollup("count").by("issue.id").last("1h") > 1000
+      EOT
+
+      thresholds = {
+        critical = 1000
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] Watchdog — Alert"
       type    = "event-v2 alert"
       message = "Watchdog reported an alert."
