@@ -12,7 +12,7 @@ resource "aws_lb" "alb" {
     try(module.platform.sg_cmscloud_vpn.id, null),
     try(module.platform.sg_clb_akamai.id, null),
   ])
-  subnets            = local.public_subnets
+  subnets = local.public_subnets
 
   enable_deletion_protection       = var.enable_deletion_protection
   drop_invalid_header_fields       = true
