@@ -49,7 +49,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=d0f66be83b0cf14fd21e7795eff2ae31128621bf"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=9cb3840542b06f72c3e2f64982e9610602798c46"
 
   app             = local.app
   env             = local.env
@@ -70,8 +70,7 @@ locals {
         warning  = local.env == "test" ? 0.75 : 0.25
       }
 
-      notify_no_data           = local.env != "test"
-      no_data_timeframe_minute = 60
+      on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
     },
@@ -88,8 +87,7 @@ locals {
         warning  = local.env == "prod" ? 0.5 : 0.005
       }
 
-      notify_no_data           = true
-      no_data_timeframe_minute = 60
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
     },
@@ -105,8 +103,7 @@ locals {
         warning  = 0.5
       }
 
-      notify_no_data           = true
-      no_data_timeframe_minute = 60
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
     },
@@ -122,8 +119,8 @@ locals {
       }
 
       # TODO when editing this, why does the on_missing_data appear as "Show No data" even though that's not the default for counts?
-      notify_no_data           = local.env != "test" # TODO should probably be false
-      no_data_timeframe_minute = 60
+      # TODO not sure about this
+      on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
     },
@@ -139,8 +136,7 @@ locals {
         warning  = 0.01
       }
 
-      notify_no_data           = false
-      no_data_timeframe_minute = 60
+      on_missing_data = "default"
 
       require_full_window = false
     },
