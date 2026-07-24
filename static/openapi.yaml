@@ -439,6 +439,83 @@ paths:
       tags:
         - v3
 
+  /v3/fhir/AuditEvent/{resource_id}:
+    get:
+      operationId: listReadViewAuditEvents_v3
+      description: |-
+        Returns the AuditEvent FHIR resource identified by resource_id.
+
+        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and gated
+        behind the `enable_auditevents` and `v3_endpoints` feature switches.
+      summary: "AuditEvent FHIR resource identified by resource_id"
+      security:
+        - oAuth2Security:
+          - patient/AuditEvent.rs
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: "AuditEvent FHIR resource id, e.g. -731271436-20260724183749771069189"
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirAuditEventByIdExample:
+                  $ref: '#/components/examples/V3FhirAuditEventByIdExample'
+          description: "AuditEvent FHIR resource"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. the token does not grant the patient/AuditEvent scope."
+        '404':
+          description: "Error: Not Found, e.g. the resource does not exist, or the endpoint is not enabled."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+  /v3/fhir/AuditEvent/:
+    get:
+      operationId: listSearchViewAuditEvents_v3
+      description: |-
+        Returns AuditEvent FHIR resources for the authorized beneficiary as a FHIR Bundle.
+
+        The search is automatically scoped to the authorized beneficiary: their FHIR id is
+        injected server-side as the `entity` search parameter, so no beneficiary or patient
+        query parameter is accepted from the caller.
+
+        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and gated
+        behind the `enable_auditevents` and `v3_endpoints` feature switches.
+      summary: "AuditEvent FHIR resources for the authorized beneficiary as a FHIR Bundle"
+      security:
+        - oAuth2Security:
+          - patient/AuditEvent.rs
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
+              examples:
+                V3FhirAuditEventExample:
+                  $ref: '#/components/examples/V3FhirAuditEventExample'
+          description: "AuditEvent FHIR resources bundle"
+        '401':
+          description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
+        '403':
+          description: "Error: Forbidden, e.g. the token does not grant the patient/AuditEvent scope."
+        '404':
+          description: "Error: Not Found, e.g. the endpoint is not enabled for this environment."
+        '502':
+          description: "Error: Bad Gateway, e.g. An error occurred contacting the FHIR server."
+      tags:
+        - v3
+
 ########## V2 Endpoints ##########
   /v2/connect/.well-known/openid-configuration:
     get:
@@ -1273,6 +1350,7 @@ components:
             patient/Patient.rs: Read and search patient
             patient/Coverage.rs: Read and search patient coverage
             patient/ExplanationOfBenefit.rs: Read and search patient explanation of benefit
+            patient/AuditEvent.rs: Read and search patient audit events (v3 only)
 
   schemas:
     FHIR-JSON-RESOURCE: {type: object, description: A FHIR resource}
@@ -2784,6 +2862,1883 @@ components:
                 reference: Patient/-264332726
                 display: "-264332726"
               type: replaces
+
+    V3FhirAuditEventByIdExample:
+      value:
+        resourceType: AuditEvent
+        id: '-731271436-20260724183749771069189'
+        meta:
+          profile:
+          - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+        type:
+          system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+          code: transmit
+        subtype:
+        - system: 'urn:cms:hte'
+          code: patient-match-request
+        action: 'E'
+        recorded: '2026-07-24T18:37:49.771+00:00'
+        outcome: '0'
+        purposeOfEvent:
+        - coding:
+          - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+            code: PATRQT
+            display: patient requested
+          text: patient requested
+        agent:
+        - altId: TestApp
+          name: TestApp
+          requestor: true
+          network:
+            address: '192.168.127.1'
+            type: '2'
+        source:
+          observer:
+            display: CMS Beneficiary FHIR Data Server
+        entity:
+        - what:
+            reference: Patient/-731271436
+          type:
+            system: 'http://hl7.org/fhir/resource-types'
+            code: Patient
+            display: Patient
+          role:
+            system: 'http://terminology.hl7.org/CodeSystem/object-role'
+            code: '1'
+            display: Patient
+          name: Match Info
+          description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+          detail:
+          - type: matchAlgorithm
+            valueString: '01'
+          - type: matchAlgorithmVersion
+            valueString: '3.2.2'
+
+    V3FhirAuditEventExample:
+      value:
+        resourceType: Bundle
+        id: a3b006cb-38ad-42b0-a371-f0cfc87a1ab7
+        meta:
+          lastUpdated: '2026-07-24T19:26:58.259+00:00'
+        type: searchset
+        total: 37
+        link:
+        - relation: self
+          url: 'https://sandbox.bluebutton.cms.gov/v3/fhir/AuditEvent?_format=application%2Ffhir%2Bjson&entity=-731271436'
+        entry:
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724183749771069189'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T18:37:49.771+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724183034018949699'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T18:30:34.018+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724174413965399293'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T17:44:13.965+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724174259811845332'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T17:42:59.811+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724173213474293490'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T17:32:13.474+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: test
+              name: test
+              requestor: true
+              network:
+                address: '127.0.0.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724172631535271187'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T17:26:31.535+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: test
+              name: test
+              requestor: true
+              network:
+                address: '127.0.0.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724172013017193910'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T17:20:13.017+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: test
+              name: test
+              requestor: true
+              network:
+                address: '127.0.0.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724171240298194246'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T17:12:40.298+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724163040705574536'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T16:30:40.705+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: test
+              name: test
+              requestor: true
+              network:
+                address: '127.0.0.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724162903476835528'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T16:29:03.476+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724162557186868037'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T16:25:57.186+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724162020612158981'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T16:20:20.612+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724161749538052412'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T16:17:49.538+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260724160855019028190'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-24T16:08:55.019+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260721213046380122867'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-21T21:30:46.380+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260702184033617352946'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-02T18:40:33.617+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260702182218222423213'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-02T18:22:18.222+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260702181640784957599'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-02T18:16:40.784+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260702172020571508831'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-02T17:20:20.571+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260702164646143789468'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-02T16:46:46.143+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260702160316636538291'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-02T16:03:16.636+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701193012361036143'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T19:30:12.361+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701185830673792119'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T18:58:30.673+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701182425805905945'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T18:24:25.805+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701181730157533522'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T18:17:30.157+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701180801437045742'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T18:08:01.437+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701164113697764978'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T16:41:13.697+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701162229857980329'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T16:22:29.857+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701153942386752599'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T15:39:42.386+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701150610455931163'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T15:06:10.455+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701150206978318571'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T15:02:06.978+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701145345607287302'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T14:53:45.607+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260701145046102225476'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-07-01T14:50:46.102+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260629215025580413320'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-06-29T21:50:25.580+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260629203025177784043'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-06-29T20:30:25.177+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '192.168.127.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260428180827190059308'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-04-28T18:08:27.190+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '172.18.0.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
+        - resource:
+            resourceType: AuditEvent
+            id: '-731271436-20260424184153511269531'
+            meta:
+              profile:
+              - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
+            type:
+              system: 'http://terminology.hl7.org/CodeSystem/iso-21089-lifecycle'
+              code: transmit
+            subtype:
+            - system: 'urn:cms:hte'
+              code: patient-match-request
+            action: 'E'
+            recorded: '2026-04-24T18:41:53.511+00:00'
+            outcome: '0'
+            purposeOfEvent:
+            - coding:
+              - system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
+                code: PATRQT
+                display: patient requested
+              text: patient requested
+            agent:
+            - altId: TestApp
+              name: TestApp
+              requestor: true
+              network:
+                address: '172.22.0.1'
+                type: '2'
+            source:
+              observer:
+                display: CMS Beneficiary FHIR Data Server
+            entity:
+            - what:
+                reference: Patient/-731271436
+              type:
+                system: 'http://hl7.org/fhir/resource-types'
+                code: Patient
+                display: Patient
+              role:
+                system: 'http://terminology.hl7.org/CodeSystem/object-role'
+                code: '1'
+                display: Patient
+              name: Match Info
+              description: The detail elements refer to the matching algorithm + version combination that resulted in a unique match.
+              detail:
+              - type: matchAlgorithm
+                valueString: '01'
+              - type: matchAlgorithmVersion
+                valueString: '3.2.2'
 
     V1FhirCoverageExample:
       value:
