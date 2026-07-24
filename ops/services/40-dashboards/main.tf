@@ -31,31 +31,33 @@ locals {
 }
 
 module "datadog_dashboard" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=d0f66be83b0cf14fd21e7795eff2ae31128621bf"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=9cb3840542b06f72c3e2f64982e9610602798c46"
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
 
   enable_default_widgets = {
-    ecs    = true
-    lambda = false
-    alb    = true
-    sns    = false
-    sqs    = false
-    aurora = true
-    s3     = false
-    apm    = true
+    monitors = true
+    ecs      = true
+    lambda   = false
+    alb      = true
+    sns      = false
+    sqs      = false
+    aurora   = true
+    s3       = false
+    apm      = true
   }
 
   widget_live_spans = {
-    lambda = "2d"
-    s3     = "1w"
-    sqs    = "4h"
-    sns    = "4h"
-    ecs    = "1d"
-    alb    = "1d"
-    aurora = "4h"
-    apm    = "1h"
+    current = "15m"
+    lambda  = "2d"
+    s3      = "1w"
+    sqs     = "4h"
+    sns     = "4h"
+    ecs     = "1d"
+    alb     = "1d"
+    aurora  = "4h"
+    apm     = "1h"
   }
 
   apm_primary_operation = "django.request"
