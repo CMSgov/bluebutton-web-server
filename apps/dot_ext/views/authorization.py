@@ -1401,10 +1401,12 @@ class RevokeTokenView(DotRevokeTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except (InvalidClientError, InvalidRequestError) as error:
-            return json_response_from_oauth2_error(error)
+        except (InvalidClientError, InvalidRequestError):
+            # For token revoke, we should avoid revealing any information about existence of tokens,
+            # so we'll just return a 200
+            return HttpResponse(status=HTTPStatus.OK)
 
-        return super().post(request, args, kwargs)
+        return super().post(request, *args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1453,7 +1455,7 @@ class IntrospectTokenView(DotIntrospectTokenView):
         except InvalidClientError as error:
             return json_response_from_oauth2_error(error)
 
-        return super(IntrospectTokenView, self).post(request, args, kwargs)
+        return super(IntrospectTokenView, self).post(request, *args, **kwargs)
 
 
 class PermissionScreenLogoutView(View):

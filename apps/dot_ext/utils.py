@@ -190,8 +190,8 @@ def get_application_from_data(request):
     if request.POST.get('client_assertion'):
         # for client credentials flow, we need to get the client_id from the client_assertion
         try:
-            token = request.POST.get('client_assertion')
-            auth_jwt = jwt.decode(token, options={'verify_signature': False})
+            client_assertion_token = request.POST.get('client_assertion')
+            auth_jwt = jwt.decode(client_assertion_token, options={'verify_signature': False})
             client_assertion_client_id = auth_jwt.get('iss')
 
             if client_id:
