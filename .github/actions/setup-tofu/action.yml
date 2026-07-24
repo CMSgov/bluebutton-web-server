@@ -44,22 +44,8 @@ runs:
         [[ -n "$TEST_ROLE" ]] && echo "::add-mask::${TEST_ROLE}"
         [[ -n "$PROD_ROLE" ]] && echo "::add-mask::${PROD_ROLE}"
 
-    - name: Check if tofu is installed
-      id: check-tofu
-      shell: bash
-      run: |
-        if command -v tofu &>/dev/null; then
-          echo "installed=true" >> "$GITHUB_OUTPUT"
-          echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
-        else
-          echo "installed=false" >> "$GITHUB_OUTPUT"
-        fi
-
-    - name: Setup OpenTofu
-      if: steps.check-tofu.outputs.installed != 'true'
-      uses: opentofu/setup-opentofu@v1
-      with:
-        tofu_version_file: ops/services/.opentofu-version
+    - name: Install OpenTofu
+      uses: ./.github/actions/install-tofu
 
     - name: Install sops and yq
       shell: bash
