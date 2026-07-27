@@ -147,8 +147,8 @@ locals {
   static_site_envs = {
     # skip test for now, since it is not public
     # "test": "https://test.static.bluebutton.cms.gov/",
-    "staging": "https://staging.bluebutton.cms.gov/",
-    "prod": "https://bluebutton.cms.gov/"
+    "staging" : "https://staging.bluebutton.cms.gov/",
+    "prod" : "https://bluebutton.cms.gov/"
   }
 }
 
