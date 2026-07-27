@@ -445,8 +445,7 @@ paths:
       description: |-
         Returns the AuditEvent FHIR resource identified by resource_id.
 
-        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and gated
-        behind the `enable_auditevents` and `v3_endpoints` feature switches.
+        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and only available for the Aligned Networks.
       summary: "AuditEvent FHIR resource identified by resource_id"
       security:
         - oAuth2Security:
@@ -488,8 +487,7 @@ paths:
         injected server-side as the `entity` search parameter, so no beneficiary or patient
         query parameter is accepted from the caller.
 
-        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and gated
-        behind the `enable_auditevents` and `v3_endpoints` feature switches.
+        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and only availble for the Aligned Networks.
       summary: "AuditEvent FHIR resources for the authorized beneficiary as a FHIR Bundle"
       security:
         - oAuth2Security:
