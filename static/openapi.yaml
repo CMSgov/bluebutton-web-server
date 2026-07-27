@@ -442,14 +442,21 @@ paths:
   /v3/fhir/AuditEvent/{resource_id}:
     get:
       operationId: listReadViewAuditEvents_v3
+      x-tryItOutEnabled: false
+      security: []
       description: |-
         Returns the AuditEvent FHIR resource identified by resource_id.
 
-        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and only available for the Aligned Networks.
+        This resource is restricted to applications registered with **CMS Aligned Networks**.
+        The `patient/AuditEvent.rs` scope is only granted through the Aligned Networks
+        client-credentials token flow; it cannot be requested in the standard authorization-code
+        flow and is therefore not selectable in the Authorize dialog on this page. Requests for
+        this scope through any other flow are rejected. For more information, see
+        https://bluebutton.cms.gov/cms-aligned-networks-documentation/.
+
+        Available in the v3 flow only, and gated behind the `enable_auditevents` and
+        `v3_endpoints` feature switches.
       summary: "AuditEvent FHIR resource identified by resource_id"
-      security:
-        - oAuth2Security:
-          - patient/AuditEvent.rs
       parameters:
         - name: resource_id
           in: path
@@ -470,7 +477,7 @@ paths:
         '401':
           description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
         '403':
-          description: "Error: Forbidden, e.g. the token does not grant the patient/AuditEvent scope."
+          description: "Error: Forbidden, e.g. the application is not a CMS Aligned Networks application, or the token does not grant the patient/AuditEvent scope."
         '404':
           description: "Error: Not Found, e.g. the resource does not exist, or the endpoint is not enabled."
         '502':
@@ -480,6 +487,8 @@ paths:
   /v3/fhir/AuditEvent/:
     get:
       operationId: listSearchViewAuditEvents_v3
+      x-tryItOutEnabled: false
+      security: []
       description: |-
         Returns AuditEvent FHIR resources for the authorized beneficiary as a FHIR Bundle.
 
@@ -487,11 +496,16 @@ paths:
         injected server-side as the `entity` search parameter, so no beneficiary or patient
         query parameter is accepted from the caller.
 
-        Requires the `patient/AuditEvent.rs` scope. Available in the v3 flow only, and only availble for the Aligned Networks.
+        This resource is restricted to applications registered with **CMS Aligned Networks**.
+        The `patient/AuditEvent.rs` scope is only granted through the Aligned Networks
+        client-credentials token flow; it cannot be requested in the standard authorization-code
+        flow and is therefore not selectable in the Authorize dialog on this page. Requests for
+        this scope through any other flow are rejected. For more information, see
+        https://bluebutton.cms.gov/cms-aligned-networks-documentation/.
+
+        Available in the v3 flow only, and gated behind the `enable_auditevents` and
+        `v3_endpoints` feature switches.
       summary: "AuditEvent FHIR resources for the authorized beneficiary as a FHIR Bundle"
-      security:
-        - oAuth2Security:
-          - patient/AuditEvent.rs
       parameters: []
       responses:
         '200':
@@ -506,7 +520,7 @@ paths:
         '401':
           description: "Error: Unauthorized, e.g. Authentication credentials were not provided."
         '403':
-          description: "Error: Forbidden, e.g. the token does not grant the patient/AuditEvent scope."
+          description: "Error: Forbidden, e.g. the application is not a CMS Aligned Networks application, or the token does not grant the patient/AuditEvent scope."
         '404':
           description: "Error: Not Found, e.g. the endpoint is not enabled for this environment."
         '502':
@@ -1348,7 +1362,6 @@ components:
             patient/Patient.rs: Read and search patient
             patient/Coverage.rs: Read and search patient coverage
             patient/ExplanationOfBenefit.rs: Read and search patient explanation of benefit
-            patient/AuditEvent.rs: Read and search patient audit events (v3 only)
 
   schemas:
     FHIR-JSON-RESOURCE: {type: object, description: A FHIR resource}
@@ -2864,7 +2877,7 @@ components:
     V3FhirAuditEventByIdExample:
       value:
         resourceType: AuditEvent
-        id: '-731271436-20260724183749771069189'
+        id: -731271436-20260724183749771069189
         meta:
           profile:
           - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -2888,7 +2901,7 @@ components:
           name: TestApp
           requestor: true
           network:
-            address: '192.168.127.1'
+            address: 192.168.127.1
             type: '2'
         source:
           observer:
@@ -2926,7 +2939,7 @@ components:
         entry:
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724183749771069189'
+            id: -731271436-20260724183749771069189
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -2950,7 +2963,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -2975,7 +2988,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724183034018949699'
+            id: -731271436-20260724183034018949699
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -2999,7 +3012,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3024,7 +3037,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724174413965399293'
+            id: -731271436-20260724174413965399293
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3048,7 +3061,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3073,7 +3086,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724174259811845332'
+            id: -731271436-20260724174259811845332
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3097,7 +3110,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3122,7 +3135,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724173213474293490'
+            id: -731271436-20260724173213474293490
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3146,7 +3159,7 @@ components:
               name: test
               requestor: true
               network:
-                address: '127.0.0.1'
+                address: 127.0.0.1
                 type: '2'
             source:
               observer:
@@ -3171,7 +3184,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724172631535271187'
+            id: -731271436-20260724172631535271187
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3195,7 +3208,7 @@ components:
               name: test
               requestor: true
               network:
-                address: '127.0.0.1'
+                address: 127.0.0.1
                 type: '2'
             source:
               observer:
@@ -3220,7 +3233,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724172013017193910'
+            id: -731271436-20260724172013017193910
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3244,7 +3257,7 @@ components:
               name: test
               requestor: true
               network:
-                address: '127.0.0.1'
+                address: 127.0.0.1
                 type: '2'
             source:
               observer:
@@ -3269,7 +3282,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724171240298194246'
+            id: -731271436-20260724171240298194246
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3293,7 +3306,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3318,7 +3331,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724163040705574536'
+            id: -731271436-20260724163040705574536
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3342,7 +3355,7 @@ components:
               name: test
               requestor: true
               network:
-                address: '127.0.0.1'
+                address: 127.0.0.1
                 type: '2'
             source:
               observer:
@@ -3367,7 +3380,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724162903476835528'
+            id: -731271436-20260724162903476835528
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3391,7 +3404,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3416,7 +3429,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724162557186868037'
+            id: -731271436-20260724162557186868037
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3440,7 +3453,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3465,7 +3478,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724162020612158981'
+            id: -731271436-20260724162020612158981
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3489,7 +3502,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3514,7 +3527,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724161749538052412'
+            id: -731271436-20260724161749538052412
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3538,7 +3551,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3563,7 +3576,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260724160855019028190'
+            id: -731271436-20260724160855019028190
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3587,7 +3600,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3612,7 +3625,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260721213046380122867'
+            id: -731271436-20260721213046380122867
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3636,7 +3649,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3661,7 +3674,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260702184033617352946'
+            id: -731271436-20260702184033617352946
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3685,7 +3698,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3710,7 +3723,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260702182218222423213'
+            id: -731271436-20260702182218222423213
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3734,7 +3747,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3759,7 +3772,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260702181640784957599'
+            id: -731271436-20260702181640784957599
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3783,7 +3796,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3808,7 +3821,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260702172020571508831'
+            id: -731271436-20260702172020571508831
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3832,7 +3845,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3857,7 +3870,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260702164646143789468'
+            id: -731271436-20260702164646143789468
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3881,7 +3894,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3906,7 +3919,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260702160316636538291'
+            id: -731271436-20260702160316636538291
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3930,7 +3943,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -3955,7 +3968,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701193012361036143'
+            id: -731271436-20260701193012361036143
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -3979,7 +3992,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4004,7 +4017,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701185830673792119'
+            id: -731271436-20260701185830673792119
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4028,7 +4041,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4053,7 +4066,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701182425805905945'
+            id: -731271436-20260701182425805905945
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4077,7 +4090,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4102,7 +4115,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701181730157533522'
+            id: -731271436-20260701181730157533522
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4126,7 +4139,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4151,7 +4164,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701180801437045742'
+            id: -731271436-20260701180801437045742
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4175,7 +4188,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4200,7 +4213,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701164113697764978'
+            id: -731271436-20260701164113697764978
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4224,7 +4237,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4249,7 +4262,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701162229857980329'
+            id: -731271436-20260701162229857980329
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4273,7 +4286,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4298,7 +4311,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701153942386752599'
+            id: -731271436-20260701153942386752599
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4322,7 +4335,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4347,7 +4360,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701150610455931163'
+            id: -731271436-20260701150610455931163
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4371,7 +4384,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4396,7 +4409,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701150206978318571'
+            id: -731271436-20260701150206978318571
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4420,7 +4433,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4445,7 +4458,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701145345607287302'
+            id: -731271436-20260701145345607287302
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4469,7 +4482,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4494,7 +4507,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260701145046102225476'
+            id: -731271436-20260701145046102225476
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4518,7 +4531,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4543,7 +4556,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260629215025580413320'
+            id: -731271436-20260629215025580413320
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4567,7 +4580,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4592,7 +4605,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260629203025177784043'
+            id: -731271436-20260629203025177784043
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4616,7 +4629,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '192.168.127.1'
+                address: 192.168.127.1
                 type: '2'
             source:
               observer:
@@ -4641,7 +4654,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260428180827190059308'
+            id: -731271436-20260428180827190059308
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4665,7 +4678,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '172.18.0.1'
+                address: 172.18.0.1
                 type: '2'
             source:
               observer:
@@ -4690,7 +4703,7 @@ components:
                 valueString: '3.2.2'
         - resource:
             resourceType: AuditEvent
-            id: '-731271436-20260424184153511269531'
+            id: -731271436-20260424184153511269531
             meta:
               profile:
               - 'http://hl7.org/fhir/StructureDefinition/AuditEvent'
@@ -4714,7 +4727,7 @@ components:
               name: TestApp
               requestor: true
               network:
-                address: '172.22.0.1'
+                address: 172.22.0.1
                 type: '2'
             source:
               observer:
