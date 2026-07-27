@@ -26,17 +26,17 @@ module "synthetics" {
 }
 
 resource "datadog_synthetics_test" "homepage_uptime" {
-  name    = "${local.app}-${local.env}-homepage-uptime"
+  name    = "${local.app}-${local.env}-api-homepage-uptime"
   type    = "api"
   subtype = "http"
   status  = "live"
-  message = "Synthetics test ${local.app}-${local.env}-homepage-uptime has failed. ${module.common_datadog_monitors.notify}"
+  message = "Synthetics test ${local.app}-${local.env}-api-homepage-uptime has failed. ${module.common_datadog_monitors.notify}"
 
   locations = module.synthetics.non_private_location_ids
 
   options_list {
     tick_every           = 60
-    monitor_name         = "[${upper(local.env)}] [${local.app}] Synthetics — homepage-uptime"
+    monitor_name         = "[${upper(local.env)}] [${local.app}] Synthetics — api-homepage-uptime"
     min_failure_duration = local.monitor_config.synthetics.min_failure_duration
   }
 
