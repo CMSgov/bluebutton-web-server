@@ -142,3 +142,52 @@ resource "datadog_synthetics_test" "health" {
     target   = "{\"message\":\"all's well\"}"
   }
 }
+
+locals {
+  static_site_envs = {
+    # skip test for now, since it is not public
+    # "test": "https://test.static.bluebutton.cms.gov/",
+    "staging": "https://staging.bluebutton.cms.gov/",
+    "prod": "https://bluebutton.cms.gov/"
+  }
+}
+
+resource "datadog_synthetics_test" "static_site_uptime" {
+  # Static site environments are kinda separate from API environments, the important
+  # thing is to create the monitors once for each static site env
+  for_each = local.env == "prod" ? local.static_site_envs : {}
+
+  name    = "${local.app}-${each.key}-static-site-uptime"
+  type    = "api"
+  subtype = "http"
+  status  = "live"
+  message = "Synthetics test ${local.app}-${each.key}-static-site-uptime has failed. ${module.common_datadog_monitors.notify}"
+
+  locations = module.synthetics.non_private_location_ids
+
+  options_list {
+    tick_every           = 60
+    monitor_name         = "[${upper(each.key)}] [${local.app}] Synthetics — static-site-uptime"
+    min_failure_duration = local.monitor_config.synthetics.min_failure_duration
+  }
+
+  tags = module.synthetics.base_tags
+
+  request_definition {
+    method = "GET"
+    url    = each.value
+  }
+
+  assertion {
+    type     = "statusCode"
+    operator = "is"
+    target   = "200"
+  }
+
+  assertion {
+    type     = "header"
+    operator = "is"
+    target   = "text/html"
+    property = "content-type"
+  }
+}
