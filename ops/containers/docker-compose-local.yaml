@@ -29,6 +29,8 @@ services:
       - "5432:5432"
   selenium:
     image: selenium/standalone-chromium
+    profiles:
+      - selenium
     ports:
       - "4444:4444"
 
@@ -64,7 +66,6 @@ services:
     depends_on:
       - db
       - mslsx
-      - selenium
 
   ####################
   # Mock object store

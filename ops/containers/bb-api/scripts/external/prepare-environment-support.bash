@@ -309,7 +309,7 @@ configure_slsx () {
 
 # Needed to add this to get for CAN integration tests. 
 configure_CAN_integration_credentials_if_local () {
-    if [[ "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ]]; then
+    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "1" ]]; then
         echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
         export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
         echo "::add-mask::${CLEAR_CLIENT_SECRET}"
