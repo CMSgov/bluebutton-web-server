@@ -28,11 +28,9 @@ services:
     ports:
       - "5432:5432"
   selenium:
-    image: selenium/standalone-chrome
-    platform: linux/amd64
+    image: selenium/standalone-chromium
     ports:
       - "4444:4444"
-    shm_size: 2gb
 
   ####################
   # Blue Button

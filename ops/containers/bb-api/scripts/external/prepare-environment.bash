@@ -37,6 +37,12 @@ set_bfd_urls
 gonogo "set_bfd_urls"
 
 ####################################
+# CAN_INTEGRATION_TEST_CREDENTIALS
+# retrives the credentials for CAN integration tests and sets them as environment variables
+# only does it for local or codebuild environments
+configure_CAN_integration_credentials_if_local
+
+####################################
 # CERTS
 # retrieve the certs for BFD and store them in $BFD_CERT_PEM_B64 and $BFD_KEY_PEM_B64
 # We don't write them to disk; that happens *inside* the container.

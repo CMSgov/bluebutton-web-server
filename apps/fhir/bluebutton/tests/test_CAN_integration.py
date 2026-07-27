@@ -5,17 +5,22 @@ import secrets
 import time
 import urllib
 import uuid
+from urllib.parse import urlencode
 
-# import jwt
-# import pytest
+import jwt
+import pytest
 import requests
+from django.contrib.auth.models import Group
+from django.test.client import Client
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from waffle.testutils import override_switch
 
-# from waffle.testutils import override_switch
-from apps.constants import TEST_APP_CLIENT_ID
-
-# from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE
+from apps.constants import CLIENT_CREDENTIALS, EOB_SCOPE
+from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIALS_TYPE
 
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
 # the URL we POST to and the `aud` claim inside the client_assertion, which the
@@ -28,6 +33,9 @@ TESTCLIENT_CC_KID = f'bb2-{os.getenv("TARGET_ENV", "local")}-cc-1'
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
 OTP_CODE = '123456'
 CLEAR_REDIRECT_URI = 'http://localhost:3001/api/clear/callback'
+CLEAR_CLIENT_ID = os.getenv('CLEAR_CLIENT_ID', 'your_client_id_here')
+CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET', 'your_client_secret_here')
+CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY', 'your_private_key_here')
 
 
 def generate_pkce_data() -> tuple:
@@ -46,6 +54,43 @@ def generate_pkce_data() -> tuple:
     )
 
     return code_verifier, code_challenge
+
+
+def find_element_and_click(wait: WebDriverWait, by_method: str, locator_value: str):
+    """
+    Finds the element on the page and clicks on it.
+
+    wait (WebDriverWait): The wait object that defines how long to look for the element before timing out.
+    by_method (str): The method we are using to find the element (text, name, xpath, etc.)
+    locator_value (str): The specific value we are looking for.
+
+    Raises:
+        NoSuchElementException error
+    """
+    try:
+        element = wait.until(EC.element_to_be_clickable((by_method, locator_value)))
+        element.click()
+    except NoSuchElementException:
+        print(f'Failed to click {locator_value}.')
+
+
+def find_element_and_send_keys(wait: WebDriverWait, by_method: str, locator_value: str, input_text: str):
+    """
+    Finds the element on the page and type data inside it.
+
+    wait (WebDriverWait): The wait object that defines how long to look for the element before timing out.
+    by_method (str): The method we are using to find the element (text, name, xpath, etc.)
+    locator_value (str): The specific value we are looking for.
+    input_text (str): The text to type within the element.
+
+    Raises:
+        NoSuchElementException error
+    """
+    try:
+        element = wait.until(EC.element_to_be_clickable((by_method, locator_value)))
+        element.send_keys(input_text)
+    except NoSuchElementException:
+        print(f'Failed to click {locator_value}.')
 
 
 def get_clear_authorization_code(client_id: str, code_challenge: str) -> str:
@@ -68,33 +113,46 @@ def get_clear_authorization_code(client_id: str, code_challenge: str) -> str:
 
     # Simulate the user login and authorization flow
     driver.get(clear_login_url)
+    # We use WebDriverWait so that we don't have to put manual sleeps in between each action
+    # XPATH was the most reliable way to get the object from the screen
+    wait = WebDriverWait(driver, 20)
+    find_element_and_send_keys(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//input[@placeholder="Phone"]',
+        input_text=DAMON_MYCHART_PHONE_NUMBER,
+    )
+    find_element_and_click(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//button[contains(text(), "Continue")]',
+    )
+    find_element_and_click(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//button[contains(text(), "Agree & Continue")]',
+    )
+    find_element_and_send_keys(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//input[@placeholder="6 Digit Code"]',
+        input_text=OTP_CODE,
+    )
 
-    driver.implicitly_wait(10)  # Wait for the page to load
+    # This sleep seems to be necessary because otherwise it loads too quickly and stalls.
+    # It seems to be some type of race condition.
+    time.sleep(1)
+    find_element_and_click(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//button[contains(text(), "Skip")]',
+    )
 
-    phone_input = driver.find_element(By.XPATH, '//input[@placeholder="Phone"]')
-    phone_input.send_keys(DAMON_MYCHART_PHONE_NUMBER)
-
-    time.sleep(3)
-
-    continue_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
-    continue_button.click()
-
-    time.sleep(3)
-
-    agree_and_continue_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Agree & Continue')]")
-    agree_and_continue_button.click()
-
-    time.sleep(3)
-
-    code_input = driver.find_element(By.XPATH, '//input[@placeholder="Enter your Code"]')
-    code_input.send_keys(OTP_CODE)
-
-    time.sleep(3)
-
-    skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
-    skip_button.click()
-
-    time.sleep(20)
+    try:
+        # Need to wait until code gets generated in url before proceeding
+        wait.until(EC.url_contains('code'))
+    except NoSuchElementException:
+        print('The code was not found on this page')
 
     url = driver.current_url
 
@@ -136,21 +194,22 @@ def get_clear_id_token(client_id: str, client_secret: str, code: str, code_verif
     return response.json().get('id_token')
 
 
-def construct_ial_payload(id_token: str) -> dict:
+def construct_ial_payload(id_token: str, app_client_id: str) -> dict:
     """
     Constructs the payload for the IAL (Identity Assurance Level) request to the Blue Button API token endpoint.
 
     Args:
         id_token (str): The ID token received from Clear.
+        app_client_id (str): The client ID of the application.
 
     Returns:
         dict: A dictionary representing the payload for the IAL request.
     """
     return {
-        'iss': TEST_APP_CLIENT_ID,
-        'sub': TEST_APP_CLIENT_ID,
+        'iss': app_client_id,
+        'sub': app_client_id,
         'aud': BB2_TOKEN_URL,
-        'jti': str(uuid.uuid4()),
+        'jti': str(uuid.uuid4()),  # Randomly generated uuid
         'exp': int(time.time()) + 300,  # Current time + 5 minutes (300 seconds)
         'extensions': {'cms_smart': {'version': '1', 'purpose_of_use': 'PATRQT', 'id_token': id_token}},
     }
@@ -169,8 +228,8 @@ def get_access_token_response(client_assertion: str, client_assertion_type: str,
     Returns:
         dict: A dictionary containing the access token and other related information.
     """
-    url = BB2_TOKEN_URL
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    client = Client()
+    url = '/v3/o/token'
     data = {
         'client_assertion': client_assertion,
         'client_assertion_type': client_assertion_type,
@@ -178,51 +237,64 @@ def get_access_token_response(client_assertion: str, client_assertion_type: str,
         'scope': scope,
     }
 
-    response = requests.post(url, headers=headers, data=data)
-    response.raise_for_status()
+    response = client.post(
+        url,
+        data=urlencode(data),
+        content_type='application/x-www-form-urlencoded',
+    )
     return response
 
 
-# @pytest.mark.integration
-# @pytest.mark.django_db
-# @override_switch('client_credentials_validation', active=True)
-# @override_switch('v3_endpoints', active=True)
-# def test_clear_integration_flow():
-# code_verifier, code_challenge = generate_pkce_data()
-# Use selenium to simulate the user login and authorization flow to get the authorization code
-# client_id = os.getenv('CLEAR_CLIENT_ID', 'your_client_id_here')
-# auth_code = get_clear_authorization_code(client_id, code_challenge)
+@pytest.mark.integration
+@pytest.mark.django_db
+@override_switch('client_credentials_validation', active=True)
+@override_switch('v3_endpoints', active=True)
+def test_clear_integration_flow(basic_user, create_application, create_capability):
+    # Needed to add this otherwise it would fail when looking up groups in a later method
+    Group.objects.create(name='BlueButton')
+    # Set up basic user, capability, and application
+    user = basic_user()
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
+    application = create_application(
+        name='test',
+        grant_type='client-credentials',
+        user=user,
+        allowed_auth_type=CLIENT_CREDENTIALS_TYPE,
+        jwks_uri='https://alex-dzeda.github.io/.well-known/jwks.json',
+        capability=eob_capability,
+    )
+    app_client_id = application.client_id
+    code_verifier, code_challenge = generate_pkce_data()
 
+    # Use selenium to simulate the user login and authorization flow to get the authorization code
+    auth_code = get_clear_authorization_code(CLEAR_CLIENT_ID, code_challenge)
+    # Exchange code for id token
+    id_token = get_clear_id_token(CLEAR_CLIENT_ID, CLEAR_CLIENT_SECRET, auth_code, code_verifier)
+    ial_payload = construct_ial_payload(id_token, app_client_id)
 
-# # TODO: Replace with actual env var name
-# client_secret = os.getenv('CLEAR_CLIENT_SECRET', 'your_client_secret_here')
-# id_token = get_clear_id_token(client_id, client_secret, auth_code, code_verifier)
+    # Use the private key to sign the payload and create a client_assertion JWT
+    client_assertion = jwt.encode(
+        ial_payload,
+        CAN_PRIVATE_KEY,
+        algorithm='RS384',
+        headers={'kid': 'my-key-id-1', 'typ': 'JWT'},
+    )
 
-# ial_payload = construct_ial_payload(id_token)
+    # Make the call to the token endpoint with the client_assertion and other params to get back access_token and refresh_token
+    client_assertion_type = CLIENT_ASSERTION_TYPE_VALUE
+    grant_type = CLIENT_CREDENTIALS
+    scope = EOB_SCOPE
 
-# # Long term we want to manage our own private key in SSM
-# private_key = os.getenv('PRIVATE_KEY', 'your_private_key_here')
-# client_assertion = jwt.encode(
-#     ial_payload,
-#     private_key,
-#     algorithm='RS384',
-# )
+    access_token_response = get_access_token_response(client_assertion, client_assertion_type, grant_type, scope)
 
-# # Make the call to the token endpoint with the client_assertion and other params to get back access_token and refresh_token
-# client_assertion_type = CLIENT_ASSERTION_TYPE_VALUE
-# grant_type = CLIENT_CREDENTIALS
-# scope = EOB_SCOPE
+    assert access_token_response.status_code == 200, (
+        f'Expected status code 200, got {access_token_response.status_code}'
+    )
 
-# access_token_response = get_access_token_response(client_assertion, client_assertion_type, grant_type, scope)
+    access_token_response_json = access_token_response.json()
 
-# assert access_token_response.status_code == 200, (
-#     f'Expected status code 200, got {access_token_response.status_code}'
-# )
-
-# access_token_response_json = access_token_response.json()
-
-# assert 'access_token' in access_token_response_json, 'Access token not found in response'
-# assert 'refresh_token' in access_token_response_json, 'Refresh token not found in response'
-# assert scope == access_token_response_json.get('scope'), (
-#     f'Expected scope {scope}, got {access_token_response_json.get("scope")}'
-# )
+    assert 'access_token' in access_token_response_json, 'Access token not found in response'
+    assert 'refresh_token' in access_token_response_json, 'Refresh token not found in response'
+    assert scope == access_token_response_json.get('scope'), (
+        f'Expected scope {scope}, got {access_token_response_json.get("scope")}'
+    )

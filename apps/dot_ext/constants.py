@@ -589,7 +589,7 @@ def _build_jwks_urls():
             IDME_HIGHER_ISS: settings.IDME_HIGHER_JWKS_URL,
         }
     return {
-        CLEAR_LOWER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
+        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
         IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
     }
 

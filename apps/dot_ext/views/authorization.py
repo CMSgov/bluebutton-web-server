@@ -886,7 +886,7 @@ class TokenView(DotTokenView):
                 data = jwt.decode_complete(
                     id_token,
                     signing_key,
-                    # leeway=timedelta(minutes=5),
+                    leeway=timedelta(minutes=5),
                     options={
                         'require': [
                             'iss',
