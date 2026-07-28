@@ -38,7 +38,7 @@ resource "aws_codebuild_project" "static_site" {
 
     environment_variable {
       name  = "AWS_REGION"
-      value = data.aws_region.current.id
+      value = data.aws_region.current.region
     }
   }
 
