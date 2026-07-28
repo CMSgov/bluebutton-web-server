@@ -1,11 +1,9 @@
 import json
+import os
 
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
-from django.conf import settings
 from django.http import Http404, JsonResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
-from jwt.algorithms import RSAAlgorithm
 
 
 @never_cache
@@ -19,12 +17,9 @@ def jwks_json(request):
     (``JWKS_PUBLIC_KEY_PEM`` / ``JWKS_PRIVATE_KEY_PEM``); this endpoint only needs
     the public key. Returns 404 when no public key is configured.
     """
-    public_pem = (getattr(settings, 'JWKS_PUBLIC_KEY_PEM', 'viable-public-key') or '').strip()
+    public_pem = os.getenv('JWKS_PUBLIC_KEY_PEM', None).strip()
     if not public_pem:
         raise Http404()
+    public_pem_json = json.loads(public_pem)
 
-    public_key = load_pem_public_key(public_pem.encode('utf-8'))
-    jwk = json.loads(RSAAlgorithm.to_jwk(public_key))
-    jwk.update({'kid': settings.JWKS_KEY_ID, 'use': 'sig', 'alg': 'RS256'})
-
-    return JsonResponse({'keys': [jwk]})
+    return JsonResponse(public_pem_json)

@@ -29,13 +29,13 @@ BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
 
 # The key id advertised in the testclient's self-hosted JWKS and stamped on the
 # client_assertion header. Must match apps.testclient.cc_selftest.TESTCLIENT_CC_KID.
-TESTCLIENT_CC_KID = f'bb2-{os.getenv("TARGET_ENV", "local")}-cc-1'
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
 OTP_CODE = '123456'
 CLEAR_REDIRECT_URI = 'http://localhost:3001/api/clear/callback'
 CLEAR_CLIENT_ID = os.getenv('CLEAR_CLIENT_ID', 'your_client_id_here')
 CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET', 'your_client_secret_here')
 CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY', 'your_private_key_here')
+TEST_APP_KID = 'my-key-id-1'
 
 
 def generate_pkce_data() -> tuple:
@@ -261,7 +261,7 @@ def test_clear_integration_flow(basic_user, create_application, create_capabilit
         grant_type='client-credentials',
         user=user,
         allowed_auth_type=CLIENT_CREDENTIALS_TYPE,
-        jwks_uri='https://alex-dzeda.github.io/.well-known/jwks.json',
+        jwks_uri='http://localhost:8000/.well-known/jwks.json',
         capability=eob_capability,
     )
     app_client_id = application.client_id
@@ -278,7 +278,7 @@ def test_clear_integration_flow(basic_user, create_application, create_capabilit
         ial_payload,
         CAN_PRIVATE_KEY,
         algorithm='RS384',
-        headers={'kid': 'my-key-id-1', 'typ': 'JWT'},
+        headers={'kid': TEST_APP_KID, 'typ': 'JWT'},
     )
 
     # Make the call to the token endpoint with the client_assertion and other params to get back access_token and refresh_token
