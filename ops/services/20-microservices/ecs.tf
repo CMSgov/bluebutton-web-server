@@ -40,8 +40,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
     }
     }, {
     name      = "datadog-agent"
-    # TODO should we just use 7-fips ?
-    image     = "public.ecr.aws/datadog/agent:7.81.2-fips"
+    image     = "public.ecr.aws/datadog/agent:7.81.2-fips" # TODO should we just use 7-fips ?
     essential = false
 
     readonlyRootFilesystem = true
