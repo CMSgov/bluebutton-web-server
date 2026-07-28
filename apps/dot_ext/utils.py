@@ -211,16 +211,6 @@ def get_application_from_data(request):
                 status_code=HTTPStatus.BAD_REQUEST,
             )
 
-    try:
-        if client_id:
-            app = Application.objects.get(client_id=client_id)
-            return app
-    except Application.DoesNotExist:
-        raise InvalidClientError(
-            description='Application does not exist (client_id)',
-            status_code=HTTPStatus.BAD_REQUEST,
-        )
-
     # Try via token
     # If we manage to find an access token, but then not an application, we
     # have a problem, and should return an error.
@@ -232,17 +222,22 @@ def get_application_from_data(request):
                 try:
                     token = RefreshToken.objects.get(token=request.POST.get('token', None))
                 except RefreshToken.DoesNotExist:
-                    raise InvalidClientError(
+                    raise InvalidRequestError(
                         description='Token not found.',
                         status_code=HTTPStatus.BAD_REQUEST,
                     )
             else:
-                raise InvalidClientError(
+                raise InvalidRequestError(
                     description='Token not found.',
                     status_code=HTTPStatus.BAD_REQUEST,
                 )
     try:
         if token is not None:
+            if client_id and token.application.client_id != client_id:
+                raise InvalidRequestError(
+                    description='Token does not match client_id',
+                    status_code=HTTPStatus.BAD_REQUEST,
+                )
             app = Application.objects.get(id=token.application_id)
             return app
     except Application.DoesNotExist:
@@ -257,17 +252,32 @@ def get_application_from_data(request):
         try:
             rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
         except RefreshToken.DoesNotExist:
-            raise InvalidClientError(
+            raise InvalidRequestError(
                 description='Refresh token not found.',
                 status_code=HTTPStatus.BAD_REQUEST,
             )
     try:
         if rt is not None:
+            if client_id and rt.application.client_id != client_id:
+                raise InvalidRequestError(
+                    description='Token does not match client_id',
+                    status_code=HTTPStatus.BAD_REQUEST,
+                )
             app = Application.objects.get(id=rt.application_id)
             return app
     except Application.DoesNotExist:
         raise InvalidClientError(
             description='Application does not exist (refresh_token)',
+            status_code=HTTPStatus.BAD_REQUEST,
+        )
+
+    try:
+        if client_id:
+            app = Application.objects.get(client_id=client_id)
+            return app
+    except Application.DoesNotExist:
+        raise InvalidClientError(
+            description='Application does not exist (client_id)',
             status_code=HTTPStatus.BAD_REQUEST,
         )
 

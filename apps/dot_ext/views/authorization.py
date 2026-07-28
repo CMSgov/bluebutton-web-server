@@ -1406,7 +1406,7 @@ class RevokeTokenView(DotRevokeTokenView):
         except InvalidClientError as e:
             return json_response_from_oauth2_error(e)
 
-        if meta_app is None or not meta_app.active:
+        if meta_app is not None and not meta_app.active:
             return JsonResponse(
                 {'status_code': HTTPStatus.FORBIDDEN, 'description': 'Application is not active or does not exist.'},
                 status=HTTPStatus.FORBIDDEN,
@@ -1417,6 +1417,12 @@ class RevokeTokenView(DotRevokeTokenView):
         except InvalidClientError:
             # If we couldn't find client from request, that suggests that the token was invalid, return 200
             return HttpResponse(status=HTTPStatus.OK)
+
+        if data_app is not None and not data_app.active:
+            return JsonResponse(
+                {'status_code': HTTPStatus.FORBIDDEN, 'description': 'Application is not active or does not exist.'},
+                status=HTTPStatus.FORBIDDEN,
+            )
 
         if meta_app and data_app and meta_app != data_app:
             return JsonResponse(
