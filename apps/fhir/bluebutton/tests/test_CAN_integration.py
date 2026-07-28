@@ -27,14 +27,14 @@ from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIA
 # token endpoint validates for an exact match (see _validate_authorization_jwt).
 BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
 
-# The key id advertised in the testclient's self-hosted JWKS and stamped on the
-# client_assertion header. Must match apps.testclient.cc_selftest.TESTCLIENT_CC_KID.
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
 OTP_CODE = '123456'
 CLEAR_REDIRECT_URI = 'http://localhost:3001/api/clear/callback'
 CLEAR_CLIENT_ID = os.getenv('CLEAR_CLIENT_ID', 'your_client_id_here')
 CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET', 'your_client_secret_here')
 CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY', 'your_private_key_here')
+# The key id advertised in the testclient's self-hosted JWKS and stamped on the
+# client_assertion header.
 TEST_APP_KID = 'my-key-id-1'
 
 
@@ -56,13 +56,14 @@ def generate_pkce_data() -> tuple:
     return code_verifier, code_challenge
 
 
-def find_element_and_click(wait: WebDriverWait, by_method: str, locator_value: str):
+def find_element_and_click(wait: WebDriverWait, by_method: str, locator_value: str) -> None:
     """
     Finds the element on the page and clicks on it.
 
-    wait (WebDriverWait): The wait object that defines how long to look for the element before timing out.
-    by_method (str): The method we are using to find the element (text, name, xpath, etc.)
-    locator_value (str): The specific value we are looking for.
+    Args:
+        wait (WebDriverWait): The wait object that defines how long to look for the element before timing out.
+        by_method (str): The method we are using to find the element (text, name, xpath, etc.)
+        locator_value (str): The specific value we are looking for.
 
     Raises:
         NoSuchElementException error
@@ -74,14 +75,15 @@ def find_element_and_click(wait: WebDriverWait, by_method: str, locator_value: s
         print(f'Failed to click {locator_value}.')
 
 
-def find_element_and_send_keys(wait: WebDriverWait, by_method: str, locator_value: str, input_text: str):
+def find_element_and_send_keys(wait: WebDriverWait, by_method: str, locator_value: str, input_text: str) -> None:
     """
     Finds the element on the page and type data inside it.
 
-    wait (WebDriverWait): The wait object that defines how long to look for the element before timing out.
-    by_method (str): The method we are using to find the element (text, name, xpath, etc.)
-    locator_value (str): The specific value we are looking for.
-    input_text (str): The text to type within the element.
+    Args:
+        wait (WebDriverWait): The wait object that defines how long to look for the element before timing out.
+        by_method (str): The method we are using to find the element (text, name, xpath, etc.)
+        locator_value (str): The specific value we are looking for.
+        input_text (str): The text to type within the element.
 
     Raises:
         NoSuchElementException error
@@ -97,8 +99,9 @@ def get_clear_authorization_code(client_id: str, code_challenge: str) -> str:
     """
     Retrieves the authorization code from the Clear integration.
 
-    client_id: The client ID for the Clear integration.
-    code_challenge: The code challenge generated for the PKCE flow.
+    Args:
+        client_id (str): The client ID for the Clear integration.
+        code_challenge (str): The code challenge generated for the PKCE flow.
 
     Returns:
         str: The authorization code.
@@ -251,6 +254,12 @@ def get_access_token_response(client_assertion: str, client_assertion_type: str,
 @override_switch('client_credentials_validation', active=True)
 @override_switch('v3_endpoints', active=True)
 def test_clear_integration_flow(basic_user, create_application, create_capability):
+    """
+    Integration test specifically against clear that does the following:
+     - Runs through the auth process with a synth user in CLEAR to generate a valid IAL JWT (via selenium)
+     - Generates an authorization JWT that contains the IAL JWT, using the test-app that is auto built into the app
+     - Runs through the auth process in Blue Button using the authorization JWT
+    """
     # Needed to add this otherwise it would fail when looking up groups in a later method
     Group.objects.create(name='BlueButton')
     # Set up basic user, capability, and application
