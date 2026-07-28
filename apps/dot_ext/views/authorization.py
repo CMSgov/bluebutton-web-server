@@ -1414,7 +1414,7 @@ class RevokeTokenView(DotRevokeTokenView):
 
         try:
             data_app = get_application_from_data(request)
-        except InvalidClientError:
+        except (InvalidClientError, InvalidRequestError):
             # If we couldn't find client from request, that suggests that the token was invalid, return 200
             return HttpResponse(status=HTTPStatus.OK)
 
