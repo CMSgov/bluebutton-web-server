@@ -31,7 +31,7 @@ locals {
   cluster_name         = data.aws_ecs_cluster.main.cluster_name
   private_subnets      = module.platform.private_subnet_ids
   public_subnets       = module.platform.public_subnet_ids
-  region               = module.platform.primary_region.id
+  region               = module.platform.primary_region
   account_id           = module.platform.account_id
   vpc_id               = module.platform.vpc_id
   azs                  = [for s in values(module.platform.private_subnets) : s.availability_zone]
