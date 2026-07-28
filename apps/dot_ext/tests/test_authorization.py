@@ -1096,12 +1096,12 @@ class TestAuthorizationView(BaseApiTest):
         application.active = False
         application.save()
 
-        msg_expected = 'invalid_client'
+        msg_expected = 'Application is not active or does not exist.'
         response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
         # assert FORBIDDEN and content json is expected message
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content['error'], msg_expected)
+        self.assertEqual(content['description'], msg_expected)
 
         # revert app to active in case not to impact other tests
         application.active = True

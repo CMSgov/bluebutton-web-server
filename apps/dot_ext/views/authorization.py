@@ -113,6 +113,8 @@ from apps.dot_ext.utils import (
     check_auth_tracking_and_create_access_token_extension,
     check_can_token_scope_for_audit_event_scopes,
     get_api_version_number_from_url,
+    get_application_from_data,
+    get_application_from_meta,
     get_oauth_param,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
@@ -1417,11 +1419,38 @@ class RevokeTokenView(DotRevokeTokenView):
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request, *args, **kwargs):
         try:
-            validate_app_is_active(request)
-        except InvalidClientError as error:
-            return json_response_from_oauth2_error(error)
+            meta_app = get_application_from_meta(request)
+        except InvalidClientError as e:
+            return json_response_from_oauth2_error(e)
 
-        return super().post(request, args, kwargs)
+        if meta_app is not None and not meta_app.active:
+            return JsonResponse(
+                {'status_code': HTTPStatus.FORBIDDEN, 'description': 'Application is not active or does not exist.'},
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        try:
+            data_app = get_application_from_data(request)
+        except (InvalidClientError, InvalidRequestError):
+            # If we couldn't find client from request, that suggests that the token was invalid, return 200
+            return HttpResponse(status=HTTPStatus.OK)
+
+        if data_app is not None and not data_app.active:
+            return JsonResponse(
+                {'status_code': HTTPStatus.FORBIDDEN, 'description': 'Application is not active or does not exist.'},
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        if meta_app and data_app and meta_app != data_app:
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.FORBIDDEN,
+                    'description': 'Application did not have access to the provided token.',
+                },
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        return super().post(request, *args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1470,7 +1499,7 @@ class IntrospectTokenView(DotIntrospectTokenView):
         except InvalidClientError as error:
             return json_response_from_oauth2_error(error)
 
-        return super(IntrospectTokenView, self).post(request, args, kwargs)
+        return super(IntrospectTokenView, self).post(request, *args, **kwargs)
 
 
 class PermissionScreenLogoutView(View):
