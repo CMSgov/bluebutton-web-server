@@ -307,7 +307,7 @@ configure_slsx () {
     echo "✅ set_salt"
 }
 
-# Needed to add this to get for CAN integration tests. 
+# Needed to add this for CAN integration tests. 
 configure_CAN_integration_credentials_if_local () {
     if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "1" ]]; then
         echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
