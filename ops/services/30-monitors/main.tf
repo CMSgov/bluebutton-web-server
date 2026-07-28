@@ -63,11 +63,12 @@ locals {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Target Response Time High"
       type    = "metric alert"
       message = "ALB target has high average response time."
-      query   = "avg(last_1h):avg:aws.applicationelb.target_response_time.average{application:${local.app}, environment:${local.env}} > ${local.env == "test" ? 1 : 0.35}"
+      query   = "avg(last_1h):avg:aws.applicationelb.target_response_time.average{application:${local.app}, environment:${local.env}} > 0.35"
 
+      # TODO do these thresholds make sense?
       thresholds = {
-        critical = local.env == "test" ? 1 : 0.35
-        warning  = local.env == "test" ? 0.75 : 0.25
+        critical = 0.35
+        warning  = local.env == "prod" ? 0.30 : 0.20
       }
 
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
