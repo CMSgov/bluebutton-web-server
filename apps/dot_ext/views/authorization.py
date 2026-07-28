@@ -1179,6 +1179,10 @@ class TokenView(DotTokenView):
                     status=HTTPStatus.FORBIDDEN,
                 )
             elif grant_type == CLIENT_CREDENTIALS:
+                # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
+                # in logs for client_credentials calls. This enables us to track CAN metrics app by app
+                request.can_client_id = app.client_id
+
                 # Check for malformed request
                 request_validation_result = self._validate_client_credentials_request(request)
                 if request_validation_result:
@@ -1238,13 +1242,26 @@ class TokenView(DotTokenView):
                             method='POST',
                         )
                         patient_match_found, patient = is_patient_match_found(patient_bundle)
+
+                        log_dict = {
+                            'type': 'request_response_middleware',
+                            'app_name': app.name,
+                            'patient': None,
+                            'path': request.path,
+                            'patient_match_found': False,
+                        }
+
                         if patient_match_found and patient:
                             mbi = extract_mbi_from_patient(patient)
                             fhir_id = extract_fhir_id_from_patient(patient)
                             user = self._create_or_retrieve_user(mbi, fhir_id, request)
 
+                            log_dict['patient_match_found'] = True
+                            log_dict['patient'] = fhir_id
+                            log.info(log_dict)
                             create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
+                            log.info(log_dict)
                             log.debug(f'No patient match found for client_credentials call for app: {app.name}')
                             return JsonResponse(
                                 {
