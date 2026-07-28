@@ -5,7 +5,7 @@ module "platform" {
   app                 = local.app
   env                 = local.env
   service             = local.service
-  root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
+  root_module         = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
   ssm_hierarchy_roots = ["bb"]
 }
 
@@ -22,8 +22,8 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 }
 
 locals {
-  env         = terraform.workspace
-  service     = "dashboards"
+  env     = terraform.workspace
+  service = "dashboards"
 
   default_tags = module.platform.default_tags
 
@@ -31,7 +31,7 @@ locals {
 }
 
 module "datadog_dashboard" {
-  source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=d0f66be83b0cf14fd21e7795eff2ae31128621bf"
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
@@ -43,7 +43,7 @@ module "datadog_dashboard" {
     sns    = false
     sqs    = false
     aurora = true
-    s3     = true
+    s3     = false
     apm    = true
   }
 
@@ -57,6 +57,8 @@ module "datadog_dashboard" {
     aurora = "4h"
     apm    = "1h"
   }
+
+  apm_primary_operation = "django.request"
 
   count = local.create_dashboards ? 1 : 0
 }

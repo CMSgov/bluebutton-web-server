@@ -6,12 +6,12 @@ locals {
   # Find established env name in workspace string, anchored to end to avoid substring matches
   found_env  = one([for x in ["test", "sandbox", "prod"] : x if can(regex("${x}$$", local.env))])
   parent_env = local.found_env != null ? local.found_env : local.env
-  
+
   # Sandbox is called "impl" in legacy CMS Cloud AWS naming conventions
   aws_legacy_env = local.parent_env == "sandbox" ? "impl" : local.parent_env
 
-  sdlc_env   = contains(["sandbox", "prod"], coalesce(local.parent_env, "none")) ? "production" : "non-production"
-  service    = var.service
+  sdlc_env = contains(["sandbox", "prod"], coalesce(local.parent_env, "none")) ? "production" : "non-production"
+  service  = var.service
 
   # Standard tags
   static_tags = {

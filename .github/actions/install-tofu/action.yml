@@ -1,0 +1,22 @@
+name: Install OpenTofu
+description: Install OpenTofu for BB2 infrastructure workflows
+
+runs:
+  using: composite
+  steps:
+    - name: Check if tofu is installed
+      id: check-tofu
+      shell: bash
+      run: |
+        if command -v tofu &>/dev/null; then
+          echo "installed=true" >> "$GITHUB_OUTPUT"
+          echo "tofu $(tofu version -json | jq -r .terraform_version) already installed"
+        else
+          echo "installed=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup OpenTofu
+      if: steps.check-tofu.outputs.installed != 'true'
+      uses: opentofu/setup-opentofu@v1
+      with:
+        tofu_version_file: ops/services/.opentofu-version
