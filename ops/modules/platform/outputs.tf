@@ -28,7 +28,7 @@ output "service" {
 
 output "primary_region" {
   description = "Primary AWS region"
-  value       = data.aws_region.primary
+  value       = data.aws_region.primary.region
 }
 
 output "account_id" {
