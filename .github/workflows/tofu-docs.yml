@@ -21,3 +21,5 @@ jobs:
         output-file: README.md
         output-method: "" # defined in config file
         fail-on-diff: true
+
+    - run: git diff
