@@ -1,0 +1,24 @@
+name: Generate terraform docs
+on:
+  pull_request:
+    paths:
+      - 'ops/services/**'
+      - 'ops/modules/**'
+      - '.github/workflows/tofu-docs.yml'
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Render terraform docs
+      uses: terraform-docs/gh-actions@main
+      with:
+        working-dir: ops/modules,ops/services
+        recursive: true
+        config-file: ".terraform-docs.yml"
+        template: "" # defined in config file
+        output-file: README.md
+        output-method: "" # defined in config file
+        fail-on-diff: true
