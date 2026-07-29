@@ -6,9 +6,10 @@ import pytest
 from django.test import TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
-from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
+from apps.dot_ext.constants import CLEAR_HIGHER_ISS, IDME_HIGHER_ISS, IDME_LOWER_ISS, SUPPORTED_VERSION_TEST_CASES
 from apps.dot_ext.models import AuthFlowTracking
 from apps.dot_ext.utils import (
+    build_jwks_urls,
     check_auth_tracking_and_create_access_token_extension,
     check_can_token_scope_for_audit_event_scopes,
     get_api_version_number_from_url,
@@ -273,3 +274,23 @@ def test_check_can_token_scope_for_audit_event_scopes(passed_in_scope, expected_
     """
     scope = check_can_token_scope_for_audit_event_scopes(passed_in_scope)
     assert scope == expected_scope
+
+
+def test_build_jwks_urls_returns_higher_environment(settings) -> None:
+    settings.TARGET_ENV = 'prod'
+    expected = {
+        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,
+        IDME_HIGHER_ISS: settings.IDME_HIGHER_JWKS_URL,
+    }
+    result = build_jwks_urls()
+    assert result == expected
+
+
+def test_build_jwks_urls_returns_lower_environment(settings) -> None:
+    settings.TARGET_ENV = 'test'
+    expected = {
+        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
+        IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
+    }
+    result = build_jwks_urls()
+    assert result == expected

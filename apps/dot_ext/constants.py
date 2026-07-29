@@ -1,7 +1,5 @@
 import re
 
-from django.conf import settings
-
 from apps.constants import LAUNCH_SCOPE, OPENID_SCOPE
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
@@ -576,25 +574,6 @@ CLEAR_LOWER_ISS = 'https://please-find-out-what-i.am'
 IDME_HIGHER_ISS = 'https://api.id.me/oidc'
 IDME_LOWER_ISS = 'https://api.idmelabs.com/oidc'
 
-
-def _build_jwks_urls():
-    """Map the active environment's CSP issuers to their JWKS URLs.
-
-    The JWKS URLs themselves are configured per environment in Django settings
-    (see base_ec2.py / base_local.py).
-    """
-    if getattr(settings, 'TARGET_ENV', '') == 'prod':
-        return {
-            CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,
-            IDME_HIGHER_ISS: settings.IDME_HIGHER_JWKS_URL,
-        }
-    return {
-        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
-        IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
-    }
-
-
-JWKS_URLS = _build_jwks_urls()
 
 FHIR_ROOT_OID = 'urn:oid:2.16.840.1.113883'
 APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE = (
