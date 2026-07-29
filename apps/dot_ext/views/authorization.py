@@ -792,7 +792,7 @@ class TokenView(DotTokenView):
                     signing_key,
                     issuer=client_id,
                     audience=host + reverse('oauth2_provider_v3:token-v3'),
-                    # leeway=timedelta(minutes=5),
+                    leeway=timedelta(minutes=5),
                     options={
                         'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
                     },
@@ -889,7 +889,7 @@ class TokenView(DotTokenView):
                 data = jwt.decode_complete(
                     id_token,
                     signing_key,
-                    leeway=timedelta(minutes=5),
+                    # leeway=timedelta(minutes=5),
                     options={
                         'require': [
                             'iss',
