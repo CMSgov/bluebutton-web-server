@@ -277,6 +277,9 @@ def test_check_can_token_scope_for_audit_event_scopes(passed_in_scope, expected_
 
 
 def test_build_jwks_urls_returns_higher_environment(settings) -> None:
+    """
+    Test that settings returns higher environment ISS and JWKS_URLs
+    """
     settings.TARGET_ENV = 'prod'
     expected = {
         CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,
@@ -287,6 +290,10 @@ def test_build_jwks_urls_returns_higher_environment(settings) -> None:
 
 
 def test_build_jwks_urls_returns_lower_environment(settings) -> None:
+    """
+    Test that settings returns lower environment ISS and JWKS_URLs
+    (except CLEAR is still higher since it's one environment)
+    """
     settings.TARGET_ENV = 'test'
     expected = {
         CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
