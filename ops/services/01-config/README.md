@@ -58,7 +58,7 @@ values/
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
 
@@ -70,7 +70,7 @@ values/
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_parent_env"></a> [parent\_env](#input\_parent\_env) | The parent environment of the current solution. Will correspond with `terraform.workspace`.<br/>Necessary on `tofu init` and `tofu workspace select` \_only\_. In all other situations, parent env<br/>will be divined from `terraform.workspace`. | `string` | `null` | no |
 | <a name="input_region"></a> [region](#input\_region) | AWS region for resources | `string` | `"us-east-1"` | no |
 | <a name="input_root_module"></a> [root\_module](#input\_root\_module) | Root module URL for tracking (e.g., GitHub URL) | `string` | `"https://github.com/CMSgov/bluebutton-web-server"` | no |
@@ -84,7 +84,7 @@ values/
 ## Modules
 
 | Name | Source | Version |
-| ---- | ------ | ------- |
+|------|--------|---------|
 | <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
 | <a name="module_sops"></a> [sops](#module\_sops) | ../../modules/sops | n/a |
 
@@ -105,7 +105,8 @@ No resources.
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | <a name="output_parameter_count"></a> [parameter\_count](#output\_parameter\_count) | Number of SSM parameters provisioned |
+| <a name="output_sopsw"></a> [sopsw](#output\_sopsw) | Command to edit the current environment's encrypted values file |
 | <a name="output_ssm_parameters"></a> [ssm\_parameters](#output\_ssm\_parameters) | SSM parameters provisioned from SOPS config |
 <!-- END_TF_DOCS -->
