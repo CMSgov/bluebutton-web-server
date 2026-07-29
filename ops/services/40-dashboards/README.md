@@ -10,6 +10,12 @@ See https://github.com/CMSgov/cdap/tree/main/terraform/modules/datadog_dashboard
 
 - **Datadog dashboard** using CDAP's pattern
 
+<!-- BEGIN_TF_DOCS -->
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
 ## Requirements
 
 | Name | Version |
@@ -18,27 +24,11 @@ See https://github.com/CMSgov/cdap/tree/main/terraform/modules/datadog_dashboard
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
 | <a name="requirement_datadog"></a> [datadog](#requirement\_datadog) | ~> 4.4 |
 
-## Providers
-
-| Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.51.0 |
-
-## Modules
-
-| Name | Source | Version |
-| ---- | ------ | ------- |
-| <a name="module_datadog_dashboard"></a> [datadog\_dashboard](#module\_datadog\_dashboard) | github.com/CMSgov/cdap/terraform/modules/datadog_dashboard | 6ded520857376f46bb317dca898e5df6a9ecc93b |
-| <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
-
-## Resources
-
-| Name | Type |
-| ---- | ---- |
-| [aws_secretsmanager_secret_version.datadog_cicd_api_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
-| [aws_secretsmanager_secret_version.datadog_cicd_application_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
-| [aws_ssm_parameter.bcda_account_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -48,6 +38,37 @@ See https://github.com/CMSgov/cdap/tree/main/terraform/modules/datadog_dashboard
 | <a name="input_root_module"></a> [root\_module](#input\_root\_module) | Root module URL for tracking (e.g., GitHub URL) | `string` | `"https://github.com/CMSgov/bluebutton-web-server"` | no |
 | <a name="input_secondary_region"></a> [secondary\_region](#input\_secondary\_region) | Secondary AWS region for DR/failover | `string` | `"us-west-2"` | no |
 
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Modules
+
+| Name | Source | Version |
+| ---- | ------ | ------- |
+| <a name="module_datadog_dashboard"></a> [datadog\_dashboard](#module\_datadog\_dashboard) | github.com/CMSgov/cdap/terraform/modules/datadog_dashboard | d0f66be83b0cf14fd21e7795eff2ae31128621bf |
+| <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
+
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
+## Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_secretsmanager_secret_version.datadog_cicd_api_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
+| [aws_secretsmanager_secret_version.datadog_cicd_application_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
+| [aws_ssm_parameter.bcda_account_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+
+<!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
+     'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
+     Manually updating sections between TF_DOCS tags may be overwritten.
+     See https://terraform-docs.io/user-guide/configuration/ for more information.
+-->
 ## Outputs
 
 No outputs.
+<!-- END_TF_DOCS -->
