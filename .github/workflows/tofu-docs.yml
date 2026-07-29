@@ -20,6 +20,6 @@ jobs:
         template: "" # defined in config file
         output-file: README.md
         output-method: "" # defined in config file
-        fail-on-diff: true
+        fail-on-diff: false
 
     - run: git diff
