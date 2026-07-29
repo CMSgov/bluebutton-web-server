@@ -22,4 +22,4 @@ jobs:
         output-method: "" # defined in config file
         fail-on-diff: false
 
-    - run: 'git diff --check --ignore-matching-lines="^[\|\-: ]*$"'
+    - run: 'git diff --check --ignore-matching-lines="^[: \|\-]+$"'
