@@ -15,8 +15,7 @@ jobs:
     - name: Render terraform docs
       uses: terraform-docs/gh-actions@main
       with:
-        working-dir: ops/modules,ops/services
-        recursive: true
+        working-dir: ops/modules/platform,ops/modules/sops,ops/services/00-bootstrap,ops/services/01-config,ops/services/10-cluster,ops/services/20-microservices,ops/services/30-monitors,ops/services/40-dashboards
         config-file: ".terraform-docs.yml"
         template: "" # defined in config file
         output-file: README.md
