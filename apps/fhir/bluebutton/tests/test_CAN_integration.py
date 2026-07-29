@@ -30,9 +30,9 @@ BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
 OTP_CODE = '123456'
 CLEAR_REDIRECT_URI = 'http://localhost:3001/api/clear/callback'
-CLEAR_CLIENT_ID = os.getenv('CLEAR_CLIENT_ID', 'your_client_id_here')
-CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET', 'your_client_secret_here')
-CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY', 'your_private_key_here')
+CLEAR_CLIENT_ID = os.getenv('CLEAR_CLIENT_ID')
+CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET')
+CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY')
 # The key id advertised in the testclient's self-hosted JWKS and stamped on the
 # client_assertion header.
 TEST_APP_KID = 'my-key-id-1'
