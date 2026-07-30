@@ -147,11 +147,11 @@ locals {
       type    = "metric alert"
       message = "Service ${local.app} has high error rate."
       # TODO what evaluation window?
-      query = "sum(last_1h):sum:trace.django.request.errors{env:${local.env},service:${local.app},span.kind:server}.as_count() / sum:trace.django.request.hits{env:${local.env},service:${local.app},span.kind:server}.as_count() > 0.02"
+      query = "sum(last_1h):sum:trace.django.request.errors{env:${local.env},service:${local.app},span.kind:server}.as_count() / sum:trace.django.request.hits{env:${local.env},service:${local.app},span.kind:server}.as_count() > ${local.env == "sandbox" ? 0.03 : 0.02}"
 
       thresholds = {
-        critical = 0.02
-        warning  = 0.01
+        critical = local.env == "sandbox" ? 0.03 : 0.02
+        warning  = local.env == "sandbox" ? 0.02 : 0.01
       }
 
       on_missing_data = "default"
