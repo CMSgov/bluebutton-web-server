@@ -27,6 +27,12 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  selenium:
+    image: selenium/standalone-chromium
+    profiles:
+      - selenium
+    ports:
+      - "4444:4444"
 
   ####################
   # Blue Button
@@ -60,7 +66,6 @@ services:
     depends_on:
       - db
       - mslsx
-
 
   ####################
   # Mock object store
