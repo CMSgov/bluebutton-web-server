@@ -1,17 +1,23 @@
-FROM --platform=linux/amd64 python:3.12
-ENV PYTHONUNBUFFERED 1
-ENV PYDEVD_DISABLE_FILE_VALIDATION 1
-RUN apt-get update && apt-get install -y gettext liblcms2-2=2.16-2+deb13u2 libgnutls30t64=3.8.9-3+deb13u4
+FROM --platform=linux/amd64 public.ecr.aws/amazonlinux/amazonlinux:2023
+ENV PYTHONUNBUFFERED=1
+ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+ENV PYTHON_VERSION=3.12
+
+RUN dnf update -y ; dnf install -y \
+        gettext \
+        python3.12 \
+        shadow-utils && dnf clean all && rm -rf /var/cache/dnf
+
 RUN useradd -m -s /bin/bash DEV
 USER DEV
 ADD . /code
 WORKDIR /code
-RUN python -m venv /tmp/venv
+RUN python3.12 -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
-RUN pip install pip==25.3
-RUN pip install pip-tools setuptools
-RUN pip install \
+RUN pip3.12 install pip==25.3
+RUN pip3.12 install pip-tools setuptools
+RUN pip3.12 install \
     --require-hashes \
     --no-deps \
     --prefer-binary \
