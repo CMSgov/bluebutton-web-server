@@ -1261,10 +1261,10 @@ class TokenView(DotTokenView):
 
                             log_dict['patient_match_found'] = True
                             log_dict['patient'] = fhir_id
-                            log.info(log_dict)
+                            log.info(json.dumps(log_dict))
                             create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
-                            log.info(log_dict)
+                            log.info(json.dumps(log_dict))
                             log.debug(f'No patient match found for client_credentials call for app: {app.name}')
                             return JsonResponse(
                                 {
