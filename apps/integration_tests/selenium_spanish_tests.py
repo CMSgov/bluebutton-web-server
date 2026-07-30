@@ -1,8 +1,8 @@
-from .selenium_generic import SeleniumGenericTests
+from apps.integration_tests.common_utils import screenshot_on_exception
 from apps.integration_tests.constants import SPANISH_TESTS
 from apps.versions import Versions
-from apps.integration_tests.common_utils import screenshot_on_exception
 
+from .selenium_generic import SeleniumGenericTests
 
 USE_NEW_PERM_SCREEN = 'true'
 
