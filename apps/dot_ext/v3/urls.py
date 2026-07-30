@@ -19,6 +19,7 @@ base_urlpatterns = [
     path('revoke_token/', waffle_switch('v3_endpoints')(views.RevokeTokenView.as_view()), name='revoke-token-v3'),
     path('revoke/', waffle_switch('v3_endpoints')(views.RevokeView.as_view()), name='revoke-v3'),
     path('introspect/', waffle_switch('v3_endpoints')(views.IntrospectTokenView.as_view()), name='introspect-v3'),
+    path('permission-logout', views.PermissionScreenLogoutView.as_view(), name='permission-logout'),
 ]
 
 

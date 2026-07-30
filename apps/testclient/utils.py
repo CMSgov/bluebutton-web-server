@@ -36,7 +36,9 @@ def _start_url_with_http_or_https(host: str) -> str:
 
 
 def setup_testclient_http_response(
-    include_client_secret: bool = True, version: int = Versions.NOT_AN_API_VERSION
+    include_client_secret: bool = True,
+    version: int = Versions.NOT_AN_API_VERSION,
+    post_switch_account_link: bool = True,
 ) -> OrderedDict:
     """Prepare testclient response environment
 
@@ -48,6 +50,8 @@ def setup_testclient_http_response(
     Args:
         include_client_secret (bool) : What it says.
         version (Version): Which version of the API are we navigating through.
+        post_switch_account_link (bool): Flag for if we are hitting this function after the Switch account link
+        on the v3 permissions screen was clicked. If so, we only want to set the resource uri values
 
     Returns:
         OrderedDict: A dictionary used to prepare/extend the Django session.
@@ -66,14 +70,15 @@ def setup_testclient_http_response(
     host = _start_url_with_http_or_https(host)
 
     response['resource_uri'] = host
-    response['redirect_uri'] = '{}{}'.format(host, TESTCLIENT_REDIRECT_URI)
     response['coverage_uri'] = '{}/v{}/fhir/Coverage/'.format(host, version)
 
-    auth_data = __generate_auth_data()
-    response['code_challenge_method'] = 'S256'
-    response['code_verifier'] = auth_data['code_verifier']
-    response['code_challenge'] = auth_data['code_challenge']
-    response['state'] = auth_data['state']
+    if not post_switch_account_link:
+        auth_data = __generate_auth_data()
+        response['code_challenge_method'] = 'S256'
+        response['code_verifier'] = auth_data['code_verifier']
+        response['code_challenge'] = auth_data['code_challenge']
+        response['state'] = auth_data['state']
+        response['redirect_uri'] = '{}{}'.format(host, TESTCLIENT_REDIRECT_URI)
 
     response['authorization_uri'] = f'{host}/v{version}/o/authorize/'
     response['token_uri'] = f'{host}/v{version}/o/token/'

@@ -1,12 +1,14 @@
-from rest_framework.exceptions import NotFound, APIException
-from rest_framework import status
+from typing import Any, Dict, List
+
 from requests import Response
 from requests.exceptions import JSONDecodeError
-from typing import Any, Dict, List
-from apps.versions import Versions
+from rest_framework import status
+from rest_framework.exceptions import APIException, NotFound
+
 from apps.constants import OPERATION_OUTCOME
 from apps.fhir.bluebutton.models import Fhir_Response
 from apps.fhir.bluebutton.utils import is_operation_outcome
+from apps.versions import Versions
 
 
 def process_error_response(response: Fhir_Response, version: int) -> APIException:

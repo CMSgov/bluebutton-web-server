@@ -31,10 +31,33 @@ set_msls () {
 		export DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
 }
 
-# Start socat proxy
-socat TCP-LISTEN:8000,fork,reuseaddr TCP:host.docker.internal:8000 &
-socat TCP-LISTEN:8080,fork,reuseaddr TCP:host.docker.internal:8080 &
-echo_msg "Started localhost:8000 proxy to host"
+# BB2 runs with network_mode: host on the Podman/Docker machine.
+# The selenium compose project has its own isolated bridge network whose gateway
+# does NOT route to the host-networked BB2. host.docker.internal (the machine
+# gateway) reaches host ports from any network, so proxy BB2 traffic through it.
+BB2_HOST="host.docker.internal"
+echo_msg "BB2 host resolved to: ${BB2_HOST}"
+
+# Start socat proxy - forward localhost ports to BB2 on the host
+socat TCP-LISTEN:8000,fork,reuseaddr TCP:${BB2_HOST}:8000 &
+socat TCP-LISTEN:8080,fork,reuseaddr TCP:${BB2_HOST}:8080 &
+echo_msg "Started localhost port proxy to BB2 at ${BB2_HOST}"
+
+# Chrome runs in this container's network namespace (network_mode: service:selenium-tests).
+# Wait for its Selenium Grid to be ready before pytest starts.
+export SELENIUM_GRID_HOST=localhost
+echo_msg "Waiting for Chrome Selenium Grid on localhost:4444..."
+for i in $(seq 1 30); do
+    if python3 -c "import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', 4444)); s.close()" 2>/dev/null; then
+        echo_msg "Chrome Selenium Grid is ready"
+        break
+    fi
+    sleep 2
+    if [ "$i" -eq 30 ]; then
+        echo_msg "Timeout: Chrome Selenium Grid not ready after 60s"
+        exit 1
+    fi
+done
 
 if [ "$USE_MSLSX" = true ]; then
     set_msls

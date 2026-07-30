@@ -248,10 +248,17 @@ configure_slsx () {
         export DJANGO_USER_ID_ITERATIONS="2"
         DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
         DJANGO_MEDICARE_SLSX_LOGIN_URI="http://localhost:8080/sso/authorize?client_id=bb2api"
-        DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
-        DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
-        DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
-        DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
+
+        if [[ "${TARGET_ENV}" == "codebuild" ]]; then
+            MSLSX_HOST="localhost"
+        else
+            MSLSX_HOST="mslsx"
+        fi
+
+        DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://${MSLSX_HOST}:8080/health"
+        DJANGO_SLSX_TOKEN_ENDPOINT="http://${MSLSX_HOST}:8080/sso/session"
+        DJANGO_SLSX_SIGNOUT_ENDPOINT="http://${MSLSX_HOST}:8080/sso/signout"
+        DJANGO_SLSX_USERINFO_ENDPOINT="http://${MSLSX_HOST}:8080/v1/users"
         
         DJANGO_SLSX_CLIENT_ID=bb2api
         DJANGO_SLSX_CLIENT_SECRET="xxxxx"
@@ -298,6 +305,23 @@ configure_slsx () {
     export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
     
     echo "✅ set_salt"
+}
+
+# Needed to add this for CAN integration tests. 
+configure_CAN_integration_credentials_if_local () {
+    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "1" ]]; then
+        echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
+        export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
+        echo "::add-mask::${CLEAR_CLIENT_SECRET}"
+        export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
+        echo "::add-mask::${CLEAR_CLIENT_ID}"
+        export CAN_PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id csp/private-key --query 'SecretString' --output text)
+        echo "::add-mask::${CAN_PRIVATE_KEY}"
+        export JWKS_PUBLIC_KEY_PEM=$(aws secretsmanager get-secret-value --secret-id csp/jwks-public-key-pem --query 'SecretString' --output text)
+        echo "::add-mask::${JWKS_PUBLIC_KEY_PEM}"
+
+        echo "✅ set_CAN_integration_credentials"
+    fi
 }
 
 ########################################

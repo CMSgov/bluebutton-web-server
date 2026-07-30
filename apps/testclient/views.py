@@ -17,6 +17,7 @@ from waffle.decorators import waffle_switch
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
+from apps.dot_ext.utils import get_oauth_param
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, ResponseErrors
 from apps.testclient.utils import (
@@ -101,8 +102,14 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
 
 
 def _get_oauth2_session_with_redirect(request: HttpRequest) -> OAuth2Session:
-    client_id = request.session['client_id']
-    redirect_uri = request.session['redirect_uri']
+    client_id = get_oauth_param(request, 'client_id', 'auth_client_id')
+    redirect_uri = get_oauth_param(request, 'redirect_uri')
+    if not redirect_uri:
+        # Default to /testclient/callback if there is no redirect_uri attribute. Confirmed that HOSTNAME_URL
+        # has no trailing slash in any deployed env.
+        host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
+        redirect_uri = host + '/testclient/callback'
+
     return OAuth2Session(client_id, redirect_uri=redirect_uri)
 
 
@@ -142,7 +149,7 @@ def _is_synthetic_patient_id(patient_id: str) -> bool:
 def callback(request: HttpRequest):
     """Called when returning from authorizing as a beneficiary.
 
-    When using the text client, users can authorize as a beneficiary as part of the auth workflow.
+    When using the test client, users can authorize as a beneficiary as part of the auth workflow.
 
     https://bluebutton.cms.gov/developers/#authorization:~:text=Click-,Authorize%20as%20a%20Beneficiary,-.
 
@@ -177,6 +184,7 @@ def callback(request: HttpRequest):
     # However, the default is `v0`, which is an invalid version. This keeps it of the
     # same type as valid values, but does not allow us to proceed if something has broken.
     version = request.session.get('api_ver', Versions.NOT_AN_API_VERSION)
+
     match version:
         case Versions.V1:
             token_uri += reverse('oauth2_provider:token')
@@ -196,6 +204,10 @@ def callback(request: HttpRequest):
         # Perhaps oas.fetch_token fails (and raises a `MissingTokenError`) if the code verifier
         # cannot be pulled from the session.
         cv = request.session.get('code_verifier', '')
+        if not cv:
+            session_cache = getattr(request.session, '_session_cache', {})
+            cv = session_cache.get('code_verifier', '')
+
         token = oas.fetch_token(
             token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv
         )
@@ -226,7 +238,12 @@ def callback(request: HttpRequest):
 
     # We are guaranteed at this point that the patient_id is not None, and it is a synthetic user id.
     request.session['token'] = token
-    userinfo_uri = request.session['userinfo_uri']
+
+    userinfo_uri = request.session.get('userinfo_uri')
+    # If there is no userinfo_uri in the session, that means the Switch account link on the v3 permissions screen
+    # was clicked, and we need to reset certain uri values, so the testclient works correctly
+    if not userinfo_uri:
+        request.session.update(setup_testclient_http_response(version=version, post_switch_account_link=True))
 
     try:
         userinfo = oas.get(userinfo_uri).json()
@@ -313,8 +330,7 @@ def _link_session_or_version_is_bad(session, version):
 
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
-    request.session.update(setup_testclient_http_response(version=version))
-
+    request.session.update(setup_testclient_http_response(version=version, post_switch_account_link=False))
     oas = _get_oauth2_session_with_redirect(request)
 
     # We need scopes in V3.

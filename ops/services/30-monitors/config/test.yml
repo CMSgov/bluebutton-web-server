@@ -5,3 +5,5 @@ notifications:
   victorops: false
 ecs:
   notify_no_data: false # test shuts down overnight
+rds:
+  notify_no_data: false # test shuts down overnight

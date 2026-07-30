@@ -201,6 +201,8 @@ You'll need to exec into your running instance of bb-api to do this
 1. Exec into bb-api
 2. Run `pytest -m 'integration'` or `make integration-test`
 
+If you want to run the CAN integration test, you will need to make sure that you run `make run-local CAN_INTEGRATION_TEST=1` when starting the container. This will run a selenium container since that is required in order to run the CAN integration test. You can then exec into bb-api and run `pytest apps/fhir/bluebutton/tests/test_CAN_integration.py` to run that specific test on its own or `make integration-test` to run all the integration tests.
+
 #### debugging - integration
 
 Same as unit tests
