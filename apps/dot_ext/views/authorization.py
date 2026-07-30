@@ -91,7 +91,6 @@ from apps.dot_ext.constants import (
     ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
-    JWKS_URLS,
     PARAMETERS_ID_MATCH_META,
     PATIENT_ID_MATCH_META,
     YYYY_MM_DD_REGEX,
@@ -110,6 +109,7 @@ from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
+    build_jwks_urls,
     check_auth_tracking_and_create_access_token_extension,
     check_can_token_scope_for_audit_event_scopes,
     get_api_version_number_from_url,
@@ -142,6 +142,7 @@ from apps.versions import Versions
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ['client_secret']
+JWKS_URLS = build_jwks_urls()
 
 
 def get_grant_expiration(data_access_type):

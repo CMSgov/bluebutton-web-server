@@ -307,6 +307,23 @@ configure_slsx () {
     echo "✅ set_salt"
 }
 
+# Needed to add this for CAN integration tests. 
+configure_CAN_integration_credentials_if_local () {
+    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "1" ]]; then
+        echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
+        export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
+        echo "::add-mask::${CLEAR_CLIENT_SECRET}"
+        export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
+        echo "::add-mask::${CLEAR_CLIENT_ID}"
+        export CAN_PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id csp/private-key --query 'SecretString' --output text)
+        echo "::add-mask::${CAN_PRIVATE_KEY}"
+        export JWKS_PUBLIC_KEY_PEM=$(aws secretsmanager get-secret-value --secret-id csp/jwks-public-key-pem --query 'SecretString' --output text)
+        echo "::add-mask::${JWKS_PUBLIC_KEY_PEM}"
+
+        echo "✅ set_CAN_integration_credentials"
+    fi
+}
+
 ########################################
 # cleanup_docker_stack
 # We can't run the stack twice. (Or, it isn't configured to run twice

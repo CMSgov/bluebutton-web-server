@@ -1,6 +1,6 @@
-from apps.integration_tests.selenium_generic import SeleniumGenericTests
-from apps.integration_tests.constants import TESTS, USE_NEW_PERM_SCREEN
 from apps.integration_tests.common_utils import screenshot_on_exception
+from apps.integration_tests.constants import TESTS, USE_NEW_PERM_SCREEN
+from apps.integration_tests.selenium_generic import SeleniumGenericTests
 from apps.versions import Versions
 
 
