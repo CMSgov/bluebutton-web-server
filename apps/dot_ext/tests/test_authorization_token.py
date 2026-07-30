@@ -35,6 +35,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_TYPE,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
+    PATIENT_DATA_CANNOT_BE_FOUND,
 )
 from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.dot_ext.utils import (
@@ -602,6 +603,75 @@ class TestTokenResponseFields(BaseApiTest):
                 assert '"patient_match_found": true' in auth_logs.output[1]
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
                 assert '"req_app_name": "CC App"' in request_logs.output[0]
+
+    @patch.dict(os.environ, {'TARGET_ENV': 'local'})
+    @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
+    @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
+    @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_returns_patient_match_not_found_404(
+        self, mock_get_patient, mock_validate_ial, mock_validate_auth
+    ):
+        """Verify that a client_credentials token response is a 404 because a patient match wasn't found."""
+
+        with self.assertLogs('hhs_server.apps.dot_ext.views.authorization', level='INFO') as auth_logs:
+            with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
+                # Create fake JWT for first validation step
+                internal_id_token = jwt.encode(
+                    {
+                        'iss': IDME_LOWER_ISS,
+                        'sub': '123',
+                        'aud': 'https://fake.bluebutton.cms.gov',
+                        'jti': 'jti-1',
+                        'exp': 9999999999,
+                        'iat': 1775317326,
+                    },
+                    'secret',
+                    algorithm='HS256',
+                )
+                mock_validate_auth.return_value = internal_id_token
+
+                # min necessary fields (apart from address.)
+                mock_validate_ial.return_value = {
+                    'iss': IDME_LOWER_ISS,
+                    'sub': '123',
+                    'jti': 'jti-2',
+                    'exp': 9999999999,
+                    'iat': 1775317326,
+                    'family_name': 'Smith',
+                    'given_name': 'John',
+                    'birthdate': '1970-01-01',
+                    'gender': 'Male',
+                }
+
+                # Mock patient match result not returning a patient resource
+                mock_get_patient.return_value = {
+                    'type': 'searchset',
+                    'entry': [
+                        {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
+                    ],
+                }
+
+                assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
+
+                token_request_data = {
+                    'grant_type': CLIENT_CREDENTIALS,
+                    'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                    'client_assertion': assertion,
+                    'scope': 'patient/ExplanationOfBenefit.rs openid',
+                }
+
+                response = self.client.post(
+                    f'/v{Versions.V3}/o/token/',
+                    data=urlencode(token_request_data),
+                    content_type='application/x-www-form-urlencoded',
+                )
+                assert response.status_code == HTTPStatus.NOT_FOUND
+                assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND
+
+                # Ensure that specific logs are output as a result of a client_credentials call
+                assert '"patient_match_found": false' in auth_logs.output[1]
+                assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
 
 
 class TestTokenPrivateMethods(BaseApiTest):

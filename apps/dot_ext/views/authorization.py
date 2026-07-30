@@ -92,6 +92,7 @@ from apps.dot_ext.constants import (
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
     PARAMETERS_ID_MATCH_META,
+    PATIENT_DATA_CANNOT_BE_FOUND,
     PATIENT_ID_MATCH_META,
     YYYY_MM_DD_REGEX,
 )
@@ -1269,7 +1270,7 @@ class TokenView(DotTokenView):
                             return JsonResponse(
                                 {
                                     'status_code': HTTPStatus.NOT_FOUND,
-                                    'message': f'Patient match NOT found for app {app.name}.',
+                                    'message': PATIENT_DATA_CANNOT_BE_FOUND,
                                 },
                                 status=HTTPStatus.NOT_FOUND,
                             )
