@@ -190,6 +190,38 @@ locals {
       require_full_window = false
     },
     {
+      # TODO maybe this one is temporary and we can eventually just use the above?
+      name    = "[${upper(local.env)}] [${local.app}] APM — New Unhandled Issue to Review ({{ issue.alert_reason }})"
+      type    = "error-tracking alert"
+      message = <<-EOT
+      issue: [{{[issue.id].name}}]({{ issue.link }})
+
+      ```
+      {{issue.attributes.error.type}}: {{issue.attributes.error.message}}
+      ```
+
+      - issue.attributes.error.file: {{issue.attributes.error.file}}
+      - issue.attributes.error.is_crash: {{issue.attributes.error.is_crash}}
+      - issue.attributes.error.category: {{issue.attributes.error.category}}
+      - issue.attributes.error.handling: {{issue.attributes.error.handling}}
+
+      {{#is_alert}}
+      Mark the issue as Reviewed to stop receiving this alert.
+      {{/is_alert}}
+      EOT
+      query   = <<-EOT
+      error-tracking("application:${local.app} environment:${local.env} -error.handling:handled").source("all").new().rollup("count").by("issue.id").last("2d") > 0
+      EOT
+
+      thresholds = {
+        critical = 0
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] APM — Issue with High Number of Errors"
       type    = "error-tracking alert"
       message = <<-EOT
