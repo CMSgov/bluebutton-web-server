@@ -63,5 +63,5 @@ teardown-codebuild-selenium:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
 
 run-local:
-	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" \
+	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" CAN_INTEGRATION_TEST="$(CAN_INTEGRATION_TEST)" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
