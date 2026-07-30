@@ -182,7 +182,7 @@ locals {
       {{/is_alert}}
       EOT
       # TODO maybe make this 2 days as well?
-      query   = <<-EOT
+      query = <<-EOT
       error-tracking("application:${local.app} environment:${local.env}").source("all").new().rollup("count").by("issue.id").last("1d") > 0
       EOT
 
