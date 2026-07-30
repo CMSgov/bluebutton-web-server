@@ -22,4 +22,8 @@ jobs:
         output-method: "" # defined in config file
         fail-on-diff: false
 
+    # Use a separate diff step rather than the option above so that we can
+    # ignore lines that seem to be different between versions of terraform-docs.
+    # Once the GitHub Action is updated to the latest version, we can remove this
+    # step and use the option above.
     - run: 'git diff --exit-code --ignore-matching-lines="^[: \|\-]+$"'
