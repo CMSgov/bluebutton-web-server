@@ -162,7 +162,7 @@ locals {
       name    = "[${upper(local.env)}] [${local.app}] APM — New Issue to Review ({{ issue.alert_reason }})"
       type    = "error-tracking alert"
       message = <<-EOT
-      [{{[issue.id].name}}]({{ issue.link }})
+      issue: [{{[issue.id].name}}]({{ issue.link }})
 
       ```
       {{issue.attributes.error.type}}: {{issue.attributes.error.message}}
@@ -193,7 +193,7 @@ locals {
       name    = "[${upper(local.env)}] [${local.app}] APM — Issue with High Number of Errors"
       type    = "error-tracking alert"
       message = <<-EOT
-      [{{[issue.id].name}}]({{ issue.link }})
+      issue: [{{[issue.id].name}}]({{ issue.link }})
 
       ```
       {{issue.attributes.error.type}}: {{issue.attributes.error.message}}
@@ -203,6 +203,7 @@ locals {
       - issue.attributes.error.is_crash: {{issue.attributes.error.is_crash}}
       - issue.attributes.error.category: {{issue.attributes.error.category}}
       - issue.attributes.error.handling: {{issue.attributes.error.handling}}
+
       EOT
       query   = <<-EOT
       error-tracking("application:${local.app} environment:${local.env}").source("all").impact().rollup("count").by("issue.id").last("1h") > ${local.env == "test" ? 100 : 1000}
