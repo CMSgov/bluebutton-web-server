@@ -471,6 +471,30 @@ class TestTokenResponseFields(BaseApiTest):
             client_secret=TEST_APP_CLIENT_SECRET,
         )
         self.application.scope.add(capability_a)
+        # Create fake JWT for first validation step
+        self.mock_val_auth_jwt_response = jwt.encode(
+            {
+                'iss': IDME_LOWER_ISS,
+                'sub': '123',
+                'aud': 'https://fake.bluebutton.cms.gov',
+                'jti': 'jti-1',
+                'exp': 9999999999,
+                'iat': 1775317326,
+            },
+            'secret',
+            algorithm='HS256',
+        )
+        self.mock_val_ial_jwt_response = {
+            'iss': IDME_LOWER_ISS,
+            'sub': '123',
+            'jti': 'jti-2',
+            'exp': 9999999999,
+            'iat': 1775317326,
+            'family_name': 'Smith',
+            'given_name': 'John',
+            'birthdate': '1970-01-01',
+            'gender': 'Male',
+        }
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
     @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
@@ -489,36 +513,9 @@ class TestTokenResponseFields(BaseApiTest):
             with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
                 # Mocking the matched user
                 mock_create_user.return_value = self.user
-
                 mock_get_and_update.return_value = None
-
-                # Create fake JWT for first validation step
-                internal_id_token = jwt.encode(
-                    {
-                        'iss': IDME_LOWER_ISS,
-                        'sub': '123',
-                        'aud': 'https://fake.bluebutton.cms.gov',
-                        'jti': 'jti-1',
-                        'exp': 9999999999,
-                        'iat': 1775317326,
-                    },
-                    'secret',
-                    algorithm='HS256',
-                )
-                mock_validate_auth.return_value = internal_id_token
-
-                # min necessary fields (apart from address.)
-                mock_validate_ial.return_value = {
-                    'iss': IDME_LOWER_ISS,
-                    'sub': '123',
-                    'jti': 'jti-2',
-                    'exp': 9999999999,
-                    'iat': 1775317326,
-                    'family_name': 'Smith',
-                    'given_name': 'John',
-                    'birthdate': '1970-01-01',
-                    'gender': 'Male',
-                }
+                mock_validate_auth.return_value = self.mock_val_auth_jwt_response
+                mock_validate_ial.return_value = self.mock_val_ial_jwt_response
 
                 # Mock patient match result
                 # is_patient_match_found expects at least 2 entries in successful match
@@ -616,35 +613,12 @@ class TestTokenResponseFields(BaseApiTest):
 
         with self.assertLogs('hhs_server.apps.dot_ext.views.authorization', level='INFO') as auth_logs:
             with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
-                # Create fake JWT for first validation step
-                internal_id_token = jwt.encode(
-                    {
-                        'iss': IDME_LOWER_ISS,
-                        'sub': '123',
-                        'aud': 'https://fake.bluebutton.cms.gov',
-                        'jti': 'jti-1',
-                        'exp': 9999999999,
-                        'iat': 1775317326,
-                    },
-                    'secret',
-                    algorithm='HS256',
-                )
-                mock_validate_auth.return_value = internal_id_token
-
-                # min necessary fields (apart from address.)
-                mock_validate_ial.return_value = {
-                    'iss': IDME_LOWER_ISS,
-                    'sub': '123',
-                    'jti': 'jti-2',
-                    'exp': 9999999999,
-                    'iat': 1775317326,
-                    'family_name': 'Smith',
-                    'given_name': 'John',
-                    'birthdate': '1970-01-01',
-                    'gender': 'Male',
-                }
+                mock_validate_auth.return_value = self.mock_val_auth_jwt_response
+                mock_validate_ial.return_value = self.mock_val_ial_jwt_response
 
                 # Mock patient match result not returning a patient resource
+                # This covers the case when there are no matches or multiple matches,
+                # because BFD will return no patient resource regardless
                 mock_get_patient.return_value = {
                     'type': 'searchset',
                     'entry': [
@@ -672,6 +646,7 @@ class TestTokenResponseFields(BaseApiTest):
                 # Ensure that specific logs are output as a result of a client_credentials call
                 assert '"patient_match_found": false' in auth_logs.output[1]
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
+                assert '"req_app_name": "CC App"' in request_logs.output[0]
 
 
 class TestTokenPrivateMethods(BaseApiTest):
