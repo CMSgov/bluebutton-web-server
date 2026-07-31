@@ -1,20 +1,22 @@
-FROM python:3.12-slim-bookworm
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHON_VERSION=3.12
 
-RUN apt-get update \
-    && apt-get install -y libgnutls30=3.7.9-2+deb12u7
+RUN dnf update -y && dnf install -y python3.12 && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /code
 
+RUN python3.12 -m venv /venv
+ENV PATH="/venv/bin:${PATH}"
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir pip==25.3 && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir debugpy
+RUN pip3.12 install --no-cache-dir pip==25.3 && \
+    pip3.12 install --no-cache-dir -r requirements.txt && \
+    pip3.12 install --no-cache-dir debugpy
 
 COPY . .
 
 EXPOSE 8080
 
-CMD ["python", "app.py"]
+CMD ["python3.12", "app.py"]
