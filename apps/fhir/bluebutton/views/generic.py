@@ -99,8 +99,8 @@ class FhirDataView(APIView):
         logger.debug('Request.path: %s' % request.path)
         req_meta = request.META
 
-        if 'HTTP_AUTHORIZATION' in req_meta:
-            access_token = req_meta['HTTP_AUTHORIZATION'].split(' ')[1]
+        if 'HTTP_AUTHORIZATION' in req_meta and req_meta['HTTP_AUTHORIZATION'].startswith('Bearer '):
+            access_token = req_meta['HTTP_AUTHORIZATION'].removeprefix('Bearer ')
             try:
                 at = AccessToken.objects.get(token=access_token)
                 log_message = {
