@@ -37,6 +37,12 @@ set_bfd_urls
 gonogo "set_bfd_urls"
 
 ####################################
+# CAN_INTEGRATION_TEST_CREDENTIALS
+# retrives the credentials for CAN integration tests and sets them as environment variables
+# only does it for local or codebuild environments
+configure_CAN_integration_credentials_if_local
+
+####################################
 # CERTS
 # retrieve the certs for BFD and store them in $BFD_CERT_PEM_B64 and $BFD_KEY_PEM_B64
 # We don't write them to disk; that happens *inside* the container.
@@ -113,12 +119,14 @@ else
         docker compose -f ops/containers/docker-compose-local.yaml down --remove-orphans -t 1
         exit
     else
+        # Enabling CAN_INTEGRATION_TEST will run selenium too since that's needed for this test
         echo "📊 Tailing logs."
         echo
         BUILD_TARGET=local \
         RELEASE_TAG=local \
         TARGET_ENV="local" \
         docker compose \
+            ${CAN_INTEGRATION_TEST:+--profile selenium} \
             -f ops/containers/docker-compose-local.yaml \
             --env-file ops/containers/bb-api/files/external/.env.container \
             up --abort-on-container-exit
