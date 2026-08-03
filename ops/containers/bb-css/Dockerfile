@@ -6,8 +6,8 @@ ENV PYTHON_VERSION=3.12
 
 RUN dnf update -y \
     && dnf install -y \
-        nodejs22 \
-        nodejs22-npm && dnf clean all && rm -rf /var/cache/dnf
+        nodejs24 \
+        nodejs24-npm && dnf clean all && rm -rf /var/cache/dnf
 
 # Add in the codebase
 ADD .. /code
