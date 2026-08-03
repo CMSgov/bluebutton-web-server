@@ -5,6 +5,7 @@ on:
       - 'ops/services/**'
       - 'ops/modules/**'
       - '.github/workflows/tofu-docs.yml'
+      - '.terraform-docs.yml'
 
 jobs:
   docs:
