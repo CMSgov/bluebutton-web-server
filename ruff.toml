@@ -17,7 +17,7 @@ target-version = "py312"
 
 [lint]
 # These are recommended by Ruff documentation: https://docs.astral.sh/ruff/linter/
-# TO DO: Consider adding more rulesets in the future like ISort.
+# TODO: Consider adding more rulesets in the future.
 select = [
           "E", # pycodestyle errors
           "F", # Pyflakes
