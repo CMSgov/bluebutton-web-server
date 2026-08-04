@@ -25,6 +25,8 @@ select = [
           "I", # isort
           ]
 ignore = [
+          "F403", # undefined-local-with-import-star, carried over from flake8 config
+          "F405", # undefined-local-with-import-star-usage, carried over from flake8 config
           "W191", # Tab indentation, handled by formatter
           "E111", # Indentation with invalid multiple, handled by formatter
           "E114", # Indentation with invalid multiple, in comments handled by formatter
