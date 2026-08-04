@@ -22,6 +22,7 @@ select = [
           "E", # pycodestyle errors
           "F", # Pyflakes
           "W", # pycodestyle warnings
+          "I", # isort
           ]
 ignore = [
           "F403", # undefined-local-with-import-star, carried over from flake8 config
