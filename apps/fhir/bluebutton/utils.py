@@ -724,7 +724,7 @@ def get_patient_by_mbi_hash(mbi_hash, request):
     headers['BlueButton-Application'] = 'BB2-Tools'
     headers['includeIdentifiers'] = 'true'
 
-    search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'  # noqa: E231
+    search_identifier = f'https://bluebutton.cms.gov/resources/identifier/mbi-hash|{mbi_hash}'
     payload = {'identifier': search_identifier}
     url = f'{fhir_settings.fhir_url}/v2/fhir/Patient/_search'
 

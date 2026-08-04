@@ -23,6 +23,7 @@ select = [
           "F", # Pyflakes
           "W", # pycodestyle warnings
           "I", # isort
+          "RUF100", # unused-noqa
           ]
 ignore = [
           "W191", # Tab indentation, handled by formatter

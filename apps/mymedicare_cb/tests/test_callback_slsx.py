@@ -279,7 +279,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         AnonUserState.objects.create(
             state=state,
             next_uri=(
-                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'  # noqa: E231
+                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
             ),
         )
@@ -323,14 +323,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn('client_id=test', response.url)
             self.assertIn('redirect_uri=test.com', response.url)
             self.assertIn('response_type=token', response.url)
-            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)  # noqa: E231
+            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
-        AnonUserState.objects.create(state=state, next_uri='http://www.doesnotexist.gov')  # noqa: E231
+        AnonUserState.objects.create(state=state, next_uri='http://www.doesnotexist.gov')
 
         @all_requests
         def catchall(url, request):
@@ -1170,7 +1170,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         AnonUserState.objects.create(
             state=state,
             next_uri=(
-                'http://www.doesnotexist.gov?next=/v1/o/authorize'  # noqa: E231
+                'http://www.doesnotexist.gov?next=/v1/o/authorize'
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
             ),
         )
