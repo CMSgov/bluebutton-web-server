@@ -1,8 +1,8 @@
 import logging
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

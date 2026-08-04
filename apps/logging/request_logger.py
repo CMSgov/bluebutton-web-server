@@ -1,7 +1,8 @@
-import logging
 import json
+import logging
 
 from django.conf import settings
+
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 
 CRITICAL = logging.CRITICAL

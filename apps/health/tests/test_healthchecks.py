@@ -2,6 +2,7 @@ import json
 
 from django.test.client import Client
 from httmock import HTTMock, all_requests
+
 from apps.test import BaseApiTest
 
 ENDPOINT_TEST_CASES = [

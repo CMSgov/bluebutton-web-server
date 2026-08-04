@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.urls import reverse_lazy
+from rest_framework import serializers
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
-from rest_framework import serializers
 from rest_framework.response import Response
+
 from apps.dot_ext.models import Application
 
 

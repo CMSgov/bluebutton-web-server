@@ -1,16 +1,14 @@
-import unittest
 import base64
+import unittest
 
-from django.urls import include, path
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import TestCase
 from django.test.utils import override_settings
-
+from django.urls import include, path
 from oauth2_provider.models import get_application_model
 
 from apps.dot_ext.authentication import SLSAuthentication
-
 
 Application = get_application_model()
 UserModel = get_user_model()

@@ -1,4 +1,5 @@
 from functools import wraps
+
 from waffle import switch_is_active
 
 

@@ -1,12 +1,13 @@
 import debugpy
+
 from apps.integration_tests.common_utils import screenshot_on_exception
-from apps.integration_tests.selenium_generic import SeleniumGenericTests
 from apps.integration_tests.constants import (
+    ACCT_TESTS,
     USER_ACCT_ACTIVATION_EMAIL_SUBJ,
     USER_ACCT_ACTIVATION_KEY_PREFIX,
     USER_ACTIVATION_PATH_FMT,
-    ACCT_TESTS,
 )
+from apps.integration_tests.selenium_generic import SeleniumGenericTests
 
 
 class TestUserAndAppMgmt(SeleniumGenericTests):

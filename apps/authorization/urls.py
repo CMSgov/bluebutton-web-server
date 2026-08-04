@@ -1,7 +1,8 @@
 from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
-from apps.authorization.views import ExpireDataAccessGrantView, AuthorizedGrants
 from waffle.decorators import waffle_switch
+
+from apps.authorization.views import AuthorizedGrants, ExpireDataAccessGrantView
 
 router = DefaultRouter()
 router.register(r'tokens', AuthorizedGrants, basename='token')

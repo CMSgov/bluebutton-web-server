@@ -1,12 +1,12 @@
 from django.urls import path, re_path
+
 from apps.health.views import (
     CheckBFD,
     CheckDB,
-    CheckInternal,
     CheckExternal,
+    CheckInternal,
     CheckSLSX,
 )
-
 
 urlpatterns = [
     re_path(r'/external/?$', CheckExternal.as_view()),
