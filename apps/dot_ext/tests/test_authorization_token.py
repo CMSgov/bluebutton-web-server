@@ -606,10 +606,10 @@ class TestTokenResponseFields(BaseApiTest):
     @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
-    def test_client_credentials_returns_patient_match_not_found_404(
+    def test_client_credentials_returns_patient_match_not_found_401(
         self, mock_get_patient, mock_validate_ial, mock_validate_auth
     ):
-        """Verify that a client_credentials token response is a 404 because a patient match wasn't found."""
+        """Verify that a client_credentials token response is a 401 because a patient match wasn't found."""
 
         with self.assertLogs('hhs_server.apps.dot_ext.views.authorization', level='INFO') as auth_logs:
             with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
@@ -640,7 +640,7 @@ class TestTokenResponseFields(BaseApiTest):
                     data=urlencode(token_request_data),
                     content_type='application/x-www-form-urlencoded',
                 )
-                assert response.status_code == HTTPStatus.NOT_FOUND
+                assert response.status_code == HTTPStatus.UNAUTHORIZED
                 assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND
 
                 # Ensure that specific logs are output as a result of a client_credentials call
