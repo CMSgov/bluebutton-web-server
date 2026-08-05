@@ -1,11 +1,14 @@
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
-from rest_framework import status
+from django.http import HttpResponse
 from django.urls import include, path, re_path
 from django.contrib import admin
 from waffle.decorators import waffle_switch
 
-from apps.accounts.views.oauth2_profile import openidconnect_userinfo_v1, openidconnect_userinfo_v2, openidconnect_userinfo_v3
+from apps.accounts.views.oauth2_profile import (
+    openidconnect_userinfo_v1,
+    openidconnect_userinfo_v2,
+    openidconnect_userinfo_v3,
+)
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.wellknown.views.openid import smart_configuration_v1, smart_configuration_v2, smart_configuration_v3
 from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
@@ -136,22 +139,5 @@ if not getattr(settings, 'NO_UI', False):
         path('', include('apps.home.urls')),
     ]
 
-handler500 = 'hhs_oauth_server.urls.server_error'
-handler400 = 'hhs_oauth_server.urls.bad_request'
-
-
-# TODO Replace this with defaults from rest_framework once upgraded to > 3.7.7
-def server_error(request, *args, **kwargs):
-    """
-    Generic 500 error handler.
-    """
-    data = {'error': 'Server Error (500)'}
-    return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-def bad_request(request, exception, *args, **kwargs):
-    """
-    Generic 400 error handler.
-    """
-    data = {'error': 'Bad Request (400)'}
-    return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+handler500 = 'rest_framework.exceptions.server_error'
+handler400 = 'rest_framework.exceptions.bad_request'

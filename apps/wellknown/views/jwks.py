@@ -17,7 +17,7 @@ def jwks_json(request):
     (``JWKS_PUBLIC_KEY_PEM`` / ``JWKS_PRIVATE_KEY_PEM``); this endpoint only needs
     the public key. Returns 404 when no public key is configured.
     """
-    public_pem = os.getenv('JWKS_PUBLIC_KEY_PEM', None).strip()
+    public_pem = os.getenv('JWKS_PUBLIC_KEY_PEM', '').strip()
     if not public_pem:
         raise Http404()
     public_pem_json = json.loads(public_pem)
