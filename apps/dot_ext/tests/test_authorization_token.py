@@ -648,6 +648,52 @@ class TestTokenResponseFields(BaseApiTest):
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
                 assert '"req_app_name": "CC App"' in request_logs.output[0]
 
+    @pytest.mark.integration
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_returns_patient_match_not_found_401_integration(self):
+        """Verify that a client_credentials token response is a 401 because a patient match wasn't found.
+        This test is an integration test that does not mock the patient match response, and instead uses a real
+        call to BFD to get the patient match response.
+        """
+        patient_info = {
+            'iss': IDME_LOWER_ISS,
+            'family_name': 'Coffee',
+            'given_name': 'Joey',
+            # Purposefully using a birthdate that is not in BFD to ensure that the patient match fails.
+            # See the sample requests folder for the patient_match_all_requests.json file that contains
+            # the patient match request with the actual birthdate for a successful match
+            'birthdate': '1977-06-05',
+            'address': {
+                'street_address': '777 BROCKTON AVENUE',
+                'locality': 'ABINGTON',
+                'region': 'MA',
+                'postal_code': '02351',
+                'formatted': '777 BROCKTON AVENUE ABINGTON, MA 02351 US',
+                'country': 'US',
+            },
+        }
+        id_token = jwt.encode(patient_info, 'secret', algorithm='HS256')
+        assertion = jwt.encode(
+            {'iss': self.application.client_id, 'extensions': {'cms_smart': {'id_token': id_token}}},
+            'secret',
+            algorithm='HS256',
+        )
+
+        token_request_data = {
+            'grant_type': CLIENT_CREDENTIALS,
+            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            'client_assertion': assertion,
+            'scope': 'patient/ExplanationOfBenefit.rs openid',
+        }
+
+        response = self.client.post(
+            f'/v{Versions.V3}/o/token/',
+            data=urlencode(token_request_data),
+            content_type='application/x-www-form-urlencoded',
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND
+
 
 class TestTokenPrivateMethods(BaseApiTest):
     def setUp(self):
