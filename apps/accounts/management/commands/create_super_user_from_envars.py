@@ -14,8 +14,7 @@ def create_superuser(username, password, email):
         u = User.objects.get(username=username)
     except User.DoesNotExist:
         # Otherwise we instantiate the super user
-        u = User(username=username, first_name="Super", last_name="User",
-                 email=email)
+        u = User(username=username, first_name='Super', last_name='User', email=email)
     u.set_password(password)
     u.is_superuser = True
     u.is_staff = True
@@ -29,9 +28,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # get variables
-        super_username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "")
-        super_password = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "")
-        super_email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
+        super_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', '')
+        super_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', '')
+        super_email = os.environ.get('DJANGO_SUPERUSER_EMAIL', '')
         if super_username and super_password and super_email:
             # create a super user
             r = create_superuser(super_username, super_password, super_email)
@@ -42,4 +41,5 @@ class Command(BaseCommand):
         else:
             logger.debug(
                 'Environment variables DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_PASSWORD,',
-                'DJANGO_SUPERUSER_EMAIL must be set before using this command.')
+                'DJANGO_SUPERUSER_EMAIL must be set before using this command.',
+            )

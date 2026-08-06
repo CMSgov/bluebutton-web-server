@@ -43,8 +43,8 @@ class Command(BaseCommand):
             self._log('test_user user exist')
         except User.DoesNotExist:
             User.objects.create_user(
-                'test_user', password='foobarbaz', first_name='Test',
-                last_name='User', email='test_user@a.com')
+                'test_user', password='foobarbaz', first_name='Test', last_name='User', email='test_user@a.com'
+            )
             self._log('test_user user created')
 
         # create read capability
@@ -53,8 +53,11 @@ class Command(BaseCommand):
         except ProtectedCapability.DoesNotExist:
             read_urls = [['GET', '/api/read/']]
             read_capability = ProtectedCapability.objects.create(
-                title='read capability', slug='read-capability',
-                protected_resources=json.dumps(read_urls), group=read_group)
+                title='read capability',
+                slug='read-capability',
+                protected_resources=json.dumps(read_urls),
+                group=read_group,
+            )
             self._log('read capability created')
 
         # create write capability
@@ -63,8 +66,11 @@ class Command(BaseCommand):
         except ProtectedCapability.DoesNotExist:
             write_urls = [['POST', '/api/write/']]
             write_capability = ProtectedCapability.objects.create(
-                title='write capability', slug='write-capability',
-                protected_resources=json.dumps(write_urls), group=write_group)
+                title='write capability',
+                slug='write-capability',
+                protected_resources=json.dumps(write_urls),
+                group=write_group,
+            )
             self._log('write capability created')
 
         # create an application with read capability
@@ -73,10 +79,13 @@ class Command(BaseCommand):
             self._log('read application exist')
         except Application.DoesNotExist:
             read_application = Application.objects.create(
-                name='test-app-read', user=test_dev,
+                name='test-app-read',
+                user=test_dev,
                 client_type=Application.CLIENT_PUBLIC,
                 authorization_grant_type=Application.GRANT_PASSWORD,
-                client_id='test_app_read', client_secret='test_app_read')
+                client_id='test_app_read',
+                client_secret='test_app_read',
+            )
             read_application.scope.add(read_capability)
             self._log('read application created')
 
@@ -86,10 +95,13 @@ class Command(BaseCommand):
             self._log('write application exist')
         except Application.DoesNotExist:
             write_application = Application.objects.create(
-                name='test-app-write', user=test_dev,
+                name='test-app-write',
+                user=test_dev,
                 client_type=Application.CLIENT_PUBLIC,
                 authorization_grant_type=Application.GRANT_PASSWORD,
-                client_id='test_app_write', client_secret='test_app_write')
+                client_id='test_app_write',
+                client_secret='test_app_write',
+            )
             write_application.scope.add(write_capability)
             self._log('write application created')
 
@@ -99,10 +111,13 @@ class Command(BaseCommand):
             self._log('base application exist')
         except Application.DoesNotExist:
             Application.objects.create(
-                name='test-app', user=test_dev,
+                name='test-app',
+                user=test_dev,
                 client_type=Application.CLIENT_PUBLIC,
                 authorization_grant_type=Application.GRANT_PASSWORD,
-                client_id='test_app', client_secret='test_app')
+                client_id='test_app',
+                client_secret='test_app',
+            )
             self._log('base application created')
 
     def _log(self, message):

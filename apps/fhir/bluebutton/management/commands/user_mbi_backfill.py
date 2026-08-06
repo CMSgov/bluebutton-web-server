@@ -1,4 +1,3 @@
-
 from time import sleep
 from typing import Any, Dict, List, Optional
 
@@ -19,29 +18,13 @@ Application = get_application_model()
 
 
 class Command(BaseCommand):
-    help = (
-        'Management command to update bluebutton_crosswalk records where user_mbi column is null'
-    )
+    help = 'Management command to update bluebutton_crosswalk records where user_mbi column is null'
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '--batch-size',
-            type=int,
-            default=1000,
-            help='Number of records to process in each batch'
-        )
-        parser.add_argument(
-            '--execute',
-            action='store_true',
-            help='Apply DB updates'
-        )
+        parser.add_argument('--batch-size', type=int, default=1000, help='Number of records to process in each batch')
+        parser.add_argument('--execute', action='store_true', help='Apply DB updates')
         # leaving default of 0, so the limit can be applied when the query is first run
-        parser.add_argument(
-            '--start-user-id',
-            type=int,
-            default=0,
-            help='Resume processing after this user_id'
-        )
+        parser.add_argument('--start-user-id', type=int, default=0, help='Resume processing after this user_id')
 
     def handle(self, *args, **options):
         batch_size = options['batch_size']
@@ -57,24 +40,17 @@ class Command(BaseCommand):
     def retrieve_records(self, batch_size: int, start_user_id: int) -> List[Crosswalk]:
         # Subquery for users associated with research studies
         research_q = RefreshToken.objects.filter(
-            application__data_access_type='RESEARCH_STUDY',
-            user_id=OuterRef('user_id')
+            application__data_access_type='RESEARCH_STUDY', user_id=OuterRef('user_id')
         )
         # Subquery for users associated with an active refresh tokem
-        active_q = RefreshToken.objects.filter(
-            revoked__isnull=True,
-            user_id=OuterRef('user_id')
-        )
+        active_q = RefreshToken.objects.filter(revoked__isnull=True, user_id=OuterRef('user_id'))
         # Subquery for users associated with an active data access grant
         grant_q = DataAccessGrant.objects.filter(
-            expiration_date__isnull=False,
-            expiration_date__gte=now().date(),
-            beneficiary_id=OuterRef('user_id')
+            expiration_date__isnull=False, expiration_date__gte=now().date(), beneficiary_id=OuterRef('user_id')
         )
 
         qualifying_records = (
-            Crosswalk.objects
-            .annotate(
+            Crosswalk.objects.annotate(
                 in_research=Exists(research_q),
                 in_active=Exists(active_q),
                 in_grant=Exists(grant_q),
@@ -83,9 +59,9 @@ class Command(BaseCommand):
                 Q(in_research=True) | (Q(in_active=True) & Q(in_grant=True)),
                 _user_mbi__isnull=True,
                 _user_mbi_hash__isnull=False,
-                user_id__gt=start_user_id
-            ).order_by('user_id')
-            [:batch_size]
+                user_id__gt=start_user_id,
+            )
+            .order_by('user_id')[:batch_size]
         )
         print('# of records returned %s' % (len(qualifying_records)))
 
@@ -105,7 +81,7 @@ class Command(BaseCommand):
                     # of the ticket to remove the user_mbi_hash column from the crosswalk table
                     print('user_mbi_hash %s' % (user_mbi_hash))
                     if not user_mbi_hash:
-                        print('can\'t update this record, no user_mbi_hash')
+                        print("can't update this record, no user_mbi_hash")
                         continue
 
                     patient_info = get_patient_by_mbi_hash(user_mbi_hash, request)
@@ -120,7 +96,7 @@ class Command(BaseCommand):
                         else:
                             print('User %s: Not updating MBI - execute flag set to false' % (crosswalk.user_id))
                     else:
-                        print('User %s: MBI not found, can\'t update crosswalk record for user' % (crosswalk.user_id))
+                        print("User %s: MBI not found, can't update crosswalk record for user" % (crosswalk.user_id))
                     break
                 except requests.RequestException as e:
                     # try again 3 times, with increasingly longer sleeps, to get around any rate limit issues
