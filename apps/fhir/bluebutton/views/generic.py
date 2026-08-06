@@ -1,3 +1,4 @@
+# foo
 import hashlib
 import logging
 from urllib.parse import quote
