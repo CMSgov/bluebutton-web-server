@@ -114,7 +114,9 @@ def log_grant_removed(sender, instance=None, **kwargs):
 def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
     fhir_logger.info(
-        FHIRRequest(request, api_ver).to_dict() if sender == FhirDataView else FHIRRequestForAuth(request, api_ver).to_dict()
+        FHIRRequest(request, api_ver).to_dict()
+        if sender == FhirDataView
+        else FHIRRequestForAuth(request, api_ver).to_dict()
     )
 
 
@@ -123,7 +125,9 @@ def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwarg
 def fetched_data(sender, request=None, auth_request=None, response=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
     fhir_logger.info(
-        FHIRResponse(response, api_ver).to_dict() if sender == FhirDataView else FHIRResponseForAuth(response, api_ver).to_dict()
+        FHIRResponse(response, api_ver).to_dict()
+        if sender == FhirDataView
+        else FHIRResponseForAuth(response, api_ver).to_dict()
     )
 
 

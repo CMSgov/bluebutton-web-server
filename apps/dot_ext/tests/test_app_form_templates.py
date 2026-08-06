@@ -58,7 +58,9 @@ class AppFormTemplateTestCase(BaseApiTest):
         app_flds = {}
         app_fields_meta = app._meta.get_fields()
         for fm in app_fields_meta:
-            if isinstance(fm, (CharField, URLField, DateTimeField, TextField, BooleanField, BigIntegerField, EmailField)):
+            if isinstance(
+                fm, (CharField, URLField, DateTimeField, TextField, BooleanField, BigIntegerField, EmailField)
+            ):
                 fld_name = fm.name
                 fld_val = fm.value_from_object(app)
                 if fld_val is None and fm.null:
