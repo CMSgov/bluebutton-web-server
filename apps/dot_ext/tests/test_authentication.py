@@ -47,7 +47,9 @@ class TestOAuth2Authentication(TestCase):
     def setUp(self):
 
         self.test_username = '0123456789abcdefghijklmnopqrstuvwxyz'
-        self.test_user = UserModel.objects.create_user('0123456789abcdefghijklmnopqrstuvwxyz', 'test@example.com', '123456')
+        self.test_user = UserModel.objects.create_user(
+            '0123456789abcdefghijklmnopqrstuvwxyz', 'test@example.com', '123456'
+        )
         self.dev_user = UserModel.objects.create_user('dev_user', 'dev@example.com', '123456')
 
         self.application = Application.objects.create(
@@ -59,7 +61,9 @@ class TestOAuth2Authentication(TestCase):
         )
 
     def _create_authorization_header(self, client_id, client_secret):
-        return 'Basic {0}'.format(base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
+        return 'Basic {0}'.format(
+            base64.b64encode('{0}:{1}'.format(client_id, client_secret).encode('utf-8')).decode('utf-8')
+        )
 
     def _create_authentication_header(self, username):
         return 'SLS {0}'.format(base64.b64encode(username.encode('utf-8')).decode('utf-8'))

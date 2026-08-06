@@ -6,8 +6,8 @@ admin.autodiscover()
 
 urlpatterns = [
     re_path(
-        r"(?P<prod_cred_req_id>[^/]+)",
+        r'(?P<prod_cred_req_id>[^/]+)',
         CredentialingRequestView.as_view(),
-        name="credentials_request",
+        name='credentials_request',
     ),
 ]

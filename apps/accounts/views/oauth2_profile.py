@@ -41,7 +41,12 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
 @api_view(['GET'])
 @authentication_classes([OAuth2Authentication])
 @permission_classes(
-    [ApplicationActivePermission, TokenHasProtectedCapability, DataAccessGrantPermission, V3EarlyAdopterWellKnownPermission]
+    [
+        ApplicationActivePermission,
+        TokenHasProtectedCapability,
+        DataAccessGrantPermission,
+        V3EarlyAdopterWellKnownPermission,
+    ]
 )
 @protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):
