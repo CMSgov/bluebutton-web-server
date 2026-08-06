@@ -5,6 +5,7 @@ from base64 import b64decode
 from http import HTTPStatus
 
 import jwt
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http import HttpRequest
@@ -30,7 +31,12 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
     REFRESH_TOKEN,
 )
-from apps.dot_ext.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG
+from apps.dot_ext.constants import (
+    APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
+    CLEAR_HIGHER_ISS,
+    IDME_HIGHER_ISS,
+    IDME_LOWER_ISS,
+)
 from apps.dot_ext.models import AccessTokenExtension, Application, AuthFlowTracking
 from apps.versions import VersionNotMatched, Versions
 
@@ -495,3 +501,20 @@ def check_can_token_scope_for_audit_event_scopes(scope: str) -> str:
 
     # Ensure any extra spaces are filtered
     return ' '.join(scope.split())
+
+
+def build_jwks_urls():
+    """Map the active environment's CSP issuers to their JWKS URLs.
+
+    The JWKS URLs themselves are configured per environment in Django settings
+    (see base_ec2.py / base_local.py).
+    """
+    if getattr(settings, 'TARGET_ENV', '') == 'prod':
+        return {
+            CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,
+            IDME_HIGHER_ISS: settings.IDME_HIGHER_JWKS_URL,
+        }
+    return {
+        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
+        IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
+    }

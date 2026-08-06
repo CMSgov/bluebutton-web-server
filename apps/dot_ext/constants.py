@@ -567,24 +567,13 @@ APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
 CSP_IAL_ACCEPTED_JWT_ALGORITHMS = ['RS256']
 CLIENT_ASSERTION_TYPE_VALUE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
 
-# TODO - use env vars to determine which environment is valid, at the moment all of them are
-CLEAR_HIGHER_JWKS_URL = 'https://verified.clearme.com/integrations/.well-known/jwks.json'
-CLEAR_LOWER_JWKS_URL = 'https://please-find-out-what-i.am'
-IDME_HIGHER_JWKS_URL = 'https://api.id.me/oidc/.well-known/jwks'
-IDME_LOWER_JWKS_URL = 'https://api.idmelabs.com/oidc/.well-known/jwks'
-
-
+# CSP trust-anchor issuers (`iss`). These are stable identifiers for the CLEAR /
+# ID.me trust anchors and are not environment configuration.
 CLEAR_HIGHER_ISS = 'https://verified.clearme.com/integrations'
 CLEAR_LOWER_ISS = 'https://please-find-out-what-i.am'
 IDME_HIGHER_ISS = 'https://api.id.me/oidc'
 IDME_LOWER_ISS = 'https://api.idmelabs.com/oidc'
 
-JWKS_URLS = {
-    CLEAR_HIGHER_ISS: CLEAR_HIGHER_JWKS_URL,
-    CLEAR_LOWER_ISS: CLEAR_LOWER_JWKS_URL,
-    IDME_HIGHER_ISS: IDME_HIGHER_JWKS_URL,
-    IDME_LOWER_ISS: IDME_LOWER_JWKS_URL,
-}
 
 FHIR_ROOT_OID = 'urn:oid:2.16.840.1.113883'
 APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE = (

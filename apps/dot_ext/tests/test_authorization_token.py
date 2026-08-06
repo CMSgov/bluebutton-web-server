@@ -600,7 +600,7 @@ class TestTokenResponseFields(BaseApiTest):
                 self.assertIn('refresh_token', data)
 
                 # Ensure that specific logs are output as a result of a client_credentials call
-                assert "'patient_match_found': True" in auth_logs.output[1]
+                assert '"patient_match_found": true' in auth_logs.output[1]
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
                 assert '"req_app_name": "CC App"' in request_logs.output[0]
 

@@ -48,7 +48,7 @@ jobs:
       task_definition_arn: ${{ steps.register-task.outputs.task_definition_arn }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup AWS credentials
         uses: ./.github/actions/setup-tofu
@@ -173,7 +173,7 @@ jobs:
     environment: ${{ inputs.migration_type != 'pre-deploy' && (inputs.environment || 'test') || '' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup AWS credentials
         uses: ./.github/actions/setup-tofu
