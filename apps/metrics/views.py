@@ -180,10 +180,14 @@ class AppMetricsSerializer(ModelSerializer):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
 
         real_cnt = (
-            Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+            Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct])
+            .values('user', 'fhir_id_v2')
+            .count()
         )
         synth_cnt = (
-            Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id_v2').count()
+            Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct])
+            .values('user', 'fhir_id_v2')
+            .count()
         )
 
         return {'real': real_cnt, 'synthetic': synth_cnt}
@@ -469,7 +473,9 @@ class DeveloperFilter(filters.FilterSet):
         field_name='active_app_count', lookup_expr='lte', label='Max Active Application Count'
     )
     identification = filters.ModelMultipleChoiceFilter(
-        label='Identification Label', field_name='useridentificationlabel', queryset=UserIdentificationLabel.objects.all()
+        label='Identification Label',
+        field_name='useridentificationlabel',
+        queryset=UserIdentificationLabel.objects.all(),
     )
 
     class Meta:

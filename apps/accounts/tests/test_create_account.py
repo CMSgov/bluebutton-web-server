@@ -82,7 +82,11 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(Crosswalk.objects.filter(user=u).exists(), False)
 
         # verify user has identification label chosen
-        exist = User.objects.filter(useridentificationlabel__users=u).filter(useridentificationlabel__slug='ident2').exists()
+        exist = (
+            User.objects.filter(useridentificationlabel__users=u)
+            .filter(useridentificationlabel__slug='ident2')
+            .exists()
+        )
         self.assertEqual(exist, True)
 
     @override_switch('signup', active=True)

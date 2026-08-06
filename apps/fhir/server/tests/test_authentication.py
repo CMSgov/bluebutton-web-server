@@ -108,7 +108,9 @@ class TestAuthentication(BaseApiTest):
             )
             self.assertIsNone(match_fhir_id_result.fhir_id)
             self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
-            self.assertEqual(match_fhir_id_result.error, 'The requested Beneficiary has no entry, however this may change')
+            self.assertEqual(
+                match_fhir_id_result.error, 'The requested Beneficiary has no entry, however this may change'
+            )
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.NOT_FOUND)
 
     def test_match_fhir_id_server_hicn_error(self):

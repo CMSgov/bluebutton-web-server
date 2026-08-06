@@ -21,7 +21,13 @@ class LoginTestCase(TestCase):
 
     def setUp(self):
         self._create_user(
-            'fred', 'bedrocks', first_name='Fred', last_name='Flinstone', email='fred@example.com', is_staff=False, is_active=True
+            'fred',
+            'bedrocks',
+            first_name='Fred',
+            last_name='Flinstone',
+            email='fred@example.com',
+            is_staff=False,
+            is_active=True,
         )
         user = User.objects.get(username='fred')
         UserProfile.objects.create(user=user)

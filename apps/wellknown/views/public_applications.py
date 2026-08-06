@@ -64,7 +64,10 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         )
 
     def get_contacts(self, obj):
-        contacts = [{'system': 'phone', 'value': obj.support_phone_number}, {'system': 'email', 'value': obj.support_email}]
+        contacts = [
+            {'system': 'phone', 'value': obj.support_phone_number},
+            {'system': 'email', 'value': obj.support_email},
+        ]
         return contacts
 
 

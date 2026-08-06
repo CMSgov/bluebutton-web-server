@@ -225,7 +225,10 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
 
         # common aggregations for access token, refresh token, archived token
         token_cnts_by_app = (
-            clazz_model.objects.all().values('application__name').annotate(tk_cnt=Count('token')).order_by('application__name')
+            clazz_model.objects.all()
+            .values('application__name')
+            .annotate(tk_cnt=Count('token'))
+            .order_by('application__name')
         )
 
         token_total = clazz_model.objects.all().count()

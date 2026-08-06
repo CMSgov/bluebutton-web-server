@@ -22,7 +22,9 @@ class RedirectURIValidator(URIValidator):
         scheme, netloc, path, query, fragment = urlsplit(value)
 
         if scheme.lower() not in self.allowed_schemes:
-            raise ValidationError('Invalid Redirect URI scheme: %s, Must be one of %s' % (scheme.lower(), self.allowed_schemes))
+            raise ValidationError(
+                'Invalid Redirect URI scheme: %s, Must be one of %s' % (scheme.lower(), self.allowed_schemes)
+            )
 
 
 def validate_uris(value):
@@ -62,10 +64,12 @@ def validate_logo_image(value):
 
     if value.image.width > int(settings.APP_LOGO_WIDTH_MAX):
         raise ValidationError(
-            'Max image width is %s. Your image width is %s.' % (str(settings.APP_LOGO_WIDTH_MAX), str(value.image.width))
+            'Max image width is %s. Your image width is %s.'
+            % (str(settings.APP_LOGO_WIDTH_MAX), str(value.image.width))
         )
 
     if value.image.height > int(settings.APP_LOGO_HEIGHT_MAX):
         raise ValidationError(
-            'Max image height is %s. Your image height is %s.' % (str(settings.APP_LOGO_HEIGHT_MAX), str(value.image.height))
+            'Max image height is %s. Your image height is %s.'
+            % (str(settings.APP_LOGO_HEIGHT_MAX), str(value.image.height))
         )
