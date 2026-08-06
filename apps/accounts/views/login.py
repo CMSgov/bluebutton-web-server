@@ -7,8 +7,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 
-from ..forms import AuthenticationForm
-from ..validators import PasswordReuseAndMinAgeValidator
+from apps.accounts.forms import AuthenticationForm
+from apps.accounts.validators import PasswordReuseAndMinAgeValidator
 
 
 class LoginView(LoginView):

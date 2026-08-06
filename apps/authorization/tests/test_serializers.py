@@ -1,6 +1,5 @@
+from apps.authorization.views import ApplicationSerializer
 from apps.test import BaseApiTest
-
-from ..views import ApplicationSerializer
 
 
 class TestApplicationSerializer(BaseApiTest):
