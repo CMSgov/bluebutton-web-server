@@ -1,9 +1,11 @@
 from django.core.management.base import BaseCommand
+
 from apps.dot_ext.models import Application
+
 
 class Command(BaseCommand):
     help = (
-        'Change all applications\' data access type to 13 month.' 
+        'Change all applications\' data access type to 13 month.'
     )
 
     def handle(self, *args, **options):

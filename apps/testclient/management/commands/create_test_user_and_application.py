@@ -1,23 +1,20 @@
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, USER_TYPE_BENEFICIARY
-from apps.authorization.models import update_grants
-from apps.constants import TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
-from apps.testclient.constants import TESTCLIENT_REDIRECT_URI, TEST_APP_POSTMAN_CALLBACK
-from apps.accounts.models import UserProfile
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.dot_ext.models import Application
-from apps.capabilities.models import ProtectedCapability
-
-from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
-from django.utils import timezone
-
 from datetime import timedelta
 from uuid import uuid4
 
 from django.conf import settings
-from waffle.models import Switch
+from django.contrib.auth.models import Group, User
+from django.core.management.base import BaseCommand
+from django.utils import timezone
 from oauth2_provider.models import AccessToken
+from waffle.models import Switch
+
+from apps.accounts.models import UserProfile
+from apps.authorization.models import update_grants
+from apps.capabilities.models import ProtectedCapability
+from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET, USER_TYPE_BENEFICIARY
+from apps.dot_ext.models import Application
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.testclient.constants import TEST_APP_POSTMAN_CALLBACK, TESTCLIENT_REDIRECT_URI
 
 
 def create_group(name='BlueButton'):

@@ -1,11 +1,12 @@
 import random
 import time
 import uuid
-
 from datetime import datetime, timedelta, timezone
+
 from django.core.management.base import BaseCommand
 
 from apps.dot_ext.models import AuthFlowUuidCopy
+
 
 def generate_authflowuuid_records(start_date_str, sample_size):
     #
@@ -18,7 +19,7 @@ def generate_authflowuuid_records(start_date_str, sample_size):
     days_elapsed = date_now - start_date
     print("Started date: {}, days elapsed: {}".format(start_date, days_elapsed.days))
     tx_per_day = sample_size//days_elapsed.days
-    tx_cnt = 0 
+    tx_cnt = 0
     the_date = start_date
     insert_delete = 0
     insert_only = 0
@@ -39,7 +40,7 @@ def generate_authflowuuid_records(start_date_str, sample_size):
         else:
             insert_only += 1
         print(i, end='\r')
-    
+
     end_t = time.time()
     print("start date = {}, end_date = {}, insert_delete = {}, insert_only = {}, time elapsed (sec) = {}".format(start_date, the_date, insert_delete, insert_only, end_t - start_t))
 
@@ -48,7 +49,7 @@ class Command(BaseCommand):
     help = ('Generate records (as specified by --count) for table dot_ext_authflowuuid: '
             'with 50% inserted then deleted simulating authflowuuid from a completed auth flow and '
             'other 50% inserted and remained in the table simulating an incomplete auth flow.')
-    
+
     def add_arguments(self, parser):
         parser.add_argument("-s", "--start-date", help="Start time stamp of the auth flow uuid records yyyy-mm-dd, e.g. '2020-11-12'")
         parser.add_argument("-c", "--count", type=int, default=30000, help="Total number of auth flow uuid records inserted and then deleted, inserted and remained in the table")

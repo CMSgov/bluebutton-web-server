@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application
 

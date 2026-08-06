@@ -1,10 +1,10 @@
 import logging
 import os
-from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 

@@ -1,11 +1,11 @@
+import json
 import logging
 
-import json
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
+
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_STARTER_SCOPES, SUPPORTED_RESOURCES
 from apps.capabilities.models import ProtectedCapability
-
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))

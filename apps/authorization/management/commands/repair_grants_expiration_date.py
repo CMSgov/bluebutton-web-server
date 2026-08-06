@@ -1,12 +1,12 @@
-import pytz
-
 from datetime import datetime, timezone
+
+import pytz
+from dateutil.relativedelta import relativedelta
 from django.core.management.base import BaseCommand
+
 from apps.authorization.constants import DATETIME_FMT
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application
-from dateutil.relativedelta import relativedelta
-
 
 utc=pytz.UTC
 
@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
         if dryrun:
             print("Info: dryrun = {}, this is a dry run, no change to database.".format(dryrun))
-            
+
         app_name = result['app_name']
 
         apps = Application.objects.filter(name=app_name)
@@ -53,10 +53,10 @@ class Command(BaseCommand):
 
         app = apps.first()
 
-        if not ("THIRTEEN_MONTH" in app.data_access_type):
+        if "THIRTEEN_MONTH" not in app.data_access_type:
             print("Error: This command only applies to app with THIRTEEN_MONTH data access type, '{}' data access type: {}.".format(app.name, app.data_access_type))
             return False
-            
+
         range_begin_date = result['range_begin_date']
         range_end_date = result['range_end_date']
         turn_on_date = result['turn_on_date']
@@ -168,7 +168,7 @@ def validate_parameters(options, dt_fmt):
         print("Error: Malformed --range value, expecting value like: '01/16/25 19:58:26-01/18/25 23:59:59', received: {}.".format(range_str))
         result['params_are_valid'] = False
         return result
-    
+
     current_dt = datetime.now().replace(tzinfo=pytz.UTC)
     r_end_d = result['range_end_date']
     # time range must be a past time, prohibit processing grants that just keep trickled in in an live ENV

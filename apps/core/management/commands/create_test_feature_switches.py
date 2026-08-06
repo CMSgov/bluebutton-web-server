@@ -1,6 +1,7 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from waffle.models import Switch
+
 from apps.core.constants import WAFFLE_FEATURE_FLAGS, WAFFLE_FEATURE_SWITCHES
 from apps.core.models import Flag
 
@@ -38,7 +39,7 @@ class Command(BaseCommand):
                                 flag_obj.users.add(u.id)
                                 flag_obj.save()
                                 self._log("User {} added to feature flag: {}".format(u, flag))
-                            except Exception as e:
+                            except Exception:
                                 self._log("Exception when adding user {} to feature flag: {}".format(u, flag))
                         except User.DoesNotExist:
                             # assuming test users exist before creating flags associated with them

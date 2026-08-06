@@ -1,12 +1,11 @@
 import time
+from datetime import date, datetime, timedelta
+
+from django.core.management.base import BaseCommand
 from django.db import connection
 
-from datetime import date, timedelta, datetime
-from django.core.management.base import BaseCommand
-
-from apps.dot_ext.constants import DELETE_WITH_LIMIT, TARGET_TABLE, TARGET_TABLE_COPY
 import apps.logging.request_logger as logging
-
+from apps.dot_ext.constants import DELETE_WITH_LIMIT, TARGET_TABLE, TARGET_TABLE_COPY
 
 logger = logging.getLogger(logging.AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER)
 
@@ -40,7 +39,7 @@ def delete_authflow_uuid_table(age, limit_on_delete, simulation):
 
 class Command(BaseCommand):
     help = ('Delete aged dot_ext_authflowuuid table records.')
-    
+
     def add_arguments(self, parser):
         parser.add_argument("-a", "--age", type=int, default=30, help="Age (in days) of authflow uuid records qualified for deletion.")
         parser.add_argument("-l", "--limit", type=int, default=30000, help="Limit on number of delete allowed for one run.")

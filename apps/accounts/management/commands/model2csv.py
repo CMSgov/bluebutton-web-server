@@ -8,15 +8,14 @@ Created by: '@ekivemark'
 
 Prints CSV of all fields of a model.
 """
-from django.core.management.base import BaseCommand
-from django.apps import apps
-
-from apps.constants import HHS_SERVER_LOGNAME_FMT
-
 import csv
 import logging
 import sys
 
+from django.apps import apps
+from django.core.management.base import BaseCommand
+
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.fhir.bluebutton.utils import get_fhir_now
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))

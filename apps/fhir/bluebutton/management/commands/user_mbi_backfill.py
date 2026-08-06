@@ -1,18 +1,18 @@
 
+from time import sleep
+from typing import Any, Dict, List, Optional
+
+import requests
+from django.core.management.base import BaseCommand
+from django.db.models import Exists, OuterRef, Q
+from django.test import RequestFactory
+from django.utils.timezone import now
+from oauth2_provider.models import get_application_model, get_refresh_token_model
+
 from apps.authorization.models import DataAccessGrant
 from apps.fhir.bluebutton.constants import DEFAULT_SLEEP, MAX_RETRIES, MBI_URL
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_patient_by_mbi_hash
-
-from django.core.management.base import BaseCommand
-from django.db.models import Q, Exists, OuterRef
-from django.test import RequestFactory
-from django.utils.timezone import now
-from oauth2_provider.models import get_refresh_token_model, get_application_model
-from time import sleep
-from typing import List, Optional, Dict, Any
-import requests
-
 
 RefreshToken = get_refresh_token_model()
 Application = get_application_model()
@@ -90,7 +90,7 @@ class Command(BaseCommand):
         print('# of records returned %s' % (len(qualifying_records)))
 
         return qualifying_records
-    
+
     def process_records(self, crosswalk_records: List[Crosswalk], execute: bool) -> None:
         for crosswalk in crosswalk_records:
             retries = 0
@@ -102,12 +102,12 @@ class Command(BaseCommand):
                     rf = RequestFactory()
                     request = rf.get('/')
                     # TODO - tied to BB2-4193, remove these references to user_mbi_hash as part
-                    # of the ticket to remove the user_mbi_hash column from the crosswalk table 
+                    # of the ticket to remove the user_mbi_hash column from the crosswalk table
                     print('user_mbi_hash %s' % (user_mbi_hash))
                     if not user_mbi_hash:
                         print('can\'t update this record, no user_mbi_hash')
                         continue
-                    
+
                     patient_info = get_patient_by_mbi_hash(user_mbi_hash, request)
 
                     user_mbi = self.extract_mbi(patient_info)
@@ -154,7 +154,7 @@ class Command(BaseCommand):
                 return ident.get('value')
 
         return None
-    
+
     def update_mbi(self, user_mbi: str, crosswalk: Crosswalk) -> None:
         crosswalk._user_mbi = user_mbi
         crosswalk.save()

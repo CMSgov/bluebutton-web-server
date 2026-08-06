@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+
 from apps.accounts.models import UserIdentificationLabel
 from apps.testclient.constants import DEVELOPER_SIGNUP_ROLE_CHOICES
 

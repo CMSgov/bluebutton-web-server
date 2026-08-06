@@ -2,12 +2,12 @@ import json
 import logging
 
 from django.contrib.auth.models import Group
-from django.urls import reverse
 from django.core.management.base import BaseCommand
+from django.urls import reverse
 from waffle import switch_is_active
+
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES
 from apps.capabilities.models import ProtectedCapability
-
 from apps.constants import HHS_SERVER_LOGNAME_FMT, LAUNCH_SCOPE, OPENID_SCOPE
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
