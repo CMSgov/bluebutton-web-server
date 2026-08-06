@@ -11,4 +11,4 @@ class CodeChallenge(models.Model):
         primary_key=True,
     )
     challenge = models.CharField(max_length=255, default=None)
-    challenge_method = models.CharField(max_length=255, default="S256")
+    challenge_method = models.CharField(max_length=255, default='S256')

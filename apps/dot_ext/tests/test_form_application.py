@@ -137,7 +137,9 @@ class TestRegisterApplicationForms(BaseApiTest):
 
         # Testing valid logo_image with max dimensions
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new(
+            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)), color='red'
+        )
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
@@ -149,7 +151,9 @@ class TestRegisterApplicationForms(BaseApiTest):
 
         # Testing logo_image exceeding max width
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new(
+            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)), color='red'
+        )
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
@@ -165,7 +169,9 @@ class TestRegisterApplicationForms(BaseApiTest):
 
         # Testing logo_image exceeding max height
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red')
+        image = Image.new(
+            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red'
+        )
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)

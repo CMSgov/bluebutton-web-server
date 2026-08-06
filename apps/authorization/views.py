@@ -45,7 +45,9 @@ class DataAccessGrantSerializer(serializers.ModelSerializer):
         fields = ('id', 'application', 'user')
 
 
-class AuthorizedGrants(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
+class AuthorizedGrants(
+    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin
+):
     authentication_classes = [SLSAuthentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['token_management']

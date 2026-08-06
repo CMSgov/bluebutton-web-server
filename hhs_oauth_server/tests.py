@@ -53,7 +53,12 @@ class MBI_tests(TestCase):
     def test_mbi_match_dict(self):
         valid_mbi = '1EG4-TE5-MK74'
 
-        my_dict = {'key1': valid_mbi, 'key2': {'key4': valid_mbi}, 'key3': (valid_mbi, valid_mbi), 'key5': [valid_mbi, valid_mbi]}
+        my_dict = {
+            'key1': valid_mbi,
+            'key2': {'key4': valid_mbi},
+            'key3': (valid_mbi, valid_mbi),
+            'key5': [valid_mbi, valid_mbi],
+        }
 
         masked_mbi_dict = mask_mbi(my_dict)
         masked_mbi_string = str(masked_mbi_dict)
