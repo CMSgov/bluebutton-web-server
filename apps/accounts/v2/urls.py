@@ -61,7 +61,9 @@ urlpatterns = [
     ),
     path(
         'password-reset-done',
-        waffle_switch('login')(PasswordResetDoneView.as_view(template_name='registration/password_forgot_reset_done.html')),
+        waffle_switch('login')(
+            PasswordResetDoneView.as_view(template_name='registration/password_forgot_reset_done.html')
+        ),
         name='password_reset_done_v2',
     ),
     re_path(
