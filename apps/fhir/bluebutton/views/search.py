@@ -161,6 +161,7 @@ class SearchViewExplanationOfBenefit(SearchView):
         '_tag': list[str],
         '_source': list[str],
         '_security:not': str,
+        '_offset': Coerce(int),
     }
 
     def __init__(self, version=1):

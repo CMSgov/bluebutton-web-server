@@ -5,10 +5,9 @@ from django.test.client import Client
 from django.urls import reverse
 from rest_framework import exceptions
 
+from apps.creds.models import CredentialingReqest
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
-
-from ..models import CredentialingReqest
 
 
 class CredentialsTestCase(BaseApiTest):
