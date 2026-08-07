@@ -753,6 +753,7 @@ class TestTokenResponseFields(BaseApiTest):
         self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
         self.assertIn('refresh_token', data)
 
+    @patch.dict(os.environ, {'TARGET_ENV': 'local'})
     @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
     @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
