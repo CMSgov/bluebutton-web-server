@@ -1,39 +1,32 @@
-# ruff: disable[I001]
 from django.urls import path
 
 from apps.testclient.views import (
-    # all versions
+    authorize_link_v1,
+    authorize_link_v2,
+    authorize_link_v3,
     callback,
     restart,
-    test_links,
-    # v1
-    authorize_link_v1,
     test_coverage_v1,
-    test_eob_v1,
-    test_metadata_v1,
-    test_openid_config_v1,
-    test_patient_v1,
-    test_userinfo_v1,
-    # v2
-    authorize_link_v2,
     test_coverage_v2,
-    test_eob_v2,
-    test_metadata_v2,
-    test_openid_config_v2,
-    test_patient_v2,
-    test_userinfo_v2,
-    # v3
-    authorize_link_v3,
     test_coverage_v3,
-    test_eob_v3,
-    test_metadata_v3,
-    test_openid_config_v3,
-    test_patient_v3,
-    test_userinfo_v3,
-    # c4dic
     test_digital_insurance_card_v3,
+    test_eob_v1,
+    test_eob_v2,
+    test_eob_v3,
+    test_links,
+    test_metadata_v1,
+    test_metadata_v2,
+    test_metadata_v3,
+    test_openid_config_v1,
+    test_openid_config_v2,
+    test_openid_config_v3,
+    test_patient_v1,
+    test_patient_v2,
+    test_patient_v3,
+    test_userinfo_v1,
+    test_userinfo_v2,
+    test_userinfo_v3,
 )
-# ruff: enable[I001]
 
 urlpatterns_unversioned = [
     path('callback', callback, name='testclient-callback'),
