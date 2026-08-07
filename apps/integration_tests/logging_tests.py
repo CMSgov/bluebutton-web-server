@@ -1,16 +1,15 @@
 import copy
 import json
 import re
-
 from json.decoder import JSONDecodeError
 
 from apps.integration_tests.common_utils import validate_json_schema
-from apps.integration_tests.selenium_tests import TestBlueButtonAPI
 from apps.integration_tests.constants import (
     EXPECTED_LOGGING_EVENTS,
     LOG_FILE,
     MIDDLEWARE_LOG_EVENT_TYPE,
 )
+from apps.integration_tests.selenium_tests import TestBlueButtonAPI
 
 
 class TestLoggings(TestBlueButtonAPI):

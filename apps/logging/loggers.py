@@ -1,15 +1,14 @@
 from datetime import datetime
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 import apps.logging.request_logger as logging
-
-from apps.accounts.models import UserProfile
+from apps.accounts.models import UserProfile, get_developer_counts
 from apps.authorization.models import (
-    get_grant_bene_counts,
     get_beneficiary_counts,
     get_beneficiary_grant_app_pair_counts,
+    get_grant_bene_counts,
 )
-
 from apps.dot_ext.models import (
     Application,
     get_application_counts,
@@ -17,8 +16,6 @@ from apps.dot_ext.models import (
     get_token_bene_counts,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
-from apps.accounts.models import get_developer_counts
-
 from apps.logging.utils import format_timestamp
 
 """

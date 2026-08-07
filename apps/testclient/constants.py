@@ -1,8 +1,10 @@
-from django.http import JsonResponse
-from apps.constants import HHS_SERVER_LOGNAME_FMT
 import logging
-from apps.versions import Versions
 from http import HTTPStatus
+
+from django.http import JsonResponse
+
+from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.versions import Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 

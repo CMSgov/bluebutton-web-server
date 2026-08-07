@@ -1,6 +1,5 @@
 import apps.logging.request_logger as logging
 
-
 """
   Logger and logging function for waffle flags, switches
 """

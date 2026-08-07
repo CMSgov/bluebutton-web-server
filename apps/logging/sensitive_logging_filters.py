@@ -1,6 +1,6 @@
-import re
 import logging
 import logging.config
+import re
 
 MBI_WITH_HYPHEN_PATTERN = r"""\b
     [1-9](?![SLOIBZsloibz])[A-Za-z](?![SLOIBZsloibz)])[A-Za-z\d]\d

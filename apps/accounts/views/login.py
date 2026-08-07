@@ -1,11 +1,12 @@
 from axes.decorators import axes_dispatch
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, PasswordChangeView
-from django.contrib.auth.password_validation import get_default_password_validators
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import get_default_password_validators
+from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+
 from ..forms import AuthenticationForm
 from ..validators import PasswordReuseAndMinAgeValidator
 

@@ -1,17 +1,17 @@
 from django.conf import settings
-from django.urls import path, re_path
 from django.contrib.auth.views import (
     LogoutView,
-    PasswordResetView,
-    PasswordResetDoneView,
-    PasswordResetConfirmView,
     PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
 )
+from django.urls import path, re_path
 from waffle.decorators import waffle_switch
-from .views.api_profile import my_profile
-from .views.core import create_account, account_settings, activation_verify
-from .views.login import LoginView, PasswordChangeView
 
+from .views.api_profile import my_profile
+from .views.core import account_settings, activation_verify, create_account
+from .views.login import LoginView, PasswordChangeView
 
 urlpatterns = [
     path('api/profile', my_profile, name='my_profile'),

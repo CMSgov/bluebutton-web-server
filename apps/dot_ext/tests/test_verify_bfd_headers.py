@@ -1,17 +1,17 @@
 import json
 
-from httmock import all_requests, HTTMock
-
 # from oauth2_provider.compat import parse_qs, urlparse
 from urllib.parse import parse_qs, urlparse
+
+from httmock import HTTMock, all_requests
 from oauth2_provider.models import AccessToken
 
-from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
+from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.models import Application
 from apps.fhir.bluebutton.signals import pre_fetch
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.test import BaseApiTest
-from apps.dot_ext.models import Application
 
 
 def create_patient_capability(group, fhir_prefix, title='My general patient and demographic information.'):

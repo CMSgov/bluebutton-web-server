@@ -1,4 +1,5 @@
 from django.db import models
+
 from apps.pkce.constants import GRANT_MODEL
 
 
