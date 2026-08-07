@@ -1,4 +1,5 @@
 from apps.test import BaseApiTest
+
 from ..views import ApplicationSerializer
 
 

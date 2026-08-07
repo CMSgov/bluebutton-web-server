@@ -1,5 +1,6 @@
-from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.test import TestCase
+
 from apps.dot_ext.validators import validate_url
 
 

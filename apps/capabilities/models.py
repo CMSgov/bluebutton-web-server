@@ -1,9 +1,10 @@
 import json
-
-from django.db import models
-from django.contrib.auth.models import Group
 from functools import lru_cache
+
+from django.contrib.auth.models import Group
+from django.db import models
 from django.db.models import CASCADE
+
 from apps.capabilities.constants import URL_BIT_PATTERN
 
 

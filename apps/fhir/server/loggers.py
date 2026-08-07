@@ -1,6 +1,5 @@
 import apps.logging.request_logger as logging
 
-
 """
   Logger functions for fhir/server module
 """
