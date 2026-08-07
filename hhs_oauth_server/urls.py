@@ -1,7 +1,7 @@
 from django.conf import settings
+from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, path, re_path
-from django.contrib import admin
 from waffle.decorators import waffle_switch
 
 from apps.accounts.views.oauth2_profile import (
@@ -10,9 +10,14 @@ from apps.accounts.views.oauth2_profile import (
     openidconnect_userinfo_v3,
 )
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
-from apps.wellknown.views.openid import smart_configuration_v1, smart_configuration_v2, smart_configuration_v3
-from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
-
+from apps.wellknown.views.openid import (
+    openid_configuration_v1,
+    openid_configuration_v2,
+    openid_configuration_v3,
+    smart_configuration_v1,
+    smart_configuration_v2,
+    smart_configuration_v3,
+)
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 from hhs_oauth_server.views import testobject
 

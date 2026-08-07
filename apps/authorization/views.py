@@ -4,22 +4,17 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import viewsets
-from rest_framework import mixins
-from rest_framework import serializers
-from rest_framework import status
-
-from oauth2_provider.models import get_application_model
 from oauth2_provider.contrib.rest_framework import TokenHasScope
+from oauth2_provider.models import get_application_model
 from oauth2_provider.views.base import OAuthLibMixin
 from oauth2_provider.views.generic import ClientProtectedResourceView
+from rest_framework import mixins, serializers, status, viewsets
 
-from apps.versions import VersionNotMatched, Versions
-from apps.dot_ext.authentication import SLSAuthentication
 from apps.authorization.models import DataAccessGrant
-from apps.dot_ext.utils import get_application_from_meta, get_api_version_number_from_url
+from apps.dot_ext.authentication import SLSAuthentication
+from apps.dot_ext.utils import get_api_version_number_from_url, get_application_from_meta
 from apps.fhir.bluebutton.models import Crosswalk
-
+from apps.versions import VersionNotMatched, Versions
 
 Application = get_application_model()
 
@@ -45,7 +40,9 @@ class DataAccessGrantSerializer(serializers.ModelSerializer):
         fields = ('id', 'application', 'user')
 
 
-class AuthorizedGrants(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin):
+class AuthorizedGrants(
+    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin
+):
     authentication_classes = [SLSAuthentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['token_management']

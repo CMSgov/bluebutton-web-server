@@ -1,14 +1,15 @@
-from django.shortcuts import render
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse
-from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.cache import never_cache
+
 from ..forms import AccountSettingsForm, SignupForm
 from ..models import UserProfile
 from ..utils import validate_activation_key
-from django.conf import settings
-from django.views.decorators.cache import never_cache
 
 
 def create_account(request):

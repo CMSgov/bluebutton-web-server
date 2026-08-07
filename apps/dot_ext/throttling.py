@@ -1,5 +1,6 @@
-from rest_framework.throttling import SimpleRateThrottle
 from django.utils.deprecation import MiddlewareMixin
+from rest_framework.throttling import SimpleRateThrottle
+
 from apps.dot_ext.constants import HEADERS
 
 

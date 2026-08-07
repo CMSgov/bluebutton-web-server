@@ -1,14 +1,14 @@
 from collections import OrderedDict
+
 from django.http import JsonResponse
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from oauth2_provider.decorators import protected_resource
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
-
 from apps.versions import Versions
 from apps.wellknown.permissions import V3EarlyAdopterWellKnownPermission
 
@@ -41,7 +41,12 @@ def _get_userinfo(user, version=Versions.NOT_AN_API_VERSION):
 @api_view(['GET'])
 @authentication_classes([OAuth2Authentication])
 @permission_classes(
-    [ApplicationActivePermission, TokenHasProtectedCapability, DataAccessGrantPermission, V3EarlyAdopterWellKnownPermission]
+    [
+        ApplicationActivePermission,
+        TokenHasProtectedCapability,
+        DataAccessGrantPermission,
+        V3EarlyAdopterWellKnownPermission,
+    ]
 )
 @protected_resource()  # Django OAuth Toolkit -> resource_owner = AccessToken
 def _openidconnect_userinfo(request, version=Versions.NOT_AN_API_VERSION):

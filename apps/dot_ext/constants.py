@@ -597,6 +597,7 @@ CC_SYSTEM_SOCIAL_SECURITY_NUMBER = 'http://hl7.org/fhir/sid/us-ssn'
 CC_SYSTEM_MEDICARE_NUMBER = 'http://hl7.org/fhir/sid/us-mbi'
 
 PARAMETERS_ID_MATCH_META = 'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters'
+PATIENT_DATA_CANNOT_BE_FOUND = 'ERROR: Your patient data cannot be found at this time.'
 PATIENT_ID_MATCH_META = 'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient'
 
 STATES = {

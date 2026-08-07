@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from apps.mymedicare_cb.models import AnonUserState
 
 

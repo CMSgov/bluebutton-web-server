@@ -1,12 +1,13 @@
-import pytz
-
 from datetime import datetime, timedelta
+
+import pytz
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.test.client import Client
-from django.contrib.auth.models import Group
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-from apps.constants import USER_TYPE_DEV
+from waffle.testutils import override_switch
+
 from apps.accounts.constants import (
     ACCT_MAIL_LOGGER_NAME,
     DOT_EXT_SIGNAL_LOGGER_NAME,
@@ -14,11 +15,10 @@ from apps.accounts.constants import (
     MAIL_SENT_EVENT,
     MAILER_EVENT_LOGGERS,
 )
-from apps.accounts.models import UserProfile, UserIdentificationLabel
+from apps.accounts.models import UserIdentificationLabel, UserProfile
+from apps.constants import USER_TYPE_DEV
 from apps.fhir.bluebutton.models import Crosswalk
-from waffle.testutils import override_switch
-
-from apps.logging.utils import redirect_loggers_custom, get_log_content, cleanup_logger
+from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers_custom
 
 from ..models import ActivationKey
 
@@ -82,7 +82,11 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(Crosswalk.objects.filter(user=u).exists(), False)
 
         # verify user has identification label chosen
-        exist = User.objects.filter(useridentificationlabel__users=u).filter(useridentificationlabel__slug='ident2').exists()
+        exist = (
+            User.objects.filter(useridentificationlabel__users=u)
+            .filter(useridentificationlabel__slug='ident2')
+            .exists()
+        )
         self.assertEqual(exist, True)
 
     @override_switch('signup', active=True)

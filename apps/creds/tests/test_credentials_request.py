@@ -1,11 +1,14 @@
-from django.test.client import Client
-from ..models import CredentialingReqest
-from django.urls import reverse
-from apps.test import BaseApiTest
 import datetime
-from rest_framework import exceptions
-from apps.dot_ext.models import Application
 import json
+
+from django.test.client import Client
+from django.urls import reverse
+from rest_framework import exceptions
+
+from apps.dot_ext.models import Application
+from apps.test import BaseApiTest
+
+from ..models import CredentialingReqest
 
 
 class CredentialsTestCase(BaseApiTest):
@@ -25,8 +28,12 @@ class CredentialsTestCase(BaseApiTest):
         test_app3 = self._create_application('test_app_3', user=dev_user3, data_access_type='THIRTEEN_MONTH')
         CredentialingReqest.objects.create(application=test_app3)
         created_date = datetime.date(2018, 1, 1)
-        CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_3')).update(updated_at=created_date)
-        CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_3')).update(visits_count=1)
+        CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_3')).update(
+            updated_at=created_date
+        )
+        CredentialingReqest.objects.filter(application=Application.objects.get(name='test_app_3')).update(
+            visits_count=1
+        )
 
         self.client = Client()
 
@@ -80,7 +87,9 @@ class CredentialsTestCase(BaseApiTest):
         response = self.client.get(url, {'action': 'download'}, follow=True)
         self.assertEqual(len(str(creds_req_id)), 36)
         self.assertEqual(response.status_code, 403)
-        self.assertRaisesRegex(exceptions.PermissionDenied, 'Credentials already fetched (download), doing it again not allowed.')
+        self.assertRaisesRegex(
+            exceptions.PermissionDenied, 'Credentials already fetched (download), doing it again not allowed.'
+        )
         updated_cred_req = CredentialingReqest.objects.get(pk=creds_req_id)
         self.assertEqual(updated_cred_req.visits_count, 1)
 

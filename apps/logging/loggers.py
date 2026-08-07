@@ -1,15 +1,14 @@
 from datetime import datetime
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 import apps.logging.request_logger as logging
-
-from apps.accounts.models import UserProfile
+from apps.accounts.models import UserProfile, get_developer_counts
 from apps.authorization.models import (
-    get_grant_bene_counts,
     get_beneficiary_counts,
     get_beneficiary_grant_app_pair_counts,
+    get_grant_bene_counts,
 )
-
 from apps.dot_ext.models import (
     Application,
     get_application_counts,
@@ -17,8 +16,6 @@ from apps.dot_ext.models import (
     get_token_bene_counts,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
-from apps.accounts.models import get_developer_counts
-
 from apps.logging.utils import format_timestamp
 
 """
@@ -79,7 +76,9 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         'grantarchived_synthetic_bene_deduped_count': grant_counts.get('archived_synthetic_deduped', None),
         'grantarchived_deduped_counts_elapsed': grant_counts.get('archived_deduped_elapsed', None),
         'grant_and_archived_real_bene_deduped_count': grant_counts.get('grant_and_archived_real_deduped', None),
-        'grant_and_archived_synthetic_bene_deduped_count': grant_counts.get('grant_and_archived_synthetic_deduped', None),
+        'grant_and_archived_synthetic_bene_deduped_count': grant_counts.get(
+            'grant_and_archived_synthetic_deduped', None
+        ),
         'grant_and_archived_deduped_counts_elapsed': grant_counts.get('grant_and_archived_deduped_elapsed', None),
         'token_real_bene_deduped_count': access_token_counts.get('real_deduped', None),
         'token_synthetic_bene_deduped_count': access_token_counts.get('synthetic_deduped', None),
@@ -108,36 +107,58 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         'global_beneficiary_synthetic_grant_archived_count': beneficiary_counts.get('synthetic_grant_archived', None),
         'global_beneficiary_grant_or_archived_count': beneficiary_counts.get('total_grant_or_archived', None),
         'global_beneficiary_real_grant_or_archived_count': beneficiary_counts.get('real_grant_or_archived', None),
-        'global_beneficiary_synthetic_grant_or_archived_count': beneficiary_counts.get('synthetic_grant_or_archived', None),
+        'global_beneficiary_synthetic_grant_or_archived_count': beneficiary_counts.get(
+            'synthetic_grant_or_archived', None
+        ),
         'global_beneficiary_grant_and_archived_count': beneficiary_counts.get('total_grant_and_archived', None),
         'global_beneficiary_real_grant_and_archived_count': beneficiary_counts.get('real_grant_and_archived', None),
-        'global_beneficiary_synthetic_grant_and_archived_count': beneficiary_counts.get('synthetic_grant_and_archived', None),
+        'global_beneficiary_synthetic_grant_and_archived_count': beneficiary_counts.get(
+            'synthetic_grant_and_archived', None
+        ),
         'global_beneficiary_grant_not_archived_count': beneficiary_counts.get('total_grant_not_archived', None),
         'global_beneficiary_real_grant_not_archived_count': beneficiary_counts.get('real_grant_not_archived', None),
-        'global_beneficiary_synthetic_grant_not_archived_count': beneficiary_counts.get('synthetic_grant_not_archived', None),
+        'global_beneficiary_synthetic_grant_not_archived_count': beneficiary_counts.get(
+            'synthetic_grant_not_archived', None
+        ),
         'global_beneficiary_archived_not_grant_count': beneficiary_counts.get('total_archived_not_grant', None),
         'global_beneficiary_real_archived_not_grant_count': beneficiary_counts.get('real_archived_not_grant', None),
-        'global_beneficiary_synthetic_archived_not_grant_count': beneficiary_counts.get('synthetic_archived_not_grant', None),
+        'global_beneficiary_synthetic_archived_not_grant_count': beneficiary_counts.get(
+            'synthetic_archived_not_grant', None
+        ),
         'global_beneficiary_real_grant_to_apps_eq_1_count': beneficiary_counts.get('real_grant_to_apps_eq_1', None),
-        'global_beneficiary_synthetic_grant_to_apps_eq_1_count': beneficiary_counts.get('synthetic_grant_to_apps_eq_1', None),
+        'global_beneficiary_synthetic_grant_to_apps_eq_1_count': beneficiary_counts.get(
+            'synthetic_grant_to_apps_eq_1', None
+        ),
         'global_beneficiary_real_grant_to_apps_eq_2_count': beneficiary_counts.get('real_grant_to_apps_eq_2', None),
-        'global_beneficiary_synthetic_grant_to_apps_eq_2_count': beneficiary_counts.get('synthetic_grant_to_apps_eq_2', None),
+        'global_beneficiary_synthetic_grant_to_apps_eq_2_count': beneficiary_counts.get(
+            'synthetic_grant_to_apps_eq_2', None
+        ),
         'global_beneficiary_real_grant_to_apps_eq_3_count': beneficiary_counts.get('real_grant_to_apps_eq_3', None),
-        'global_beneficiary_synthetic_grant_to_apps_eq_3_count': beneficiary_counts.get('synthetic_grant_to_apps_eq_3', None),
-        'global_beneficiary_real_grant_to_apps_eq_4thru5_count': beneficiary_counts.get('real_grant_to_apps_eq_4thru5', None),
+        'global_beneficiary_synthetic_grant_to_apps_eq_3_count': beneficiary_counts.get(
+            'synthetic_grant_to_apps_eq_3', None
+        ),
+        'global_beneficiary_real_grant_to_apps_eq_4thru5_count': beneficiary_counts.get(
+            'real_grant_to_apps_eq_4thru5', None
+        ),
         'global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count': beneficiary_counts.get(
             'synthetic_grant_to_apps_eq_4thru5', None
         ),
-        'global_beneficiary_real_grant_to_apps_eq_6thru8_count': beneficiary_counts.get('real_grant_to_apps_eq_6thru8', None),
+        'global_beneficiary_real_grant_to_apps_eq_6thru8_count': beneficiary_counts.get(
+            'real_grant_to_apps_eq_6thru8', None
+        ),
         'global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count': beneficiary_counts.get(
             'synthetic_grant_to_apps_eq_6thru8', None
         ),
-        'global_beneficiary_real_grant_to_apps_eq_9thru13_count': beneficiary_counts.get('real_grant_to_apps_eq_9thru13', None),
+        'global_beneficiary_real_grant_to_apps_eq_9thru13_count': beneficiary_counts.get(
+            'real_grant_to_apps_eq_9thru13', None
+        ),
         'global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count': beneficiary_counts.get(
             'synthetic_grant_to_apps_eq_9thru13', None
         ),
         'global_beneficiary_real_grant_to_apps_gt_13_count': beneficiary_counts.get('real_grant_to_apps_gt_13', None),
-        'global_beneficiary_synthetic_grant_to_apps_gt_13_count': beneficiary_counts.get('synthetic_grant_to_apps_gt_13', None),
+        'global_beneficiary_synthetic_grant_to_apps_gt_13_count': beneficiary_counts.get(
+            'synthetic_grant_to_apps_gt_13', None
+        ),
         'global_beneficiary_real_grant_archived_to_apps_eq_1_count': beneficiary_counts.get(
             'real_grant_archived_to_apps_eq_1', None
         ),
@@ -184,8 +205,12 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         'global_beneficiary_app_pair_grant_count': beneficiary_app_pair_counts.get('grant_total', None),
         'global_beneficiary_app_pair_real_grant_count': beneficiary_app_pair_counts.get('real_grant', None),
         'global_beneficiary_app_pair_synthetic_grant_count': beneficiary_app_pair_counts.get('synthetic_grant', None),
-        'global_beneficiary_app_pair_grant_archived_count': beneficiary_app_pair_counts.get('grant_archived_total', None),
-        'global_beneficiary_app_pair_real_grant_archived_count': beneficiary_app_pair_counts.get('real_grant_archived', None),
+        'global_beneficiary_app_pair_grant_archived_count': beneficiary_app_pair_counts.get(
+            'grant_archived_total', None
+        ),
+        'global_beneficiary_app_pair_real_grant_archived_count': beneficiary_app_pair_counts.get(
+            'real_grant_archived', None
+        ),
         'global_beneficiary_app_pair_synthetic_grant_archived_count': beneficiary_app_pair_counts.get(
             'synthetic_grant_archived', None
         ),
@@ -248,7 +273,9 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             'first_active': format_timestamp(app.first_active),
             'last_active': format_timestamp(app.last_active),
             'data_access_type': app.data_access_type,
-            'internal_application_labels': ', '.join(sorted([label.slug for label in app.internal_application_labels.all()])),
+            'internal_application_labels': ', '.join(
+                sorted([label.slug for label in app.internal_application_labels.all()])
+            ),
             'require_demographic_scopes': app.require_demographic_scopes,
             'real_bene_cnt': grant_counts.get('real', None),  # TODO: Deprecate this duplicate name in future
             'synth_bene_cnt': grant_counts.get('synthetic', None),  # TODO: Deprecate this duplicate name in future
@@ -259,7 +286,9 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             'grantarchived_real_bene_deduped_count': grant_counts.get('archived_real_deduped', None),
             'grantarchived_synthetic_bene_deduped_count': grant_counts.get('archived_synthetic_deduped', None),
             'grant_and_archived_real_bene_deduped_count': grant_counts.get('grant_and_archived_real_deduped', None),
-            'grant_and_archived_synthetic_bene_deduped_count': grant_counts.get('grant_and_archived_synthetic_deduped', None),
+            'grant_and_archived_synthetic_bene_deduped_count': grant_counts.get(
+                'grant_and_archived_synthetic_deduped', None
+            ),
             'token_real_bene_count': access_token_counts.get('real_deduped', None),
             'token_synthetic_bene_count': access_token_counts.get('synthetic_deduped', None),
             'token_table_count': access_token_counts.get('total', None),

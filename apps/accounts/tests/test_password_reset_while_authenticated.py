@@ -1,7 +1,8 @@
 from datetime import datetime
+from unittest import mock
+
 import pytz
 from dateutil.relativedelta import relativedelta
-from unittest import mock
 from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.test import TestCase
@@ -9,9 +10,10 @@ from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
 
+from apps.constants import USER_TYPE_DEV
+
 from ..models import UserProfile
 from ..validators import PasswordReuseAndMinAgeValidator
-from apps.constants import USER_TYPE_DEV
 
 
 class StubDate(datetime):
@@ -92,7 +94,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         }
         self.user = User.objects.get(username='fred')
         # add 2 minutes to time to let min password age elapse
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
+        )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, 'Your password was updated.')
         self.user = User.objects.get(username='fred')  # get user again so that you can see updated password
@@ -105,7 +109,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.client.login(request=request, username='fred', password='foobarfoobarfoobar')
         url = reverse('password_change')
         # add 2 minutes to time to let min password age elapse
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
+        )
         form_data = {
             'old_password': 'foobarfoobarfoobar',
             'new_password1': 'Ichangedthepassword#123',
@@ -159,7 +165,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
             'new_password2': 'IchangedTHEpassword#123',
         }
         # add 2 minutes to time to let min password age elapse
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
+        )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, 'Your password was updated.')
         self.user = User.objects.get(username='fred')  # get user again so that you can see password changed
@@ -172,7 +180,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
             'new_password2': '2ndChange#Pass',
         }
         # add 2 minutes to time to let min password age elapse
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
+        )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, 'Your password was updated.')
         self.user = User.objects.get(username='fred')  # get user again so that you can see password changed
@@ -185,10 +195,13 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
             'new_password2': 'IchangedTHEpassword#123',
         }
         # add 2 minutes to time to let min password age elapse
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
+        )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(
-            response, ('You can not use a password that is already used in this application within password re-use interval')
+            response,
+            ('You can not use a password that is already used in this application within password re-use interval'),
         )
         self.user = User.objects.get(username='fred')  # get user again so that you can see password unchanged
         self.assertEqual(self.user.check_password('2ndChange#Pass'), True)
@@ -200,7 +213,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
             'new_password2': 'IchangedTHEpassword#123',
         }
         # add 70 minutes to let password reuse restriction to elapse
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+70))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+70)
+        )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, 'Your password was updated.')
         self.user = User.objects.get(username='fred')  # get user again so that you can see password changed
@@ -211,7 +226,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
     def test_no_password_expire(self):
         self.client.logout()
         # add 90 days to time to show expiration is removed
-        StubDate.now = classmethod(lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90))
+        StubDate.now = classmethod(
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90)
+        )
         form_data = {'username': 'fred', 'password': 'foobarfoobarfoobar'}
         response = self.client.post(reverse('login'), form_data, follow=True)
         # assert account dashboard page

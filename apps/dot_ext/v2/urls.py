@@ -1,59 +1,59 @@
 from django.urls import path, re_path
-from apps.dot_ext.constants import AUTHORIZE_INSTANCE_PARAM, TOKEN_ENDPOINT_V2_KEY
 from oauth2_provider import views as oauth2_views
+
 from apps.dot_ext import views
+from apps.dot_ext.constants import AUTHORIZE_INSTANCE_PARAM, TOKEN_ENDPOINT_V2_KEY
 
-
-app_name = "oauth2_provider_v2"
+app_name = 'oauth2_provider_v2'
 
 
 base_urlpatterns = [
-    path("authorize/", views.AuthorizationView.as_view(version=2), name="authorize-v2"),
+    path('authorize/', views.AuthorizationView.as_view(version=2), name='authorize-v2'),
     re_path(
-        rf"^authorize/(?P<{AUTHORIZE_INSTANCE_PARAM}>[\w-]+)/$",
+        rf'^authorize/(?P<{AUTHORIZE_INSTANCE_PARAM}>[\w-]+)/$',
         views.ApprovalView.as_view(version=2),
-        name="authorize-instance-v2",
+        name='authorize-instance-v2',
     ),
-    re_path(r"^token/?$", views.TokenView.as_view(), name=TOKEN_ENDPOINT_V2_KEY),
-    path("revoke_token/", views.RevokeTokenView.as_view(), name="revoke-token-v2"),
-    path("revoke/", views.RevokeView.as_view(), name="revoke-v2"),
-    path("introspect/", views.IntrospectTokenView.as_view(), name="introspect-v2"),
+    re_path(r'^token/?$', views.TokenView.as_view(), name=TOKEN_ENDPOINT_V2_KEY),
+    path('revoke_token/', views.RevokeTokenView.as_view(), name='revoke-token-v2'),
+    path('revoke/', views.RevokeView.as_view(), name='revoke-v2'),
+    path('introspect/', views.IntrospectTokenView.as_view(), name='introspect-v2'),
 ]
 
 
 management_urlpatterns = [
     # Application management views
-    path("applications/", oauth2_views.ApplicationList.as_view(), name="list-v2"),
+    path('applications/', oauth2_views.ApplicationList.as_view(), name='list-v2'),
     path(
-        "applications/register/",
+        'applications/register/',
         views.ApplicationRegistration.as_view(),
-        name="register-v2",
+        name='register-v2',
     ),
     re_path(
-        r"^applications/(?P<pk>[\w-]+)/$",
+        r'^applications/(?P<pk>[\w-]+)/$',
         oauth2_views.ApplicationDetail.as_view(),
-        name="detail-v2",
+        name='detail-v2',
     ),
     re_path(
-        r"^applications/(?P<pk>[\w-]+)/delete/$",
+        r'^applications/(?P<pk>[\w-]+)/delete/$',
         views.ApplicationDelete.as_view(),
-        name="delete-v2",
+        name='delete-v2',
     ),
     re_path(
-        r"^applications/(?P<pk>[\w-]+)/update/$",
+        r'^applications/(?P<pk>[\w-]+)/update/$',
         views.ApplicationUpdate.as_view(),
-        name="update-v2",
+        name='update-v2',
     ),
     # Token management views
     path(
-        "authorized_tokens/",
+        'authorized_tokens/',
         oauth2_views.AuthorizedTokensListView.as_view(),
-        name="authorized-token-list-v2",
+        name='authorized-token-list-v2',
     ),
     re_path(
-        r"^authorized_tokens/(?P<pk>[\w-]+)/delete/$",
+        r'^authorized_tokens/(?P<pk>[\w-]+)/delete/$',
         oauth2_views.AuthorizedTokenDeleteView.as_view(),
-        name="authorized-token-delete-v2",
+        name='authorized-token-delete-v2',
     ),
 ]
 

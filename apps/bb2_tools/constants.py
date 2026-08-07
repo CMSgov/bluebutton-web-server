@@ -1,9 +1,10 @@
+from django.conf import settings
+
 from apps.bb2_tools.models import (
     MyAccessTokenViewer,
-    MyRefreshTokenViewer,
     MyArchivedTokenViewer,
+    MyRefreshTokenViewer,
 )
-from django.conf import settings
 
 ADMIN_PREPEND = getattr(settings, 'ADMIN_PREPEND_URL', '')
 BB2_TOOLS_PATH = '/{}/admin/bb2_tools/'.format(ADMIN_PREPEND) if ADMIN_PREPEND else '/admin/bb2_tools/'

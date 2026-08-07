@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
-from rest_framework import authentication
-from rest_framework import exceptions
-from apps.fhir.authentication import extract_username
+from rest_framework import authentication, exceptions
+
 from apps.dot_ext.oauth2_validators import OAuth2Validator
+from apps.fhir.authentication import extract_username
 
 
 class SLSAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        auth = request.headers.get("x-authentication")
+        auth = request.headers.get('x-authentication')
         if not auth:
             return None
 
@@ -21,16 +21,16 @@ class SLSAuthentication(authentication.BaseAuthentication):
 
         # these are for compatibility with OAuth2Validator
         # TODO remove if it becomes possible
-        if not hasattr(request, "headers"):
+        if not hasattr(request, 'headers'):
             request.headers = request.META
 
-        if not hasattr(request, "client"):
+        if not hasattr(request, 'client'):
             request.client = None
 
         # populates request.client with Application if successful
         validator = OAuth2Validator()
         authenticated = validator.authenticate_client(request)
         if not authenticated:
-            raise exceptions.AuthenticationFailed("No such application")
+            raise exceptions.AuthenticationFailed('No such application')
 
         return (user, request.client)

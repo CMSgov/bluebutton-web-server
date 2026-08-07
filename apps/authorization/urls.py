@@ -1,16 +1,17 @@
 from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
-from apps.authorization.views import ExpireDataAccessGrantView, AuthorizedGrants
 from waffle.decorators import waffle_switch
 
+from apps.authorization.views import AuthorizedGrants, ExpireDataAccessGrantView
+
 router = DefaultRouter()
-router.register(r"tokens", AuthorizedGrants, basename="token")
+router.register(r'tokens', AuthorizedGrants, basename='token')
 
 urlpatterns = [
-    path("", include((router.urls, "authorization"), namespace="token_management")),
+    path('', include((router.urls, 'authorization'), namespace='token_management')),
     re_path(
-        r"^expire_authenticated_user/(?P<patient_id>[\-0-9]+)/$",
-        waffle_switch("expire_grant_endpoint")(ExpireDataAccessGrantView.as_view()),
-        name="expire_access_grant",
+        r'^expire_authenticated_user/(?P<patient_id>[\-0-9]+)/$',
+        waffle_switch('expire_grant_endpoint')(ExpireDataAccessGrantView.as_view()),
+        name='expire_access_grant',
     ),
 ]
