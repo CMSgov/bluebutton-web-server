@@ -10,10 +10,9 @@ from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
 
+from apps.accounts.models import UserProfile
+from apps.accounts.validators import PasswordReuseAndMinAgeValidator
 from apps.constants import USER_TYPE_DEV
-
-from ..models import UserProfile
-from ..validators import PasswordReuseAndMinAgeValidator
 
 
 class StubDate(datetime):

@@ -7,9 +7,9 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 
-from ..forms import AccountSettingsForm, SignupForm
-from ..models import UserProfile
-from ..utils import validate_activation_key
+from apps.accounts.forms import AccountSettingsForm, SignupForm
+from apps.accounts.models import UserProfile
+from apps.accounts.utils import validate_activation_key
 
 
 def create_account(request):

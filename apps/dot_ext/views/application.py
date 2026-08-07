@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy
 from oauth2_provider import views as oauth2_views
 
-from ..forms import CustomRegisterApplicationForm
+from apps.dot_ext.forms import CustomRegisterApplicationForm
 
 
 class CustomFormMixin(object):
