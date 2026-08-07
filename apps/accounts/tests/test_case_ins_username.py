@@ -4,9 +4,8 @@ from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
 
+from apps.accounts.models import UserProfile
 from apps.constants import USER_TYPE_DEV
-
-from ..models import UserProfile
 
 
 class CheckCaseInsensitiveUsernameTestCase(TestCase):

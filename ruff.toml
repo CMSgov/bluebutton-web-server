@@ -23,6 +23,7 @@ select = [
           "F", # Pyflakes
           "W", # pycodestyle warnings
           "I", # isort
+          "TID252", # no relative imports
           "RUF100", # unused-noqa
           ]
 ignore = [

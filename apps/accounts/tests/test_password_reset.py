@@ -4,9 +4,8 @@ from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
 
+from apps.accounts.models import UserProfile
 from apps.constants import USER_TYPE_DEV
-
-from ..models import UserProfile
 
 
 class PasswordResetTestCase(TestCase):
