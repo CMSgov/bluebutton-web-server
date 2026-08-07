@@ -92,6 +92,7 @@ from apps.dot_ext.constants import (
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
     PARAMETERS_ID_MATCH_META,
+    PATIENT_DATA_CANNOT_BE_FOUND,
     PATIENT_ID_MATCH_META,
     YYYY_MM_DD_REGEX,
 )
@@ -1266,12 +1267,13 @@ class TokenView(DotTokenView):
                         else:
                             log.info(json.dumps(log_dict))
                             log.debug(f'No patient match found for client_credentials call for app: {app.name}')
+                            # We return a 401 here because the token request wasn't authorized since we couldn't verify a single patient
                             return JsonResponse(
                                 {
-                                    'status_code': HTTPStatus.NOT_FOUND,
-                                    'message': f'Patient match NOT found for app {app.name}.',
+                                    'status_code': HTTPStatus.UNAUTHORIZED,
+                                    'message': PATIENT_DATA_CANNOT_BE_FOUND,
                                 },
-                                status=HTTPStatus.NOT_FOUND,
+                                status=HTTPStatus.UNAUTHORIZED,
                             )
                     except Exception as e:
                         log.error(f'Error validating jwt: {e}')

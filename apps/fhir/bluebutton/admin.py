@@ -1,5 +1,6 @@
-from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from django.contrib import admin
+
+from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 
 
 @admin.register(Crosswalk)

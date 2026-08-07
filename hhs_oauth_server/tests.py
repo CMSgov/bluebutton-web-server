@@ -6,14 +6,14 @@ Created: 10/20/16 11:24 PM
 File created by: 'Mark Scrimshire: @ekivemark'
 """
 
+import json
+
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
-import json
+
 from apps.logging.sensitive_logging_filters import mask_mbi
-
-
-from hhs_oauth_server.utils import bool_env, TRUE_LIST, FALSE_LIST, int_env
+from hhs_oauth_server.utils import FALSE_LIST, TRUE_LIST, bool_env, int_env
 
 
 class Check_BooleanVariable_Test(TestCase):

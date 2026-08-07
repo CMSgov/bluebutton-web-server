@@ -6,8 +6,8 @@ from oauth2_provider.models import get_application_model
 from rest_framework import exceptions, status
 
 from apps.accounts.models import UserProfile
-from .models import CredentialingReqest
 
+from .models import CredentialingReqest
 
 Application = get_application_model()
 
