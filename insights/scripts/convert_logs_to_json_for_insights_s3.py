@@ -1,13 +1,12 @@
 import argparse
-import dateutil.parser
 import errno
 import json
 import os
+import sys
 import uuid
-
 from csv import reader
 
-import sys
+import dateutil.parser
 
 parser = argparse.ArgumentParser(
     description='Utility script to convert exported Splunk (.json) or Cloudwatch'

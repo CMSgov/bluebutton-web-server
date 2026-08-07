@@ -1,5 +1,5 @@
-import re
 import logging
+import re
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 

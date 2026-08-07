@@ -1,27 +1,27 @@
 import json
+
 from django.contrib import admin
-from django.db.models import Q, Count, Min, Max, DateTimeField
+from django.db.models import Count, DateTimeField, Max, Min, Q
 from django.db.models.functions import Trunc
 from django.utils.html import format_html
-from oauth2_provider.models import AccessToken, RefreshToken
-from oauth2_provider.models import get_application_model
+from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 
-from apps.constants import USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 from apps.accounts.models import UserProfile
-from apps.dot_ext.models import ArchivedToken
 from apps.bb2_tools.constants import BB2_TOOLS_PATH, LINK_REF_FMT, SPLUNK_DASHBOARDS, TOKEN_VIEWERS
 from apps.bb2_tools.models import (
-    BeneficiaryDashboard,
-    ApplicationStats,
-    MyAccessTokenViewer,
-    MyRefreshTokenViewer,
-    MyArchivedTokenViewer,
     AccessTokenStats,
-    RefreshTokenStats,
+    ApplicationStats,
     ArchivedTokenStats,
+    BeneficiaryDashboard,
     DummyAdminObject,
+    MyAccessTokenViewer,
+    MyArchivedTokenViewer,
+    MyRefreshTokenViewer,
+    RefreshTokenStats,
     UserStats,
 )
+from apps.constants import USER_TYPE_BENEFICIARY, USER_TYPE_DEV
+from apps.dot_ext.models import ArchivedToken
 from apps.fhir.bluebutton.utils import get_v2_patient_by_id
 
 

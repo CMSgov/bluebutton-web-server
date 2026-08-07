@@ -1,6 +1,3 @@
-from apps.versions import Versions
-import apps.logging.request_logger as logging
-
 from django.db.models.signals import (
     post_delete,
 )
@@ -8,23 +5,23 @@ from django.dispatch import receiver
 from oauth2_provider.models import AccessToken
 from oauth2_provider.signals import app_authorized
 
+import apps.logging.request_logger as logging
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.admin import MyAccessToken
 from apps.dot_ext.signals import beneficiary_authorized_application
-from apps.fhir.bluebutton.signals import pre_fetch, post_fetch
-
-from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.bluebutton.signals import post_fetch, pre_fetch
 from apps.fhir.bluebutton.utils import FhirServerAuth
-from apps.mymedicare_cb.signals import post_sls
-
+from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.logging.serializers import (
-    Token,
     DataAccessGrantSerializer,
     FHIRRequest,
     FHIRRequestForAuth,
     FHIRResponse,
     FHIRResponseForAuth,
+    Token,
 )
+from apps.mymedicare_cb.signals import post_sls
+from apps.versions import Versions
 
 
 @receiver(app_authorized)

@@ -1,17 +1,18 @@
-from django.urls import include, path, re_path
 from django.contrib import admin
+from django.urls import include, path, re_path
+
 from apps.metrics.views import (
-    BeneMetricsView,
-    AppMetricsView,
     AppMetricsDetailView,
-    TokenMetricsView,
-    DevelopersView,
-    DevelopersStreamView,
-    ArchivedTokenView,
-    DataAccessGrantView,
+    AppMetricsView,
     ArchivedDataAccessGrantView,
-    CheckDataAccessGrantsView,
+    ArchivedTokenView,
+    BeneMetricsView,
     CheckCrosswalksView,
+    CheckDataAccessGrantsView,
+    DataAccessGrantView,
+    DevelopersStreamView,
+    DevelopersView,
+    TokenMetricsView,
 )
 
 admin.autodiscover()
