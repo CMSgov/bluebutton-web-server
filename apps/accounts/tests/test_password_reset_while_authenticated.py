@@ -1,7 +1,8 @@
 from datetime import datetime
+from unittest import mock
+
 import pytz
 from dateutil.relativedelta import relativedelta
-from unittest import mock
 from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.test import TestCase
@@ -9,9 +10,10 @@ from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
 
+from apps.constants import USER_TYPE_DEV
+
 from ..models import UserProfile
 from ..validators import PasswordReuseAndMinAgeValidator
-from apps.constants import USER_TYPE_DEV
 
 
 class StubDate(datetime):

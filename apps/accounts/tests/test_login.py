@@ -1,10 +1,12 @@
+from http import HTTPStatus
+
+from django.contrib.auth.models import Group, User
 from django.test import TestCase
-from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.urls import reverse
-from apps.accounts.models import UserProfile
 from waffle.testutils import override_switch
-from http import HTTPStatus
+
+from apps.accounts.models import UserProfile
 
 
 class LoginTestCase(TestCase):

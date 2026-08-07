@@ -1,10 +1,10 @@
-import os
 import base64
 import csv
-
-from flask import redirect, request, render_template, jsonify, make_response, Flask
-from flask_wtf.csrf import CSRFProtect
+import os
 from urllib.parse import urlencode
+
+from flask import Flask, jsonify, make_response, redirect, render_template, request
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 

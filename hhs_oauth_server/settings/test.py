@@ -1,6 +1,6 @@
 import os
 
-from hhs_oauth_server.settings.base import *
+from hhs_oauth_server.settings.base import *  # noqa: F403
 
 TARGET_ENV = 'test'
 SEND_SMS = False

@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet, BaseInFilter
+from django_filters.rest_framework import BaseInFilter, DjangoFilterBackend, FilterSet
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
+
 from apps.dot_ext.models import Application, ApplicationLabel
-from apps.wellknown.serializers import ApplicationListSerializer, ApplicationLabelSerializer
+from apps.wellknown.serializers import ApplicationLabelSerializer, ApplicationListSerializer
 
 
 class ApplicationListPagination(PageNumberPagination):

@@ -10,11 +10,12 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version
-    rev: v0.15.10
+    rev: v0.16.1
     hooks:
       # Run the linter
       - id: ruff-check
         exclude: 'migrations|docs|examples|vendor|venv|management|static'
+        args: ['--fix', '--fixable=I']
       # Run the formatter
       - id: ruff-format
         exclude: 'migrations|docs|examples|vendor|venv|management|static'
