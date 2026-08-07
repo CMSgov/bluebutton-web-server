@@ -889,6 +889,5 @@ def test_client_credentials_returns_patient_match_not_found_401_integration(
         data=urlencode(token_request_data),
         content_type='application/x-www-form-urlencoded',
     )
-    # Assert that the response is a 401 because the patient match failed due to the birthdate not matching any records in BFD
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND
