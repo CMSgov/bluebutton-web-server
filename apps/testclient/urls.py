@@ -1,19 +1,14 @@
 from django.urls import path
 
 from apps.testclient.views import (
-    # v1
     authorize_link_v1,
-    # v2
     authorize_link_v2,
-    # v3
     authorize_link_v3,
-    # all versions
     callback,
     restart,
     test_coverage_v1,
     test_coverage_v2,
     test_coverage_v3,
-    # c4dic
     test_digital_insurance_card_v3,
     test_eob_v1,
     test_eob_v2,
