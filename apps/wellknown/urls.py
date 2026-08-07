@@ -1,15 +1,15 @@
 from django.urls import path
 from waffle.decorators import waffle_switch
+
 from apps.wellknown.views import (
+    ApplicationLabelView,
+    ApplicationListView,
+    PublicApplicationListView,
+    jwks_json,
     openid_configuration_v1,
     openid_configuration_v2,
     openid_configuration_v3,
-    ApplicationListView,
-    ApplicationLabelView,
-    PublicApplicationListView,
-    jwks_json,
 )
-
 
 urlpatterns = [
     # BB2's internal JWKS: the public keys used to validate signed client_assertions.

@@ -1,14 +1,15 @@
-from datetime import datetime, timezone, timedelta
 import re
 import warnings
+from datetime import datetime, timedelta, timezone
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+
 from apps.accounts.constants import PASSWORD_RULES
 from apps.accounts.models import (
-    UserPasswordDescriptor,
-    PastPassword,
     PasswordHasher,
+    PastPassword,
+    UserPasswordDescriptor,
 )
 
 

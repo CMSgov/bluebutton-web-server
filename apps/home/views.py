@@ -1,9 +1,10 @@
-from django.utils.translation import gettext_lazy as _
-from ..accounts.models import UserProfile
-from oauth2_provider.models import get_application_model
-from django.views.generic.base import TemplateView
-from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
+from django.utils.translation import gettext_lazy as _
+from django.views.generic.base import TemplateView
+from oauth2_provider.models import get_application_model
+
+from ..accounts.models import UserProfile
 
 Application = get_application_model()
 

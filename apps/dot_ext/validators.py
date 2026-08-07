@@ -1,12 +1,13 @@
-from oauth2_provider.validators import URIValidator
-from oauth2_provider.validators import urlsplit
-from oauth2_provider.settings import oauth2_settings
+from os import path as ospath
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_str
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
-from os import path as ospath
+from oauth2_provider.settings import oauth2_settings
+from oauth2_provider.validators import URIValidator, urlsplit
+
 from apps.dot_ext.constants import URL_REGEX
 
 

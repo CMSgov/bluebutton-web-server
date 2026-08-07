@@ -6,7 +6,7 @@ Created: 7/19/16 9:04 AM
 File created by: ''
 """
 
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 
 
 class BlueButtonReadRequestTest(TestCase):

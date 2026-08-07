@@ -3,11 +3,11 @@ import json
 from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
-from apps.test import BaseApiTest
-from apps.fhir.server.authentication import match_fhir_id, MatchFhirIdErrorType, MatchFhirIdLookupType
-from apps.versions import Versions
-from apps.fhir.server.tests.responses import responses
 
+from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, match_fhir_id
+from apps.fhir.server.tests.responses import responses
+from apps.test import BaseApiTest
+from apps.versions import Versions
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 
