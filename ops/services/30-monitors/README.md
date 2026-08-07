@@ -53,8 +53,9 @@ YAML files in `ops/services/30-monitors/config`:
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | d0f66be83b0cf14fd21e7795eff2ae31128621bf |
+| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | 18ff14fe868edb8a0a9dca0bedcdb0b2bfce64ce |
 | <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
+| <a name="module_synthetics"></a> [synthetics](#module\_synthetics) | github.com/CMSgov/cdap/terraform/modules/datadog_synthetics | 18ff14fe868edb8a0a9dca0bedcdb0b2bfce64ce |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
      'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
@@ -65,9 +66,15 @@ YAML files in `ops/services/30-monitors/config`:
 
 | Name | Type |
 | ---- | ---- |
+| [datadog_monitor.on_call_health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
+| [datadog_synthetics_test.health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
+| [datadog_synthetics_test.homepage_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
+| [datadog_synthetics_test.static_site_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [aws_secretsmanager_secret_version.datadog_cicd_api_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 | [aws_secretsmanager_secret_version.datadog_cicd_application_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
+| [aws_ssm_parameter.akamai_aca_token](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.bcda_account_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.hostname_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
      'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'

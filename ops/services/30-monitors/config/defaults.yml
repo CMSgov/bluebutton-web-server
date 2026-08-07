@@ -31,3 +31,5 @@ rds:
   notify_no_data: true
   no_data_timeframe_minutes: 10
   timeframe: "last_10m"
+synthetics:
+  min_failure_duration: 300
