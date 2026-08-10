@@ -1,5 +1,5 @@
 locals {
-  min_failure_duration_for_on_call = "last_1h"
+  min_failure_duration_for_on_call = "last_15m"
   on_call_webhook                  = "@webhook-victorops-${local.app}"
 }
 
@@ -16,6 +16,7 @@ resource "datadog_monitor" "on_call_health" {
 
   monitor_thresholds {
     critical = 1
+    warning = 0.5
   }
 
   on_missing_data = "default"
