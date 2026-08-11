@@ -1051,3 +1051,36 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             response.json()['detail'],
             APPLICATION_DOES_NOT_HAVE_VALID_SCOPES.format('John_Smith_test', 'search', 'ExplanationOfBenefit'),
         )
+
+
+@pytest.mark.integration
+@override_switch('v3_endpoints', active=True)
+def test_call_eob_v3_ensure_offset_is_passed(
+    basic_user,
+    get_access_token,
+    create_capability,
+    create_application,
+) -> None:
+    """Ensure that if a v3 search EOB call is made, and a _offset parameter is being passed,
+    that _offset is correctly passed to BFD, and is included in the link attribute of the response
+    """
+
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
+    application = create_application(
+        name='test',
+        grant_type='authorization-code',
+        capability=eob_capability,
+    )
+
+    user = basic_user()
+    access_token = get_access_token(user.username, 'patient/ExplanationOfBenefit.rs', application=application)
+
+    url = reverse(SEARCH_EOB_URLS[Versions.V3])
+    url += '/?_offset=5'
+    response = Client().get(
+        url,
+        Authorization='Bearer %s' % (access_token),
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert '_offset' in response.json()['link'][0]['url']
