@@ -1,20 +1,3 @@
-# TODO should these go in a data file?
-data "aws_ssm_parameter" "hostname_url" {
-  name = "/${local.app}/${local.env}/app/nonsensitive/hostname_url"
-}
-
-data "aws_ssm_parameter" "bb_akamai_aca_token" {
-  name = "/${local.app}/${local.env}/app/sensitive/bb_akamai_aca_token"
-}
-
-data "aws_ssm_parameter" "medicare_slsx_akamai_aca_token" {
-  name = "/${local.app}/${local.env}/app/sensitive/medicare_slsx_akamai_aca_token"
-}
-
-data "aws_ssm_parameter" "medicare_gov_synthetic_tests_akamai_token" {
-  name = "/${local.app}/${local.env}/app/sensitive/medicare_gov_synthetic_tests_akamai_token"
-}
-
 locals {
   hostname_url            = nonsensitive(data.aws_ssm_parameter.hostname_url.value)
   hostname_url_normalized = "%{if !startswith(local.hostname_url, "https://")}https://%{endif}${trimsuffix(local.hostname_url, "/")}"
