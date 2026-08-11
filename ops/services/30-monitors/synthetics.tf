@@ -1,6 +1,6 @@
 locals {
-  hostname_url            = nonsensitive(data.aws_ssm_parameter.hostname_url.value)
-  hostname_url_normalized = "%{if !startswith(local.hostname_url, "https://")}https://%{endif}${trimsuffix(local.hostname_url, "/")}"
+  _hostname_url           = nonsensitive(data.aws_ssm_parameter.hostname_url.value)
+  hostname_url_normalized = "%{if !startswith(local._hostname_url, "https://")}https://%{endif}${trimsuffix(local._hostname_url, "/")}"
 }
 
 module "synthetics" {
