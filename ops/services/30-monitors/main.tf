@@ -108,6 +108,8 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
+
+      draft_status = local.env == "prod" ? "draft" : "published"
     },
     {
       # TODO should this be a percentage of requests rather than a count? or is that already covered by the error rate?
@@ -143,6 +145,8 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
+
+      draft_status = local.env == "prod" ? "draft" : "published"
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High"
@@ -193,6 +197,8 @@ locals {
       on_missing_data = "default"
 
       require_full_window = false
+
+      draft_status = "draft"
     },
     {
       # TODO maybe this one is temporary and we can eventually just use the above?
