@@ -15,12 +15,10 @@ from apps.accounts.constants import (
     MAIL_SENT_EVENT,
     MAILER_EVENT_LOGGERS,
 )
-from apps.accounts.models import UserIdentificationLabel, UserProfile
+from apps.accounts.models import ActivationKey, UserIdentificationLabel, UserProfile
 from apps.constants import USER_TYPE_DEV
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers_custom
-
-from ..models import ActivationKey
 
 
 class CreateDeveloperAccountTestCase(TestCase):
