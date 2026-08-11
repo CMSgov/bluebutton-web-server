@@ -53,7 +53,7 @@ YAML files in `ops/services/30-monitors/config`:
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | b95ffb3cc482cda83ae46c8f3438a348ff9a4272 |
+| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | ba9e0cb5c88be9a9d133596529fc3c9a78427eb0 |
 | <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
