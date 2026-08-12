@@ -261,6 +261,74 @@ locals {
       require_full_window = false
     },
     {
+      name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Disk Queue Depth High"
+      type    = "metric alert"
+      message = "Aurora instance {{dbinstanceidentifier.name}} has a high disk queue depth"
+      query   = "avg(last_1h):avg:aws.rds.disk_queue_depth{application:${local.env}, environment:${local.env}} by {dbinstanceidentifier} > 1"
+
+      thresholds = {
+        critical = 1
+        warning  = 0.25
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      draft_status = "draft"
+    },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Commit Latency High"
+      type    = "metric alert"
+      message = "Aurora instance {{dbinstanceidentifier.name}} has a high commit latency"
+      query   = "avg(last_1h):avg:aws.rds.commit_latency{application:${local.app}, environment:${local.env}} by {dbinstanceidentifier} > 10"
+
+      thresholds = {
+        critical = 10
+        warning  = 1
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      draft_status = "draft"
+    },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Read Latency High"
+      type    = "metric alert"
+      message = "Aurora instance {{dbinstanceidentifier.name}} has a high read latency"
+      query   = "avg(last_1h):avg:aws.rds.read_latency{application:${local.app}, environment:${local.env}} by {dbinstanceidentifier} > 0.01"
+
+      thresholds = {
+        critical = 0.01
+        warning  = 0.005
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      draft_status = "draft"
+    },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Write Latency High"
+      type    = "metric alert"
+      message = "Aurora instance {{dbinstanceidentifier.name}} has a high write latency"
+      query   = "avg(last_1h):avg:aws.rds.write_latency{application:${local.app}, environment:${local.env}} by {dbinstanceidentifier} > 0.01"
+
+      thresholds = {
+        critical = 0.01
+        warning  = 0.005
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      draft_status = "draft"
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] Watchdog — Alert"
       type    = "event-v2 alert"
       message = "Watchdog reported an alert."
