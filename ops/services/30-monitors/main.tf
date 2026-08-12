@@ -181,9 +181,6 @@ locals {
       on_missing_data = "default"
 
       require_full_window = false
-
-      # TODO take out of draft
-      draft_status = "draft"
     },
     # TODO apm latency monitor for django?
     {
@@ -200,9 +197,6 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-
-      # TODO take out of draft
-      draft_status = "draft"
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — New Issue to Review ({{ issue.alert_reason }})"
@@ -312,9 +306,6 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-
-      # TODO take out of draft
-      draft_status = "draft"
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Commit Latency High"
@@ -330,9 +321,6 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-
-      # TODO take out of draft
-      draft_status = "draft"
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Read Latency High"
@@ -348,10 +336,8 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-
-      # TODO take out of draft
-      draft_status = "draft"
     },
+    # TODO this and a bunch others: group by query
     {
       name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Write Latency High"
       type    = "metric alert"
@@ -366,9 +352,6 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-
-      # TODO take out of draft
-      draft_status = "draft"
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] Watchdog — Alert"
