@@ -1,5 +1,5 @@
 ---
-shadow_mode: false
+draft_status: "published"
 notifications:
   slack: true
   victorops: false
@@ -7,3 +7,4 @@ ecs:
   notify_no_data: false # test shuts down overnight
 rds:
   notify_no_data: false # test shuts down overnight
+  replica_lag_enabled: false # there are no replicas on test

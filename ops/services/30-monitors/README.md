@@ -28,7 +28,7 @@ YAML files in `ops/services/30-monitors/config`:
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
-| <a name="requirement_datadog"></a> [datadog](#requirement\_datadog) | ~> 4.4 |
+| <a name="requirement_datadog"></a> [datadog](#requirement\_datadog) | ~> 4.18 |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
      'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
@@ -53,7 +53,7 @@ YAML files in `ops/services/30-monitors/config`:
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | d0f66be83b0cf14fd21e7795eff2ae31128621bf |
+| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | ba9e0cb5c88be9a9d133596529fc3c9a78427eb0 |
 | <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
