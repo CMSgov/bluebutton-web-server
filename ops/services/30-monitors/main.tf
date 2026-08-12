@@ -166,6 +166,7 @@ locals {
 
       require_full_window = false
     },
+    # TODO what are `trace.postgres.connection` metrics?
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High (trace.postgres.query)"
       type    = "metric alert"
