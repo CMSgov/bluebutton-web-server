@@ -198,6 +198,7 @@ locals {
 
       require_full_window = false
     },
+    # TODO could also break down django stuff by resource?
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High (trace.postgres.query) for Resource"
       type    = "metric alert"
