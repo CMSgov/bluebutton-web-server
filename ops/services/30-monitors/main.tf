@@ -199,6 +199,40 @@ locals {
       require_full_window = false
     },
     {
+      name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High (trace.postgres.query) for Resource"
+      type    = "metric alert"
+      message = "Service {{[peer.db.name].name}} has high error rate on resource {{ resource.name }}."
+      query   = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name, resource}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name, resource}.as_count() > 0.02"
+
+      thresholds = {
+        critical = 0.02
+        warning  = 0.01
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      draft_status = "draft"
+    },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] APM — Latency High (trace.postgres.query) for Resource"
+      type    = "metric alert"
+      message = "Service {{[peer.db.name].name}} has high latency for resource {{ resource.name }}."
+      query   = "percentile(last_1h):p95:trace.postgres.query{env:${local.env}, service:${local.app}} by {peer.db.name, resource} > 0.1"
+
+      thresholds = {
+        critical = 0.1
+        warning  = 0.05
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      draft_status = "draft"
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] APM — New Issue to Review ({{ issue.alert_reason }})"
       type    = "error-tracking alert"
       message = <<-EOT
@@ -337,7 +371,6 @@ locals {
 
       require_full_window = false
     },
-    # TODO this and a bunch others: group by query
     {
       name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Write Latency High"
       type    = "metric alert"
