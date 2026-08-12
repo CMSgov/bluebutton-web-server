@@ -62,7 +62,7 @@ def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest
         id = beneficiary
     else:
         # We should not be able to get here.
-        raise ValueError('Failed to set a patient id or beneficiary id on the pagination URI')  # noqa: E702
+        raise ValueError('Failed to set a patient id or beneficiary id on the pagination URI')
 
     # Extend the base URI with pagination information.
     uri = EndpointUrl.nav_uri(
@@ -95,7 +95,7 @@ def _convert_response_string_to_json(json_response: str) -> Dict[str, object]:
         try:
             return json.loads(json_response.content)
         except JSONDecodeError:
-            return {'error': f'Could not decode JSON; status code {json_response.status_code}'}  # noqa: E702
+            return {'error': f'Could not decode JSON; status code {json_response.status_code}'}
     else:
         # Same as above.
         return {'error': json_response.status_code}
