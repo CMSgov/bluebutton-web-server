@@ -264,7 +264,7 @@ locals {
       name    = "[${upper(local.env)}] [${local.app}] Aurora RDS — Disk Queue Depth High"
       type    = "metric alert"
       message = "Aurora instance {{dbinstanceidentifier.name}} has a high disk queue depth"
-      query   = "avg(last_1h):avg:aws.rds.disk_queue_depth{application:${local.env}, environment:${local.env}} by {dbinstanceidentifier} > 1"
+      query   = "avg(last_1h):avg:aws.rds.disk_queue_depth{application:${local.app}, environment:${local.env}} by {dbinstanceidentifier} > 1"
 
       thresholds = {
         critical = 1
