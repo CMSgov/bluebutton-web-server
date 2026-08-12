@@ -275,6 +275,7 @@ locals {
 
       require_full_window = false
 
+      # TODO take out of draft
       draft_status = "draft"
     },
     {
@@ -292,6 +293,7 @@ locals {
 
       require_full_window = false
 
+      # TODO take out of draft
       draft_status = "draft"
     },
     {
@@ -309,6 +311,7 @@ locals {
 
       require_full_window = false
 
+      # TODO take out of draft
       draft_status = "draft"
     },
     {
@@ -326,6 +329,7 @@ locals {
 
       require_full_window = false
 
+      # TODO take out of draft
       draft_status = "draft"
     },
     {
