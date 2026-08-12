@@ -185,6 +185,7 @@ locals {
       # TODO take out of draft
       draft_status = "draft"
     },
+    # TODO apm latency monitor for django?
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Latency High (trace.postgres.query)"
       type    = "metric alert"
