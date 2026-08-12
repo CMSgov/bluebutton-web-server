@@ -1,7 +1,7 @@
 boto3 == 1.42.12
-ddtrace == 4.10.5 # used to collect traces for Datadog
+ddtrace == 4.13.0 # used to collect traces for Datadog
 dj-database-url == 2.0.0
-django == 6.0.6
+django == 6.0.7
 django-axes == 5.41.1
 django-bootstrap5 == 25.3 # used in our templates
 django-cors-headers == 4.0.0 # used in our settings
