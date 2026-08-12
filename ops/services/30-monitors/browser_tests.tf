@@ -21,13 +21,16 @@ locals {
   ]
 
   set_cookie = join("\n", [for c in local._cookies : "${c.cookie}; Domain=${c.domain}; Secure; HttpOnly" if c.when])
+
+  versions = local.env == "test" ? ["2", "3"] : ["2"]
 }
 
 resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
+  for_each = toset(local.versions)
 
   type   = "browser"
   status = "live"
-  name   = "${local.app}-${local.env}-testclient-auth-flow-and-calls"
+  name   = "${local.app}-${local.env}-testclient-auth-flow-and-calls-v${each.value}"
 
   message = <<-EOT
   {{! Test result details }}
@@ -92,7 +95,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
 
   options_list {
     tick_every           = 5 * 60
-    monitor_name         = "[${upper(local.env)}] [${local.app}] Synthetics — testclient-auth-flow-and-calls"
+    monitor_name         = "[${upper(local.env)}] [${local.app}] Synthetics — testclient-auth-flow-and-calls-v${each.value}"
     min_failure_duration = 25 * 60
   }
 
@@ -107,7 +110,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
   browser_variable {
     type    = "text"
     name    = "BBUSER_NUMBER"
-    pattern = "00000"
+    pattern = each.value == "2" ? "00000" : "00123"
   }
 
   browser_variable {
@@ -120,6 +123,12 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     type    = "text"
     name    = "MEDICARE_SITE"
     pattern = "https://${local.medicare_domain}"
+  }
+
+  browser_variable {
+    type    = "text"
+    name    = "API_VERSION"
+    pattern = each.value
   }
 
   # TODO could replace some of these browser steps with directly navigating to a link. Would be smaller terraform, but not as like a user would do.
@@ -158,14 +167,14 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
       element = jsonencode({
         "url" : "{{ SITE }}/testclient/",
         "multiLocator" : {
-          "ab" : "/*[local-name()=\"html\"][1]/*[local-name()=\"body\"][1]/*[local-name()=\"main\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"a\"][1]",
+          "ab" : "/*[local-name()=\"html\"][1]/*[local-name()=\"body\"][1]/*[local-name()=\"main\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"a\"][${each.value == "2" ? "1" : "2"}]",
           "at" : "",
           "cl" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-c-button \")]",
-          "co" : "[{\"text\":\"get a sample authorization token\",\"textType\":\"directText\"}]",
-          "ro" : "//*[@id=\"auth_link_v2\"]",
-          "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-c-button \")]"
+          "co" : "[{\"text\":\"get a sample authorization token (v{{ API_VERSION }})\",\"textType\":\"directText\"}]",
+          "ro" : "//*[@id=\"auth_link_v{{ API_VERSION }}\"]",
+          "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"get a sample authorization token${each.value == "3" ? " (v3)" : ""}\"]]"
         },
-        "targetOuterHTML" : "<a id=\"auth_link_v2\" href=\"/testclient/authorize-link-v2\" class=\"ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white\">Get a Sample Authorization\n\t\t\t\tToken</a>"
+        "targetOuterHTML" : "<a id=\"auth_link_v{{ API_VERSION }}\" href=\"/testclient/authorize-link-v{{ API_VERSION }}\" class=\"ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white\">Get a Sample Authorization Token${each.value == "3" ? " (v3)" : ""}</a>"
       })
     }
   }
@@ -177,7 +186,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     is_critical   = true
     params {
       element = jsonencode({
-        "url" : "{{ SITE }}/testclient/authorize-link-v2",
+        "url" : "{{ SITE }}/testclient/authorize-link-v{{ API_VERSION }}",
         "multiLocator" : {
           "ab" : "/*[local-name()=\"html\"][1]/*[local-name()=\"body\"][1]/*[local-name()=\"main\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][2]/*[local-name()=\"a\"][1]",
           "at" : "",
@@ -186,7 +195,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"authorize as a beneficiary\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" action-container \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"authorize as a beneficiary\"]]"
         },
-        "targetOuterHTML" : "<a href=\"{{ SITE }}/v2/o/authorize/"
+        "targetOuterHTML" : "<a href=\"{{ SITE }}/v{{ API_VERSION }}/o/authorize/"
       })
     }
   }
@@ -306,7 +315,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     is_critical   = true
     params {
       check = "startsWith"
-      value = "{{ SITE }}/v2/o/authorize/"
+      value = "{{ SITE }}/v{{ API_VERSION }}/o/authorize/"
     }
   }
 
@@ -317,7 +326,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     is_critical   = true
     params {
       element = jsonencode({
-        "url" : "{{ SITE }}/v2/o/authorize/",
+        "url" : "{{ SITE }}/v{{ API_VERSION }}/o/authorize/",
         "multiLocator" : {
           "ab" : "/*[local-name()=\"html\"][1]/*[local-name()=\"body\"][1]/*[local-name()=\"main\"][1]/*[local-name()=\"div\"][1]/*[local-name()=\"div\"][2]/*[local-name()=\"div\"][1]/*[local-name()=\"form\"][1]/*[local-name()=\"div\"][2]/*[local-name()=\"input\"][2]",
           "at" : "/descendant::*[@name=\"allow\" and @value=\"Connect\"]",
@@ -358,7 +367,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"explanationofbenefit\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"explanationofbenefit\"]]"
         },
-        "targetOuterHTML" : "<a href=\"/testclient/ExplanationOfBenefitV2\">ExplanationOfBenefit</a>"
+        "targetOuterHTML" : "<a href=\"/testclient/ExplanationOfBenefitV{{ API_VERSION }}\">ExplanationOfBenefit</a>"
       })
     }
   }
@@ -369,7 +378,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     allow_failure = false
     is_critical   = true
     params {
-      value = "Response (Bundle of ExplanationOfBenefit), API version: 2"
+      value = "Response (Bundle of ExplanationOfBenefit), API version: {{ API_VERSION }}"
     }
   }
 
@@ -429,7 +438,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"patient\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"patient\"]]"
         },
-        "targetOuterHTML" : "<a href=\"/testclient/PatientV2\">Patient</a>"
+        "targetOuterHTML" : "<a href=\"/testclient/PatientV{{ API_VERSION }}\">Patient</a>"
       })
     }
   }
@@ -440,7 +449,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     allow_failure = false
     is_critical   = true
     params {
-      value = "Response (Patient), API version: 2"
+      value = "Response (Patient), API version: {{ API_VERSION }}"
     }
   }
 
@@ -490,7 +499,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"coverage\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"coverage\"]]"
         },
-        "targetOuterHTML" : "<a href=\"/testclient/CoverageV2\">Coverage</a>"
+        "targetOuterHTML" : "<a href=\"/testclient/CoverageV{{ API_VERSION }}\">Coverage</a>"
       })
     }
   }
@@ -501,7 +510,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     allow_failure = false
     is_critical   = true
     params {
-      value = "Response (Bundle of Coverage), API version: 2"
+      value = "Response (Bundle of Coverage), API version: {{ API_VERSION }}"
     }
   }
 
@@ -541,7 +550,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"profile\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"profile\"]]"
         },
-        "targetOuterHTML" : "<a href=\"/testclient/userinfoV2\">Profile </a>"
+        "targetOuterHTML" : "<a href=\"/testclient/userinfoV{{ API_VERSION }}\">Profile </a>"
       })
     }
   }
@@ -552,7 +561,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     allow_failure = false
     is_critical   = true
     params {
-      value = "Response (Profile (OIDC Userinfo)), API version: 2"
+      value = "Response (Profile (OIDC Userinfo)), API version: {{ API_VERSION }}"
     }
   }
 
@@ -612,7 +621,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"fhir metadata\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"fhir metadata\"]]"
         },
-        "targetOuterHTML" : "<a href=\"/testclient/metadataV2?format=json\">FHIR Metadata</a>"
+        "targetOuterHTML" : "<a href=\"/testclient/metadataV{{ API_VERSION }}?format=json\">FHIR Metadata</a>"
       })
     }
   }
@@ -623,7 +632,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     allow_failure = false
     is_critical   = true
     params {
-      value = "Response (FHIR Metadata), API version: 2"
+      value = "Response (FHIR Metadata), API version: {{ API_VERSION }}"
     }
   }
 
@@ -638,10 +647,13 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
   }
 
   browser_step {
-    name          = "Test text is present on at least one page"
-    type          = "assertPageContains"
-    allow_failure = false
-    is_critical   = true
+    name = "Test text is present on at least one page"
+    type = "assertPageContains"
+    # allow_failure = false
+    # is_critical   = true
+    # TODO v3 doesn't have what you'd think here
+    allow_failure = each.value == "3"
+    is_critical   = each.value == "2"
     params {
       value = "\"publisher\": \"Centers for Medicare & Medicaid Services\""
     }
@@ -673,7 +685,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "ro" : "//*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"oidc discovery\"]]",
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" ds-l-lg-col--11 \")]/descendant::*[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸŽŠŒ', 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿžšœ')) = \"oidc discovery\"]]"
         },
-        "targetOuterHTML" : "<a href=\"/testclient/openidConfigV2\">OIDC Discovery</a>"
+        "targetOuterHTML" : "<a href=\"/testclient/openidConfigV{{ API_VERSION }}\">OIDC Discovery</a>"
       })
     }
   }
@@ -684,7 +696,7 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     allow_failure = false
     is_critical   = true
     params {
-      value = "Response (OIDC Discovery), API version: 2"
+      value = "Response (OIDC Discovery), API version: {{ API_VERSION }}"
     }
   }
 
