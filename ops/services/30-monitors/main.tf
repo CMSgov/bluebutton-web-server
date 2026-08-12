@@ -195,7 +195,7 @@ locals {
         warning  = 0.05
       }
 
-      on_missing_data = "default"
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
 
@@ -307,7 +307,7 @@ locals {
         warning  = 0.25
       }
 
-      on_missing_data = "default"
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
 
@@ -325,7 +325,7 @@ locals {
         warning  = 1
       }
 
-      on_missing_data = "default"
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
 
@@ -343,7 +343,7 @@ locals {
         warning  = 0.005
       }
 
-      on_missing_data = "default"
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
 
@@ -361,7 +361,7 @@ locals {
         warning  = 0.005
       }
 
-      on_missing_data = "default"
+      on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
 
