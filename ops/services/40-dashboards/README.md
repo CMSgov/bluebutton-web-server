@@ -47,7 +47,7 @@ See https://github.com/CMSgov/cdap/tree/main/terraform/modules/datadog_dashboard
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_datadog_dashboard"></a> [datadog\_dashboard](#module\_datadog\_dashboard) | github.com/CMSgov/cdap/terraform/modules/datadog_dashboard | ba9e0cb5c88be9a9d133596529fc3c9a78427eb0 |
+| <a name="module_datadog_dashboard"></a> [datadog\_dashboard](#module\_datadog\_dashboard) | github.com/CMSgov/cdap/terraform/modules/datadog_dashboard | acbc45799d53fe5d15645ad83a3d227615510b60 |
 | <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
