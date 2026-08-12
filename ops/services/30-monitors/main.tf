@@ -167,6 +167,42 @@ locals {
       require_full_window = false
     },
     {
+      name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High (trace.postgres.query)"
+      type    = "metric alert"
+      message = "Service {{peer.db.name}} has high error rate."
+      query = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() > 0.02"
+
+      thresholds = {
+        critical = 0.02
+        warning  = 0.01
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      # TODO take out of draft
+      draft_status = "draft"
+    },
+    {
+      name    = "[${upper(local.env)}] [${local.app}] APM — Latency High (trace.postgres.query)"
+      type    = "metric alert"
+      message = "Service {{peer.db.name}} has high latency."
+      query = "percentile(last_1h):p95:trace.postgres.query{env:${local.env}, service:${local.app}} by {peer.db.name} > 0.1"
+
+      thresholds = {
+        critical = 0.1
+        warning  = 0.05
+      }
+
+      on_missing_data = "default"
+
+      require_full_window = false
+
+      # TODO take out of draft
+      draft_status = "draft"
+    },
+    {
       name    = "[${upper(local.env)}] [${local.app}] APM — New Issue to Review ({{ issue.alert_reason }})"
       type    = "error-tracking alert"
       message = <<-EOT
