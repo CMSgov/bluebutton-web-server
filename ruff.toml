@@ -26,6 +26,7 @@ select = [
           "W", # pycodestyle warnings
           "I", # isort
           "TID252", # no relative imports
+          "RUF100", # unused-noqa
           ]
 ignore = [
           "W191", # Tab indentation, handled by formatter

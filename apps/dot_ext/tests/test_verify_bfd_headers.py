@@ -149,7 +149,7 @@ class TestBFDHeaders(BaseApiTest):
                     'gender': 'unknown',
                     'birthDate': '2014-06-01',
                     'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
-                },  # noqa
+                },
             }
 
         with HTTMock(catchall):
