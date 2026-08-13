@@ -305,6 +305,7 @@ ddtrace==4.13.0 \
     --hash=sha256:8677cbc5eadad401e96dfa0ad7c8bcfbc739c8a37341dd08a1ba1d2bc964a612 \
     --hash=sha256:93eda8a3975a5eb9c005427448aa04b6221ae2e42609a6a339423e4e46e546d5 \
     --hash=sha256:9928e32be06ef9e93ef9a0aba22a77b2d70e2c13e480b502b5ca6306104c3737 \
+    --hash=sha256:abb13f0dad32b1f8899e078ed7e05669240ea59700269e2216507954d65afef2 \
     --hash=sha256:ad32f895fddbd6b0095f81a6bd7113582c18f11be6d95c3e1c96a23b8f98f3aa \
     --hash=sha256:adcceec7b1c34ef6e98b7ecf14fb2912a25bac977cb35efdbb8ba0590c941dc3 \
     --hash=sha256:b056421b7108fed2a0d2fb8176a14329d797ee1a0c0a0fa78f67627c7bd65a6a \
@@ -998,9 +999,9 @@ typing-extensions==4.15.0 \
     #   pydantic
     #   pydantic-core
     #   typing-inspection
-typing-inspection==0.4.3 \
-    --hash=sha256:5f42b23858a91e0b4ef521f5418f03a0da3c9216fd2995ef5e73463100e676cd \
-    --hash=sha256:c5f9ec1530b5c1e2c9bc34a84d9a3466ed1b2f3f2fa9f901368d9c5596210e4d
+typing-inspection==0.4.4 \
+    --hash=sha256:547274fa6b0a561ccf549cc9524b999a578e737d015d8709d021f9d0d13bea47 \
+    --hash=sha256:65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147
     # via pydantic
 urllib3==2.7.0 \
     --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
