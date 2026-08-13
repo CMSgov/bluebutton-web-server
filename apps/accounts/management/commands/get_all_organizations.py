@@ -1,5 +1,6 @@
-from apps.accounts.models import UserProfile
 from django.core.management.base import BaseCommand
+
+from apps.accounts.models import UserProfile
 
 
 def list_organization_names():
