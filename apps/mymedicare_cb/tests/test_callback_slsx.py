@@ -24,6 +24,7 @@ import apps.logging.request_logger as logging
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import CODE_CHALLENGE_METHOD_S256, MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
+from apps.dot_ext.constants import PATIENT_DATA_CANNOT_BE_FOUND
 from apps.dot_ext.models import Application, Approval
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
@@ -466,9 +467,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         ):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-            self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
-            content = json.loads(response.content)
-            self.assertEqual(content['error'], settings.MEDICARE_ERROR_MSG)
+            self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+            assert PATIENT_DATA_CANNOT_BE_FOUND in response.text
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
         with HTTMock(
@@ -1140,7 +1140,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state}
             )
             resp_json = response.json()
-            self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
+            print('RESP_JSON: ', resp_json)
+            self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
             self.assertIsNotNone(resp_json)
             self.assertIsNotNone(resp_json.get('error'))
             self.assertEqual(resp_json.get('error'), settings.MEDICARE_ERROR_MSG)
