@@ -135,7 +135,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
                 self.patient = DEFAULT_SAMPLE_FHIR_ID_V3
                 self.username = DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f'Failed to set up tests with a valid version number; given {version}')  # noqa: E702
+                raise VersionNotMatched(f'Failed to set up tests with a valid version number; given {version}')
 
         # TODO V3: This may need to be parameterized based on the version number.
         self.another_patient = '20140000000001'
@@ -186,7 +186,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             case Versions.V3:
                 self.patient = DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')  # noqa: E702
+                raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')
 
         self.another_patient = '20140000000001'
 
@@ -340,7 +340,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         first_links = [data['url'] for data in response_data['link'] if data['relation'] == 'first']
 
         if os.getenv('LOCAL_TESTING_TARGET', None) in ['impl']:
-            self.assertEqual(len(previous_links), 1)  # noqa: E999
+            self.assertEqual(len(previous_links), 1)
             self.assertEqual(len(next_links), 1)
             self.assertEqual(len(first_links), 1)
             self.assertIn('startIndex=13', previous_links[0])

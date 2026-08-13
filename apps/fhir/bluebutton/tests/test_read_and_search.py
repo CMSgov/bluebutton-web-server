@@ -32,14 +32,14 @@ AccessToken = get_access_token_model()
 def get_expected_read_request(version: int):
     return {
         'method': 'GET',
-        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}/?_format=application/fhir+json&_id={DEFAULT_SAMPLE_FHIR_ID_V2}',  # noqa
+        'url': f'{FHIR_SERVER["FHIR_URL"]}/v{version}/fhir/Patient/{DEFAULT_SAMPLE_FHIR_ID_V2}/?_format=application/fhir+json&_id={DEFAULT_SAMPLE_FHIR_ID_V2}',
         'headers': {
             # 'User-Agent': 'python-requests/2.20.0',
             'Accept-Encoding': 'gzip, deflate',
             'Accept': '*/*',
             'Connection': 'keep-alive',
             'BlueButton-OriginalQueryCounter': '1',
-            'BlueButton-BeneficiaryId': f'patientId:{DEFAULT_SAMPLE_FHIR_ID_V2}',  # noqa: E231
+            'BlueButton-BeneficiaryId': f'patientId:{DEFAULT_SAMPLE_FHIR_ID_V2}',
             'BlueButton-Application': 'John_Smith_test',
             'X-Forwarded-For': '127.0.0.1',
             'keep-alive': 'timeout=120, max=10',
@@ -64,7 +64,7 @@ def get_expected_request(version):
             'Accept': '*/*',
             'Connection': 'keep-alive',
             'BlueButton-OriginalQueryCounter': '1',
-            'BlueButton-BeneficiaryId': f'patientId:{DEFAULT_SAMPLE_FHIR_ID_V2}',  # noqa: E231
+            'BlueButton-BeneficiaryId': f'patientId:{DEFAULT_SAMPLE_FHIR_ID_V2}',
             'BlueButton-Application': 'John_Smith_test',
             'X-Forwarded-For': '127.0.0.1',
             'keep-alive': 'timeout=120, max=10',
@@ -201,7 +201,7 @@ class ThrottleReadRequestTest(BaseApiTest):
                     'gender': 'unknown',
                     'birthDate': '2014-06-01',
                     'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
-                },  # noqa
+                },
             }
 
         with HTTMock(catchall):
@@ -402,7 +402,7 @@ class BackendConnectionTest(BaseApiTest):
                     'link': [
                         {
                             'relation': 'self',
-                            'url': f'http://hapi.fhir.org/v{version}/fhir/ExplanationOfBenefit?_pretty=true&patient=1234',  # noqa: E231, E501
+                            'url': f'http://hapi.fhir.org/v{version}/fhir/ExplanationOfBenefit?_pretty=true&patient=1234',
                         },
                     ],
                 },
@@ -481,7 +481,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @urlmatch(
             query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*'
-        )  # noqa
+        )
         def fhir_request(url, req):
             return {
                 'status_code': 200,
@@ -622,7 +622,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @urlmatch(
             query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*'
-        )  # noqa
+        )
         def fhir_request(url, req):
             return {
                 'status_code': 200,
@@ -698,7 +698,7 @@ class BackendConnectionTest(BaseApiTest):
                     'gender': 'unknown',
                     'birthDate': '2014-06-01',
                     'address': [{'district': '999', 'state': '15', 'postalCode': '99999'}],
-                },  # noqa
+                },
             }
 
         with HTTMock(catchall):

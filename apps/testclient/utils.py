@@ -30,7 +30,7 @@ def _start_url_with_http_or_https(host: str) -> str:
         # This is also fine
         pass
     else:
-        host = f'https://{host}'  # noqa: E231
+        host = f'https://{host}'
 
     return host
 
