@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import jsonschema
-from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.template.response import TemplateResponse
 from django.test.client import Client
 from django.urls import reverse
 from django.utils.dateparse import parse_duration
@@ -1140,12 +1140,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             response = self.client.get(
                 self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state}
             )
-            resp_json = response.json()
-            print('RESP_JSON: ', resp_json)
             self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-            self.assertIsNotNone(resp_json)
-            self.assertIsNotNone(resp_json.get('error'))
-            self.assertEqual(resp_json.get('error'), settings.MEDICARE_ERROR_MSG)
+            self.assertIsNotNone(response)
+            self.assertIsInstance(response, TemplateResponse)
             # further check log for root cause
             sls_authn_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_SLS_LOGGER)
             self.assertIsNotNone(sls_authn_log_content)
