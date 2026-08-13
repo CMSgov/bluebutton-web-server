@@ -469,6 +469,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
             self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
             assert PATIENT_DATA_CANNOT_BE_FOUND in response.text
+            assert 'Please ensure you are logged in as a Medicare enrollee.' in response.text
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
         with HTTMock(
