@@ -38,7 +38,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=acbc45799d53fe5d15645ad83a3d227615510b60"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=f3f30320cae5e1564790e0e4dd774b451f2b615e"
 
   app             = local.app
   env             = local.env

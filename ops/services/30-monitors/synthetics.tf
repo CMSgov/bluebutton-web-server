@@ -4,13 +4,13 @@ locals {
 }
 
 module "synthetics" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_synthetics?ref=acbc45799d53fe5d15645ad83a3d227615510b60"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_synthetics?ref=f3f30320cae5e1564790e0e4dd774b451f2b615e"
 
   app = local.app
   env = local.env
 
   notify               = module.common_datadog_monitors.notify
-  shadow_mode          = local.monitor_config.shadow_mode
+  enabled              = local.monitor_config.enabled.synthetics
   min_failure_duration = local.monitor_config.synthetics.min_failure_duration
 
   tests = []
