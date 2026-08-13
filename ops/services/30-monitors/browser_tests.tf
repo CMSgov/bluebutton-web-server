@@ -22,7 +22,7 @@ locals {
 
   set_cookie = join("\n", [for c in local._cookies : "${c.cookie}; Domain=${c.domain}; Secure; HttpOnly" if c.when])
 
-  versions = local.env == "test" ? ["2", "3"] : ["2"]
+  versions = ["2", "3"]
 }
 
 resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
