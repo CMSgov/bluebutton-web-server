@@ -1,5 +1,4 @@
 import os
-from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,11 +6,10 @@ from django.test import TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
 from apps.dot_ext.constants import CLEAR_HIGHER_ISS, IDME_HIGHER_ISS, IDME_LOWER_ISS, SUPPORTED_VERSION_TEST_CASES
-from apps.dot_ext.models import AuthFlowTracking
 from apps.dot_ext.utils import (
     build_jwks_urls,
-    check_auth_tracking_and_create_access_token_extension,
     check_can_token_scope_for_audit_event_scopes,
+    check_session_and_create_access_token_extension,
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_client_id,
@@ -55,27 +53,18 @@ class TestDOTUtils(TestCase):
             assert not validate_latin_extended_string(text)
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_use_database_value(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
+    def test_check_session_and_create_access_token_extension_use_session_value(self, mock_access_token_extension):
         """
-        When dot_ext_auth_flow_tracking has a record for the code and grant_type is NOT refresh_token,
-        the dot_ext_auth_flow_tracking.include_samhsa value should be used for include_samhsa.
+        When grant_type is NOT refresh_token,
+        the session's value should be used for include_samhsa.
         """
-        tracking_object = AuthFlowTracking.objects.create(
-            code=self.code,
-            include_samhsa=False,
-            expires=datetime.now(UTC),
-        )
-        mock_auth_flow_tracking.return_value = tracking_object
 
-        check_auth_tracking_and_create_access_token_extension(
+        check_session_and_create_access_token_extension(
             prior_include_samhsa=False,
-            code=self.code,
             grant_type='authorization_code',
             token=self.token,
             prior_part_d_eob_only=False,
+            session_include_samhsa=False,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -85,27 +74,17 @@ class TestDOTUtils(TestCase):
         )
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_use_database_value_true(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
+    def test_check_session_and_create_access_token_extension_use_session_value_true(self, mock_access_token_extension):
         """
-        When dot_ext_auth_flow_tracking has a record for the code and grant_type is NOT refresh_token,
-        the dot_ext_auth_flow_tracking.include_samhsa value should be used for include_samhsa.
+        When grant_type is NOT refresh_token,
+        the session's value should be used for include_samhsa.
         """
-        tracking_object = AuthFlowTracking.objects.create(
-            code=self.code,
-            include_samhsa=True,
-            expires=datetime.now(UTC),
-        )
-        mock_auth_flow_tracking.return_value = tracking_object
-
-        check_auth_tracking_and_create_access_token_extension(
+        check_session_and_create_access_token_extension(
             prior_include_samhsa=True,
-            code=self.code,
             grant_type='authorization_code',
             token=self.token,
             prior_part_d_eob_only=False,
+            session_include_samhsa=True,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -115,51 +94,17 @@ class TestDOTUtils(TestCase):
         )
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_no_database_value(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
-        """
-        When there is no dot_ext_auth_flow_tracking record, just use the default of True
-        """
-        mock_auth_flow_tracking.side_effect = AuthFlowTracking.DoesNotExist
-
-        check_auth_tracking_and_create_access_token_extension(
-            prior_include_samhsa=True,
-            code=self.code,
-            grant_type='authorization_code',
-            token=self.token,
-            prior_part_d_eob_only=False,
-        )
-
-        mock_access_token_extension.objects.get_or_create.assert_called_once_with(
-            access_token=self.token,
-            include_samhsa=True,
-            part_d_eob_only=False,
-        )
-
-    @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_refresh_token_grant(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
+    def test_check_session_and_create_access_token_extension_refresh_token_grant(self, mock_access_token_extension):
         """
         When grant_type is 'refresh_token', prior_include_samhsa=False
-        should override any dot_ext_auth_flow_tracking record include_samhsa value.
+        should override any session include_samhsa value.
         """
-        tracking_object = AuthFlowTracking.objects.create(
-            code=self.code,
-            include_samhsa=True,
-            expires=datetime.now(UTC),
-        )
-        mock_auth_flow_tracking.return_value = tracking_object
-
-        check_auth_tracking_and_create_access_token_extension(
+        check_session_and_create_access_token_extension(
             prior_include_samhsa=False,
-            code=self.code,
             grant_type='refresh_token',
             token=self.token,
             prior_part_d_eob_only=False,
+            session_include_samhsa=True,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
