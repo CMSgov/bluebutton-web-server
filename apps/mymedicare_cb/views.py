@@ -131,15 +131,10 @@ def callback(request):
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
-    except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
-        # This is essentially an internal error where we have a conflict with the
-        # current state of the system. Instead of a 500, we'll return a 409.
-        return JsonResponse(
-            {
-                'error': e.detail,
-            },
-            status=HTTPStatus.CONFLICT,
-        )
+    except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
+        # This was an error where we couldn't find the hicn or mbi in the userinfo response.
+        # This is a 404 error, but we want to show a custom page for this case.
+        return TemplateResponse(request, 'bene_404_no_mbi.html', status=HTTPStatus.NOT_FOUND)
     except BBMyMedicareCallbackCrosswalkCreateException as e:
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
