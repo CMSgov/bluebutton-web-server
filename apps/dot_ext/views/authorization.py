@@ -473,7 +473,7 @@ class AuthorizationView(DotAuthorizationView):
             if application.part_d_eob_only:
                 user_approves_sharing_samhsa_data = True
             share_samhsa_log_str = 'True' if user_approves_sharing_samhsa_data else 'False'
-            set_session_auth_flow_trace_value(self.request, 'auth_share_samhsa_data', share_samhsa_log_str)
+        set_session_auth_flow_trace_value(self.request, 'auth_share_samhsa_data', share_samhsa_log_str)
 
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)

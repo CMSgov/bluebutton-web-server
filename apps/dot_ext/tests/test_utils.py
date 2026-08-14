@@ -53,7 +53,7 @@ class TestDOTUtils(TestCase):
             assert not validate_latin_extended_string(text)
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    def test_check_session_and_create_access_token_extension_use_database_value(self, mock_access_token_extension):
+    def test_check_session_and_create_access_token_extension_use_session_value(self, mock_access_token_extension):
         """
         When grant_type is NOT refresh_token,
         the session's value should be used for include_samhsa.
@@ -61,7 +61,6 @@ class TestDOTUtils(TestCase):
 
         check_session_and_create_access_token_extension(
             prior_include_samhsa=False,
-            code=self.code,
             grant_type='authorization_code',
             token=self.token,
             prior_part_d_eob_only=False,
@@ -75,14 +74,13 @@ class TestDOTUtils(TestCase):
         )
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    def test_check_session_and_create_access_token_extension_use_database_value_true(self, mock_access_token_extension):
+    def test_check_session_and_create_access_token_extension_use_session_value_true(self, mock_access_token_extension):
         """
         When grant_type is NOT refresh_token,
         the session's value should be used for include_samhsa.
         """
         check_session_and_create_access_token_extension(
             prior_include_samhsa=True,
-            code=self.code,
             grant_type='authorization_code',
             token=self.token,
             prior_part_d_eob_only=False,

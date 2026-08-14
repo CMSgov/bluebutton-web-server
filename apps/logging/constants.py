@@ -119,6 +119,7 @@ AUTHORIZATION_LOG_SCHEMA = {
             'properties': {'id': {'pattern': '1'}, 'name': {'pattern': 'an app'}},
         },
         'share_demographic_scopes': {'pattern': '^$'},
+        'share_samhsa_data': {'pattern': '^$'},
         'scopes': {'pattern': 'capability-a'},
         'allow': {'type': 'boolean'},
         'access_token_delete_cnt': {'type': 'integer', 'enum': [0]},
