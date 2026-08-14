@@ -203,6 +203,7 @@ class OAuth2ConfigSLSx(object):
         # 1. sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
         # 2. sls_hicn cannot be empty or None
         # 3. sls_hicn must be str.
+        # 4. sls_mbi must be str if not None.
         self.validate_asserts(
             request,
             [
