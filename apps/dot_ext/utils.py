@@ -254,9 +254,9 @@ def get_application_from_data(request):
 
     # Try via refresh_token
     # Finally, if we have a refresh token, but cannot find an app, that's not good.
-    if request.POST.get('refresh_token'):
+    if request.POST.get(REFRESH_TOKEN):
         try:
-            rt = RefreshToken.objects.get(token=request.POST.get('refresh_token', None))
+            rt = RefreshToken.objects.get(token=request.POST.get(REFRESH_TOKEN, None))
         except RefreshToken.DoesNotExist:
             raise InvalidRequestError(
                 description='Refresh token not found.',
@@ -330,7 +330,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
     if app.active:
         # Is this for a token refresh request?
         post_grant_type = request.POST.get('grant_type', None)
-        if post_grant_type == 'refresh_token':
+        if post_grant_type == REFRESH_TOKEN:
             # A ONE_TIME token is not allowed to be refreshed.
             # In that instance, we raise an error that explicitly
             # indicates that the user must re-authenticate.
@@ -341,7 +341,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
                     status_code=HTTPStatus.FORBIDDEN,
                 )
 
-            refresh_code = request.POST.get('refresh_token', None)
+            refresh_code = request.POST.get(REFRESH_TOKEN, None)
             try:
                 refresh_token = RefreshToken.objects.get(token=refresh_code)
                 dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
@@ -449,7 +449,7 @@ def check_session_and_create_access_token_extension(
     """
     include_samhsa = True
 
-    if grant_type != 'refresh_token':
+    if grant_type != REFRESH_TOKEN:
         include_samhsa = session_include_samhsa
     else:
         include_samhsa = prior_include_samhsa
