@@ -30,6 +30,7 @@ SESSION_AUTH_FLOW_TRACE_KEYS = [
     'auth_pkce_method',
     'auth_crosswalk_action',
     'auth_share_demographic_scopes',
+    'auth_share_samhsa_data',
     'auth_require_demographic_scopes',
     'auth_language',
 ]
