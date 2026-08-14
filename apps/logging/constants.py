@@ -131,6 +131,7 @@ AUTHORIZATION_LOG_SCHEMA = {
         'auth_app_data_access_type': {'pattern': 'THIRTEEN_MONTH'},
         'auth_pkce_method': {'type': 'string', 'pattern': '^S256$'},
         'auth_share_demographic_scopes': {'pattern': '^$'},
+        'auth_share_samhsa_data': {'pattern': '^$'},
         'auth_require_demographic_scopes': {'pattern': '^True$'},
     },
     'required': [
@@ -153,6 +154,7 @@ AUTHORIZATION_LOG_SCHEMA = {
         'auth_app_data_access_type',
         'auth_pkce_method',
         'auth_share_demographic_scopes',
+        'auth_share_samhsa_data',
         'auth_require_demographic_scopes',
     ],
 }

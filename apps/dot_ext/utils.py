@@ -37,7 +37,7 @@ from apps.dot_ext.constants import (
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
 )
-from apps.dot_ext.models import AccessTokenExtension, Application, AuthFlowTracking
+from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
@@ -429,19 +429,18 @@ def validate_latin_extended_string(text: str) -> bool:
     return all(ord(char) <= 383 for char in text) and bool(text)
 
 
-def check_auth_tracking_and_create_access_token_extension(
+def check_session_and_create_access_token_extension(
     prior_include_samhsa: bool,
-    code: str,
     grant_type: str,
     token: AccessToken,
     prior_part_d_eob_only: bool,
+    session_include_samhsa: bool,
 ) -> None:
-    """Retrieve a record from the AuthFlowTracking table, if available, for the code being used in the authorization
-    or refresh request
+    """Retrieve the include_samhsa value from the session for the authorization
+    or refresh request. Requires the request object to be passed in.
 
     Args:
         prior_include_samhsa (bool): The value the prior access_token_extension record had for include_samhsa
-        code (str): The code for the auth or refresh request, used to retrieve AuthFlowTracking record
         grant_type (str): Grant type of the call to TokenView.post
         token (AccessToken): The access token that was generated
         prior_part_d_eob_only (bool): The prior part_d_eob_only for the previously existing AccessTokenExtension. Used
@@ -450,21 +449,9 @@ def check_auth_tracking_and_create_access_token_extension(
     """
     include_samhsa = True
 
-    # Try to retrieve the value from the AuthFlowTracking model based on the code
-    # If we do retrieve one, set include_samhsa to that value, gathered from the v3 permissions screen
-    # and afterwards delete the record so the table doesn't grow overly large. If there is no record,
-    # continue with the execution
-    if grant_type != 'refresh_token' and code:
-        try:
-            auth_flow_tracking = AuthFlowTracking.objects.get(code=code)
-            include_samhsa = auth_flow_tracking.include_samhsa
-            auth_flow_tracking.delete()
-
-        except AuthFlowTracking.DoesNotExist:
-            # If the AuthFlowTracking object does not exist, go with the default include_samhsa of True
-            pass
-
-    if grant_type == 'refresh_token':
+    if grant_type != 'refresh_token':
+        include_samhsa = session_include_samhsa
+    else:
         include_samhsa = prior_include_samhsa
 
     AccessTokenExtension.objects.get_or_create(
