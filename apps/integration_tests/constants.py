@@ -193,6 +193,7 @@ LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA = {
         'auth_app_name': {'pattern': 'TestApp'},
         'auth_app_data_access_type': {'pattern': 'THIRTEEN_MONTH'},
         'auth_share_demographic_scopes': {'pattern': '^True$'},
+        'auth_share_samhsa_data': {'pattern': '^True$'},
         'auth_require_demographic_scopes': {'pattern': '^True$'},
     },
     'required': [

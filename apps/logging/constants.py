@@ -119,6 +119,7 @@ AUTHORIZATION_LOG_SCHEMA = {
             'properties': {'id': {'pattern': '1'}, 'name': {'pattern': 'an app'}},
         },
         'share_demographic_scopes': {'pattern': '^$'},
+        'share_samhsa_data': {'pattern': '^$'},
         'scopes': {'pattern': 'capability-a'},
         'allow': {'type': 'boolean'},
         'access_token_delete_cnt': {'type': 'integer', 'enum': [0]},
@@ -131,6 +132,7 @@ AUTHORIZATION_LOG_SCHEMA = {
         'auth_app_data_access_type': {'pattern': 'THIRTEEN_MONTH'},
         'auth_pkce_method': {'type': 'string', 'pattern': '^S256$'},
         'auth_share_demographic_scopes': {'pattern': '^$'},
+        'auth_share_samhsa_data': {'pattern': '^$'},
         'auth_require_demographic_scopes': {'pattern': '^True$'},
     },
     'required': [
@@ -153,6 +155,7 @@ AUTHORIZATION_LOG_SCHEMA = {
         'auth_app_data_access_type',
         'auth_pkce_method',
         'auth_share_demographic_scopes',
+        'auth_share_samhsa_data',
         'auth_require_demographic_scopes',
     ],
 }
