@@ -156,7 +156,7 @@ jobs:
     uses: ./.github/workflows/run-manage-command.yml
     with:
       environment: ${{ inputs.environment || 'test' }}
-      command: migrate --noinput
+      command: migrate --noinput dot_ext 0016_authflowuuid_auth_share_samhsa_data_and_more
       task_definition_arn: ${{ needs.prepare.outputs.task_definition_arn }}
     secrets: inherit
 
