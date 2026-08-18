@@ -278,36 +278,36 @@ configure_slsx () {
         return -2
     fi
 
+
     # Dependent upon if we want to use the sls imp or test environment
     # Used as a command line arg upon startup - will be imp by default
-    if [ "${sls}" = "test" ]; then
-        # TODO: We should change this name to be sls_test_client_secret in aws to get rid of this if/else statement
-        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
-    elif [ "${sls}" = "imp" ]; then
-        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_imp_client_secret --query 'SecretString' --output text)
+    if [ "${sls}" = "test" || "${sls}" = "imp" ]; then
+        # The secret id is dependent on the sls environment
+        DJANGO_SECRET_ID=$([ "${sls}" = "test" ] && echo "/bb2/test/app/slsx_client_secret" || "/bb2/test/app/slsx_imp_client_secret")
+        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id $DJANGO_SECRET_ID --query 'SecretString' --output text)
+        echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
+        # These seem to be the same regardless of the env (test or sbx).
+        export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
+        echo "::add-mask::${DJANGO_USER_ID_SALT}"
+        export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
+        export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
+        export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
+        # The client id is the same for both imp and test
+        export DJANGO_SLSX_CLIENT_ID="bb2api"
+        export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://${sls}.medicare.gov/sso/authorize?client_id=bb2api"
+        export DJANGO_SLSX_TOKEN_ENDPOINT="https://${sls}.medicare.gov/sso/session"
+        export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://${sls}.medicare.gov/sso/signout"
+        export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://${sls}.accounts.cms.gov/health"
+        export DJANGO_SLSX_USERINFO_ENDPOINT="https://${sls}.accounts.cms.gov/v1/users"
+        # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
+        export DJANGO_SLSX_VERIFY_SSL_INTERNAL="False"
+        export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
     else
         echo "⛔ sls must be set to 'test' or 'imp'."
         echo "  sls is currently set to '${sls}'."
         echo "  Exiting."
         return -2
     fi
-    echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
-    # These seem to be the same regardless of the env (test or sbx).
-    export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
-    echo "::add-mask::${DJANGO_USER_ID_SALT}"
-    export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
-    export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
-    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
-    # The client id is the same for both imp and test
-    export DJANGO_SLSX_CLIENT_ID="bb2api"
-    export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://${sls}.medicare.gov/sso/authorize?client_id=bb2api"
-    export DJANGO_SLSX_TOKEN_ENDPOINT="https://${sls}.medicare.gov/sso/session"
-    export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://${sls}.medicare.gov/sso/signout"
-    export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://${sls}.accounts.cms.gov/health"
-    export DJANGO_SLSX_USERINFO_ENDPOINT="https://${sls}.accounts.cms.gov/v1/users"
-    # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
-    export DJANGO_SLSX_VERIFY_SSL_INTERNAL="False"
-    export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
 
     echo "✅ set_sls_credentials"
 }
