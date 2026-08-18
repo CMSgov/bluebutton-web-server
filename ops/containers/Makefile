@@ -1,8 +1,10 @@
-SHELL       := /bin/bash
-RELEASE_TAG ?= TAG_NOT_SET
-bfd         ?= test
-env         ?= local
-auth        ?= live
+SHELL                       := /bin/bash
+RELEASE_TAG                 ?= TAG_NOT_SET
+bfd                         ?= test
+env                         ?= local
+auth                        ?= live
+sls                         ?= imp
+CAN_INTEGRATION_TEST        ?= false
 
 .PHONY: css requirements build-local build-local-no-cache build-production run-local \
 		migrate collectstatic run-selenium-local build-selenium
@@ -32,7 +34,7 @@ build-production:
 		-f bb-api/Dockerfile .
 
 run-local:
-	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" \
+	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" sls="$(sls)" CAN_INTEGRATION_TEST="$(CAN_INTEGRATION_TEST)" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
 migrate:

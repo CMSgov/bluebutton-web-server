@@ -278,38 +278,43 @@ configure_slsx () {
         return -2
     fi
 
+    # Dependent upon if we want to use the sls imp environment or test environment
+    # Used as a command line arg upon startup - will be imp by default
+    if [ "${sls}" = "test" ]; then
+        # TODO: We should change this name to be sls_test_client_secret in aws to get rid of this if/else statement
+        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
+    elif [ "${sls}" = "imp" ]; then
+        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_imp_client_secret --query 'SecretString' --output text)
+    else
+        echo "⛔ sls must be set to 'test' or 'imp'."
+        echo "  sls is currently set to '${sls}'."
+        echo "  Exiting."
+        return -2
+    fi
+    echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
     # These seem to be the same regardless of the env (test or sbx).
     export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
     echo "::add-mask::${DJANGO_USER_ID_SALT}"
     export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
-    export DJANGO_SLSX_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_id --query 'SecretString' --output text)
-    echo "::add-mask::${DJANGO_SLSX_CLIENT_ID}"
-    export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
-    echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
     export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
-    
-    echo "Setting SLSX endpoint/redirects..."
     export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
-    export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-    export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-    export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-    export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-    export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
-
-    # SLSx credentials
+    # The client id is the same for both imp and test
     export DJANGO_SLSX_CLIENT_ID="bb2api"
-    export DJANGO_SLSX_CLIENT_SECRET="${DJANGO_SLSX_CLIENT_SECRET}"
-
+    export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://${sls}.medicare.gov/sso/authorize?client_id=bb2api"
+    export DJANGO_SLSX_TOKEN_ENDPOINT="https://${sls}.medicare.gov/sso/session"
+    export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://${sls}.medicare.gov/sso/signout"
+    export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://${sls}.accounts.cms.gov/health"
+    export DJANGO_SLSX_USERINFO_ENDPOINT="https://${sls}.accounts.cms.gov/v1/users"
     # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
     export DJANGO_SLSX_VERIFY_SSL_INTERNAL="False"
     export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
-    
-    echo "✅ set_salt"
+
+    echo "✅ set_sls_credentials"
 }
 
 # Needed to add this for CAN integration tests. 
 configure_CAN_integration_credentials_if_local () {
-    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "1" ]]; then
+    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "true" ]]; then
         echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
         export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
         echo "::add-mask::${CLEAR_CLIENT_SECRET}"
