@@ -383,17 +383,53 @@ paths:
               - _service-date=gt2023-01-02T00:00+00:00_ defines a range between the provided date and today
               - _service-date=lt2023-05-01T00:00+00:00_ defines a range from the earliest available records until the provided date
         - in: query
-          name: startIndex
+          name: _offset
           schema:
-            type: string
+            type: number
           required: false
           description: "The offset used for result pagination"
+        - in: query
+          name: _count
+          schema:
+            type: number
+          required: false
+          description: "The number of results to return, must be between 0 and 50"
         - in: query
           name: type
           schema:
             type: string
           required: false
           description: "A list of claim types to include"
+        - in: query
+          name: _tag
+          schema:
+            type: string
+          required: false
+          description: |- 
+            A way to retrieve claims specifically for National Claims History, Shared System, and/or DDPS. It must be passed in a token format (eg system|code).  To retrieve multiple claims types, separate each _tag value with a comma.
+
+            Examples:
+              - _tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|DDPS Part D Claims
+              - _tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory A + B claims from the National Claims History
+              - _tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|SharedSystem A + B claims from the Shared Systems (FISS,MCS,VMS,MAP,CWF)
+              - _tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|DDPS,https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory Part D Claims OR A + B claims from the National Claims History
+        - in: query
+          name: _source
+          schema:
+            type: string
+          required: false
+          description: |- 
+            A way to retrieve claims specifically for National Claims History, Shared System, and/or DDPS. To retrieve multiple claims types, separate each _source value with a comma.
+
+            Examples:
+              - _source=DDPS Part D Claims
+              - _source=NCH A + B claims from the National Claims History
+              - _source=FISS Institutional claims from Shared Systems
+              - _source=MCS Carrier claims from Shared Systems
+              - _source=VMS DME claims from Shared Systems
+              - _source=NCH,DDPS Part D Claims OR A + B claims from the National Claims History
+              - _source=NCH,DDPS,FUSS Part D Claims OR A + B claims from the National Claims History OR Institutional claims from Shared Systems
+
       responses:
         '200':
           content:
