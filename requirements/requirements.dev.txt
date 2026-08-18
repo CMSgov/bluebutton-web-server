@@ -613,9 +613,7 @@ django-cors-headers==4.0.0 \
 django-environ==0.12.0 \
     --hash=sha256:227dc891453dd5bde769c3449cf4a74b6f2ee8f7ab2361c93a07068f4179041a \
     --hash=sha256:92fb346a158abda07ffe6eb23135ce92843af06ecf8753f43adf9d2366dcc0ca
-    # via
-    #   -r /code/requirements/requirements.dev.in
-    #   -r /code/requirements/requirements.in
+    # via -r /code/requirements/requirements.in
 django-filter==25.2 \
     --hash=sha256:760e984a931f4468d096f5541787efb8998c61217b73006163bf2f9523fe8f23 \
     --hash=sha256:9c0f8609057309bba611062fe1b720b4a873652541192d232dd28970383633e3
@@ -1505,16 +1503,13 @@ pytest==9.0.3 \
     --hash=sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9 \
     --hash=sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c
     # via
-    #   -r /code/requirements/requirements.dev.in
     #   -r /code/requirements/requirements.in
     #   locust
     #   pytest-django
 pytest-django==4.11.1 \
     --hash=sha256:1b63773f648aa3d8541000c26929c1ea63934be1cfa674c76436966d73fe6a10 \
     --hash=sha256:a949141a1ee103cb0e7a20f1451d355f83f5e4a5d07bdd4dcfdd1fd0ff227991
-    # via
-    #   -r /code/requirements/requirements.dev.in
-    #   -r /code/requirements/requirements.in
+    # via -r /code/requirements/requirements.in
 python-crfsuite==0.9.12 \
     --hash=sha256:0bc929cbfe88b775361feba36f9632170d411a3a3a1e31d53e3a07452bb54588 \
     --hash=sha256:0d32e41c407208e539fb33f2611e73455529f2ba1112a34eff161dafaaafe48b \
