@@ -49,33 +49,26 @@ make css
 
 followed by commands to build the `mslsx` and `bb-api` containers. This is necessary if you are working on static assets, changing the `requirements.txt` files, or working on MSLS.
 
+## migrating and collecting static files
+
+If it is the first time you run the stack, you will need to run migrations (in order to initialize the database) and collectstatic (in order to build the CSS assets and move them to the mocked S3 bucket).
+
+Run the migrate and collectstatic management commands from the root of bluebutton-web-server:
+
+```bash
+make migrate
+make collectstatic
+```
+
 ## run the stack
 
 Next, you run the stack. You need to be in an active Kion session for this to work.
 
 ```bash
-make run-local bfd="..." auth="..."
+make run-local bfd="..." auth="..." sls="..." CAN_INTEGRATION_TEST="..."
 ```
 
-where `bfd` is `local`, `test`, or `sbx`, and `auth` is `live` or `mock`. If you do not provide any values, the default is to use `bfd=test auth=live`.
-
-## migrating and collecting static files
-
-If it is the first time you run the stack, you will need to run migrations (in order to initialize the database) and collectstatic (in order to build the CSS assets and move them to the mocked S3 bucket).
-
-First, exec into the web container
-
-```bash
-docker exec -it containers-web /bin/bash
-```
-
-Then, source the venv that Django is using, and run the migrate and collectstatic management commands.
-
-```bash
-source ~/venv/bin/activate
-python manage.py migrate
-python manage.py collectstatic
-```
+where `bfd` is `local`, `test`, or `sbx`, `auth` is `live` or `mock`, `sls` is `test` or `imp`, `CAN_INTEGRATION_TEST` is `true` or `false`. If you do not provide any values and just run `make run-local`, the default is to use `bfd=test auth=live sls=imp CAN_INTEGRATION_TEST=false`.
 
 ## structure
 

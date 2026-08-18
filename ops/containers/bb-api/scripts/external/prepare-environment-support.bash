@@ -278,7 +278,7 @@ configure_slsx () {
         return -2
     fi
 
-    # Dependent upon if we want to use the sls imp environment or test environment
+    # Dependent upon if we want to use the sls imp or test environment
     # Used as a command line arg upon startup - will be imp by default
     if [ "${sls}" = "test" ]; then
         # TODO: We should change this name to be sls_test_client_secret in aws to get rid of this if/else statement
