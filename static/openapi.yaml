@@ -428,7 +428,7 @@ paths:
               - _source=MCS Carrier claims from Shared Systems
               - _source=VMS DME claims from Shared Systems
               - _source=NCH,DDPS Part D Claims OR A + B claims from the National Claims History
-              - _source=NCH,DDPS,FUSS Part D Claims OR A + B claims from the National Claims History OR Institutional claims from Shared Systems
+              - _source=NCH,DDPS,FISS Part D Claims OR A + B claims from the National Claims History OR Institutional claims from Shared Systems
 
       responses:
         '200':
