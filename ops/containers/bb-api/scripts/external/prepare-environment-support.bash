@@ -281,9 +281,9 @@ configure_slsx () {
 
     # Dependent upon if we want to use the sls imp or test environment
     # Used as a command line arg upon startup - will be imp by default
-    if [ "${sls}" = "test" || "${sls}" = "imp" ]; then
+    if [ "${sls}" = "test" ] || [ "${sls}" = "imp" ]; then
         # The secret id is dependent on the sls environment
-        DJANGO_SECRET_ID=$([ "${sls}" = "test" ] && echo "/bb2/test/app/slsx_client_secret" || "/bb2/test/app/slsx_imp_client_secret")
+        DJANGO_SECRET_ID=$([ "${sls}" = "test" ] && echo "/bb2/test/app/slsx_client_secret" || echo "/bb2/test/app/slsx_imp_client_secret")
         export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id ${DJANGO_SECRET_ID} --query 'SecretString' --output text)
         echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
         # These seem to be the same regardless of the env (test or sbx).
