@@ -284,7 +284,7 @@ configure_slsx () {
     if [ "${sls}" = "test" || "${sls}" = "imp" ]; then
         # The secret id is dependent on the sls environment
         DJANGO_SECRET_ID=$([ "${sls}" = "test" ] && echo "/bb2/test/app/slsx_client_secret" || "/bb2/test/app/slsx_imp_client_secret")
-        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id $DJANGO_SECRET_ID --query 'SecretString' --output text)
+        export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id ${DJANGO_SECRET_ID} --query 'SecretString' --output text)
         echo "::add-mask::${DJANGO_SLSX_CLIENT_SECRET}"
         # These seem to be the same regardless of the env (test or sbx).
         export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
