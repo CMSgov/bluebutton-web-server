@@ -5,6 +5,7 @@ flask == 3.1.3
 flask-wtf == 1.2.1
 freezegun == 1.5.5
 httmock == 1.4.0
+pre-commit == 4.6.2 # for running git hooks
 locust == 2.43.3 # used for load testing
 selenium == 4.16.0
 setuptools == 83.0.0 # TODO do we need this defined here?
