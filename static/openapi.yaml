@@ -406,7 +406,7 @@ paths:
             type: string
           required: false
           description: |- 
-            A way to retrieve claims specifically for National Claims History, Shared System, and/or DDPS. It must be passed in a token format (eg system|code).  To retrieve multiple claims types, separate each _tag value with a comma.
+            A way to retrieve claims specifically for National Claims History, Shared System, and/or DDPS. It must be passed in a token format (e.g. system|code).  To retrieve multiple claims types, separate each _tag value with a comma.
 
             Examples:
               - _tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|DDPS Part D Claims
