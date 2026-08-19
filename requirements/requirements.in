@@ -1,63 +1,37 @@
-asgiref == 3.11.0
-attrs == 23.1.0
-beautifulsoup4 == 4.12.2
 boto3 == 1.42.12
-botocore == 1.42.13
-certifi == 2024.7.4
-cffi == 2.0.0
-charset-normalizer == 3.1.0
-configparser == 5.3.0
-ddtrace == 4.13.0
-cryptography == 50.0.0
+ddtrace == 4.13.0 # used to collect traces for Datadog
 dj-database-url == 2.0.0
 django == 6.0.7
 django-axes == 5.41.1
-django-bootstrap5 == 25.3
-django-cors-headers == 4.0.0
+django-bootstrap5 == 25.3 # used in our templates
+django-cors-headers == 4.0.0 # used in our settings
 django-environ == 0.12.0
 django-filter == 25.2
 django-getenv == 1.3.2
-django-ipware == 5.0.0
-django-localflavor == 4.0
 django-oauth-toolkit == 2.2.0
-django-ses == 3.5.0
+django-ses == 3.5.0 # used in our settings
 django-storages == 1.13.2
 django-waffle == 3.0.0
 djangorestframework == 3.16.1
 djangorestframework-csv == 3.0.0
 fhir.resources == 8.2.0
-gunicorn == 25.0.3
-idna == 3.15 # via requests, trio
-importlib-metadata == 6.6.0
-importlib-resources == 5.12.0
-jmespath == 1.0.1
-jsonschema == 4.17.3
-jwcrypto == 1.5.7
+gunicorn == 25.0.3 # used to run the app
 oauthlib == 3.2.2
-packaging == 26.0
-pillow == 12.3.0
-pkgutil-resolve-name == 1.3.10
-psycopg2-binary == 2.9.11
-py == 1.11.0
-pybind11 == 3.0.1
-pycparser == 2.21
+psycopg2-binary == 2.9.11 # required by django postgres backend
 pyjwt == 2.13.0
-pyrsistent == 0.19.3
-pytest == 9.0.3
-pytest-django == 4.11.1
 python-dateutil == 2.8.2
 python-dotenv == 1.2.2
-python-stdnum == 1.18 # via django-localflavor
 pytz == 2023.3
-pyyaml == 6.0.1
 requests == 2.33.0
 requests_oauthlib == 1.3.1
-six == 1.16.0
-soupsieve == 2.8.4
-sqlparse == 0.6.0
-typing_extensions == 4.15.0
 usaddress == 0.5.16
-urllib3 == 2.7.0
 voluptuous == 0.13.1
 watchtower == 3.4.0
-zipp == 3.19.2
+
+
+# for running tests inside the container
+beautifulsoup4 == 4.12.2
+jsonschema == 4.17.3
+pillow == 12.3.0 # imported as `PIL`
+pytest == 9.0.3
+pytest-django == 4.11.1
