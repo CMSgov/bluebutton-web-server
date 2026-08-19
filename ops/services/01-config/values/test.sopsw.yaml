@@ -86,6 +86,8 @@
 #ENC[AES256_GCM,data:7BakfoVOW7g=,iv:miOZB0Qur7PWllKHSbJavN6iZfJGaIvldNwq7BBTkEg=,tag:dHcSzQ7DuLk6u+LUT6vnSg==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 /bb/test/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:yabkEYO+VELj7M71,iv:xWUnoRpGJpLtPtsT2zryBJA3asBHrtxTtrzbCIdQ6No=,tag:n7ThNYd4eCWYwc1pcoA6YA==,type:int]
+/bb/test/app/sensitive/bb_akamai_aca_token: ENC[AES256_GCM,data:NeePBReSMYSo9RXxSFDMCA==,iv:bf67M0+YKiv1xVXYRnEbsuQRT5zYLZTS3vbLAzGyZm0=,tag:TcKXLm9RGtKi4qEgj8+IuA==,type:str]
+/bb/test/app/sensitive/medicare_gov_synthetic_tests_akamai_token: ENC[AES256_GCM,data:TF1Z+Chw79Ls52kUN0i4JQ==,iv:/U33TP6bXpMWXKB63J/qamkBmvrMZ+J4sMrVAc9QlfM=,tag:i32a+SbAfCdjvJURjaYl4Q==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias

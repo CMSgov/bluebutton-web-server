@@ -88,6 +88,8 @@
 #ENC[AES256_GCM,data:xVV3YM3JaLI=,iv:Vk1eeQ1Elneu1L8MOTLARlqHZKHXQ9UJkwL+yjA6lcQ=,tag:S356SiMEgd5lMyRRxkOPEA==,type:comment]
 #ENC[AES256_GCM,data:etJuMbKWQ0eVN2BYCoqNPOCysTgkaSkJlDAhs4q7QcdoMf8EN+xJ4RwNOf+xCRGcOZeHkzUJlCETeZ179TWzfB3N49R8p3LU2ZrSF54=,iv:ZwQ7c8FbeCF4jQKXALyxcK+WXwV5o6X2/QFGqAeo2tI=,tag:4Utwk/gsCx+eMXSo5L9SCw==,type:comment]
 /bb/sandbox/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:NKOUxTgd35iCmuvw,iv:EX4LxUyHDz+OnXW+wtYQsJCSVmCQqRwlz/IxpImmVnc=,tag:FlIC14H/hBaZxJWw+kya2A==,type:int]
+/bb/sandbox/app/sensitive/bb_akamai_aca_token: ENC[AES256_GCM,data:wE+3JXhHR8Q4s4AHKbrT5g==,iv:NKPKofSZQDeF/c5eva6qAbr/KOf4v7hnwEZhclccxr4=,tag:Bdnig9OqKxHlqkliTiSW4w==,type:str]
+/bb/sandbox/app/sensitive/medicare_gov_synthetic_tests_akamai_token: ENC[AES256_GCM,data:0X2fw8ngFiYkiwIPjj/mokufsl+08ze5BcNH1Y1dYa+6zyNt+A5oeAO3OnVcotJtgJb78wF21NzvomKCTGm0JQdD6TYScIUhisynX6OQ+4g6Mr6Z51V9He8ifnw=,iv:poNZpfC7/R7O057TrCZniDZDJAiengFCR0VQhWf2ckI=,tag:VkOSWY9JBqboHH1I5tMU1Q==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-sandbox-app-key-alias
