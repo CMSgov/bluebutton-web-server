@@ -19,15 +19,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Update contributor list
-        id: contrib_list
-        uses: akhilmhdh/contributors-readme-action@v2.3.10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          readme_path: COMMUNITY.md
-          use_username: false
-          commit_message: 'update contributors information'
+      # - name: Update contributor list
+      #   id: contrib_list
+      #   uses: akhilmhdh/contributors-readme-action@v2.3.10
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     readme_path: COMMUNITY.md
+      #     use_username: false
+      #     commit_message: 'update contributors information'
 
       - name: Get contributors count
         id: get_contributors
