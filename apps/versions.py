@@ -2,6 +2,8 @@
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.
 
+from django.conf import settings
+
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 
 
@@ -60,9 +62,6 @@ class Versions:
 
     @staticmethod
     def fhir_url_by_version():
-        # Imported lazily since it depends on Django settings being configured.
-        from django.conf import settings
-
         return {
             Versions.V1: settings.FHIR_SERVER['FHIR_URL'],
             Versions.V2: settings.FHIR_SERVER['FHIR_URL'],
