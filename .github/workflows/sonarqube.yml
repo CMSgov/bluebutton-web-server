@@ -60,14 +60,20 @@ jobs:
           echo "Checking SonarQube server connectivity..."
           curl -I ${{ env.SONARQUBE_URL }} || echo "Warning: Could not reach SonarQube"
 
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Install and Run SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           echo "Installing SonarQube scanner..."
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-8.1.0.6389.zip
           unzip -q sonar-scanner.zip
-          export PATH="$PWD/sonar-scanner-5.0.1.3006/bin:$PATH"
+          export PATH="$PWD/sonar-scanner-8.1.0.6389/bin:$PATH"
           
           echo "Running SonarQube analysis..."
           sonar-scanner \
