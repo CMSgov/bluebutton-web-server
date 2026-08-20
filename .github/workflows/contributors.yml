@@ -19,6 +19,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Create working branch
+        run: |
+          BRANCH_NAME="update-contributors-${{ github.run_number }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "Created branch $BRANCH_NAME"
+
       - name: Update contributor list
         id: contrib_list
         uses: akhilmhdh/contributors-readme-action@v2.3.10
@@ -28,8 +34,6 @@ jobs:
           readme_path: COMMUNITY.md
           use_username: false
           commit_message: 'update contributors information'
-          auto_detect_branch_protection: true
-          pr_title_on_protected: '[automated] Update Contributors Information'
 
       - name: Get contributors count
         id: get_contributors
