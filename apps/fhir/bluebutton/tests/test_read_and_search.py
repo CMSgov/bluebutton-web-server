@@ -14,7 +14,7 @@ from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
 
 import apps.fhir.bluebutton.utils
-from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import APPLICATION_TEMPORARILY_INACTIVE
 
 # Get the pre-defined Conformance statement
 from apps.fhir.bluebutton.tests.data_conformance import CONFORMANCE
@@ -56,7 +56,12 @@ def sample_fhir_id(version):
 @pytest.fixture
 def first_access_token(create_token):
     """A standard 'John Smith' access token with both v2 and v3 crosswalk ids populated."""
-    return create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3)
+    return create_token(
+        'John',
+        'Smith',
+        fhir_id_v2=SAMPLE_FHIR_ID_BY_VERSION[Versions.V2],
+        fhir_id_v3=SAMPLE_FHIR_ID_BY_VERSION[Versions.V3],
+    )
 
 
 def get_expected_read_request(version: int, sample_fhir_id: str):
@@ -244,7 +249,10 @@ def test_read_throttle(mock_rates, version, sample_fhir_id, first_access_token, 
 
         # Assert that another token is not rate limited
         second_access_token = create_token(
-            'Bob', 'Bobbington', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
+            'Bob',
+            'Bobbington',
+            fhir_id_v2=SAMPLE_FHIR_ID_BY_VERSION[Versions.V2],
+            fhir_id_v3=SAMPLE_FHIR_ID_BY_VERSION[Versions.V3],
         )
         assert second_access_token != first_access_token
 
@@ -768,7 +776,7 @@ def test_permission_deny_fhir_request_on_disabled_app_org(version, first_access_
             'content': {
                 'resourceType': 'Coverage',
                 'beneficiary': {
-                    'reference': f'stuff/{DEFAULT_SAMPLE_FHIR_ID_V2}',
+                    'reference': f'stuff/{SAMPLE_FHIR_ID_BY_VERSION[Versions.V2]}',
                 },
             },
         }
@@ -794,7 +802,7 @@ def test_permission_deny_fhir_request_on_disabled_app_org(version, first_access_
             'content': {
                 'resourceType': 'Coverage',
                 'beneficiary': {
-                    'reference': f'stuff/{DEFAULT_SAMPLE_FHIR_ID_V2}',
+                    'reference': f'stuff/{SAMPLE_FHIR_ID_BY_VERSION[Versions.V2]}',
                 },
             },
         }
