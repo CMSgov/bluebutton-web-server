@@ -21,7 +21,7 @@ from apps.dot_ext.models import AccessTokenExtension, Application, ProtectedCapa
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
-    DEFAULT_EOB_SOURCE,
+    ENCODED_DEFAULT_EOB_SOURCE,
     ENFORCE_PARAM_VALIDATION,
     EXCLUDE_SAMHSA_PARAMETER_VALUE,
     FHIR_CONFORMANCE_URLS,
@@ -678,7 +678,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             Authorization='Bearer %s' % (first_access_token),
         )
         self.assertEqual(response.status_code, 200)
-        assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
+        assert ENCODED_DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
@@ -703,7 +703,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             Authorization='Bearer %s' % (first_access_token),
         )
         self.assertEqual(response.status_code, 200)
-        assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
+        assert ENCODED_DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
