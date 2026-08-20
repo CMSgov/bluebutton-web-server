@@ -23,7 +23,9 @@ jobs:
 
       - name: Create branch
         run: |
-          git checkout -b "update-contributors-${{ github.run_number }}"
+          BRANCH_NAME="update-contributors-${{ github.run_number }}"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME" 
 
       - name: Update contributor list
         id: contrib_list
