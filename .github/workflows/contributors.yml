@@ -18,16 +18,19 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      # - name: Update contributor list
-      #   id: contrib_list
-      #   uses: akhilmhdh/contributors-readme-action@v2.3.10
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     readme_path: COMMUNITY.md
-      #     use_username: false
-      #     commit_message: 'update contributors information'
+      - name: Update contributor list
+        id: contrib_list
+        uses: akhilmhdh/contributors-readme-action@v2.3.10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          readme_path: COMMUNITY.md
+          use_username: false
+          commit_message: 'update contributors information'
+          auto_detect_branch_protection: true
+          pr_title_on_protected: '[automated] Update Contributors Information'
 
       - name: Get contributors count
         id: get_contributors
