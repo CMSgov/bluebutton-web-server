@@ -3,10 +3,8 @@ name: Update Contributors Information
 on:
   workflow_dispatch: {}
   schedule:
-    # Weekly on Saturdays.
-    - cron: '30 1 * * 6'
-  push:
-    branches: [main]
+    # Runs on the first day of the month at 5:30AM UTC
+    - cron: '30 5 1 * *'
 
 jobs:
   update-contributors:
@@ -30,6 +28,7 @@ jobs:
           readme_path: COMMUNITY.md
           use_username: false
           commit_message: 'update contributors information'
+          pr_title_on_protected: '[Automated] Update Contributors Information'
 
       - name: Get contributors count
         id: get_contributors
@@ -61,9 +60,9 @@ jobs:
           git add COMMUNITY.md
           git commit -m "update contributors count to $CONTRIBUTORS" || exit 0
 
-      - name: Push protected
-        uses: CasperWA/push-protected@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Push protected
+      #   uses: CasperWA/push-protected@v2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
 
-          branch: main
+      #     branch: main
