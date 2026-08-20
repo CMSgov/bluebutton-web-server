@@ -959,6 +959,6 @@ def determine_eob_search_parameter_to_add(query_param: str, part_d_eob_only: boo
     if part_d_eob_only:
         return 'DDPS'
     if '_tag' not in query_param and '_source' not in query_param:
-        return 'NCH'
+        return 'NCH,DDPS'
 
     return None
