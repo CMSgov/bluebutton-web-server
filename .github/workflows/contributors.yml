@@ -6,7 +6,7 @@ on:
     # Run at 5am UTC on the first of every month
     - cron: '0 5 1 * *'
   push:
-    branches: [main]
+    branches: [jamesdemery/bb2-4405-update-contributors-action]
 
 jobs:
   update-contributors:
