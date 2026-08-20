@@ -5,6 +5,8 @@ on:
   schedule:
     # Runs on the first day of the month at 5:30AM UTC
     - cron: '30 5 1 * *'
+  push:
+    branches: [master]
 
 jobs:
   update-contributors:
@@ -19,11 +21,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create working branch
+      - name: Create branch
         run: |
-          BRANCH_NAME="update-contributors-${{ github.run_number }}"
-          git checkout -b "$BRANCH_NAME"
-          echo "Created branch $BRANCH_NAME"
+          git checkout -b "update-contributors-${{ github.run_number }}"
 
       - name: Update contributor list
         id: contrib_list
