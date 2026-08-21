@@ -2,10 +2,7 @@
 Fixtures scoped to the FHIR BlueButton test package.
 
 These live here rather than in the root conftest.py because only FHIR tests care
-about API versions and version-specific sample FHIR ids. Keeping them local keeps
-`pytest --fixtures` readable and makes the blast radius of a change obvious.
-
-Save as: apps/fhir/bluebutton/tests/conftest.py
+about API versions and version-specific sample FHIR ids.
 """
 
 import pytest
