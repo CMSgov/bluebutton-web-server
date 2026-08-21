@@ -638,7 +638,7 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         ('_source=NCH', True, 'DDPS'),
         ('_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory', True, 'DDPS'),
         ('_source=NCH&_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory', True, 'DDPS'),
-        ('', False, 'NCH'),
+        ('', False, 'NCH,DDPS'),
         ('_source=NCH', False, None),
     ],
 )
