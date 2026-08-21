@@ -21,7 +21,7 @@ from apps.dot_ext.models import AccessTokenExtension, Application, ProtectedCapa
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
-    DEFAULT_EOB_SOURCE,
+    ENCODED_DEFAULT_EOB_SOURCE,
     ENFORCE_PARAM_VALIDATION,
     EXCLUDE_SAMHSA_PARAMETER_VALUE,
     FHIR_CONFORMANCE_URLS,
@@ -659,7 +659,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_added(self) -> None:
-        """Ensure that if a v3 search EOB call is made, that the _source=NCH parameter
+        """Ensure that if a v3 search EOB call is made, that the _source=NCH,DDPS parameter
         is automatically added to the call, as there is no _tag or _source parameter already on the call
         """
 
@@ -678,13 +678,13 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             Authorization='Bearer %s' % (first_access_token),
         )
         self.assertEqual(response.status_code, 200)
-        assert DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
+        assert ENCODED_DEFAULT_EOB_SOURCE in response.json()['link'][0]['url']
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_not_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, and a _tag parameter is being passed,
-        that the _source=NCH parameter is not added to the call
+        that the _source=NCH,DDPS parameter is not added to the call
         """
 
         # create the user
@@ -703,7 +703,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             Authorization='Bearer %s' % (first_access_token),
         )
         self.assertEqual(response.status_code, 200)
-        assert DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
+        assert ENCODED_DEFAULT_EOB_SOURCE not in response.json()['link'][0]['url']
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
@@ -1084,3 +1084,45 @@ def test_call_eob_v3_ensure_offset_is_passed(
 
     assert response.status_code == HTTPStatus.OK
     assert '_offset' in response.json()['link'][0]['url']
+
+
+@pytest.mark.integration
+@override_switch('v3_endpoints', active=True)
+def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_source_parameters(
+    basic_user, get_access_token, create_capability, create_application
+) -> None:
+    """Ensure that if a v3 search EOB call is made, and the access_token_extension record has
+    part_d_eob_only equal to true, that no matter what _source and _tag parameters are on the request,
+    we only pass _source=DDPS to BFD
+    """
+    user = basic_user()
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
+    app = create_application(
+        'test app',
+        capability=eob_capability,
+        user=user,
+    )
+    ac = get_access_token(
+        user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile', application=app
+    )
+    access_token = AccessToken.objects.get(token=ac)
+
+    access_token_extension = AccessTokenExtension()
+    access_token_extension.access_token = access_token
+    access_token_extension.part_d_eob_only = True
+    access_token_extension.save()
+
+    url = reverse(SEARCH_EOB_URLS[Versions.V3])
+    # Add params to url that will be filtered out because the token extension has part_d_eob_only = True
+    url += '/?_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory&_source=NCH'
+
+    response = Client().get(
+        url,
+        {},
+        HTTP_AUTHORIZATION='Bearer %s' % access_token,
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'NCH' not in response.json()['link'][0]['url']
+    assert 'NationalClaimsHistory' not in response.json()['link'][0]['url']
+    assert '_source=DDPS' in response.json()['link'][0]['url']
