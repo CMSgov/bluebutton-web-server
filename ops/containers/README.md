@@ -68,7 +68,7 @@ Next, you run the stack. You need to be in an active Kion session for this to wo
 make run-local bfd="..." auth="..." sls="..." CAN_INTEGRATION_TEST="..."
 ```
 
-where `bfd` is `local`, `test`, or `sbx`, `auth` is `live` or `mock`, `sls` is `test` or `imp`, `CAN_INTEGRATION_TEST` is `true` or `false`. If you do not provide any values and just run `make run-local`, the default is to use `bfd=test auth=live sls=imp CAN_INTEGRATION_TEST=false`.
+where `bfd` is `local`, `test`, or `sbx`, `auth` is `live` or `mock`, `sls` is `test` or `imp`, `CAN_INTEGRATION_TEST` is `true` or `false`. If you do not provide any values and just run `make run-local`, the default is to use `bfd=test auth=live sls=test CAN_INTEGRATION_TEST=false`.
 
 ## structure
 
