@@ -32,7 +32,12 @@ from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIA
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
 # the URL we POST to and the `aud` claim inside the client_assertion, which the
 # token endpoint validates for an exact match (see _validate_authorization_jwt).
+# You can export the token endpoint URL in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
 BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
+# You can export the app client id in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
+APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
+# You can export the enable client flag in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
+ENABLE_CLIENT = os.getenv('ENABLE_CLIENT', 'true')
 
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
 OTP_CODE = '123456'
@@ -43,21 +48,9 @@ CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY')
 # The key id advertised in the testclient's self-hosted JWKS and stamped on the
 # client_assertion header.
 TEST_APP_KID = 'my-key-id-1'
-APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
-ENABLE_CLIENT = os.getenv('ENABLE_CLIENT', 'true')
 
 # Convert the raw string to a boolean for easier use in the test
 is_client_enabled = ENABLE_CLIENT.lower() == 'true'
-
-
-@pytest.fixture(scope='function')
-def driver():
-    options = webdriver.ChromeOptions()
-    driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub', options=options)
-
-    yield driver
-
-    driver.quit()
 
 
 def generate_pkce_data() -> tuple:
@@ -91,7 +84,7 @@ def find_element_and_click(wait: WebDriverWait, by_method: str, locator_value: s
         NoSuchElementException error
     """
     try:
-        element = wait.until(EC.element_to_be_clickable((by_method, locator_value)))
+        element = wait.until(EC.presence_of_element_located((by_method, locator_value)))
         element.click()
     except NoSuchElementException:
         print(f'Failed to click {locator_value}.')
@@ -111,10 +104,10 @@ def find_element_and_send_keys(wait: WebDriverWait, by_method: str, locator_valu
         NoSuchElementException error
     """
     try:
-        element = wait.until(EC.element_to_be_clickable((by_method, locator_value)))
+        element = wait.until(EC.presence_of_element_located((by_method, locator_value)))
         element.send_keys(input_text)
     except NoSuchElementException:
-        print(f'Failed to click {locator_value}.')
+        print(f'Failed to send keys to {locator_value}.')
 
 
 def get_clear_authorization_code(driver, client_id: str, code_challenge: str) -> str:
@@ -134,68 +127,42 @@ def get_clear_authorization_code(driver, client_id: str, code_challenge: str) ->
     # Simulate the user login and authorization flow
     driver.get(clear_login_url)
     # We use WebDriverWait so that we don't have to put manual sleeps in between each action
-    # XPATH was the most reliable way to get the object from the screen
-    # wait = WebDriverWait(driver, 30)
-    time.sleep(10)
-    # find_element_and_send_keys(
-    #     wait=wait,
-    #     by_method=By.XPATH,
-    #     locator_value='//input[@type="tel"]',
-    #     input_text=DAMON_MYCHART_PHONE_NUMBER,
-    # )
-    phone_input = driver.find_element(By.NAME, 'phone')
-    # print(phone_input)
-    phone_input.send_keys(DAMON_MYCHART_PHONE_NUMBER)
-    # element = wait.until(EC.element_to_be_clickable((By.NAME, 'phone')))
-    # element.send_keys(DAMON_MYCHART_PHONE_NUMBER)
-    time.sleep(3)
-    continue_button = driver.find_element(By.XPATH, '//button[(text()="Continue")]')
-    continue_button.click()
-    time.sleep(3)
-    agree_and_continue_button = driver.find_element(By.XPATH, '//button[(text()="Agree & Continue")]')
-    agree_and_continue_button.click()
-    time.sleep(3)
-    six_digit_code = driver.find_element(By.XPATH, '//input[@aria-label="6 Digit Code"]')
+    # Usually XPATH was the most reliable way to get the object from the screen
+    wait = WebDriverWait(driver, 20)
+    find_element_and_send_keys(
+        wait=wait,
+        by_method=By.NAME,
+        locator_value='phone',
+        input_text=DAMON_MYCHART_PHONE_NUMBER,
+    )
+    find_element_and_click(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//button[contains(text(), "Continue")]',
+    )
+    find_element_and_click(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//button[contains(text(), "Agree & Continue")]',
+    )
+    find_element_and_send_keys(
+        wait=wait,
+        by_method=By.XPATH,
+        locator_value='//input[@aria-label="6 Digit Code"]',
+        input_text=OTP_CODE,
+    )
+    # This sleep seems to be necessary because otherwise it loads too quickly and stalls.
     time.sleep(2)
-    six_digit_code.send_keys(OTP_CODE)
-    time.sleep(3)
-    skip_button = driver.find_element(By.XPATH, '//button[contains(text(), "Skip")]')
-    # print('SKIP BUTTON FOUND: ', skip_button)
-    # time.sleep(5)
-    # skip_button.click()
+
+    # Can't use skip_button.click() because it's a hidden element, so have to use execute_script instead.
+    skip_button = wait.until(EC.presence_of_element_located((By.XPATH, '//button[contains(text(), "Skip")]')))
     driver.execute_script('arguments[0].click();', skip_button)
-    time.sleep(20)
-    # find_element_and_click(
-    #     wait=wait,
-    #     by_method=By.XPATH,
-    #     locator_value='//button[contains(text(), "Continue")]',
-    # )
-    # find_element_and_click(
-    #     wait=wait,
-    #     by_method=By.XPATH,
-    #     locator_value='//button[contains(text(), "Agree & Continue")]',
-    # )
-    # find_element_and_send_keys(
-    #     wait=wait,
-    #     by_method=By.XPATH,
-    #     locator_value='//input[@placeholder="6 Digit Code"]',
-    #     input_text=OTP_CODE,
-    # )
 
-    # # This sleep seems to be necessary because otherwise it loads too quickly and stalls.
-    # # It seems to be some type of race condition.
-    # time.sleep(1)
-    # find_element_and_click(
-    #     wait=wait,
-    #     by_method=By.XPATH,
-    #     locator_value='//button[contains(text(), "Skip")]',
-    # )
-
-    # try:
-    #     # Need to wait until code gets generated in url before proceeding
-    #     wait.until(EC.url_contains('code'))
-    # except NoSuchElementException:
-    #     print('The code was not found on this page')
+    try:
+        # Need to wait until code gets generated in url before proceeding
+        wait.until(EC.url_contains('code'))
+    except NoSuchElementException:
+        print('The code was not found on this page')
 
     url = driver.current_url
 
@@ -258,7 +225,18 @@ def construct_ial_payload(id_token: str, app_client_id: str) -> dict:
     }
 
 
-def get_payload(driver, app_client_id, scope):
+def get_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dict:
+    """
+    Generates the payload for the access token request to the Blue Button API token endpoint.
+
+    Args:
+        driver (webdriver.Chrome): The Selenium WebDriver instance used for browser automation.
+        app_client_id (str): The client ID of the application.
+        scope (str): The scope for which the access token is requested.
+
+    Returns:
+        dict: A dictionary representing the payload for the access token request.
+    """
     code_verifier, code_challenge = generate_pkce_data()
 
     # Use selenium to simulate the user login and authorization flow to get the authorization code
@@ -350,8 +328,9 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         app_client_id = APP_CLIENT_ID
     else:
         app_client_id = application.client_id
+    combined_scopes = f'{EOB_SCOPE} {COVERAGE_SCOPE} {PATIENT_SCOPE}'
 
-    json_payload = get_payload(driver, app_client_id, EOB_SCOPE)
+    json_payload = get_payload(driver, app_client_id, combined_scopes)
 
     access_token_response = get_access_token_response(json_payload)
 
