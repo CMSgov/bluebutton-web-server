@@ -33,10 +33,13 @@ from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIA
 # the URL we POST to and the `aud` claim inside the client_assertion, which the
 # token endpoint validates for an exact match (see _validate_authorization_jwt).
 # You can export the token endpoint URL in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
+# i.e. `export BB2_TOKEN_URL=http://localhost:8000/v3/o/token`
 BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
 # You can export the app client id in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
+# i.e. `export APP_CLIENT_ID=your_app_client_id`
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
 # You can export the enable client flag in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
+# i.e. `export ENABLE_CLIENT=true`
 ENABLE_CLIENT = os.getenv('ENABLE_CLIENT', 'true')
 
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
@@ -110,11 +113,12 @@ def find_element_and_send_keys(wait: WebDriverWait, by_method: str, locator_valu
         print(f'Failed to send keys to {locator_value}.')
 
 
-def get_clear_authorization_code(driver, client_id: str, code_challenge: str) -> str:
+def get_clear_authorization_code(driver: webdriver.Chrome, client_id: str, code_challenge: str) -> str:
     """
     Retrieves the authorization code from the Clear integration.
 
     Args:
+        driver (WebDriver): The WebDriver instance.
         client_id (str): The client ID for the Clear integration.
         code_challenge (str): The code challenge generated for the PKCE flow.
 
@@ -266,7 +270,7 @@ def get_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dic
 
 def get_access_token_response(json_payload: dict) -> dict:
     """
-    Exchanges the client assertion for an access token from the Blue Button API.
+    Exchanges the CAN request for an access token from the Blue Button API.
 
     Args:
         json_payload (dict): The JSON payload containing the token request parameters.
