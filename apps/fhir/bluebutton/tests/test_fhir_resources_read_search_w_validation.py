@@ -1125,3 +1125,4 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
     assert response.status_code == HTTPStatus.OK
     assert 'NCH' not in response.json()['link'][0]['url']
     assert 'NationalClaimsHistory' not in response.json()['link'][0]['url']
+    assert '_source=DDPS' in response.json()['link'][0]['url']
