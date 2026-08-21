@@ -3,7 +3,7 @@ RELEASE_TAG                 ?= TAG_NOT_SET
 bfd                         ?= test
 env                         ?= local
 auth                        ?= live
-sls                         ?= imp
+sls                         ?= test
 CAN_INTEGRATION_TEST        ?= false
 
 .PHONY: css requirements build-local build-local-no-cache build-production run-local \
