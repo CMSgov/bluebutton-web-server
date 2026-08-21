@@ -39,7 +39,7 @@ BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
 # i.e. `export APP_CLIENT_ID=your_app_client_id`
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
 # You can export the enable client flag in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
-# i.e. `export ENABLE_CLIENT=true`
+# i.e. `export ENABLE_CLIENT=false`
 ENABLE_CLIENT = os.getenv('ENABLE_CLIENT', 'true')
 
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
