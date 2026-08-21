@@ -3,10 +3,10 @@ name: Update Contributors Information
 on:
   workflow_dispatch: {}
   schedule:
-    # Weekly on Saturdays.
-    - cron: '30 1 * * 6'
+    # Run at 5am UTC on the first of every month
+    - cron: '0 5 1 * *'
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   update-contributors:
@@ -60,10 +60,3 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add COMMUNITY.md
           git commit -m "update contributors count to $CONTRIBUTORS" || exit 0
-
-      - name: Push protected
-        uses: CasperWA/push-protected@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-          branch: main
