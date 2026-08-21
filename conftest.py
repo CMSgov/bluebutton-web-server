@@ -333,18 +333,6 @@ def create_token(
     return _create_token
 
 
-# ---------------------------------------------------------------------------
-# API version fixtures.
-#
-# These live at the root, not under apps/fhir/, because version-awareness is not
-# FHIR-specific: apps/dot_ext, apps/authorization, apps/mymedicare_cb and
-# apps/testclient all have tests that vary over Versions.supported_versions().
-# Several of them currently do it with a `for version in ...` loop inside the
-# test body, which collapses N cases into one test id and stops at the first
-# failure. Requesting the `version` fixture instead gets real parametrization.
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture(params=Versions.supported_versions(), ids=lambda v: f'v{v}')
 def version(request):
     """

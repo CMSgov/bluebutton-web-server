@@ -34,6 +34,11 @@ PATIENT_READ_SCOPE = 'patient/Patient.read'
 EOB_READ_SCOPE = 'patient/ExplanationOfBenefit.read'
 
 
+# ---------------------------------------------------------------------------
+# Assertion helpers
+# ---------------------------------------------------------------------------
+
+
 def _lower_dict(d):
     """Lowercase keys and values, coercing to str, so dicts compare as sets."""
     return {str(k).lower(): str(v).lower() for k, v in d.items()}
@@ -44,13 +49,21 @@ def _contains_subset(d1, d2) -> bool:
     return set(_lower_dict(d1).keys()).issubset(set(_lower_dict(d2).keys()))
 
 
+# ---------------------------------------------------------------------------
+# Expected-request builders
+# ---------------------------------------------------------------------------
+
+
 def _base_expected_headers(sample_fhir_id: str, original_url: str, backend_call: str) -> dict:
     return {
+        # 'User-Agent': 'python-requests/2.20.0',
         'Accept-Encoding': 'gzip, deflate',
         'Accept': '*/*',
         'Connection': 'keep-alive',
         'BlueButton-OriginalQueryCounter': '1',
         'BlueButton-BeneficiaryId': f'patientId:{sample_fhir_id}',
+        # Must match the '{First}_{Last}_test' application name built by the
+        # create_token fixture in the root conftest.
         'BlueButton-Application': 'John_Smith_test',
         'X-Forwarded-For': '127.0.0.1',
         'keep-alive': 'timeout=120, max=10',
