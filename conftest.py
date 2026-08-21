@@ -19,6 +19,7 @@ from apps.constants import (
 )
 from apps.dot_ext.models import Application
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.versions import Versions
 
 # The scope string BaseApiTest._get_access_token hardcoded. Kept as a constant so
 # tests only spell out a scope when the scope is the thing under test.
@@ -330,3 +331,77 @@ def create_token(
         return get_access_token(user.username, scope=scope, application=application)
 
     return _create_token
+
+
+# ---------------------------------------------------------------------------
+# API version fixtures.
+#
+# These live at the root, not under apps/fhir/, because version-awareness is not
+# FHIR-specific: apps/dot_ext, apps/authorization, apps/mymedicare_cb and
+# apps/testclient all have tests that vary over Versions.supported_versions().
+# Several of them currently do it with a `for version in ...` loop inside the
+# test body, which collapses N cases into one test id and stops at the first
+# failure. Requesting the `version` fixture instead gets real parametrization.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(params=Versions.supported_versions(), ids=lambda v: f'v{v}')
+def version(request):
+    """
+    Parametrizes the requesting test across every supported API version.
+
+    Requesting this fixture — directly, or transitively via sample_fhir_id,
+    fhir_url or any fixture built on them — auto-parametrizes the test, so no
+    @pytest.mark.parametrize('version', ...) decorator is needed.
+
+    To run against a subset, parametrize directly; direct parametrization takes
+    precedence over a same-named fixture:
+
+        @pytest.mark.parametrize('version', Versions.latest_versions())
+        def test_v2_and_v3_only(version):
+            ...
+    """
+    return request.param
+
+
+@pytest.fixture
+def sample_fhir_id(version):
+    """
+    The version-specific sample FHIR id, matching the crosswalk that
+    bene_access_token and create_token populate.
+    """
+    return Versions.sample_fhir_id_by_version()[version]
+
+
+@pytest.fixture
+def fhir_url(version):
+    """The backend FHIR server base URL for this version (v3 differs from v1/v2)."""
+    return Versions.fhir_url_by_version()[version]
+
+
+@pytest.fixture
+def bene_access_token(create_token):
+    """
+    Factory fixture for a beneficiary access token whose crosswalk carries both
+    the v2 and v3 sample FHIR ids, so it resolves for any parametrized version.
+
+    A factory rather than a plain value so tests can set the scope up front
+    instead of minting a token and then mutating AccessToken.scope afterwards.
+
+    Usage:
+        def test_something(bene_access_token):
+            token = bene_access_token(scope='patient/Patient.read')
+            other = bene_access_token('Bob', 'Bobbington')
+    """
+    sample_fhir_ids = Versions.sample_fhir_id_by_version()
+
+    def _bene_access_token(
+        first_name: str = 'John',
+        last_name: str = 'Smith',
+        **kwargs,
+    ) -> str:
+        kwargs.setdefault('fhir_id_v2', sample_fhir_ids[Versions.V2])
+        kwargs.setdefault('fhir_id_v3', sample_fhir_ids[Versions.V3])
+        return create_token(first_name, last_name, **kwargs)
+
+    return _bene_access_token
