@@ -34,8 +34,7 @@ build-production:
 		-f bb-api/Dockerfile .
 
 run-local:
-	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" sls="$(sls)" CAN_INTEGRATION_TEST="$(CAN_INTEGRATION_TEST)" \
-	bash ./bb-api/scripts/external/prepare-environment.bash
+	$(MAKE) -C bb-api run-local
 
 migrate:
 	MIGRATE=1 bfd="test" env="local" TARGET_ENV="local" \

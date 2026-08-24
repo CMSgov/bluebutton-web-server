@@ -35,7 +35,7 @@ build-codebuild:
 build-selenium:
 	$(MAKE) -C ../selenium build-selenium
 
-# Running with bfd="sbx" since all integration testsare passing 
+# Running with bfd="sbx" since all integration tests are passing 
 # but 2 tests are failing with bfd="test".
 run-codebuild-mock:
 	@echo "Running codebuild environment with auth=mock"
