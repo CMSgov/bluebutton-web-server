@@ -139,7 +139,7 @@ USER_ID_TYPE_DEFAULT = 'H'
 
 IDI_MATCH_ENDPOINT = '$idi-match'
 
-DEFAULT_EOB_SOURCE = '_source=NCH'
+ENCODED_DEFAULT_EOB_SOURCE = '_source=NCH%2CDDPS'
 COVERAGE_READ_SCOPES = [
     'patient/Coverage.read',
     'patient/Coverage.r',
