@@ -221,7 +221,7 @@ def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_
         # Assert that the search endpoint is also ratelimited
         response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert response.status_code == HTTPStatus.TOO_MANY_REQUESTS
 
         # Assert that another token is not rate limited. Same factory, different
         # user, so no second fixture is needed.

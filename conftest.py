@@ -383,15 +383,14 @@ def bene_access_token(create_token):
             token = bene_access_token(scope='patient/Patient.read')
             other = bene_access_token('Bob', 'Bobbington')
     """
-    sample_fhir_ids = Versions.sample_fhir_id_by_version()
 
     def _bene_access_token(
         first_name: str = 'John',
         last_name: str = 'Smith',
         **kwargs,
     ) -> str:
-        kwargs.setdefault('fhir_id_v2', sample_fhir_ids[Versions.V2])
-        kwargs.setdefault('fhir_id_v3', sample_fhir_ids[Versions.V3])
+        kwargs.setdefault('fhir_id_v2', DEFAULT_SAMPLE_FHIR_ID_V2)
+        kwargs.setdefault('fhir_id_v3', DEFAULT_SAMPLE_FHIR_ID_V3)
         return create_token(first_name, last_name, **kwargs)
 
     return _bene_access_token
