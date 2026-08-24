@@ -224,12 +224,12 @@ def callback(request: HttpRequest):
         token_uri = request.session.get('token_uri', 'unknown token endpoint')
         logger.error(f'InvalidGrant: failed to get token from {token_uri}')
         logger.error(str(err))
-        return ResponseErrors.InvalidGrantError(str(err))
+        return ResponseErrors.InvalidGrantError()
     except Exception as err:
         token_uri = request.session.get('token_uri', 'unknown token endpoint')
         logger.error(f'Error: failed to get token from {token_uri}')
         logger.error(str(err))
-        return ResponseErrors.Error(err)
+        return ResponseErrors.Error(err.error if err else 'An unknown error occured')
 
 
     # If we cannot find a patient id in the tokent, return an error.
