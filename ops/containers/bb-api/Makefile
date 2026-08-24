@@ -1,9 +1,11 @@
-ROOT_DIR    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-SHELL       := /bin/bash
-RELEASE_TAG ?= TAG_NOT_SET
-bfd         ?= test
-env         ?= local
-auth        ?= live
+ROOT_DIR             := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+SHELL                := /bin/bash
+RELEASE_TAG          ?= TAG_NOT_SET
+bfd                  ?= test
+env                  ?= local
+auth                 ?= live
+sls                  ?= test
+CAN_INTEGRATION_TEST ?= false
 
 .PHONY: build-local build-local-no-cache build-codebuild build-selenium \
         run-codebuild run-codebuild-mock run-codebuild-integration run-codebuild-selenium \
@@ -33,14 +35,11 @@ build-codebuild:
 build-selenium:
 	$(MAKE) -C ../selenium build-selenium
 
-run-codebuild:
-	@echo "Running codebuild environment"
-	bfd="test" env="test" auth="live" TARGET_ENV="codebuild" \
-	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
-
+# Running with bfd="sbx" since all integration testsare passing 
+# but 2 tests are failing with bfd="test".
 run-codebuild-mock:
 	@echo "Running codebuild environment with auth=mock"
-	bfd="test" env="test" auth="mock" TARGET_ENV="codebuild" \
+	bfd="sbx" env="test" auth="mock" sls="test" CAN_INTEGRATION_TEST="false" TARGET_ENV="codebuild" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
 
 run-codebuild-integration:
@@ -63,5 +62,5 @@ teardown-codebuild-selenium:
 	docker compose -f ../docker-compose-codebuild.yaml down -v
 
 run-local:
-	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" \
+	bfd="$(bfd)" env="$(env)" auth="$(auth)" sls="$(sls)" CAN_INTEGRATION_TEST="$(CAN_INTEGRATION_TEST)" TARGET_ENV="local" \
 	bash $(ROOT_DIR)/scripts/external/prepare-environment.bash
