@@ -139,8 +139,12 @@ class ResponseErrors:
     @classmethod
     def InvalidGrantError(cls, msg):
         return JsonResponse(
-            {'error': f'Authorization code replay or grant failure: {msg}', 'code': 'InvalidGrantError', 'help': 'Try authorizing again'},
-            status=HTTPStatus.BAD_REQUEST,
+            {
+              error': f'Authorization code replay or grant failure: {msg}', 
+              'code': 'InvalidGrantError', 
+              'help': 'Try authorizing again'
+            },
+              status=HTTPStatus.BAD_REQUEST,
         )
 
     @classmethod

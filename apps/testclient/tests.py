@@ -5,7 +5,7 @@ from typing import List
 import pytest
 from django.core.management import call_command
 from django.http import HttpRequest
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
