@@ -105,14 +105,14 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import AccessTokenExtension, Application, Approval, AuthFlowTracking
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
     build_jwks_urls,
-    check_auth_tracking_and_create_access_token_extension,
     check_can_token_scope_for_audit_event_scopes,
+    check_session_and_create_access_token_extension,
     get_api_version_number_from_url,
     get_application_from_data,
     get_application_from_meta,
@@ -465,6 +465,16 @@ class AuthorizationView(DotAuthorizationView):
         share_demographic_scopes = form.cleaned_data.get('share_demographic_scopes')
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
+        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        user_approves_sharing_samhsa_data = True
+        share_samhsa_log_str = ''
+        if self.version == Versions.V3:
+            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            if application.part_d_eob_only:
+                user_approves_sharing_samhsa_data = True
+            share_samhsa_log_str = 'True' if user_approves_sharing_samhsa_data else 'False'
+        set_session_auth_flow_trace_value(self.request, 'auth_share_samhsa_data', share_samhsa_log_str)
+
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
 
@@ -507,6 +517,7 @@ class AuthorizationView(DotAuthorizationView):
                 user=self.request.user,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
+                share_samhsa_data=share_samhsa_log_str,
                 scopes=scopes,
                 allow=allow,
                 access_token_delete_cnt=access_token_delete_cnt,
@@ -531,6 +542,7 @@ class AuthorizationView(DotAuthorizationView):
             user=self.request.user,
             application=application,
             share_demographic_scopes=share_demographic_scopes,
+            share_samhsa_data=share_samhsa_log_str,
             scopes=scopes,
             allow=allow,
             access_token_delete_cnt=access_token_delete_cnt,
@@ -544,22 +556,6 @@ class AuthorizationView(DotAuthorizationView):
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
-
-        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
-        user_approves_sharing_samhsa_data = True
-        if self.version == Versions.V3:
-            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-            if application.part_d_eob_only:
-                user_approves_sharing_samhsa_data = True
-
-        # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
-        # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
-        # once the post of TokenView has completed successfully
-        AuthFlowTracking.objects.create(
-            code=code,
-            include_samhsa=user_approves_sharing_samhsa_data,
-            expires=datetime.now(timezone.utc) + timedelta(minutes=5),
-        )
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1305,9 +1301,12 @@ class TokenView(DotTokenView):
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
 
-                code = request.POST.get('code', None)
-                check_auth_tracking_and_create_access_token_extension(
-                    prior_include_samhsa, code, grant_type, token, prior_part_d_eob_only
+                check_session_and_create_access_token_extension(
+                    prior_include_samhsa,
+                    grant_type,
+                    token,
+                    prior_part_d_eob_only,
+                    request.session.get('auth_share_samhsa_data', True),
                 )
 
                 if grant_type == CLIENT_CREDENTIALS:

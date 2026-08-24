@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 from oauth2_provider.models import get_application_model
 
-from ..accounts.models import UserProfile
+from apps.accounts.models import UserProfile
 
 Application = get_application_model()
 
