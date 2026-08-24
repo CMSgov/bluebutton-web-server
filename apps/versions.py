@@ -4,8 +4,6 @@
 
 from django.conf import settings
 
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
-
 
 class VersionNotMatched(Exception):
     """
@@ -51,14 +49,6 @@ class Versions:
     @staticmethod
     def latest_versions():
         return [Versions.V2, Versions.V3]
-
-    @staticmethod
-    def sample_fhir_id_by_version():
-        return {
-            Versions.V1: DEFAULT_SAMPLE_FHIR_ID_V2,
-            Versions.V2: DEFAULT_SAMPLE_FHIR_ID_V2,
-            Versions.V3: DEFAULT_SAMPLE_FHIR_ID_V3,
-        }
 
     @staticmethod
     def fhir_url_by_version():

@@ -5,7 +5,6 @@ from unittest.mock import patch
 from urllib.parse import unquote
 
 import pytest
-from django.core.cache import cache
 from django.test import RequestFactory
 from django.urls import reverse
 from httmock import HTTMock, all_requests, urlmatch
@@ -118,7 +117,7 @@ def test_fhir_bluebutton_read_conformance_testcase(mock_requests):
     request = factory.get(call_to)
 
     # Now we can setup the responses we want to the call
-    mock_requests.get.return_value.status_code = 200
+    mock_requests.get.return_value.status_code = HTTPStatus.OK
     mock_requests.get.return_value.content = CONFORMANCE
 
     # Make the call to request_call which uses requests.get
@@ -147,7 +146,6 @@ def test_fhir_conformance_filter():
 @override_switch('v3_endpoints', active=True)
 @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
 def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_token):
-    cache.clear()
     mock_rates.return_value = '1/day'
 
     access_token = bene_access_token(scope=PATIENT_READ_SCOPE)
@@ -155,7 +153,7 @@ def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'Patient',
                 'id': sample_fhir_id,
@@ -191,7 +189,7 @@ def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_
     with HTTMock(catchall):
         response = client.get(read_url, Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         assert response.has_header('X-RateLimit-Limit')
         assert response.get('X-RateLimit-Limit') == '1'
@@ -205,7 +203,7 @@ def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_
 
         response = client.get(read_url, Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 429
+        assert response.status_code == HTTPStatus.TOO_MANY_REQUESTS
         # Assert that the proper headers are in place
         assert response.has_header('X-RateLimit-Limit')
         assert response.get('X-RateLimit-Limit') == '1'
@@ -223,7 +221,7 @@ def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_
         # Assert that the search endpoint is also ratelimited
         response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 429
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
         # Assert that another token is not rate limited. Same factory, different
         # user, so no second fixture is needed.
@@ -232,7 +230,7 @@ def test_read_throttle(mock_rates, client, version, sample_fhir_id, bene_access_
 
         response = client.get(read_url, Authorization=f'Bearer {second_access_token}')
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
 
 # ---------------------------------------------------------------------------
@@ -259,8 +257,7 @@ def test_search_request(client, version, sample_fhir_id, fhir_url, bene_access_t
         assert _contains_subset(expected_search_request['headers'], req.headers)
 
         return {
-            'status_code': 200,
-            # TODO replace this with true backend response, this has been post processed
+            'status_code': HTTPStatus.OK,
             'content': expected_response,
         }
 
@@ -271,7 +268,7 @@ def test_search_request(client, version, sample_fhir_id, fhir_url, bene_access_t
             Authorization=f'Bearer {access_token}',
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
         # asserts no significant transformation
         assert response.json()['entry'] == expected_response['entry']
         assert len(response.json()['link']) > 0
@@ -282,7 +279,7 @@ def test_search_request(client, version, sample_fhir_id, fhir_url, bene_access_t
 def test_search_request_unauthorized(client, db, version):
     response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization='Bearer bogus')
 
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
 
 
 @override_switch('v3_endpoints', active=True)
@@ -293,7 +290,7 @@ def test_search_request_access_token_query_param(client, version, bene_access_to
     url += f'?access_token={access_token}'
     response = client.get(url, Authorization=f'Bearer {access_token}')
 
-    assert response.status_code == 400
+    assert response.status_code == HTTPStatus.BAD_REQUEST
     content = json.loads(response.content.decode('utf-8'))
     assert content['detail'] == (
         'Using the access token in the query parameters is not supported. Use the Authorization header instead'
@@ -315,14 +312,14 @@ def test_search_request_not_found(
         assert _contains_subset(expected_search_request['headers'], req.headers)
 
         return {
-            'status_code': 404,
+            'status_code': HTTPStatus.NOT_FOUND,
             'content': {},
         }
 
     with HTTMock(catchall):
         response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 404
+        assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 @override_switch('v3_endpoints', active=True)
@@ -332,7 +329,7 @@ def test_search_emptyset(client, version, bene_access_token):
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'Bundle',
                 'id': '4b74b5b0-f324-41cb-85db-f8d527f79128',
@@ -350,7 +347,7 @@ def test_search_emptyset(client, version, bene_access_token):
     with HTTMock(catchall):
         response = client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.parametrize('bfd_status_code', (500, 400))
@@ -383,7 +380,7 @@ def test_search_request_failed(
     with HTTMock(catchall):
         response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 502
+        assert response.status_code == HTTPStatus.BAD_GATEWAY
 
 
 @pytest.mark.parametrize('bfd_status_code', (500, 400))
@@ -405,7 +402,7 @@ def test_search_request_failed_no_fhir_id_match(
     )
     def fhir_request(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'entry': [
                     {
@@ -433,7 +430,7 @@ def test_search_request_failed_no_fhir_id_match(
     with HTTMock(fhir_request, catchall):
         response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 502
+        assert response.status_code == HTTPStatus.BAD_GATEWAY
 
 
 @override_switch('v3_endpoints', active=True)
@@ -446,7 +443,7 @@ def test_search_parameters_request(client, version, sample_fhir_id, fhir_url, be
         assert '_format=application%2Ffhir%2Bjson' in req.url
 
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'ExplanationOfBenefit',
                 'patient': {
@@ -462,7 +459,7 @@ def test_search_parameters_request(client, version, sample_fhir_id, fhir_url, be
             {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
             Authorization=f'Bearer {access_token}',
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
     # Test _lastUpdated with invalid parameter starting with 'zz'
     with HTTMock(catchall):
@@ -474,7 +471,7 @@ def test_search_parameters_request(client, version, sample_fhir_id, fhir_url, be
 
         content = json.loads(response.content.decode('utf-8'))
         assert content['detail'] == 'the _lastUpdated operator is not valid'
-        assert response.status_code == 400
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
     # Test type= with single valid value: 'pde'
     with HTTMock(catchall):
@@ -483,7 +480,7 @@ def test_search_parameters_request(client, version, sample_fhir_id, fhir_url, be
             {'type': 'pde'},
             Authorization=f'Bearer {access_token}',
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
     # Test type= with multiple (all valid values)
     with HTTMock(catchall):
@@ -509,7 +506,7 @@ def test_search_parameters_request(client, version, sample_fhir_id, fhir_url, be
             },
             Authorization=f'Bearer {access_token}',
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
     # Test type= with an invalid type
     with HTTMock(catchall):
@@ -521,7 +518,7 @@ def test_search_parameters_request(client, version, sample_fhir_id, fhir_url, be
 
         content = json.loads(response.content.decode('utf-8'))
         assert content['detail'] == 'the type parameter value is not valid'
-        assert response.status_code == 400
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
 # ---------------------------------------------------------------------------
@@ -539,7 +536,7 @@ def test_read_request_failed_no_fhir_id(client, version, sample_fhir_id, bene_ac
     )
     def fhir_request(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'entry': [
                     {
@@ -554,7 +551,7 @@ def test_read_request_failed_no_fhir_id(client, version, sample_fhir_id, bene_ac
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {},
         }
 
@@ -564,7 +561,7 @@ def test_read_request_failed_no_fhir_id(client, version, sample_fhir_id, bene_ac
             Authorization=f'Bearer {access_token}',
         )
 
-        assert response.status_code == 403
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 @override_switch('v3_endpoints', active=True)
@@ -578,7 +575,7 @@ def test_read_request(client, version, sample_fhir_id, bene_access_token, expect
         assert _contains_subset(expected_read_request['headers'], req.headers)
 
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'Patient',
                 'id': sample_fhir_id,
@@ -615,7 +612,7 @@ def test_read_request(client, version, sample_fhir_id, bene_access_token, expect
             Authorization=f'Bearer {access_token}',
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
 
 @override_switch('v3_endpoints', active=True)
@@ -625,7 +622,7 @@ def test_read_eob_request(client, version, sample_fhir_id, bene_access_token):
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'ExplanationOfBenefit',
                 'patient': {
@@ -640,7 +637,7 @@ def test_read_eob_request(client, version, sample_fhir_id, bene_access_token):
             Authorization=f'Bearer {access_token}',
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
 
 @override_switch('v3_endpoints', active=True)
@@ -650,7 +647,7 @@ def test_read_coverage_request(client, version, sample_fhir_id, bene_access_toke
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'Coverage',
                 'beneficiary': {
@@ -665,7 +662,7 @@ def test_read_coverage_request(client, version, sample_fhir_id, bene_access_toke
             Authorization=f'Bearer {access_token}',
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
 
 # ---------------------------------------------------------------------------
@@ -689,7 +686,7 @@ def test_application_first_last_active(client, version, sample_fhir_id, bene_acc
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'Coverage',
                 'beneficiary': {
@@ -703,7 +700,7 @@ def test_application_first_last_active(client, version, sample_fhir_id, bene_acc
     with HTTMock(catchall):
         response = client.get(coverage_url, Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
     access_token_obj = AccessToken.objects.get(token=access_token)
     application = access_token_obj.application
@@ -719,7 +716,7 @@ def test_application_first_last_active(client, version, sample_fhir_id, bene_acc
     with HTTMock(catchall):
         response = client.get(coverage_url, Authorization=f'Bearer {access_token}')
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
     access_token_obj = AccessToken.objects.get(token=access_token)
     application = access_token_obj.application
@@ -747,7 +744,7 @@ def test_permission_deny_fhir_request_on_disabled_app_org(client, version, bene_
     @all_requests
     def catchall(url, req):
         return {
-            'status_code': 200,
+            'status_code': HTTPStatus.OK,
             'content': {
                 'resourceType': 'Coverage',
                 'beneficiary': {
@@ -759,7 +756,7 @@ def test_permission_deny_fhir_request_on_disabled_app_org(client, version, bene_
     coverage_url = reverse(READ_UPDATE_DELETE_COVERAGE_URLS[version], kwargs={'resource_id': 'coverage_id'})
 
     def assert_inactive_application_response(response):
-        assert response.status_code == 401
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
         errStr = str(response.json().get('detail'))
         errwords = errStr.split()
         packedErrStr = '-'.join(errwords)

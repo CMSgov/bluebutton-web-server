@@ -255,7 +255,7 @@ def blue_button_scopes(db):
     management command and returns the patient/coverage/eob ones keyed by slug.
 
     Kept as its own fixture rather than folded into create_token because the
-    command creates ~35 ProtectedCapability rows, and rows with default=True are
+    command creates 17 ProtectedCapability rows (20 if enable_auditevents is enabled), and rows with default=True are
     available to EVERY application (see dot_ext.scopes.get_available_scopes,
     which ORs Q(default=True) with Q(application=application)). Tests that assert
     on scope enforcement should not pay that side effect unless they ask for it.
@@ -358,7 +358,9 @@ def sample_fhir_id(version):
     The version-specific sample FHIR id, matching the crosswalk that
     bene_access_token and create_token populate.
     """
-    return Versions.sample_fhir_id_by_version()[version]
+    if version == Versions.V3:
+        return DEFAULT_SAMPLE_FHIR_ID_V3
+    return DEFAULT_SAMPLE_FHIR_ID_V2
 
 
 @pytest.fixture
