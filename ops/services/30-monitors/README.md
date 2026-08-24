@@ -28,7 +28,7 @@ YAML files in `ops/services/30-monitors/config`:
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
-| <a name="requirement_datadog"></a> [datadog](#requirement\_datadog) | ~> 4.18 |
+| <a name="requirement_datadog"></a> [datadog](#requirement\_datadog) | ~> 4.19 |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
      'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
