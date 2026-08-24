@@ -32,14 +32,17 @@ from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIA
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
 # the URL we POST to and the `aud` claim inside the client_assertion, which the
 # token endpoint validates for an exact match (see _validate_authorization_jwt).
-# You can export the token endpoint URL in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
-# i.e. `export BB2_TOKEN_URL=http://localhost:8000/v3/o/token`
+# You can export the token endpoint URL in the container so that it can be used in the test.
+# This is useful for testing with a pre-existing app.
+# i.e. `export BB2_TOKEN_URL="http://localhost:8000/v3/o/token"`
 BB2_TOKEN_URL = os.getenv('BB2_TOKEN_URL', 'http://localhost:8000/v3/o/token')
-# You can export the app client id in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
-# i.e. `export APP_CLIENT_ID=your_app_client_id`
+# You can export the app client id in the container so that it can be used in the test.
+# This is useful for testing with a pre-existing app.
+# i.e. `export APP_CLIENT_ID="your_app_client_id"`
 APP_CLIENT_ID = os.getenv('APP_CLIENT_ID')
-# You can export the enable client flag in the container so that it can be used in the test. This is useful for testing with a pre-existing app.
-# i.e. `export ENABLE_CLIENT=false`
+# You can export a false value for this flag in the container to use the requests library rather than the Django test client.
+# This is useful for testing with a pre-existing app.
+# i.e. `export ENABLE_CLIENT="false"`
 ENABLE_CLIENT = os.getenv('ENABLE_CLIENT', 'true')
 
 DAMON_MYCHART_PHONE_NUMBER = '6082113314'
@@ -149,13 +152,15 @@ def get_clear_authorization_code(driver: webdriver.Chrome, client_id: str, code_
         by_method=By.XPATH,
         locator_value='//button[contains(text(), "Agree & Continue")]',
     )
+    # This sleep seems to be necessary because sometimes it loads too quickly and stalls.
+    time.sleep(2)
     find_element_and_send_keys(
         wait=wait,
         by_method=By.XPATH,
         locator_value='//input[@aria-label="6 Digit Code"]',
         input_text=OTP_CODE,
     )
-    # This sleep seems to be necessary because otherwise it loads too quickly and stalls.
+    # This sleep seems to be necessary because sometimes it loads too quickly and stalls.
     time.sleep(2)
 
     # Can't use skip_button.click() because it's a hidden element, so have to use execute_script instead.
@@ -281,11 +286,10 @@ def get_access_token_response(json_payload: dict) -> dict:
     if is_client_enabled:
         client = Client()
         url = '/v3/o/token'
-        data = json_payload
 
         response = client.post(
             url,
-            data=urlencode(data),
+            data=urlencode(json_payload),
             content_type='application/x-www-form-urlencoded',
         )
         return response
@@ -346,3 +350,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 
     assert 'access_token' in access_token_response_json, 'Access token not found in response'
     assert 'refresh_token' in access_token_response_json, 'Refresh token not found in response'
+    scope = access_token_response_json.get('scope')
+    # AuditEvent is also returned in the response from the requests library so don't do an exact assertion,
+    # just check that the combined scopes are in the returned scope.
+    assert combined_scopes in scope, f'Expected scope "{combined_scopes}" to be in response scope "{scope}"'

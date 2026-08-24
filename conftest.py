@@ -233,6 +233,11 @@ def create_application(db):
 
 @pytest.fixture
 def driver():
+    """
+    Fixture to initialize a Selenium WebDriver for browser automation.
+    This fixture sets up a remote Chrome WebDriver instance, which can be
+    used for testing web applications in a headless browser environment.
+    """
     options = webdriver.ChromeOptions()
     driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub', options=options)
 
