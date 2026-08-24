@@ -132,8 +132,7 @@ class ResponseErrors:
     def Error(cls, msg):
         return JsonResponse(
             {'error': f'{msg}'},
-            # is 500, but should be a 400
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            status=HTTPStatus.BAD_REQUEST,
         )
 
     @classmethod
