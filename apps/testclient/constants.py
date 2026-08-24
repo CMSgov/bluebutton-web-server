@@ -121,7 +121,7 @@ class ResponseErrors:
     def MissingPatientError(cls):
         return JsonResponse(
             {
-                'error': 'No patient found in token; only synthetic benficiares can be used.',
+                'error': 'No patient found in token; only synthetic beneficiaries can be used.',
                 'code': 'MissingPatientError',
                 'help': 'Try authorizing again',
             },
