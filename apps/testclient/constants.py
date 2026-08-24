@@ -139,7 +139,7 @@ class ResponseErrors:
     def InvalidGrantError(cls, msg):
         return JsonResponse(
             {
-              error': f'Authorization code replay or grant failure: {msg}', 
+              'error': f'Authorization code replay or grant failure: {msg}', 
               'code': 'InvalidGrantError', 
               'help': 'Try authorizing again'
             },
