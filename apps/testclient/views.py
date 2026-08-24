@@ -11,7 +11,7 @@ from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, MissingTokenError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError, MissingTokenError
 from requests_oauthlib import OAuth2Session
 from waffle.decorators import waffle_switch
 
@@ -220,6 +220,17 @@ def callback(request: HttpRequest):
         logger.error(f'InvalidClient: failed to get token from {token_uri}')
         logger.error(str(err))
         return ResponseErrors.InvalidClient(token_uri)
+    except InvalidGrantError as err:
+        token_uri = request.session.get('token_uri', 'unknown token endpoint')
+        logger.error(f'InvalidGrant: failed to get token from {token_uri}')
+        logger.error(str(err))
+        return ResponseErrors.InvalidGrantError(str(err))
+    except Exception as err:
+        token_uri = request.session.get('token_uri', 'unknown token endpoint')
+        logger.error(f'Error: failed to get token from {token_uri}')
+        logger.error(str(err))
+        return ResponseErrors.Error(err)
+
 
     # If we cannot find a patient id in the tokent, return an error.
     # If we find a non-synthetic id, return an error.

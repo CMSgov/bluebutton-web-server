@@ -128,6 +128,20 @@ class ResponseErrors:
             # this was, and should be a 500
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
+    @classmethod
+    def Error(cls, msg):
+        return JsonResponse(
+            {'error': f'{msg}'},
+            # is 500, but should be a 400
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+    @classmethod
+    def InvalidGrantError(cls, msg):
+        return JsonResponse(
+            {'error': f'Authorization code replay or grant failure: {msg}', 'code': 'InvalidGrantError', 'help': 'Try authorizing again'},
+            status=HTTPStatus.BAD_REQUEST,
+        )
 
     @classmethod
     def NonSyntheticTokenError(cls):
