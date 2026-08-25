@@ -48,7 +48,6 @@ resource "datadog_synthetics_test" "fhir_endpoints" {
     id   = each.value.bb_user.value
   }
 
-  # TODO should we use a global variable instead?
   dynamic "config_variable" {
     for_each = local.env == "test" ? [1] : []
     content {
@@ -181,7 +180,6 @@ resource "datadog_synthetics_test" "userinfo_endpoints" {
     id   = each.value.bb_user.value
   }
 
-  # TODO should we use a global variable instead?
   dynamic "config_variable" {
     for_each = local.env == "test" ? [1] : []
     content {
@@ -283,7 +281,6 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
     id   = each.value.bb_user.value
   }
 
-  # TODO should we use a global variable instead?
   dynamic "config_variable" {
     for_each = local.env == "test" ? [1] : []
     content {
