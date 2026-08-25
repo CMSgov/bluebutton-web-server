@@ -268,6 +268,7 @@ def driver():
     driver.quit()
 
 
+@pytest.fixture
 def blue_button_scopes(db):
     """
     Loads the real BB2 protected capabilities via the create_blue_button_scopes
