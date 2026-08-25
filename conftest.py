@@ -3,22 +3,26 @@ import secrets
 from datetime import datetime, timedelta
 
 import pytest
-from django.contrib.auth.models import Group, User
-from django.core.management import call_command
-from django.utils.text import slugify
-from oauth2_provider.models import get_access_token_model
 
-from apps.authorization.models import DataAccessGrant
-from apps.capabilities.models import ProtectedCapability
-from apps.constants import (
-    COVERAGE_SCOPE,
-    DEFAULT_SAMPLE_FHIR_ID_V2,
-    DEFAULT_SAMPLE_FHIR_ID_V3,
-    EOB_SCOPE,
-    PATIENT_SCOPE,
-)
-from apps.dot_ext.models import Application
-from apps.fhir.bluebutton.models import Crosswalk
+try:
+    from django.contrib.auth.models import Group, User
+    from django.core.management import call_command
+    from django.utils.text import slugify
+    from oauth2_provider.models import get_access_token_model
+
+    from apps.authorization.models import DataAccessGrant
+    from apps.capabilities.models import ProtectedCapability
+    from apps.constants import (
+        COVERAGE_SCOPE,
+        DEFAULT_SAMPLE_FHIR_ID_V2,
+        DEFAULT_SAMPLE_FHIR_ID_V3,
+        EOB_SCOPE,
+        PATIENT_SCOPE,
+    )
+    from apps.dot_ext.models import Application
+    from apps.fhir.bluebutton.models import Crosswalk
+except ModuleNotFoundError:
+    pass
 from apps.versions import Versions
 
 # The scope string BaseApiTest._get_access_token hardcoded. Kept as a constant so
