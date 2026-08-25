@@ -48,6 +48,17 @@ class Versions:
     def latest_versions():
         return [Versions.V2, Versions.V3]
 
+    @staticmethod
+    def fhir_url_by_version():
+        # Importing lazily since selenium tests fail trying to get settings
+        from django.conf import settings
+
+        return {
+            Versions.V1: settings.FHIR_SERVER['FHIR_URL'],
+            Versions.V2: settings.FHIR_SERVER['FHIR_URL'],
+            Versions.V3: settings.FHIR_SERVER['FHIR_URL_V3'],
+        }
+
 
 class AccessType:
     ONE_TIME = 'ONE_TIME'
