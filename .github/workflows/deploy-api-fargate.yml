@@ -25,7 +25,7 @@ on:
           - pre-deploy
           - post-deploy
       migrate_command:
-        description: "Leave blank to run the usual 'migrate --noinput'. Fill it in when a release needs its migrations split around the deploy, e.g. 'migrate --noinput dot_ext 0016_some_migration'. Does nothing if migration_type is none."
+        description: "Run just part of a release's migrations, for whichever step you picked above. Example: 'migrate --noinput dot_ext 0016_some_migration'."
         required: false
         type: string
         default: ''
@@ -153,7 +153,7 @@ jobs:
     environment: ${{ inputs.environment || 'test' }}
     steps:
       - name: Confirm approval
-        run: echo "${{ github.actor }} approved this — about to run '${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}' against the new image, before it goes live."
+        run: echo "${{ github.actor }} approved the pre-deploy migration — running '${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}' against the new image, before any traffic hits it."
 
   pre-migrate:
     name: Pre-deploy ${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }} on ${{ inputs.environment || 'test' }}
@@ -256,7 +256,7 @@ jobs:
     environment: ${{ inputs.environment || 'test' }}
     steps:
       - name: Confirm approval
-        run: echo "${{ github.actor }} approved this — about to run '${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}' against the live service."
+        run: echo "${{ github.actor }} approved the post-deploy migration — running '${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}' against the live service, new code already serving."
 
   post-migrate:
     name: Post-deploy ${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }} on ${{ inputs.environment || 'test' }}
