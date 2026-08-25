@@ -2,8 +2,6 @@
 # we should use this class as opposed to interned strings.
 # e.g. A use of 'v1' should become Versions.V1.
 
-from django.conf import settings
-
 
 class VersionNotMatched(Exception):
     """
@@ -52,6 +50,9 @@ class Versions:
 
     @staticmethod
     def fhir_url_by_version():
+        # Importing lazily since selenium tests fail trying to get settings
+        from django.conf import settings
+
         return {
             Versions.V1: settings.FHIR_SERVER['FHIR_URL'],
             Versions.V2: settings.FHIR_SERVER['FHIR_URL'],
