@@ -12,10 +12,12 @@ set -e
 set -a
 
 echo "-------- ENV VARS --------"
-echo "🥑 bfd          ${bfd}"
-echo "🥑 auth         ${auth}"
-echo "🥑 env          ${env}"
-echo "🥑 TARGET_ENV   ${TARGET_ENV}"
+echo "🥑 bfd                    ${bfd}"
+echo "🥑 auth                   ${auth}"
+echo "🥑 env                    ${env}"
+echo "🥑 TARGET_ENV             ${TARGET_ENV}"
+echo "🥑 CAN_INTEGRATION_TEST   ${CAN_INTEGRATION_TEST}"
+echo "🥑 sls                    ${sls}"
 
 
 ####################################
@@ -41,6 +43,7 @@ gonogo "set_bfd_urls"
 # retrives the credentials for CAN integration tests and sets them as environment variables
 # only does it for local or codebuild environments
 configure_CAN_integration_credentials_if_local
+gonogo "configure_CAN_integration_credentials_if_local"
 
 ####################################
 # CERTS
@@ -126,7 +129,7 @@ else
         RELEASE_TAG=local \
         TARGET_ENV="local" \
         docker compose \
-            ${CAN_INTEGRATION_TEST:+--profile selenium} \
+            $( [[ "${CAN_INTEGRATION_TEST}" == "true" ]] && echo "--profile selenium" ) \
             -f ops/containers/docker-compose-local.yaml \
             --env-file ops/containers/bb-api/files/external/.env.container \
             up --abort-on-container-exit
