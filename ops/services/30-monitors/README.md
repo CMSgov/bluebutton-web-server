@@ -68,11 +68,13 @@ YAML files in `ops/services/30-monitors/config`:
 | ---- | ---- |
 | [datadog_monitor.on_call_fhir_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_monitor.on_call_health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
+| [datadog_monitor.on_call_userinfo_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_synthetics_test.fhir_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.homepage_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.static_site_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.test_client_auth_flow_and_calls](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
+| [datadog_synthetics_test.userinfo_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [aws_secretsmanager_secret_version.datadog_cicd_api_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 | [aws_secretsmanager_secret_version.datadog_cicd_application_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 | [aws_ssm_parameter.bb_akamai_aca_token](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
