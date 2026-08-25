@@ -37,11 +37,11 @@ run-local:
 	$(MAKE) -C bb-api run-local
 
 migrate:
-	MIGRATE=1 bfd="test" env="local" TARGET_ENV="local" \
+	MIGRATE=1 bfd="test" env="local" sls="test" TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
 collectstatic:
-	COLLECTSTATIC=1 bfd="test" env="local" TARGET_ENV="local" \
+	COLLECTSTATIC=1 bfd="test" env="local" sls="test" TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
 run-selenium-local:
