@@ -33,7 +33,6 @@ resource "datadog_synthetics_test" "homepage_uptime" {
 
   tags = module.synthetics.base_tags
 
-  # TODO should we use a global variable instead?
   dynamic "config_variable" {
     for_each = local.env == "test" ? [1] : []
     content {
