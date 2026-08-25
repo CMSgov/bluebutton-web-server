@@ -66,14 +66,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             jwks_uri='https://valid.jwks.json',
         )
 
-        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
-        assert not result
-
-        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V2)
-        assert not result
-
-        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
-        assert not result
+        for version in Versions.supported_versions():
+            result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, version)
+            assert not result
 
         mock_app.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
         result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
