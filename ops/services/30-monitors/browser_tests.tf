@@ -131,8 +131,6 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
     pattern = each.value
   }
 
-  # TODO could replace some of these browser steps with directly navigating to a link. Would be smaller terraform, but not as like a user would do.
-
   dynamic "browser_step" {
     for_each = local.env == "prod" ? [] : [1]
 
@@ -282,7 +280,6 @@ resource "datadog_synthetics_test" "test_client_auth_flow_and_calls" {
           "clt" : "/descendant::*[contains(concat(' ', normalize-space(@class), ' '), \" _input_1jd63_12 \")]"
         },
         "targetOuterHTML" : "<input class=\"ds-c-field _input_1jd63_12\" type=\"password\" aria-invalid=\"false\" name=\"password\" id=\"text-field--34\">"
-        # TODO what are these input_ strings?
       })
     }
   }
