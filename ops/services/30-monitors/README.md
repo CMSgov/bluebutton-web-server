@@ -67,6 +67,7 @@ YAML files in `ops/services/30-monitors/config`:
 | Name | Type |
 | ---- | ---- |
 | [datadog_monitor.on_call_health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
+| [datadog_synthetics_test.fhir_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.homepage_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.static_site_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
@@ -75,6 +76,8 @@ YAML files in `ops/services/30-monitors/config`:
 | [aws_secretsmanager_secret_version.datadog_cicd_application_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 | [aws_ssm_parameter.bb_akamai_aca_token](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.bcda_account_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.datadog_bbuser00000_access_token_global_variable_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.datadog_bbuser10000_access_token_global_variable_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.hostname_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.medicare_gov_synthetic_tests_akamai_token](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.medicare_slsx_akamai_aca_token](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
