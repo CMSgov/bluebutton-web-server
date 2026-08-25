@@ -301,7 +301,7 @@ def get_access_token_response(json_payload: dict) -> dict:
         return response
 
 
-@pytest.mark.skipif(os.getenv('CAN_INTEGRATION_TEST') != '1', reason='Selenium tests disabled')
+@pytest.mark.skipif(os.getenv('CAN_INTEGRATION_TEST') != 'true', reason='Selenium tests disabled')
 @pytest.mark.integration
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
