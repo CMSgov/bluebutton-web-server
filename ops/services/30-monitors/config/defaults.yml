@@ -11,7 +11,7 @@ enabled:
   lambda: false
   s3: false
   rds: true
-  synthetics: true # TODO this doesn't do anything?
+  synthetics: true
 ecs:
   notify_no_data: true
   no_data_timeframe_minutes: 10
