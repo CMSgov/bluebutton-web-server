@@ -1,5 +1,4 @@
 locals {
-  # TODO other endpoints?
   fhir_endpoints = [
     "ExplanationOfBenefit",
     "Patient",
