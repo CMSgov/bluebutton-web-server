@@ -88,6 +88,8 @@
 /bb/test/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:yabkEYO+VELj7M71,iv:xWUnoRpGJpLtPtsT2zryBJA3asBHrtxTtrzbCIdQ6No=,tag:n7ThNYd4eCWYwc1pcoA6YA==,type:int]
 /bb/test/app/sensitive/bb_akamai_aca_token: ENC[AES256_GCM,data:NeePBReSMYSo9RXxSFDMCA==,iv:bf67M0+YKiv1xVXYRnEbsuQRT5zYLZTS3vbLAzGyZm0=,tag:TcKXLm9RGtKi4qEgj8+IuA==,type:str]
 /bb/test/app/sensitive/medicare_gov_synthetic_tests_akamai_token: ENC[AES256_GCM,data:TF1Z+Chw79Ls52kUN0i4JQ==,iv:/U33TP6bXpMWXKB63J/qamkBmvrMZ+J4sMrVAc9QlfM=,tag:i32a+SbAfCdjvJURjaYl4Q==,type:str]
+/bb/test/app/sensitive/datadog_bbuser00000_access_token_global_variable_id: ENC[AES256_GCM,data:2sfDWcg6TLpzpP0eLZOuqymbuNypg8z2tPcN6faUDSRiPo3r,iv:aRzsVCwOfag8NjSrxNJxYT61EtQJ1aHTgQMftyCagFY=,tag:IRL/8h4atnwLpKe3hjUaBg==,type:str]
+/bb/test/app/sensitive/datadog_bbuser10000_access_token_global_variable_id: ENC[AES256_GCM,data:9bsvjlxaYrWTwDImCo0JFfW3EJkPkXorslkz32amD67nUsdW,iv:cnnLK8FqBLvLVvUqJOQmCZBaKxxwjAdtGqeM0yD6sTU=,tag:AdxKJk5nZGkwTR/+7yWfPw==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias

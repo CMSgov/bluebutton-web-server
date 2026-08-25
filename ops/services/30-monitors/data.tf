@@ -25,3 +25,11 @@ data "aws_ssm_parameter" "medicare_slsx_akamai_aca_token" {
 data "aws_ssm_parameter" "medicare_gov_synthetic_tests_akamai_token" {
   name = "/${local.app}/${local.env}/app/sensitive/medicare_gov_synthetic_tests_akamai_token"
 }
+
+data "aws_ssm_parameter" "datadog_bbuser00000_access_token_global_variable_id" {
+  name = "/${local.app}/${local.env}/app/sensitive/datadog_bbuser00000_access_token_global_variable_id"
+}
+
+data "aws_ssm_parameter" "datadog_bbuser10000_access_token_global_variable_id" {
+  name = "/${local.app}/${local.env}/app/sensitive/datadog_bbuser10000_access_token_global_variable_id"
+}
