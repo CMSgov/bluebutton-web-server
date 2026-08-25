@@ -74,10 +74,15 @@ jobs:
           cd ./ops/containers/bb-api
           make build-codebuild
 
+      - name: Build MSLSX
+        run: |
+          cd ./ops/containers/mslsx
+          make build-local
+
       - name: Start Stack
         run: |
           cd ./ops/containers/bb-api
-          make run-codebuild
+          make run-codebuild-mock
 
       - name: Execute Integration Tests
         run: |
@@ -91,6 +96,7 @@ jobs:
           make teardown-codebuild
 
   selenium-tests:
+    needs: [ruff, unit-tests]
     env:
       AWS_REGION: us-east-1
 
