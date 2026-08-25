@@ -68,10 +68,12 @@ YAML files in `ops/services/30-monitors/config`:
 | ---- | ---- |
 | [datadog_monitor.on_call_fhir_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_monitor.on_call_health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
+| [datadog_monitor.on_call_insurance_card_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_monitor.on_call_userinfo_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_synthetics_test.fhir_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.health](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.homepage_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
+| [datadog_synthetics_test.insurance_card_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.static_site_uptime](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.test_client_auth_flow_and_calls](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
 | [datadog_synthetics_test.userinfo_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/synthetics_test) | resource |
