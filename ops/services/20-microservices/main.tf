@@ -137,6 +137,8 @@ locals {
     "bcda_account_id",
     "bb_akamai_aca_token",
     "medicare_gov_synthetic_tests_akamai_token",
+    "datadog_bbuser00000_access_token_global_variable_id",
+    "datadog_bbuser10000_access_token_global_variable_id",
     # Legacy EC2 BFD cert format — Fargate uses BFD_KEY_PEM_B64 / BFD_CERT_PEM_B64 instead
     "fhir_key_pem",
     "fhir_cert_pem",
