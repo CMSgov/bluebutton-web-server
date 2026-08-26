@@ -3,6 +3,7 @@ import secrets
 from datetime import datetime, timedelta
 
 import pytest
+from selenium import webdriver
 
 try:
     from django.contrib.auth.models import Group, User
@@ -250,6 +251,21 @@ def create_application(db):
         return application
 
     return _create_application
+
+
+@pytest.fixture
+def driver():
+    """
+    Fixture to initialize a Selenium WebDriver for browser automation.
+    This fixture sets up a remote Chrome WebDriver instance, which can be
+    used for testing web applications in a headless browser environment.
+    """
+    options = webdriver.ChromeOptions()
+    driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub', options=options)
+
+    yield driver
+
+    driver.quit()
 
 
 @pytest.fixture
