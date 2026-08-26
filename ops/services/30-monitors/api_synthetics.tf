@@ -1,8 +1,8 @@
 locals {
   fhir_endpoints = [
+    "Coverage",
     "ExplanationOfBenefit",
     "Patient",
-    "Coverage",
   ]
 
   bb_users = {
