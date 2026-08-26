@@ -43,10 +43,10 @@ resource "datadog_synthetics_test" "fhir_endpoints" {
   tags = module.synthetics.base_tags
 
   config_variable {
-    name = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
-    type = "text"
-    secure = true
-    pattern   = each.value.bb_user.value
+    name    = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
+    type    = "text"
+    secure  = true
+    pattern = each.value.bb_user.value
   }
 
   dynamic "config_variable" {
@@ -170,10 +170,10 @@ resource "datadog_synthetics_test" "userinfo_endpoints" {
   tags = module.synthetics.base_tags
 
   config_variable {
-    name = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
-    type = "text"
-    secure = true
-    pattern   = each.value.bb_user.value
+    name    = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
+    type    = "text"
+    secure  = true
+    pattern = each.value.bb_user.value
   }
 
   dynamic "config_variable" {
@@ -266,10 +266,10 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
   tags = module.synthetics.base_tags
 
   config_variable {
-    name = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
-    type = "text"
-    secure = true
-    pattern   = each.value.bb_user.value
+    name    = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
+    type    = "text"
+    secure  = true
+    pattern = each.value.bb_user.value
   }
 
   dynamic "config_variable" {
