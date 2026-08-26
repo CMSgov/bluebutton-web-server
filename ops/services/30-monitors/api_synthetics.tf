@@ -6,8 +6,8 @@ locals {
   ]
 
   bb_users = {
-    "00000" : data.aws_ssm_parameter.datadog_bbuser00000_access_token_global_variable_id.value,
-    "10000" : data.aws_ssm_parameter.datadog_bbuser10000_access_token_global_variable_id.value,
+    "00000" : data.aws_ssm_parameter.datadog_bbuser00000_access_token.value,
+    "10000" : data.aws_ssm_parameter.datadog_bbuser10000_access_token.value,
   }
 
   fhir_endpoint_tests = [
@@ -44,8 +44,9 @@ resource "datadog_synthetics_test" "fhir_endpoints" {
 
   config_variable {
     name = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
-    type = "global"
-    id   = each.value.bb_user.value
+    type = "text"
+    secure = true
+    pattern   = each.value.bb_user.value
   }
 
   dynamic "config_variable" {
@@ -59,7 +60,7 @@ resource "datadog_synthetics_test" "fhir_endpoints" {
   }
 
   request_headers = merge(
-    { Authorization = "Bearer {{ BBUSER00000_${upper(local.env)}_ACCESS_TOKEN }}" },
+    { Authorization = "Bearer {{ BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN }}" },
     local.env == "test" ? { cookie = "{{ AKAMAI_COOKIE }}" } : {}
   )
 
@@ -170,8 +171,9 @@ resource "datadog_synthetics_test" "userinfo_endpoints" {
 
   config_variable {
     name = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
-    type = "global"
-    id   = each.value.bb_user.value
+    type = "text"
+    secure = true
+    pattern   = each.value.bb_user.value
   }
 
   dynamic "config_variable" {
@@ -185,7 +187,7 @@ resource "datadog_synthetics_test" "userinfo_endpoints" {
   }
 
   request_headers = merge(
-    { Authorization = "Bearer {{ BBUSER00000_${upper(local.env)}_ACCESS_TOKEN }}" },
+    { Authorization = "Bearer {{ BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN }}" },
     local.env == "test" ? { cookie = "{{ AKAMAI_COOKIE }}" } : {}
   )
 
@@ -265,8 +267,9 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
 
   config_variable {
     name = "BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN"
-    type = "global"
-    id   = each.value.bb_user.value
+    type = "text"
+    secure = true
+    pattern   = each.value.bb_user.value
   }
 
   dynamic "config_variable" {
@@ -280,7 +283,7 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
   }
 
   request_headers = merge(
-    { Authorization = "Bearer {{ BBUSER00000_${upper(local.env)}_ACCESS_TOKEN }}" },
+    { Authorization = "Bearer {{ BBUSER${each.value.bb_user.key}_${upper(local.env)}_ACCESS_TOKEN }}" },
     local.env == "test" ? { cookie = "{{ AKAMAI_COOKIE }}" } : {}
   )
 
