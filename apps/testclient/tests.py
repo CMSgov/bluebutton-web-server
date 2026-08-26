@@ -8,7 +8,6 @@ from django.http import HttpRequest
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
 from apps.testclient.constants import EndpointUrl, ResponseErrors
@@ -113,15 +112,14 @@ class TestResponseErrors(TestCase):
         self.assertIn('macaroniandcheese', j2['error'])
         self.assertEqual(j2['code'], 'MissingTokenError')
 
-        r3 = ResponseErrors.InvalidGrantError('used-code')
+        r3 = ResponseErrors.InvalidGrantError()
         j3 = json.loads(r3.content)
-        self.assertIn('used-code', j3['error'])
-        self.assertEqual(j3['code'], 'InvalidGrantError')
+        assert j3['error'] == 'Authorization code replay or grant failure.'
 
         r4 = ResponseErrors.Error('something went wrong')
         j4 = json.loads(r4.content)
-        self.assertIn('something went wrong', j4['error'])
-        self.assertNotIn('code', j4)
+        assert j4['error'] == 'something went wrong'
+
 
 class BlueButtonClientApiUserInfoTest(TestCase):
     """
