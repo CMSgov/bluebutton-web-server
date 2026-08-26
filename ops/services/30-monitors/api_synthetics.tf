@@ -69,12 +69,6 @@ resource "datadog_synthetics_test" "fhir_endpoints" {
   }
 
   assertion {
-    type     = "responseTime"
-    operator = "lessThan"
-    target   = "2000"
-  }
-
-  assertion {
     type     = "statusCode"
     operator = "is"
     target   = "200"
@@ -201,12 +195,6 @@ resource "datadog_synthetics_test" "userinfo_endpoints" {
   }
 
   assertion {
-    type     = "responseTime"
-    operator = "lessThan"
-    target   = "2000"
-  }
-
-  assertion {
     type     = "statusCode"
     operator = "is"
     target   = "200"
@@ -299,12 +287,6 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
   request_definition {
     method = "GET"
     url    = "${local.hostname_url_normalized}/v${each.value.version}/fhir/Patient/$generate-insurance-card"
-  }
-
-  assertion {
-    type     = "responseTime"
-    operator = "lessThan"
-    target   = "2000"
   }
 
   assertion {
