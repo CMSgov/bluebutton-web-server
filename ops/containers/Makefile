@@ -34,15 +34,14 @@ build-production:
 		-f bb-api/Dockerfile .
 
 run-local:
-	bfd="$(bfd)" env="$(env)" auth="$(auth)" TARGET_ENV="local" sls="$(sls)" CAN_INTEGRATION_TEST="$(CAN_INTEGRATION_TEST)" \
-	bash ./bb-api/scripts/external/prepare-environment.bash
+	$(MAKE) -C bb-api run-local
 
 migrate:
-	MIGRATE=1 bfd="test" env="local" TARGET_ENV="local" \
+	MIGRATE=1 bfd="test" env="local" sls="test" TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
 collectstatic:
-	COLLECTSTATIC=1 bfd="test" env="local" TARGET_ENV="local" \
+	COLLECTSTATIC=1 bfd="test" env="local" sls="test" TARGET_ENV="local" \
 	bash ./bb-api/scripts/external/prepare-environment.bash
 
 run-selenium-local:
