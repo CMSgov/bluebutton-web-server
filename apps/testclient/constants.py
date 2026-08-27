@@ -121,12 +121,29 @@ class ResponseErrors:
     def MissingPatientError(cls):
         return JsonResponse(
             {
-                'error': 'No patient found in token; only synthetic benficiares can be used.',
+                'error': 'No patient found in token; only synthetic beneficiaries can be used.',
                 'code': 'MissingPatientError',
                 'help': 'Try authorizing again',
             },
             # this was, and should be a 500
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+    @classmethod
+    def Error(cls, msg):
+        return JsonResponse(
+            {'error': f'{msg}'},
+            status=HTTPStatus.BAD_REQUEST,
+        )
+
+    @classmethod
+    def InvalidGrantError(cls):
+        return JsonResponse(
+            {
+                'error': 'Authorization code replay or grant failure.',
+                'code': 'InvalidGrantError',
+                'help': 'Try authorizing again'
+            },
+              status=HTTPStatus.BAD_REQUEST,
         )
 
     @classmethod
