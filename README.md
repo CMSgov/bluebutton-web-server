@@ -1,8 +1,5 @@
 # Blue Button Web Server
 
-[![Build Status](https://travis-ci.org/CMSgov/bluebutton-web-server.svg?branch=develop)](https://travis-ci.org/CMSGov/hhs_oauth_server)
-[![Coverage Status](https://coveralls.io/repos/github/CMSgov/bluebutton-web-server/badge.svg?branch=develop)](https://coveralls.io/github/CMSgov/bluebutton-web-server?branch=develop)
-
 This server serves as a data provider for sharing Medicare claims data with third parties.
 The server connects to Medicare.gov for authentication, and uses OAuth2 to confirm permission
 grants to external app developers. The data itself comes from a back end FHIR server
@@ -17,7 +14,7 @@ For more information on how to connect to the API implemented here, check out ou
 
 The information below outlines setting up the server for development or your own environment. For general information on deploying Django see https://docs.djangoproject.com/en/4.2/howto/deployment/.
 
-NOTE: Internal software engineers or other interested parties should follow the documentation for running a Dockerized local development environment. For more information see https://github.com/CMSgov/bluebutton-web-server/blob/master/docker-compose/readme.md.
+NOTE: Internal software engineers or other interested parties should follow the documentation for running a Dockerized local development environment. For more information see https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/containers/README.md
 
 ### Agency Mission
 
