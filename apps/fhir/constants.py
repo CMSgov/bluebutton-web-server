@@ -185,3 +185,5 @@ READ_SEARCH_SCOPE_LOOKUP = {
     },
 }
 EXCLUDE_SAMHSA_PARAMETER_VALUE = '42CFRPart2'
+
+BASE_PARAM_SCOPE = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'

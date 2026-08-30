@@ -19,10 +19,9 @@ from apps.constants import (
 )
 from apps.dot_ext.models import AccessTokenExtension, Application, ProtectedCapability
 from apps.fhir.constants import (
-    BAD_PARAMS_ACCEPTABLE_VERSIONS,
+    BASE_PARAM_SCOPE,
     C4BB_SYSTEM_TYPES,
     ENCODED_DEFAULT_EOB_SOURCE,
-    ENFORCE_PARAM_VALIDATION,
     EXCLUDE_SAMHSA_PARAMETER_VALUE,
     FHIR_CONFORMANCE_URLS,
     READ_UPDATE_DELETE_COVERAGE_URLS,
@@ -574,87 +573,58 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, expected_code)
 
     @pytest.mark.integration
-    def test_eob_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
-        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
-            url = SEARCH_EOB_URLS[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
-
-    @pytest.mark.integration
-    def test_coverage_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
-        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
-            url = SEARCH_COVERAGE_URLS[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
-
-    @pytest.mark.integration
-    def test_patient_request_when_thrown_when_invalid_parameters_included_v1_and_v2(self) -> None:
-        for version in BAD_PARAMS_ACCEPTABLE_VERSIONS:
-            url = SEARCH_PATIENT_URLS[version]
-            self._test_request_when_invalid_parameters_included(url, version, HTTPStatus.OK, ENFORCE_PARAM_VALIDATION)
-
-    @pytest.mark.integration
-    def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
-        url = SEARCH_EOB_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(
-            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
-        )
-
-    @pytest.mark.integration
-    def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
-        url = SEARCH_COVERAGE_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(
-            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
-        )
-
-    @pytest.mark.integration
-    def test_patient_request_when_invalid_parameters_and_prefer_strict_header_included_v3(self) -> None:
-        url = SEARCH_PATIENT_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(
-            url, Versions.V3, HTTPStatus.BAD_REQUEST, ENFORCE_PARAM_VALIDATION
-        )
-
-    @pytest.mark.integration
-    def test_eob_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
-        url = SEARCH_EOB_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
-
-    @pytest.mark.integration
-    def test_coverage_request_when_thrown_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
-        url = SEARCH_COVERAGE_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
-
-    @pytest.mark.integration
-    def test_patient_request_when_invalid_parameters_and_prefer_lenient_header_included_v3(self) -> None:
-        url = SEARCH_PATIENT_URLS[Versions.V3]
-        self._test_request_when_invalid_parameters_included(url, Versions.V3, HTTPStatus.OK, 'handling=lenient')
-
     @override_switch('v3_endpoints', active=True)
-    def _test_request_when_invalid_parameters_included(
-        self, url: str, version: int, expected_response_code: HTTPStatus, prefer_header: str
-    ) -> None:
-        """Ensure that a 400 is thrown for each type of resource call when invalid parameters are included for v3
-        And that it is a 200 response when it is v1 or v2
+    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
+    def test_eob_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
+        """An unrecognized search parameter is passed through to BFD rather than rejected here,
+        for every version, regardless of the Prefer header."""
+        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
 
-        Args:
-            url (str): The url that will be called in the test
-            expected_bad_params (List[str]): The bad parameters that cause the 400 error to be thrown
-        """
-        # create the user
-        first_access_token = self.create_token(
-            'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
-        )
-        ac = AccessToken.objects.get(token=first_access_token)
-        ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
-        ac.save()
-
-        response = self.client.get(
-            reverse(url),
+        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
+        response = client.get(
+            reverse(SEARCH_EOB_URLS[version]),
             {'hello': 'world'},
-            Authorization='Bearer %s' % (first_access_token),
-            HTTP_PREFER=prefer_header,
+            Authorization=f'Bearer {access_token}',
+            **extra_headers,
         )
-        self.assertEqual(response.status_code, expected_response_code)
-        if version == Versions.V3 and prefer_header == ENFORCE_PARAM_VALIDATION:
-            self.assertEqual(response.json()['error'], "Invalid parameters: ['hello']")
+
+        assert response.status_code == HTTPStatus.OK
+
+    @pytest.mark.integration
+    @override_switch('v3_endpoints', active=True)
+    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
+    def test_coverage_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
+        """An unrecognized search parameter is passed through to BFD rather than rejected here,
+        for every version, regardless of the Prefer header."""
+        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
+
+        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
+        response = client.get(
+            reverse(SEARCH_COVERAGE_URLS[version]),
+            {'hello': 'world'},
+            Authorization=f'Bearer {access_token}',
+            **extra_headers,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+
+    @pytest.mark.integration
+    @override_switch('v3_endpoints', active=True)
+    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
+    def test_patient_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
+        """An unrecognized search parameter is passed through to BFD rather than rejected here,
+        for every version, regardless of the Prefer header."""
+        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
+
+        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
+        response = client.get(
+            reverse(SEARCH_PATIENT_URLS[version]),
+            {'hello': 'world'},
+            Authorization=f'Bearer {access_token}',
+            **extra_headers,
+        )
+
+        assert response.status_code == HTTPStatus.OK
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
