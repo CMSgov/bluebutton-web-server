@@ -574,60 +574,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
     @pytest.mark.integration
     @override_switch('v3_endpoints', active=True)
-    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
-    def test_eob_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
-        """An unrecognized search parameter is passed through to BFD rather than rejected here,
-        for every version, regardless of the Prefer header."""
-        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
-
-        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
-        response = client.get(
-            reverse(SEARCH_EOB_URLS[version]),
-            {'hello': 'world'},
-            Authorization=f'Bearer {access_token}',
-            **extra_headers,
-        )
-
-        assert response.status_code == HTTPStatus.OK
-
-    @pytest.mark.integration
-    @override_switch('v3_endpoints', active=True)
-    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
-    def test_coverage_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
-        """An unrecognized search parameter is passed through to BFD rather than rejected here,
-        for every version, regardless of the Prefer header."""
-        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
-
-        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
-        response = client.get(
-            reverse(SEARCH_COVERAGE_URLS[version]),
-            {'hello': 'world'},
-            Authorization=f'Bearer {access_token}',
-            **extra_headers,
-        )
-
-        assert response.status_code == HTTPStatus.OK
-
-    @pytest.mark.integration
-    @override_switch('v3_endpoints', active=True)
-    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
-    def test_patient_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
-        """An unrecognized search parameter is passed through to BFD rather than rejected here,
-        for every version, regardless of the Prefer header."""
-        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
-
-        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
-        response = client.get(
-            reverse(SEARCH_PATIENT_URLS[version]),
-            {'hello': 'world'},
-            Authorization=f'Bearer {access_token}',
-            **extra_headers,
-        )
-
-        assert response.status_code == HTTPStatus.OK
-
-    @pytest.mark.integration
-    @override_switch('v3_endpoints', active=True)
     def test_call_eob_v3_ensure_source_is_added(self) -> None:
         """Ensure that if a v3 search EOB call is made, that the _source=NCH,DDPS parameter
         is automatically added to the call, as there is no _tag or _source parameter already on the call
@@ -1096,3 +1042,57 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
     assert 'NCH' not in response.json()['link'][0]['url']
     assert 'NationalClaimsHistory' not in response.json()['link'][0]['url']
     assert '_source=DDPS' in response.json()['link'][0]['url']
+
+    @pytest.mark.integration
+    @override_switch('v3_endpoints', active=True)
+    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
+    def test_eob_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
+        """An unrecognized search parameter is passed through to BFD rather than rejected here,
+        for every version, regardless of the Prefer header."""
+        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
+
+        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
+        response = client.get(
+            reverse(SEARCH_EOB_URLS[version]),
+            {'hello': 'world'},
+            Authorization=f'Bearer {access_token}',
+            **extra_headers,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+
+    @pytest.mark.integration
+    @override_switch('v3_endpoints', active=True)
+    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
+    def test_coverage_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
+        """An unrecognized search parameter is passed through to BFD rather than rejected here,
+        for every version, regardless of the Prefer header."""
+        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
+
+        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
+        response = client.get(
+            reverse(SEARCH_COVERAGE_URLS[version]),
+            {'hello': 'world'},
+            Authorization=f'Bearer {access_token}',
+            **extra_headers,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+
+    @pytest.mark.integration
+    @override_switch('v3_endpoints', active=True)
+    @pytest.mark.parametrize('prefer_header', [None, 'handling=strict', 'handling=lenient'])
+    def test_patient_search_with_unrecognized_parameter_succeeds(client, version, bene_access_token, prefer_header):
+        """An unrecognized search parameter is passed through to BFD rather than rejected here,
+        for every version, regardless of the Prefer header."""
+        access_token = bene_access_token(scope=BASE_PARAM_SCOPE)
+
+        extra_headers = {'HTTP_PREFER': prefer_header} if prefer_header else {}
+        response = client.get(
+            reverse(SEARCH_PATIENT_URLS[version]),
+            {'hello': 'world'},
+            Authorization=f'Bearer {access_token}',
+            **extra_headers,
+        )
+
+        assert response.status_code == HTTPStatus.OK
