@@ -1,7 +1,7 @@
 import waffle
 from rest_framework import permissions
 from voluptuous import (
-    REMOVE_EXTRA,
+    ALLOW_EXTRA,
     All,
     Coerce,
     Match,
@@ -192,6 +192,6 @@ class SearchViewExplanationOfBenefit(SearchView):
             params['_tag'] = request.query_params.getlist('_tag')
             params['_source'] = request.query_params.getlist('_source')
 
-        schema = Schema(query_schema, extra=REMOVE_EXTRA)
+        schema = Schema(query_schema, extra=ALLOW_EXTRA)
 
         return schema(params)
