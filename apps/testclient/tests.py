@@ -112,6 +112,14 @@ class TestResponseErrors(TestCase):
         self.assertIn('macaroniandcheese', j2['error'])
         self.assertEqual(j2['code'], 'MissingTokenError')
 
+        r3 = ResponseErrors.InvalidGrantError()
+        j3 = json.loads(r3.content)
+        assert j3['error'] == 'Authorization code replay or grant failure.'
+
+        r4 = ResponseErrors.Error('something went wrong')
+        j4 = json.loads(r4.content)
+        assert j4['error'] == 'something went wrong'
+
 
 class BlueButtonClientApiUserInfoTest(TestCase):
     """
