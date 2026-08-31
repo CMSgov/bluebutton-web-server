@@ -58,7 +58,7 @@ locals {
       # TODO do these thresholds make sense?
       thresholds = {
         critical = 0.35
-        warning  = local.env == "prod" ? 0.30 : 0.20
+        warning  = local.env == "prod" ? 0.30 : 0.25
       }
 
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
