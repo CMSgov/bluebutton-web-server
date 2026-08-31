@@ -65,6 +65,7 @@ class SearchView(FhirDataView):
         'startIndex': Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),  # type: ignore
         '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg='the _lastUpdated operator is not valid')],
+        'class-value': str,
     }
 
     def __init__(self, version=1):
@@ -151,13 +152,14 @@ class SearchViewExplanationOfBenefit(SearchView):
 
     # Regex to match a valid service-date value that can begin with lt, le, gt and ge operators
     REGEX_SERVICE_DATE_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
-
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {
         **SearchView.QUERY_SCHEMA,
         'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
         'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
-        '_last_updated': [Match(REGEX_SERVICE_DATE_VALUE, msg='the _last_updated operator is not valid')],
+        '_lastUpdated': [
+            Match(REGEX_SERVICE_DATE_VALUE, msg='the _lastUpdated operator is not valid')
+        ],  # service date and last updated use the same regex checking
         'patient': str,
         '_tag': list[str],
         '_source': list[str],
