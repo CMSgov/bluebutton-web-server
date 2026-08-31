@@ -83,6 +83,6 @@ jobs:
             -Dsonar.token=$SONAR_TOKEN \
             -Dsonar.ci.autoconfig.disabled=true \
             -Dsonar.inclusions=apps/**/*.py,hhs_oauth_server/**/*.py \
-            -Dsonar.exclusions=apps/**/migrations/*.py,apps/**/tests.py,apps/**/tests/*.py,apps/integration_tests/*,apps/**/management/migrations/*.py,apps/**/commands/*.py \
+            -Dsonar.exclusions=apps/**/migrations/*.py,apps/**/tests.py,apps/**/tests/*.py,apps/integration_tests/*,apps/**/management/**/*.py \
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
