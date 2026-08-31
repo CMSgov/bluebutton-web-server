@@ -65,7 +65,6 @@ class SearchView(FhirDataView):
         'startIndex': Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),  # type: ignore
         '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg='the _lastUpdated operator is not valid')],
-        'class-value': str,
     }
 
     def __init__(self, version=1):
@@ -108,7 +107,7 @@ class SearchViewPatient(SearchView):
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
     required_scopes = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
-    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA, 'beneficiary': str}
+    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA, 'beneficiary': str, 'class-value': str}
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -157,17 +156,12 @@ class SearchViewExplanationOfBenefit(SearchView):
         **SearchView.QUERY_SCHEMA,
         'type': Match(REGEX_TYPE_VALUES_LIST, msg='the type parameter value is not valid'),
         'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg='the service-date operator is not valid')],
-        '_lastUpdated': [
-            Match(REGEX_SERVICE_DATE_VALUE, msg='the _lastUpdated operator is not valid')
-        ],  # service date and last updated use the same regex checking
         'patient': str,
         '_tag': list[str],
         '_source': list[str],
         '_security:not': str,
         '_security': str,
         '_offset': Coerce(int),
-        '_count': Coerce(int),
-        'startIndex': Coerce(int),
         'outcome': str,
     }
 
