@@ -57,11 +57,9 @@ an application. It allows you to see sample data returned from our various API e
 				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization
 				Token</a>
 
-			{% switch "v3_testclient" %}
 			<a id="auth_link_v3" href="{% url 'authorize_link_v3' %}"
 				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization
 				Token (v3)</a>
-			{% endswitch %}
 
 			{% endif %}
 
@@ -77,7 +75,6 @@ an application. It allows you to see sample data returned from our various API e
 			{% url 'test_patient_v2' as test_patient_url %}
 			{% url 'test_coverage_v2' as test_coverage_url %}
 			{% elif api_ver == 3 %}
-			{% switch "v3_testclient" %}
 			{% url 'authorize_link_v3' as auth_url %}
 			{% url 'test_metadata_v3' as meta_url %}
 			{% url 'test_openid_config_v3' as openid_cfg_url %}
