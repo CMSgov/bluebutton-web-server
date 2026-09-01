@@ -1190,6 +1190,9 @@ X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
 # New login screen upon clicking Authorize as a Beneficiary button on TestClient home page
 X_PATH_FOR_MEDICARE_LOGIN = '//*[@id="App"]/div/div[5]/button/div/div[2]/h2'
 
+# Samhsa checkbox on v3 permissions screen
+SAMHSA_CHECKBOX = "//input[@aria-label='SAMHSA checkbox']"
+
 BROWSERBACK = {
     'display': 'Back to FHIR resource page',
     'action': Action.BACK,
@@ -1254,7 +1257,13 @@ CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN = {
 CLICK_AGREE_ACCESS = {
     'display': "Click 'Agree' on DEMO info grant form",
     'action': Action.FIND_CLICK,
-    'params': [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS],
+    'params': [20, By.XPATH, "//input[@id='radio_1']"],
+}
+
+CLICK_SAMHSA_CHECKBOX = {
+    'display': "Click 'SAMHSA' checkbox to agree to share SAMHSA data",
+    'action': Action.FIND_CLICK,
+    'params': [20, By.XPATH, SAMHSA_CHECKBOX],
 }
 
 CLICK_DENY_ACCESS = {
@@ -1335,18 +1344,9 @@ SEQ_LOGIN_MSLSX_FRED = [
     },
 ]
 
-LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
-if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
-    LOGIN_WITH_MEDICARE_BUTTON_SETUP = [
-        {
-            'display': "Click 'Log in with Medicare.gov' button",
-            'action': Action.FIND_CLICK,
-            'params': [20, By.CSS_SELECTOR, "button[class*='ds-c-button--solid']"],
-        }
-    ]
 
 # SLSX login using BBUser09003
-SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
+SEQ_LOGIN_SLSX = [
     {
         'display': 'Medicare.gov login username',
         'action': Action.FIND_SEND_KEY,
@@ -1746,7 +1746,7 @@ TESTS = {
     'auth_grant_fhir_calls_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN,
-        CLICK_AGREE_ACCESS,
+        CLICK_SAMHSA_CHECKBOX,
         {'sequence': SEQ_QUERY_FHIR_RESOURCES_V3},
     ],
     'auth_deny_fhir_calls': [
@@ -1801,6 +1801,15 @@ TESTS = {
         WAIT_SECONDS,
         WAIT_SECONDS,
         CLICK_AGREE_ACCESS,
+        # Check the different scopes that have been returned
+        {'sequence': SEQ_CHECK_SCOPES},
+    ],
+    'samhsa_box_checked_v3': [
+        {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
+        CALL_LOGIN,
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        CLICK_SAMHSA_CHECKBOX,
         # Check the different scopes that have been returned
         {'sequence': SEQ_CHECK_SCOPES},
     ],
