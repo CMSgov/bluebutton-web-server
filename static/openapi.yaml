@@ -258,6 +258,14 @@ paths:
           required: false
           description: "The patient identifier to search for"
         - in: query
+          name: class-value
+          schema:
+            type: string
+          required: false
+          description: |-
+            Value of the coverage class (e.g. Plan number, group number) to search for, such as "Part A", "Part B", or "Part D".
+            The current values supported are [part-a, part-b, part-c, dual]
+        - in: query
           name: _lastUpdated
           schema:
             type: string
@@ -429,6 +437,24 @@ paths:
               - _source=VMS DME claims from Shared Systems
               - _source=NCH,DDPS Part D Claims OR A + B claims from the National Claims History
               - _source=NCH,DDPS,FISS Part D Claims OR A + B claims from the National Claims History OR Institutional claims from Shared Systems
+        - in: query
+          name: _security
+          schema:
+            type: string
+          required: false
+          description: |-
+            Security Labels applied to the claim. Used to search for claims tagged with a specific security label,
+            such as the 42 CFR Part 2 (SAMHSA) label.
+
+            Examples:
+              - _security=42CFRPart2 retrieves only claims tagged as SAMHSA-protected (42 CFR Part 2) data
+        - in: query
+          name: outcome
+          schema:
+            type: string
+          required: false
+          description: |-
+            The processing outcome of the claim (complete | error | partial).
 
       responses:
         '200':
