@@ -1117,15 +1117,7 @@ def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token)
 
     body = response.json()
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    # Dump whether each param reached BFD on failure: if BFD returned a Bundle instead, this shows
-    # which of _security / _security:not actually made it into the outbound request.
-    link_url = body.get('link', [{}])[0].get('url', '')
-    debug_info = (
-        f'resourceType={body["resourceType"]} '
-        f'_security_present={"_security=" in link_url} '
-        f'_security_not_present={"_security:not=" in link_url}'
-    )
-    assert body['resourceType'] == 'OperationOutcome', debug_info
+    assert body['resourceType'] == 'OperationOutcome'
     assert body['issue'][0]['severity'] == 'error'
 
 
