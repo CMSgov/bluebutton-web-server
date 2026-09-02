@@ -64,7 +64,7 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
-      evaluation_delay = 900
+      evaluation_delay    = 900
     },
     {
       create = local.env != "test"
@@ -82,7 +82,7 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-      evaluation_delay = 900
+      evaluation_delay    = 900
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Maximum Unhealthy Hosts"
@@ -99,7 +99,7 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
-      evaluation_delay = 900
+      evaluation_delay    = 900
 
       draft_status = local.env == "prod" ? "draft" : "published"
     },
@@ -120,7 +120,7 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
-      evaluation_delay = 900
+      evaluation_delay    = 900
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Load Balancer 5xx Count High"
@@ -138,7 +138,7 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
-      evaluation_delay = 900
+      evaluation_delay    = 900
 
       draft_status = local.env == "prod" ? "draft" : "published"
     },
@@ -332,7 +332,7 @@ locals {
         warning  = 0.25
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
       evaluation_delay = 900
 
       require_full_window = false
@@ -348,7 +348,7 @@ locals {
         warning  = 1
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
       evaluation_delay = 900
 
       require_full_window = false
@@ -364,7 +364,7 @@ locals {
         warning  = 0.005
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
       evaluation_delay = 900
 
       require_full_window = false
@@ -380,7 +380,7 @@ locals {
         warning  = 0.005
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
       evaluation_delay = 900
 
       require_full_window = false
