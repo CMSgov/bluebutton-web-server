@@ -1026,11 +1026,10 @@ class Action(Enum):
     BACK = 7
     LOGIN = 8
     CONTAIN_TEXT = 9
-    DOES_NOT_CONTAIN_TEXT = 10
-    SLEEP = 11
-    VALIDATE_EMAIL_NOTIFICATION = 12
-    CHECK_DATE_FORMAT = 13
-    COPY_LINK_AND_LOAD_WITH_PARAM = 14
+    SLEEP = 10
+    VALIDATE_EMAIL_NOTIFICATION = 11
+    CHECK_DATE_FORMAT = 12
+    COPY_LINK_AND_LOAD_WITH_PARAM = 13
 
 
 MESSAGE_NO_PERMISSION = 'You do not have permission to perform this action.'
@@ -1350,19 +1349,13 @@ SEQ_LOGIN_MSLSX_FRED = [
     },
 ]
 
-LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
-if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
-    LOGIN_WITH_MEDICARE_BUTTON_SETUP = [
-        {
-            'display': 'Click on Medicare.gov option - continue authorization',
-            'action': Action.FIND_CLICK,
-            'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
-        },
-    ]
-
-
 # SLSX login using BBUser09003
 SEQ_LOGIN_SLSX = [
+    {
+        'display': 'Click on Medicare.gov option - continue authorization',
+        'action': Action.FIND_CLICK,
+        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
+    },
     {
         'display': 'Medicare.gov login username',
         'action': Action.FIND_SEND_KEY,
@@ -1411,7 +1404,7 @@ SEQ_AUTHORIZE_START_SPANISH = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH],
     },
-] + LOGIN_WITH_MEDICARE_BUTTON_SETUP
+]
 
 SEQ_AUTHORIZE_RESTART = [
     CLICK_RESTART_TESTCLIENT,
@@ -1435,7 +1428,7 @@ SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
-] + LOGIN_WITH_MEDICARE_BUTTON_SETUP
+]
 
 SEQ_AUTHORIZE_PKCE_START_V3 = [
     {'sequence': SEQ_REACH_AUTHORIZE_BTN_V3},
@@ -1449,7 +1442,7 @@ SEQ_AUTHORIZE_PKCE_START_V3 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
-] + LOGIN_WITH_MEDICARE_BUTTON_SETUP
+]
 
 SEQ_AUTHORIZE_LANG_PARAM_START = [
     {'display': 'Load BB2 Landing Page ...', 'action': Action.LOAD_PAGE, 'params': [HOSTNAME_URL]},
@@ -1637,12 +1630,14 @@ SEQ_QUERY_EOB_SAMHSA_SHARING = [
     },
     {
         'display': 'Check ExplanationOfBenefit does not filter out SAMHSA data',
-        'action': Action.DOES_NOT_CONTAIN_TEXT,
+        'action': Action.CONTAIN_TEXT,
         'params': [
             20,
             By.XPATH,
             X_PATH_FOR_FHIR_JSON_RESPONSE,
             SAMHSA_FILTER,
+            # Pass in false to indicate that the text should NOT be present in the response
+            False,
         ],
     },
     {'sequence': TESTCLIENT_HOME},
