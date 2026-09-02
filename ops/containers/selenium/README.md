@@ -38,7 +38,7 @@ WARNING - This does not work on WSL, only on Macs.
 
 ---
 
-## Socat and Debugging
+## Socat
 
 If running locally, the selenium container starts a socat proxy that listens on port `8000` inside the selenium container and forwards traffic to `host.docker.internal:8000`:
 
@@ -46,7 +46,23 @@ If running locally, the selenium container starts a socat proxy that listens on 
 
 This is done because locally, we are running on `localhost:8000` and our redirects from SLSx are also to `localhost:8000`, so we need to map `localhost:8000` -> `host.docker.internal:8000` so that selenium can be debugged. I tried setting it to network_mode: host, which allows it to see `localhost:8000` as if it were the host, but prevents debugging.
 
-If `DEBUG_MODE` is `true`, the pytest script runs a debugpy and listens on port `7890`, This is reachable in your VSCode instance via `0.0.0.0:7890`
+## Testing/Debugging with Selenium
+
+If `DEBUG_MODE` is `true`, the pytest script runs a debugpy and listens on port `7890`, This is reachable in your VSCode instance via `0.0.0.0:7890`. You will need to ensure you have your `launch.json` updated IAW with the README in `ops/containers`.
+
+To debug selenium tests, right now we can only debug them properly using auth=mock. We can use auth=live but we consistently get the zscaler issue locally that results in an internal server error 500. Here are the steps for debugging selenium tests:
+
+```bash
+# Ensure you bring up the bb-api stack with auth=mock
+make run-local auth=mock
+# Build selenium
+make build-selenium
+# Ensure you bring up the selenium stack with auth=mock and debug=true
+make run-selenium-local auth=mock debug=true
+```
+After running this in the terminal, navigate to the `Run and Debug` extension of VS Code and run the `Selenium Test` play button. You can set breakpoints accordingly in different selenium tests to test functionality and stop at different moments.
+
+Additionally, if you wanted to see the tests live in the selenium container, you can set SELENIUM_GRID to true before running the selenium tests. After starting to run the tests, you can navigate to `localhost:4444` and click on the camera icon that is flashing. You can then enter in `secret` as the password to see the selenium test happening live in a browser! This is useful when you are debugging the steps and need to see what's happening one step at a time.
 
 ---
 
