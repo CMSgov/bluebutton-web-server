@@ -82,7 +82,8 @@ jobs:
             -Dsonar.host.url=${{ env.SONARQUBE_URL }} \
             -Dsonar.token=$SONAR_TOKEN \
             -Dsonar.ci.autoconfig.disabled=true \
-            -Dsonar.inclusions=apps/*/*.py,hhs_oauth_server/*/*.py \
-            -Dsonar.exclusions=apps/*/management/migrations/*.py,apps/*/tests/*.py,apps/integration_tests/* \
+            -Dsonar.inclusions=apps/**/*.py,hhs_oauth_server/**/*.py \
+            -Dsonar.exclusions=apps/**/migrations/*.py,apps/integration_tests/** \
+            -Dsonar.coverage.exclusions=apps/**/__init__.py,apps/**/constants.py,apps/**/management/**/*.py,**/*test*.py \
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
