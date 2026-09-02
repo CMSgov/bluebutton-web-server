@@ -74,6 +74,8 @@ class RequestResponseLog(object):
         - req_qparam_beneficiary = Info from HTTP Query Params. (BB2-342)
         - req_qparam_client_id = Info from HTTP Query Params. (BB2-342)
         - req_qparam__count = Info from HTTP Query Params. (BB2-342)
+        - req_qparam__source = Info from HTTP Query Params - used to track Shared Systems usage (BB2-5126)
+        - req_qparam__tag = Info from HTTP Query Params - used to track Shared Systems usage (BB2-5126)
         - req_qparam_count = Info from HTTP Query Params. (BB2-342)
         - req_qparam_format = Info from HTTP Query Params. (BB2-342)
         - req_qparam__id = Info from HTTP Query Params. (BB2-342)
@@ -303,6 +305,8 @@ class RequestResponseLog(object):
         if getattr(self.request, 'GET', False):
             # Log selected query params only
             self._log_msg_update_from_querydict('req_qparam__count', '_count')
+            self._log_msg_update_from_querydict('req_qparam__source', '_source')
+            self._log_msg_update_from_querydict('req_qparam__tag', '_tag')
             self._log_msg_update_from_querydict('req_qparam__id', '_id')
             self._log_msg_update_from_querydict('req_qparam_beneficiary', 'beneficiary')
             self._log_msg_update_from_querydict('req_qparam_beneficiary', 'Beneficiary')

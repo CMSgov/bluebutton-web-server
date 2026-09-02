@@ -9,17 +9,6 @@ module "platform" {
   ssm_hierarchy_roots = ["bb"]
 }
 
-data "aws_ssm_parameter" "bcda_account_id" {
-  name = "/bb/${local.env}/app/sensitive/bcda_account_id"
-}
-
-data "aws_secretsmanager_secret_version" "datadog_cicd_api_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.env}/datadog/cicd/api-key"
-}
-
-data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
-  secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.env}/datadog/cicd/application-key"
-}
 
 locals {
   env     = terraform.workspace
@@ -49,7 +38,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=ba9e0cb5c88be9a9d133596529fc3c9a78427eb0"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=f3f30320cae5e1564790e0e4dd774b451f2b615e"
 
   app             = local.app
   env             = local.env
@@ -69,7 +58,7 @@ locals {
       # TODO do these thresholds make sense?
       thresholds = {
         critical = 0.35
-        warning  = local.env == "prod" ? 0.30 : 0.20
+        warning  = local.env == "prod" ? 0.30 : 0.25
       }
 
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
