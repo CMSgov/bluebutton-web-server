@@ -84,6 +84,6 @@ jobs:
             -Dsonar.ci.autoconfig.disabled=true \
             -Dsonar.inclusions=apps/**/*.py,hhs_oauth_server/**/*.py \
             -Dsonar.exclusions=apps/**/migrations/*.py,apps/integration_tests/** \
-            -Dsonar.coverage.exclusions=apps/**/__init__.py,apps/**/constants.py,apps/**/management/**/*.py,**/*test.py \
+            -Dsonar.coverage.exclusions=apps/**/__init__.py,apps/**/constants.py,apps/**/management/**/*.py,**/*test*.py \
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
