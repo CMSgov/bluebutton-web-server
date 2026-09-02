@@ -24,6 +24,11 @@ on:
           - none
           - pre-deploy
           - post-deploy
+      migrate_command:
+        description: "(Optional) Override custom migrate command (e.g. 'migrate --noinput dot_ext 0016_some_migration')."
+        required: false
+        type: string
+        default: ''
 
 env:
   AWS_REGION: us-east-1
@@ -126,6 +131,7 @@ jobs:
   # Run migrations before the service update.
   # First, we check for pending migrations. Then, we wait for a team member to approve the deployment.
   # Finally, we run the migrations. If any of these steps fail, the deployment stops to prevent issues.
+  # migrate_command narrows this down when a release can't run all its migrations at once.
 
   pre-showmigrations:
     name: Pre-deploy showmigrations on ${{ inputs.environment || 'test' }}
@@ -147,16 +153,16 @@ jobs:
     environment: ${{ inputs.environment || 'test' }}
     steps:
       - name: Confirm approval
-        run: echo "Approved by ${{ github.actor }} — running migrate --noinput against the new image."
+        run: echo "${{ github.actor }} approved the pre-deploy migration — running '${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}' against the new image, before any traffic hits it."
 
   pre-migrate:
-    name: Pre-deploy migrate --noinput on ${{ inputs.environment || 'test' }}
+    name: Pre-deploy ${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }} on ${{ inputs.environment || 'test' }}
     needs: [prepare, approve-pre-migration]
     if: inputs.migration_type == 'pre-deploy'
     uses: ./.github/workflows/run-manage-command.yml
     with:
       environment: ${{ inputs.environment || 'test' }}
-      command: migrate --noinput
+      command: ${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}
       task_definition_arn: ${{ needs.prepare.outputs.task_definition_arn }}
     secrets: inherit
 
@@ -229,6 +235,7 @@ jobs:
   # Run migrations after the service update.
   # The new code is already running, so we run migrations on the live database.
   # We still check for pending migrations, wait for approval, and then run them.
+  # A failure here hits after the deploy is already live, so it can't block anything.
 
   post-showmigrations:
     name: Post-deploy showmigrations on ${{ inputs.environment || 'test' }}
@@ -249,14 +256,14 @@ jobs:
     environment: ${{ inputs.environment || 'test' }}
     steps:
       - name: Confirm approval
-        run: echo "Approved by ${{ github.actor }} — running migrate --noinput against the live service."
+        run: echo "${{ github.actor }} approved the post-deploy migration — running '${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}' against the live service, new code already serving."
 
   post-migrate:
-    name: Post-deploy migrate --noinput on ${{ inputs.environment || 'test' }}
+    name: Post-deploy ${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }} on ${{ inputs.environment || 'test' }}
     needs: approve-post-migration
     if: inputs.migration_type == 'post-deploy'
     uses: ./.github/workflows/run-manage-command.yml
     with:
       environment: ${{ inputs.environment || 'test' }}
-      command: migrate --noinput
+      command: ${{ inputs.migrate_command != '' && inputs.migrate_command || 'migrate --noinput' }}
     secrets: inherit
