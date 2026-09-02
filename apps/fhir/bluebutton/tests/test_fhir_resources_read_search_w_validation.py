@@ -1055,40 +1055,27 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
-def test_call_eob_v3_ensure_offset_is_passed(create_token):
-    access_token = create_token()
-
-    url = reverse(SEARCH_EOB_URLS[Versions.V3])
-    url += '/?_offset=2'
-    response = Client().get(
-        url,
-        Authorization='Bearer %s' % (access_token),
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert '_offset' in response.json()['link'][0]['url']
-
-
-@pytest.mark.integration
-@override_switch('v3_endpoints', active=True)
-def test_call_eob_v3_ensure_security_is_passed(create_token) -> None:
-    """Ensure that if a v3 search EOB call is made, and a _security parameter is being passed,
-    that _security is correctly passed to BFD, and is included in the link attribute of the response.
-    The token here has no AccessTokenExtension, so samhsa data is treated as shared and no
-    _security:not is auto-appended to conflict with the explicit _security parameter.
+@pytest.mark.parametrize(
+    'search_urls,query_suffix,param_name',
+    [
+        pytest.param(SEARCH_EOB_URLS, '_offset=2', '_offset', id='eob-offset'),
+        pytest.param(SEARCH_EOB_URLS, '_security=42CFRPart2', '_security', id='eob-security'),
+        pytest.param(SEARCH_EOB_URLS, 'outcome=complete', 'outcome', id='eob-outcome'),
+        pytest.param(SEARCH_COVERAGE_URLS, 'class-value=part-a', 'class-value', id='coverage-class-value'),
+    ],
+)
+def test_v3_search_passes_through_query_parameter(client, create_token, search_urls, query_suffix, param_name):
+    """Ensure a supported query parameter on a v3 search call is passed to BFD and reflected in the
+    response's link attribute. The token here has no AccessTokenExtension, so samhsa data is treated
+    as shared and no _security:not is auto-appended to conflict with an explicit _security parameter.
     """
-
     access_token = create_token()
 
-    url = reverse(SEARCH_EOB_URLS[Versions.V3])
-    url += '/?_security=42CFRPart2'
-    response = Client().get(
-        url,
-        Authorization='Bearer %s' % (access_token),
-    )
+    url = reverse(search_urls[Versions.V3]) + f'/?{query_suffix}'
+    response = client.get(url, Authorization=f'Bearer {access_token}')
 
     assert response.status_code == HTTPStatus.OK
-    assert '_security' in response.json()['link'][0]['url']
+    assert param_name in response.json()['link'][0]['url']
 
 
 @pytest.mark.integration
@@ -1119,46 +1106,6 @@ def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token)
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert body['resourceType'] == 'OperationOutcome'
     assert body['issue'][0]['severity'] == 'error'
-
-
-@pytest.mark.integration
-@override_switch('v3_endpoints', active=True)
-def test_call_eob_v3_ensure_outcome_is_passed(create_token) -> None:
-    """Ensure that if a v3 search EOB call is made, and an outcome parameter is being passed,
-    that outcome is correctly passed to BFD, and is included in the link attribute of the response
-    """
-
-    access_token = create_token()
-
-    url = reverse(SEARCH_EOB_URLS[Versions.V3])
-    url += '/?outcome=complete'
-    response = Client().get(
-        url,
-        Authorization='Bearer %s' % (access_token),
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert 'outcome' in response.json()['link'][0]['url']
-
-
-@pytest.mark.integration
-@override_switch('v3_endpoints', active=True)
-def test_call_coverage_v3_ensure_class_value_is_passed(create_token) -> None:
-    """Ensure that if a v3 search Coverage call is made, and a class-value parameter is being passed,
-    that class-value is correctly passed to BFD, and is included in the link attribute of the response
-    """
-
-    access_token = create_token()
-
-    url = reverse(SEARCH_COVERAGE_URLS[Versions.V3])
-    url += '/?class-value=part-a'
-    response = Client().get(
-        url,
-        Authorization='Bearer %s' % (access_token),
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert 'class-value' in response.json()['link'][0]['url']
 
 
 @pytest.mark.integration

@@ -443,11 +443,23 @@ paths:
             type: string
           required: false
           description: |-
-            Security Labels applied to the claim. Used to search for claims tagged with a specific security label,
-            such as the 42 CFR Part 2 (SAMHSA) label.
+            Security Labels applied to a claim exclude claims from the search results. 
+            Used to search for claims tagged with a specific security label, such as alcohol and substance use claims.
 
             Examples:
               - _security=42CFRPart2 retrieves only claims tagged as SAMHSA-protected (42 CFR Part 2) data
+        - in: query
+          name: '_security:not'
+          schema:
+            type: string
+          required: false
+          description: |-
+            Security Labels to exclude from the search results. 
+            Used to search for claims that do NOT have a specific security label applied, such as alcohol and substance use claims.
+            Note that if a beneficiary chooses to not share alcohol and substance use claims, the _security:not parameter is automatically appended to exclude that information.
+
+            Examples:
+              - _security:not=42CFRPart2 excludes claims tagged as SAMHSA-protected (42 CFR Part 2) data
         - in: query
           name: outcome
           schema:
