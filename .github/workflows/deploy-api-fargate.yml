@@ -25,7 +25,7 @@ on:
           - pre-deploy
           - post-deploy
       migrate_command:
-        description: "Override custom migrate command (e.g. 'migrate --noinput dot_ext 0016_some_migration')."
+        description: "(Optional) Override custom migrate command (e.g. 'migrate --noinput dot_ext 0016_some_migration')."
         required: false
         type: string
         default: ''
