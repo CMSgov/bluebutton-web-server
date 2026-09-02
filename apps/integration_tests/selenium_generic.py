@@ -116,9 +116,10 @@ class SeleniumGenericTests:
             Action.FIND_SEND_KEY: self._find_and_sendkey,
             Action.CHECK: self._check_page_title,
             Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
-            Action.CONTAIN_TEXT: self._check_page_content,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
+            Action.CONTAIN_TEXT: self._check_page_content,
+            Action.DOES_NOT_CONTAIN_TEXT: self._check_page_content_not_there,
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,
@@ -259,6 +260,10 @@ class SeleniumGenericTests:
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         assert content_txt in elem.text
+
+    def _check_page_content_not_there(self, timeout_sec, by, by_expr, content_txt, **kwargs):
+        elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        assert content_txt not in elem.text
 
     def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)

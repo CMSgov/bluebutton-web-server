@@ -14,6 +14,10 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_auth_grant_fhir_calls_v2(self):
+        """
+        Test authorizing through the test client, using v2 URLs, and ensuring all of the
+        FHIR resources are returned (ie. the EOB, Patient, Coverage, and ExplanationOfBenefit resources)
+        """
         step = [0]
         test_name = 'auth_grant_fhir_calls_v2'
         api_ver = Versions.V2
@@ -24,6 +28,10 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_auth_grant_fhir_calls_v3(self):
+        """
+        Test authorizing through the test client, using v3 URLs, and ensuring all of the
+        FHIR resources are returned (ie. the EOB, Patient, Coverage, and ExplanationOfBenefit resources)
+        """
         step = [0]
         test_name = 'auth_grant_fhir_calls_v3'
         api_ver = Versions.V3
@@ -34,8 +42,12 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_auth_deny_fhir_calls_v2(self):
+        """
+        Test denying authorization through the test client, using v2 URLs, and ensuring all of the
+        FHIR resources are NOT returned (ie. the EOB, Patient, Coverage, and ExplanationOfBenefit resources)
+        """
         step = [0]
-        test_name = 'auth_deny_fhir_calls'
+        test_name = 'auth_deny_fhir_calls_v2'
         api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)
@@ -43,11 +55,16 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_auth_grant_w_no_demo_v2(self):
+        """
+        Test authorizing through the test client, using v2 URLs, and ensuring all of the
+        FHIR resources are returned (ie. the EOB, Patient, Coverage, and ExplanationOfBenefit resources)
+        when the user has NOT chosen to share their demographic data in the system
+        """
         step = [0]
         if USE_NEW_PERM_SCREEN == 'true':
             test_name = 'auth_grant_w_no_demo_new_perm_screen'
         else:
-            test_name = 'auth_grant_w_no_demo'
+            test_name = 'auth_grant_w_no_demo_v2'
         api_ver = Versions.V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)
@@ -56,7 +73,8 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_authorize_lang_english_button(self):
-        """Test lang param support on the authorize end point via the built in
+        """
+        Test lang param support on the authorize end point via the built in
         testclient using the Selenium web driver (Chrome)
         direct to login url with lang=en by click on "Authorize as beneficiary" button
         """
@@ -74,7 +92,8 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_v2_authorization_and_scopes(self):
-        """Test authorizing through the test client, using v2 URLs, and ensuring all of the
+        """
+        Test authorizing through the test client, using v2 URLs, and ensuring all of the
         SMART App v2 Scopes are available within the returned token
         """
         step = [0]
@@ -84,5 +103,35 @@ class TestBlueButtonAPI(SeleniumGenericTests):
 
         self._play(TESTS[test_name], step, api_ver=api_ver)
 
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    @screenshot_on_exception
+    def test_samhsa_box_checked(self):
+        """
+        Test that the samhsa checkbox is checked and that
+        _security%3Anot=42CFRPart2 is NOT part of the EOB
+        url response since we aren't filtering out any SAMHSA data.
+        """
+        step = [0]
+        test_name = 'samhsa_box_checked_v3'
+        api_ver = Versions.V3
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    @screenshot_on_exception
+    def test_samhsa_box_not_checked(self):
+        """
+        Test that the samhsa checkbox is NOT checked and that
+        _security%3Anot=42CFRPart2 IS part of the EOB url response
+        since we are filtering out SAMHSA data.
+        """
+        step = [0]
+        test_name = 'samhsa_box_not_checked_v3'
+        api_ver = Versions.V3
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)

@@ -1026,11 +1026,11 @@ class Action(Enum):
     BACK = 7
     LOGIN = 8
     CONTAIN_TEXT = 9
-    SLEEP = 10
-    VALIDATE_EMAIL_NOTIFICATION = 11
-    CHECK_DATE_FORMAT = 12
-    COPY_LINK_AND_LOAD_WITH_PARAM = 13
-    FIND_MSG_BY_CLASS = 14
+    DOES_NOT_CONTAIN_TEXT = 10
+    SLEEP = 11
+    VALIDATE_EMAIL_NOTIFICATION = 12
+    CHECK_DATE_FORMAT = 13
+    COPY_LINK_AND_LOAD_WITH_PARAM = 14
 
 
 MESSAGE_NO_PERMISSION = 'You do not have permission to perform this action.'
@@ -1176,13 +1176,16 @@ SLSX_CSS_LOGIN_BUTTON = (
 )
 
 # Demographic info access grant form
-BTN_ID_GRANT_DEMO_ACCESS = 'approve'
+BTN_ID_CONTINUE_SHARE_PERMISSIONS_SCREEN = 'approve'
 BTN_ID_DENY_DEMO_ACCESS = 'deny'
 BTN_ID_RADIO_NOT_SHARE = 'radio_1' if USE_NEW_PERM_SCREEN == 'true' else 'label:nth-child(5)'
 
 # Supported Locale
 EN_US = 'en_us'
 ES_ES = 'es_es'
+
+# JSON response content on the FHIR resource page (e.g. Patient, Coverage, EOB)
+X_PATH_FOR_FHIR_JSON_RESPONSE = "//*[@id='fhir-json']"
 
 # v2 SMART APP scope constants
 X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
@@ -1191,7 +1194,10 @@ X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
 X_PATH_FOR_MEDICARE_LOGIN = '//*[@id="App"]/div/div[5]/button/div/div[2]/h2'
 
 # Samhsa checkbox on v3 permissions screen
-SAMHSA_CHECKBOX = "//input[@aria-label='SAMHSA checkbox']"
+X_PATH_FOR_SAMHSA_CHECKBOX = '//*[@type="checkbox"]'
+
+# SAMHSA filter in url response
+SAMHSA_FILTER = '_security%3Anot=42CFRPart2'
 
 BROWSERBACK = {
     'display': 'Back to FHIR resource page',
@@ -1255,15 +1261,15 @@ CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN = {
 }
 
 CLICK_AGREE_ACCESS = {
-    'display': "Click 'Agree' on DEMO info grant form",
+    'display': "Click 'Continue/Share' on the permissions screen",
     'action': Action.FIND_CLICK,
-    'params': [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS],
+    'params': [20, By.ID, BTN_ID_CONTINUE_SHARE_PERMISSIONS_SCREEN],
 }
 
 CLICK_SAMHSA_CHECKBOX = {
     'display': "Click 'SAMHSA' checkbox to agree to share SAMHSA data",
     'action': Action.FIND_CLICK,
-    'params': [20, By.XPATH, SAMHSA_CHECKBOX],
+    'params': [20, By.XPATH, X_PATH_FOR_SAMHSA_CHECKBOX],
 }
 
 CLICK_DENY_ACCESS = {
@@ -1405,12 +1411,7 @@ SEQ_AUTHORIZE_START_SPANISH = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH],
     },
-    {
-        'display': 'Click on Medicare.gov option - continue authorization',
-        'action': Action.FIND_CLICK,
-        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
-    },
-]
+] + LOGIN_WITH_MEDICARE_BUTTON_SETUP
 
 SEQ_AUTHORIZE_RESTART = [
     CLICK_RESTART_TESTCLIENT,
@@ -1448,12 +1449,7 @@ SEQ_AUTHORIZE_PKCE_START_V3 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
-    {
-        'display': 'Click on Medicare.gov option - continue authorization',
-        'action': Action.FIND_CLICK,
-        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
-    },
-]
+] + LOGIN_WITH_MEDICARE_BUTTON_SETUP
 
 SEQ_AUTHORIZE_LANG_PARAM_START = [
     {'display': 'Load BB2 Landing Page ...', 'action': Action.LOAD_PAGE, 'params': [HOSTNAME_URL]},
@@ -1633,6 +1629,44 @@ SEQ_QUERY_FHIR_RESOURCES_V3 = [
     {'sequence': TESTCLIENT_HOME},
 ]
 
+SEQ_QUERY_EOB_SAMHSA_SHARING = [
+    {
+        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
+        'action': Action.FIND_CLICK,
+        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
+    },
+    {
+        'display': 'Check ExplanationOfBenefit does not filter out SAMHSA data',
+        'action': Action.DOES_NOT_CONTAIN_TEXT,
+        'params': [
+            20,
+            By.XPATH,
+            X_PATH_FOR_FHIR_JSON_RESPONSE,
+            SAMHSA_FILTER,
+        ],
+    },
+    {'sequence': TESTCLIENT_HOME},
+]
+
+SEQ_QUERY_EOB_SAMHSA_NOT_SHARING = [
+    {
+        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
+        'action': Action.FIND_CLICK,
+        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
+    },
+    {
+        'display': 'Check ExplanationOfBenefit filters out SAMHSA data',
+        'action': Action.CONTAIN_TEXT,
+        'params': [
+            20,
+            By.XPATH,
+            X_PATH_FOR_FHIR_JSON_RESPONSE,
+            SAMHSA_FILTER,
+        ],
+    },
+    {'sequence': TESTCLIENT_HOME},
+]
+
 SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     {
         'display': "Click 'Patient' on FHIR resources page",
@@ -1751,16 +1785,16 @@ TESTS = {
     'auth_grant_fhir_calls_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN,
-        CLICK_SAMHSA_CHECKBOX,
+        CLICK_AGREE_ACCESS,
         {'sequence': SEQ_QUERY_FHIR_RESOURCES_V3},
     ],
-    'auth_deny_fhir_calls': [
+    'auth_deny_fhir_calls_v2': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_DENY_ACCESS,
         CHECK_TESTCLIENT_START_PAGE,
     ],
-    'auth_grant_w_no_demo': [
+    'auth_grant_w_no_demo_v2': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
         CALL_LOGIN,
         CLICK_RADIO_NOT_SHARE,
@@ -1812,11 +1846,20 @@ TESTS = {
     'samhsa_box_checked_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN,
-        WAIT_SECONDS,
-        WAIT_SECONDS,
         CLICK_SAMHSA_CHECKBOX,
-        # Check the different scopes that have been returned
-        {'sequence': SEQ_CHECK_SCOPES},
+        CLICK_AGREE_ACCESS,
+        # Check to ensure we DON'T filter out SAMHSA data by ensuring
+        # _security%3Anot=42CFRPart2 IS NOT part of the EOB url response.
+        {'sequence': SEQ_QUERY_EOB_SAMHSA_SHARING},
+    ],
+    'samhsa_box_not_checked_v3': [
+        {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        # Check to ensure we DO filter out SAMHSA data by ensuring
+        # _security%3Anot=42CFRPart2 IS part of the EOB url response.
+        # The checkbox is not selected by default, so we don't need to click it to uncheck it.
+        {'sequence': SEQ_QUERY_EOB_SAMHSA_NOT_SHARING},
     ],
 }
 
