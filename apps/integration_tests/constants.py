@@ -1257,7 +1257,7 @@ CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN = {
 CLICK_AGREE_ACCESS = {
     'display': "Click 'Agree' on DEMO info grant form",
     'action': Action.FIND_CLICK,
-    'params': [20, By.XPATH, "//input[@id='radio_1']"],
+    'params': [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS],
 }
 
 CLICK_SAMHSA_CHECKBOX = {
@@ -1412,6 +1412,16 @@ SEQ_AUTHORIZE_RESTART = [
     },
 ]
 
+LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
+if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
+    LOGIN_WITH_MEDICARE_BUTTON_SETUP = [
+        {
+            'display': 'Click on Medicare.gov option - continue authorization',
+            'action': Action.FIND_CLICK,
+            'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
+        },
+    ]
+
 SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
     {'sequence': SEQ_REACH_AUTHORIZE_BTN_V1_V2},
     {
@@ -1424,12 +1434,7 @@ SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
-    {
-        'display': 'Click on Medicare.gov option - continue authorization',
-        'action': Action.FIND_CLICK,
-        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
-    },
-]
+] + LOGIN_WITH_MEDICARE_BUTTON_SETUP
 
 SEQ_AUTHORIZE_PKCE_START_V3 = [
     {'sequence': SEQ_REACH_AUTHORIZE_BTN_V3},
