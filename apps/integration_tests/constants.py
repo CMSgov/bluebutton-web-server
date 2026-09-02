@@ -1175,9 +1175,16 @@ SLSX_CSS_LOGIN_BUTTON = (
 )
 
 # Demographic info access grant form
-BTN_ID_CONTINUE_SHARE_PERMISSIONS_SCREEN = 'approve'
+BTN_ID_GRANT_DEMO_ACCESS = 'approve'
 BTN_ID_DENY_DEMO_ACCESS = 'deny'
 BTN_ID_RADIO_NOT_SHARE = 'radio_1' if USE_NEW_PERM_SCREEN == 'true' else 'label:nth-child(5)'
+
+# Select EOB Link on TestClient FHIR links page
+CLICK_EOB_LINK = {
+    'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
+    'action': Action.FIND_CLICK,
+    'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
+}
 
 # Supported Locale
 EN_US = 'en_us'
@@ -1260,9 +1267,9 @@ CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN = {
 }
 
 CLICK_AGREE_ACCESS = {
-    'display': "Click 'Continue/Share' on the permissions screen",
+    'display': "Click 'Agree' on DEMO info grant form",
     'action': Action.FIND_CLICK,
-    'params': [20, By.ID, BTN_ID_CONTINUE_SHARE_PERMISSIONS_SCREEN],
+    'params': [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS],
 }
 
 CLICK_SAMHSA_CHECKBOX = {
@@ -1483,11 +1490,7 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST],
     },
     {'sequence': TESTCLIENT_HOME},
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit result page title',
         'action': Action.CHECK,
@@ -1564,11 +1567,7 @@ SEQ_QUERY_FHIR_RESOURCES_V3 = [
         'params': [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_COVERAGE],
     },
     {'sequence': TESTCLIENT_HOME},
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit result page title',
         'action': Action.CHECK,
@@ -1623,11 +1622,7 @@ SEQ_QUERY_FHIR_RESOURCES_V3 = [
 ]
 
 SEQ_QUERY_EOB_SAMHSA_SHARING = [
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit does not filter out SAMHSA data',
         'action': Action.CONTAIN_TEXT,
@@ -1644,11 +1639,7 @@ SEQ_QUERY_EOB_SAMHSA_SHARING = [
 ]
 
 SEQ_QUERY_EOB_SAMHSA_NOT_SHARING = [
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit filters out SAMHSA data',
         'action': Action.CONTAIN_TEXT,
@@ -1690,11 +1681,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST],
     },
     {'sequence': TESTCLIENT_HOME},
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit result page title',
         'action': Action.CHECK,
