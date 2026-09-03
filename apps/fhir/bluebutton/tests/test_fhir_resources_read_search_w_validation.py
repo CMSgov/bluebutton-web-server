@@ -1055,60 +1055,72 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
-def test_call_eob_v3_ensure_offset_is_passed(
-    basic_user,
-    get_access_token,
-    create_capability,
-    create_application,
-) -> None:
-    """Ensure that if a v3 search EOB call is made, and a _offset parameter is being passed,
-    that _offset is correctly passed to BFD, and is included in the link attribute of the response
+@pytest.mark.parametrize(
+    'search_urls,query_suffix,param_name',
+    [
+        pytest.param(SEARCH_EOB_URLS, '_offset=2', '_offset', id='eob-offset'),
+        pytest.param(SEARCH_EOB_URLS, '_security=42CFRPart2', '_security', id='eob-security'),
+        pytest.param(SEARCH_EOB_URLS, 'outcome=complete', 'outcome', id='eob-outcome'),
+        pytest.param(SEARCH_COVERAGE_URLS, 'class-value=part-a', 'class-value', id='coverage-class-value'),
+    ],
+)
+def test_v3_search_passes_through_query_parameter(client, create_token, search_urls, query_suffix, param_name):
+    """Ensure a supported query parameter on a v3 search call is passed to BFD and reflected in the
+    response's link attribute. The token here has no AccessTokenExtension, so samhsa data is treated
+    as shared and no _security:not is auto-appended to conflict with an explicit _security parameter.
     """
+    access_token = create_token()
 
-    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
-    application = create_application(
-        name='test',
-        grant_type='authorization-code',
-        capability=eob_capability,
-    )
-
-    user = basic_user()
-    access_token = get_access_token(user.username, 'patient/ExplanationOfBenefit.rs', application=application)
-
-    url = reverse(SEARCH_EOB_URLS[Versions.V3])
-    url += '/?_offset=5'
-    response = Client().get(
-        url,
-        Authorization='Bearer %s' % (access_token),
-    )
+    url = reverse(search_urls[Versions.V3]) + f'/?{query_suffix}'
+    response = client.get(url, Authorization=f'Bearer {access_token}')
 
     assert response.status_code == HTTPStatus.OK
-    assert '_offset' in response.json()['link'][0]['url']
+    assert param_name in response.json()['link'][0]['url']
+
+
+@pytest.mark.integration
+@override_switch('v3_endpoints', active=True)
+def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token) -> None:
+    """Ensure that if a v3 search EOB call is made with an explicit _security=42CFRPart2 parameter, and the
+    access token's AccessTokenExtension has include_samhsa=False, the auto-appended _security:not=42CFRPart2
+    conflicts with the explicit _security parameter and BFD returns an OperationOutcome error
+    """
+
+    access_token = create_token()
+    access_token_extension = AccessTokenExtension()
+    access_token_extension.access_token = AccessToken.objects.get(token=access_token)
+    access_token_extension.include_samhsa = False
+    access_token_extension.part_d_eob_only = False
+    access_token_extension.save()
+
+    url = reverse(SEARCH_EOB_URLS[Versions.V3])
+    url += '/?_security=42CFRPart2'
+    # generic.py's initial() reads req.META['HTTP_AUTHORIZATION'] directly (separate from DRF's own auth) to look
+    # up the AccessTokenExtension, so the header must be passed as HTTP_AUTHORIZATION, not Authorization.
+    response = Client().get(
+        url,
+        HTTP_AUTHORIZATION='Bearer %s' % (access_token),
+    )
+
+    body = response.json()
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert body['resourceType'] == 'OperationOutcome'
+    assert body['issue'][0]['severity'] == 'error'
 
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
 def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_source_parameters(
-    basic_user, get_access_token, create_capability, create_application
+    create_token, client
 ) -> None:
     """Ensure that if a v3 search EOB call is made, and the access_token_extension record has
     part_d_eob_only equal to true, that no matter what _source and _tag parameters are on the request,
     we only pass _source=DDPS to BFD
     """
-    user = basic_user()
-    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
-    app = create_application(
-        'test app',
-        capability=eob_capability,
-        user=user,
-    )
-    ac = get_access_token(
-        user.username, 'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile', application=app
-    )
-    access_token = AccessToken.objects.get(token=ac)
+    access_token = create_token(scope='patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile')
 
     access_token_extension = AccessTokenExtension()
-    access_token_extension.access_token = access_token
+    access_token_extension.access_token = AccessToken.objects.get(token=access_token)
     access_token_extension.part_d_eob_only = True
     access_token_extension.save()
 
@@ -1116,7 +1128,7 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
     # Add params to url that will be filtered out because the token extension has part_d_eob_only = True
     url += '/?_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory&_source=NCH'
 
-    response = Client().get(
+    response = client.get(
         url,
         {},
         HTTP_AUTHORIZATION='Bearer %s' % access_token,
