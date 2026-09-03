@@ -116,7 +116,7 @@ class SeleniumGenericTests:
             Action.FIND_SEND_KEY: self._find_and_sendkey,
             Action.CHECK: self._check_page_title,
             Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
-            Action.CHECK_PAGE_CONTENT: self._check_page_content,
+            Action.CONTAIN_TEXT: self._check_page_content,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
