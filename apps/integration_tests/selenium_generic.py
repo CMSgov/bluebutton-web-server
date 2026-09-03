@@ -73,7 +73,7 @@ class SeleniumGenericTests:
         self.environment = os.getenv('TARGET_ENV', '')
         self.on_remote_ci = os.getenv('ON_REMOTE_CI', 'false')
         self.selenium_grid_host = os.getenv('SELENIUM_GRID_HOST', 'chrome')
-        self.selenium_grid = os.getenv('SELENIUM_GRID', 'true')
+        self.selenium_grid = os.getenv('SELENIUM_GRID', 'false')
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
@@ -116,9 +116,9 @@ class SeleniumGenericTests:
             Action.FIND_SEND_KEY: self._find_and_sendkey,
             Action.CHECK: self._check_page_title,
             Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
+            Action.CHECK_PAGE_CONTENT: self._check_page_content,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
-            Action.CONTAIN_TEXT: self._check_page_content,
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,

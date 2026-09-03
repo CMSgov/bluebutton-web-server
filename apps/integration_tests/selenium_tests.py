@@ -107,14 +107,14 @@ class TestBlueButtonAPI(SeleniumGenericTests):
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
     @screenshot_on_exception
-    def test_samhsa_box_checked(self):
+    def test_samhsa_box_checked_eob_response_v3(self):
         """
         Test that the samhsa checkbox is checked and that
         _security%3Anot=42CFRPart2 is NOT part of the EOB
         url response since we aren't filtering out any SAMHSA data.
         """
         step = [0]
-        test_name = 'samhsa_box_checked_v3'
+        test_name = 'samhsa_box_checked_eob_response_v3'
         api_ver = Versions.V3
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)
@@ -122,14 +122,14 @@ class TestBlueButtonAPI(SeleniumGenericTests):
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
     @screenshot_on_exception
-    def test_samhsa_box_not_checked(self):
+    def test_samhsa_box_not_checked_eob_response_v3(self):
         """
         Test that the samhsa checkbox is NOT checked and that
         _security%3Anot=42CFRPart2 IS part of the EOB url response
         since we are filtering out SAMHSA data.
         """
         step = [0]
-        test_name = 'samhsa_box_not_checked_v3'
+        test_name = 'samhsa_box_not_checked_eob_response_v3'
         api_ver = Versions.V3
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)

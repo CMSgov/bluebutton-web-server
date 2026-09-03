@@ -1825,7 +1825,7 @@ TESTS = {
         # Check the different scopes that have been returned
         {'sequence': SEQ_CHECK_SCOPES},
     ],
-    'samhsa_box_checked_v3': [
+    'samhsa_box_checked_eob_response_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN,
         CLICK_SAMHSA_CHECKBOX,
@@ -1834,7 +1834,7 @@ TESTS = {
         # _security%3Anot=42CFRPart2 IS NOT part of the EOB url response.
         {'sequence': SEQ_QUERY_EOB_SAMHSA_SHARING},
     ],
-    'samhsa_box_not_checked_v3': [
+    'samhsa_box_not_checked_eob_response_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
