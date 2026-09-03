@@ -1631,7 +1631,7 @@ SEQ_QUERY_EOB_SAMHSA_SHARING = [
             By.XPATH,
             X_PATH_FOR_FHIR_JSON_RESPONSE,
             SAMHSA_FILTER,
-            # Pass in false to indicate that the text should NOT be present in the response
+            # Pass in false to indicate that the text should NOT exist in the response
             False,
         ],
     },
