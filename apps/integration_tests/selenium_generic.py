@@ -256,9 +256,9 @@ class SeleniumGenericTests:
         else:
             assert not ('code_challenge' in elem.text or 'code_challenge_method' in elem.text)
 
-    def _check_page_content(self, timeout_sec, by, by_expr, content_txt, text_is_present=True, **kwargs):
+    def _check_page_content(self, timeout_sec, by, by_expr, content_txt, should_exist=True, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
-        if text_is_present:
+        if should_exist:
             assert content_txt in elem.text
         else:
             assert content_txt not in elem.text
