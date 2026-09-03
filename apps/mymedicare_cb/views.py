@@ -226,7 +226,7 @@ def mymedicare_login(request):
     state = generate_nonce()
     state = urllib_request.pathname2url(state)
     request.session[relay_param_name] = state
-    mymedicare_login_url = '%s&%s=%s&redirect_uri=%s' % (mymedicare_login_url, relay_param_name, state, redirect)
+    mymedicare_login_url = f'{mymedicare_login_url}&{relay_param_name}={state}&redirect_uri={redirect}&prompt=login'
     # Check if language was saved server-side for this session
     language = request.session.get('auth_language', None)
     if language is not None:
