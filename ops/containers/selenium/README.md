@@ -62,7 +62,11 @@ make run-selenium-local auth=mock debug=true
 ```
 After running this in the terminal, navigate to the `Run and Debug` extension of VS Code and run the `Selenium Test` play button. You can set breakpoints accordingly in different selenium tests to test functionality and stop at different moments.
 
-Additionally, if you wanted to see the tests live in the selenium container, you can set SELENIUM_GRID to true before running the selenium tests. After starting to run the tests, you can navigate to `localhost:4444` and click on the camera icon that is flashing. You can then enter in `secret` as the password to see the selenium test happening live in a browser! This is useful when you are debugging the steps and need to see what's happening one step at a time.
+Additionally, if you wanted to see the tests live in the selenium container, you can set SELENIUM_GRID to true before running the selenium tests. For example:
+```bash
+make run-local auth=mock debug=false SELENIUM_GRID=true
+```
+After starting to run the tests, you can navigate to `localhost:4444` and click on the camera icon that is flashing. You can then enter in `secret` as the password to see the selenium test happening live in a browser! This is useful when you are debugging the steps and need to see what's happening one step at a time.
 
 ---
 
