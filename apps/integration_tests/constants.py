@@ -1202,6 +1202,9 @@ X_PATH_FOR_MEDICARE_LOGIN = '//*[@id="App"]/div/div[5]/button/div/div[2]/h2'
 # Samhsa checkbox on v3 permissions screen
 X_PATH_FOR_SAMHSA_CHECKBOX = '//*[@type="checkbox"]'
 
+# Switch account x path for v3
+X_PATH_FOR_SWITCH_ACCOUNT = "//button[contains(text(), 'Switch account')]"
+
 # SAMHSA filter in url response
 SAMHSA_FILTER = '_security%3Anot=42CFRPart2'
 
@@ -1276,6 +1279,12 @@ CLICK_SAMHSA_CHECKBOX = {
     'display': "Click 'SAMHSA' checkbox to agree to share SAMHSA data",
     'action': Action.FIND_CLICK,
     'params': [20, By.XPATH, X_PATH_FOR_SAMHSA_CHECKBOX],
+}
+
+CLICK_SWITCH_ACCOUNT = {
+    'display': "Click 'Switch Account' on permissions screen",
+    'action': Action.FIND_CLICK,
+    'params': [20, By.XPATH, X_PATH_FOR_SWITCH_ACCOUNT],
 }
 
 CLICK_DENY_ACCESS = {
@@ -1842,6 +1851,18 @@ TESTS = {
         # _security%3Anot=42CFRPart2 IS part of the EOB url response.
         # The checkbox is not selected by default, so we don't need to click it to uncheck it.
         {'sequence': SEQ_QUERY_EOB_SAMHSA_NOT_SHARING},
+    ],
+    'switch_account_v3': [
+        {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
+        # Login as one user
+        CALL_LOGIN,
+        CLICK_SWITCH_ACCOUNT,
+        # Login as a different user
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        # Check to ensure we reached the test client home page by making an EOB Call
+        CLICK_EOB_LINK,
+        {'sequence': TESTCLIENT_HOME},
     ],
 }
 
