@@ -447,7 +447,7 @@ paths:
             Used to search for claims tagged with a specific security label, such as alcohol and substance use claims.
 
             Examples:
-              - _security=42CFRPart2 retrieves only claims tagged as SAMHSA-protected (42 CFR Part 2) data
+              - _security=42CFRPart2 retrieves only claims tagged as alcohol and substance use related data
         - in: query
           name: '_security:not'
           schema:
@@ -459,7 +459,7 @@ paths:
             Note that if a beneficiary chooses to not share alcohol and substance use claims, the _security:not parameter is automatically appended to exclude that information.
 
             Examples:
-              - _security:not=42CFRPart2 excludes claims tagged as SAMHSA-protected (42 CFR Part 2) data
+              - _security:not=42CFRPart2 excludes claims tagged as alcohol and substance use related data
         - in: query
           name: outcome
           schema:
