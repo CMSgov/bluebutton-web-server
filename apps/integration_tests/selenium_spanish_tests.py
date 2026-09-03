@@ -20,6 +20,10 @@ class TestPermissionScreenSpanish(SeleniumGenericTests):
 
     @screenshot_on_exception
     def test_toggle_language_and_date_format(self):
+        """
+        Test lang and date format via the built in
+        testclient using the Selenium web driver (Chrome)
+        """
         step = [0]
         test_name = 'toggle_language'
         api_ver = Versions.V2
@@ -31,14 +35,13 @@ class TestPermissionScreenSpanish(SeleniumGenericTests):
             assert True, 'Skip test ' + test_name + ' - does not applicable to mslsx (mock login).'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
-    """
-    Test lang param support on the authorize end point via the built in
-    testclient using the Selenium web driver (Chrome)
-    inject lang=es before direct to login url
-    """
-
     @screenshot_on_exception
     def test_authorize_lang_param(self):
+        """
+        Test lang param support on the authorize end point via the built in
+        testclient using the Selenium web driver (Chrome)
+        inject lang=es before direct to login url
+        """
         step = [0]
         test_name = 'authorize_lang_param'
         api_ver = Versions.V2
@@ -50,14 +53,13 @@ class TestPermissionScreenSpanish(SeleniumGenericTests):
             assert True, 'Skip test ' + test_name + ' - does not applicable to mslsx (mock login).'
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
-    """
-    Test lang param support on the authorize end point via the built in
-    testclient using the Selenium web driver (Chrome)
-    direct to login url with lang=es by click on "Authorize as beneficiary (Spanish)" button
-    """
-
     @screenshot_on_exception
     def test_authorize_lang_spanish_button(self):
+        """
+        Test lang param support on the authorize end point via the built in
+        testclient using the Selenium web driver (Chrome)
+        direct to login url with lang=es by click on "Authorize as beneficiary (Spanish)" button
+        """
         step = [0]
         test_name = 'authorize_lang_spanish_button'
         api_ver = Versions.V2
