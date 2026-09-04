@@ -598,6 +598,7 @@ class TestTokenResponseFields(BaseApiTest):
                 assert '"patient_match_found": true' in auth_logs.output[1]
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
                 assert '"req_app_name": "CC App"' in request_logs.output[0]
+                assert '"csp": "https://api.idmelabs.com/oidc"' in auth_logs.output[1]
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
     @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
@@ -645,6 +646,7 @@ class TestTokenResponseFields(BaseApiTest):
                 assert '"patient_match_found": false' in auth_logs.output[1]
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
                 assert '"req_app_name": "CC App"' in request_logs.output[0]
+                assert '"csp": "https://api.idmelabs.com/oidc"' in auth_logs.output[1]
 
 
 class TestTokenPrivateMethods(BaseApiTest):
