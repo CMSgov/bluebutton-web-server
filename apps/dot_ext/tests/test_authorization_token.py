@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import uuid
 from base64 import b64encode
 from datetime import timezone
 from http import HTTPStatus
@@ -30,6 +31,7 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
     AUTH_CODE_TYPE,
     CC_SYSTEM_MEDICARE_NUMBER,
     CLEAR_HIGHER_ISS,
@@ -750,7 +752,7 @@ class TestTokenPrivateMethods(BaseApiTest):
             }
 
             # Call succeeds
-            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client, False)
             assert result == self.mock_ial_jwt_payload
 
             # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -775,7 +777,7 @@ class TestTokenPrivateMethods(BaseApiTest):
         }
 
         # First call succeeds
-        self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+        self.token_view._validate_ial_jwt('token', self.mock_jwks_client, False)
 
         # Assert cache contains expected key
         cache_key = f'{self.mock_ial_jwt_payload.get("iss")}-{self.mock_ial_jwt_payload.get("jti")}'
@@ -783,7 +785,7 @@ class TestTokenPrivateMethods(BaseApiTest):
 
         # Second call with same jti/iss fails
         with pytest.raises(InvalidRequestError):
-            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
+            self.token_view._validate_ial_jwt('token', self.mock_jwks_client, False)
 
     def test_validate_time_comparison_succeeds(
         self,
@@ -886,3 +888,136 @@ def test_client_credentials_returns_patient_match_not_found_401_integration(
     )
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND
+
+
+@patch.dict(os.environ, {'TARGET_ENV': 'local'})
+@patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+@patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
+@patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
+@patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
+@patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
+@override_switch('v3_endpoints', active=True)
+@override_switch('enable_auditevents', active=True)
+def test_client_credentials_token_and_refresh_with_oidc4da_token_format(
+    mock_get_patient,
+    mock_create_user,
+    mock_validate_ial,
+    mock_validate_auth,
+    mock_get_and_update,
+    basic_user,
+    create_application,
+    create_capability,
+):
+    """Verify that an ID token with the OIDC4IDA token format can successfully make it through a CAN request with the
+    client_credentials_validation switch inactive"""
+
+    # Mocking the matched user
+    # self.patient_fhir_v3 = 'patient-123-v3'
+    # self.user = self._create_user('patient_user', 'password123', fhir_id_v3=self.patient_fhir_v3)
+    user = basic_user(username='patient_user', fhir_id_v3='patient-123-v3')
+    mock_create_user.return_value = user
+
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[123]/fhir/ExplanationOfBenefit[/]?$']])
+    application = create_application(
+        name='Test App',
+        jwks_uri='http://localhost:8000/.well-known/jwks.json',
+        capability=eob_capability,
+        allowed_auth_type=AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+    )
+
+    mock_get_and_update.return_value = None
+
+    # Create fake JWT for first validation step
+    internal_id_token = jwt.encode(
+        {
+            'iss': IDME_LOWER_ISS,
+            'sub': '123',
+            'aud': 'https://fake.bluebutton.cms.gov',
+            'jti': 'jti-1',
+            'exp': 9999999999,
+            'iat': 1775317326,
+        },
+        'secret',
+        algorithm='HS256',
+    )
+    mock_validate_auth.return_value = internal_id_token
+
+    # min necessary fields (apart from address.)
+    mock_validate_ial.return_value = {
+        'iss': IDME_LOWER_ISS,
+        'sub': '123',
+        'aud': ['urn:oid:12345'],
+        'jti': 'jti-2',
+        'exp': 9999999999,
+        'iat': 1775317326,
+        'uuid': uuid.uuid4,
+        'auth_time': 9999999999,
+        'at_hash': '12345689',
+        'verified_claims': {
+            'verification': {'trust_framework': 'nist_800_63a', 'assurance_level': 'ial2'},
+            'family_name': 'Smith',
+            'given_name': 'John',
+            'name_historical': {
+                'family_name': 'Smith',
+                'given_name': 'John',
+            },
+            'birthdate': '1970-01-01',
+            'gender': 'Male',
+            'phone_number': '15124592223',
+            'phone_number_historical': ['15124592223', '15124592224'],
+            'ssn_itin': 123456789,
+            'ssn_itin_last_4': '6789',
+        },
+        'address': {
+            'formatted': '123 Any Rd., Indianapolis, IN, 46250',
+            'street_address': '123 Any Rd.',
+            'locality': 'Indianapolis',
+            'region': 'IN',
+            'postal_code': '46250',
+            'country': 'USA',
+        },
+    }
+
+    # Mock patient match result
+    # is_patient_match_found expects at least 2 entries in successful match
+    mock_get_patient.return_value = {
+        'type': 'searchset',
+        'entry': [
+            {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
+            {
+                'resource': {
+                    'resourceType': 'Patient',
+                    'id': 'patient-123-v3',
+                    'identifier': [
+                        {
+                            'system': CC_SYSTEM_MEDICARE_NUMBER,
+                            'value': '1SA0A00AA00',
+                        }
+                    ],
+                }
+            },
+        ],
+    }
+
+    assertion = jwt.encode({'iss': application.client_id}, 'secret', algorithm='HS256')
+
+    token_request_data = {
+        'grant_type': CLIENT_CREDENTIALS,
+        'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+        'client_assertion': assertion,
+        'scope': 'patient/ExplanationOfBenefit.rs openid',
+    }
+
+    response = Client().post(
+        f'/v{Versions.V3}/o/token/',
+        data=urlencode(token_request_data),
+        content_type='application/x-www-form-urlencoded',
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+
+    assert 'patient' in data
+    assert data['patient'] == 'patient-123-v3'
+    assert 'access_token' in data
+    assert 'refresh_token' in data
