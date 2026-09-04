@@ -107,7 +107,7 @@ class SearchViewPatient(SearchView):
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
     required_scopes = ['patient/Coverage.read', 'patient/Coverage.rs', 'patient/Coverage.s']
-    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA, 'beneficiary': str}
+    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA, 'beneficiary': str, 'class-value': str}
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -151,7 +151,6 @@ class SearchViewExplanationOfBenefit(SearchView):
 
     # Regex to match a valid service-date value that can begin with lt, le, gt and ge operators
     REGEX_SERVICE_DATE_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
-
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {
         **SearchView.QUERY_SCHEMA,
@@ -161,7 +160,9 @@ class SearchViewExplanationOfBenefit(SearchView):
         '_tag': list[str],
         '_source': list[str],
         '_security:not': str,
+        '_security': str,
         '_offset': Coerce(int),
+        'outcome': str,
     }
 
     def __init__(self, version=1):

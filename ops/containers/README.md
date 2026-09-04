@@ -153,6 +153,64 @@ We have access to `/tmp` locally and in production. That space is used for writi
 
 ## testing
 
+Ensure you have your launch.json updated to the following:
+
+```bash
+	{
+	    // Use IntelliSense to learn about possible attributes.
+	    // Hover to view descriptions of existing attributes.
+	    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	    "version": "0.2.0",
+	    "configurations": [
+	        {
+	            "name": "API",
+	            "type": "debugpy",
+	            "request": "attach",
+	            "connect": {
+	                "host": "0.0.0.0",
+	                "port": 5678
+	            },
+	            "pathMappings": [
+	                {
+	                    "localRoot": "${workspaceFolder}",
+	                    "remoteRoot": "."
+	                }
+	            ]
+	        },
+	        {
+	            "name": "Unit Test",
+	            "type": "debugpy",
+	            "request": "attach",
+	            "connect": {
+	                "host": "0.0.0.0",
+	                "port": 6789
+	            },
+	            "pathMappings": [
+	                {
+	                    "localRoot": "${workspaceFolder}",
+	                    "remoteRoot": "."
+	                }
+	            ]
+	        },
+			{
+	            "name": "Selenium Test",
+	            "type": "debugpy",
+	            "request": "attach",
+	            "connect": {
+	                "host": "0.0.0.0",
+	                "port": 7890
+	            },
+	            "pathMappings": [
+	                {
+	                    "localRoot": "${workspaceFolder}",
+	                    "remoteRoot": "."
+	                }
+	            ]
+	        }
+	    ]
+	}
+```
+
 ### unit testing
 
 Unit testing needs to be ran outside of the container, otherwise you run into issues with port mappings.
@@ -173,11 +231,11 @@ Setup your local venv (or whatever flavor of local python environment) and insta
 
 #### debugging - unit
 
-Make sure you have your launch.json updated - details can be found in `docker-compose.readme.md`. To debug, modify the command above from step 3 to be:
+Make sure you have your launch.json updated like above. To debug, modify the command above from step 3 to be:
 
 `python -m debugpy --listen 0.0.0.0:6789 --wait-for-client -m pytest -m 'not integration'`
 
-After running this in the terminal, navigate to `Run and Debug` extension and run the `Unit Test` play button. You can set breakpoints accordingly in different tests to test functionality and stop at different moments.
+After running this in the terminal, navigate to the `Run and Debug` extension of VS Code and run the `Unit Test` play button. You can set breakpoints accordingly in different tests to test functionality and stop at different moments.
 
 #### specific tests - unit
 
@@ -194,7 +252,7 @@ You'll need to exec into your running instance of bb-api to do this
 1. Exec into bb-api
 2. Run `pytest -m 'integration'` or `make integration-test`
 
-If you want to run the CAN integration test, you will need to make sure that you run `make run-local CAN_INTEGRATION_TEST=1` when starting the container. This will run a selenium container since that is required in order to run the CAN integration test. You can then exec into bb-api and run `pytest apps/fhir/bluebutton/tests/test_CAN_integration.py` to run that specific test on its own or `make integration-test` to run all the integration tests.
+If you want to run the CAN integration test, you will need to make sure that you run `make run-local CAN_INTEGRATION_TEST=true` when starting the container. This will run a selenium container since that is required in order to run the CAN integration test. You can then exec into bb-api and run `pytest apps/fhir/bluebutton/tests/test_CAN_integration.py` to run that specific test on its own or `make integration-test` to run all the integration tests.
 
 #### debugging - integration
 
