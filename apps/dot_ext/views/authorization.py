@@ -1246,6 +1246,7 @@ class TokenView(DotTokenView):
                         log_dict = {
                             'type': 'request_response_middleware',
                             'app_name': app.name,
+                            'csp': None,
                             'patient': None,
                             'path': request.path,
                             'patient_match_found': False,
@@ -1258,6 +1259,7 @@ class TokenView(DotTokenView):
 
                             log_dict['patient_match_found'] = True
                             log_dict['patient'] = fhir_id
+                            log_dict['csp'] = pre_verified_ial.get('iss', None)
                             log.info(json.dumps(log_dict))
                             create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
