@@ -582,7 +582,7 @@ class SeleniumGenericTests:
                 else:
                     raise ValueError('Invalid test case, expect dict with action...')
 
-    def _get_login_mslsx_sequence(self, username: str, hicn: str, mbi: str) -> list[dict[str, any]]:
+    def _get_login_mslsx_sequence(self, username: str, hicn: str, mbi: str, **kwargs) -> list[dict[str, any]]:
         """
         Generates a dynamic login sequence with configurable credentials.
 
@@ -590,6 +590,7 @@ class SeleniumGenericTests:
             username (str): The username to use for login.
             hicn (str): The HICN to use for login.
             mbi (str): The MBI to use for login.
+            **kwargs: Arbitrary keyword arguments.
         Returns:
             list: A list of dictionaries representing the login sequence.
         """
@@ -616,13 +617,14 @@ class SeleniumGenericTests:
             },
         ]
 
-    def _get_login_slsx_sequence(self, username: str, password: str) -> list[dict[str, any]]:
+    def _get_login_slsx_sequence(self, username: str, password: str, **kwargs) -> list[dict[str, any]]:
         """
         Generates a dynamic login sequence with configurable credentials for SLSX.
 
         Args:
             username (str): The username to use for login.
             password (str): The password to use for login.
+            **kwargs: Arbitrary keyword arguments.
         Returns:
             list: A list of dictionaries representing the login sequence.
         """
