@@ -135,3 +135,18 @@ class TestBlueButtonAPI(SeleniumGenericTests):
         self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    @screenshot_on_exception
+    def test_switch_account_v3(self):
+        """
+        Test switching accounts through the login flow, using v3 URLs, and ensuring
+        the new account can reach the test client home page. Login with BBUser09003,
+        then switch to BBUser00000 and ensure the test client home page is reached.
+        """
+        step = [0]
+        test_name = 'switch_account_v3'
+        api_ver = Versions.V3
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
