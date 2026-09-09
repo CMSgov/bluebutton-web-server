@@ -44,6 +44,39 @@ matchesAny(attributes["path"], [
 '''
 
 filter = '''
+let isSyntheticBeneficiaryPassword = matchesAny(finding["secret"], [
+  `^PW(0|1)\d{4}!$`,
+]);
+
+let isInTestFile = matchesAny(attributes["path"], [
+  `/tests/`,
+  `/test_`,
+  `test\.py$`,
+  `/integration_tests/`,
+]);
+
+let isCommonlyUsedTestPassword = containsAny(finding["secret"], [
+  "foobar",
+  "123456",
+  "toor",
+  "blue123",
+  "dummy",
+  "xxx123",
+  "bedrocks",
+  "password",
+  "id_password",
+  "top_secret",
+  "2ndChange#Pass",
+]);
+
+let isInExampleFile = matchesAny(attributes["path"], [
+  `\.seed$`,
+]);
+
+let isCommonlyUsedPlaceholder = containsAny(finding["secret"], [
+  "CHANGE_ME",
+]);
+
 (matchesAny(finding["secret"], [
   `(?i)^true|false|null$`,
   `^(?i:a+|b+|c+|d+|e+|f+|g+|h+|i+|j+|k+|l+|m+|n+|o+|p+|q+|r+|s+|t+|u+|v+|w+|x+|y+|z+|\*+|\.+)$`,
@@ -62,6 +95,9 @@ filter = '''
   "abcdefghijklmnopqrstuvwxyz",
   "014df517-39d1-4453-b7b3-9930c563627c"
 ]))
+|| isSyntheticBeneficiaryPassword
+|| isCommonlyUsedTestPassword
+|| (isInExampleFile && isCommonlyUsedPlaceholder)
 
 '''
 
