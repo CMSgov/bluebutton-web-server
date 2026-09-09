@@ -61,7 +61,7 @@ class MockUrlSLSxResponses:
         return {
             'status_code': status.HTTP_200_OK,
             'content': {
-                'auth_token': 'tqXFB/j2OR9Fx7aDowGasMZGqoWmwcihNzMdaW2gpEmV',
+                'auth_token': 'tqXFB/j2OR9Fx7aDowGasMZGqoWmwcihNzMdaW2gpEmV',  # betterleaks:allow
                 'role': 'consumer',
                 'user_id': '00112233-4455-6677-8899-aabbccddeeff',
                 'session_id': '47dc2799838c4a3cb0ad55c688f6de07',
