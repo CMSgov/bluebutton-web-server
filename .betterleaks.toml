@@ -11013,3 +11013,20 @@ filter = '''
 entropy(finding["secret"]) < 3.3
 '''
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# aws-account-id
+# ──────────────────────────────────────────────────────────────────────────────
+[[rules]]
+id = "aws-account-id"
+description = "AWS account ID"
+regex = '''\b[0-9]{12}\b'''
+confidence = "low"
+filter = '''
+containsAny(finding["secret"], [
+  "999999999999",
+  "593207742271", // an account ID for AWS guardduty
+]) || matchesAny(attributes["path"], [
+  `synthetic-data/.*\.rif$`,
+])
+'''
