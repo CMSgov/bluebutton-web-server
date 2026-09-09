@@ -4,7 +4,7 @@ locals {
 }
 
 module "synthetics" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_synthetics?ref=f3f30320cae5e1564790e0e4dd774b451f2b615e"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_synthetics?ref=6060c64a243664d8d37e2ee52fcbd37fb2ed3168"
 
   app = local.app
   env = local.env
