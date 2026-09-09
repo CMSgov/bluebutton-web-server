@@ -1,17 +1,9 @@
-# This file has been auto-generated. Do not edit manually.
-# If you would like to contribute new rules, please use
-# cmd/generate/config/main.go and follow the contributing guidelines
-# at https://github.com/betterleaks/betterleaks/blob/main/.github/CONTRIBUTING.md
-#
-# How the hell does secret scanning work? Read this:
-#   https://lookingatcomputer.substack.com/p/regex-is-almost-all-you-need
-#
-# This is the default betterleaks configuration file.
-# Rules and filters are defined within this file.
-# Rules instruct betterleaks on what should be considered a secret.
-# Filters instruct betterleaks on what to skip (prefilter) or discard (filter).
+# The default betterleaks.toml, with some modifications.
+# We maintain our own version as recommended in the betterleaks docs.
+# Compare to current version to get upstream changes:
+# https://raw.githubusercontent.com/betterleaks/betterleaks/refs/heads/main/config/betterleaks.toml
 
-title = "betterleaks config"
+title = "Blue Button betterleaks config"
 
 # minVersion indicates the minimum gitleaks config format version required.
 # betterleaksMinVersion indicates the minimum betterleaks version required.
