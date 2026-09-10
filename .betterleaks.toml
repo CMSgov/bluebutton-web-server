@@ -38,7 +38,11 @@ matchesAny(attributes["path"], [
   `\.gem$`,
   `verification-metadata\.xml`,
   `Database.refactorlog`,
-  `(?:^|/)\.git$`
+  `(?:^|/)\.git$`,
+  `/__pycache__/`,
+  `/dist/`,
+  `/.*-dist/`,
+  `/.terraform.lock.hcl$`,
 ])
 
 '''
