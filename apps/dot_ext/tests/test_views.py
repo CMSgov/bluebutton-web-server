@@ -458,7 +458,7 @@ class TestTokenView(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
             'state': '0123456789abcdef',
-            'code_challenge': 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+            'code_challenge': 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',  # betterleaks:allow
             'code_challenge_method': 'S256',
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
@@ -481,7 +481,7 @@ class TestTokenView(BaseApiTest):
                 'redirect_uri': application.redirect_uris,
                 'client_id': application.client_id,
                 'client_secret': application.client_secret_plain,
-                'code_verifier': 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',
+                'code_verifier': 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',  # betterleaks:allow
             }
 
             response = self.client.post('/v1/o/token/', data=token_request_data)

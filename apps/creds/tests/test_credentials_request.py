@@ -112,7 +112,7 @@ class CredentialsTestCase(BaseApiTest):
         """
         Tests when a credentialing request is not found and should throw the correct exception
         """
-        creds_req_id = '7e909cd4-e9e7-47a3-bb6e-6837a23038c3'
+        creds_req_id = '7e909cd4-e9e7-47a3-bb6e-6837a23038c3'  # betterleaks:allow
         url = reverse('credentials_request', kwargs={'prod_cred_req_id': creds_req_id})
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 404)
