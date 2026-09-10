@@ -11209,3 +11209,23 @@ matchesAny(finding["secret"], [
   `^1E04-?TE5-?MK74$`,
 ])
 '''
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Unencrypted sensitive sops values
+# ──────────────────────────────────────────────────────────────────────────────
+[[rules]]
+id = "sops-sensitive-unencrypted"
+description = "SOPS values that are marked as sensitive but not encrypted."
+regex = '''(?i).*/sensitive/.*: (.*)'''
+filter = '''
+let isInSOPSFile = matchesAny(attributes["path"], [
+  `\.sopsw\.yaml$`,
+]);
+
+let isEncrypted = matchesAny(finding["secret"], [
+  `ENC\[.*\]`,
+]);
+
+!isInSOPSFile
+|| isEncrypted
+'''
