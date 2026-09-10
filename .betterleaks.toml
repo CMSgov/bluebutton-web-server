@@ -11022,7 +11022,6 @@ filter = '''
 entropy(finding["secret"]) < 3.3
 '''
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # aws-account-id
 # ──────────────────────────────────────────────────────────────────────────────
@@ -11034,7 +11033,9 @@ confidence = "low"
 filter = '''
 containsAny(finding["secret"], [
   "999999999999",
+  "123456789012",
   "593207742271", // an account ID for AWS guardduty
+  "464622532012", // a Datadog account ID
 ]) || matchesAny(attributes["path"], [
   `synthetic-data/.*\.rif$`,
 ])
