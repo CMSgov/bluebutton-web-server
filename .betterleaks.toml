@@ -914,7 +914,7 @@ entropy(finding["secret"]) <= 3.0
 || matchesAny(finding["secret"], [`.+EXAMPLE$`])
 '''
 components = [
-    { id = "aws-secret-access-key", within = "5L" },
+    { id = "aws-secret-access-key", optional = true, within = "5L" },
 ]
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -949,7 +949,7 @@ entropy(finding["secret"]) <= 3.0
 [[rules]]
 id = "aws-secret-access-key"
 description = "Identified an AWS secret access key, used as a component of the aws-access-token composite rule."
-regex = '''(?i:(?:secret|access|key|token)(?:[ \t\w.-]{0,20})[\s'"]{0,3})(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([A-Za-z0-9/+=]{40})(?:\\?['"\x60]|[\s;]|\\[nr]|$)'''
+regex = '''(?i:(?:secret|access|key|token)?(?:[ \t\w.-]{0,20})[\s'"]{0,3})(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([A-Za-z0-9/+=]{40})(?:\\?['"\x60]|[\s;]|\\[nr]|$)'''
 confidence = "medium"
 keywords = [
     "secret",
@@ -957,9 +957,9 @@ keywords = [
     "key",
     "token",
 ]
-skipReport = true
+skipReport = false
 filter = '''
-entropy(finding["secret"]) <= 4.0
+entropy(finding["secret"]) <= 4.0 || failsTokenEfficiency(finding["secret"])
 '''
 
 # ──────────────────────────────────────────────────────────────────────────────
