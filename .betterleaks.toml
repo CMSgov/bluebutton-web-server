@@ -11040,3 +11040,172 @@ containsAny(finding["secret"], [
   `synthetic-data/.*\.rif$`,
 ])
 '''
+
+# ──────────────────────────────────────────────────────────────────────────────
+# dot-client-id
+# ──────────────────────────────────────────────────────────────────────────────
+[[rules]]
+id = "dot-client-id"
+description = "Client ID for Django OAuth Toolkit / Blue Button."
+regex = '''\b\w{40}\b'''
+confidence = "medium"
+filter = '''
+let hasUpperCase = matchesAny(finding["secret"], [
+  `[A-Z]`
+]);
+let hasLowerCase = matchesAny(finding["secret"], [
+  `[a-z]`,
+]);
+let isMixedCase = hasUpperCase && hasLowerCase;
+
+let isEncryptedValue = filter.matchesAny(finding["line"], [
+  // Serialized encryption envelopes and armored ciphertext.
+  `(?i)ENC\[[A-Z0-9][A-Z0-9_.+/-]*(?:,|\]|)`,
+  `(?i)ENC\([A-Z0-9+/=_:.,-]{8,}\)`,
+  `(?i)^\{cipher\}.{4,}$`,
+  `^\$ANSIBLE_VAULT(?:;|$)`,
+  `(?i)^!vault$`,
+  `^age-encryption\.org/v[0-9]+$`,
+  `^-----BEGIN (?:AGE ENCRYPTED FILE|PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----$`,
+  // OpenSSL salted output, HashiCorp Vault transit ciphertext, and Fernet.
+  `^U2FsdGVkX1[A-Za-z0-9+/=]{8,}$`,
+  `^vault:v[0-9]+:[A-Za-z0-9+/=_-]{8,}$`,
+  `^gAAAAA[A-Za-z0-9_-]{70,}={0,2}$`,
+  // Compact JWE and encrypted PASETO (local-purpose) tokens.
+  `^[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}$`,
+  `^v[124]\.local\.[A-Za-z0-9_-]{32,}(?:\.[A-Za-z0-9_-]+)?$`,
+  // Windows DPAPI blobs in Base64 or exported SecureString hex form.
+  `^AQAAANCMnd8BFdERjHoAwE/Cl\+sBA[A-Za-z0-9+/=]{16,}$`,
+  `(?i)^01000000d08c9ddf0115d1118c7a00c04fc297eb01[0-9a-f]{16,}$`,
+  // Hashes
+  `\bsha\d{3}-.*\b`,
+]);
+
+!isMixedCase
+|| isEncryptedValue
+|| entropy(finding["secret"]) <= 3.0
+|| failsTokenEfficiency(finding["secret"])
+|| containsAny(finding["secret"], [
+  "XQFC5iseB84YGOidlqy0L9blhauz0pIffPnMi0qJ", // hardcoded test value
+  "aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4y5Z0", // another test value
+])
+'''
+
+# ──────────────────────────────────────────────────────────────────────────────
+# dot-client-secret
+# ──────────────────────────────────────────────────────────────────────────────
+[[rules]]
+id = "dot-client-secret"
+description = "Client Secret for Django OAuth Toolkit / Blue Button."
+regex = '''\b\w{128}\b'''
+confidence = "medium"
+filter = '''
+let hasUpperCase = matchesAny(finding["secret"], [
+  `[A-Z]`
+]);
+let hasLowerCase = matchesAny(finding["secret"], [
+  `[a-z]`,
+]);
+let isMixedCase = hasUpperCase && hasLowerCase;
+
+let isEncryptedValue = filter.matchesAny(finding["line"], [
+  // Serialized encryption envelopes and armored ciphertext.
+  `(?i)ENC\[[A-Z0-9][A-Z0-9_.+/-]*(?:,|\]|)`,
+  `(?i)ENC\([A-Z0-9+/=_:.,-]{8,}\)`,
+  `(?i)^\{cipher\}.{4,}$`,
+  `^\$ANSIBLE_VAULT(?:;|$)`,
+  `(?i)^!vault$`,
+  `^age-encryption\.org/v[0-9]+$`,
+  `^-----BEGIN (?:AGE ENCRYPTED FILE|PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----$`,
+  // OpenSSL salted output, HashiCorp Vault transit ciphertext, and Fernet.
+  `^U2FsdGVkX1[A-Za-z0-9+/=]{8,}$`,
+  `^vault:v[0-9]+:[A-Za-z0-9+/=_-]{8,}$`,
+  `^gAAAAA[A-Za-z0-9_-]{70,}={0,2}$`,
+  // Compact JWE and encrypted PASETO (local-purpose) tokens.
+  `^[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}$`,
+  `^v[124]\.local\.[A-Za-z0-9_-]{32,}(?:\.[A-Za-z0-9_-]+)?$`,
+  // Windows DPAPI blobs in Base64 or exported SecureString hex form.
+  `^AQAAANCMnd8BFdERjHoAwE/Cl\+sBA[A-Za-z0-9+/=]{16,}$`,
+  `(?i)^01000000d08c9ddf0115d1118c7a00c04fc297eb01[0-9a-f]{16,}$`,
+  // Hashes
+  `\bsha\d{3}-.*\b`,
+]);
+
+!isMixedCase
+|| isEncryptedValue
+|| entropy(finding["secret"]) <= 3.0
+|| failsTokenEfficiency(finding["secret"])
+'''
+# ──────────────────────────────────────────────────────────────────────────────
+# dot-access-token
+# ──────────────────────────────────────────────────────────────────────────────
+[[rules]]
+id = "dot-access-token"
+description = "Access tokens created by Django OAuth Toolkit / Blue Button."
+regex = '''\b\w{30}\b'''
+confidence = "medium"
+filter = '''
+let hasUpperCase = matchesAny(finding["secret"], [
+  `[A-Z]`
+]);
+let hasLowerCase = matchesAny(finding["secret"], [
+  `[a-z]`,
+]);
+let isMixedCase = hasUpperCase && hasLowerCase;
+
+let isEncryptedValue = filter.matchesAny(finding["line"], [
+  // Serialized encryption envelopes and armored ciphertext.
+  `(?i)ENC\[[A-Z0-9][A-Z0-9_.+/-]*(?:,|\]|)`,
+  `(?i)ENC\([A-Z0-9+/=_:.,-]{8,}\)`,
+  `(?i)^\{cipher\}.{4,}$`,
+  `^\$ANSIBLE_VAULT(?:;|$)`,
+  `(?i)^!vault$`,
+  `^age-encryption\.org/v[0-9]+$`,
+  `^-----BEGIN (?:AGE ENCRYPTED FILE|PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----$`,
+  // OpenSSL salted output, HashiCorp Vault transit ciphertext, and Fernet.
+  `^U2FsdGVkX1[A-Za-z0-9+/=]{8,}$`,
+  `^vault:v[0-9]+:[A-Za-z0-9+/=_-]{8,}$`,
+  `^gAAAAA[A-Za-z0-9_-]{70,}={0,2}$`,
+  // Compact JWE and encrypted PASETO (local-purpose) tokens.
+  `^[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}$`,
+  `^v[124]\.local\.[A-Za-z0-9_-]{32,}(?:\.[A-Za-z0-9_-]+)?$`,
+  // Windows DPAPI blobs in Base64 or exported SecureString hex form.
+  `^AQAAANCMnd8BFdERjHoAwE/Cl\+sBA[A-Za-z0-9+/=]{16,}$`,
+  `(?i)^01000000d08c9ddf0115d1118c7a00c04fc297eb01[0-9a-f]{16,}$`,
+  // Hashes
+  `\bsha\d{3}-.*\b`,
+]);
+
+let isWithinEncodedImage = matchesAny(finding["line"], [
+  `data:image/png;base64,.*`,
+]);
+
+!isMixedCase
+|| isEncryptedValue
+|| isWithinEncodedImage
+|| entropy(finding["secret"]) <= 3.0
+|| failsTokenEfficiency(finding["secret"])
+'''
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MBI
+# https://www.cms.gov/training-education/partner-outreach-resources/new-medicare-card/medical-beneficiary-identifiers-mbis
+# ──────────────────────────────────────────────────────────────────────────────
+[[rules]]
+id = "mbi"
+description = "Medicare Beneficiary Identifier"
+regex = '''(?i)\b[1-9][ACDEFGHJKMNPQRTUVWXY][ACDEFGHJKMNPQRTUVWXY0-9][0-9]-?[ACDEFGHJKMNPQRTUVWXY][ACDEFGHJKMNPQRTUVWXY0-9][0-9]-?[ACDEFGHJKMNPQRTUVWXY]{2}[0-9]{2}\b'''
+confidence = "high"
+filter = '''
+// test MBIs
+matchesAny(finding["secret"], [
+  `^1EG4-?TE5-?MK04$`,
+  `^1EG4-?TE5-?MK70$`,
+  `^1EG4-?TE5-?MK73$`,
+  `^1EG4-?TE5-?MK74$`,
+  `^1EG4-?TE0-?MK74$`,
+  `^1EG4-?T05-?MK74$`,
+  `^1EG0-?TE5-?MK74$`,
+  `^1E04-?TE5-?MK74$`,
+])
+'''
