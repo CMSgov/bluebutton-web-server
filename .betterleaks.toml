@@ -59,18 +59,23 @@ let isInTestFile = matchesAny(attributes["path"], [
   `/integration_tests/`,
 ]);
 
-let isCommonlyUsedTestPassword = containsAny(finding["secret"], [
-  "foobar",
-  "123456",
-  "toor",
-  "blue123",
-  "dummy",
-  "xxx123",
-  "bedrocks",
-  "password",
-  "id_password",
-  "top_secret",
-  "2ndChange#Pass",
+let isCommonlyUsedTestPassword = matchesAny(finding["secret"], [
+  `^foobar$`,
+  `^foobarfoobarfoobar$`,
+  `^foobarbaz$`,
+  `^123456$`,
+  `^toor$`,
+  `^blue123$`,
+  `^dummy$`,
+  `^xxx123$`,
+  `^bedrocks$`,
+  `^BEDrocks@123$`,
+  `^password$`,
+  `^id_password$`,
+  `^top_secret$`,
+  `(?i)^IchangedTHEpassword[#@]123$`,
+  `^2ndChange#Pass$`,
+  `^flubbernubber$`,
 ]);
 
 let isInExampleFile = matchesAny(attributes["path"], [
