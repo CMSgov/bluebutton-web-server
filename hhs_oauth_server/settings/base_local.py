@@ -324,7 +324,6 @@ MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 static_folder = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, 'static'),
     ('bluebutton-css/dist', os.path.join(static_folder, 'bluebutton-css', 'dist')),
     # TODO don't need README.md
     ('bluebutton-css/fonts', os.path.join(static_folder, 'bluebutton-css', 'fonts')),
