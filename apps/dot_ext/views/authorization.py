@@ -1284,6 +1284,7 @@ class TokenView(DotTokenView):
                         log_dict = {
                             'type': 'request_response_middleware',
                             'app_name': app.name,
+                            'csp': pre_verified_ial.get('iss', None),
                             'patient': None,
                             'path': request.path,
                             'patient_match_found': False,
