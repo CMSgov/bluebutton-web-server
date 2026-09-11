@@ -321,8 +321,19 @@ ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', default='/code/hhs_oauth_server/..')
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
+static_folder = os.path.join(BASE_DIR, 'static')
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    ('bluebutton-css/dist', os.path.join(static_folder, 'bluebutton-css', 'dist')),
+    # TODO don't need README.md
+    ('bluebutton-css/fonts', os.path.join(static_folder, 'bluebutton-css', 'fonts')),
+    ('bluebutton-css/images', os.path.join(static_folder, 'bluebutton-css', 'images')),
+    ('img', os.path.join(static_folder, 'img')),
+    ('js', os.path.join(static_folder, 'js')),
+    ('font-awesome/css', os.path.join(static_folder, 'font-awesome', 'css')),
+    ('font-awesome/fonts', os.path.join(static_folder, 'font-awesome', 'fonts')),
+    ('swagger-ui-4.15.5-dist', os.path.join(static_folder, 'swagger-ui-4.15.5-dist')),
+    os.path.join(static_folder, 'api-docs'),
 ]
 
 # security
