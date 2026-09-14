@@ -172,3 +172,7 @@ msgstr "Cancelar"
 #: templates/design_system/new_authorize_v2.html:168
 msgid "Connect"
 msgstr "Conectar"
+
+#: templates/design_system/authorize_v3.html:149
+msgid "Not you? "
+msgstr "¿No es usted? "
