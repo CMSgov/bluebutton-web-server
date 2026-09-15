@@ -1371,6 +1371,10 @@ SEQ_AUTHORIZE_START_SPANISH = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH],
     },
+    {
+        'display': 'Check access denied error',
+        'action': Action.CHECK_ACCESS_DENIED_ERROR,
+    },
 ]
 
 SEQ_AUTHORIZE_RESTART = [
@@ -1427,6 +1431,10 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
         'display': 'Call authorize endpoint with lang param - start authorization',
         'action': Action.COPY_LINK_AND_LOAD_WITH_PARAM,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
+    },
+    {
+        'display': 'Check access denied error',
+        'action': Action.CHECK_ACCESS_DENIED_ERROR,
     },
 ]
 
