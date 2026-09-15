@@ -1,17 +1,17 @@
 from django.conf import settings
-from django.urls import path, re_path
 from django.contrib.auth.views import (
     LogoutView,
-    PasswordResetView,
-    PasswordResetDoneView,
-    PasswordResetConfirmView,
     PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
 )
+from django.urls import path, re_path
 from waffle.decorators import waffle_switch
-from apps.accounts.views.api_profile import my_profile
-from apps.accounts.views.core import create_account, account_settings, activation_verify
-from apps.accounts.views.login import LoginView, PasswordChangeView
 
+from apps.accounts.views.api_profile import my_profile
+from apps.accounts.views.core import account_settings, activation_verify, create_account
+from apps.accounts.views.login import LoginView, PasswordChangeView
 
 urlpatterns = [
     path('api/profile', my_profile, name='my_profile_v2'),
@@ -61,7 +61,9 @@ urlpatterns = [
     ),
     path(
         'password-reset-done',
-        waffle_switch('login')(PasswordResetDoneView.as_view(template_name='registration/password_forgot_reset_done.html')),
+        waffle_switch('login')(
+            PasswordResetDoneView.as_view(template_name='registration/password_forgot_reset_done.html')
+        ),
         name='password_reset_done_v2',
     ),
     re_path(

@@ -88,6 +88,10 @@
 #ENC[AES256_GCM,data:akyZQZ1Mb5M=,iv:K5KLDnAafZlFZt9XgGwsbrRpXpx3Dd9ATPikQw4esKU=,tag:cDuGvvXArfdO0xliP9gkug==,type:comment]
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 /bb/prod/app/sensitive/bcda_account_id: ENC[AES256_GCM,data:Y3OGR0m44tKiM3n8,iv:ECtCys8q7KjiAWwlW2a9dgrQFQRZGzZ11En3OUAsKHU=,tag:I18ZEN66og+nYPGzggwlxg==,type:int]
+/bb/prod/app/sensitive/bb_akamai_aca_token: ENC[AES256_GCM,data:2bDVvTxqcheCYgXGFWDhAA==,iv:5Qn4B3ygv4eyYIXNCAthMOcYgRIGTbN6AB6eRm8JThk=,tag:eqqaBLNZzboTVotXn2tPAw==,type:str]
+/bb/prod/app/sensitive/medicare_gov_synthetic_tests_akamai_token: ENC[AES256_GCM,data:30qWRul9kaSV8GBUCDPiGDUNBDc/6hiHRtRsOe2zvOjG/z5RejItVVHd5ZEsUpXzDIUYIsaaS+Ed5QzTONfuads5PHV/Fd3TOzlUM7BvR78XgzvTFkClRAV3ocA=,iv:IehfBNEBSBhODl3k2zGEjZ91StkEwf6VeAy8LtH1s0g=,tag:m+wzwOS1osD5l8x03dT9kA==,type:str]
+/bb/prod/app/sensitive/datadog_bbuser00000_access_token: ENC[AES256_GCM,data:ufO3irccSefbsY+J4qqMsKHbtwDkxzNER9/VaFEY,iv:gQEmShSaDqLytNjsO+PNPpxN+zb4hJ0Lss/Rs3Bc7dw=,tag:5864MpIMDz7KRA0ieKtrrg==,type:str]
+/bb/prod/app/sensitive/datadog_bbuser10000_access_token: ENC[AES256_GCM,data:ACQjyUqqtzrra50krmMzfRPsTbR/seAw3rv6EEwA,iv:mo5Na8VoZrbw+9sdYTew7oJokGyLFnHC8UpLMXYf8Vw=,tag:HVmOTYyB8dS6nD3U7NwI1Q==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-prod-app-key-alias

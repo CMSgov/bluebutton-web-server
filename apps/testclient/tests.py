@@ -1,5 +1,6 @@
 import json
-import os
+from http import HTTPStatus
+from typing import List
 
 import pytest
 from django.core.management import call_command
@@ -111,6 +112,14 @@ class TestResponseErrors(TestCase):
         self.assertIn('macaroniandcheese', j2['error'])
         self.assertEqual(j2['code'], 'MissingTokenError')
 
+        r3 = ResponseErrors.InvalidGrantError()
+        j3 = json.loads(r3.content)
+        assert j3['error'] == 'Authorization code replay or grant failure.'
+
+        r4 = ResponseErrors.Error('something went wrong')
+        j4 = json.loads(r4.content)
+        assert j4['error'] == 'something went wrong'
+
 
 class BlueButtonClientApiUserInfoTest(TestCase):
     """
@@ -134,7 +143,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
                 self.patient = DEFAULT_SAMPLE_FHIR_ID_V3
                 self.username = DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f'Failed to set up tests with a valid version number; given {version}')  # noqa: E702
+                raise VersionNotMatched(f'Failed to set up tests with a valid version number; given {version}')
 
         # TODO V3: This may need to be parameterized based on the version number.
         self.another_patient = '20140000000001'
@@ -185,7 +194,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             case Versions.V3:
                 self.patient = DEFAULT_SAMPLE_FHIR_ID_V3
             case _:
-                raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')  # noqa: E702
+                raise VersionNotMatched(f'Failed to set a patient id for version; given {version}')
 
         self.another_patient = '20140000000001'
 
@@ -324,34 +333,24 @@ class BlueButtonClientApiFhirTest(TestCase):
 
         response = self.client.get(uri)
         response_data = response.json()
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == HTTPStatus.OK
 
         # Different environments have different data in them.
         # If we are testing against sandbox, we expect fewer responses.
 
-        if os.getenv('LOCAL_TESTING_TARGET', None) in ['impl']:
-            self.assertEqual(len(response_data['entry']), 12)
-        else:
-            self.assertEqual(len(response_data['entry']), 5)
+        assert len(response_data['entry']) == 12
 
         previous_links = [data['url'] for data in response_data['link'] if data['relation'] == 'previous']
         next_links = [data['url'] for data in response_data['link'] if data['relation'] == 'next']
         first_links = [data['url'] for data in response_data['link'] if data['relation'] == 'first']
 
-        if os.getenv('LOCAL_TESTING_TARGET', None) in ['impl']:
-            self.assertEqual(len(previous_links), 1)  # noqa: E999
-            self.assertEqual(len(next_links), 1)
-            self.assertEqual(len(first_links), 1)
-            self.assertIn('startIndex=13', previous_links[0])
-            self.assertIn('startIndex=0', first_links[0])
-        else:
-            self.assertEqual(len(previous_links), 1)
-            self.assertEqual(len(next_links), 0)
-            self.assertEqual(len(first_links), 1)
-            self.assertIn('startIndex=13', previous_links[0])
-            self.assertIn('startIndex=0', first_links[0])
+        assert len(previous_links) == 1
+        assert len(next_links) == 1
+        assert len(first_links) == 1
+        assert 'startIndex=13' in previous_links[0]
+        assert 'startIndex=0' in first_links[0]
 
-        self.assertContains(response, 'ExplanationOfBenefit')
+        assert 'ExplanationOfBenefit' in response.content.decode()
 
     def _test_get_eob_negative(self, version=Versions.NOT_AN_API_VERSION):
         """
@@ -467,3 +466,61 @@ class BlueButtonClientApiOidcDiscoveryTest(TestCase):
         response = self.client.get(reverse('openid-configuration'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'userinfo_endpoint')
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'post_switch_account_link, expected_keys, expected_excluded_keys',
+    [
+        (
+            True,
+            [
+                'resource_uri',
+                'coverage_uri',
+                'authorization_uri',
+                'token_uri',
+                'userinfo_uri',
+                'patient_uri',
+                'eob_uri',
+                'coverage_uri',
+                'digital_insurance_card_uri',
+            ],
+            ['code_challenge_method', 'code_verifier', 'code_challenge', 'state', 'redirect_uri'],
+        ),
+        (
+            False,
+            [
+                'resource_uri',
+                'coverage_uri',
+                'authorization_uri',
+                'token_uri',
+                'userinfo_uri',
+                'patient_uri',
+                'eob_uri',
+                'coverage_uri',
+                'digital_insurance_card_uri',
+                'code_challenge_method',
+                'code_verifier',
+                'code_challenge',
+                'state',
+                'redirect_uri',
+            ],
+            [],
+        ),
+    ],
+)
+def test_setup_testclient_http_response_is_post_switch_account(
+    post_switch_account_link: bool,
+    expected_keys: List[str],
+    expected_excluded_keys: List[str],
+) -> None:
+    # TODO: replace with fixtures once 4964/4965 branch is merged
+    call_command('create_blue_button_scopes')
+    call_command('create_test_user_and_application')
+    result = setup_testclient_http_response(version=3, post_switch_account_link=post_switch_account_link)
+
+    for key in expected_excluded_keys:
+        assert key not in result.keys()
+
+    for key in expected_keys:
+        assert key in result.keys()

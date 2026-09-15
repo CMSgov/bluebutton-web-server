@@ -80,10 +80,10 @@ terraform {
   backend "s3" {
     # Dynamic backend configuration
     # OpenTofu 1.8+ allows using locals and variables here
-    bucket  = "bb-${local.bucket_env}-app-config"
-    key     = "ops/services/${local.service}/tofu.tfstate"
-    region  = var.region
-    encrypt = true
+    bucket       = "bb-${local.bucket_env}-app-config"
+    key          = "ops/services/${local.service}/tofu.tfstate"
+    region       = var.region
+    encrypt      = true
     use_lockfile = true
     # TODO: Enable after creating KMS key alias/bb-{env}-cmk in 00-bootstrap
     # kms_key_id = "alias/bb-${local.bucket_env}-cmk"

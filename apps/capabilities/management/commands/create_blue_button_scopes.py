@@ -2,15 +2,15 @@ import json
 import logging
 
 from django.contrib.auth.models import Group
-from django.urls import reverse
 from django.core.management.base import BaseCommand
+from django.urls import reverse
+from waffle import switch_is_active
+
 from apps.capabilities.constants import FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES
 from apps.capabilities.models import ProtectedCapability
-
 from apps.constants import HHS_SERVER_LOGNAME_FMT, LAUNCH_SCOPE, OPENID_SCOPE
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
-
 
 
 def create_group(name='BlueButton'):
@@ -26,18 +26,19 @@ def create_group(name='BlueButton'):
 def create_userinfo_capability(group, title='Profile information including name and email.'):
 
     c = None
-    description = 'OIDC userinfo endpoint %s' % (
-        reverse('openid_connect_userinfo'))
+    description = 'OIDC userinfo endpoint %s' % (reverse('openid_connect_userinfo'))
     scope_string = 'profile'
     pr = []
     pr.append(['GET', '/v[123]/connect/userinfo.*$'])
 
     if not ProtectedCapability.objects.filter(slug=scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
@@ -49,15 +50,19 @@ def create_openid_capability(group, title='Openid profile permissions.'):
     pr = []
 
     if not ProtectedCapability.objects.filter(slug=scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_patient_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='My general patient and demographic information.'):
+def create_patient_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='My general patient and demographic information.'
+):
 
     c = None
     description = 'Patient FHIR Resource'
@@ -66,15 +71,19 @@ def create_patient_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, titl
     pr.append(['GET', '%sPatient[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     pr.append(['GET', '%sPatient[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_patient_read_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read my general patient and demographic information.'):
+def create_patient_read_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read my general patient and demographic information.'
+):
 
     c = None
     description = 'Patient FHIR Resource'
@@ -83,17 +92,19 @@ def create_patient_read_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
     # Backward compatible with .read. In the future, we may limit this to Patient/id urls
     pr.append(['GET', '%sPatient[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_patient_search_capability(group,
-                                     FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
-                                     title='Search my general patient and demographic information.'):
+def create_patient_search_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Search my general patient and demographic information.'
+):
 
     c = None
     description = 'Patient FHIR Resource'
@@ -101,17 +112,21 @@ def create_patient_search_capability(group,
     pr = []
     pr.append(['GET', '%sPatient[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_patient_read_search_capability(group,
-                                          FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
-                                          title='Read and search my general patient and demographic information.'):
+def create_patient_read_search_capability(
+    group,
+    FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
+    title='Read and search my general patient and demographic information.',
+):
 
     c = None
     description = 'Patient FHIR Resource'
@@ -121,11 +136,13 @@ def create_patient_read_search_capability(group,
     pr.append(['GET', '%sPatient[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     pr.append(['GET', '%sPatient[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
@@ -137,15 +154,19 @@ def create_eob_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='M
     pr.append(['GET', '%sExplanationOfBenefit[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     pr.append(['GET', '%sExplanationOfBenefit[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_eob_read_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read my Medicare claim information.'):
+def create_eob_read_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read my Medicare claim information.'
+):
     c = None
     description = 'ExplanationOfBenefit FHIR Resource'
     smart_scope_string = 'patient/ExplanationOfBenefit.r'
@@ -153,30 +174,38 @@ def create_eob_read_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, tit
     # Backward compatible with .read. In the future, we may limit this to ExplanationOfBenefit/id urls
     pr.append(['GET', '%sExplanationOfBenefit[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_eob_search_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Search my Medicare claim information.'):
+def create_eob_search_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Search my Medicare claim information.'
+):
     c = None
     description = 'ExplanationOfBenefit FHIR Resource'
     smart_scope_string = 'patient/ExplanationOfBenefit.s'
     pr = []
     pr.append(['GET', '%sExplanationOfBenefit[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_eob_read_search_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read and search my Medicare claim information.'):
+def create_eob_read_search_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read and search my Medicare claim information.'
+):
 
     c = None
     description = 'ExplanationOfBenefit FHIR Resource'
@@ -186,15 +215,19 @@ def create_eob_read_search_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOP
     pr.append(['GET', '%sExplanationOfBenefit[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     pr.append(['GET', '%sExplanationOfBenefit[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_coverage_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='My Medicare and supplemental coverage information.'):
+def create_coverage_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='My Medicare and supplemental coverage information.'
+):
     c = None
     description = 'Coverage FHIR Resource'
     smart_scope_string = 'patient/Coverage.read'
@@ -202,17 +235,19 @@ def create_coverage_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, tit
     pr.append(['GET', '%sCoverage[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     pr.append(['GET', '%sCoverage[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_coverage_read_capability(group,
-                                    FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
-                                    title='Read my Medicare and supplemental coverage information.'):
+def create_coverage_read_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Read my Medicare and supplemental coverage information.'
+):
     c = None
     description = 'Coverage FHIR Resource'
     smart_scope_string = 'patient/Coverage.r'
@@ -220,17 +255,19 @@ def create_coverage_read_capability(group,
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
     pr.append(['GET', '%sCoverage[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_coverage_search_capability(group,
-                                      FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
-                                      title='Search my Medicare and supplemental coverage information.'):
+def create_coverage_search_capability(
+    group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title='Search my Medicare and supplemental coverage information.'
+):
     c = None
     description = 'Coverage FHIR Resource'
     smart_scope_string = 'patient/Coverage.s'
@@ -238,17 +275,21 @@ def create_coverage_search_capability(group,
     # Backward compatible with .read. In the future, we may limit this to Coverage/id urls
     pr.append(['GET', '%sCoverage[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
-def create_coverage_read_search_capability(group,
-                                           FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
-                                           title='Read and search my Medicare and supplemental coverage information.'):
+def create_coverage_read_search_capability(
+    group,
+    FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES,
+    title='Read and search my Medicare and supplemental coverage information.',
+):
     c = None
     description = 'Coverage FHIR Resource'
     smart_scope_string = 'patient/Coverage.rs'
@@ -257,11 +298,13 @@ def create_coverage_read_search_capability(group,
     pr.append(['GET', '%sCoverage[/?].*$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     pr.append(['GET', '%sCoverage[/]?$' % FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
@@ -273,50 +316,117 @@ def create_launch_capability(group, FHIR_PREFIX_CREATE_BLUE_BUTTON_SCOPES, title
     pr = []
 
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=smart_scope_string,
-                                               default=True,
-                                               protected_resources=json.dumps(pr, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=smart_scope_string,
+            default=True,
+            protected_resources=json.dumps(pr, indent=4),
+        )
     return c
 
 
 def create_token_management_capability(group):
 
     c = None
-    description = 'Allow an app to manage all of a user\'s tokens.'
+    description = "Allow an app to manage all of a user's tokens."
     slug = 'token_management'
     title = 'Token Management'
     protected_resources = []
-    protected_resources.append(['GET\', \'/some-url'])
+    protected_resources.append(["GET', '/some-url"])
 
     if not ProtectedCapability.objects.filter(slug=slug).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=slug,
-                                               default=False,
-                                               protected_resources=json.dumps(protected_resources, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=slug,
+            default=False,
+            protected_resources=json.dumps(protected_resources, indent=4),
+        )
     return c
 
 
 def create_token_introspect_capability(group):
 
     c = None
-    description = 'Allow an app to introspect a user\'s tokens.'
+    description = "Allow an app to introspect a user's tokens."
     slug = 'token_introspect'
     title = 'Token Introspect'
     protected_resources = []
-    protected_resources.append(['POST\', \'/v[123]/o/introspect'])
+    protected_resources.append(["POST', '/v[123]/o/introspect"])
 
     if not ProtectedCapability.objects.filter(slug=slug).exists():
-        c = ProtectedCapability.objects.create(group=group,
-                                               title=title,
-                                               description=description,
-                                               slug=slug,
-                                               default=False,
-                                               protected_resources=json.dumps(protected_resources, indent=4))
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            slug=slug,
+            default=False,
+            protected_resources=json.dumps(protected_resources, indent=4),
+        )
+    return c
+
+
+def create_audit_event_read_search_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to read and search audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Read/Search'
+    smart_scope_string = 'patient/AuditEvent.rs'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/?].*$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            default=False,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(protected_resources, indent=4),
+        )
+    return c
+
+
+def create_audit_event_read_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to read audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Read'
+    smart_scope_string = 'patient/AuditEvent.r'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/?].*$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            default=False,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(protected_resources, indent=4),
+        )
+    return c
+
+
+def create_audit_event_search_capability(group):
+    c = None
+    description = 'Allow CAN patients and 3rd party apps to search audit event data that shows what apps have had a successful patient match for network calls via the Blue Button API (CAN flow).'
+    title = 'Audit Event FHIR Resource Search'
+    smart_scope_string = 'patient/AuditEvent.s'
+    protected_resources = []
+    protected_resources.append(['GET', '/v[3]/fhir/AuditEvent[/]?$'])
+
+    if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
+        c = ProtectedCapability.objects.create(
+            group=group,
+            title=title,
+            description=description,
+            default=False,
+            slug=smart_scope_string,
+            protected_resources=json.dumps(protected_resources, indent=4),
+        )
     return c
 
 
@@ -342,3 +452,8 @@ class Command(BaseCommand):
         create_openid_capability(g)
         create_token_management_capability(g)
         create_token_introspect_capability(g)
+
+        if switch_is_active('enable_auditevents'):
+            create_audit_event_read_search_capability(g)
+            create_audit_event_read_capability(g)
+            create_audit_event_search_capability(g)

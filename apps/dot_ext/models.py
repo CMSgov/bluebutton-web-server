@@ -466,6 +466,7 @@ class AuthFlowUuid(models.Model):
     auth_pkce_method - PKCE method used
     auth_crosswalk_action - Action taken with regard to the crosswalk model (retreived/created)
     auth_share_demographic_scopes - Bene demographic sharing choice from consent page/form
+    auth_share_samhsa_data - SAMHSA choice from v3 consent page
     """
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
@@ -476,6 +477,7 @@ class AuthFlowUuid(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
     auth_share_demographic_scopes = models.BooleanField(null=True)
+    auth_share_samhsa_data = models.BooleanField(null=True)
 
     def __str__(self):
         return str(self.auth_uuid)
@@ -496,6 +498,7 @@ class AuthFlowUuidCopy(models.Model):
     auth_pkce_method - PKCE method used
     auth_crosswalk_action - Action taken with regard to the crosswalk model (retreived/created)
     auth_share_demographic_scopes - Bene demographic sharing choice from consent page/form
+    auth_share_samhsa_data - SAMHSA choice from v3 consent page
     """
 
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
@@ -506,6 +509,7 @@ class AuthFlowUuidCopy(models.Model):
     created = models.DateTimeField(null=True)
     auth_crosswalk_action = models.CharField(max_length=1, null=True)
     auth_share_demographic_scopes = models.BooleanField(null=True)
+    auth_share_samhsa_data = models.BooleanField(null=True)
 
     def __str__(self):
         return str(self.auth_uuid)
@@ -525,17 +529,6 @@ class AccessTokenExtension(models.Model):
 
     class Meta:
         db_table = 'oauth2_provider_accesstoken_extension'
-
-
-class AuthFlowTracking(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    code = models.CharField(max_length=255, null=True, unique=True, db_index=True)
-    include_samhsa = models.BooleanField(null=False, default=True)
-    created = models.DateTimeField(auto_now_add=True)
-    expires = models.DateTimeField()
-
-    class Meta:
-        db_table = 'dot_ext_auth_flow_tracking'
 
 
 def get_application_counts():

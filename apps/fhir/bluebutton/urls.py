@@ -1,15 +1,15 @@
-from django.urls import re_path
 from django.contrib import admin
+from django.urls import re_path
 
 from apps.fhir.bluebutton.views.read import (
-    ReadViewPatient,
     ReadViewCoverage,
     ReadViewExplanationOfBenefit,
+    ReadViewPatient,
 )
 from apps.fhir.bluebutton.views.search import (
-    SearchViewPatient,
     SearchViewCoverage,
     SearchViewExplanationOfBenefit,
+    SearchViewPatient,
 )
 
 admin.autodiscover()

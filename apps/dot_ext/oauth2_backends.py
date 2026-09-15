@@ -24,7 +24,8 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         # Get session values previously stored in AuthFlowUuid from AuthorizationView.form_valid() from code.
         body = dict(self.extract_body(request))
         clear_session_auth_flow_trace(request)
-        if body.get('grant_type') == 'authorization_code':
+
+        if body.get('grant_type') == 'authorization_code' or body.get('grant_type') == 'refresh_token':
             update_session_auth_flow_trace_from_code(request, body.get('code', None))
             set_session_auth_flow_trace_value(request, 'auth_grant_type', body.get('grant_type', None))
         if body.get('grant_type') == CLIENT_CREDENTIALS:

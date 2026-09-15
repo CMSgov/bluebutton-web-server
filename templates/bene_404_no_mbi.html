@@ -1,0 +1,10 @@
+{% extends "bene_404.html" %}
+
+<!--  OVERRIDE ONLY THE Error Text -->
+{% block error_text %}
+    <p class="Normal404Text"><b>ERROR: Your patient data cannot be found at this time.</b></p>
+    <p class="Normal404Text">
+      Please ensure you are logged in as a Medicare enrollee. If you are a Medicare enrollee wanting to get access to your claims data, 
+      you can contact Medicare directly at 1-800-MEDICARE (<a href="tel:18006334227">1-800-633-4227</a>), or <a href="https://www.medicare.gov/account/login">log in</a> to your Medicare account.
+    </p>
+{% endblock %}

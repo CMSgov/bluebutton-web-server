@@ -1,4 +1,5 @@
 from enum import Enum
+
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -62,7 +63,7 @@ class BBSLSxHealthCheckFailedException(APIException):
 
 class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
     # BB2-237 custom exception
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_404_NOT_FOUND
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):

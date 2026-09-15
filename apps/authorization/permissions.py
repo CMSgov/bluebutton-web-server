@@ -1,8 +1,8 @@
-from rest_framework import permissions, exceptions
-from apps.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
-from apps.versions import Versions, VersionNotMatched
+from rest_framework import exceptions, permissions
 
 from apps.authorization.models import DataAccessGrant
+from apps.constants import APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+from apps.versions import VersionNotMatched, Versions
 
 
 class DataAccessGrantPermission(permissions.BasePermission):
@@ -59,6 +59,13 @@ def is_resource_for_patient(obj, patient_id):
         elif obj['resourceType'] == 'Bundle':
             for entry in obj.get('entry', []):
                 is_resource_for_patient(entry['resource'], patient_id)
+        elif obj['resourceType'] == 'AuditEvent':
+            entity = obj.get('entity', [{}])
+            patient_info = entity[0].get('what', {})
+            reference = patient_info.get('reference', '')
+            reference_id = reference.split('/')[1]
+            if reference_id != patient_id:
+                raise exceptions.NotFound()
         else:
             raise exceptions.NotFound()
 

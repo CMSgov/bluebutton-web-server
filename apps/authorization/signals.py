@@ -1,9 +1,11 @@
-from apps.dot_ext.signals import beneficiary_authorized_application
-from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.db.models.signals import (
     post_delete,
 )
-from .models import DataAccessGrant, ArchivedDataAccessGrant
+from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+
+from apps.dot_ext.signals import beneficiary_authorized_application
+
+from .models import ArchivedDataAccessGrant, DataAccessGrant
 
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()

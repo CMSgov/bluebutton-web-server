@@ -273,6 +273,7 @@ class MyAuthFlowUuidAdmin(admin.ModelAdmin):
         'auth_pkce_method',
         'auth_crosswalk_action',
         'auth_share_demographic_scopes',
+        'auth_share_samhsa_data',
     )
     search_fields = ('auth_uuid', 'state', 'code')
 

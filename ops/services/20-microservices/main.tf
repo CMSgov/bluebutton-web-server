@@ -31,7 +31,7 @@ locals {
   cluster_name         = data.aws_ecs_cluster.main.cluster_name
   private_subnets      = module.platform.private_subnet_ids
   public_subnets       = module.platform.public_subnet_ids
-  region               = module.platform.primary_region.id
+  region               = module.platform.primary_region
   account_id           = module.platform.account_id
   vpc_id               = module.platform.vpc_id
   azs                  = [for s in values(module.platform.private_subnets) : s.availability_zone]
@@ -134,6 +134,11 @@ locals {
     "cf_app_pyapps_pwd",
     "slsx_verify_ssl_internal",
     "slsx_verify_ssl_external",
+    "bcda_account_id",
+    "bb_akamai_aca_token",
+    "medicare_gov_synthetic_tests_akamai_token",
+    "datadog_bbuser00000_access_token_global_variable_id",
+    "datadog_bbuser10000_access_token_global_variable_id",
     # Legacy EC2 BFD cert format — Fargate uses BFD_KEY_PEM_B64 / BFD_CERT_PEM_B64 instead
     "fhir_key_pem",
     "fhir_cert_pem",
@@ -206,7 +211,7 @@ locals {
 
     # Tags to add to spans and profiles
     # https://ddtrace.readthedocs.io/en/stable/configuration.html#DD_TAGS
-    # { name = "DD_TAGS", value = "" },
+    { name = "DD_TAGS", value = "application:${local.app}" },
   ]
 
   # SSM individual params → ECS environment format

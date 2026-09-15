@@ -5,7 +5,7 @@ module "platform" {
   app                 = local.app
   env                 = local.env
   service             = local.service
-  root_module = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
+  root_module         = "https://github.com/CMSgov/bluebutton-web-server/tree/main/ops/services/${basename(abspath(path.module))}"
   ssm_hierarchy_roots = ["bb"]
 }
 
@@ -22,8 +22,8 @@ data "aws_secretsmanager_secret_version" "datadog_cicd_application_key" {
 }
 
 locals {
-  env         = terraform.workspace
-  service     = "dashboards"
+  env     = terraform.workspace
+  service = "dashboards"
 
   default_tags = module.platform.default_tags
 
@@ -31,32 +31,36 @@ locals {
 }
 
 module "datadog_dashboard" {
-  source      = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=6ded520857376f46bb317dca898e5df6a9ecc93b"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_dashboard?ref=f3f30320cae5e1564790e0e4dd774b451f2b615e"
 
   app         = local.app
   runbook_url = "https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/services/RUNBOOK.md"
 
   enable_default_widgets = {
-    ecs    = true
-    lambda = false
-    alb    = true
-    sns    = false
-    sqs    = false
-    aurora = true
-    s3     = true
-    apm    = true
+    monitors = true
+    ecs      = true
+    lambda   = false
+    alb      = true
+    sns      = false
+    sqs      = false
+    aurora   = true
+    s3       = false
+    apm      = true
   }
 
   widget_live_spans = {
-    lambda = "2d"
-    s3     = "1w"
-    sqs    = "4h"
-    sns    = "4h"
-    ecs    = "1d"
-    alb    = "1d"
-    aurora = "4h"
-    apm    = "1h"
+    current = "15m"
+    lambda  = "2d"
+    s3      = "1w"
+    sqs     = "4h"
+    sns     = "4h"
+    ecs     = "1d"
+    alb     = "1d"
+    aurora  = "4h"
+    apm     = "1h"
   }
+
+  apm_primary_operation = "django.request"
 
   count = local.create_dashboards ? 1 : 0
 }

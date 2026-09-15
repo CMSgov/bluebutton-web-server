@@ -1,12 +1,12 @@
 import logging
+
 import requests
+from django.db import connection
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
-from apps.fhir.server.settings import fhir_settings
 from apps.fhir.bluebutton.utils import FhirServerAuth
+from apps.fhir.server.settings import fhir_settings
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
-
-from django.db import connection
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 

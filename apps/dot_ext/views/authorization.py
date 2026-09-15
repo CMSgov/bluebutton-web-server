@@ -9,12 +9,12 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
 import waffle
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
@@ -22,9 +22,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from fhir.resources.R4B.address import Address
@@ -64,8 +66,12 @@ from apps.authorization.models import (
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET,
+    AUDIT_EVENT_READ_SCOPE,
+    AUDIT_EVENT_SCOPE,
+    AUDIT_EVENT_SEARCH_SCOPE,
     CLIENT_CREDENTIALS,
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
+    CODE_CHALLENGE_METHOD_S256,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
     REFRESH_TOKEN,
@@ -74,6 +80,7 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
     CLIENT_ASSERTION_TYPE_VALUE,
@@ -84,8 +91,8 @@ from apps.dot_ext.constants import (
     ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
-    JWKS_URLS,
     PARAMETERS_ID_MATCH_META,
+    PATIENT_DATA_CANNOT_BE_FOUND,
     PATIENT_ID_MATCH_META,
     YYYY_MM_DD_REGEX,
 )
@@ -98,13 +105,18 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import AccessTokenExtension, Application, Approval, AuthFlowTracking
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
-    check_auth_tracking_and_create_access_token_extension,
+    build_jwks_urls,
+    check_can_token_scope_for_audit_event_scopes,
+    check_session_and_create_access_token_extension,
     get_api_version_number_from_url,
+    get_application_from_data,
+    get_application_from_meta,
+    get_oauth_param,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
@@ -131,6 +143,7 @@ from apps.versions import Versions
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ['client_secret']
+JWKS_URLS = build_jwks_urls()
 
 
 def get_grant_expiration(data_access_type):
@@ -262,6 +275,24 @@ class AuthorizationView(DotAuthorizationView):
         context['permission_end_date_text'] = self.application.access_end_date_text()
         context['permission_end_date'] = self.application.access_end_date()
 
+        params = [
+            'client_id',
+            'redirect_uri',
+            'response_type',
+            'scope',
+            'state',
+            'code_challenge',
+            'code_challenge_method',
+        ]
+        oauth_params = {}
+        for param in params:
+            oauth_params[param] = self.request.GET.get(param)
+        # If the oauth_params can't be extracted from the GET, use the POST
+        if not oauth_params.get('client_id'):
+            oauth_params = {}
+            oauth_params[param] = self.request.POST.get(param)
+
+        self.request.session['oauth_params'] = oauth_params
         if 'form' in context and self.version == Versions.V3:
             # By setting this to matching_scopes instead of application_scopes, we ensure that the scopes
             # for the access token are in the intersection of what the application is allowed to have and
@@ -298,7 +329,7 @@ class AuthorizationView(DotAuthorizationView):
 
         path_info = self.request.__dict__.get('path_info')
         version = get_api_version_number_from_url(path_info)
-        # If it is not version 3, we don't need to check anything, just continue
+        # Validate that the app is able to make v3 calls if it is a v3 call
         if version == Versions.V3:
             try:
                 self.validate_v3_authorization_request()
@@ -310,6 +341,23 @@ class AuthorizationView(DotAuthorizationView):
                     },
                     status=HTTPStatus.FORBIDDEN,
                 )
+
+        # Confirm there are no AuditEvent scopes in the request. Fail the request if there are
+        if (
+            AUDIT_EVENT_SCOPE in request.GET.get('scope', '')
+            or AUDIT_EVENT_SCOPE in request.POST.get('scope', '')
+            or AUDIT_EVENT_READ_SCOPE in request.GET.get('scope', '')
+            or AUDIT_EVENT_READ_SCOPE in request.POST.get('scope', '')
+            or AUDIT_EVENT_SEARCH_SCOPE in request.GET.get('scope', '')
+            or AUDIT_EVENT_SEARCH_SCOPE in request.POST.get('scope', '')
+        ):
+            message = AUDIT_EVENT_SCOPE_ERROR_MESSAGE
+            if not switch_is_active('enable_auditevents'):
+                message = 'Invalid scopes.'
+            return JsonResponse(
+                {'status_code': HTTPStatus.BAD_REQUEST, 'message': message},
+                status=HTTPStatus.BAD_REQUEST,
+            )
 
         if self.application.allowed_auth_type == CLIENT_CREDENTIALS_TYPE:
             error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
@@ -419,6 +467,16 @@ class AuthorizationView(DotAuthorizationView):
         share_demographic_scopes = form.cleaned_data.get('share_demographic_scopes')
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
+        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        user_approves_sharing_samhsa_data = True
+        share_samhsa_log_str = ''
+        if self.version == Versions.V3:
+            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            if application.part_d_eob_only:
+                user_approves_sharing_samhsa_data = True
+            share_samhsa_log_str = 'True' if user_approves_sharing_samhsa_data else 'False'
+        set_session_auth_flow_trace_value(self.request, 'auth_share_samhsa_data', share_samhsa_log_str)
+
         # Get scopes list available to the application
         application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
 
@@ -461,6 +519,7 @@ class AuthorizationView(DotAuthorizationView):
                 user=self.request.user,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
+                share_samhsa_data=share_samhsa_log_str,
                 scopes=scopes,
                 allow=allow,
                 access_token_delete_cnt=access_token_delete_cnt,
@@ -485,6 +544,7 @@ class AuthorizationView(DotAuthorizationView):
             user=self.request.user,
             application=application,
             share_demographic_scopes=share_demographic_scopes,
+            share_samhsa_data=share_samhsa_log_str,
             scopes=scopes,
             allow=allow,
             access_token_delete_cnt=access_token_delete_cnt,
@@ -498,22 +558,6 @@ class AuthorizationView(DotAuthorizationView):
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
-
-        # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
-        user_approves_sharing_samhsa_data = True
-        if self.version == Versions.V3:
-            user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
-            if application.part_d_eob_only:
-                user_approves_sharing_samhsa_data = True
-
-        # Create dot_ext_auth_flow_tracking record to retrieve include_samhsa value when creating an AccessTokenExtension
-        # in check_auth_tracking_and_create_access_token_extension of utils.py. This AuthFlowTracking will be deleted
-        # once the post of TokenView has completed successfully
-        AuthFlowTracking.objects.create(
-            code=code,
-            include_samhsa=user_approves_sharing_samhsa_data,
-            expires=datetime.now(timezone.utc) + timedelta(minutes=5),
-        )
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -1118,6 +1162,7 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
+
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
             # just continue with standard validation.
@@ -1136,6 +1181,10 @@ class TokenView(DotTokenView):
                     status=HTTPStatus.FORBIDDEN,
                 )
             elif grant_type == CLIENT_CREDENTIALS:
+                # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
+                # in logs for client_credentials calls. This enables us to track CAN metrics app by app
+                request.can_client_id = app.client_id
+
                 # Check for malformed request
                 request_validation_result = self._validate_client_credentials_request(request)
                 if request_validation_result:
@@ -1195,20 +1244,35 @@ class TokenView(DotTokenView):
                             method='POST',
                         )
                         patient_match_found, patient = is_patient_match_found(patient_bundle)
+
+                        log_dict = {
+                            'type': 'request_response_middleware',
+                            'app_name': app.name,
+                            'csp': pre_verified_ial.get('iss', None),
+                            'patient': None,
+                            'path': request.path,
+                            'patient_match_found': False,
+                        }
+
                         if patient_match_found and patient:
                             mbi = extract_mbi_from_patient(patient)
                             fhir_id = extract_fhir_id_from_patient(patient)
                             user = self._create_or_retrieve_user(mbi, fhir_id, request)
 
+                            log_dict['patient_match_found'] = True
+                            log_dict['patient'] = fhir_id
+                            log.info(json.dumps(log_dict))
                             create_or_update_data_access_grant_client_credential_flow(user, app)
                         else:
+                            log.info(json.dumps(log_dict))
                             log.debug(f'No patient match found for client_credentials call for app: {app.name}')
+                            # We return a 401 here because the token request wasn't authorized since we couldn't verify a single patient
                             return JsonResponse(
                                 {
-                                    'status_code': HTTPStatus.NOT_FOUND,
-                                    'message': f'Patient match NOT found for app {app.name}.',
+                                    'status_code': HTTPStatus.UNAUTHORIZED,
+                                    'message': PATIENT_DATA_CANNOT_BE_FOUND,
                                 },
-                                status=HTTPStatus.NOT_FOUND,
+                                status=HTTPStatus.UNAUTHORIZED,
                             )
                     except Exception as e:
                         log.error(f'Error validating jwt: {e}')
@@ -1233,7 +1297,6 @@ class TokenView(DotTokenView):
         )
 
         url, headers, body, status = self.create_token_response(request)
-
         # retrieve the access token, update user_id with the user.id sourced above
         if status == HTTPStatus.OK:
             body = json.loads(body)
@@ -1241,9 +1304,12 @@ class TokenView(DotTokenView):
             if access_token:
                 token = get_access_token_model().objects.get(token=access_token)
 
-                code = request.POST.get('code', None)
-                check_auth_tracking_and_create_access_token_extension(
-                    prior_include_samhsa, code, grant_type, token, prior_part_d_eob_only
+                check_session_and_create_access_token_extension(
+                    prior_include_samhsa,
+                    grant_type,
+                    token,
+                    prior_part_d_eob_only,
+                    request.session.get('auth_share_samhsa_data', True),
                 )
 
                 if grant_type == CLIENT_CREDENTIALS:
@@ -1255,6 +1321,13 @@ class TokenView(DotTokenView):
                     )
 
                     body['refresh_token'] = refresh_token.token
+
+                    # If the enable_auditevents switch is active, make sure the only AuditEvent scope
+                    # that the token has is patient/AuditEvent.rs
+                    if switch_is_active('enable_auditevents'):
+                        token.scope = check_can_token_scope_for_audit_event_scopes(token.scope)
+                        body['scope'] = token.scope
+
                     token.user_id = user.id
                     token.save()
 
@@ -1351,11 +1424,38 @@ class RevokeTokenView(DotRevokeTokenView):
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request, *args, **kwargs):
         try:
-            validate_app_is_active(request)
-        except InvalidClientError as error:
-            return json_response_from_oauth2_error(error)
+            meta_app = get_application_from_meta(request)
+        except InvalidClientError as e:
+            return json_response_from_oauth2_error(e)
 
-        return super().post(request, args, kwargs)
+        if meta_app is not None and not meta_app.active:
+            return JsonResponse(
+                {'status_code': HTTPStatus.FORBIDDEN, 'description': 'Application is not active or does not exist.'},
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        try:
+            data_app = get_application_from_data(request)
+        except (InvalidClientError, InvalidRequestError):
+            # If we couldn't find client from request, that suggests that the token was invalid, return 200
+            return HttpResponse(status=HTTPStatus.OK)
+
+        if data_app is not None and not data_app.active:
+            return JsonResponse(
+                {'status_code': HTTPStatus.FORBIDDEN, 'description': 'Application is not active or does not exist.'},
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        if meta_app and data_app and meta_app != data_app:
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.FORBIDDEN,
+                    'description': 'Application did not have access to the provided token.',
+                },
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        return super().post(request, *args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1404,4 +1504,49 @@ class IntrospectTokenView(DotIntrospectTokenView):
         except InvalidClientError as error:
             return json_response_from_oauth2_error(error)
 
-        return super(IntrospectTokenView, self).post(request, args, kwargs)
+        return super(IntrospectTokenView, self).post(request, *args, **kwargs)
+
+
+class PermissionScreenLogoutView(View):
+    def post(self, request, *args, **kwargs):
+        # Save version before logout clears the session
+        version = request.session.get('version', None)
+
+        # Save the original OAuth params before logout
+        oauth_params = {
+            'client_id': get_oauth_param(request, 'client_id', 'auth_client_id'),
+            'redirect_uri': get_oauth_param(request, 'redirect_uri'),
+            'response_type': get_oauth_param(request, 'response_type'),
+            'state': get_oauth_param(request, 'state'),
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+            'code_challenge': request.session.get('oauth_params', {}).get('code_challenge'),
+            'scope': request.session.get('oauth_params', {}).get('scope'),
+            'code_verifier': request.session.get('code_verifier'),
+        }
+
+        # Remove None values
+        oauth_params = {k: v for k, v in oauth_params.items() if v is not None}
+
+        # Clear token and log out
+        request.session.pop('token', None)
+        logout(request)
+
+        # this is to avoid a corrupted session warning - though I am still seeing that warning
+        request.session.cycle_key()
+
+        # Restore version after logout
+        if version is not None:
+            request.session['version'] = version
+
+            if 'testclient' in oauth_params.get('redirect_uri', ''):
+                # this is the key that the testclient looks for
+                request.session['api_ver'] = version
+                request.session['code_verifier'] = oauth_params.get('code_verifier')
+                request.session['client_id'] = oauth_params.get('client_id')
+
+        oauth_params.pop('code_verifier', None)
+        # Rebuild the authorize URL with original params
+        base_url = request.build_absolute_uri('/').rstrip('/')
+        authorize_url = f'{base_url}/v3/o/authorize?{urlencode(oauth_params)}'
+
+        return redirect(authorize_url)

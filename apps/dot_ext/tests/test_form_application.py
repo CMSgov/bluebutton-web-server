@@ -1,17 +1,17 @@
+from io import BytesIO
+
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import call_command
 from django.forms import ModelMultipleChoiceField
-
 from PIL import Image
-from io import BytesIO
 
-from apps.dot_ext.admin_overrides import ValidatedApplicationAdminForm
-from apps.test import BaseApiTest
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.forms import CustomRegisterApplicationForm, CreateNewApplicationForm
 from apps.dot_ext.admin import CustomAdminApplicationForm
+from apps.dot_ext.admin_overrides import ValidatedApplicationAdminForm
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
+from apps.dot_ext.forms import CreateNewApplicationForm, CustomRegisterApplicationForm
+from apps.test import BaseApiTest
 
 
 class TestRegisterApplicationForms(BaseApiTest):
@@ -137,7 +137,9 @@ class TestRegisterApplicationForms(BaseApiTest):
 
         # Testing valid logo_image with max dimensions
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new(
+            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)), color='red'
+        )
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
@@ -149,7 +151,9 @@ class TestRegisterApplicationForms(BaseApiTest):
 
         # Testing logo_image exceeding max width
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image = Image.new(
+            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)), color='red'
+        )
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
@@ -165,7 +169,9 @@ class TestRegisterApplicationForms(BaseApiTest):
 
         # Testing logo_image exceeding max height
         file = BytesIO()
-        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red')
+        image = Image.new(
+            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red'
+        )
         image.save(file, 'jpeg')
         file.seek(0)
         image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)

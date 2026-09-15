@@ -193,6 +193,7 @@ LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA = {
         'auth_app_name': {'pattern': 'TestApp'},
         'auth_app_data_access_type': {'pattern': 'THIRTEEN_MONTH'},
         'auth_share_demographic_scopes': {'pattern': '^True$'},
+        'auth_share_samhsa_data': {'pattern': '^True$'},
         'auth_require_demographic_scopes': {'pattern': '^True$'},
     },
     'required': [
@@ -1010,6 +1011,7 @@ EXPECTED_LOGGING_EVENTS = [
 HOSTNAME_URL = os.getenv('HOSTNAME_URL', 'http://localhost:8000')
 USE_NEW_PERM_SCREEN = os.getenv('USE_NEW_PERM_SCREEN')
 USE_LOGIN_WITH_MEDICARE_BUTTON = os.getenv('USE_LOGIN_WITH_MEDICARE_BUTTON', 'false')
+USE_MSLSX = os.getenv('USE_MSLSX', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
 SANDBOX_URL = 'https://sandbox.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = '{}/v1/accounts/activation-verify/{}'
@@ -1029,7 +1031,6 @@ class Action(Enum):
     VALIDATE_EMAIL_NOTIFICATION = 11
     CHECK_DATE_FORMAT = 12
     COPY_LINK_AND_LOAD_WITH_PARAM = 13
-    FIND_MSG_BY_CLASS = 14
 
 
 MESSAGE_NO_PERMISSION = 'You do not have permission to perform this action.'
@@ -1038,15 +1039,13 @@ TESTCASE_BANNER_FMT = '** {} TEST: {}, API: {}, STEP: {}, {}'
 UI Widget text: texts on e.g. buttons, links, labels etc.
 """
 
-# Synthetic beneficiary login info
-BENE_TXT_USERNAME = 'BBUser09003'
-BENE_TXT_PASSWORD_TEST = 'PW09003!'
-BENE_TXT_PASSWORD_PROD = 'PW09003!'
-BENE_TXT_PASSWORD = (
-    BENE_TXT_PASSWORD_PROD
-    if HOSTNAME_URL.startswith(PROD_URL) or HOSTNAME_URL.startswith(SANDBOX_URL)
-    else BENE_TXT_PASSWORD_TEST
-)
+# SLSX BBUser09003 Synthetic beneficiary login info
+BENE_TXT_BBUSER_09003_USERNAME = 'BBUser09003'
+BENE_TXT_BBUSER_09003_PASSWORD = 'PW09003!'
+
+# SLSX BBUser00000 Synthetic beneficiary login info
+BENE_TXT_BBUSER_00000_USERNAME = 'BBUser00000'
+BENE_TXT_BBUSER_00000_PASSWORD = 'PW00000!'
 
 LNK_TXT_SIGNUP = 'Signup'
 TAG_FOR_AUTHORIZE_LINK = 'pre'
@@ -1076,10 +1075,18 @@ FHIR_RESULT_BTN_COPY = 'bb-copy-button'
 MSLSX_TXT_FLD_USERNAME = 'username'
 MSLSX_TXT_FLD_HICN = 'hicn'
 MSLSX_TXT_FLD_MBI = 'mbi'
-MSLSX_TXT_FLD_USERNAME_VAL = '0854b54d-5d3c-4d73-ab45-aa6f052ed31a'  # synthetic ID, cleared with SLS
-MSLSX_TXT_FLD_HICN_VAL = '00000000000'
-MSLSX_TXT_FLD_MBI_VAL = '1S00EU8DG39'
 MSLSX_BTN_SUBMIT = 'button'
+
+# Synthetic ID, cleared with SLS. Used for all users using MSLSX login.
+MSLSX_TXT_FLD_USERNAME_VAL = '0854b54d-5d3c-4d73-ab45-aa6f052ed31a'
+
+# MSLSX hicn and mbi values for BBUser09003
+MSLSX_TXT_FLD_BBUSER_09003_HICN_VAL = '00000000000'
+MSLSX_TXT_FLD_BBUSER_09003_MBI_VAL = '1S00EU8DG39'
+
+# MSLSX hicn and mbi values for BBUser00000
+MSLSX_TXT_FLD_BBUSER_00000_HICN_VAL = '1000079035'
+MSLSX_TXT_FLD_BBUSER_00000_MBI_VAL = '1S00EU7JH19'
 
 # MSLSX login Fred
 MSLSX_TXT_FLD_FRED_USERNAME_VAL = 'rogersf'
@@ -1166,8 +1173,6 @@ APP_CSS_SELECTOR_DELETE_APP = '.cta-button:nth-child(2)'
 # SLSX login form
 SLSX_TXT_FLD_USERNAME = 'username'
 SLSX_TXT_FLD_PASSWORD = 'password'
-SLSX_TXT_FLD_USERNAME_VAL = BENE_TXT_USERNAME
-SLSX_TXT_FLD_PASSWORD_VAL = BENE_TXT_PASSWORD
 SLSX_CSS_BUTTON = 'login-button'
 SLSX_CSS_CONTINUE_BUTTON = "button[type='submit']"
 SLSX_CSS_LOGIN_BUTTON = (
@@ -1179,15 +1184,34 @@ BTN_ID_GRANT_DEMO_ACCESS = 'approve'
 BTN_ID_DENY_DEMO_ACCESS = 'deny'
 BTN_ID_RADIO_NOT_SHARE = 'radio_1' if USE_NEW_PERM_SCREEN == 'true' else 'label:nth-child(5)'
 
+# Select EOB Link on TestClient FHIR links page
+CLICK_EOB_LINK = {
+    'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
+    'action': Action.FIND_CLICK,
+    'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
+}
+
 # Supported Locale
 EN_US = 'en_us'
 ES_ES = 'es_es'
+
+# JSON response content on the FHIR resource page (e.g. Patient, Coverage, EOB)
+X_PATH_FOR_FHIR_JSON_RESPONSE = "//*[@id='fhir-json']"
 
 # v2 SMART APP scope constants
 X_PATH_FOR_USER_SCOPES = "//*[@id='main-content']/div/div/div/pre"
 
 # New login screen upon clicking Authorize as a Beneficiary button on TestClient home page
 X_PATH_FOR_MEDICARE_LOGIN = '//*[@id="App"]/div/div[5]/button/div/div[2]/h2'
+
+# Samhsa checkbox on v3 permissions screen
+X_PATH_FOR_SAMHSA_CHECKBOX = '//*[@type="checkbox"]'
+
+# Switch account x path for v3
+X_PATH_FOR_SWITCH_ACCOUNT = "//button[contains(text(), 'Switch account')]"
+
+# SAMHSA filter in url response
+SAMHSA_FILTER = '_security%3Anot=42CFRPart2'
 
 BROWSERBACK = {
     'display': 'Back to FHIR resource page',
@@ -1256,6 +1280,18 @@ CLICK_AGREE_ACCESS = {
     'params': [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS],
 }
 
+CLICK_SAMHSA_CHECKBOX = {
+    'display': "Click 'SAMHSA' checkbox to agree to share SAMHSA data",
+    'action': Action.FIND_CLICK,
+    'params': [20, By.XPATH, X_PATH_FOR_SAMHSA_CHECKBOX],
+}
+
+CLICK_SWITCH_ACCOUNT = {
+    'display': "Click 'Switch Account' on permissions screen",
+    'action': Action.FIND_CLICK,
+    'params': [20, By.XPATH, X_PATH_FOR_SWITCH_ACCOUNT],
+}
+
 CLICK_DENY_ACCESS = {
     'display': "Click 'Deny' on DEMO info grant form",
     'action': Action.FIND_CLICK,
@@ -1274,99 +1310,36 @@ CLICK_ENGLISH = {
     'params': [20, By.LINK_TEXT, LNK_TXT_ENGLISH],
 }
 
-CALL_LOGIN = {
-    'display': 'Start login ...',
+# Login sequence for synthetic beneficiary BBUser09003, used in both MSLSX and SLSX login
+CALL_LOGIN_BBUSER_09003 = {
+    'display': 'Start login for BBUser09003...',
     'action': Action.LOGIN,
+    'params': [
+        MSLSX_TXT_FLD_USERNAME_VAL,
+        MSLSX_TXT_FLD_BBUSER_09003_HICN_VAL,
+        MSLSX_TXT_FLD_BBUSER_09003_MBI_VAL,
+    ]
+    if USE_MSLSX == 'true'
+    else [BENE_TXT_BBUSER_09003_USERNAME, BENE_TXT_BBUSER_09003_PASSWORD],
+}
+
+# Login sequence for synthetic beneficiary BBUser00000, used in both MSLSX and SLSX login
+CALL_LOGIN_BBUSER_00000 = {
+    'display': 'Start login for BBUser00000...',
+    'action': Action.LOGIN,
+    'params': [
+        MSLSX_TXT_FLD_USERNAME_VAL,
+        MSLSX_TXT_FLD_BBUSER_00000_HICN_VAL,
+        MSLSX_TXT_FLD_BBUSER_00000_MBI_VAL,
+    ]
+    if USE_MSLSX == 'true'
+    else [BENE_TXT_BBUSER_00000_USERNAME, BENE_TXT_BBUSER_00000_PASSWORD],
 }
 
 # Navigate back to TestClient home page, different between prod and test/sbx/local
 TESTCLIENT_HOME = [
     WAIT_SECONDS,
     CLICK_TESTCLIENT_LINK if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
-    WAIT_SECONDS,
-]
-
-# MSLSX login using BBUser09003
-SEQ_LOGIN_MSLSX = [
-    {
-        'display': 'Input SUB(username)',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, MSLSX_TXT_FLD_USERNAME, MSLSX_TXT_FLD_USERNAME_VAL],
-    },
-    {
-        'display': 'Input hicn',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL],
-    },
-    {
-        'display': 'Input mbi',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL],
-    },
-    {
-        'display': "Click 'submit' on MSLSX login form",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.CSS_SELECTOR, MSLSX_BTN_SUBMIT],
-    },
-]
-
-# MSLSX login, but using the Fred super user (currently unused)
-SEQ_LOGIN_MSLSX_FRED = [
-    {
-        'display': 'Input SUB(username)',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, MSLSX_TXT_FLD_USERNAME, MSLSX_TXT_FLD_FRED_USERNAME_VAL],
-    },
-    {
-        'display': 'Input hicn',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_FRED_HICN_VAL],
-    },
-    {
-        'display': 'Input mbi',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_FRED_MBI_VAL],
-    },
-    {
-        'display': "Click 'submit' on MSLSX login form",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.CSS_SELECTOR, MSLSX_BTN_SUBMIT],
-    },
-]
-
-LOGIN_WITH_MEDICARE_BUTTON_SETUP = []
-if USE_LOGIN_WITH_MEDICARE_BUTTON == 'true':
-    LOGIN_WITH_MEDICARE_BUTTON_SETUP = [
-        {
-            'display': "Click 'Log in with Medicare.gov' button",
-            'action': Action.FIND_CLICK,
-            'params': [20, By.CSS_SELECTOR, "button[class*='ds-c-button--solid']"],
-        }
-    ]
-
-# SLSX login using BBUser09003
-SEQ_LOGIN_SLSX = LOGIN_WITH_MEDICARE_BUTTON_SETUP + [
-    {
-        'display': 'Medicare.gov login username',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL],
-    },
-    {
-        'display': "Click 'Continue' on SLSX login form",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.CSS_SELECTOR, SLSX_CSS_CONTINUE_BUTTON],
-    },
-    WAIT_SECONDS,
-    {
-        'display': 'Medicare.gov login password',
-        'action': Action.FIND_SEND_KEY,
-        'params': [20, By.NAME, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL],
-    },
-    {
-        'display': "Click 'Log In' on SLSX login form",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.XPATH, SLSX_CSS_LOGIN_BUTTON],
-    },
     WAIT_SECONDS,
 ]
 
@@ -1394,11 +1367,6 @@ SEQ_AUTHORIZE_START_SPANISH = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH],
     },
-    {
-        'display': 'Click on Medicare.gov option - continue authorization',
-        'action': Action.FIND_CLICK,
-        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
-    },
 ]
 
 SEQ_AUTHORIZE_RESTART = [
@@ -1423,11 +1391,6 @@ SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
-    {
-        'display': 'Click on Medicare.gov option - continue authorization',
-        'action': Action.FIND_CLICK,
-        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
-    },
 ]
 
 SEQ_AUTHORIZE_PKCE_START_V3 = [
@@ -1441,11 +1404,6 @@ SEQ_AUTHORIZE_PKCE_START_V3 = [
         'display': "Click link 'Authorize as a Beneficiary' - start authorization",
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
-    },
-    {
-        'display': 'Click on Medicare.gov option - continue authorization',
-        'action': Action.FIND_CLICK,
-        'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
     },
 ]
 
@@ -1488,11 +1446,7 @@ SEQ_QUERY_FHIR_RESOURCES_V2 = [
         'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST],
     },
     {'sequence': TESTCLIENT_HOME},
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit result page title',
         'action': Action.CHECK,
@@ -1569,11 +1523,7 @@ SEQ_QUERY_FHIR_RESOURCES_V3 = [
         'params': [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_TXT_COVERAGE],
     },
     {'sequence': TESTCLIENT_HOME},
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit result page title',
         'action': Action.CHECK,
@@ -1627,6 +1577,38 @@ SEQ_QUERY_FHIR_RESOURCES_V3 = [
     {'sequence': TESTCLIENT_HOME},
 ]
 
+SEQ_QUERY_EOB_SAMHSA_SHARING = [
+    CLICK_EOB_LINK,
+    {
+        'display': 'Check ExplanationOfBenefit does not filter out SAMHSA data',
+        'action': Action.CONTAIN_TEXT,
+        'params': [
+            20,
+            By.XPATH,
+            X_PATH_FOR_FHIR_JSON_RESPONSE,
+            SAMHSA_FILTER,
+            # Pass in false to indicate that the text should NOT exist in the response
+            False,
+        ],
+    },
+    {'sequence': TESTCLIENT_HOME},
+]
+
+SEQ_QUERY_EOB_SAMHSA_NOT_SHARING = [
+    CLICK_EOB_LINK,
+    {
+        'display': 'Check ExplanationOfBenefit filters out SAMHSA data',
+        'action': Action.CONTAIN_TEXT,
+        'params': [
+            20,
+            By.XPATH,
+            X_PATH_FOR_FHIR_JSON_RESPONSE,
+            SAMHSA_FILTER,
+        ],
+    },
+    {'sequence': TESTCLIENT_HOME},
+]
+
 SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
     {
         'display': "Click 'Patient' on FHIR resources page",
@@ -1655,11 +1637,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_NAV_LAST],
     },
     {'sequence': TESTCLIENT_HOME},
-    {
-        'display': "Click 'ExplanationOfBenefit' on FHIR resources page",
-        'action': Action.FIND_CLICK,
-        'params': [20, By.LINK_TEXT, FHIR_LNK_TXT_EOB],
-    },
+    CLICK_EOB_LINK,
     {
         'display': 'Check ExplanationOfBenefit result page title',
         'action': Action.CHECK,
@@ -1738,39 +1716,39 @@ SEQ_CHECK_SCOPES = [
 TESTS = {
     'auth_grant_fhir_calls_v2': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_AGREE_ACCESS,
         {'sequence': SEQ_QUERY_FHIR_RESOURCES_V2},
     ],
     'auth_grant_fhir_calls_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_AGREE_ACCESS,
         {'sequence': SEQ_QUERY_FHIR_RESOURCES_V3},
     ],
-    'auth_deny_fhir_calls': [
+    'auth_deny_fhir_calls_v2': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_DENY_ACCESS,
         CHECK_TESTCLIENT_START_PAGE,
     ],
-    'auth_grant_w_no_demo': [
+    'auth_grant_w_no_demo_v2': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_RADIO_NOT_SHARE,
         CLICK_AGREE_ACCESS,
         {'sequence': SEQ_QUERY_FHIR_RESOURCES_NO_DEMO},
     ],
     'auth_grant_w_no_demo_new_perm_screen': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN,
         CLICK_AGREE_ACCESS,
         {'sequence': SEQ_QUERY_FHIR_RESOURCES_NO_DEMO},
     ],
     'authorize_lang_english_button': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         WAIT_SECONDS,
         WAIT_SECONDS,
         # check the title
@@ -1796,12 +1774,42 @@ TESTS = {
     ],
     'authorize_get_v2_scopes': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         WAIT_SECONDS,
         WAIT_SECONDS,
         CLICK_AGREE_ACCESS,
         # Check the different scopes that have been returned
         {'sequence': SEQ_CHECK_SCOPES},
+    ],
+    'samhsa_box_checked_eob_response_v3': [
+        {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
+        CALL_LOGIN_BBUSER_09003,
+        CLICK_SAMHSA_CHECKBOX,
+        CLICK_AGREE_ACCESS,
+        # Check to ensure we DON'T filter out SAMHSA data by ensuring
+        # _security%3Anot=42CFRPart2 IS NOT part of the EOB url response.
+        {'sequence': SEQ_QUERY_EOB_SAMHSA_SHARING},
+    ],
+    'samhsa_box_not_checked_eob_response_v3': [
+        {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
+        CALL_LOGIN_BBUSER_09003,
+        CLICK_AGREE_ACCESS,
+        # Check to ensure we DO filter out SAMHSA data by ensuring
+        # _security%3Anot=42CFRPart2 IS part of the EOB url response.
+        # The checkbox is not selected by default, so we don't need to click it to uncheck it.
+        {'sequence': SEQ_QUERY_EOB_SAMHSA_NOT_SHARING},
+    ],
+    'switch_account_v3': [
+        {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
+        # Login as one user
+        CALL_LOGIN_BBUSER_09003,
+        CLICK_SWITCH_ACCOUNT,
+        # Login as a different user
+        CALL_LOGIN_BBUSER_00000,
+        CLICK_AGREE_ACCESS,
+        # Check to ensure we reached the test client home page by making an EOB Call
+        CLICK_EOB_LINK,
+        {'sequence': TESTCLIENT_HOME},
     ],
 }
 
@@ -1809,7 +1817,7 @@ SPANISH_TESTS = {
     'toggle_language': [
         # kick off default test client
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         # Wait to make sure we're logged in because login page also has Spanish link
         WAIT_SECONDS,
         WAIT_SECONDS,
@@ -1845,9 +1853,9 @@ SPANISH_TESTS = {
             'action': Action.CONTAIN_TEXT,
             'params': [20, By.ID, SLSX_CSS_BUTTON, SLSX_LOGIN_BUTTON_SPANISH],
         },
-        # note, for now CALL_LOGIN does not use locale based text to look up elements
+        # note, for now CALL_LOGIN_BBUSER_09003 does not use locale based text to look up elements
         # so it is lang agnostic
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         WAIT_SECONDS,
         WAIT_SECONDS,
         # check the title
@@ -1874,9 +1882,9 @@ SPANISH_TESTS = {
     ],
     'authorize_lang_spanish_button': [
         {'sequence': SEQ_AUTHORIZE_START_SPANISH},
-        # note, CALL_LOGIN does not use locale based text to look up elements
+        # note, CALL_LOGIN_BBUSER_09003 does not use locale based text to look up elements
         # so it is lang agnostic
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         WAIT_SECONDS,
         WAIT_SECONDS,
         # check the title
@@ -2177,11 +2185,11 @@ ACCT_TESTS = {
     # call authorize twice (1st call and 2nd call) - only 1st call emit email notification
     'first_api_call_email': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V1_V2},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_AGREE_ACCESS,
         VALIDATE_1ST_APP_CREATED_EMAIL,
         {'sequence': SEQ_AUTHORIZE_RESTART},
-        CALL_LOGIN,
+        CALL_LOGIN_BBUSER_09003,
         CLICK_AGREE_ACCESS,
         VALIDATE_1ST_APP_CREATED_EMAIL,
     ],

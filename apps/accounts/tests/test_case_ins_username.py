@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
 
-from ..models import UserProfile
+from apps.accounts.models import UserProfile
 from apps.constants import USER_TYPE_DEV
 
 

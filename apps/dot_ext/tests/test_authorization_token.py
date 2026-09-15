@@ -11,6 +11,7 @@ import jwt
 import pytest
 from django.core.cache import cache
 from django.http import HttpRequest
+from django.test.client import Client
 from freezegun import freeze_time
 from oauth2_provider.models import get_access_token_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidRequestError
@@ -18,8 +19,10 @@ from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import (
+    AUDIT_EVENT_SCOPE,
     CLIENT_CREDENTIALS,
     CODE_CHALLENGE_METHOD_S256,
+    EOB_SCOPE,
     REFRESH_TOKEN,
     TEST_APP_CLIENT_ID,
     TEST_APP_CLIENT_SECRET,
@@ -34,6 +37,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_TYPE,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
+    PATIENT_DATA_CANNOT_BE_FOUND,
 )
 from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.dot_ext.utils import (
@@ -46,6 +50,7 @@ from apps.test import BaseApiTest
 from apps.versions import Versions
 
 AccessToken = get_access_token_model()
+client = Client()
 
 # Note: HS256 is used in the JWTs here, despite it not being allowed by the actual endpoint, because we do not have a sample .pem
 
@@ -59,14 +64,9 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             jwks_uri='https://valid.jwks.json',
         )
 
-        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V1)
-        assert not result
-
-        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V2)
-        assert not result
-
-        result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
-        assert not result
+        for version in Versions.supported_versions():
+            result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, version)
+            assert not result
 
         mock_app.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
         result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
@@ -469,26 +469,8 @@ class TestTokenResponseFields(BaseApiTest):
             client_secret=TEST_APP_CLIENT_SECRET,
         )
         self.application.scope.add(capability_a)
-
-    @patch.dict(os.environ, {'TARGET_ENV': 'local'})
-    @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
-    @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
-    @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
-    @patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
-    @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
-    @override_switch('v3_endpoints', active=True)
-    def test_client_credentials_token_and_refresh(
-        self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth, mock_get_and_update
-    ):
-        """Verify that a client_credentials token response includes "patient" and "refresh_token", and that the refresh_token can be used to refresh the access token."""
-
-        # Mocking the matched user
-        mock_create_user.return_value = self.user
-
-        mock_get_and_update.return_value = None
-
         # Create fake JWT for first validation step
-        internal_id_token = jwt.encode(
+        self.mock_val_auth_jwt_response = jwt.encode(
             {
                 'iss': IDME_LOWER_ISS,
                 'sub': '123',
@@ -500,10 +482,7 @@ class TestTokenResponseFields(BaseApiTest):
             'secret',
             algorithm='HS256',
         )
-        mock_validate_auth.return_value = internal_id_token
-
-        # min necessary fields (apart from address.)
-        mock_validate_ial.return_value = {
+        self.mock_val_ial_jwt_response = {
             'iss': IDME_LOWER_ISS,
             'sub': '123',
             'jti': 'jti-2',
@@ -515,78 +494,159 @@ class TestTokenResponseFields(BaseApiTest):
             'gender': 'Male',
         }
 
-        # Mock patient match result
-        # is_patient_match_found expects at least 2 entries in successful match
-        mock_get_patient.return_value = {
-            'type': 'searchset',
-            'entry': [
-                {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
-                {
-                    'resource': {
-                        'resourceType': 'Patient',
-                        'id': self.patient_fhir_v3,
-                        'identifier': [
-                            {
-                                'system': CC_SYSTEM_MEDICARE_NUMBER,
-                                'value': self.test_mbi,
+    @patch.dict(os.environ, {'TARGET_ENV': 'local'})
+    @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
+    @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
+    @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
+    @patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
+    @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
+    @override_switch('v3_endpoints', active=True)
+    @override_switch('enable_auditevents', active=True)
+    def test_client_credentials_token_and_refresh(
+        self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth, mock_get_and_update
+    ):
+        """Verify that a client_credentials token response includes "patient" and "refresh_token", and that the refresh_token can be used to refresh the access token."""
+
+        with self.assertLogs('hhs_server.apps.dot_ext.views.authorization', level='INFO') as auth_logs:
+            with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
+                # Mocking the matched user
+                mock_create_user.return_value = self.user
+                mock_get_and_update.return_value = None
+                mock_validate_auth.return_value = self.mock_val_auth_jwt_response
+                mock_validate_ial.return_value = self.mock_val_ial_jwt_response
+
+                # Mock patient match result
+                # is_patient_match_found expects at least 2 entries in successful match
+                mock_get_patient.return_value = {
+                    'type': 'searchset',
+                    'entry': [
+                        {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
+                        {
+                            'resource': {
+                                'resourceType': 'Patient',
+                                'id': self.patient_fhir_v3,
+                                'identifier': [
+                                    {
+                                        'system': CC_SYSTEM_MEDICARE_NUMBER,
+                                        'value': self.test_mbi,
+                                    }
+                                ],
                             }
-                        ],
-                    }
-                },
-            ],
-        }
+                        },
+                    ],
+                }
 
-        assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
+                assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
 
-        token_request_data = {
-            'grant_type': CLIENT_CREDENTIALS,
-            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
-            'client_assertion': assertion,
-            'scope': 'patient/ExplanationOfBenefit.rs openid',
-        }
+                token_request_data = {
+                    'grant_type': CLIENT_CREDENTIALS,
+                    'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                    'client_assertion': assertion,
+                    'scope': 'patient/ExplanationOfBenefit.rs openid',
+                }
 
-        response = self.client.post(
-            f'/v{Versions.V3}/o/token/',
-            data=urlencode(token_request_data),
-            content_type='application/x-www-form-urlencoded',
-        )
+                response = self.client.post(
+                    f'/v{Versions.V3}/o/token/',
+                    data=urlencode(token_request_data),
+                    content_type='application/x-www-form-urlencoded',
+                )
 
-        self.assertEqual(response.status_code, HTTPStatus.OK, response.content)
-        data = response.json()
+                self.assertEqual(response.status_code, HTTPStatus.OK, response.content)
+                data = response.json()
 
-        self.assertIn('patient', data)
-        self.assertEqual(data['patient'], self.patient_fhir_v3)
-        self.assertIn('access_token', data)
-        # see authorization.py -> we can revisit this, but UserInfo will not return anything in the client_credentials flow.
-        self.assertNotIn('openid', data['scope'])
-        # other scopes ought to be fine, however.
-        self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
-        self.assertIn('refresh_token', data)
+                self.assertIn('patient', data)
+                self.assertEqual(data['patient'], self.patient_fhir_v3)
+                self.assertIn('access_token', data)
+                # see authorization.py -> we can revisit this, but UserInfo will not return anything in the client_credentials flow.
+                self.assertNotIn('openid', data['scope'])
+                # other scopes ought to be fine, however.
+                self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
+                self.assertIn('refresh_token', data)
 
-        refresh_request_data = {
-            'grant_type': REFRESH_TOKEN,
-            'refresh_token': data['refresh_token'],
-            'client_id': TEST_APP_CLIENT_ID,
-            'client_secret': TEST_APP_CLIENT_SECRET,
-        }
+                # BB2-4965: Even though patient/AuditEvent.rs was not in the requested scopes, it was automatically added
+                # to the token scope as all client_credentials auth flows should result in a token with patient/AuditEvent.rs
+                # on it
+                access_token = get_access_token_model().objects.get(token=data['access_token'])
+                assert AUDIT_EVENT_SCOPE in access_token.scope
 
-        response = self.client.post(
-            f'/v{Versions.V3}/o/token/',
-            data=urlencode(refresh_request_data),
-            content_type='application/x-www-form-urlencoded',
-        )
+                refresh_request_data = {
+                    'grant_type': REFRESH_TOKEN,
+                    'refresh_token': data['refresh_token'],
+                    'client_id': TEST_APP_CLIENT_ID,
+                    'client_secret': TEST_APP_CLIENT_SECRET,
+                }
 
-        self.assertEqual(response.status_code, HTTPStatus.OK, response.content)
-        data = response.json()
+                response = self.client.post(
+                    f'/v{Versions.V3}/o/token/',
+                    data=urlencode(refresh_request_data),
+                    content_type='application/x-www-form-urlencoded',
+                )
 
-        self.assertIn('patient', data)
-        self.assertEqual(data['patient'], self.patient_fhir_v3)
-        self.assertIn('access_token', data)
-        # see authorization.py -> we can revisit this, but UserInfo will not return anything in the client_credentials flow.
-        self.assertNotIn('openid', data['scope'])
-        # other scopes ought to be fine, however.
-        self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
-        self.assertIn('refresh_token', data)
+                self.assertEqual(response.status_code, HTTPStatus.OK, response.content)
+                data = response.json()
+
+                self.assertIn('patient', data)
+                self.assertEqual(data['patient'], self.patient_fhir_v3)
+                self.assertIn('access_token', data)
+                # see authorization.py -> we can revisit this, but UserInfo will not return anything in the client_credentials flow.
+                self.assertNotIn('openid', data['scope'])
+                # other scopes ought to be fine, however.
+                self.assertIn('patient/ExplanationOfBenefit.rs', data['scope'])
+                self.assertIn('refresh_token', data)
+
+                # Ensure that specific logs are output as a result of a client_credentials call
+                assert '"patient_match_found": true' in auth_logs.output[1]
+                assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
+                assert '"req_app_name": "CC App"' in request_logs.output[0]
+                assert f'"csp": "{IDME_LOWER_ISS}"' in auth_logs.output[1]
+
+    @patch.dict(os.environ, {'TARGET_ENV': 'local'})
+    @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
+    @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
+    @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_returns_patient_match_not_found_401(
+        self, mock_get_patient, mock_validate_ial, mock_validate_auth
+    ):
+        """Verify that a client_credentials token response is a 401 because a patient match wasn't found."""
+
+        with self.assertLogs('hhs_server.apps.dot_ext.views.authorization', level='INFO') as auth_logs:
+            with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
+                mock_validate_auth.return_value = self.mock_val_auth_jwt_response
+                mock_validate_ial.return_value = self.mock_val_ial_jwt_response
+
+                # Mock patient match result not returning a patient resource
+                # This covers the case when there are no matches or multiple matches,
+                # because BFD will return no patient resource regardless
+                mock_get_patient.return_value = {
+                    'type': 'searchset',
+                    'entry': [
+                        {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
+                    ],
+                }
+
+                assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
+
+                token_request_data = {
+                    'grant_type': CLIENT_CREDENTIALS,
+                    'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                    'client_assertion': assertion,
+                    'scope': 'patient/ExplanationOfBenefit.rs openid',
+                }
+
+                response = self.client.post(
+                    f'/v{Versions.V3}/o/token/',
+                    data=urlencode(token_request_data),
+                    content_type='application/x-www-form-urlencoded',
+                )
+                assert response.status_code == HTTPStatus.UNAUTHORIZED
+                assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND
+
+                # Ensure that specific logs are output as a result of a client_credentials call
+                assert '"patient_match_found": false' in auth_logs.output[1]
+                assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
+                assert '"req_app_name": "CC App"' in request_logs.output[0]
+                assert f'"csp": "{IDME_LOWER_ISS}"' in auth_logs.output[1]
 
 
 class TestTokenPrivateMethods(BaseApiTest):
@@ -767,3 +827,64 @@ class TestTokenPrivateMethods(BaseApiTest):
         # Call fails when auth time happens in the future
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
+
+
+@pytest.mark.integration
+@override_switch('v3_endpoints', active=True)
+def test_client_credentials_returns_patient_match_not_found_401_integration(
+    create_application, create_capability, basic_user
+):
+    """Verify that a client_credentials token response is a 401 because a patient match wasn't found.
+    This test is an integration test that does not mock the patient match response, and instead uses a real
+    call to BFD to get the patient match response.
+    """
+    user = basic_user()
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
+    application = create_application(
+        name='test',
+        grant_type='client-credentials',
+        user=user,
+        allowed_auth_type=CLIENT_CREDENTIALS_TYPE,
+        jwks_uri='http://localhost:8000/.well-known/jwks.json',
+        capability=eob_capability,
+        client_id=TEST_APP_CLIENT_ID,
+        client_secret=TEST_APP_CLIENT_SECRET,
+    )
+    patient_info = {
+        'iss': IDME_LOWER_ISS,
+        'family_name': 'Coffee',
+        'given_name': 'Joey',
+        # Purposefully using a birthdate that is not in BFD to ensure that the patient match fails.
+        # See the sample requests folder for the patient_match_all_requests.json file that contains
+        # the patient match request with the actual birthdate for a successful match
+        'birthdate': '1977-06-05',
+        'address': {
+            'street_address': '777 BROCKTON AVENUE',
+            'locality': 'ABINGTON',
+            'region': 'MA',
+            'postal_code': '02351',
+            'formatted': '777 BROCKTON AVENUE ABINGTON, MA 02351 US',
+            'country': 'US',
+        },
+    }
+    id_token = jwt.encode(patient_info, 'secret', algorithm='HS256')
+    assertion = jwt.encode(
+        {'iss': application.client_id, 'extensions': {'cms_smart': {'id_token': id_token}}},
+        'secret',
+        algorithm='HS256',
+    )
+
+    token_request_data = {
+        'grant_type': CLIENT_CREDENTIALS,
+        'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+        'client_assertion': assertion,
+        'scope': 'patient/ExplanationOfBenefit.rs openid',
+    }
+
+    response = client.post(
+        f'/v{Versions.V3}/o/token/',
+        data=urlencode(token_request_data),
+        content_type='application/x-www-form-urlencoded',
+    )
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json()['message'] == PATIENT_DATA_CANNOT_BE_FOUND

@@ -44,7 +44,7 @@ jobs:
     runs-on: codebuild-bb-${{ (github.event.inputs.environment || 'test') == 'test' && 'test' || 'prod' }}-web-server-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup OpenTofu & AWS
         uses: ./.github/actions/setup-tofu

@@ -1,14 +1,14 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from oauth2_provider.views.base import get_access_token_model
 from oauth2_provider.models import get_application_model
+from oauth2_provider.views.base import get_access_token_model
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
 from waffle import get_waffle_flag_model
-from apps.versions import Versions
 
-from apps.constants import HHS_SERVER_LOGNAME_FMT, APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET
+from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, HHS_SERVER_LOGNAME_FMT
+from apps.versions import Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 

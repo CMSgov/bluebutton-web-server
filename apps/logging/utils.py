@@ -1,7 +1,8 @@
 import io
 
-import apps.logging.request_logger as logging
 from django.http import HttpRequest
+
+import apps.logging.request_logger as logging
 
 """
   Utility functions for logging, and logging manipulations (used in tests)

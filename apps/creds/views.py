@@ -1,4 +1,3 @@
-import apps.logging.request_logger as logging
 import datetime
 
 from django.conf import settings
@@ -8,7 +7,9 @@ from oauth2_provider.models import get_application_model
 from rest_framework import exceptions, status
 from rest_framework.views import APIView
 
-from apps.creds.utils import get_app_usr_info, get_app_creds
+import apps.logging.request_logger as logging
+from apps.creds.utils import get_app_creds, get_app_usr_info
+
 from .models import CredentialingReqest
 
 Application = get_application_model()

@@ -1,11 +1,12 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UsernameField
+from django.contrib.auth.models import Group, User
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
-from .models import UserProfile, create_activation_key, UserIdentificationLabel
-from django.contrib.auth.forms import AuthenticationForm, UsernameField
+
 from apps.constants import USER_TYPE_DEV
+
+from .models import UserIdentificationLabel, UserProfile, create_activation_key
 
 
 class IdentificationModelChoiceField(forms.ModelChoiceField):

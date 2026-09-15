@@ -14,41 +14,41 @@ Application = get_application_model()
 class MyCredentialingRequest(CredentialingReqest):
     class Meta:
         proxy = True
-        app_label = "bluebutton"
+        app_label = 'bluebutton'
 
 
 @admin.register(MyCredentialingRequest)
 class MyCredentialingRequestAdmin(admin.ModelAdmin):
     readonly_fields = (
-        "id",
-        "get_user",
-        "get_organization",
-        "updated_at",
-        "last_visit",
-        "visits_count",
-        "get_creds_req_url",
+        'id',
+        'get_user',
+        'get_organization',
+        'updated_at',
+        'last_visit',
+        'visits_count',
+        'get_creds_req_url',
     )
     list_display = (
-        "application",
-        "id",
-        "get_user",
-        "get_organization",
-        "get_creds_req_url",
-        "created_at",
-        "updated_at",
-        "last_visit",
-        "visits_count",
+        'application',
+        'id',
+        'get_user',
+        'get_organization',
+        'get_creds_req_url',
+        'created_at',
+        'updated_at',
+        'last_visit',
+        'visits_count',
     )
 
-    list_filter = ("application__name",)
+    list_filter = ('application__name',)
 
-    search_fields = ("application__name", "=id")
+    search_fields = ('application__name', '=id')
 
-    raw_id_fields = ("application",)
+    raw_id_fields = ('application',)
 
     @admin.display(
-        description="User of the application",
-        ordering="get_user",
+        description='User of the application',
+        ordering='get_user',
     )
     def get_user(self, obj):
         usr = None
@@ -58,8 +58,8 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
         return usr
 
     @admin.display(
-        description="Organization of the application",
-        ordering="get_organization",
+        description='Organization of the application',
+        ordering='get_organization',
     )
     def get_organization(self, obj):
         organization = None
@@ -74,8 +74,8 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
         return organization
 
     @admin.display(
-        description="URL for credentials request",
-        ordering="get_creds_req_url",
+        description='URL for credentials request',
+        ordering='get_creds_req_url',
     )
     def get_creds_req_url(self, obj):
         return get_url(obj.id)

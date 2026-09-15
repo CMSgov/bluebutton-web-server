@@ -12,6 +12,6 @@ env = environ.Env(
 TARGET_ENV = env('TARGET_ENV')
 
 if TARGET_ENV == 'local' or TARGET_ENV == 'codebuild':
-    from hhs_oauth_server.settings.base_local import *
+    from hhs_oauth_server.settings.base_local import *  # noqa: F403
 else:
-    from hhs_oauth_server.settings.base_ec2 import *
+    from hhs_oauth_server.settings.base_ec2 import *  # noqa: F403

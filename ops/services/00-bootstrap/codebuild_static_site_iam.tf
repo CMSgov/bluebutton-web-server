@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "static_site_logs" {
       "logs:PutLogEvents",
     ]
     resources = [
-      "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/bb2/site-static/*",
+      "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/bb2/site-static/*",
     ]
   }
 }
@@ -68,8 +68,8 @@ resource "aws_iam_policy" "static_site_codebuild_base" {
           "logs:PutLogEvents"
         ]
         Resource = [
-          "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${local.static_site_project_name}",
-          "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${local.static_site_project_name}:*"
+          "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${local.static_site_project_name}",
+          "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${local.static_site_project_name}:*"
         ]
       },
       {
@@ -81,7 +81,7 @@ resource "aws_iam_policy" "static_site_codebuild_base" {
           "s3:GetBucketAcl",
           "s3:GetBucketLocation"
         ]
-        Resource = "arn:aws:s3:::codepipeline-${data.aws_region.current.id}-*"
+        Resource = "arn:aws:s3:::codepipeline-${data.aws_region.current.region}-*"
       },
       {
         Effect = "Allow"
@@ -92,7 +92,7 @@ resource "aws_iam_policy" "static_site_codebuild_base" {
           "codebuild:BatchPutTestCases",
           "codebuild:BatchPutCodeCoverages"
         ]
-        Resource = "arn:aws:codebuild:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:report-group/${local.static_site_project_name}-*"
+        Resource = "arn:aws:codebuild:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:report-group/${local.static_site_project_name}-*"
       }
     ]
   })
@@ -116,7 +116,7 @@ resource "aws_iam_policy" "static_site_secrets_manager" {
       {
         Effect   = "Allow"
         Action   = "secretsmanager:GetSecretValue"
-        Resource = "arn:aws:secretsmanager:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:secret:*"
+        Resource = "arn:aws:secretsmanager:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:secret:*"
       }
     ]
   })

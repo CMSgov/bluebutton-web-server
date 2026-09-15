@@ -1,15 +1,15 @@
 import os
-from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
-from apps.dot_ext.constants import SUPPORTED_VERSION_TEST_CASES
-from apps.dot_ext.models import AuthFlowTracking
+from apps.dot_ext.constants import CLEAR_HIGHER_ISS, IDME_HIGHER_ISS, IDME_LOWER_ISS, SUPPORTED_VERSION_TEST_CASES
 from apps.dot_ext.utils import (
-    check_auth_tracking_and_create_access_token_extension,
+    build_jwks_urls,
+    check_can_token_scope_for_audit_event_scopes,
+    check_session_and_create_access_token_extension,
     get_api_version_number_from_url,
     remove_application_user_pair_tokens_data_access,
     validate_client_id,
@@ -53,27 +53,18 @@ class TestDOTUtils(TestCase):
             assert not validate_latin_extended_string(text)
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_use_database_value(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
+    def test_check_session_and_create_access_token_extension_use_session_value(self, mock_access_token_extension):
         """
-        When dot_ext_auth_flow_tracking has a record for the code and grant_type is NOT refresh_token,
-        the dot_ext_auth_flow_tracking.include_samhsa value should be used for include_samhsa.
+        When grant_type is NOT refresh_token,
+        the session's value should be used for include_samhsa.
         """
-        tracking_object = AuthFlowTracking.objects.create(
-            code=self.code,
-            include_samhsa=False,
-            expires=datetime.now(UTC),
-        )
-        mock_auth_flow_tracking.return_value = tracking_object
 
-        check_auth_tracking_and_create_access_token_extension(
+        check_session_and_create_access_token_extension(
             prior_include_samhsa=False,
-            code=self.code,
             grant_type='authorization_code',
             token=self.token,
             prior_part_d_eob_only=False,
+            session_include_samhsa=False,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -83,27 +74,17 @@ class TestDOTUtils(TestCase):
         )
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_use_database_value_true(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
+    def test_check_session_and_create_access_token_extension_use_session_value_true(self, mock_access_token_extension):
         """
-        When dot_ext_auth_flow_tracking has a record for the code and grant_type is NOT refresh_token,
-        the dot_ext_auth_flow_tracking.include_samhsa value should be used for include_samhsa.
+        When grant_type is NOT refresh_token,
+        the session's value should be used for include_samhsa.
         """
-        tracking_object = AuthFlowTracking.objects.create(
-            code=self.code,
-            include_samhsa=True,
-            expires=datetime.now(UTC),
-        )
-        mock_auth_flow_tracking.return_value = tracking_object
-
-        check_auth_tracking_and_create_access_token_extension(
+        check_session_and_create_access_token_extension(
             prior_include_samhsa=True,
-            code=self.code,
             grant_type='authorization_code',
             token=self.token,
             prior_part_d_eob_only=False,
+            session_include_samhsa=True,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -113,51 +94,17 @@ class TestDOTUtils(TestCase):
         )
 
     @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_no_database_value(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
-        """
-        When there is no dot_ext_auth_flow_tracking record, just use the default of True
-        """
-        mock_auth_flow_tracking.side_effect = AuthFlowTracking.DoesNotExist
-
-        check_auth_tracking_and_create_access_token_extension(
-            prior_include_samhsa=True,
-            code=self.code,
-            grant_type='authorization_code',
-            token=self.token,
-            prior_part_d_eob_only=False,
-        )
-
-        mock_access_token_extension.objects.get_or_create.assert_called_once_with(
-            access_token=self.token,
-            include_samhsa=True,
-            part_d_eob_only=False,
-        )
-
-    @patch('apps.dot_ext.utils.AccessTokenExtension')
-    @patch('apps.dot_ext.utils.AuthFlowTracking.objects.get')
-    def test_check_auth_tracking_and_create_access_token_extension_refresh_token_grant(
-        self, mock_auth_flow_tracking, mock_access_token_extension
-    ):
+    def test_check_session_and_create_access_token_extension_refresh_token_grant(self, mock_access_token_extension):
         """
         When grant_type is 'refresh_token', prior_include_samhsa=False
-        should override any dot_ext_auth_flow_tracking record include_samhsa value.
+        should override any session include_samhsa value.
         """
-        tracking_object = AuthFlowTracking.objects.create(
-            code=self.code,
-            include_samhsa=True,
-            expires=datetime.now(UTC),
-        )
-        mock_auth_flow_tracking.return_value = tracking_object
-
-        check_auth_tracking_and_create_access_token_extension(
+        check_session_and_create_access_token_extension(
             prior_include_samhsa=False,
-            code=self.code,
             grant_type='refresh_token',
             token=self.token,
             prior_part_d_eob_only=False,
+            session_include_samhsa=True,
         )
 
         mock_access_token_extension.objects.get_or_create.assert_called_once_with(
@@ -235,3 +182,67 @@ def test_validate_client_id_accepts_valid(client_id):
     # Should not raise
     with patch.dict(os.environ, {'TARGET_ENV': 'test'}):
         validate_client_id(client_id)
+
+
+@pytest.mark.parametrize(
+    'passed_in_scope, expected_scope',
+    [
+        (
+            'profile patient/Patient.rs patient/AuditEvent.rs patient/AuditEvent.r',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        (
+            'profile patient/Patient.rs patient/AuditEvent.rs patient/AuditEvent.s',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        ('profile patient/Patient.rs patient/AuditEvent.r', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+        ('profile patient/Patient.rs patient/AuditEvent.s', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+        ('profile patient/Patient.rs', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+        (
+            'profile patient/Patient.rs patient/AuditEvent.s patient/AuditEvent.r',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        (
+            'profile patient/Patient.rs patient/AuditEvent.s patient/AuditEvent.r patient/AuditEvent.rs',
+            'profile patient/Patient.rs patient/AuditEvent.rs',
+        ),
+        ('profile patient/Patient.rs patient/AuditEvent.rs', 'profile patient/Patient.rs patient/AuditEvent.rs'),
+    ],
+)
+def test_check_can_token_scope_for_audit_event_scopes(passed_in_scope, expected_scope) -> None:
+    """Confirm that no matter what combination of AuditEvent scopes is passed into
+    check_can_token_scope_for_audit_event_scopes, that only patient/AuditEvent.rs is present
+    on the returned scope.
+    Args:
+        passed_in_scope (_type_): scope being passed into check_can_token_scope_for_audit_event_scopes
+        expected_scope (_type_): expected scope to be returned
+    """
+    scope = check_can_token_scope_for_audit_event_scopes(passed_in_scope)
+    assert scope == expected_scope
+
+
+def test_build_jwks_urls_returns_higher_environment(settings) -> None:
+    """
+    Test that settings returns higher environment ISS and JWKS_URLs
+    """
+    settings.TARGET_ENV = 'prod'
+    expected = {
+        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,
+        IDME_HIGHER_ISS: settings.IDME_HIGHER_JWKS_URL,
+    }
+    result = build_jwks_urls()
+    assert result == expected
+
+
+def test_build_jwks_urls_returns_lower_environment(settings) -> None:
+    """
+    Test that settings returns lower environment ISS and JWKS_URLs
+    (except CLEAR is still higher since it's one environment)
+    """
+    settings.TARGET_ENV = 'test'
+    expected = {
+        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
+        IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
+    }
+    result = build_jwks_urls()
+    assert result == expected

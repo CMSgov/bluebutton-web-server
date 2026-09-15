@@ -1,16 +1,20 @@
 from django.urls import path
 from waffle.decorators import waffle_switch
+
 from apps.wellknown.views import (
+    ApplicationLabelView,
+    ApplicationListView,
+    PublicApplicationListView,
+    jwks_json,
     openid_configuration_v1,
     openid_configuration_v2,
     openid_configuration_v3,
-    ApplicationListView,
-    ApplicationLabelView,
-    PublicApplicationListView,
 )
 
-
 urlpatterns = [
+    # BB2's internal JWKS: the public keys used to validate signed client_assertions.
+    # Served at /.well-known/jwks.json.
+    path('jwks.json', jwks_json, name='jwks-json'),
     # NOTE: the openid-configuration paths are essentially legacy paths. We continue to carry them to
     # make sure we do not break downstream applications. However, the `hhs_oath_server` code *also* has
     # paths for openid-configuration. Those have the shape
@@ -51,5 +55,9 @@ urlpatterns = [
         waffle_switch('wellknown_applications')(PublicApplicationListView.as_view()),
         name='public-applications-list-v2',
     ),
-    path('openid-configuration-v3', waffle_switch('v3_endpoints')(openid_configuration_v3), name='openid-configuration-v3'),
+    path(
+        'openid-configuration-v3',
+        waffle_switch('v3_endpoints')(openid_configuration_v3),
+        name='openid-configuration-v3',
+    ),
 ]

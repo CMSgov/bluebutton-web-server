@@ -1,8 +1,8 @@
 import base64
 
 
-def extract_username(auth, auth_prefix="SLS"):
-    splitted = auth.split(" ", 1)
+def extract_username(auth, auth_prefix='SLS'):
+    splitted = auth.split(' ', 1)
     if len(splitted) != 2:
         return None
     auth_type, auth_string = splitted
@@ -10,7 +10,7 @@ def extract_username(auth, auth_prefix="SLS"):
     if auth_type != auth_prefix:
         return None
 
-    encoding = "utf-8"
+    encoding = 'utf-8'
 
     # raises (TypeError, binascii.Error)
     b64_decoded = base64.b64decode(auth_string)

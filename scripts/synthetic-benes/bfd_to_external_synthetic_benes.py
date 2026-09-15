@@ -1,7 +1,7 @@
+import argparse
 import csv
 import datetime
 import random
-import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--bfd', '-bi', help='The name of the bfd input csv file', type=str)

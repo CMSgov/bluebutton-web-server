@@ -1,6 +1,6 @@
+from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from oauth2_provider.decorators import protected_resource
-from django.http import JsonResponse
 
 
 @require_GET

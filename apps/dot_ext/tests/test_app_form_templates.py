@@ -1,22 +1,23 @@
 import uuid
 from random import randrange
-from django.template.loader import get_template
+
+from bs4 import BeautifulSoup
+from django.core.exceptions import ValidationError
+from django.db.models.fields import (
+    BigIntegerField,
+    BooleanField,
+    CharField,
+    DateTimeField,
+    EmailField,
+    TextField,
+    URLField,
+)
 from django.template.base import VariableNode
+from django.template.loader import get_template
+
 from apps.dot_ext.forms import CustomRegisterApplicationForm
 from apps.dot_ext.models import Application
-from django.core.exceptions import ValidationError
-
 from apps.test import BaseApiTest
-from bs4 import BeautifulSoup
-from django.db.models.fields import (
-    CharField,
-    URLField,
-    DateTimeField,
-    TextField,
-    BooleanField,
-    BigIntegerField,
-    EmailField,
-)
 
 
 def get_form_fields(frm):
@@ -58,7 +59,9 @@ class AppFormTemplateTestCase(BaseApiTest):
         app_flds = {}
         app_fields_meta = app._meta.get_fields()
         for fm in app_fields_meta:
-            if isinstance(fm, (CharField, URLField, DateTimeField, TextField, BooleanField, BigIntegerField, EmailField)):
+            if isinstance(
+                fm, (CharField, URLField, DateTimeField, TextField, BooleanField, BigIntegerField, EmailField)
+            ):
                 fld_name = fm.name
                 fld_val = fm.value_from_object(app)
                 if fld_val is None and fm.null:

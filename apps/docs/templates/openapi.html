@@ -46,6 +46,30 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
     window.onload = function () {
       let ui;
       ui = SwaggerUIBundle({
+        plugins: [
+          // Disable the "Try it out" button for operations flagged with
+          // `x-tryItOutEnabled: false` in the spec (e.g. AuditEvent, which is
+          // restricted to CMS Aligned Networks client-credentials applications).
+          // All other operations keep Swagger UI's default behavior.
+          function DisableTryItOutForFlaggedOps() {
+            return {
+              statePlugins: {
+                spec: {
+                  wrapSelectors: {
+                    allowTryItOutFor: (ori) => (state, path, method) => {
+                      const op = state.getIn(["resolvedSubtrees", "paths", path, method])
+                        || state.getIn(["json", "paths", path, method]);
+                      if (op && op.get && op.get("x-tryItOutEnabled") === false) {
+                        return false;
+                      }
+                      return ori(path, method);
+                    },
+                  },
+                },
+              },
+            };
+          },
+        ],
         urls: [
           {
             url: "{% static 'openapi.yaml' %}",

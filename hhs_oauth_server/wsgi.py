@@ -1,8 +1,9 @@
 import os
 
+from django.core.wsgi import get_wsgi_application
+
 # import dotenv
 from dotenv import load_dotenv
-from django.core.wsgi import get_wsgi_application
 
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

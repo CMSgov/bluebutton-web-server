@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import jsonschema
-from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.template.response import TemplateResponse
 from django.test.client import Client
 from django.urls import reverse
 from django.utils.dateparse import parse_duration
@@ -24,6 +24,7 @@ import apps.logging.request_logger as logging
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import CODE_CHALLENGE_METHOD_S256, MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
+from apps.dot_ext.constants import PATIENT_DATA_CANNOT_BE_FOUND
 from apps.dot_ext.models import Application, Approval
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
@@ -279,7 +280,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         AnonUserState.objects.create(
             state=state,
             next_uri=(
-                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'  # noqa: E231
+                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
             ),
         )
@@ -323,14 +324,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn('client_id=test', response.url)
             self.assertIn('redirect_uri=test.com', response.url)
             self.assertIn('response_type=token', response.url)
-            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)  # noqa: E231
+            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
-        AnonUserState.objects.create(state=state, next_uri='http://www.doesnotexist.gov')  # noqa: E231
+        AnonUserState.objects.create(state=state, next_uri='http://www.doesnotexist.gov')
 
         @all_requests
         def catchall(url, request):
@@ -466,9 +467,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         ):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-            self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
-            content = json.loads(response.content)
-            self.assertEqual(content['error'], settings.MEDICARE_ERROR_MSG)
+            self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+            assert PATIENT_DATA_CANNOT_BE_FOUND in response.text
+            assert 'Please ensure you are logged in as a Medicare enrollee.' in response.text
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
         with HTTMock(
@@ -1139,11 +1140,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             response = self.client.get(
                 self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state}
             )
-            resp_json = response.json()
-            self.assertEqual(response.status_code, HTTPStatus.CONFLICT)
-            self.assertIsNotNone(resp_json)
-            self.assertIsNotNone(resp_json.get('error'))
-            self.assertEqual(resp_json.get('error'), settings.MEDICARE_ERROR_MSG)
+            self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+            self.assertIsNotNone(response)
+            self.assertIsInstance(response, TemplateResponse)
             # further check log for root cause
             sls_authn_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_SLS_LOGGER)
             self.assertIsNotNone(sls_authn_log_content)
@@ -1170,7 +1169,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         AnonUserState.objects.create(
             state=state,
             next_uri=(
-                'http://www.doesnotexist.gov?next=/v1/o/authorize'  # noqa: E231
+                'http://www.doesnotexist.gov?next=/v1/o/authorize'
                 '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
             ),
         )

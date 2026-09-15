@@ -1,16 +1,15 @@
 import copy
 import json
 import re
-
 from json.decoder import JSONDecodeError
 
 from apps.integration_tests.common_utils import validate_json_schema
-from apps.integration_tests.selenium_tests import TestBlueButtonAPI
 from apps.integration_tests.constants import (
     EXPECTED_LOGGING_EVENTS,
     LOG_FILE,
     MIDDLEWARE_LOG_EVENT_TYPE,
 )
+from apps.integration_tests.selenium_tests import TestBlueButtonAPI
 
 
 class TestLoggings(TestBlueButtonAPI):
@@ -30,7 +29,11 @@ class TestLoggings(TestBlueButtonAPI):
                     event_json = json.loads(r)
                     e_type = event_json.get('type', 'NO TYPE INFO')
                     e_user_agent = event_json.get('req_header_user_agent')
-                    if e_user_agent is not None and not e_user_agent.startswith('curl') and e_type == MIDDLEWARE_LOG_EVENT_TYPE:
+                    if (
+                        e_user_agent is not None
+                        and not e_user_agent.startswith('curl')
+                        and e_type == MIDDLEWARE_LOG_EVENT_TYPE
+                    ):
                         p = event_json.get('path', None)
                         if not start_validation:
                             if p == '/':

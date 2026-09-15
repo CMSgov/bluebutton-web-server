@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.urls import reverse_lazy
+from rest_framework import serializers
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
-from rest_framework import serializers
 from rest_framework.response import Response
+
 from apps.dot_ext.models import Application
 
 
@@ -64,7 +65,10 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         )
 
     def get_contacts(self, obj):
-        contacts = [{'system': 'phone', 'value': obj.support_phone_number}, {'system': 'email', 'value': obj.support_email}]
+        contacts = [
+            {'system': 'phone', 'value': obj.support_phone_number},
+            {'system': 'email', 'value': obj.support_email},
+        ]
         return contacts
 
 

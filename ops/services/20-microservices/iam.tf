@@ -53,8 +53,8 @@ data "aws_iam_policy_document" "kms" {
   count = local.kms_key_arn != null ? 1 : 0
 
   statement {
-    sid       = "AllowKMSDecrypt"
-    actions   = ["kms:Decrypt"]
+    sid     = "AllowKMSDecrypt"
+    actions = ["kms:Decrypt"]
     resources = [
       local.kms_key_arn,
       data.aws_secretsmanager_secret_version.cdap_kms_key_arn.secret_string
@@ -118,8 +118,8 @@ data "aws_iam_policy_document" "s3" {
 
 data "aws_iam_policy_document" "cloudwatch_log_groups" {
   statement {
-    sid = "CreateCloudWatchLogGroups"
-    actions = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
+    sid       = "CreateCloudWatchLogGroups"
+    actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"]
     resources = ["*"]
   }
 }

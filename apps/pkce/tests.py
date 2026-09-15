@@ -2,7 +2,7 @@ from django.test import TestCase
 from oauthlib.common import Request
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 
-from apps.pkce.constants import ERR_CCM_REQUIRED, ERR_CC_REQUIRED, ERR_CCM_S256_REQUIRED, PKCE_URIS
+from apps.pkce.constants import ERR_CC_REQUIRED, ERR_CCM_REQUIRED, ERR_CCM_S256_REQUIRED, PKCE_URIS
 from apps.pkce.oauth2_server import validate_code_challenge_method, validate_redirect_uri_pkce
 
 

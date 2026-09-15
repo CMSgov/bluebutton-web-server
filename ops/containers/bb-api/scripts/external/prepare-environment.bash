@@ -12,10 +12,12 @@ set -e
 set -a
 
 echo "-------- ENV VARS --------"
-echo "🥑 bfd          ${bfd}"
-echo "🥑 auth         ${auth}"
-echo "🥑 env          ${env}"
-echo "🥑 TARGET_ENV   ${TARGET_ENV}"
+echo "🥑 bfd                    ${bfd}"
+echo "🥑 auth                   ${auth}"
+echo "🥑 env                    ${env}"
+echo "🥑 TARGET_ENV             ${TARGET_ENV}"
+echo "🥑 CAN_INTEGRATION_TEST   ${CAN_INTEGRATION_TEST}"
+echo "🥑 sls                    ${sls}"
 
 
 ####################################
@@ -35,6 +37,13 @@ gonogo "check_env_after_setup"
 
 set_bfd_urls
 gonogo "set_bfd_urls"
+
+####################################
+# CAN_INTEGRATION_TEST_CREDENTIALS
+# retrives the credentials for CAN integration tests and sets them as environment variables
+# only does it for local or codebuild environments
+configure_CAN_integration_credentials_if_local
+gonogo "configure_CAN_integration_credentials_if_local"
 
 ####################################
 # CERTS
@@ -113,12 +122,14 @@ else
         docker compose -f ops/containers/docker-compose-local.yaml down --remove-orphans -t 1
         exit
     else
+        # Enabling CAN_INTEGRATION_TEST will run selenium too since that's needed for this test
         echo "📊 Tailing logs."
         echo
         BUILD_TARGET=local \
         RELEASE_TAG=local \
         TARGET_ENV="local" \
         docker compose \
+            $( [[ "${CAN_INTEGRATION_TEST}" == "true" ]] && echo "--profile selenium" ) \
             -f ops/containers/docker-compose-local.yaml \
             --env-file ops/containers/bb-api/files/external/.env.container \
             up --abort-on-container-exit

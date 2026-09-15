@@ -2,17 +2,17 @@ import logging
 
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework.exceptions import APIException
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from apps.health.checks import (
-    internal_services,
-    external_services,
-    slsx_services,
-    bfd_services,
-    db_services,
-)
+from rest_framework.views import APIView
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.health.checks import (
+    bfd_services,
+    db_services,
+    external_services,
+    internal_services,
+    slsx_services,
+)
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 

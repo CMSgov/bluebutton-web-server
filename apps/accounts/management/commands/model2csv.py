@@ -8,15 +8,15 @@ Created by: '@ekivemark'
 
 Prints CSV of all fields of a model.
 """
-from django.core.management.base import BaseCommand
-from django.apps import apps
-
-from apps.constants import HHS_SERVER_LOGNAME_FMT
 
 import csv
 import logging
 import sys
 
+from django.apps import apps
+from django.core.management.base import BaseCommand
+
+from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.fhir.bluebutton.utils import get_fhir_now
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -43,8 +43,7 @@ def exportcsv(app_name, model_name, add_name, field_export):
         field_names = field_list
 
     if add_name:
-        model_field_names = field_names + [app_name + '.' + model_name,
-                                           "model2csv_time"]
+        model_field_names = field_names + [app_name + '.' + model_name, 'model2csv_time']
         model2csv_time = get_fhir_now()
 
     else:
@@ -56,8 +55,7 @@ def exportcsv(app_name, model_name, add_name, field_export):
     for instance in model.objects.all():
         output = [str(getattr(instance, f)) for f in field_names]
         if add_name:
-            output = output + [app_name + '.' + model_name,
-                               model2csv_time]
+            output = output + [app_name + '.' + model_name, model2csv_time]
 
         writer.writerow(output)
 
@@ -65,21 +63,18 @@ def exportcsv(app_name, model_name, add_name, field_export):
 
 
 class Command(BaseCommand):
-
-    help = ("Output the specified application.model as CSV")
+    help = 'Output the specified application.model as CSV'
 
     def add_arguments(self, parser):
-        parser.add_argument('--application', help="application name")
+        parser.add_argument('--application', help='application name')
 
-        parser.add_argument('--model', help="model name")
+        parser.add_argument('--model', help='model name')
 
-        parser.add_argument('--add_table_name', help="include table name"
-                                                     " and export time as "
-                                                     "columns: True | False")
+        parser.add_argument('--add_table_name', help='include table name and export time as columns: True | False')
 
-        parser.add_argument('--filter_fields', help="filter fields by column "
-                                                    "name, comma separated: "
-                                                    "eg. id,name,description ")
+        parser.add_argument(
+            '--filter_fields', help='filter fields by column name, comma separated: eg. id,name,description '
+        )
 
     def handle(self, *app_labels, **options):
 
@@ -96,7 +91,7 @@ class Command(BaseCommand):
             return False
 
         if options['add_table_name']:
-            if options['add_table_name'].lower() == "true":
+            if options['add_table_name'].lower() == 'true':
                 add_name = True
             else:
                 add_name = False
@@ -111,8 +106,7 @@ class Command(BaseCommand):
         e = exportcsv(app_name, model_name, add_name, field_export)
 
         if e:
-            logger.info('model2csv: Content exported: %s.%s' % (app_name,
-                                                                model_name))
+            logger.info('model2csv: Content exported: %s.%s' % (app_name, model_name))
             return
         else:
             logger.info('model2csv: Problem with export')

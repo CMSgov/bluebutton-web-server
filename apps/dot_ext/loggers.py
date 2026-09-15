@@ -153,6 +153,8 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
             request.session['auth_crosswalk_action'] = auth_flow_uuid.auth_crosswalk_action
         if auth_flow_uuid.auth_share_demographic_scopes is not None:
             request.session['auth_share_demographic_scopes'] = str(auth_flow_uuid.auth_share_demographic_scopes)
+        if auth_flow_uuid.auth_share_samhsa_data is not None:
+            request.session['auth_share_samhsa_data'] = str(auth_flow_uuid.auth_share_samhsa_data)
 
         try:
             application = Application.objects.get(client_id=auth_flow_uuid.client_id)
@@ -184,6 +186,7 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
     auth_uuid = auth_dict.get('auth_uuid', None)
     auth_crosswalk_action = auth_dict.get('auth_crosswalk_action', None)
     auth_share_demographic_scopes = auth_dict.get('auth_share_demographic_scopes', None)
+    auth_share_samhsa_data = auth_dict.get('auth_share_samhsa_data', None)
 
     try:
         if auth_uuid:
@@ -201,6 +204,12 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
                         auth_flow_uuid.auth_share_demographic_scopes = True
                     elif auth_share_demographic_scopes == 'False':
                         auth_flow_uuid.auth_share_demographic_scopes = False
+
+                if auth_share_samhsa_data:
+                    if auth_share_samhsa_data == 'True':
+                        auth_flow_uuid.auth_share_samhsa_data = True
+                    elif auth_share_samhsa_data == 'False':
+                        auth_flow_uuid.auth_share_samhsa_data = False
                 auth_flow_uuid.save()
     except AuthFlowUuid.DoesNotExist:
         pass

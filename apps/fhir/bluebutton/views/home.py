@@ -1,19 +1,18 @@
 import json
 import logging
-
 from collections import OrderedDict
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
+
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
-from urllib.parse import urlparse
+
+from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.fhir.bluebutton.utils import build_oauth_resource, get_response_text, prepend_q, request_call
 
 # from oauth2_provider.compat import urlparse
 from apps.fhir.constants import ALLOWED_RESOURCE_TYPES
-from apps.fhir.bluebutton.utils import request_call, prepend_q, get_response_text, build_oauth_resource
 from apps.fhir.server.settings import fhir_settings
-from apps.versions import Versions, VersionNotMatched
-
-from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.versions import VersionNotMatched, Versions
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 

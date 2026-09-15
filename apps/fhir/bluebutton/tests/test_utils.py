@@ -16,7 +16,7 @@ from voluptuous import (
 )
 
 from apps.accounts.models import UserProfile
-from apps.constants import OPERATION_OUTCOME, USER_TYPE_DEV
+from apps.constants import OPERATION_OUTCOME, SAMPLE_CAN_USER_FHIR_ID_V3, USER_TYPE_DEV
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
@@ -619,7 +619,7 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         patient = bundle.entry[1].resource
 
         result = extract_fhir_id_from_patient(patient)
-        assert result == '-502120048'
+        assert result == SAMPLE_CAN_USER_FHIR_ID_V3
 
     def test_extract_fhir_id_unsuccessful(self):
         """
@@ -638,7 +638,7 @@ class ExtractFHIRIdTestCase(BaseApiTest):
         ('_source=NCH', True, 'DDPS'),
         ('_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory', True, 'DDPS'),
         ('_source=NCH&_tag=https://bluebutton.cms.gov/fhir/CodeSystem/System-Type|NationalClaimsHistory', True, 'DDPS'),
-        ('', False, 'NCH'),
+        ('', False, 'NCH,DDPS'),
         ('_source=NCH', False, None),
     ],
 )

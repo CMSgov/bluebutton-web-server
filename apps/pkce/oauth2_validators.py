@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.utils.timezone import timedelta
-
 from oauth2_provider.models import get_grant_model
 from oauth2_provider.settings import oauth2_settings
+
 from apps.pkce.models import CodeChallenge
 
 Grant = get_grant_model()

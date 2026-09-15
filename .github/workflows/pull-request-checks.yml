@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install python dependencies
         run: |
@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install python dependencies
         run: |
@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup AWS credentials
         uses: ./.github/actions/setup-tofu
@@ -74,10 +74,15 @@ jobs:
           cd ./ops/containers/bb-api
           make build-codebuild
 
+      - name: Build MSLSX
+        run: |
+          cd ./ops/containers/mslsx
+          make build-local
+
       - name: Start Stack
         run: |
           cd ./ops/containers/bb-api
-          make run-codebuild
+          make run-codebuild-mock
 
       - name: Execute Integration Tests
         run: |
@@ -91,6 +96,7 @@ jobs:
           make teardown-codebuild
 
   selenium-tests:
+    needs: [ruff, unit-tests]
     env:
       AWS_REGION: us-east-1
 
@@ -103,7 +109,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup AWS credentials
         uses: ./.github/actions/setup-tofu

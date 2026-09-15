@@ -709,7 +709,9 @@ def _apply_pr_exceptions(text: str) -> str:
     # Reorder Station lines to be ABOVE delivery lines
     if len(postal_lines) > 1:
         for i in range(len(postal_lines) - 1):
-            if 'PO BOX' in postal_lines[i].upper() and any(k in postal_lines[i + 1].upper() for k in ('STA', 'STATION')):
+            if 'PO BOX' in postal_lines[i].upper() and any(
+                k in postal_lines[i + 1].upper() for k in ('STA', 'STATION')
+            ):
                 postal_lines[i], postal_lines[i + 1] = (
                     postal_lines[i + 1],
                     postal_lines[i],

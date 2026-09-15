@@ -6,14 +6,14 @@ Created: 10/20/16 11:24 PM
 File created by: 'Mark Scrimshire: @ekivemark'
 """
 
+import json
+
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
-import json
+
 from apps.logging.sensitive_logging_filters import mask_mbi
-
-
-from hhs_oauth_server.utils import bool_env, TRUE_LIST, FALSE_LIST, int_env
+from hhs_oauth_server.utils import FALSE_LIST, TRUE_LIST, bool_env, int_env
 
 
 class Check_BooleanVariable_Test(TestCase):
@@ -53,7 +53,12 @@ class MBI_tests(TestCase):
     def test_mbi_match_dict(self):
         valid_mbi = '1EG4-TE5-MK74'
 
-        my_dict = {'key1': valid_mbi, 'key2': {'key4': valid_mbi}, 'key3': (valid_mbi, valid_mbi), 'key5': [valid_mbi, valid_mbi]}
+        my_dict = {
+            'key1': valid_mbi,
+            'key2': {'key4': valid_mbi},
+            'key3': (valid_mbi, valid_mbi),
+            'key5': [valid_mbi, valid_mbi],
+        }
 
         masked_mbi_dict = mask_mbi(my_dict)
         masked_mbi_string = str(masked_mbi_dict)

@@ -1,9 +1,10 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-from django.contrib.auth.models import User
 from django.urls import reverse
 from waffle.testutils import override_switch
-from ..models import UserProfile
+
+from apps.accounts.models import UserProfile
 from apps.constants import USER_TYPE_DEV
 
 

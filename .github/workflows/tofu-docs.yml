@@ -1,0 +1,30 @@
+name: Generate terraform docs
+on:
+  pull_request:
+    paths:
+      - 'ops/services/**'
+      - 'ops/modules/**'
+      - '.github/workflows/tofu-docs.yml'
+      - '.terraform-docs.yml'
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Render terraform docs
+      uses: terraform-docs/gh-actions@v1
+      with:
+        working-dir: ops/services/00-bootstrap,ops/services/01-config,ops/services/10-cluster,ops/services/20-microservices,ops/services/30-monitors,ops/services/40-dashboards
+        config-file: ".terraform-docs.yml"
+        template: "" # defined in config file
+        output-file: README.md
+        output-method: "" # defined in config file
+        fail-on-diff: false
+
+    # Use a separate diff step rather than the option above so that we can
+    # ignore lines that seem to be different between versions of terraform-docs.
+    # Once the GitHub Action is updated to the latest version, we can remove this
+    # step and use the option above.
+    - run: 'git diff --exit-code --ignore-matching-lines="^[: \|\-]+$"'
