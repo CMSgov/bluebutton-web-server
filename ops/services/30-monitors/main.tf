@@ -140,7 +140,13 @@ locals {
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High"
       type    = "metric alert"
-      message = "Service ${local.app} has high error rate."
+      message = <<-EOT
+      Service ${local.app} has high error rate.
+
+      [Captured spans](https://app.ddog-gov.com/apm/traces?query=${urlencode("service:${local.app} status:error")}&start={{eval "last_triggered_at_epoch-60*60*1000"}}&end={{last_triggered_at_epoch}}&paused=true)
+
+      EOT
+
       # TODO what evaluation window?
       query = "sum(last_1h):sum:trace.django.request.errors{env:${local.env},service:${local.app},span.kind:server}.as_count() / sum:trace.django.request.hits{env:${local.env},service:${local.app},span.kind:server}.as_count() > ${local.env == "sandbox" ? 0.03 : 0.02}"
 
@@ -159,8 +165,14 @@ locals {
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High (trace.postgres.query)"
       type    = "metric alert"
-      message = "Service {{peer.db.name}} has high error rate."
-      query   = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() > 0.02"
+      message = <<-EOT
+      Service {{peer.db.name}} has high error rate.
+
+      [Captured spans](https://app.ddog-gov.com/apm/traces?query=${urlencode("service:${local.app} status:error operation_name:postgres.query")}&start={{eval "last_triggered_at_epoch-60*60*1000"}}&end={{last_triggered_at_epoch}}&paused=true)
+
+      EOT
+
+      query = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() > 0.02"
 
       thresholds = {
         critical = 0.02
