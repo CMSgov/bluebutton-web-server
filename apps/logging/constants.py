@@ -917,6 +917,8 @@ APP_LEVEL_METRICS = [
     'app_fhir_v3_coverage_since_call_synthetic_count',
     'app_fhir_v3_generate_insurance_card_call_real_count',
     'app_fhir_v3_generate_insurance_card_call_synthetic_count',
+    'app_fhir_v3_eob_shared_systems_call_real_count',
+    'app_fhir_v3_eob_shared_systems_call_synthetic_count',
     'app_auth_ok_real_bene_count',
     'app_auth_ok_synthetic_bene_count',
     'app_auth_fail_or_deny_real_bene_count',
@@ -963,6 +965,10 @@ APP_LEVEL_METRICS = [
     'app_sdk_requests_node_count',
     'app_access_grant_enabled',
     'app_access_grant_category',
+    'app_successful_client_credentials_call',
+    'app_unsuccessful_client_credentials_call',
+    'app_successful_patient_match_call',
+    'app_unsuccessful_patient_match_call',
 ]
 
 GLOBAL_METRICS = [
@@ -980,6 +986,8 @@ GLOBAL_METRICS = [
     'fhir_v3_coverage_call_real_count',
     'fhir_v3_patient_call_real_count',
     'fhir_v3_generate_insurance_card_call_real_count',
+    'fhir_v3_eob_shared_systems_call_real_count',
+    'fhir_v3_eob_shared_systems_call_synthetic_count',
     'fhir_v1_call_synthetic_count',
     'fhir_v1_eob_call_synthetic_count',
     'fhir_v1_coverage_call_synthetic_count',
@@ -1007,6 +1015,10 @@ GLOBAL_METRICS = [
     'app_active_bene_cnt_gt25',
     'app_active_bene_cnt_le25',
     'app_all',
+    'successful_client_credentials_call_count',
+    'unsuccessful_client_credentials_call_count',
+    'successful_patient_match_call_count',
+    'unsuccessful_patient_match_call_count',
 ]
 
 APP_NAMES_TO_IGNORE = [
@@ -1015,4 +1027,5 @@ APP_NAMES_TO_IGNORE = [
     'MyMedicare PROD',
     'new-relic',
     'testing scopes fun',
+    'datadog',
 ]

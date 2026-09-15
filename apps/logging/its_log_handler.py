@@ -27,6 +27,12 @@ ACCEPTED_LOG_KEYS = [
     'auth_crosswalk_action',
     'crosswalk_fhir_id',
     'auth_path',
+    'patient_match_found',
+    'csp',
+    'patient',
+    'req_qparam_lastupdated',
+    'req_qparam__source',
+    'req_qparam__tag',
     # 'auth_app_id',
     # 'auth_app_name',
 ]
