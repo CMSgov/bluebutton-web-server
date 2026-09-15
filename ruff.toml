@@ -17,6 +17,12 @@ indent-width = 4
 # Python 3.12
 target-version = "py312"
 
+# Force Ruff to always display a standard, line-by-line detailed list
+output-format = "full"
+
+# Always output exactly which violations were fixed
+show-fixes = true
+
 [lint]
 # These are recommended by Ruff documentation: https://docs.astral.sh/ruff/linter/
 # TODO: Consider adding more rulesets in the future.
@@ -36,10 +42,14 @@ ignore = [
           "E501" # Line too long, handled by formatter
           ]
 
-# Allow fix for all enabled rules (when `--fix`) is provided.
-fixable = ["ALL"]
-# Do not automatically fix unsafe fixes
-unfixable = []
+# Explicitly automatically allow only these safe, structural fixes when using --fix flag
+fixable = [
+           "I",    # Sort imports
+           "F401", # Remove unused imports
+           "F541", # Remove useless f-string prefixes
+          ]
+# Block all other auto-fixes as a strict safety fallback
+unfixable = ["ALL"]
 
 [format]
 quote-style = "single"
