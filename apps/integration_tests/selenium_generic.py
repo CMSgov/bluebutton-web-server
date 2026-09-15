@@ -19,6 +19,8 @@ from apps.integration_tests.common_utils import (
     log_step,
 )
 from apps.integration_tests.constants import (
+    ACA_TOKEN_NAME,
+    ACA_TOKEN_VALUE,
     ES_ES,
     MSLSX_BTN_SUBMIT,
     MSLSX_TXT_FLD_HICN,
@@ -37,7 +39,20 @@ from apps.integration_tests.constants import (
 )
 
 LOG_FILE = './docker-compose/tmp/bb2_email_to_stdout.log'
-EN_MONTH_ABBR = ['Jan.', 'Feb.', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
+EN_MONTH_ABBR = [
+    'Jan.',
+    'Feb.',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'Aug.',
+    'Sept.',
+    'Oct.',
+    'Nov.',
+    'Dec.',
+]
 ES_MONTH_NAME = [
     'enero',
     'febrero',
@@ -129,6 +144,7 @@ class SeleniumGenericTests:
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,
             Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param,
+            Action.CHECK_ACCESS_DENIED_ERROR: self._check_access_denied_error,
         }
 
     def teardown_method(self, method):
@@ -188,7 +204,10 @@ class SeleniumGenericTests:
             TimeoutException: If the element is not found within the specified timeout.
             Exception: For any other unexpected errors during the element search.
         """
-        log_step(f"Looking for element to CLICK: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
+        log_step(
+            f"Looking for element to CLICK: {by}='{by_expr}' (timeout: {timeout_sec}s)",
+            'INFO',
+        )
 
         try:
             elem = WebDriverWait(self.driver, timeout_sec).until(EC.element_to_be_clickable((by, by_expr)))
@@ -205,7 +224,10 @@ class SeleniumGenericTests:
             # this we will allow a TimeoutException to be raised without failing the test if the element we are trying to
             # click is the Medicare login button
             if by_expr == X_PATH_FOR_MEDICARE_LOGIN:
-                log_step('Element not found but expected for Medicare login, skipping click', 'WARNING')
+                log_step(
+                    'Element not found but expected for Medicare login, skipping click',
+                    'WARNING',
+                )
                 return
 
             log_step('TIMEOUT waiting for clickable element', 'ERROR')
@@ -246,7 +268,10 @@ class SeleniumGenericTests:
             TimeoutException: If the element is not found within the specified timeout.
             Exception: For any other unexpected errors during the element search.
         """
-        log_step(f"Looking for element to SEND KEYS: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
+        log_step(
+            f"Looking for element to SEND KEYS: {by}='{by_expr}' (timeout: {timeout_sec}s)",
+            'INFO',
+        )
         print(f"    Keys to send: '{txt}'")
 
         try:
@@ -257,7 +282,10 @@ class SeleniumGenericTests:
             elem_tag = elem.tag_name
             elem_type = elem.get_attribute('type') or 'text'
             elem_name = elem.get_attribute('name') or elem.get_attribute('id') or '(no name)'
-            log_step(f"Element found: <{elem_tag}> type='{elem_type}' name='{elem_name}'", 'SUCCESS')
+            log_step(
+                f"Element found: <{elem_tag}> type='{elem_type}' name='{elem_name}'",
+                'SUCCESS',
+            )
             elem.send_keys(txt)
             log_step('Keys sent successfully', 'SUCCESS')
             return elem
@@ -322,7 +350,15 @@ class SeleniumGenericTests:
             self.driver.get(url)
             log_step(f'Page loaded: {self.driver.title}', 'SUCCESS')
 
-    def _check_page_title(self, timeout_sec: int, by: By, by_expr: str, fmt: str, resource_type: str, **kwargs) -> None:
+    def _check_page_title(
+        self,
+        timeout_sec: int,
+        by: By,
+        by_expr: str,
+        fmt: str,
+        resource_type: str,
+        **kwargs,
+    ) -> None:
         """
         Check that the page title matches the expected format.
 
@@ -368,7 +404,13 @@ class SeleniumGenericTests:
             assert not ('code_challenge' in elem.text or 'code_challenge_method' in elem.text)
 
     def _check_page_content(
-        self, timeout_sec: int, by: By, by_expr: str, content_txt: str, should_exist: bool = True, **kwargs
+        self,
+        timeout_sec: int,
+        by: By,
+        by_expr: str,
+        content_txt: str,
+        should_exist: bool = True,
+        **kwargs,
     ) -> None:
         """
         Check if the specified content text is present or absent in the page content.
@@ -530,7 +572,11 @@ class SeleniumGenericTests:
         print('\n******************************************************************')
         print(
             TESTCASE_BANNER_FMT.format(
-                'START' if start else 'END', test_name, api_ver, step_0, 'Mock SLS' if id_service == 'true' else 'SLSX'
+                'START' if start else 'END',
+                test_name,
+                api_ver,
+                step_0,
+                'Mock SLS' if id_service == 'true' else 'SLSX',
             )
         )
         print(f'** Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
@@ -655,3 +701,39 @@ class SeleniumGenericTests:
             },
             WAIT_SECONDS,
         ]
+
+    def _add_cookie(self, name: str, value: str, **kwargs) -> None:
+        """
+        Add a cookie to the current session.
+
+        Args:
+            name (str): The name of the cookie.
+            value (str): The value of the cookie.
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None.
+        """
+        self.driver.add_cookie({'name': name, 'value': value})
+        self.driver.refresh()
+
+    def _check_access_denied_error(self, **kwargs) -> None:
+        """
+        Check if the access denied error is present and add a cookie to get past it if it is present
+
+        Args:
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None.
+        """
+        elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Access Denied')]")
+
+        if len(elements) > 0:
+            log_step('Access Denied error found. Adding ACA Token for environment.', 'INFO')
+            self._add_cookie(ACA_TOKEN_NAME, ACA_TOKEN_VALUE)
+            log_step('Adding cookie completed', 'SUCCESS')
+        else:
+            log_step('No ACA Token needed to add. Moving on to next sequence.', 'INFO')
