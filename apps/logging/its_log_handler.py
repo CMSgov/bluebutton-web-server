@@ -4,8 +4,15 @@ import threading
 from typing import Any, Dict
 
 import requests
+from waffle import switch_is_active
 
-TYPES_TO_SKIP = ['fhir_post_fetch', 'fhir_pre_fetch', 'fhir_auth_post_fetch']
+TYPES_TO_SKIP = [
+    'fhir_post_fetch',
+    'fhir_pre_fetch',
+    'fhir_auth_post_fetch',
+    'global_state_metrics',
+    'global_state_metrics_per_app',
+]
 # Other possibilities:
 # auth_app_data_access_type, auth_app_id, path, req_grant_Type,
 ACCEPTED_LOG_KEYS = [
@@ -17,6 +24,7 @@ ACCEPTED_LOG_KEYS = [
     'fhir_id_v3',
     'allow',
     'auth_status',
+    'req_grant_type',
     'auth_require_demographic_scopes',
     'share_demographic_scopes',
     'path',
@@ -51,18 +59,19 @@ class ITSLogAPIHandler(logging.Handler):
     API_KEY = '1234567890123456123456789012345612345678901234561234567890123456'
 
     def emit(self, record):
-        print('record check: ', record)
-        log_message = self.parse_log_message(record.__dict__)
-        if log_message.get('type') in TYPES_TO_SKIP or 'testclient' in log_message.get('path', ''):
-            return
+        if switch_is_active('its_log_integration'):
+            log_message = self.parse_log_message(record.__dict__)
+            if log_message.get('type') in TYPES_TO_SKIP or 'testclient' in log_message.get('path', ''):
+                return
 
-        updated_log_message = self._format_log_message(log_message)
-        if not updated_log_message:
-            return
-        payload = self._build_payload(updated_log_message)
-        print('payload: ', payload)
+            updated_log_message = self._format_log_message(log_message)
+            if not updated_log_message:
+                return
+            payload = self._build_payload(updated_log_message)
 
-        threading.Thread(target=self._post_to_api, args=(payload,), daemon=True).start()
+            threading.Thread(target=self._post_to_api, args=(payload,), daemon=True).start()
+        else:
+            return
 
     def parse_log_message(self, record):
         msg = record.get('msg', '')
@@ -79,10 +88,7 @@ class ITSLogAPIHandler(logging.Handler):
 
     def _build_payload(self, log_message) -> Dict[str, Any]:
         tags = []
-        print('LOG MESSAGE: ', log_message)
         filtered_log = {k: v for k, v in log_message.items() if k in ACCEPTED_LOG_KEYS}
-
-        print('filtered_log: ', filtered_log)
 
         return {
             'tags': tags,

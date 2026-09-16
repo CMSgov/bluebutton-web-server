@@ -477,13 +477,6 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def log_message(request, response):
-        if request.user:
-            print('we are in log_message of hhs_oauth_server request check: ', request.__dict__)
-            print('we are in log_message of hhs_oauth_server user check: ', request.user.__dict__)
-        if request.auser:
-            print('we are in log_message of hhs_oauth_server auser check: ', request.auser.__dict__)
-        if request._logger:
-            print('we are in log_message of hhs_oauth_server logger check: ', request._logger.__dict__)
         audit.info(RequestResponseLog(request, response).to_dict())
         request._logging_pass += 1
 

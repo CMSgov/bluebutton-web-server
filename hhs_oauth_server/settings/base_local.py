@@ -250,7 +250,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'tests': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'audit': {

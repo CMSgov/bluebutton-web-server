@@ -30,5 +30,5 @@ class Command(BaseCommand):
 
         report_flag = False if options.get('no_report', None) else True
         its_log_flag = False if options.get('post_to_its_log', None) else True
-        print('its_log_flag: ', its_log_flag)
+
         log_global_state_metrics(group_timestamp, report_flag, its_log_flag)

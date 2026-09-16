@@ -31,7 +31,6 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     For use in apps/logging/management/commands/log_global_metrics.py management command
     NOTE:  print statements are for output when run via Jenkins
     """
-    print('its_log_flag: ', its_log_flag)
     if report_flag:
         print('---')
         print('---RUNNING DJANGO COMMAND:  log_global_state_metrics')
@@ -241,14 +240,14 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     }
 
     logger.info(log_dict)
-
+    print('ITS LOG FLASG CHECL: ', its_log_flag)
     if its_log_flag:
         for metric in GLOBAL_METRICS:
             ping_api([], '0', metric, prior_day)
 
         for key in log_dict.keys():
             val_to_post = log_dict[key]
-            print('global key/val: ', key, val_to_post)
+
             if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
                 val_to_post = str(val_to_post)
             # ping_api([key], val_to_post, 'global')
@@ -331,7 +330,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             active_apps += 1
 
         logger.info(log_dict, cls=DjangoJSONEncoder)
-        print('app name: ', app.name)
+        print('ITS LOG FLAG: ', its_log_flag)
         if its_log_flag and app.name not in APP_NAMES_TO_IGNORE:
             # post all metrics for all apps to ensure we have data populated for each app, each day
             for metric in APP_LEVEL_METRICS:
@@ -366,15 +365,6 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
 
 
 def ping_api(tags, value, operation, date):
-    test = {
-        'tags': tags,
-        'count': 1,
-        'value': value,
-        'operation': operation,
-        # TODO: Revert
-        'date': '2026-04-29',
-    }
-    print('posting: ', test)
     try:
         result = requests.post(
             'http://host.docker.internal:8888/v1/summary/create',
@@ -385,15 +375,12 @@ def ping_api(tags, value, operation, date):
                 'value': value,
                 'operation': operation,
                 # TODO: Revert
-                'date': '2026-04-29',
+                'date': '2026-09-16',
             },
             timeout=2,
         )
-        print('its-log -result: ', result.json())
-        print('its-log -result2: ', result)
         return result
-    except Exception as e:
-        print('ERROR FROM ITS-LOG middleware 1217: ', e, type(e))
+    except Exception:
         pass  # Never let logging failures crash your app
 
 
@@ -411,6 +398,5 @@ def ping_events_api(tags, value, cluster):
             timeout=2,
         )
         return result
-    except Exception as e:
-        print('ERROR FROM ITS-LOG middleware 1217: ', e, type(e))
+    except Exception:
         pass  # Never let logging failures crash your app

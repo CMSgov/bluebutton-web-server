@@ -469,6 +469,10 @@ LOGGING = env(
             },
         },
         'handlers': {
+            'its_log_api': {
+                '()': 'apps.logging.its_log_handler.ITSLogAPIHandler',
+                'level': 'INFO',
+            },
             'console': {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
@@ -525,39 +529,39 @@ LOGGING = env(
         },
         'loggers': {
             'hhs_server': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_oauth_server.accounts': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_debug': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_server_error': {
-                'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
                 'level': 'ERROR',
             },
             'unsuccessful_logins': {
-                'handlers': ['wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
+                'handlers': ['its_log_api', 'wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
                 'level': 'INFO',
             },
             'admin_interface': {
-                'handlers': ['wt_adminuse', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_adminuse', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_info': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauth2_provider': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauthlib': {
-                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'tests': {
@@ -565,16 +569,20 @@ LOGGING = env(
                 'level': 'DEBUG',
             },
             'audit': {
-                'handlers': ['wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'performance': {
-                'handlers': ['wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'ddtrace': {
                 'handlers': ['console'],
                 'level': 'WARNING',
+            },
+            'apps.logging': {
+                'handlers': ['its_log_api'],
+                'level': 'INFO',
             },
         },
     },
