@@ -267,4 +267,4 @@ Same as unit tests
 
 ### selenium testing
 
-For this, check the README in ops/containers/selenium
+For this, check the README in ops/containers/selenium [here](https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/containers/selenium/README.md)
