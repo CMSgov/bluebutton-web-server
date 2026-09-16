@@ -4,11 +4,22 @@
 #
 # NOTE:
 #
-#   1. You must be logged in to AWS CLI.
+#   1. You must be logged in to AWS CLI (through 'kion s' in the command line)
 #
 #   2. You must also be connected to the VPN.
 #
 # SETTINGS:  You may need to customize these for your local setup.
+
+check_if_aws_credentials_are_active () {
+    # 🔐 Check if AWS credentials are active
+    if ! aws sts get-caller-identity > /dev/null 2>&1; then
+        echo "=========================================================="
+        echo "❌ ERROR: AWS Authentication Failed!"
+        echo "👉 Please log into your Kion shell before running this script."
+        echo "=========================================================="
+        exit 1
+    fi
+}
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
@@ -93,10 +104,14 @@ then
             export HOSTNAME_URL="https://api.bluebutton.cms.gov/"
             ;;
         TEST)
+            check_if_aws_credentials_are_active
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
             if [[ -z "${USE_LOGIN_WITH_MEDICARE_BUTTON}" ]]; then
                 export USE_LOGIN_WITH_MEDICARE_BUTTON=true
             fi
+            # These env vars are to fix the access denied error we've been getting (only on TEST currently)
+            export ACA_TOKEN_NAME=$(aws secretsmanager get-secret-value --secret-id  /selenium/test/aca_token_cookie_name --query 'SecretString' --output text)
+            export ACA_TOKEN_VALUE=$(aws secretsmanager get-secret-value --secret-id /selenium/test/aca_token_cookie_value --query 'SecretString' --output text)
             ;;
         *)
             if [[ ${last_arg} == 'http'* ]]
