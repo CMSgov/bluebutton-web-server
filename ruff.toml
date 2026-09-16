@@ -39,17 +39,18 @@ ignore = [
           "E501" # Line too long, handled by formatter
           ]
 
-# Explicitly automatically allow only these safe, structural fixes when using --fix flag
+# Explicitly automatically allow only these safe, structural fixes when using --fix flag from pre-commit.
+# These were chosen as a result of BB2-4744. For more information on why each was chosen,
+# got to https://confluence.cms.gov/spaces/BB2/pages/1708788696/BB2-4744+Investigate+Ruff+--fix+arg
 fixable = [
-           "I",     # Sort imports
-           "E401",  # Split multiple imports on one line into separate lines
+           "I",     # Sort imports, takes care of I001 and I002
            "E713",  # Safe rewrite: 'not x in y' -> 'x not in y'
            "E714",  # Safe rewrite: 'not x is y' -> 'x is not y'
            "F401",  # Remove unused imports
            "F504",  # Clear harmless printf-style (%) extra named arguments
            "F522",  # Clear harmless extra .format() named arguments 
            "F523",  # Clear harmless extra .format() positional arguments 
-           "F541",   # Remove useless f-string prefixes
+           "F541",  # Remove useless f-string prefixes
            "F811",  # Safely clean out dead duplicate declarations
            "F901",  # Automatically correct raise NotImplemented errors
            "W605",  # Convert invalid escape strings to raw/double-escaped strings
