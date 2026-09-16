@@ -51,7 +51,6 @@ fixable = [
            "F522",  # Clear harmless extra .format() named arguments 
            "F523",  # Clear harmless extra .format() positional arguments 
            "F541",  # Remove useless f-string prefixes
-           "F811",  # Safely clean out dead duplicate declarations
            "F901",  # Automatically correct raise NotImplemented errors
            "W605",  # Convert invalid escape strings to raw/double-escaped strings
            "RUF100" # Clear out stale, unused # noqa statements safely   
