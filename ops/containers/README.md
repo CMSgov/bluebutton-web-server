@@ -250,6 +250,9 @@ Note that if the test is not within a class, you can just use ::test_name
 You'll need to exec into your running instance of bb-api to do this
 
 1. Exec into bb-api
+  * `docker exec -it containers-bb-api-1 bash`
+    * If that is not your container name, you can check whatit is while it is up via `docker stats`
+  * Or you can 'exec' via the Terminal tab in Podman Desktop
 2. Run `pytest -m 'integration'` or `make integration-test`
 
 If you want to run the CAN integration test, you will need to make sure that you run `make run-local CAN_INTEGRATION_TEST=true` when starting the container. This will run a selenium container since that is required in order to run the CAN integration test. You can then exec into bb-api and run `pytest apps/fhir/bluebutton/tests/test_CAN_integration.py` to run that specific test on its own or `make integration-test` to run all the integration tests.
@@ -264,4 +267,4 @@ Same as unit tests
 
 ### selenium testing
 
-For this, check the selenium/ subfolder
+For this, check the README in ops/containers/selenium
