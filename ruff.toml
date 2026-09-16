@@ -17,9 +17,6 @@ indent-width = 4
 # Python 3.12
 target-version = "py312"
 
-# Force Ruff to always display a standard, line-by-line detailed list
-output-format = "full"
-
 # Always output exactly which violations were fixed
 show-fixes = true
 
@@ -44,9 +41,19 @@ ignore = [
 
 # Explicitly automatically allow only these safe, structural fixes when using --fix flag
 fixable = [
-           "I",    # Sort imports
-           "F401", # Remove unused imports
-           "F541", # Remove useless f-string prefixes
+           "I",     # Sort imports
+           "E401",  # Split multiple imports on one line into separate lines
+           "E713",  # Safe rewrite: 'not x in y' -> 'x not in y'
+           "E714",  # Safe rewrite: 'not x is y' -> 'x is not y'
+           "F401",  # Remove unused imports
+           "F504",  # Clear harmless printf-style (%) extra named arguments
+           "F522",  # Clear harmless extra .format() named arguments 
+           "F523",  # Clear harmless extra .format() positional arguments 
+           "F541"   # Remove useless f-string prefixes
+           "F811",  # Safely clean out dead duplicate declarations
+           "F901",  # Automatically correct raise NotImplemented errors
+           "W605",  # Convert invalid escape strings to raw/double-escaped strings
+           "RUF100" # Clear out stale, unused # noqa statements safely   
           ]
 # Block all other auto-fixes as a strict safety fallback
 unfixable = ["ALL"]
