@@ -33,6 +33,7 @@ select = [
           ]
 ignore = [
           "W191", # Tab indentation, handled by formatter
+          "W293", # Blank line contains whitespace, handled by formatter
           "E111", # Indentation with invalid multiple, handled by formatter
           "E114", # Indentation with invalid multiple, in comments handled by formatter
           "E117", # Over-indented code, handled by formatter
