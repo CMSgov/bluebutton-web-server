@@ -17,6 +17,9 @@ indent-width = 4
 # Python 3.12
 target-version = "py312"
 
+# Always output exactly which violations were fixed
+show-fixes = true
+
 [lint]
 # These are recommended by Ruff documentation: https://docs.astral.sh/ruff/linter/
 # TODO: Consider adding more rulesets in the future.
@@ -30,16 +33,31 @@ select = [
           ]
 ignore = [
           "W191", # Tab indentation, handled by formatter
+          "W293", # Blank line contains whitespace, handled by formatter
           "E111", # Indentation with invalid multiple, handled by formatter
           "E114", # Indentation with invalid multiple, in comments handled by formatter
           "E117", # Over-indented code, handled by formatter
           "E501" # Line too long, handled by formatter
           ]
 
-# Allow fix for all enabled rules (when `--fix`) is provided.
-fixable = ["ALL"]
-# Do not automatically fix unsafe fixes
-unfixable = []
+# Explicitly automatically allow only these safe, structural fixes when using --fix flag from pre-commit.
+# These were chosen as a result of BB2-4744. For more information on why each was chosen,
+# got to https://confluence.cms.gov/spaces/BB2/pages/1708788696/BB2-4744+Investigate+Ruff+--fix+arg
+fixable = [
+           "I",     # Sort imports, takes care of I001 and I002
+           "E713",  # Safe rewrite: 'not x in y' -> 'x not in y'
+           "E714",  # Safe rewrite: 'not x is y' -> 'x is not y'
+           "F401",  # Remove unused imports
+           "F504",  # Clear harmless printf-style (%) extra named arguments
+           "F522",  # Clear harmless extra .format() named arguments 
+           "F523",  # Clear harmless extra .format() positional arguments 
+           "F541",  # Remove useless f-string prefixes
+           "F901",  # Automatically correct raise NotImplemented errors
+           "W605",  # Convert invalid escape strings to raw/double-escaped strings
+           "RUF100" # Clear out stale, unused # noqa statements safely   
+          ]
+# Block all other auto-fixes as a strict safety fallback
+unfixable = ["ALL"]
 
 [format]
 quote-style = "single"
