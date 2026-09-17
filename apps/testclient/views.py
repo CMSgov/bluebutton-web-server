@@ -2,12 +2,13 @@ import json
 import logging
 import re
 from collections import namedtuple
+from http import HTTPStatus
 from json import JSONDecodeError
 from typing import Dict
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
@@ -231,7 +232,6 @@ def callback(request: HttpRequest):
         logger.error(str(err))
         return ResponseErrors.Error(err.error if err else 'An unknown error occured')
 
-
     # If we cannot find a patient id in the tokent, return an error.
     # If we find a non-synthetic id, return an error.
     # Otherwise, continue.
@@ -432,8 +432,16 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         return _link_session_or_version_is_bad(request.session, version)
 
     params = FhirDataParams(EndpointUrl.explanation_of_benefit, request.session['resource_uri'], version, None)
-
-    eob = _get_fhir_data_as_json(request, params)
+    try:
+        eob = _get_fhir_data_as_json(request, params)
+    except ValueError as err:
+        return JsonResponse(
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'Bad request - ' + str(err),
+            },
+            status=HTTPStatus.BAD_REQUEST,
+        )
 
     nav_info, last_link = extract_page_nav(eob)
 
