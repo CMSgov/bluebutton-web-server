@@ -435,10 +435,11 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     try:
         eob = _get_fhir_data_as_json(request, params)
     except ValueError as err:
+        logger.error(f'Error on EOB call - {err}')
         return JsonResponse(
             {
                 'status_code': HTTPStatus.BAD_REQUEST,
-                'message': 'Bad request - ' + str(err),
+                'message': 'Bad request',
             },
             status=HTTPStatus.BAD_REQUEST,
         )
