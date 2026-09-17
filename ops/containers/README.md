@@ -153,7 +153,8 @@ We have access to `/tmp` locally and in production. That space is used for writi
 
 ## testing
 
-Ensure you have your launch.json updated to the following:
+Ensure you have your launch.json within the .vscode folder at the project's root directory updated to the following:
+  * Create a launch.json if it is not there
 
 ```bash
 	{
@@ -226,6 +227,8 @@ Unit testing needs to be ran outside of the container, otherwise you run into is
 Setup your local venv (or whatever flavor of local python environment) and install the dev dependencies
 
 1. Activate your environment
+    * `python -m venv venv` (or if using uv `uv venv --python 3.12`)
+    * `source venv/bin/activate`
 2. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
 3. Run `pytest -m 'not integration'` or `make unit-test`
 
@@ -251,7 +254,7 @@ You'll need to exec into your running instance of bb-api to do this
 
 1. Exec into bb-api
   * `docker exec -it containers-bb-api-1 bash`
-    * If that is not your container name, you can check whatit is while it is up via `docker stats`
+    * If that is not your container name, you can check what it is while it is up via `docker stats`
   * Or you can 'exec' via the Terminal tab in Podman Desktop
 2. Run `pytest -m 'integration'` or `make integration-test`
 
