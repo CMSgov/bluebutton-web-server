@@ -32,6 +32,46 @@ When we have confidence that our local is "the same" as production, then we have
 
 To run the local stack, we need to follow a sequence of steps. In production, we have CI/CD. Locally, we have Makefiles. (We could replace these with `act`, but even then, we would be encoding the same steps as the makefiles.)
 
+## Configuring your dev environment
+
+First, download the ruff extension from VS Code extensions.
+
+You will also set up ruff as a pre-commit hook. If you already have a venv, you can skip this step since our dev dependencies have pre-commit inside them already.
+
+| Pre-Commit Commands|
+| ------ |
+```
+python -m venv venv
+source .venv/bin/activate # May be without the .
+pip install -r requirements/requirements.dev.txt
+```
+Now install the hook:
+| Install Git Hook |
+| ------ |
+```
+# Install the git hook
+pre-commit install
+```
+
+Now, whenever you try to commit to the repo, you will be prevented from committing if you have ruff errors!
+
+To automatically format your files on save (highly recommended), do the following:
+
+* Press Cmd + Shft + P
+* Type Open User Settings  and select it
+* Add the following to your VS Code User Settings file:
+```json
+{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  }
+}
+```
+
 ## build the containers and assets
 
 The first `make` command is a sequence unto itself.
