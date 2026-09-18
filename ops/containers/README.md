@@ -2,20 +2,6 @@
 
 The `/ops/container` subtree contains specs for all of Blue Buttons containers. This includes containers that are intended to run in production as well as containerized apps and processes that run local-only.
 
-## tl;dr: local
-
-```bash
-make build-local
-```
-
-will build all containers needed to stand up Blue Button locally.
-
-```bash
-make run-local
-```
-
-will run the stack.
-
 ## local
 
 Our goal should be for the local application and the production application to be *as similar as possible*. This lets developers be confident that code they develop will behave the same locally as well as in production. 
@@ -112,12 +98,6 @@ Next, you run the stack. You need to be in an active Kion session for this to wo
 kion s # You will need this to grab the credentials from AWS
 
 cd ./ops/containers  # or run from project root, the Makefile there references the one in ops/containers
-
-make build-local
-
-make migrate
-
-make collectstatic
 
 make run-local bfd=sbx auth=live # OR the one below
 
