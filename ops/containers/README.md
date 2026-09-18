@@ -14,11 +14,7 @@ We can do a few things to try and achieve this:
 
 When we have confidence that our local is "the same" as production, then we have more confidence in the code we write and ship, letting us move faster.
 
-## sequence
-
-To run the local stack, we need to follow a sequence of steps. In production, we have CI/CD. Locally, we have Makefiles. (We could replace these with `act`, but even then, we would be encoding the same steps as the makefiles.)
-
-## Configuring your dev environment
+## configuring your dev environment
 
 First, download the ruff extension from VS Code extensions.
 
@@ -87,6 +83,10 @@ make collectstatic
 ```
 
 ## run the stack
+
+### sequence
+
+To run the local stack, we need to follow a sequence of steps. In production, we have CI/CD. Locally, we have Makefiles. (We could replace these with `act`, but even then, we would be encoding the same steps as the makefiles.)
 
 Next, you run the stack. You need to be in an active Kion session for this to work.
 
