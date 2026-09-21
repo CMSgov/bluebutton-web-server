@@ -1,5 +1,5 @@
 import json
-import os
+from http import HTTPStatus
 from typing import List
 
 import pytest
@@ -69,10 +69,10 @@ class TestPaginationURIs(TestCase):
         setattr(req, 'GET', {})
         try:
             _build_pagination_uri(uri_base, params, req)
-        except ValueError:
+        except ValueError as err:
             # Because no 'patient' or 'beneficiary' was found in the GET params,
             # _build_pagination_uri will fail.
-            pass
+            assert str(err) == 'Failed to set a patient id or beneficiary id on the pagination URI'
 
     def test_build_pagination_with_id(self):
         uri_base = 'https://notaurl.gov'
@@ -333,34 +333,24 @@ class BlueButtonClientApiFhirTest(TestCase):
 
         response = self.client.get(uri)
         response_data = response.json()
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == HTTPStatus.OK
 
         # Different environments have different data in them.
         # If we are testing against sandbox, we expect fewer responses.
 
-        if os.getenv('LOCAL_TESTING_TARGET', None) in ['impl']:
-            self.assertEqual(len(response_data['entry']), 12)
-        else:
-            self.assertEqual(len(response_data['entry']), 5)
+        assert len(response_data['entry']) == 12
 
         previous_links = [data['url'] for data in response_data['link'] if data['relation'] == 'previous']
         next_links = [data['url'] for data in response_data['link'] if data['relation'] == 'next']
         first_links = [data['url'] for data in response_data['link'] if data['relation'] == 'first']
 
-        if os.getenv('LOCAL_TESTING_TARGET', None) in ['impl']:
-            self.assertEqual(len(previous_links), 1)
-            self.assertEqual(len(next_links), 1)
-            self.assertEqual(len(first_links), 1)
-            self.assertIn('startIndex=13', previous_links[0])
-            self.assertIn('startIndex=0', first_links[0])
-        else:
-            self.assertEqual(len(previous_links), 1)
-            self.assertEqual(len(next_links), 0)
-            self.assertEqual(len(first_links), 1)
-            self.assertIn('startIndex=13', previous_links[0])
-            self.assertIn('startIndex=0', first_links[0])
+        assert len(previous_links) == 1
+        assert len(next_links) == 1
+        assert len(first_links) == 1
+        assert 'startIndex=13' in previous_links[0]
+        assert 'startIndex=0' in first_links[0]
 
-        self.assertContains(response, 'ExplanationOfBenefit')
+        assert 'ExplanationOfBenefit' in response.content.decode()
 
     def _test_get_eob_negative(self, version=Versions.NOT_AN_API_VERSION):
         """
