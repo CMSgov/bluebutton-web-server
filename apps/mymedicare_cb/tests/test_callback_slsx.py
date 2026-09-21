@@ -305,10 +305,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             s = self.client.session
             s.update(
                 {
-                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',  # betterleaks:allow
                     'auth_app_id': '2',
                     'auth_app_name': 'TestApp-001',
-                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',  # betterleaks:allow
                     'version': version,
                 }
             )
@@ -1130,10 +1130,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             s = self.client.session
             s.update(
                 {
-                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',  # betterleaks:allow
                     'auth_app_id': '2',
                     'auth_app_name': 'TestApp-001',
-                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',  # betterleaks:allow
                 }
             )
             s.save()

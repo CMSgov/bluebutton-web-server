@@ -143,5 +143,5 @@ class MymedicareCbValidatorsTest(TestCase):
         self.assertTrue(is_mbi_format_synthetic(mbi))
 
         # Test real
-        mbi = '4T10A00AA00'
+        mbi = '4T10A00AA00'  # betterleaks:allow
         self.assertFalse(is_mbi_format_synthetic(mbi))
