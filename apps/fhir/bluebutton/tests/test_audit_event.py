@@ -1,4 +1,5 @@
 import json
+import os
 from http import HTTPStatus
 
 import pytest
@@ -137,7 +138,13 @@ def test_successful_audit_event_call(basic_user, get_access_token, create_capabi
         get_access_token: Fixture to create an access token
         create_capability: Fixture to create a capabilities_protectedcapability record
     """
-    user = basic_user()
+    user = basic_user(
+        username='damon',
+        first_name='Damon',
+        last_name='Mychart',
+        fhir_id_v2='custom_fhir_id',
+        fhir_id_v3=SAMPLE_CAN_USER_FHIR_ID_V3,
+    )
     access_token = get_access_token(
         user.username,
         'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs patient/AuditEvent.rs',
@@ -178,10 +185,15 @@ def test_successful_audit_event_read_call(basic_user, get_access_token, create_c
     )
     create_capability('patient/AuditEvent.rs', [['GET', '/v[3]/fhir/AuditEvent[/?].*$']])
 
+    resource_id = '-20260702123504429756967'
+    env = os.environ.get('LOCAL_TESTING_TARGET', 'local')
+    if env == 'test':
+        resource_id = '-20260805174416168230124'
+
     response = client.get(
         reverse(
             'bb_oauth_fhir_audit_event_read',
-            kwargs={'resource_id': SAMPLE_CAN_USER_FHIR_ID_V3 + '-20260702123504429756967'},
+            kwargs={'resource_id': SAMPLE_CAN_USER_FHIR_ID_V3 + resource_id},
         ),
         Authorization='Bearer %s' % (access_token),
     )

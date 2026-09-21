@@ -1015,6 +1015,9 @@ USE_MSLSX = os.getenv('USE_MSLSX', 'false')
 PROD_URL = 'https://api.bluebutton.cms.gov'
 SANDBOX_URL = 'https://sandbox.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = '{}/v1/accounts/activation-verify/{}'
+# These env vars are to fix the access denied error we've been getting (only on TEST currently)
+ACA_TOKEN_NAME = os.getenv('ACA_TOKEN_NAME', '')
+ACA_TOKEN_VALUE = os.getenv('ACA_TOKEN_VALUE', '')
 
 
 class Action(Enum):
@@ -1031,6 +1034,7 @@ class Action(Enum):
     VALIDATE_EMAIL_NOTIFICATION = 11
     CHECK_DATE_FORMAT = 12
     COPY_LINK_AND_LOAD_WITH_PARAM = 13
+    CHECK_ACCESS_DENIED_ERROR = 14
 
 
 MESSAGE_NO_PERMISSION = 'You do not have permission to perform this action.'
@@ -1367,6 +1371,10 @@ SEQ_AUTHORIZE_START_SPANISH = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_SPANISH],
     },
+    {
+        'display': 'Check access denied error',
+        'action': Action.CHECK_ACCESS_DENIED_ERROR,
+    },
 ]
 
 SEQ_AUTHORIZE_RESTART = [
@@ -1391,6 +1399,10 @@ SEQ_AUTHORIZE_PKCE_START_V1_V2 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
+    {
+        'display': 'Check access denied error',
+        'action': Action.CHECK_ACCESS_DENIED_ERROR,
+    },
 ]
 
 SEQ_AUTHORIZE_PKCE_START_V3 = [
@@ -1405,6 +1417,10 @@ SEQ_AUTHORIZE_PKCE_START_V3 = [
         'action': Action.FIND_CLICK,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
     },
+    {
+        'display': 'Check access denied error',
+        'action': Action.CHECK_ACCESS_DENIED_ERROR,
+    },
 ]
 
 SEQ_AUTHORIZE_LANG_PARAM_START = [
@@ -1415,6 +1431,10 @@ SEQ_AUTHORIZE_LANG_PARAM_START = [
         'display': 'Call authorize endpoint with lang param - start authorization',
         'action': Action.COPY_LINK_AND_LOAD_WITH_PARAM,
         'params': [30, By.LINK_TEXT, TESTCLIENT_BTN_AUTH_AS_BENE_ENGLISH],
+    },
+    {
+        'display': 'Check access denied error',
+        'action': Action.CHECK_ACCESS_DENIED_ERROR,
     },
 ]
 
