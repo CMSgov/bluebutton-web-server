@@ -33,6 +33,8 @@ locals {
   public_subnets       = module.platform.public_subnet_ids
   region               = module.platform.primary_region
   account_id           = module.platform.account_id
+  #  this bucket name must match the fallback in alb.tf, otherwise the bucket policy in alb_access_logs.tf will break!
+  access_logs_bucket   = var.access_logs_bucket != "" ? var.access_logs_bucket : "cms-cloud-${module.platform.account_id}-${module.platform.primary_region}"
   vpc_id               = module.platform.vpc_id
   azs                  = [for s in values(module.platform.private_subnets) : s.availability_zone]
   default_tags         = module.platform.default_tags
@@ -111,6 +113,13 @@ locals {
       autoscale_enabled = try(
         local.ssm_service_configs[service_name].autoscale_enabled,
         false
+      )
+
+      # Controls Gunicorn workers per container: default is 4 for stability, but can be scaled up via SSM or service_overrides for more concurrency.
+      gunicorn_workers = coalesce(
+        try(var.service_overrides[service_name].gunicorn_workers, null),
+        try(local.ssm_service_configs[service_name].gunicorn_workers, null),
+        4
       )
     }
   }
