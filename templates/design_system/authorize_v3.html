@@ -195,7 +195,7 @@ a {
 								<div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
 									<span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
 								</div>
-								{{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
+								{{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
                                 {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
 								{% endif %}
 								{% trans "Afterwards, you will need to give permission again. To stop sharing your data, visit " %}

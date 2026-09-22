@@ -203,7 +203,7 @@ msgstr ". Si no desea compartir su información, seleccione el botón <b>Cancela
 
 #: templates/design_system/authorize_v3.html:201
 msgid "Afterwards, you will need to give permission again. To stop sharing your data, visit "
-msgstr ". Después, deberá volver a otorgar el permiso. Para dejar de compartir sus datos, visite"
+msgstr " Después, deberá volver a otorgar el permiso. Para dejar de compartir sus datos, visite"
 
 #: templates/design_system/authorize_v3.html:202
 msgid "https://www.medicare.gov/my/connected-apps"
@@ -259,7 +259,7 @@ msgstr "Solicitudes de reembolso de medicamentos recetados (requerido)"
 
 #: templates/design_system/authorize_v3.html:273
 msgid "This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments"
-msgstr "Esto incluye el código nacional de medicamentos (NDC), los detalles de la receta, los datos de la farmacia, el estatus de la solicitud, así como los costos y pagos."
+msgstr "Esto incluye el código nacional de medicamentos (NDC), los detalles de la receta, los datos de la farmacia, el estatus de la solicitud, así como los costos y pagos"
 
 #: templates/design_system/authorize_v3.html:289
 msgid "Medicare claims (required)"
@@ -267,7 +267,7 @@ msgstr "Reclamaciones de Medicare (requerido)"
 
 #: templates/design_system/authorize_v3.html:290
 msgid "This includes provider details, diagnoses, medical costs and payments, procedures, treatments, hospital stays, and prescriptions"
-msgstr "Esto incluye los datos del proveedor, diagnósticos, costos médicos y pagos, procedimientos, tratamientos, hospitalizaciones y recetas médicas."
+msgstr "Esto incluye los datos del proveedor, diagnósticos, costos médicos y pagos, procedimientos, tratamientos, hospitalizaciones y recetas médicas"
 
 #: templates/design_system/authorize_v3.html:301
 msgid "Medicare claims data, if applicable:"
