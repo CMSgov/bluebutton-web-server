@@ -328,6 +328,7 @@ STATICFILES_DIRS = [
     # TODO don't need README.md
     ('bluebutton-css/fonts', os.path.join(static_folder, 'bluebutton-css', 'fonts')),
     ('bluebutton-css/images', os.path.join(static_folder, 'bluebutton-css', 'images')),
+    ('design-system/package/css', os.path.join(static_folder, 'design-system', 'package', 'css')),
     ('img', os.path.join(static_folder, 'img')),
     ('js', os.path.join(static_folder, 'js')),
     ('font-awesome/css', os.path.join(static_folder, 'font-awesome', 'css')),
