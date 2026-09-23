@@ -2,20 +2,6 @@
 
 The `/ops/container` subtree contains specs for all of Blue Buttons containers. This includes containers that are intended to run in production as well as containerized apps and processes that run local-only.
 
-## tl;dr: local
-
-```bash
-make build-local
-```
-
-will build all containers needed to stand up Blue Button locally.
-
-```bash
-make run-local
-```
-
-will run the stack.
-
 ## local
 
 Our goal should be for the local application and the production application to be *as similar as possible*. This lets developers be confident that code they develop will behave the same locally as well as in production. 
@@ -28,9 +14,45 @@ We can do a few things to try and achieve this:
 
 When we have confidence that our local is "the same" as production, then we have more confidence in the code we write and ship, letting us move faster.
 
-## sequence
+## configuring your dev environment
 
-To run the local stack, we need to follow a sequence of steps. In production, we have CI/CD. Locally, we have Makefiles. (We could replace these with `act`, but even then, we would be encoding the same steps as the makefiles.)
+First, download the ruff extension from VS Code extensions.
+
+You will also set up ruff as a pre-commit hook. If you already have a venv, you can skip this step since our dev dependencies have pre-commit inside them already.
+
+| Pre-Commit Commands|
+| ------ |
+```
+python -m venv venv
+source .venv/bin/activate # May be without the .
+pip install -r requirements/requirements.dev.txt
+```
+Now install the hook:
+| Install Git Hook |
+| ------ |
+```
+# Install the git hook
+pre-commit install
+```
+
+Now, whenever you try to commit to the repo, you will be prevented from committing if you have ruff errors!
+
+To automatically format your files on save (highly recommended), do the following:
+
+* Press Cmd + Shft + P
+* Type Open User Settings  and select it
+* Add the following to your VS Code User Settings file:
+```json
+{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  }
+}
+```
 
 ## build the containers and assets
 
@@ -62,8 +84,30 @@ make collectstatic
 
 ## run the stack
 
+### sequence
+
+To run the local stack, we need to follow a sequence of steps. In production, we have CI/CD. Locally, we have Makefiles. (We could replace these with `act`, but even then, we would be encoding the same steps as the makefiles.)
+
 Next, you run the stack. You need to be in an active Kion session for this to work.
 
+| Starting Stack Commands |
+| -------- |
+```
+# Run these in order when spinning up the stack for the first time
+
+kion s # You will need this to grab the credentials from AWS
+
+cd ./ops/containers  # or run from project root, the Makefile there references the one in ops/containers
+
+make run-local bfd=sbx auth=live # OR the one below
+
+make run-local bfd=test auth=live daemon=1
+
+# OR if zscaler is causing 500 errors, set auth=mock
+```
+You should be able to interact with the stack at localhost:8000, either through the test client, or with Postman (see [Using Postman with Blue Button](https://confluence.cms.gov/spaces/BB2/pages/741508640/Using+Postman+with+Blue+Button)).
+
+Note:
 ```bash
 make run-local bfd="..." auth="..." sls="..." CAN_INTEGRATION_TEST="..."
 ```
@@ -153,7 +197,8 @@ We have access to `/tmp` locally and in production. That space is used for writi
 
 ## testing
 
-Ensure you have your launch.json updated to the following:
+Ensure you have your launch.json within the .vscode folder at the project's root directory updated to the following:
+  * Create a launch.json if it is not there
 
 ```bash
 	{
@@ -210,6 +255,9 @@ Ensure you have your launch.json updated to the following:
 	    ]
 	}
 ```
+You can test this is now working by starting up your debugger in the RUN AND DEBUG  tab in vs code by hitting the RUN button on the API config option. Then set a breakpoint wherever you would like to test and hit that api call in localhost.
+
+Example: Putting a breakpoint in views/authoriaztion.py and going to http://localhost:8000/testclient
 
 ### unit testing
 
@@ -226,6 +274,8 @@ Unit testing needs to be ran outside of the container, otherwise you run into is
 Setup your local venv (or whatever flavor of local python environment) and install the dev dependencies
 
 1. Activate your environment
+    * `python -m venv venv` (or if using uv `uv venv --python 3.12`)
+    * `source venv/bin/activate`
 2. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
 3. Run `pytest -m 'not integration'` or `make unit-test`
 
@@ -250,6 +300,9 @@ Note that if the test is not within a class, you can just use ::test_name
 You'll need to exec into your running instance of bb-api to do this
 
 1. Exec into bb-api
+  * `docker exec -it containers-bb-api-1 bash`
+    * If that is not your container name, you can check what it is while it is up via `docker stats`
+  * Or you can 'exec' via the Terminal tab in Podman Desktop
 2. Run `pytest -m 'integration'` or `make integration-test`
 
 If you want to run the CAN integration test, you will need to make sure that you run `make run-local CAN_INTEGRATION_TEST=true` when starting the container. This will run a selenium container since that is required in order to run the CAN integration test. You can then exec into bb-api and run `pytest apps/fhir/bluebutton/tests/test_CAN_integration.py` to run that specific test on its own or `make integration-test` to run all the integration tests.
@@ -264,4 +317,4 @@ Same as unit tests
 
 ### selenium testing
 
-For this, check the selenium/ subfolder
+For this, check the README in ops/containers/selenium [here](https://github.com/CMSgov/bluebutton-web-server/blob/master/ops/containers/selenium/README.md)

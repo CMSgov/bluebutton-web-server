@@ -195,18 +195,18 @@ a {
 								<div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
 									<span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
 								</div>
-								{{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
+								{{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
                                 {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
 								{% endif %}
 								{% trans "Afterwards, you will need to give permission again. To stop sharing your data, visit " %}
-								<a href="https://www.medicare.gov/my/connected-apps" target="_blank" style="text-decoration: underline;">Medicare.gov/my/connected-apps</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)." %}
+								<a {% trans "https://www.medicare.gov/my/connected-apps" %} target="_blank" style="text-decoration: underline;">{%	trans "Medicare.gov/my/connected-apps" %}</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)." %}
 							</div>
 						</div>
 					</div>
 				</div>
 
 				<div class="ds-text-heading--lg ds-u-margin-bottom--3 ds-u-margin-top--3" style="color: #262626">
-					Required Information
+					{% trans "Required Information" %}
 				</div>
 
 				<form id="authorizationForm" method="post">
@@ -215,8 +215,8 @@ a {
 					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
 						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
 						<input type="hidden" name="share_demographic_scopes" value="True" />
-						<span class="ds-text-body--md" style="font-weight: 600;">Personal Information (required)</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">Your name, date of birth, race, and sex</p>
+						<span class="ds-text-body--md" style="font-weight: 600;">{% trans "Personal Information (required)" %}</span>
+						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "Your name, date of birth, race, and sex" %}</p>
 					</div>
 					{% endif %}
 
@@ -239,8 +239,8 @@ a {
 								id="accordion-btn-1"
 							>
 								<span class="ds-c-accordion__button-heading-wrap">
-								<span class="ds-c-accordion__button-line1">Medicare coverage (required)</span>
-								<span class="ds-c-accordion__button-line2">This includes Medicare number, Medicare status, reason for Medicare eligibility, Medicaid coverage data</span>
+								<span class="ds-c-accordion__button-line1">{% trans "Medicare coverage (required)" %}</span>
+								<span class="ds-c-accordion__button-line2">{% trans "This includes Medicare number, Medicare status, reason for Medicare eligibility, Medicaid coverage data" %}</span>
 								</span>
 							</button>
 							</h2>
@@ -251,11 +251,11 @@ a {
 								aria-labelledby="accordion-btn-1"
 								hidden
 							>
-								<span class="ds-c-accordion__button-line1_sub_header">Medicare coverage data, if applicable:</span>
+								<span class="ds-c-accordion__button-line1_sub_header">{% trans "Medicare coverage data, if applicable:" %}</span>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
-									<li>Medicaid dual eligibility status</li>
-									<li>Medicaid state and eligibility date</li>
-									<li>Low-income subsidy details (determination, copayment level, premium percentage)</li>
+									<li>{% trans "Medicaid dual eligibility status" %}</li>
+									<li>{% trans "Medicaid state and eligibility date" %}</li>
+									<li>{% trans "Low-income subsidy details (determination, copayment level, premium percentage)" %}</li>
 								</ul>
 						</div>
 					</div>
@@ -269,8 +269,8 @@ a {
 					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
 						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
 						<input type="hidden" name="share_demographic_scopes" value="True" />
-						<span class="ds-text-body--md" style="font-weight: 600;">Prescription drug claims (required)</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments</p>
+						<span class="ds-text-body--md" style="font-weight: 600;">{% trans "Prescription drug claims (required)" %}</span>
+						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments" %}</p>
 					</div>
 
 					{% else %}
@@ -286,8 +286,8 @@ a {
 								id="accordion-btn-2"
 							>
 								<span class="ds-c-accordion__button-heading-wrap">
-								<span class="ds-c-accordion__button-line1">Medicare claims (required)</span>
-								<span class="ds-c-accordion__button-line2">This includes provider details, diagnoses, medical costs and payments, procedures, treatments, hospital stays, and prescriptions</span>
+								<span class="ds-c-accordion__button-line1">{% trans "Medicare claims (required)" %}</span>
+								<span class="ds-c-accordion__button-line2">{% trans "This includes provider details, diagnoses, medical costs and payments, procedures, treatments, hospital stays, and prescriptions" %}</span>
 								</span>
 							</button>
 							</h2>
@@ -298,21 +298,21 @@ a {
 								aria-labelledby="accordion-btn-2"
 								hidden
 							>
-								<span class="ds-c-accordion__button-line1_sub_header">Medicare claims data, if applicable:</span>
+								<span class="ds-c-accordion__button-line1_sub_header">{% trans "Medicare claims data, if applicable:" %}</span>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
-									<li><b>Provider information</b> (provider ID number, name, specialty)</li>
-									<li><b>Diagnosis information</b> (diagnosis codes, related diagnosis group code, condition present on admission)</li>
-									<li><b>Medical costs and payments</b> (total charge amount, paid amount, out of pocket payment threshold)</li>
-									<li><b>Procedure information</b> (procedure dates, procedure code)</li>
-									<li><b>Treatment information</b> (blood transfusions, dates of treatment, medical service information)</li>
-									<li><b>Inpatient residence type</b> (hospital, long-term care, nursing facility)</li>
-									<li><b>Prescription medication details</b> (fill number, quantity, refilles authorized, generic vs. brand name)</li>
+									<li>{% trans "<b>Provider information</b> (provider ID number, name, specialty)" %}</li>
+									<li>{% trans "<b>Diagnosis information</b> (diagnosis codes, related diagnosis group code, condition present on admission)" %}</li>
+									<li>{% trans "<b>Medical costs and payments</b> (total charge amount, paid amount, out of pocket payment threshold)" %}</li>
+									<li>{% trans "<b>Procedure information</b> (procedure dates, procedure code)" %}</li>
+									<li>{% trans "<b>Treatment information</b> (blood transfusions, dates of treatment, medical service information)" %}</li>
+									<li>{% trans "<b>Inpatient residence type</b> (hospital, long-term care, nursing facility)" %}</li>
+									<li>{% trans "<b>Prescription medication details</b> (fill number, quantity, refilles authorized, generic vs. brand name)" %}</li>
 								</ul>
 						</div>
 					</div>
 
 					<div class="ds-text-heading--lg ds-u-margin-bottom--3 ds-u-margin-top--3" style="color: #262626">
-						You can also grant access to (Optional):
+						{% trans "You can also grant access to (Optional):" %}
 					</div>
 
 					<div class="ds-c-accordion" id="my-accordion" style="color: #262626">
@@ -338,8 +338,8 @@ a {
 								/>
 							</span>
 							<span class="ds-c-accordion__button-heading-wrap">
-								<span class="ds-c-accordion__button-line1">Alcohol & substance use information</span>
-								<span class="ds-c-accordion__button-line2">These include claims related to alcohol and/or substance use disorder treatment</span>
+								<span class="ds-c-accordion__button-line1">{% trans "Alcohol & substance use information" %}</span>
+								<span class="ds-c-accordion__button-line2">{% trans "These include claims related to alcohol and/or substance use disorder treatment" %}</span>
 							</span>
 							</button>
 							</h2>
@@ -350,12 +350,12 @@ a {
 								aria-labelledby="accordion-btn-3"
 								hidden
 							>
-								<span class="ds-c-accordion__button-line1_sub_header">Alcohol and substance abuse claims, if applicable:</span>
+								<span class="ds-c-accordion__button-line1_sub_header">{% trans "Alcohol and substance abuse claims, if applicable:" %}</span>
 								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
-									<li><b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)</li>
-									<li><b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)</li>
-									<li><b>Procedures</b> (addiction counseling types, rehab referrals, detoxification, rehabilitation, medication management)</li>
-									<li><b>Mental health conditions related to substance abuse</b> (dementia, delirium, delusions, hallucinations. Disorder types: mood, amnesia, psychosis)</li>
+									<li>{% trans "<b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)" %}</li>
+									<li>{% trans "<b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)" %}</li>
+									<li>{% trans "<b>Procedures</b> (addiction counseling types, rehab referrals, detoxification, rehabilitation, medication management)" %}</li>
+									<li>{% trans "<b>Mental health conditions related to substance abuse</b> (dementia, delirium, delusions, hallucinations. Disorder types: mood, amnesia, psychosis)" %}</li>
 								</ul>
 						</div>
 					</div>
@@ -427,7 +427,7 @@ a {
 
 							<span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
 								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
-									<span style="text-decoration: underline;">Privacy Policy</span>
+									<span style="text-decoration: underline;">{% trans "Privacy Policy" %}</span>
 									<!-- {% trans "Privacy Policy" %} -->
 									<svg
 										style="height: 1em; width: 1em; top: -2px;"
@@ -445,7 +445,7 @@ a {
 								{% trans " and " %}
 								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
 									<!-- {% trans "Terms and Conditions" %} -->
-									<span style="text-decoration: underline;">Terms and Conditions</span>
+									<span style="text-decoration: underline;">{% trans "Terms and Conditions" %}</span>
 									<svg
 										style="height: 1em; width: 1em; top: -2px;"
 										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
@@ -458,7 +458,7 @@ a {
 										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
 										</path>
 									</svg>
-								</a> to learn how they manage your data.
+								</a> {% trans "to learn how they manage your data." %}
 							</span>
 
 							{% endif %}
