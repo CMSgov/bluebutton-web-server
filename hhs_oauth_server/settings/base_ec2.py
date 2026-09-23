@@ -386,8 +386,20 @@ ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
+static_folder = os.path.join(BASE_DIR, 'static')
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    ('bluebutton-css/dist', os.path.join(static_folder, 'bluebutton-css', 'dist')),
+    # TODO don't need README.md
+    ('bluebutton-css/fonts', os.path.join(static_folder, 'bluebutton-css', 'fonts')),
+    ('bluebutton-css/images', os.path.join(static_folder, 'bluebutton-css', 'images')),
+    ('design-system/package/css', os.path.join(static_folder, 'design-system', 'package', 'css')),
+    ('img', os.path.join(static_folder, 'img')),
+    ('js', os.path.join(static_folder, 'js')),
+    ('font-awesome/css', os.path.join(static_folder, 'font-awesome', 'css')),
+    ('font-awesome/fonts', os.path.join(static_folder, 'font-awesome', 'fonts')),
+    ('swagger-ui-4.15.5-dist', os.path.join(static_folder, 'swagger-ui-4.15.5-dist')),
+    os.path.join(static_folder, 'api-docs'),
 ]
 
 # Waffle
