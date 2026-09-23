@@ -8,7 +8,7 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -19,18 +19,40 @@ from apps.integration_tests.common_utils import (
     log_step,
 )
 from apps.integration_tests.constants import (
+    ACA_TOKEN_NAME,
+    ACA_TOKEN_VALUE,
     ES_ES,
+    MSLSX_BTN_SUBMIT,
+    MSLSX_TXT_FLD_HICN,
+    MSLSX_TXT_FLD_MBI,
+    MSLSX_TXT_FLD_USERNAME,
     PROD_URL,
-    SEQ_LOGIN_MSLSX,
-    SEQ_LOGIN_SLSX,
+    SLSX_CSS_CONTINUE_BUTTON,
+    SLSX_CSS_LOGIN_BUTTON,
+    SLSX_TXT_FLD_PASSWORD,
+    SLSX_TXT_FLD_USERNAME,
     TESTCASE_BANNER_FMT,
     TESTCLIENT_LNK_TXT_RESTART,
+    WAIT_SECONDS,
     X_PATH_FOR_MEDICARE_LOGIN,
     Action,
 )
 
 LOG_FILE = './docker-compose/tmp/bb2_email_to_stdout.log'
-EN_MONTH_ABBR = ['Jan.', 'Feb.', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
+EN_MONTH_ABBR = [
+    'Jan.',
+    'Feb.',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'Aug.',
+    'Sept.',
+    'Oct.',
+    'Nov.',
+    'Dec.',
+]
 ES_MONTH_NAME = [
     'enero',
     'febrero',
@@ -76,7 +98,6 @@ class SeleniumGenericTests:
         self.selenium_grid = os.getenv('SELENIUM_GRID', 'false')
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
-        self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
         msg_fmt = 'use_mslsx={}, hostname_url={}, selenium_grid={}'
         msg = msg_fmt.format(self.use_mslsx, self.hostname_url, self.selenium_grid)
         print(msg)
@@ -123,12 +144,24 @@ class SeleniumGenericTests:
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,
             Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param,
+            Action.CHECK_ACCESS_DENIED_ERROR: self._check_access_denied_error,
         }
 
     def teardown_method(self, method):
         self.driver.quit()
 
-    def _validate_email_content(self, subj_line, key_line_prefix, **kwargs):
+    def _validate_email_content(self, subj_line: str, key_line_prefix: str, **kwargs) -> str:
+        """
+        Validate that an email with the specified subject line and key line prefix has been sent.
+
+        Args:
+            subj_line (str): The subject line to look for in the email log.
+            key_line_prefix (str): The prefix of the key line to look for in the email log.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            str: The extracted activation key, if found.
+        """
         with open(LOG_FILE, 'r') as f:
             log_records = f.readlines()
             email_subj_cnt = 0
@@ -155,8 +188,26 @@ class SeleniumGenericTests:
                 assert ak is not None
             return ak
 
-    def _find_and_click(self, timeout_sec, by, by_expr, **kwargs):
-        log_step(f"Looking for element to CLICK: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
+    def _find_and_click(self, timeout_sec: int, by: By, by_expr: str, **kwargs) -> WebElement:
+        """
+        Find an element on the page and click it.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            WebElement: The found element.
+        Raises:
+            TimeoutException: If the element is not found within the specified timeout.
+            Exception: For any other unexpected errors during the element search.
+        """
+        log_step(
+            f"Looking for element to CLICK: {by}='{by_expr}' (timeout: {timeout_sec}s)",
+            'INFO',
+        )
 
         try:
             elem = WebDriverWait(self.driver, timeout_sec).until(EC.element_to_be_clickable((by, by_expr)))
@@ -173,7 +224,10 @@ class SeleniumGenericTests:
             # this we will allow a TimeoutException to be raised without failing the test if the element we are trying to
             # click is the Medicare login button
             if by_expr == X_PATH_FOR_MEDICARE_LOGIN:
-                log_step('Element not found but expected for Medicare login, skipping click', 'WARNING')
+                log_step(
+                    'Element not found but expected for Medicare login, skipping click',
+                    'WARNING',
+                )
                 return
 
             log_step('TIMEOUT waiting for clickable element', 'ERROR')
@@ -184,11 +238,40 @@ class SeleniumGenericTests:
             check_element_state(self.driver, by, by_expr, 'exception')
             raise
 
-    def _testclient_home(self, **kwargs):
+    def _testclient_home(self, **kwargs) -> WebElement:
+        """
+        Click on the "Restart" link on the test client home page to reset the state for the next test.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            WebElement: The found "Restart" link element.
+        """
         return self._find_and_click(30, By.LINK_TEXT, TESTCLIENT_LNK_TXT_RESTART, **kwargs)
 
-    def _find_and_sendkey(self, timeout_sec, by, by_expr, txt, **kwargs):
-        log_step(f"Looking for element to SEND KEYS: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
+    def _find_and_sendkey(self, timeout_sec: int, by: By, by_expr: str, txt: str, **kwargs) -> WebElement:
+        """
+        Find an element on the page and send keys to it.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            txt (str): The text to send to the element.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            WebElement: The found element.
+        Raises:
+            TimeoutException: If the element is not found within the specified timeout.
+            Exception: For any other unexpected errors during the element search.
+        """
+        log_step(
+            f"Looking for element to SEND KEYS: {by}='{by_expr}' (timeout: {timeout_sec}s)",
+            'INFO',
+        )
         print(f"    Keys to send: '{txt}'")
 
         try:
@@ -199,7 +282,10 @@ class SeleniumGenericTests:
             elem_tag = elem.tag_name
             elem_type = elem.get_attribute('type') or 'text'
             elem_name = elem.get_attribute('name') or elem.get_attribute('id') or '(no name)'
-            log_step(f"Element found: <{elem_tag}> type='{elem_type}' name='{elem_name}'", 'SUCCESS')
+            log_step(
+                f"Element found: <{elem_tag}> type='{elem_type}' name='{elem_name}'",
+                'SUCCESS',
+            )
             elem.send_keys(txt)
             log_step('Keys sent successfully', 'SUCCESS')
             return elem
@@ -215,7 +301,22 @@ class SeleniumGenericTests:
             check_element_state(self.driver, by, by_expr, 'exception')
             raise
 
-    def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
+    def _find_and_return(self, timeout_sec: int, by: By, by_expr: str, **kwargs) -> WebElement:
+        """
+        Find an element on the page and return it.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            WebElement: The found element.
+        Raises:
+            TimeoutException: If the element is not found within the specified timeout.
+            Exception: For any other unexpected errors during the element search.
+        """
         log_step(f"Looking for element: {by}='{by_expr}' (timeout: {timeout_sec}s)", 'INFO')
 
         try:
@@ -232,7 +333,16 @@ class SeleniumGenericTests:
             check_element_state(self.driver, by, by_expr, 'exception')
             raise
 
-    def _load_page(self, url, **kwargs):
+    def _load_page(self, url: str, **kwargs) -> None:
+        """
+        Load a web page using the Selenium web driver.
+
+        Args:
+            url (str): The URL of the page to load.
+            **kwargs: Arbitrary keyword arguments.
+        Returns:
+            None. The function loads the page and logs the action.
+        """
         if url == PROD_URL or url == PROD_URL + '/':
             print('Skip loading page: {}'.format(url))
         else:
@@ -240,7 +350,30 @@ class SeleniumGenericTests:
             self.driver.get(url)
             log_step(f'Page loaded: {self.driver.title}', 'SUCCESS')
 
-    def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, **kwargs):
+    def _check_page_title(
+        self,
+        timeout_sec: int,
+        by: By,
+        by_expr: str,
+        fmt: str,
+        resource_type: str,
+        **kwargs,
+    ) -> None:
+        """
+        Check that the page title matches the expected format.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            fmt (str): The format string for the expected page title.
+            resource_type (str): The type of the resource.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            None. The function performs the validation and raises an AssertionError if the page title
+            does not match the expected format.
+        """
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         expected = fmt.format(resource_type, kwargs.get('api_ver'))
         if not (elem.text == expected):
@@ -249,21 +382,75 @@ class SeleniumGenericTests:
             print(f"\tGot: '{elem.text}'")
         assert elem.text == expected
 
-    def _check_pkce_challenge(self, timeout_sec, by, by_expr, pkce, **kwargs):
+    def _check_pkce_challenge(self, timeout_sec: int, by: By, by_expr: str, pkce: bool, **kwargs) -> None:
+        """
+        Check if the PKCE challenge is present or absent in the page content.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            pkce (bool): Whether the PKCE challenge should be present.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            None. The function performs the validation and raises an AssertionError if the PKCE challenge
+            is not found when it should be or if the PKCE challenge is found when it should not be.
+        """
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         if pkce:
             assert 'code_challenge' in elem.text and 'code_challenge_method' in elem.text
         else:
             assert not ('code_challenge' in elem.text or 'code_challenge_method' in elem.text)
 
-    def _check_page_content(self, timeout_sec, by, by_expr, content_txt, should_exist=True, **kwargs):
+    def _check_page_content(
+        self,
+        timeout_sec: int,
+        by: By,
+        by_expr: str,
+        content_txt: str,
+        should_exist: bool = True,
+        **kwargs,
+    ) -> None:
+        """
+        Check if the specified content text is present or absent in the page content.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            content_txt (str): The text to search for in the page content.
+            should_exist (bool): Whether the text should exist in the page content.
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None. The function performs the validation and raises an AssertionError if the text
+            is not found when it should be or if the text is found when it should not be.
+        """
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         if should_exist:
             assert content_txt in elem.text
         else:
             assert content_txt not in elem.text
 
-    def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):
+    def _check_date_format(self, timeout_sec: int, by: By, by_expr: str, format: str, lang: str, **kwargs) -> None:
+        """
+        Check that the date format of the element matches the expected format.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            format (str): The expected date format as a regular expression.
+            lang (str): The language code (e.g., 'en' for English, 'es' for Spanish) to determine the month format.
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None. The function performs the validation and raises an AssertionError if the date format
+            does not match the expected format or if the date is not within the expected range.
+        """
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         pattern = re.compile(format)
         m = pattern.match(elem.text)
@@ -299,40 +486,114 @@ class SeleniumGenericTests:
             print(e)
             assert 1 < 0, f"Malformed date value '{elem.text}'"
 
-    def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
+    def _copy_link_and_load_with_param(self, timeout_sec: int, by: By, by_expr: str, **kwargs) -> None:
+        """
+        Copy the href from an element and load it with an additional parameter.
+
+        Args:
+            timeout_sec (int): The maximum time to wait for the element to be visible.
+            by (By): The method to locate the element (e.g., By.ID, By.NAME, By.XPATH).
+            by_expr (str): The expression to locate the element (e.g., the ID, name, or XPath).
+            **kwargs: Arbitrary keyword arguments. These are not used in this function but
+                are included for consistency with other action methods.
+        Returns:
+            None. The function performs the action and does not return any value.
+        """
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         assert elem is not None
         url = f'{elem.get_attribute("href")}&lang=es'
         log_step(f'Copying link and adding param: {url}', 'INFO')
         self.driver.get(url)
 
-    def _back(self, **kwargs):
+    def _back(self, **kwargs) -> None:
+        """
+        Navigate back to the previous page in the browser history.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None. The function performs the navigation and does not return any value.
+        """
         log_step('Navigating back', 'INFO')
         self.driver.back()
 
-    def _sleep(self, sec, **kwargs):
+    def _sleep(self, sec: int, **kwargs) -> None:
+        """
+        Sleep for a specified number of seconds.
+
+        Args:
+            sec (int): The number of seconds to sleep.
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None. The function performs the sleep operation and does not return any value.
+        """
         log_step(f'Sleeping for {sec} seconds', 'INFO')
         time.sleep(sec)
 
-    def _login(self, step, **kwargs):
+    def _login(self, *params, step, **kwargs):
+        """
+        Login sequence for a synthetic beneficiary, used in both MSLSX and SLSX login.
+
+        Args:
+            *params: Variable length argument list. The parameters are expected to be in the order of
+                username, hicn, mbi for MSLSX and username, password for SLSX.
+            step: A list containing the current step number. This is used to keep
+                track of the step number across recursive calls.
+            **kwargs: Arbitrary keyword arguments. These are passed to the underlying _play method.
+
+        Returns:
+            None. The function performs the login sequence and does not return any value.
+        """
         log_step('Starting login sequence', 'INFO')
-        if self.use_mslsx == 'false':
-            # dismiss Medicare.gov popup if present
-            webdriver.ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
-        self._play(self.login_seq, step, **kwargs)
+        if self.use_mslsx == 'true':
+            self._play(self._get_login_mslsx_sequence(*params), step, **kwargs)
+        else:
+            self._play(self._get_login_slsx_sequence(*params), step, **kwargs)
         log_step('Login sequence completed', 'SUCCESS')
 
     def _print_testcase_banner(self, test_name, api_ver, step_0, id_service, start=True):
+        """
+        Print a banner indicating the start or end of a test case.
+
+        Args:
+            test_name (str): The name of the test case.
+            api_ver (str): The API version being tested.
+            step_0 (int): The current step number.
+            id_service (str): The identity service being used ('true' for Mock SLS, 'false' for SLSX).
+            start (bool): True if the banner is for the start of the test case, False if it is for the end.
+
+        Returns:
+            None. The function prints the banner and does not return any value.
+        """
         print('\n******************************************************************')
         print(
             TESTCASE_BANNER_FMT.format(
-                'START' if start else 'END', test_name, api_ver, step_0, 'Mock SLS' if id_service == 'true' else 'SLSX'
+                'START' if start else 'END',
+                test_name,
+                api_ver,
+                step_0,
+                'Mock SLS' if id_service == 'true' else 'SLSX',
             )
         )
         print(f'** Timestamp: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
         print('******************************************************************\n')
 
-    def _play(self, lst, step, **kwargs):
+    def _play(self, lst: list, step: list, **kwargs) -> None:
+        """
+        Play a sequence of actions defined in a list of dictionaries.
+        Each dictionary should contain an 'action' key.
+
+        Args:
+            lst (list): A list of dictionaries, each representing an action to perform.
+            step (list): A list containing the current step number. This is used to keep track of the step number across recursive calls.
+            **kwargs: Arbitrary keyword arguments. These are passed to the underlying action methods.
+        Returns:
+            None. The function performs the actions and does not return any value.
+        """
         for s in lst:
             seq = s.get('sequence')
             # expects sequence of actions or action
@@ -349,7 +610,7 @@ class SeleniumGenericTests:
                     print(f'{step[0]}:{display_msg}')
                     try:
                         if action == Action.LOGIN:
-                            self.actions[action](*s.get('params', []), step, **kwargs)
+                            self.actions[action](*s.get('params', []), step=step, **kwargs)
                         else:
                             self.actions[action](*s.get('params', []), **kwargs)
                     except TimeoutException as timeout:
@@ -366,3 +627,113 @@ class SeleniumGenericTests:
                         raise
                 else:
                     raise ValueError('Invalid test case, expect dict with action...')
+
+    def _get_login_mslsx_sequence(self, username: str, hicn: str, mbi: str) -> list[dict[str, any]]:
+        """
+        Generates a dynamic login sequence with configurable credentials.
+
+        Args:
+            username (str): The username to use for login.
+            hicn (str): The HICN to use for login.
+            mbi (str): The MBI to use for login.
+        Returns:
+            list: A list of dictionaries representing the login sequence.
+        """
+        return [
+            {
+                'display': 'Input SUB(username)',
+                'action': Action.FIND_SEND_KEY,
+                'params': [20, By.NAME, MSLSX_TXT_FLD_USERNAME, username],
+            },
+            {
+                'display': 'Input hicn',
+                'action': Action.FIND_SEND_KEY,
+                'params': [20, By.NAME, MSLSX_TXT_FLD_HICN, hicn],
+            },
+            {
+                'display': 'Input mbi',
+                'action': Action.FIND_SEND_KEY,
+                'params': [20, By.NAME, MSLSX_TXT_FLD_MBI, mbi],
+            },
+            {
+                'display': "Click 'submit' on MSLSX login form",
+                'action': Action.FIND_CLICK,
+                'params': [20, By.CSS_SELECTOR, MSLSX_BTN_SUBMIT],
+            },
+        ]
+
+    def _get_login_slsx_sequence(self, username: str, password: str) -> list[dict[str, any]]:
+        """
+        Generates a dynamic login sequence with configurable credentials for SLSX.
+
+        Args:
+            username (str): The username to use for login.
+            password (str): The password to use for login.
+        Returns:
+            list: A list of dictionaries representing the login sequence.
+        """
+        return [
+            {
+                'display': 'Click on Medicare.gov option - continue authorization',
+                'action': Action.FIND_CLICK,
+                'params': [15, By.XPATH, X_PATH_FOR_MEDICARE_LOGIN],
+            },
+            {
+                'display': 'Medicare.gov login username',
+                'action': Action.FIND_SEND_KEY,
+                'params': [20, By.NAME, SLSX_TXT_FLD_USERNAME, username],
+            },
+            {
+                'display': "Click 'Continue' on SLSX login form",
+                'action': Action.FIND_CLICK,
+                'params': [20, By.CSS_SELECTOR, SLSX_CSS_CONTINUE_BUTTON],
+            },
+            WAIT_SECONDS,
+            {
+                'display': 'Medicare.gov login password',
+                'action': Action.FIND_SEND_KEY,
+                'params': [20, By.NAME, SLSX_TXT_FLD_PASSWORD, password],
+            },
+            {
+                'display': "Click 'Log In' on SLSX login form",
+                'action': Action.FIND_CLICK,
+                'params': [20, By.XPATH, SLSX_CSS_LOGIN_BUTTON],
+            },
+            WAIT_SECONDS,
+        ]
+
+    def _add_cookie(self, name: str, value: str, **kwargs) -> None:
+        """
+        Add a cookie to the current session.
+
+        Args:
+            name (str): The name of the cookie.
+            value (str): The value of the cookie.
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None.
+        """
+        self.driver.add_cookie({'name': name, 'value': value})
+        self.driver.refresh()
+
+    def _check_access_denied_error(self, **kwargs) -> None:
+        """
+        Check if the access denied error is present and add a cookie to get past it if it is present
+
+        Args:
+            **kwargs: Arbitrary keyword arguments. These are not used in this function
+                but are included for consistency with other action methods.
+
+        Returns:
+            None.
+        """
+        elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Access Denied')]")
+
+        if len(elements) > 0:
+            log_step('Access Denied error found. Adding ACA Token for environment.', 'INFO')
+            self._add_cookie(ACA_TOKEN_NAME, ACA_TOKEN_VALUE)
+            log_step('Adding cookie completed', 'SUCCESS')
+        else:
+            log_step('No ACA Token needed to add. Moving on to next sequence.', 'INFO')
