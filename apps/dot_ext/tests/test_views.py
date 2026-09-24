@@ -46,12 +46,12 @@ class TestApplicationRegistrationView(BaseApiTest):
         capability_b = self._create_capability('Capability B', [], default=True)
         self._create_capability('Capability C', [], default=False)
 
-        self._create_user('anna', '123456')
+        user = self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         response = self.client.post(
             reverse('oauth2_provider:register'),
-            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True, 'user': user},
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
@@ -68,12 +68,12 @@ class TestApplicationRegistrationView(BaseApiTest):
         """
         call_command('create_blue_button_scopes')
 
-        self._create_user('anna', '123456')
+        user = self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         response = self.client.post(
             reverse('oauth2_provider:register'),
-            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True, 'user': user},
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
@@ -98,12 +98,12 @@ class TestApplicationRegistrationView(BaseApiTest):
         """
         call_command('create_blue_button_scopes')
 
-        self._create_user('anna', '123456')
+        user = self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         response = self.client.post(
             reverse('oauth2_provider:register'),
-            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': False},
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': False, 'user': user},
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
@@ -160,7 +160,7 @@ class TestApplicationUpdateView(BaseApiTest):
 
             response = self.client.post(
                 reverse('oauth2_provider:update', args=[app.pk]),
-                data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': end},
+                data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': end, 'user': user},
             )
             self.assertEqual(response.status_code, HTTPStatus.FOUND)
 

@@ -99,6 +99,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         fields = (
             'name',
             'client_type',
+            'user',
             'authorization_grant_type',
             'redirect_uris',
             'logo_uri',
