@@ -41,8 +41,10 @@ matchesAny(attributes["path"], [
   `(?:^|/)\.git$`,
   `/__pycache__/`,
   `/dist/`,
+  `^dist/`,
   `/.*-dist/`,
   `/.terraform.lock.hcl$`,
+  `^.astro/`,
 ])
 
 '''
@@ -76,6 +78,9 @@ let isCommonlyUsedTestPassword = matchesAny(finding["secret"], [
   `(?i)^IchangedTHEpassword[#@]123$`,
   `^2ndChange#Pass$`,
   `^flubbernubber$`,
+  `^YOUR_ACCESS_TOKEN$`,
+  `^AUTHORIZATION_TOKEN$`,
+  `^"YOUR_CLIENT_ID:YOUR_CLIENT_SECRET"$`,
 ]);
 
 let isInExampleFile = matchesAny(attributes["path"], [
@@ -84,6 +89,20 @@ let isInExampleFile = matchesAny(attributes["path"], [
 
 let isCommonlyUsedPlaceholder = containsAny(finding["secret"], [
   "CHANGE_ME",
+]);
+
+let beforeContext = finding["fragment_raw"][
+  finding["match_line_start_idx"]:finding["match_start_idx"]
+];
+
+let afterContext = finding["fragment_raw"][
+  finding["match_end_idx"]:finding["match_line_end_idx"]
+];
+
+let isWithinEncodedImage = matchesAny(beforeContext, [
+  `<data:image/png;base64,[A-Za-z0-9/+]*$`
+]) && matchesAny(afterContext, [
+  `^[A-Za-z0-9/+]*=*>`
 ]);
 
 (matchesAny(finding["secret"], [
@@ -107,6 +126,7 @@ let isCommonlyUsedPlaceholder = containsAny(finding["secret"], [
 || isSyntheticBeneficiaryPassword
 || isCommonlyUsedTestPassword
 || (isInExampleFile && isCommonlyUsedPlaceholder)
+|| isWithinEncodedImage
 
 '''
 
@@ -3522,8 +3542,22 @@ let level = filter.matchesAny(genericMatchContext, [
 ]) ? "medium" : "low";
 let _ = filter.setConfidence(level);
 
+let isCommonExampleValue = matchesAny(finding["secret"], [
+  `^TSjqiZCdJwGyytGjz2GzziPfHTJ6z2$`,
+  `^wDimPGoA8vwXP51kie71vpsy9l17HN$`,
+  `^VD1VaT4IfjXAMlZTS9E4RVXZlkhYG7$`,
+  `^7x0VkRQlRU4fRNCQL2vh239nIyucgw$`,
+  `^4nGzmTX0WkKgKL2De8ZfbShm6UKW8D$`,
+  `^66ClP4JCjpdxmkC6bEKYQFLOWXnraJ$`,
+  `^jV3knA4xmZ1enK8Rg1Lub5hmIsc9Ad$`,
+  `^sj27kLVRk2sQeLqSKFte5T5pgKM78U$`,
+  `^QjqsforutTRf8IV8Z0GT7KcAZb4099$`,
+  `^sj27kLVRk2sQeLqSKFte5T5pgKM78U-refrehed$`,
+]);
+
 // big ol expression to filter out FPs
 entropy(finding["secret"]) <= 3.5
+|| isCommonExampleValue
 || filter.failsTokenEfficiency(finding["secret"])
 || matchesAny(finding["secret"], [`^[a-zA-Z_.-]+$`])
 || (containsAny(finding["secret"], [
@@ -5324,6 +5358,9 @@ filter.matchesAny(finding["secret"], [
 || filter.matchesAny(finding["match"], [
   `^(?i:passw(?:or)?d|psw|[_.-]pw)\b[ \t'"\\]{0,3}(?:=>|:=|=|:)[ \t]*(?i:nil|null|none|undefined|true|false|string|str|text|integer|int|number|boolean|bool|object)(?:[ \t]*[,;)}\]\r\n]|[ \t]*$|\\[nr])`,
   `^(?i:passw(?:or)?d|psw|[_.-]pw)\b[ \t'"\\]{0,3}(?:=>|:=|=|:)[ \t]*(?:[$@][A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*|\[[^]\r\n]+\]|\([^,\r\n)]*\)?)*|:[A-Za-z_][A-Za-z0-9_]*|(?:::)?[A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*)*::[A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*)*|(?i:process\.env|config|settings|credentials?|secrets?|var|local|module|data)(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*|\[[^]\r\n]+\])+|[A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*)*(?:\[[^]\r\n]+\]|\([^,\r\n)]*\)?)(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*|\[[^]\r\n]+\]|\([^,\r\n)]*\)?)*|[A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z_][A-Za-z0-9_]*)*\.(?i:(?:[a-z0-9]+_)*(?:passw(?:or)?d|psw|token|secret|hex)))[)}\]]*\\?(?:[ \t]*[,;)}\]\r\n]|[ \t]*$|\\[nr])`
+])
+|| matchesAny(finding["secret"], [
+  `^bb.clientSecret$`,
 ])
 '''
 components = [
@@ -11036,8 +11073,10 @@ containsAny(finding["secret"], [
   "123456789012",
   "593207742271", // an account ID for AWS guardduty
   "464622532012", // a Datadog account ID
+  "373273882012", // an example ICN, not an AWS account ID
 ]) || matchesAny(attributes["path"], [
   `synthetic-data/.*\.rif$`,
+  `Prod-Sandbox-SyntheticData-LastUpdated\.csv$`,
 ])
 '''
 
@@ -11048,7 +11087,7 @@ containsAny(finding["secret"], [
 id = "dot-client-id"
 description = "Client ID for Django OAuth Toolkit / Blue Button."
 regex = '''\b\w{40}\b'''
-confidence = "medium"
+confidence = "low"
 filter = '''
 let hasUpperCase = matchesAny(finding["secret"], [
   `[A-Z]`
@@ -11088,6 +11127,8 @@ let isEncryptedValue = filter.matchesAny(finding["line"], [
 || containsAny(finding["secret"], [
   "XQFC5iseB84YGOidlqy0L9blhauz0pIffPnMi0qJ", // hardcoded test value
   "aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4y5Z0", // another test value
+  "swBu7LWsCnIRfu530qnfPw1y5vMmER3lAM2L6rq2", // another test value
+  "QWGn89NeT5jpmHLPA3z3oy59hOkbA03B1QS13_CY", // a code challenge test value that gets interpreted as a client-id
 ])
 '''
 
@@ -11176,15 +11217,24 @@ let isEncryptedValue = filter.matchesAny(finding["line"], [
   `\bsha\d{3}-.*\b`,
 ]);
 
-let isWithinEncodedImage = matchesAny(finding["line"], [
-  `data:image/png;base64,.*`,
+let isCommonExampleValue = matchesAny(finding["secret"], [
+  `^TSjqiZCdJwGyytGjz2GzziPfHTJ6z2$`,
+  `^wDimPGoA8vwXP51kie71vpsy9l17HN$`,
+  `^VD1VaT4IfjXAMlZTS9E4RVXZlkhYG7$`,
+  `^7x0VkRQlRU4fRNCQL2vh239nIyucgw$`,
+  `^4nGzmTX0WkKgKL2De8ZfbShm6UKW8D$`,
+  `^66ClP4JCjpdxmkC6bEKYQFLOWXnraJ$`,
+  `^jV3knA4xmZ1enK8Rg1Lub5hmIsc9Ad$`,
+  `^sj27kLVRk2sQeLqSKFte5T5pgKM78U$`,
+  `^QjqsforutTRf8IV8Z0GT7KcAZb4099$`,
+  `^sj27kLVRk2sQeLqSKFte5T5pgKM78U-refrehed$`,
 ]);
 
 !isMixedCase
 || isEncryptedValue
-|| isWithinEncodedImage
 || entropy(finding["secret"]) <= 3.0
 || failsTokenEfficiency(finding["secret"])
+|| isCommonExampleValue
 '''
 
 # ──────────────────────────────────────────────────────────────────────────────
