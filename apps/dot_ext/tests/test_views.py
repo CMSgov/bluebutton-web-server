@@ -160,7 +160,7 @@ class TestApplicationUpdateView(BaseApiTest):
 
             response = self.client.post(
                 reverse('oauth2_provider:update', args=[app.pk]),
-                data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': end, 'user': user},
+                data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': end},
             )
             self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
