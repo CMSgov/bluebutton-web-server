@@ -240,7 +240,6 @@ class TestRegisterApplicationForms(BaseApiTest):
         passing_app_fields = {
             'name': 'john_app_new',
             'client_type': 'confidential',
-            'user': user,
             'authorization_grant_type': 'authorization-code',
             'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
             'logo_uri': '',
@@ -591,7 +590,6 @@ class TestCreateNewApplicationForm(BaseApiTest):
                 'organization_name': 'org',
                 'require_demographic_scopes': False,
                 'scope': default_non_demographic_scopes,
-                'user': app.user,
             },
             instance=app,
         )
@@ -614,7 +612,6 @@ class TestCreateNewApplicationForm(BaseApiTest):
                 'organization_name': 'org',
                 'require_demographic_scopes': False,
                 'scope': default_scopes,
-                'user': app.user,
             },
             instance=app,
         )
@@ -640,7 +637,6 @@ class TestCreateNewApplicationForm(BaseApiTest):
                 'organization_name': 'org',
                 'require_demographic_scopes': True,
                 'scope': default_non_demographic_scopes,
-                'user': app.user,
             },
             instance=app,
         )

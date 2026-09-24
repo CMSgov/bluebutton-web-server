@@ -46,12 +46,12 @@ class TestApplicationRegistrationView(BaseApiTest):
         capability_b = self._create_capability('Capability B', [], default=True)
         self._create_capability('Capability C', [], default=False)
 
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         response = self.client.post(
             reverse('oauth2_provider:register'),
-            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True, 'user': user},
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
@@ -68,12 +68,12 @@ class TestApplicationRegistrationView(BaseApiTest):
         """
         call_command('create_blue_button_scopes')
 
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         response = self.client.post(
             reverse('oauth2_provider:register'),
-            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True, 'user': user},
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': True},
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
@@ -98,12 +98,12 @@ class TestApplicationRegistrationView(BaseApiTest):
         """
         call_command('create_blue_button_scopes')
 
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         self.client.login(request=HttpRequest(), username='anna', password='123456')
 
         response = self.client.post(
             reverse('oauth2_provider:register'),
-            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': False, 'user': user},
+            data={'name': 'an app', 'agree': 'on', 'require_demographic_scopes': False},
         )
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
