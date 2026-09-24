@@ -81,8 +81,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['agree'].label = mark_safe(agree_label)
         self.fields['name'].label = 'Name*'
         self.fields['name'].required = True
-        self.fields['user'].label = 'User*'
-        self.fields['user'].required = True
         self.fields['client_type'].label = 'Client Type*'
         self.fields['client_type'].required = False
         self.fields['authorization_grant_type'].label = 'Authorization Grant Type*'
@@ -99,7 +97,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         fields = (
             'name',
             'client_type',
-            'user',
             'authorization_grant_type',
             'redirect_uris',
             'logo_uri',

@@ -71,18 +71,6 @@ class TestRegisterApplicationForms(BaseApiTest):
         form.is_valid()
         self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
 
-        # Test form with no user has error
-        data = {'user': None}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('user'), None)
-
-        # Test form with a user is OK
-        data = {'user': user}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('user'), None)
-
         # Test form with website_uri valid URI.
         data = {'website_uri': 'https://www.example.org'}
         form = CustomRegisterApplicationForm(user, data)

@@ -132,6 +132,7 @@ class AppFormTemplateTestCase(BaseApiTest):
             if input_name in ref_fields:
                 app_fields[input_name] = input.get('value')
         app_fields['name'] = 'template_test_app_valid'
+        app_fields['user'] = u
         # save with values scrapped from rendered page
         # pass if no validation error
         form = CustomRegisterApplicationForm(u, app_fields)
