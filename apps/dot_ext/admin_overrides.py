@@ -9,6 +9,13 @@ from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 
 
 class ValidatedApplicationAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['user'].required = True
+        self.fields['user'].label = 'User*'
+        self.fields['name'].required = True
+        self.fields['name'].label = 'Name*'
+
     def clean(self):
         cleaned_data = super().clean()
 
