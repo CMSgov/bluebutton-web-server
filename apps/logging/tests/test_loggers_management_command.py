@@ -1,6 +1,7 @@
 import copy
 import json
 from io import StringIO
+from unittest.mock import patch
 
 import jsonschema
 from django.contrib.auth import get_user_model
@@ -61,7 +62,13 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         if report_to_console:
             call_command('log_global_state_metrics', stdout=StringIO(), stderr=StringIO())
         else:
-            call_command('log_global_state_metrics', '--no-report', stdout=StringIO(), stderr=StringIO())
+            call_command(
+                'log_global_state_metrics',
+                '--post-to-its-log',
+                '--no-report',
+                stdout=StringIO(),
+                stderr=StringIO(),
+            )
 
     def _debug_show_value_differences(self, dict_a, dict_b):
         """
@@ -288,7 +295,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             # Validate with orig schema.
             self.assertTrue(self._validateJsonSchema(GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA, log_dict))
 
-    def test_management_command_logging(self):
+    @patch('apps.logging.loggers.ping_api')
+    def test_management_command_logging(self, mock_ping_api):
         """
         Setup variety of real/synth users, apps and grants for testing global state metrics logging.
         """
@@ -1309,3 +1317,4 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             }
         )
         self._validate_global_state_metrics_log(validate_global_dict)
+        mock_ping_api.call_count == 10422

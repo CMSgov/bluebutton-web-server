@@ -55,7 +55,6 @@ class ITSLogAPIHandler(logging.Handler):
     """
 
     API_URL = 'http://host.docker.internal:8888/v1/log/create'
-    # API_KEY = "12345678901234561234567890123456"
     API_KEY = '1234567890123456123456789012345612345678901234561234567890123456'
 
     def emit(self, record):

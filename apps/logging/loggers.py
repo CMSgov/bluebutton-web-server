@@ -240,7 +240,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
     }
 
     logger.info(log_dict)
-    print('ITS LOG FLASG CHECL: ', its_log_flag)
+
     if its_log_flag:
         for metric in GLOBAL_METRICS:
             ping_api([], '0', metric, prior_day)
@@ -330,7 +330,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             active_apps += 1
 
         logger.info(log_dict, cls=DjangoJSONEncoder)
-        print('ITS LOG FLAG: ', its_log_flag)
+        print('WHAT IS THE FLAG: ', its_log_flag)
         if its_log_flag and app.name not in APP_NAMES_TO_IGNORE:
             # post all metrics for all apps to ensure we have data populated for each app, each day
             for metric in APP_LEVEL_METRICS:
@@ -374,8 +374,7 @@ def ping_api(tags, value, operation, date):
                 'count': 1,
                 'value': value,
                 'operation': operation,
-                # TODO: Revert
-                'date': '2026-09-16',
+                'date': date,
             },
             timeout=2,
         )
