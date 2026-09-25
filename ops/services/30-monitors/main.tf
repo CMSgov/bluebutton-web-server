@@ -38,7 +38,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=f3f30320cae5e1564790e0e4dd774b451f2b615e"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=6060c64a243664d8d37e2ee52fcbd37fb2ed3168"
 
   app             = local.app
   env             = local.env
@@ -64,6 +64,7 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
+      evaluation_delay    = 900
     },
     {
       create = local.env != "test"
@@ -81,6 +82,7 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
+      evaluation_delay    = 900
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Maximum Unhealthy Hosts"
@@ -97,6 +99,7 @@ locals {
       on_missing_data = "show_and_notify_no_data"
 
       require_full_window = false
+      evaluation_delay    = 900
 
       draft_status = local.env == "prod" ? "draft" : "published"
     },
@@ -117,6 +120,7 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
+      evaluation_delay    = 900
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] ALB — Load Balancer 5xx Count High"
@@ -134,13 +138,20 @@ locals {
       on_missing_data = local.env == "test" ? "default" : "show_and_notify_no_data"
 
       require_full_window = false
+      evaluation_delay    = 900
 
       draft_status = local.env == "prod" ? "draft" : "published"
     },
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High"
       type    = "metric alert"
-      message = "Service ${local.app} has high error rate."
+      message = <<-EOT
+      Service ${local.app} has high error rate.
+
+      [Captured spans](https://app.ddog-gov.com/apm/traces?query=${urlencode("service:${local.app} status:error")}&start={{eval "last_triggered_at_epoch-60*60*1000"}}&end={{last_triggered_at_epoch}}&paused=true)
+
+      EOT
+
       # TODO what evaluation window?
       query = "sum(last_1h):sum:trace.django.request.errors{env:${local.env},service:${local.app},span.kind:server}.as_count() / sum:trace.django.request.hits{env:${local.env},service:${local.app},span.kind:server}.as_count() > ${local.env == "sandbox" ? 0.03 : 0.02}"
 
@@ -159,8 +170,14 @@ locals {
     {
       name    = "[${upper(local.env)}] [${local.app}] APM — Error Rate High (trace.postgres.query)"
       type    = "metric alert"
-      message = "Service {{peer.db.name}} has high error rate."
-      query   = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() > 0.02"
+      message = <<-EOT
+      Service {{peer.db.name}} has high error rate.
+
+      [Captured spans](https://app.ddog-gov.com/apm/traces?query=${urlencode("service:${local.app} status:error operation_name:postgres.query")}&start={{eval "last_triggered_at_epoch-60*60*1000"}}&end={{last_triggered_at_epoch}}&paused=true)
+
+      EOT
+
+      query = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() > 0.02"
 
       thresholds = {
         critical = 0.02
@@ -327,7 +344,8 @@ locals {
         warning  = 0.25
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
+      evaluation_delay = 900
 
       require_full_window = false
     },
@@ -342,7 +360,8 @@ locals {
         warning  = 1
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
+      evaluation_delay = 900
 
       require_full_window = false
     },
@@ -357,7 +376,8 @@ locals {
         warning  = 0.005
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
+      evaluation_delay = 900
 
       require_full_window = false
     },
@@ -372,7 +392,8 @@ locals {
         warning  = 0.005
       }
 
-      on_missing_data = "show_and_notify_no_data"
+      on_missing_data  = "show_and_notify_no_data"
+      evaluation_delay = 900
 
       require_full_window = false
     },

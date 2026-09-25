@@ -69,10 +69,10 @@ class TestPaginationURIs(TestCase):
         setattr(req, 'GET', {})
         try:
             _build_pagination_uri(uri_base, params, req)
-        except ValueError:
+        except ValueError as err:
             # Because no 'patient' or 'beneficiary' was found in the GET params,
             # _build_pagination_uri will fail.
-            pass
+            assert str(err) == 'Failed to set a patient id or beneficiary id on the pagination URI'
 
     def test_build_pagination_with_id(self):
         uri_base = 'https://notaurl.gov'
