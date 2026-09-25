@@ -100,9 +100,9 @@ let afterContext = finding["fragment_raw"][
 ];
 
 let isWithinEncodedImage = matchesAny(beforeContext, [
-  `<data:image/png;base64,[A-Za-z0-9/+]*$`
+  `("|<)data:image/png;base64,[A-Za-z0-9/+]*$`
 ]) && matchesAny(afterContext, [
-  `^[A-Za-z0-9/+]*=*>`
+  `^[A-Za-z0-9/+]*=*(>|")`
 ]);
 
 (matchesAny(finding["secret"], [
