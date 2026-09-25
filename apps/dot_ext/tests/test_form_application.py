@@ -53,6 +53,10 @@ class TestRegisterApplicationForms(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('name'), None)
 
+        form = ValidatedApplicationAdminForm(data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('name'), None)
+
         # Test form with invalid app name has error (app name contains non-ascii char(s)).
         data = {'name': 'BB2-1666-test-app w trade mark®'}
         form = CustomRegisterApplicationForm(user, data)
