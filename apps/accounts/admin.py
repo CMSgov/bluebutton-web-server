@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import User
 
-from apps.constants import USER_TYPE_BENEFICIARY, USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, USER_TYPE_DEV
+from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, USER_TYPE_BENEFICIARY, USER_TYPE_DEV
 
 from .models import (
     ActivationKey,
