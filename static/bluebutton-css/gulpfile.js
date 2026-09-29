@@ -14,6 +14,11 @@ gulp.task('default', gulp.parallel(function (done) {
 		.pipe(cleanCSS())
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist'));
+	gulp.src(['legacy-preserved.css'],)
+		.pipe(sourcemaps.init())
+		.pipe(cleanCSS())
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest('dist'));
 	done();
 }));
 
