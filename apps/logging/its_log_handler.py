@@ -95,14 +95,6 @@ class ITSLogAPIHandler(logging.Handler):
             'type': 'text',
         }
 
-    def _build_payload_cluster_events(self, key, value, application_id) -> Dict[str, Any]:
-
-        formatted_tag = [key]
-        if application_id:
-            formatted_tag.append(application_id)
-
-        return {'tags': formatted_tag, 'value': str(value), 'type': 'text'}
-
     def _format_log_message(self, log_message: Dict[str, Any]) -> Dict[str, Any]:
         if log_message.get('type'):
             if log_message.get('type') in GRAB_FHIR_ID_FROM_USER_CROSSWALK:
@@ -134,11 +126,8 @@ class ITSLogAPIHandler(logging.Handler):
             log_message['app_id'] = log_message['application'].get('id')
             log_message['app_name'] = log_message['application'].get('name')
 
-        if log_message.get('allow'):
-            if log_message.get('allow') is True:
-                log_message['allow'] = 'True'
-            else:
-                log_message['allow'] = 'False'
+        if 'allow' in log_message:
+            log_message['allow'] = 'True' if log_message.get('allow') is True else 'False'
 
         return log_message
 
