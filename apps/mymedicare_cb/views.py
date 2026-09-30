@@ -56,16 +56,22 @@ def authenticate(request):
     # Exchange req_token for access token
     try:
         slsx_client.exchange_for_access_token(request_token, request)
-    except slsx_client.token_status_code == 403:
-        return JsonResponse({'error': 'Access token unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+    except HTTPStatus.FORBIDDEN:
+        return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
 
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
-    slsx_client.get_user_info(request)
+    try:
+        slsx_client.get_user_info(request)
+    except HTTPStatus.FORBIDDEN:
+        return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
 
     # Signout bene to prevent SSO issues per BB2-544
-    slsx_client.user_signout(request)
+    try:
+        slsx_client.user_signout(request)
+    except HTTPStatus.FORBIDDEN:
+        return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
 
     # Validate bene is signed out per BB2-544
     slsx_client.validate_user_signout(request)
