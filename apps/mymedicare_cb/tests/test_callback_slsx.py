@@ -101,7 +101,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         fake_login_url = 'https://example.com/login?scope=openid'
         with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(self.mock_response.slsx_health_ok_mock):
-                response = self.client.get(self.login_url + '?next=/')
+                response = self.client.get(self.login_url + '?next=/v3/o/authorize/?client_id=test')
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             query = parse_qs(urlparse(response['Location']).query)
             path = response['Location'].split('?')[0]
@@ -117,7 +117,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(self.mock_response.slsx_health_fail_mock):
                 with self.assertRaises(HTTPError):
-                    self.client.get(self.login_url + '?next=/')
+                    self.client.get(self.login_url + '?next=/v3/o/authorize/?client_id=test')
 
     def test_callback_url_missing_relay(self):
         """
