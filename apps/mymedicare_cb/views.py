@@ -54,7 +54,10 @@ def authenticate(request):
     )
 
     # Exchange req_token for access token
-    slsx_client.exchange_for_access_token(request_token, request)
+    try:
+        slsx_client.exchange_for_access_token(request_token, request)
+    except slsx_client.token_status_code == 403:
+        return JsonResponse({'error': 'Access token unauthorized'}, status=status.HTTP_403_FORBIDDEN)
 
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
