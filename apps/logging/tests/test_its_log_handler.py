@@ -342,6 +342,20 @@ def test_format_log_message_fhir_id_retrieval(mock_switch, log_message, expected
             'TestApp',
             'True',
         ),
+        (
+            {
+                'location': '/v2/authorize?foo=bar',
+                'req_grant_type': 'authorization_code',
+                'req_app_id': 1,
+                'req_app_name': 'TestApp',
+                'allow': True,
+            },
+            '/v2/authorize',
+            'authorization_code',
+            1,
+            'TestApp',
+            'True',
+        ),
     ],
 )
 @patch('apps.logging.its_log_handler.switch_is_active', return_value=True)

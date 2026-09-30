@@ -969,6 +969,12 @@ APP_LEVEL_METRICS = [
     'app_unsuccessful_client_credentials_call',
     'app_successful_patient_match_call',
     'app_unsuccessful_patient_match_call',
+    'app_auth_samhsa_presented_sharing_real_bene_count',
+    'app_auth_samhsa_presented_sharing_synthetic_bene_count',
+    'app_auth_samhsa_presented_not_sharing_real_bene_count',
+    'app_auth_samhsa_presented_not_sharing_synthetic_bene_count',
+    'app_auth_samhsa_not_presented_real_bene_count',
+    'app_auth_samhsa_not_presented_synthetic_bene_count',
 ]
 
 GLOBAL_METRICS = [
@@ -986,8 +992,8 @@ GLOBAL_METRICS = [
     'fhir_v3_coverage_call_real_count',
     'fhir_v3_patient_call_real_count',
     'fhir_v3_generate_insurance_card_call_real_count',
-    'fhir_v3_eob_shared_systems_call_real_count',
-    'fhir_v3_eob_shared_systems_call_synthetic_count',
+    'app_all_fhir_v3_eob_shared_systems_call_real_count',
+    'app_all_fhir_v3_eob_shared_systems_call_synthetic_count',
     'fhir_v1_call_synthetic_count',
     'fhir_v1_eob_call_synthetic_count',
     'fhir_v1_coverage_call_synthetic_count',
@@ -1015,10 +1021,16 @@ GLOBAL_METRICS = [
     'app_active_bene_cnt_gt25',
     'app_active_bene_cnt_le25',
     'app_all',
-    'successful_client_credentials_call_count',
-    'unsuccessful_client_credentials_call_count',
-    'successful_patient_match_call_count',
-    'unsuccessful_patient_match_call_count',
+    'app_all_successful_client_credentials_call',
+    'app_all_unsuccessful_client_credentials_call',
+    'app_all_successful_patient_match_call',
+    'app_all_unsuccessful_patient_match_call',
+    'auth_samhsa_presented_sharing_real_bene_count',
+    'auth_samhsa_presented_sharing_synthetic_bene_count',
+    'auth_samhsa_presented_not_sharing_real_bene_count',
+    'auth_samhsa_presented_not_sharing_synthetic_bene_count',
+    'auth_samhsa_not_presented_real_bene_count',
+    'auth_samhsa_not_presented_synthetic_bene_count',
 ]
 
 APP_NAMES_TO_IGNORE = [

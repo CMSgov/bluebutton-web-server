@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import requests
 from django.core.serializers.json import DjangoJSONEncoder
@@ -56,7 +56,10 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
-    prior_day = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    # TODO: Change this before we actually start running this in prod. For testing purposes, it is helpful
+    # to have the current day. For actual prod, we'll need to look at the prior day.
+    # prior_day = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    prior_day = datetime.now().strftime('%Y-%m-%d')
 
     log_dict = {
         'type': 'global_state_metrics',
@@ -330,7 +333,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_fla
             active_apps += 1
 
         logger.info(log_dict, cls=DjangoJSONEncoder)
-        print('WHAT IS THE FLAG: ', its_log_flag)
+
         if its_log_flag and app.name not in APP_NAMES_TO_IGNORE:
             # post all metrics for all apps to ensure we have data populated for each app, each day
             for metric in APP_LEVEL_METRICS:

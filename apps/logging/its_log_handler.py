@@ -41,6 +41,7 @@ ACCEPTED_LOG_KEYS = [
     'req_qparam_lastupdated',
     'req_qparam__source',
     'req_qparam__tag',
+    'auth_share_samhsa_data',
     # 'auth_app_id',
     # 'auth_app_name',
 ]
@@ -122,6 +123,10 @@ class ITSLogAPIHandler(logging.Handler):
             log_message['app_id'] = log_message.get('resp_app_id')
         if not log_message.get('app_name') and log_message.get('resp_app_name'):
             log_message['app_name'] = log_message.get('resp_app_name')
+        if not log_message.get('app_id') and log_message.get('req_app_id'):
+            log_message['app_id'] = log_message.get('req_app_id')
+        if not log_message.get('app_name') and log_message.get('req_app_name'):
+            log_message['app_name'] = log_message.get('req_app_name')
         if not log_message.get('app_id') and log_message.get('application'):
             log_message['app_id'] = log_message['application'].get('id')
             log_message['app_name'] = log_message['application'].get('name')
