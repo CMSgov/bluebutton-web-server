@@ -197,24 +197,24 @@ retrieve_bfd_certs () {
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate_test \
             --query 'SecretString' \
             --output text)
-        add_mask "$BFD_CERT_PEM_B64"
+        add_mask_if_codebuild "$BFD_CERT_PEM_B64"
         export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key_test \
             --query 'SecretString' \
             --output text)
-        add_mask "$BFD_KEY_PEM_B64"
+        add_mask_if_codebuild "$BFD_KEY_PEM_B64"
     elif [[ "${bfd}" == "sbx" ]]; then
         echo "🆗 BFD for sbx"
         export BFD_CERT_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_certificate \
             --query 'SecretString' \
             --output text)
-        add_mask "$BFD_CERT_PEM_B64"
+        add_mask_if_codebuild "$BFD_CERT_PEM_B64"
         export BFD_KEY_PEM_B64=$(aws secretsmanager get-secret-value \
             --secret-id /bb2/local_integration_tests/fhir_client/certstore/local_integration_tests_private_key \
             --query 'SecretString' \
             --output text)
-        add_mask "$BFD_KEY_PEM_B64"
+        add_mask_if_codebuild "$BFD_KEY_PEM_B64"
     elif [[ "${bfd}" == "prod" ]]; then
         echo "⛔ Fetching BFD certs for prod target not supported locally."
         return 1
@@ -282,14 +282,14 @@ configure_slsx () {
         # The secret id is dependent on the sls environment
         DJANGO_SECRET_ID=$([ "${sls}" = "test" ] && echo "/bb2/test/app/slsx_client_secret" || echo "/bb2/test/app/slsx_imp_client_secret")
         export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id ${DJANGO_SECRET_ID} --query 'SecretString' --output text)
-        add_mask "$DJANGO_SLSX_CLIENT_SECRET"
+        add_mask_if_codebuild "$DJANGO_SLSX_CLIENT_SECRET"
         # These seem to be the same regardless of the env (test or sbx).
         export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
-        add_mask "$DJANGO_USER_ID_SALT"
+        add_mask_if_codebuild "$DJANGO_USER_ID_SALT"
         export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
-        add_mask "$DJANGO_USER_ID_ITERATIONS"
+        add_mask_if_codebuild "$DJANGO_USER_ID_ITERATIONS"
         export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
-        add_mask "$DJANGO_PASSWORD_HASH_ITERATIONS"
+        add_mask_if_codebuild "$DJANGO_PASSWORD_HASH_ITERATIONS"
         export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
         # The client id is the same for both imp and test
         export DJANGO_SLSX_CLIENT_ID="bb2api"
@@ -316,13 +316,13 @@ configure_CAN_integration_credentials_if_local () {
     if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "true" ]]; then
         echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
         export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
-        add_mask "$CLEAR_CLIENT_SECRET"
+        add_mask_if_codebuild "$CLEAR_CLIENT_SECRET"
         export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
-        add_mask "$CLEAR_CLIENT_ID"
+        add_mask_if_codebuild "$CLEAR_CLIENT_ID"
         export CAN_PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id csp/private-key --query 'SecretString' --output text)
-        add_mask "$CAN_PRIVATE_KEY"
+        add_mask_if_codebuild "$CAN_PRIVATE_KEY"
         export JWKS_PUBLIC_KEY_PEM=$(aws secretsmanager get-secret-value --secret-id csp/jwks-public-key-pem --query 'SecretString' --output text)
-        add_mask "$JWKS_PUBLIC_KEY_PEM"
+        add_mask_if_codebuild "$JWKS_PUBLIC_KEY_PEM"
 
         echo "✅ set_CAN_integration_credentials"
     fi
@@ -364,7 +364,7 @@ echo_msg () {
 		echo "$(basename $0): $*"
 }
 
-add_mask() {
+add_mask_if_codebuild() {
     local sensitive_value="$1"
 
     # Exit early if the sensitive value is empty.

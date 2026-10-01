@@ -4,8 +4,6 @@
 # Unlike the local version, it does NOT use socat relays since containers communicate
 # directly via docker networking.
 
-source /code/ops/containers/selenium/utility-functions.bash
-
 echo_msg ""
 echo_msg "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
 echo_msg "TARGET ENV: " ${TARGET_ENV}

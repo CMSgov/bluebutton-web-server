@@ -327,15 +327,10 @@ set_salt () {
 
     # These seem to be the same regardless of the env (test or sbx).
     export DJANGO_USER_ID_SALT=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_salt --query 'SecretString' --output text)
-    add_mask "$DJANGO_USER_ID_SALT"
     export DJANGO_USER_ID_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_user_id_iterations --query 'SecretString' --output text)
-    add_mask "$DJANGO_USER_ID_ITERATIONS"
     export DJANGO_SLSX_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_id --query 'SecretString' --output text)
-    add_mask "$DJANGO_SLSX_CLIENT_ID"
     export DJANGO_SLSX_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/slsx_client_secret --query 'SecretString' --output text)
-    add_mask "$DJANGO_SLSX_CLIENT_SECRET"
     export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws secretsmanager get-secret-value --secret-id /bb2/test/app/django_password_hash_iterations --query 'SecretString' --output text)
-    add_mask "$DJANGO_PASSWORD_HASH_ITERATIONS"
     
     echo "Setting SLSX endpoint/redirects..."
     export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
@@ -387,18 +382,4 @@ cleanup_docker_stack () {
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
 		echo "$(basename $0): $*"
-}
-
-add_mask() {
-    local sensitive_value="$1"
-
-    # Exit early if the sensitive value is empty.
-    if [ -z "$sensitive_value" ]; then
-        return 0
-    fi
-
-    # Only add the mask for the sensitive value in codebuild environment.
-    if [ "${TARGET_ENV}" == "codebuild" ]; then
-        echo "::add-mask::$sensitive_value"
-    fi
 }
