@@ -2,6 +2,7 @@ from typing import Any, List
 
 import jwt
 from django.core.exceptions import ObjectDoesNotExist
+from oauth2_provider.models import get_access_token_model
 from oauth2_provider.oauth2_validators import OAuth2Validator as DotOAuth2Validator
 from oauthlib.oauth2.rfc6749 import utils
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
@@ -100,6 +101,11 @@ class SingleAccessTokenValidator(
         )
 
     def get_original_scopes(self, refresh_token, request, *args, **kwargs):
+        rt = getattr(request, 'refresh_token_instance', None)
+        if rt is not None and not rt.access_token_id:
+            if not get_access_token_model().objects.filter(source_refresh_token_id=rt.id).exists():
+                raise InvalidGrantError
+
         try:
             return super().get_original_scopes(refresh_token, request, *args, **kwargs)
         except ObjectDoesNotExist:
