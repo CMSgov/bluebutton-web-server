@@ -365,16 +365,16 @@ echo_msg () {
 }
 
 add_mask() {
-    local secret_value="$1"
+    local sensitive_value="$1"
 
-    # Exit early if the secret value is empty.
-    if [ -z "$secret_value" ]; then
+    # Exit early if the sensitive value is empty.
+    if [ -z "$sensitive_value" ]; then
         return 0
     fi
 
-    # Only add the mask for the secret value in codebuild environment.
+    # Only add the mask for the sensitive value in codebuild environment.
     if [ "${TARGET_ENV}" == "codebuild" ]; then
-        echo "::add-mask::$secret_value"
+        echo "::add-mask::$sensitive_value"
     fi
 }
 
