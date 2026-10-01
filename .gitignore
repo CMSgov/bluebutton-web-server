@@ -18,6 +18,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+bb2_venv/
 .Python
 env/
 build/

@@ -54,24 +54,14 @@ def authenticate(request):
     )
 
     # Exchange req_token for access token
-    try:
-        slsx_client.exchange_for_access_token(request_token, request)
-    except HTTPStatus.FORBIDDEN:
-        return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
-
+    slsx_client.exchange_for_access_token(request_token, request)
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
-    try:
-        slsx_client.get_user_info(request)
-    except HTTPStatus.FORBIDDEN:
-        return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
+    slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
-    try:
-        slsx_client.user_signout(request)
-    except HTTPStatus.FORBIDDEN:
-        return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
+    slsx_client.user_signout(request)
 
     # Validate bene is signed out per BB2-544
     slsx_client.validate_user_signout(request)
@@ -140,6 +130,8 @@ def callback(request):
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
+    except requests.exceptions.HTTPError as e:
+            return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
         # This was an error where we couldn't find the hicn or mbi in the userinfo response.
         # This is a 404 error, but we want to show a custom page for this case.
