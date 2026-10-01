@@ -788,6 +788,7 @@ class TokenView(DotTokenView):
                     token,
                     signing_key,
                     issuer=client_id,
+                    subject=client_id,
                     audience=host + reverse('oauth2_provider_v3:token-v3'),
                     leeway=timedelta(minutes=5),
                     options={
@@ -813,10 +814,6 @@ class TokenView(DotTokenView):
             # payload
             if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
                 log.warning('JWT exp is longer than 5 minutes away')
-                raise InvalidRequestError
-
-            if payload.get('iss') != payload.get('sub'):
-                log.warning('iss and sub are not the same')
                 raise InvalidRequestError
 
             # cms_smart extension
