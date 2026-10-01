@@ -19,6 +19,10 @@ HEADERS = {
 }
 PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~'
 
+ASYMMETRIC_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
+# CAN Flow also requires the 'extensions' claim (smart extension)
+CAN_REQUIRED_CLAIM_FIELDS = ASYMMETRIC_REQUIRED_CLAIM_FIELDS + ['extensions']
+
 # List of value keys that are being tracked via request.session
 SESSION_AUTH_FLOW_TRACE_KEYS = [
     'auth_uuid',

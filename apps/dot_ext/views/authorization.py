@@ -13,7 +13,8 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
 import waffle
-from django.conf import settings
+
+# from django.conf import settings
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
@@ -24,7 +25,8 @@ from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
+
+# from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -70,7 +72,6 @@ from apps.constants import (
     AUDIT_EVENT_SCOPE,
     AUDIT_EVENT_SEARCH_SCOPE,
     CLIENT_CREDENTIALS,
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CODE_CHALLENGE_METHOD_S256,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
@@ -119,6 +120,7 @@ from apps.dot_ext.utils import (
     get_oauth_param,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
+    validate_and_decode_token,
     validate_app_is_active,
     validate_latin_extended_string,
 )
@@ -137,7 +139,6 @@ from apps.mymedicare_cb.models import (
     create_beneficiary_record,
     get_and_update_from_refresh,
 )
-from apps.testclient.utils import _start_url_with_http_or_https
 from apps.versions import Versions
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -764,12 +765,16 @@ class TokenView(DotTokenView):
 
         return None
 
-    def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
+    def _validate_authorization_jwt(
+        self, token: str, client_id: str, jwks_client: PyJWKClient, required_fields: list[str]
+    ) -> str:
         """Validates an authorization JWT and returns the id_token if valid
 
         Args:
             token (str): the base64 encoded auth jwt
+            client_id (str): the client ID making the request
             jwks_client (PyJWKClient): instantiated client for the authorization jwt
+            required_fields (list[str]): list of required fields to validate
 
         Raises:
             InvalidRequestError: any jwt error throws this
@@ -778,45 +783,9 @@ class TokenView(DotTokenView):
             str: the cms_smart extension's id_token
         """
         if waffle.switch_is_active('client_credentials_validation'):
-            signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
-            # pyjwt handles:
-            # header - alg, kid
-            # payload - iss, aud, exp
-            host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
-            try:
-                data = jwt.decode_complete(
-                    token,
-                    signing_key,
-                    issuer=client_id,
-                    subject=client_id,
-                    audience=host + reverse('oauth2_provider_v3:token-v3'),
-                    leeway=timedelta(minutes=5),
-                    options={
-                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
-                    },
-                    algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-                )
-            except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
-                log.warning(f'error was {e}')
-                raise InvalidRequestError
+            payload = validate_and_decode_token(token, client_id, jwks_client, required_fields)
 
-            payload, header = data.get('payload'), data.get('header')
-
-            if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed JWT')
-                raise InvalidRequestError
-
-            if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-                log.warning('jti/iss combo replay')
-                raise InvalidRequestError
-
-            # payload
-            if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-                log.warning('JWT exp is longer than 5 minutes away')
-                raise InvalidRequestError
-
-            # cms_smart extension
+            # cms_smart extension is an extra field to validate in the CAN payload
             cms_smart = payload.get('extensions', {}).get('cms_smart')
             if not cms_smart:
                 log.warning('No CMS_Smart extension')

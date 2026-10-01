@@ -74,3 +74,7 @@ def validate_logo_image(value):
             'Max image height is %s. Your image height is %s.'
             % (str(settings.APP_LOGO_HEIGHT_MAX), str(value.image.height))
         )
+
+
+# class CMSAlignedNetworkValidator:
+#     def
