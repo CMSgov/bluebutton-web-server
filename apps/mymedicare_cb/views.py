@@ -130,7 +130,7 @@ def callback(request):
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError:
             return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
         # This was an error where we couldn't find the hicn or mbi in the userinfo response.
