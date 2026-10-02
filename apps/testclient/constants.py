@@ -63,6 +63,14 @@ class EndpointFormatException(Exception):
     pass
 
 
+class FhirUnauthorizedError(Exception):
+    """Raised when the FHIR backend rejects the session token (e.g. it has expired)."""
+
+    def __init__(self, detail):
+        self.detail = detail
+        super().__init__(detail)
+
+
 class EndpointUrl:
     userinfo = 'userinfo'
     patient = 'patient'
@@ -169,4 +177,15 @@ class ResponseErrors:
                 # was 500, should remain 500
             },
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+    @classmethod
+    def Unauthorized(cls, detail=None):
+        return JsonResponse(
+            {
+                'error': detail or 'Authentication credentials were not provided.',
+                'code': 'Unauthorized',
+                'help': 'Your access token is missing, invalid, or expired. Try authorizing again.',
+            },
+            status=HTTPStatus.UNAUTHORIZED,
         )
