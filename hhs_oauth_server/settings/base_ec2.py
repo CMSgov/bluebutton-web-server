@@ -452,6 +452,19 @@ AWS_REGION_NAME = env('AWS_DEFAULT_REGION', 'us-east-1')
 
 BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
+# ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
+ITS_LOG_API_ENABLED = False
+
+
+def _add_its_log_api_handler(loggers_list):
+    """Check if the ITS_LOG_API_ENABLED env var is set to True. If it is, append the
+    its_log_api logging handler, so we ping the ITS Log API
+    """
+    if ITS_LOG_API_ENABLED:
+        loggers_list.append('its_log_api')
+    return loggers_list
+
+
 # TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks
 # in the deployment repo that aren't being migrated
 LOGGING = env(
@@ -481,6 +494,10 @@ LOGGING = env(
             },
         },
         'handlers': {
+            'its_log_api': {
+                '()': 'apps.logging.its_log_handler.ITSLogAPIHandler',
+                'level': 'INFO',
+            },
             'console': {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
@@ -537,7 +554,8 @@ LOGGING = env(
         },
         'loggers': {
             'hhs_server': {
-                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
+                # 'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
+                'handlers': _add_its_log_api_handler(['wt_debug', 'wt_perf_mon', 'console']),
                 'level': 'DEBUG',
             },
             'hhs_oauth_server.accounts': {
@@ -577,16 +595,20 @@ LOGGING = env(
                 'level': 'DEBUG',
             },
             'audit': {
-                'handlers': ['wt_perf_mon', 'console'],
+                'handlers': _add_its_log_api_handler(['wt_perf_mon', 'console']),
                 'level': 'INFO',
             },
             'performance': {
-                'handlers': ['wt_perf_mon', 'console'],
+                'handlers': ['its_log_api', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'ddtrace': {
                 'handlers': ['console'],
                 'level': 'WARNING',
+            },
+            'apps.logging': {
+                'handlers': ['its_log_api'],
+                'level': 'INFO',
             },
         },
     },

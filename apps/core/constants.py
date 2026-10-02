@@ -27,4 +27,9 @@ WAFFLE_FEATURE_SWITCHES = (
         True,
         'Are we verifying JWT properties and signatures on client_credentials flow',
     ),
+    (
+        'its_log_integration',
+        False,
+        'Are we pinging the its-log API with Blue Button log data',
+    ),
 )
