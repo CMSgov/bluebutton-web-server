@@ -323,13 +323,15 @@ class TestAuditEventLoggers(BaseApiTest):
             s.save()
 
             try:
-                self.client.get(
+                response = self.client.get(
                     self.callback_url,
                     data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
-                self.fail('HTTP Error 403 expected.')
+
+                responseContent = json.loads(response.content.decode("utf-8"))
+                self.assertEqual(responseContent["error"],"Access token unauthorized")
             except requests.exceptions.HTTPError as err:
-                self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
+                self.fail('HTTP Error 403 should be expected.')
 
             slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
             quoted_strings = re.findall('{[^{}]+}', slsx_log_content)
@@ -390,13 +392,14 @@ class TestAuditEventLoggers(BaseApiTest):
             s.save()
 
             try:
-                self.client.get(
+                response = self.client.get(
                     self.callback_url,
                     data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
-                self.fail('HTTP Error 403 expected.')
+                responseContent = json.loads(response.content.decode("utf-8"))
+                self.assertEqual(responseContent["error"],"Access token unauthorized")
             except requests.exceptions.HTTPError as err:
-                self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
+                self.fail('HTTP Error 403 should be expected.')
 
             slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
             quoted_strings = re.findall('{[^{}]+}', slsx_log_content)

@@ -341,11 +341,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            with self.assertRaises(HTTPError):
-                self.client.get(
+            ##with self.assertRaises(HTTPError):
+                response = self.client.get(
                     self.callback_url,
                     data={'req_token': '0000-test_req_token-0000', 'relay': state},
                 )
+                responseContent = json.loads(response.content.decode("utf-8"))
+                self.assertEqual(responseContent["error"],"Access token unauthorized")
 
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID='test', SLSX_CLIENT_SECRET='stest'):
@@ -498,8 +500,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.fhir_patient_info_mock_v3,
             catchall,
         ):
-            with self.assertRaises(HTTPError):
-                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            responseContent = json.loads(response.content.decode("utf-8"))
+            self.assertEqual(responseContent["error"],"Access token unauthorized")
 
         # With HTTMock sls_user_info_http_error_mock
         with HTTMock(
@@ -512,8 +515,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.fhir_patient_info_mock_v3,
             catchall,
         ):
-            with self.assertRaises(HTTPError):
-                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            responseContent = json.loads(response.content.decode("utf-8"))
+            self.assertEqual(responseContent["error"],"Access token unauthorized")
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(
@@ -526,8 +530,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.fhir_patient_info_mock_v3,
             catchall,
         ):
-            with self.assertRaises(HTTPError):
-                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            responseContent = json.loads(response.content.decode("utf-8"))
+            self.assertEqual(responseContent["error"],"Access token unauthorized")
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
         with HTTMock(
