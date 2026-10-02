@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from unittest.mock import patch
 
 import pytest
@@ -12,26 +13,24 @@ log_handler = ITSLogAPIHandler()
 
 
 @patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=False)
-def test_log_not_posted_when_switch_inactive(mock_switch, mock_post_to_api):
+def test_log_not_posted_when_env_var_false(mock_post_to_api):
     """Confirm that we do not make a call to the _post_to_api function when the
     its_log_integration switch is inactive. Using patch on the switch_is_active
     function so we don't need pytest.mark.django_db
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         mock_post_to_api: Patch for the _post_to_api function
     """
-
-    record = logging.makeLogRecord(
-        {
-            'name': 'test',
-            'level': logging.INFO,
-            'msg': 'Testclient connection established',
-        }
-    )
-    log_handler.emit(record)
-    mock_post_to_api.assert_not_called()
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False'}):
+        record = logging.makeLogRecord(
+            {
+                'name': 'test',
+                'level': logging.INFO,
+                'msg': 'Testclient connection established',
+            }
+        )
+        log_handler.emit(record)
+        mock_post_to_api.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -45,42 +44,40 @@ def test_log_not_posted_when_switch_inactive(mock_switch, mock_post_to_api):
     ],
 )
 @patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
-def test_log_not_posted_when_type_is_skippable(mock_switch, mock_post_to_api, log_type):
+def test_log_not_posted_when_type_is_skippable(mock_post_to_api, log_type):
     """Confirm that we do not call the _post_to_api function if testclient is in the log.path
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         mock_post_to_api: Patch for the _post_to_api function
         log_type: The type of the log that was just output. We only post certain log types to the logging API
     """
-    record = logging.makeLogRecord(
-        {'name': 'test', 'level': logging.INFO, 'msg': 'Test connection established', 'type': log_type}
-    )
-    log_handler.emit(record)
-    mock_post_to_api.assert_not_called()
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True'}):
+        record = logging.makeLogRecord(
+            {'name': 'test', 'level': logging.INFO, 'msg': 'Test connection established', 'type': log_type}
+        )
+        log_handler.emit(record)
+        mock_post_to_api.assert_not_called()
 
 
 @patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
-def test_log_not_posted_when_testclient_in_path(mock_switch, mock_post_to_api):
+def test_log_not_posted_when_testclient_in_path(mock_post_to_api):
     """Confirm that we do not call the _post_to_api function if testclient is in the log.path
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         mock_post_to_api: Patch for the _post_to_api function
     """
-    record = logging.makeLogRecord(
-        {
-            'name': 'test',
-            'level': logging.INFO,
-            'msg': 'Test connection established',
-            'type': 'Authorization',
-            'path': '/testclient/',
-        }
-    )
-    log_handler.emit(record)
-    mock_post_to_api.assert_not_called()
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True'}):
+        record = logging.makeLogRecord(
+            {
+                'name': 'test',
+                'level': logging.INFO,
+                'msg': 'Test connection established',
+                'type': 'Authorization',
+                'path': '/testclient/',
+            }
+        )
+        log_handler.emit(record)
+        mock_post_to_api.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -93,12 +90,10 @@ def test_log_not_posted_when_testclient_in_path(mock_switch, mock_post_to_api):
         ),
     ],
 )
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
-def test_parse_log_message(mock_switch, log_msg, expected_result):
+def test_parse_log_message(log_msg, expected_result):
     """Pass different values to the parse_log_message function and ensure we get the expected result
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         log_msg: The log message being passed to parse_log_message.
         expected_result: The expected result of parse_log_message
     """
@@ -113,13 +108,6 @@ def test_parse_log_message(mock_switch, log_msg, expected_result):
     )
     result = log_handler.parse_log_message(record.__dict__)
     assert result == expected_result
-
-
-{
-    'tags': [],
-    'value': '{"app_id": 35, "app_name": "local logging", "fhir_id_v2": "-10000010284531", "fhir_id_v3": "-512738563", "path": "/v3/fhir/Patient/", "request_method": "GET", "response_code": 200, "type": "request_response_middleware"}',
-    'type': 'text',
-}
 
 
 @pytest.mark.parametrize(
@@ -200,13 +188,11 @@ def test_parse_log_message(mock_switch, log_msg, expected_result):
         ),
     ],
 )
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
-def test_build_payload(mock_switch, log_message, expected_result):
+def test_build_payload(log_message, expected_result):
     """This test passes a sample log message to the _build_payload function, and confirms that the returned
     dictionary contains the field names that we expected
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         log_message: The log_message that is used to build the payload to the logging API
         expected_result: The expected result of the _build_payload function
     """
@@ -294,17 +280,14 @@ def test_build_payload(mock_switch, log_message, expected_result):
         ),
     ],
 )
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
-def test_format_log_message_fhir_id_retrieval(mock_switch, log_message, expected_fhir_id_v2, expected_fhir_id_v3):
+def test_format_log_message_fhir_id_retrieval(log_message, expected_fhir_id_v2, expected_fhir_id_v3):
     """_summary_
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         log_message: Log message being passed for formatting
         expected_fhir_id_v2: Expected fhir_id_v2 from _format_log_message
         expected_fhir_id_v3: Expected fhir_id_v3 from _format_log_message
     """
-
     result = log_handler._format_log_message(log_message)
     assert result['fhir_id_v2'] == expected_fhir_id_v2
     if log_message.get('type') != 'AccessToken':
@@ -358,9 +341,7 @@ def test_format_log_message_fhir_id_retrieval(mock_switch, log_message, expected
         ),
     ],
 )
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
 def test_format_log_message_other_fields(
-    mock_switch,
     log_message,
     expected_auth_path,
     expected_grant_type,
@@ -371,7 +352,6 @@ def test_format_log_message_other_fields(
     """_summary_
 
     Args:
-        mock_switch: Mock the its_log_integration waffle switch so we don't interact with the DB
         log_message: Log message being passed for formatting
         expected_auth_path: Expected auth_path from _format_log_message
         expected_grant_type: Expected auth_path from _format_log_message
@@ -500,16 +480,14 @@ def test_format_log_message_other_fields(
     ],
 )
 @patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
-@patch('apps.logging.its_log_handler.switch_is_active', return_value=True)
-def test_post_api_is_called_with_specific_payload(
-    mock_switch, mock_post_to_api, log_message, expected_payload, log_message_name
-):
-    record = logging.makeLogRecord(
-        {
-            'name': log_message_name,
-            'level': logging.INFO,
-            'msg': json.dumps(log_message),
-        }
-    )
-    log_handler.emit(record)
-    mock_post_to_api.assert_called_with(expected_payload)
+def test_post_api_is_called_with_specific_payload(mock_post_to_api, log_message, expected_payload, log_message_name):
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True'}):
+        record = logging.makeLogRecord(
+            {
+                'name': log_message_name,
+                'level': logging.INFO,
+                'msg': json.dumps(log_message),
+            }
+        )
+        log_handler.emit(record)
+        mock_post_to_api.assert_called_with(expected_payload)

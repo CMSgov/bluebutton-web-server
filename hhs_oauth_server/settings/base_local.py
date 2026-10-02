@@ -190,6 +190,18 @@ CACHES = {
 # keep backward compatible with AutoField instead of BigAutoField
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
+ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
+
+
+def _add_its_log_api_handler(loggers_list):
+    """Check if the ITS_LOG_API_ENABLED env var is set to True. If it is, append the
+    its_log_api logging handler, so we ping the ITS Log API
+    """
+    if ITS_LOG_API_ENABLED:
+        loggers_list.append('its_log_api')
+    return loggers_list
+
+
 # Use env-specific logging config if present
 LOGGING = {
     'version': 1,
@@ -226,27 +238,27 @@ LOGGING = {
         #     'handlers': ['console'],
         # },
         'hhs_server': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': _add_its_log_api_handler(['console']),
             'level': 'DEBUG',
         },
         'hhs_oauth_server.accounts': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'oauth2_provider': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'oauthlib': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'unsuccessful_logins': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'admin_interface': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'tests': {
@@ -254,15 +266,15 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'audit': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': _add_its_log_api_handler(['console']),
             'level': 'INFO',
         },
         'performance': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'django': {
-            'handlers': ['its_log_api', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'apps.logging': {
@@ -271,7 +283,7 @@ LOGGING = {
         },
     },
 }
-
+print('LOGGING checl: ', LOGGING)
 DATABASES = {'default': env.db('DATABASES_CUSTOM', default='sqlite:////tmp/db.sqlite3')}  # type: ignore
 
 # internationalization

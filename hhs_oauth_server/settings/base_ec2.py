@@ -452,6 +452,19 @@ AWS_REGION_NAME = env('AWS_DEFAULT_REGION', 'us-east-1')
 
 BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
+# ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
+ITS_LOG_API_ENABLED = False
+
+
+def _add_its_log_api_handler(loggers_list):
+    """Check if the ITS_LOG_API_ENABLED env var is set to True. If it is, append the
+    its_log_api logging handler, so we ping the ITS Log API
+    """
+    if ITS_LOG_API_ENABLED:
+        loggers_list.append('its_log_api')
+    return loggers_list
+
+
 # TODO - remove this after we move to Fargate, django_logging is defined in Ansible playbooks
 # in the deployment repo that aren't being migrated
 LOGGING = env(
@@ -541,39 +554,40 @@ LOGGING = env(
         },
         'loggers': {
             'hhs_server': {
-                'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
+                # 'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
+                'handlers': _add_its_log_api_handler(['wt_debug', 'wt_perf_mon', 'console']),
                 'level': 'DEBUG',
             },
             'hhs_oauth_server.accounts': {
-                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_debug': {
-                'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_debug', 'wt_perf_mon', 'console'],
                 'level': 'DEBUG',
             },
             'hhs_server_error': {
-                'handlers': ['its_log_api', 'wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_error', 'mail_admins', 'wt_perf_mon', 'console'],
                 'level': 'ERROR',
             },
             'unsuccessful_logins': {
-                'handlers': ['its_log_api', 'wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
+                'handlers': ['wt_loginfailed', 'wt_perf_mon', 'wt_info', 'console'],
                 'level': 'INFO',
             },
             'admin_interface': {
-                'handlers': ['its_log_api', 'wt_adminuse', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_adminuse', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'hhs_server_info': {
-                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauth2_provider': {
-                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'oauthlib': {
-                'handlers': ['its_log_api', 'wt_info', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_info', 'wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'tests': {
@@ -581,7 +595,7 @@ LOGGING = env(
                 'level': 'DEBUG',
             },
             'audit': {
-                'handlers': ['its_log_api', 'wt_perf_mon', 'console'],
+                'handlers': _add_its_log_api_handler(['wt_perf_mon', 'console']),
                 'level': 'INFO',
             },
             'performance': {
