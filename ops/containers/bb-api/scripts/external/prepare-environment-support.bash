@@ -80,6 +80,7 @@ load_env_vars () {
         export BB2_SERVER_STD2FILE=''
         export BB20_ENABLE_REMOTE_DEBUG="${BB20_ENABLE_REMOTE_DEBUG:-true}"
         export BB20_REMOTE_DEBUG_WAIT_ATTACH="${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}"
+        export CORS_ALLOWED_ORIGINS="${CORS_ALLOWED_ORIGINS:-}"
         export DATABASES_CUSTOM="${DATABASES_CUSTOM:-postgres://postgres:toor@db:5432/bluebutton}"
         export DJANGO_FHIR_CERTSTORE="${DJANGO_FHIR_CERTSTORE:-/tmp/certstore}"
         export DJANGO_LOG_JSON_FORMAT_PRETTY="${DJANGO_LOG_JSON_FORMAT_PRETTY:-true}"
