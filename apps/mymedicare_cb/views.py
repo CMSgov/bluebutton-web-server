@@ -55,7 +55,6 @@ def authenticate(request):
 
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)
-
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
@@ -131,6 +130,8 @@ def callback(request):
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
+    except requests.exceptions.HTTPError:
+            return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
         # This was an error where we couldn't find the hicn or mbi in the userinfo response.
         # This is a 404 error, but we want to show a custom page for this case.
