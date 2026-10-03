@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 import re
@@ -8,23 +7,19 @@ from http import HTTPStatus
 import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.db import transaction
 from django.http import HttpRequest
 from django.http.response import JsonResponse
-from django.urls import reverse
 from oauth2_provider.models import (
     AccessToken,
     RefreshToken,
     get_application_model,
-    timedelta,
 )
 from oauthlib.oauth2.rfc6749.errors import (
     InvalidClientError,
     InvalidGrantError,
     InvalidRequestError,
 )
-from pytz import timezone
 
 from apps.authorization.models import DataAccessGrant
 from apps.constants import (
@@ -33,7 +28,6 @@ from apps.constants import (
     APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
     AUDIT_EVENT_SCOPE,
     AUDIT_EVENT_SEARCH_SCOPE,
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     HHS_SERVER_LOGNAME_FMT,
     REFRESH_TOKEN,
 )
@@ -44,7 +38,6 @@ from apps.dot_ext.constants import (
     IDME_LOWER_ISS,
 )
 from apps.dot_ext.models import AccessTokenExtension, Application
-from apps.testclient.utils import _start_url_with_http_or_https
 from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
@@ -512,63 +505,3 @@ def build_jwks_urls():
         CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
         IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
     }
-
-
-def validate_and_decode_token(
-    token: str, client_id: str, jwks_client: jwt.PyJWKClient, required_fields: list[str]
-) -> dict:
-    """
-    Validates and decodes a JWT token using the provided JWKS client. Used in client_credentials flow for CAN tokens
-    and asymmetric auth flow.
-
-    Args:
-        token (str): The JWT token to validate and decode.
-        client_id (str): The client ID to validate against the token's issuer and subject.
-        jwks_client (jwt.PyJWKClient): The JWKS client to fetch the signing key.
-        required_fields (list[str]): The list of required fields to validate in the JWT payload.
-
-    Raises:
-        InvalidRequestError: If the token is invalid or any validation checks fail.
-
-    Returns:
-        dict: The decoded JWT payload.
-    """
-    signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
-    # pyjwt handles:
-    # header - alg, kid
-    # payload - iss, aud, exp
-    host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
-    try:
-        # NOTE: This function also handles subject and issuer validation matching the provided client_id
-        data = jwt.decode_complete(
-            token,
-            signing_key,
-            issuer=client_id,
-            subject=client_id,
-            audience=host + reverse('oauth2_provider_v3:token-v3'),
-            leeway=timedelta(minutes=1),
-            options={
-                'require': required_fields,
-            },
-            algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-        )
-    except jwt.PyJWTError as e:
-        log.warning(f'jwt.decode_complete() failed because {type(e)}')
-        log.warning(f'error was {e}')
-        raise InvalidRequestError
-
-    payload, header = data.get('payload'), data.get('header')
-
-    if not payload or not header or header.get('typ') != 'JWT':
-        log.warning('Malformed JWT')
-        raise InvalidRequestError
-
-    if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-        log.warning('jti/iss combo replay')
-        raise InvalidRequestError
-
-    if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-        log.warning('JWT exp is longer than 5 minutes away')
-        raise InvalidRequestError
-
-    return payload
