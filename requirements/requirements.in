@@ -16,7 +16,7 @@ djangorestframework == 3.17.2
 djangorestframework-csv == 3.0.0
 fhir.resources == 8.2.0
 gunicorn == 25.0.3 # used to run the app
-oauthlib == 3.2.2
+oauthlib == 4.0.0
 psycopg2-binary == 2.9.11 # required by django postgres backend
 pyjwt == 2.14.0
 python-dateutil == 2.8.2
