@@ -452,8 +452,7 @@ AWS_REGION_NAME = env('AWS_DEFAULT_REGION', 'us-east-1')
 
 BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
-# ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
-ITS_LOG_API_ENABLED = False
+ITS_LOG_API_ENABLED = bool_env(env('ITS_LOG_API_ENABLED', 'False'))
 
 
 def _add_its_log_api_handler(loggers_list):
@@ -554,7 +553,6 @@ LOGGING = env(
         },
         'loggers': {
             'hhs_server': {
-                # 'handlers': ['its_log_api', 'wt_debug', 'wt_perf_mon', 'console'],
                 'handlers': _add_its_log_api_handler(['wt_debug', 'wt_perf_mon', 'console']),
                 'level': 'DEBUG',
             },

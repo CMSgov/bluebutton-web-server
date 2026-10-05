@@ -68,6 +68,7 @@
 /bb/test/app/sensitive/slsx_health_check_endpoint: ENC[AES256_GCM,data:iT+srSaceMX1tJqOk9+5XYqIXaZmQGMQKQhGCX3HSIE3sk4b,iv:60+V/hG6sOpCdU3PBDMT0OBCM8/dD/19X/UI+dxe1yg=,tag:9VOqja0nx/ISktSZO7C3Ng==,type:str]
 /bb/test/app/nonsensitive/django_slsx_verify_ssl_internal: "False"
 /bb/test/app/nonsensitive/django_slsx_verify_ssl_external: "True"
+/bb/test/app/nonsensitive/its_log_api_enabled: "False"
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
 #ENC[AES256_GCM,data:iVoQibbwQkn8s8Pss+qMiw==,iv:upVv0NvD2KQq8hH6JHRV+06stcBbM8/wW+BriWU6XOY=,tag:RxxF/GIvS1Z7+syXUBuNNg==,type:comment]
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]

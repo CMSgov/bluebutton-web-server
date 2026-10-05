@@ -283,7 +283,7 @@ LOGGING = {
         },
     },
 }
-print('LOGGING checl: ', LOGGING)
+
 DATABASES = {'default': env.db('DATABASES_CUSTOM', default='sqlite:////tmp/db.sqlite3')}  # type: ignore
 
 # internationalization

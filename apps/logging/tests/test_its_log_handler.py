@@ -15,8 +15,7 @@ log_handler = ITSLogAPIHandler()
 @patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
 def test_log_not_posted_when_env_var_false(mock_post_to_api):
     """Confirm that we do not make a call to the _post_to_api function when the
-    its_log_integration switch is inactive. Using patch on the switch_is_active
-    function so we don't need pytest.mark.django_db
+    ITS_LOG_API_ENABLED env var is False.
 
     Args:
         mock_post_to_api: Patch for the _post_to_api function
@@ -91,11 +90,11 @@ def test_log_not_posted_when_testclient_in_path(mock_post_to_api):
     ],
 )
 def test_parse_log_message(log_msg, expected_result):
-    """Pass different values to the parse_log_message function and ensure we get the expected result
+    """Pass different values to the _parse_log_message function and ensure we get the expected result
 
     Args:
-        log_msg: The log message being passed to parse_log_message.
-        expected_result: The expected result of parse_log_message
+        log_msg: The log message being passed to _parse_log_message.
+        expected_result: The expected result of _parse_log_message
     """
     record = logging.makeLogRecord(
         {
@@ -106,7 +105,7 @@ def test_parse_log_message(log_msg, expected_result):
             'path': '/testclient/',
         }
     )
-    result = log_handler.parse_log_message(record.__dict__)
+    result = log_handler._parse_log_message(record.__dict__)
     assert result == expected_result
 
 
