@@ -128,6 +128,7 @@ class ResponseErrors:
             # this was, and should be a 500
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
+
     @classmethod
     def Error(cls, msg):
         return JsonResponse(
@@ -141,9 +142,9 @@ class ResponseErrors:
             {
                 'error': 'Authorization code replay or grant failure.',
                 'code': 'InvalidGrantError',
-                'help': 'Try authorizing again'
+                'help': 'Try authorizing again',
             },
-              status=HTTPStatus.BAD_REQUEST,
+            status=HTTPStatus.BAD_REQUEST,
         )
 
     @classmethod
