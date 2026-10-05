@@ -597,7 +597,7 @@ LOGGING = env(
                 'level': 'INFO',
             },
             'performance': {
-                'handlers': ['its_log_api', 'wt_perf_mon', 'console'],
+                'handlers': ['wt_perf_mon', 'console'],
                 'level': 'INFO',
             },
             'ddtrace': {
