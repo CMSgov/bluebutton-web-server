@@ -117,12 +117,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(self.mock_response.slsx_health_ok_mock):
                 response = self.client.get(self.login_url + '?next=/v3/o/authorize/?client_id=testwithbadchars%00n%00')
-            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-            query = parse_qs(urlparse(response['Location']).query)
-            path = response['Location'].split('?')[0]
-            self.assertEqual(path, 'https://example.com/login')
-            self.assertIn('/123', query['redirect_uri'][0])
-            self.assertTrue('relay' in query)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_login_url_health_check_fail(self):
         """
