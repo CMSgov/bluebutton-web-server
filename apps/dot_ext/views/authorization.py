@@ -1,44 +1,31 @@
 import html
 import json
 import logging
-import os
-import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from http import HTTPStatus
-from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
-import waffle
-from django.conf import settings
+
+# from django.conf import settings
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
+
+# from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-from fhir.resources.R4B.address import Address
-from fhir.resources.R4B.codeableconcept import CodeableConcept
-from fhir.resources.R4B.coding import Coding
-from fhir.resources.R4B.contactpoint import ContactPoint
-from fhir.resources.R4B.humanname import HumanName
-from fhir.resources.R4B.identifier import Identifier
-from fhir.resources.R4B.meta import Meta
-from fhir.resources.R4B.parameters import Parameters, ParametersParameter
-from fhir.resources.R4B.patient import Patient
-from jwt import PyJWKClient
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.models import (
     get_access_token_model,
@@ -54,7 +41,7 @@ from oauth2_provider.views.introspect import (
 )
 from oauthlib.oauth2 import AccessDeniedError
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError, ServerError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError, InvalidRequestError
 from rest_framework.exceptions import NotFound
 from waffle import get_waffle_flag_model, switch_is_active
 
@@ -70,7 +57,6 @@ from apps.constants import (
     AUDIT_EVENT_SCOPE,
     AUDIT_EVENT_SEARCH_SCOPE,
     CLIENT_CREDENTIALS,
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
     CODE_CHALLENGE_METHOD_S256,
     HHS_SERVER_LOGNAME_FMT,
     OPENID_SCOPE,
@@ -81,20 +67,11 @@ from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
-    CC_SYSTEM_CODING_SYSTEM,
-    CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CLIENT_CREDENTIALS_TYPE,
-    CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
     DATETIME_ISO_FORMAT,
-    ID_ME_URL_CONTAINS,
-    IDME_HIGHER_ISS,
-    IDME_LOWER_ISS,
-    PARAMETERS_ID_MATCH_META,
     PATIENT_DATA_CANNOT_BE_FOUND,
-    PATIENT_ID_MATCH_META,
-    YYYY_MM_DD_REGEX,
 )
 from apps.dot_ext.forms import SimpleAllowForm
 from apps.dot_ext.loggers import (
@@ -106,11 +83,9 @@ from apps.dot_ext.loggers import (
     update_instance_auth_flow_trace_with_code,
 )
 from apps.dot_ext.models import AccessTokenExtension, Application, Approval
-from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
-    build_jwks_urls,
     check_can_token_scope_for_audit_event_scopes,
     check_session_and_create_access_token_extension,
     get_api_version_number_from_url,
@@ -120,8 +95,8 @@ from apps.dot_ext.utils import (
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
-    validate_latin_extended_string,
 )
+from apps.dot_ext.validators import CMSAlignedNetworksValidator
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import Crosswalk, hash_id_value
 from apps.fhir.bluebutton.utils import (
@@ -137,13 +112,11 @@ from apps.mymedicare_cb.models import (
     create_beneficiary_record,
     get_and_update_from_refresh,
 )
-from apps.testclient.utils import _start_url_with_http_or_https
 from apps.versions import Versions
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 QP_CHECK_LIST = ['client_secret']
-JWKS_URLS = build_jwks_urls()
 
 
 def get_grant_expiration(data_access_type):
@@ -764,366 +737,6 @@ class TokenView(DotTokenView):
 
         return None
 
-    def _validate_authorization_jwt(self, token: str, client_id: str, jwks_client: PyJWKClient) -> str:
-        """Validates an authorization JWT and returns the id_token if valid
-
-        Args:
-            token (str): the base64 encoded auth jwt
-            jwks_client (PyJWKClient): instantiated client for the authorization jwt
-
-        Raises:
-            InvalidRequestError: any jwt error throws this
-
-        Returns:
-            str: the cms_smart extension's id_token
-        """
-        if waffle.switch_is_active('client_credentials_validation'):
-            signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
-            # pyjwt handles:
-            # header - alg, kid
-            # payload - iss, aud, exp
-            host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
-            try:
-                data = jwt.decode_complete(
-                    token,
-                    signing_key,
-                    issuer=client_id,
-                    audience=host + reverse('oauth2_provider_v3:token-v3'),
-                    leeway=timedelta(minutes=5),
-                    options={
-                        'require': ['iss', 'sub', 'aud', 'jti', 'exp', 'extensions'],
-                    },
-                    algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-                )
-            except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
-                log.warning(f'error was {e}')
-                raise InvalidRequestError
-
-            payload, header = data.get('payload'), data.get('header')
-
-            if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed JWT')
-                raise InvalidRequestError
-
-            if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-                log.warning('jti/iss combo replay')
-                raise InvalidRequestError
-
-            # payload
-            if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-                log.warning('JWT exp is longer than 5 minutes away')
-                raise InvalidRequestError
-
-            if payload.get('iss') != payload.get('sub'):
-                log.warning('iss and sub are not the same')
-                raise InvalidRequestError
-
-            # cms_smart extension
-            cms_smart = payload.get('extensions', {}).get('cms_smart')
-            if not cms_smart:
-                log.warning('No CMS_Smart extension')
-                raise InvalidRequestError
-
-            if (
-                cms_smart.get('version') != '1'
-                or cms_smart.get('purpose_of_use') != 'PATRQT'
-                or not cms_smart.get('id_token')
-            ):
-                log.warning('Malformed CMS_Smart extension')
-                raise InvalidRequestError
-
-            id_token = cms_smart.get('id_token')
-        else:
-            id_token = (
-                jwt.decode(token, options={'verify_signature': False})
-                .get('extensions', {})
-                .get('cms_smart', {})
-                .get('id_token')
-            )
-
-        return id_token
-
-    def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
-        """Determine if the issuer of the id_token is valid for the environment for ID.me client_credentials
-        calls
-        Args:
-            issuer (str): Where the token was issued from
-        Returns:
-            bool: Whether or not the environment is valid for the id token issuer
-        """
-
-        # If the issue does not contain oidc, it is not ID.me, and it must be CLEAR
-        # CLEAR does not differentiate between environments at this time
-        if ID_ME_URL_CONTAINS not in issuer:
-            return True
-
-        env = os.environ.get('TARGET_ENV', 'local')
-        # if the env is prod, and the issuer is not the prod url, return false
-        # or if the env is not prod, and the issuer is not the lower env url, return false
-        if (env == 'prod' and issuer != IDME_HIGHER_ISS) or (env != 'prod' and issuer != IDME_LOWER_ISS):
-            log.warning(f'Invalid URL for env: {env}: {issuer}')
-            return False
-
-        return True
-
-    def _validate_ial_jwt(self, id_token: str, jwks_client: PyJWKClient) -> dict:
-        """Validates an IAL JWT from a trusted CSP
-
-        Args:
-            id_token (str): base64 encoded id_token jwt from cms_smart extension
-            jwks_client (PyJWKClient): instantiated client for the authorization jwt
-
-        Raises:
-            InvalidRequestError: if any validation step fails, log and raise
-
-        Returns:
-            str: the decoded payload of the IAL JWT
-        """
-        if waffle.switch_is_active('client_credentials_validation'):
-            signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-            try:
-                data = jwt.decode_complete(
-                    id_token,
-                    signing_key,
-                    # leeway=timedelta(minutes=5),
-                    options={
-                        'require': [
-                            'iss',
-                            'sub',
-                            'aud',
-                            'jti',
-                            'exp',
-                            'iat',
-                            'identity_assurance_level',
-                            'auth_time',
-                            'family_name',
-                            'given_name',
-                            'birthdate',
-                        ],
-                        'verify_aud': False,
-                    },
-                    algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
-                )
-            except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
-                raise InvalidRequestError
-            payload, header = data.get('payload'), data.get('header')
-
-            if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed header / payload')
-                raise InvalidRequestError
-
-            # Validate iat and auth_time
-            self._validate_time_comparison(payload, 'iat', 300)
-            self._validate_time_comparison(payload, 'auth_time', 300)
-
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
-                log.warning('The issuer of the token is not valid for this environment')
-                raise InvalidRequestError
-
-            if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-                log.warning('jti/iss combo replay')
-                raise InvalidRequestError
-
-            if payload.get('identity_assurance_level') < 2:
-                log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
-                raise InvalidRequestError
-
-            if not validate_latin_extended_string(payload.get('family_name')):
-                log.warning(
-                    f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
-                )
-                raise InvalidRequestError
-
-            if not validate_latin_extended_string(payload.get('given_name')):
-                log.warning(
-                    f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}'
-                )
-                raise InvalidRequestError
-
-            if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
-                log.warning('birthdate was not a valid string')
-                raise InvalidRequestError
-        else:
-            try:
-                payload = jwt.decode(id_token, options={'verify_signature': False})
-            except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
-                raise InvalidRequestError
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
-                log.warning('The issuer of the token is not valid for this environment')
-                raise InvalidRequestError
-
-        return payload
-
-    def _validate_time_comparison(
-        self, payload_data: dict[str, Any], jwt_key: str, max_age_seconds: int
-    ) -> bool | InvalidRequestError:
-        """
-        Validates if iat or auth_time:
-         1. Are numbers
-         2. Does not occur in the future
-         3. Is within the required amount of time.
-
-        Args:
-            payload_data: The payload of the IAL JWT after being decoded
-            jwt_key: The key to get the jwt timestamp from (iat or auth_time for now)
-            max_age_seconds: The max time window/delta (in seconds) that the jwt_key is valid for
-
-        Raises:
-            InvalidRequestError: if any validation step fails, log and raise
-
-        Returns:
-            True if no InvalidRequestError's are raised
-        """
-        # Verify we get the correct type
-        try:
-            jwt_key_ts = float(payload_data.get(jwt_key))
-        except (TypeError, ValueError):
-            log.warning(f'{jwt_key} was not a numeric timestamp ({jwt_key})')
-            raise InvalidRequestError
-
-        current_ts = datetime.now(timezone.utc).timestamp()
-        # Verify iat or auth_time isn't in the future
-        if jwt_key_ts > current_ts:
-            log.warning(f'JWT {jwt_key} is in the future ({jwt_key})')
-            raise InvalidRequestError
-
-        # Verify iat or auth_time isn't too old
-        if current_ts - jwt_key_ts > max_age_seconds:
-            log.warning(f'JWT {jwt_key} was older than {float(max_age_seconds / 60)} minutes ({jwt_key})')
-            raise InvalidRequestError
-        return True
-
-    def _parse_ial_into_parameter(self, payload: dict) -> dict:
-        """Parses an IAL token into a Patient and Parameters resource
-
-        Args:
-            payload (dict): the IAL token
-
-        Returns:
-            Parameters: a json dump of the Parameters object
-        """
-        patient_name = HumanName(
-            use='official',
-            family=payload.get('family_name'),
-            given=[payload.get('given_name')],
-        )
-
-        telecoms = []
-        if payload.get('phone_number') and payload.get('phone_number_verified'):
-            telecoms.append(
-                ContactPoint(
-                    system='phone',
-                    value=payload.get('phone_number'),
-                    use='mobile',
-                    rank=1,
-                )
-            )
-
-        if payload.get('email'):
-            telecoms.append(ContactPoint(system='email', value=payload.get('email'), use='home', rank=2))
-
-        gender_map = {'f': 'female', 'm': 'male', 'o': 'other', 'u': 'unknown'}
-        gender = payload.get('gender', 'u').lower()
-        patient_gender = gender_map.get(gender[0], 'unknown')
-
-        patient_birthdate = payload.get('birthdate')
-
-        addresses = []
-        if (home := payload.get('address')) and home.get('street_address'):
-            street_address = home.get('street_address')
-
-            parts = [
-                street_address,
-                home.get('locality', ''),
-                home.get('region', ''),
-                home.get('postal_code', ''),
-            ]
-            address_parts = ', '.join(part for part in parts if part)
-            normalized_address = normalize_address(address_parts)
-
-            if normalized_address:
-                addresses.append(
-                    Address(
-                        use='home',
-                        type='both',
-                        text=normalized_address,
-                        line=[normalized_address],
-                        city=home.get('locality'),
-                        state=home.get('region'),
-                        postalCode=home.get('postal_code'),
-                        country=home.get('country'),
-                    )
-                )
-
-        for historical in payload.get('historical_address', []):
-            if not (street_address := historical.get('street_address')):
-                continue
-
-            parts = [
-                street_address,
-                historical.get('locality', ''),
-                historical.get('region', ''),
-                historical.get('postal_code', ''),
-            ]
-            address_parts = ', '.join(part for part in parts if part)
-            normalized_address = normalize_address(address_parts)
-
-            if normalized_address:
-                addresses.append(
-                    Address(
-                        use='old',
-                        type='both',
-                        text=normalized_address,
-                        line=[normalized_address],
-                        city=historical.get('locality'),
-                        state=historical.get('region'),
-                        postalCode=historical.get('postal_code'),
-                        country=historical.get('country'),
-                    )
-                )
-
-        identifiers = []
-        if (ssn := payload.get('ssn_itin_short') or payload.get('SSN', '')[-4:]) and len(ssn) == 4:
-            ssn_coding = Coding(
-                system=CC_SYSTEM_CODING_SYSTEM,
-                code='SS',
-                display='Social Security Number',
-            )
-            ssn_type = CodeableConcept(coding=[ssn_coding])
-            identifiers.append(
-                Identifier(
-                    use='official',
-                    type=ssn_type,
-                    system=CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
-                    value=ssn,
-                )
-            )
-
-        patient_meta = Meta(profile=[PATIENT_ID_MATCH_META])
-
-        patient = Patient(
-            name=[patient_name],
-            telecom=telecoms,
-            gender=patient_gender,
-            birthDate=patient_birthdate,
-            address=addresses,
-            identifier=identifiers,
-            meta=patient_meta,
-        )
-
-        id_match_meta = Meta(profile=[PARAMETERS_ID_MATCH_META])
-
-        id_match_payload = Parameters(
-            id='IDIMatchInputParameters',
-            meta=id_match_meta,
-            parameter=[ParametersParameter(name='IDIPatient', resource=patient)],
-        )
-
-        return id_match_payload.model_dump(mode='json', exclude_none=True)
-
     def _retrieve_prior_include_samhsa_and_part_d_eob_only_values(
         self, grant_type: str, request: HttpRequest, app_part_d_eob_only: bool
     ) -> bool:
@@ -1160,6 +773,7 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
+        can_validator = CMSAlignedNetworksValidator()
 
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
@@ -1206,28 +820,12 @@ class TokenView(DotTokenView):
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
-                        # Top level (application authorization) JWT validation
-                        id_token = self._validate_authorization_jwt(
+                        id_match_payload = can_validator.authenticate_and_validate_token(
                             request.POST.get('client_assertion', ''),
                             app.client_id,
-                            PyJWKClient(app.jwks_uri),
+                            jwks_client=jwt.PyJWKClient(app.jwks_uri),
                         )
 
-                        # Determine if this is CLEAR or ID.ME
-                        pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
-                        csp_jwks = JWKS_URLS.get(pre_verified_ial.get('iss', ''))
-
-                        if not csp_jwks:
-                            log.warning('id_token did not have a valid iss')
-                            raise InvalidRequestError
-
-                        ial_valid = self._validate_ial_jwt(id_token, PyJWKClient(csp_jwks))
-                        if not ial_valid:
-                            log.error('_validate_ial_jwt returned None')
-                            raise ServerError
-
-                        id_match_payload = self._parse_ial_into_parameter(ial_valid)
-                        # log.info(id_match_payload)
                         headers = {
                             'X-CLIENT-ID': app.client_id,
                             'X-CLIENT-NAME': app.name,
@@ -1246,7 +844,7 @@ class TokenView(DotTokenView):
                         log_dict = {
                             'type': 'request_response_middleware',
                             'app_name': app.name,
-                            'csp': pre_verified_ial.get('iss', None),
+                            # 'csp': pre_verified_ial.get('iss', None),
                             'patient': None,
                             'path': request.path,
                             'patient_match_found': False,
