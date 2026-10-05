@@ -773,7 +773,6 @@ class TokenView(DotTokenView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         version = get_api_version_number_from_url(self.request.path_info)
         grant_type = request.POST.get('grant_type')
-        can_validator = CMSAlignedNetworksValidator()
 
         try:
             # If it is not version 3, we don't need to check that the application is in the v3_early_adopter flag,
@@ -820,6 +819,7 @@ class TokenView(DotTokenView):
                     # Allow client credentials call to proceed, to be implemented in a later ticket
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
+                        can_validator = CMSAlignedNetworksValidator()
                         id_match_payload = can_validator.authenticate_and_validate_token(
                             request.POST.get('client_assertion', ''),
                             app.client_id,
