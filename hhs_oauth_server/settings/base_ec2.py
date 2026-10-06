@@ -291,24 +291,31 @@ SECURE_SSL_REDIRECT = False  # ALB handles HTTPS redirect
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 X_FRAME_OPTIONS = 'DENY'
 
-CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', False))
-_CORS_ALLOWED = env('CORS_ALLOWED_ORIGINS', default='')
-CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(',') if o.strip()]
+# Move Admin to a variable url location
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
-# Restrict allowed HTTP methods and headers for CORS
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'OPTIONS',
-]
+# Must stay False so admin paths are origin-restricted; API paths allow any origin via apps/core/signals.py.
+CORS_ORIGIN_ALLOW_ALL = False
+
+API_CORS_URLS_REGEX = r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))'
+
+CORS_URLS_REGEX = (
+    r'^/(' + ADMIN_PREPEND_URL + r'admin/'
+    r'|v[1-3]/accounts/'
+    r'|v[1-3]/o/(authorize|applications|authorized_tokens|tokens|expire_authenticated_user)/'
+    r'|docs/|health|creds)'
+)
+CORS_ALLOWED_ORIGIN_REGEXES = [r'^https://([a-z0-9-]+\.)*(cms|medicare)\.gov$']
+
+CORS_ALLOW_CREDENTIALS = False
+
+CORS_ALLOW_METHODS = ['GET', 'POST', 'OPTIONS']
 
 CORS_ALLOW_HEADERS = (
     'accept',
     'authorization',
     'content-type',
+    'prefer',  # v3 strict query-parameter validation
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
@@ -771,9 +778,6 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/v1/accounts/login'
 
 LOGOUT_REDIRECT_URL = '/'
-
-# Move Admin to a variable url location
-ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
 ALLOW_END_USER_EXTERNAL_AUTH = 'B'
 EXTERNAL_AUTH_NAME = 'Medicare.gov'

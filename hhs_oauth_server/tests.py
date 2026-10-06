@@ -8,7 +8,9 @@ File created by: 'Mark Scrimshire: @ekivemark'
 
 import json
 
-from django.test import TestCase
+from corsheaders.middleware import CorsMiddleware
+from django.http import HttpResponse
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.test.client import Client
 from django.urls import reverse
 
@@ -310,3 +312,46 @@ class SmartConfigurationTestCase(TestCase):
         self.assertEqual(type(json.loads(response_content)), type({}))
         self.assertCountEqual(response_json['capabilities'], CAPABILITIES)
         self.assertCountEqual(response_json['scopes_supported'], SCOPES_SUPPORTED)
+
+
+# Mirrors the CORS settings in hhs_oauth_server/settings/base_ec2.py
+@override_settings(
+    CORS_ORIGIN_ALLOW_ALL=False,
+    API_CORS_URLS_REGEX=r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))',
+    CORS_URLS_REGEX=(
+        r'^/(admin/'
+        r'|v[1-3]/accounts/'
+        r'|v[1-3]/o/(authorize|applications|authorized_tokens|tokens|expire_authenticated_user)/'
+        r'|docs/|health|creds)'
+    ),
+    CORS_ALLOWED_ORIGIN_REGEXES=[r'^https://([a-z0-9-]+\.)*(cms|medicare)\.gov$'],
+    CORS_ALLOW_CREDENTIALS=False,
+)
+class CorsPolicyTestCase(SimpleTestCase):
+    def _allow_origin(self, path, origin):
+        request = RequestFactory().get(path, HTTP_ORIGIN=origin)
+        response = CorsMiddleware(lambda r: HttpResponse())(request)
+        return response.get('Access-Control-Allow-Origin')
+
+    def test_api_paths_allow_any_origin(self):
+        for path in ('/v2/fhir/Patient/', '/v3/o/token/', '/v1/connect/userinfo', '/.well-known/openid-configuration'):
+            self.assertEqual(self._allow_origin(path, 'https://example.com'), 'https://example.com')
+
+    def test_admin_paths_allow_cms_and_medicare_subdomains(self):
+        for origin in ('https://cms.gov', 'https://bluebutton.cms.gov', 'https://a.b.medicare.gov'):
+            for path in ('/admin/', '/admin/metrics/tokens', '/v2/accounts/login', '/v2/o/applications/'):
+                self.assertEqual(self._allow_origin(path, origin), origin)
+
+    def test_admin_paths_reject_other_origins(self):
+        for origin in (
+            'https://example.com',
+            'https://evilcms.gov',
+            'https://cms.gov.example.com',
+            'http://www.cms.gov',
+            'https://www.medicare.gov:8443',
+        ):
+            self.assertIsNone(self._allow_origin('/admin/', origin))
+
+    def test_unlisted_paths_get_no_cors_headers(self):
+        for path in ('/', '/mymedicare/login', '/v2/o/'):
+            self.assertIsNone(self._allow_origin(path, 'https://www.cms.gov'))
