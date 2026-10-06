@@ -26,13 +26,13 @@ locals {
   service = "microservices"
 
   # Platform shortcuts (BFD pattern: flat locals from module outputs)
-  workspace            = module.platform.env
-  app_prefix           = module.platform.app
-  cluster_name         = data.aws_ecs_cluster.main.cluster_name
-  private_subnets      = module.platform.private_subnet_ids
-  public_subnets       = module.platform.public_subnet_ids
-  region               = module.platform.primary_region
-  account_id           = module.platform.account_id
+  workspace       = module.platform.env
+  app_prefix      = module.platform.app
+  cluster_name    = data.aws_ecs_cluster.main.cluster_name
+  private_subnets = module.platform.private_subnet_ids
+  public_subnets  = module.platform.public_subnet_ids
+  region          = module.platform.primary_region
+  account_id      = module.platform.account_id
   #  this bucket name must match the fallback in alb.tf, otherwise the bucket policy in alb_access_logs.tf will break!
   access_logs_bucket   = var.access_logs_bucket != "" ? var.access_logs_bucket : "cms-cloud-${module.platform.account_id}-${module.platform.primary_region}"
   vpc_id               = module.platform.vpc_id
