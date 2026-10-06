@@ -1,9 +1,8 @@
-import datetime
 import logging
 import os
 import re
 from abc import ABC, abstractmethod
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from os import path as ospath
 from typing import Any
@@ -29,7 +28,6 @@ from fhir.resources.R4B.patient import Patient
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.validators import URIValidator, urlsplit
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
-from pytz import timezone
 
 from apps.constants import (
     CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
@@ -153,7 +151,7 @@ class BaseTokenValidator(ABC):
             dict: The decoded JWT payload.
         """
         waffle_switch = self.get_waffle_switch()
-        if waffle.is_active(waffle_switch):
+        if waffle.switch_is_active(waffle_switch):
             required_fields = self.get_required_fields()
             signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
             # pyjwt handles:
@@ -520,7 +518,7 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
-    def _get_csp_jwks_url(id_token: str) -> tuple[str, dict]:
+    def _get_csp_jwks_url(id_token: str) -> str:
         # Determine if this is CLEAR or ID.ME
         pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
         csp_jwks_url = JWKS_URLS.get(pre_verified_ial.get('iss', ''))

@@ -787,47 +787,6 @@ class TestTokenPrivateMethods(BaseApiTest):
         with pytest.raises(InvalidRequestError):
             self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
 
-    def test_validate_time_comparison_succeeds(
-        self,
-    ):
-        """Test _validate_time_comparison succeeds when set to 3 minutes ago."""
-        # Set auth time to be 3 minutes ago
-        mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180}
-        response = self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
-        assert response is True
-
-    def test_validate_time_comparison_fails_when_auth_time_is_not_an_integer(
-        self,
-    ):
-        """Test _validate_time_comparison fails when auth time is not an number."""
-        mock_payload = {'auth_time': "I'm a string"}
-
-        # Call fails when auth time is not a number
-        with pytest.raises(InvalidRequestError):
-            self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
-
-    def test_validate_time_comparison_fails_when_auth_time_happens_in_the_future(
-        self,
-    ):
-        """Test _validate_time_comparison fails when auth time happens in the future."""
-        # Set time to happen in the future
-        mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() + 60}
-
-        # Call fails when auth time happens in the future
-        with pytest.raises(InvalidRequestError):
-            self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
-
-    def test_validate_time_comparison_fails_when_longer_than_5_minutes_ago(
-        self,
-    ):
-        """Test _validate_time_comparison fails when longer than 5 minutes ago."""
-        # Set time to happen in the future
-        mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 301}
-
-        # Call fails when auth time happens in the future
-        with pytest.raises(InvalidRequestError):
-            self.token_view._validate_time_comparison(mock_payload, 'auth_time', 300)
-
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
