@@ -132,7 +132,7 @@ def callback(request):
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
     except requests.exceptions.HTTPError:
-            return JsonResponse({'error': 'Access token unauthorized'}, status=HTTPStatus.FORBIDDEN)
+            return JsonResponse({'error': 'Bad Gateway'}, status=HTTPStatus.BAD_GATEWAY)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
         # This was an error where we couldn't find the hicn or mbi in the userinfo response.
         # This is a 404 error, but we want to show a custom page for this case.

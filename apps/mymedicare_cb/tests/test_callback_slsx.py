@@ -356,7 +356,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 data={'req_token': '0000-test_req_token-0000', 'relay': state},
             )
             responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Access token unauthorized")
+            self.assertEqual(responseContent["error"],"Bad Gateway")
 
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID='test', SLSX_CLIENT_SECRET='stest'):
@@ -390,7 +390,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 self.assertEqual(sls_auth_header, 'Basic dGVzdDpzdGVzdA==')
                 return {
                     'status_code': status.HTTP_401_UNAUTHORIZED,
-                    'content': {
+                        'content': {
                         'error': 'nope!',
                     },
                 }
@@ -511,7 +511,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         ):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Access token unauthorized")
+            self.assertEqual(responseContent["error"],"Bad Gateway")
 
         # With HTTMock sls_user_info_http_error_mock
         with HTTMock(
@@ -526,7 +526,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         ):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Access token unauthorized")
+            self.assertEqual(responseContent["error"],"Bad Gateway")
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(
@@ -540,7 +540,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Access token unauthorized")
+            self.assertEqual(responseContent["error"],"Bad Gateway")
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
         with HTTMock(

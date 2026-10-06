@@ -331,7 +331,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 responseContent = json.loads(response.content.decode("utf-8"))
                 self.assertEqual(responseContent["error"],"Access token unauthorized")
             except requests.exceptions.HTTPError:
-                self.fail('HTTP Error 403 should be expected.')
+                self.fail('HTTP Error should be expected.')
 
             slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
             quoted_strings = re.findall('{[^{}]+}', slsx_log_content)
