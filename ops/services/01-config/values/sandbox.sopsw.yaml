@@ -13,7 +13,7 @@
 /bb/sandbox/app/nonsensitive/target_env: impl
 /bb/sandbox/app/nonsensitive/django_application_title: Blue Button API Sandbox
 /bb/sandbox/app/nonsensitive/signup_timeout_days: "7"
-/bb/sandbox/app/nonsensitive/cors_origin_allow_all: "True"
+/bb/sandbox/app/nonsensitive/cors_origin_allow_all: "False"
 #ENC[AES256_GCM,data:etJuMbKWQ0eVN2BYCoqNPOCysTgkaSkJlDAhs4q7QcdoMf8EN+xJ4RwNOf+xCRGcOZeHkzUJlCETeZ179TWzfB3N49R8p3LU2ZrSF54=,iv:ZwQ7c8FbeCF4jQKXALyxcK+WXwV5o6X2/QFGqAeo2tI=,tag:4Utwk/gsCx+eMXSo5L9SCw==,type:comment]
 #ENC[AES256_GCM,data:9xyjWpwegeETsHi5d5brcIZ93Kwm,iv:rL3iOjQWeoK02FEtxmvk8M6Zm5bB+hrjDvtVR+0h1FA=,tag:U+NbU+F0if2Rs/c+qBnK5w==,type:comment]
 #ENC[AES256_GCM,data:etJuMbKWQ0eVN2BYCoqNPOCysTgkaSkJlDAhs4q7QcdoMf8EN+xJ4RwNOf+xCRGcOZeHkzUJlCETeZ179TWzfB3N49R8p3LU2ZrSF54=,iv:ZwQ7c8FbeCF4jQKXALyxcK+WXwV5o6X2/QFGqAeo2tI=,tag:4Utwk/gsCx+eMXSo5L9SCw==,type:comment]
