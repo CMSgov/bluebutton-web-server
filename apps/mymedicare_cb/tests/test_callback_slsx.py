@@ -341,13 +341,12 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            ##with self.assertRaises(HTTPError):
-                response = self.client.get(
-                    self.callback_url,
-                    data={'req_token': '0000-test_req_token-0000', 'relay': state},
-                )
-                responseContent = json.loads(response.content.decode("utf-8"))
-                self.assertEqual(responseContent["error"],"Access token unauthorized")
+            response = self.client.get(
+                self.callback_url,
+                data={'req_token': '0000-test_req_token-0000', 'relay': state},
+            )
+            responseContent = json.loads(response.content.decode("utf-8"))
+            self.assertEqual(responseContent["error"],"Access token unauthorized")
 
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID='test', SLSX_CLIENT_SECRET='stest'):
