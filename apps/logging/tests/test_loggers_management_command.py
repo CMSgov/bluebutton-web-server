@@ -1317,4 +1317,4 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             }
         )
         self._validate_global_state_metrics_log(validate_global_dict)
-        mock_ping_api.call_count == 10422
+        assert mock_ping_api.call_count == 10908

@@ -1,3 +1,4 @@
+import importlib
 import json
 import logging
 import os
@@ -12,24 +13,54 @@ from apps.logging.its_log_handler import ITSLogAPIHandler
 log_handler = ITSLogAPIHandler()
 
 
-@patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
-def test_log_not_posted_when_env_var_false(mock_post_to_api):
-    """Confirm that we do not make a call to the _post_to_api function when the
-    ITS_LOG_API_ENABLED env var is False.
-
-    Args:
-        mock_post_to_api: Patch for the _post_to_api function
+def test_its_log_api_handler_absent_when_env_var_false():
+    """Confirm that the its_log_api logging handler is not added to the base_local settings
+    if ITS_LOG_API_ENABLED is false
     """
-    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False'}):
-        record = logging.makeLogRecord(
-            {
-                'name': 'test',
-                'level': logging.INFO,
-                'msg': 'Testclient connection established',
-            }
-        )
-        log_handler.emit(record)
-        mock_post_to_api.assert_not_called()
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'local'}):
+        from hhs_oauth_server.settings import base_local  # adjust to your actual settings module
+
+        assert 'its_log_api' not in base_local.LOGGING['loggers']['audit']['handlers']
+        assert 'its_log_api' not in base_local.LOGGING['loggers']['hhs_server']['handlers']
+
+
+def test_its_log_api_handler_present_when_env_var_true():
+    """Confirm that the its_log_api logging handler is added to the base_local settings
+    if ITS_LOG_API_ENABLED is true
+    """
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'local'}):
+        from hhs_oauth_server.settings import base_local
+
+        importlib.reload(base_local)
+
+        assert 'its_log_api' in base_local.LOGGING['handlers']
+        assert 'its_log_api' in base_local.LOGGING['loggers']['audit']['handlers']
+        assert 'its_log_api' in base_local.LOGGING['loggers']['hhs_server']['handlers']
+
+
+def test_its_log_api_handler_absent_when_env_var_false_base_ec2():
+    """Confirm that the its_log_api logging handler is not added to the base_local settings
+    if ITS_LOG_API_ENABLED is false
+    """
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'local'}):
+        from hhs_oauth_server.settings import base_ec2  # adjust to your actual settings module
+
+        assert 'its_log_api' not in base_ec2.LOGGING['loggers']['audit']['handlers']
+        assert 'its_log_api' not in base_ec2.LOGGING['loggers']['hhs_server']['handlers']
+
+
+def test_its_log_api_handler_present_when_env_var_true_base_ec2():
+    """Confirm that the its_log_api logging handler is added to the base_local settings
+    if ITS_LOG_API_ENABLED is true
+    """
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'local'}):
+        from hhs_oauth_server.settings import base_ec2
+
+        importlib.reload(base_ec2)
+
+        assert 'its_log_api' in base_ec2.LOGGING['handlers']
+        assert 'its_log_api' in base_ec2.LOGGING['loggers']['audit']['handlers']
+        assert 'its_log_api' in base_ec2.LOGGING['loggers']['hhs_server']['handlers']
 
 
 @pytest.mark.parametrize(

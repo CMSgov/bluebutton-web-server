@@ -277,10 +277,6 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
-        'apps.logging': {
-            'handlers': ['its_log_api'],
-            'level': 'INFO',
-        },
     },
 }
 

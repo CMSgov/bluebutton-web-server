@@ -604,10 +604,6 @@ LOGGING = env(
                 'handlers': ['console'],
                 'level': 'WARNING',
             },
-            'apps.logging': {
-                'handlers': ['its_log_api'],
-                'level': 'INFO',
-            },
         },
     },
 )
