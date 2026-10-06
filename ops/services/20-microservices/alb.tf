@@ -19,7 +19,7 @@ resource "aws_lb" "alb" {
   enable_cross_zone_load_balancing = true
 
   access_logs {
-    bucket  = var.access_logs_bucket != "" ? var.access_logs_bucket : "cms-cloud-${local.account_id}-${local.region}"
+    bucket  = local.access_logs_bucket
     prefix  = "${local.app_prefix}-${local.workspace}-${each.key}"
     enabled = var.enable_access_logs
   }

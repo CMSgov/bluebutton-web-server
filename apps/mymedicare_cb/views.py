@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import time
 import urllib.request as urllib_request
 from http import HTTPStatus
@@ -237,6 +238,9 @@ def mymedicare_login(request):
         elif language == 'en':
             mymedicare_login_url += '&lang=en-us'
     next_uri = request.GET.get('next', '')
+
+    if '\x00' in next_uri or not re.match(r'^/v[123]/o/authorize/\?', next_uri):
+        return JsonResponse({'error': 'The next value was not valid.'}, status=status.HTTP_400_BAD_REQUEST)
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 
