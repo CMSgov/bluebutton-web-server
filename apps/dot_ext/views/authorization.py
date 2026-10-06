@@ -308,6 +308,16 @@ class AuthorizationView(DotAuthorizationView):
         flow tracing in logs.
         """
 
+        # Return early 4xx HttpResponseBadRequest if illegal query parameters detected
+        sensitive_info_detected = self.sensitive_info_check(request)
+        if sensitive_info_detected:
+            return sensitive_info_detected
+
+        # Ensure proper parameters and return early before starting auth flow trace
+        param_check = self._check_for_required_params(request)
+        if param_check:
+            return param_check
+
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
@@ -365,16 +375,6 @@ class AuthorizationView(DotAuthorizationView):
                 {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                 status=HTTPStatus.FORBIDDEN,
             )
-
-        sensitive_info_detected = self.sensitive_info_check(request)
-
-        # Return early 4xx HttpResponseBadRequest if illegal query parameters detected
-        if sensitive_info_detected:
-            return sensitive_info_detected
-
-        param_check = self._check_for_required_params(request)
-        if param_check:
-            return param_check
 
         request.session['version'] = self.version
 

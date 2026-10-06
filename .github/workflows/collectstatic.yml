@@ -97,13 +97,9 @@ jobs:
           npm ci
           npm run gulp
 
-      # these `find` commands are being left in to speed up the process
-      # TODO - remove this, either after cleaning up static files or pointing the API to Akamai instead of S3
       - name: Collect static files
         run: |
           source venv/bin/activate
-          find static/ -type f ! -name "*.css" -delete
-          find static/ -empty -type d -delete
           python manage.py collectstatic --noinput
 
       - name: Setup Akamai SSH key

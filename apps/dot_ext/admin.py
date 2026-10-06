@@ -50,6 +50,8 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         user = None
         super().__init__(user, *args, **kwargs)
         self.fields['logo_uri'].widget.attrs['readonly'] = False
+        self.fields['user'].label = 'User*'
+        self.fields['user'].required = True
 
     class Meta:
         model = MyApplication

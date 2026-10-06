@@ -53,6 +53,10 @@ class TestRegisterApplicationForms(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('name'), None)
 
+        form = ValidatedApplicationAdminForm(data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('name'), None)
+
         # Test form with invalid app name has error (app name contains non-ascii char(s)).
         data = {'name': 'BB2-1666-test-app w trade mark®'}
         form = CustomRegisterApplicationForm(user, data)
@@ -70,6 +74,26 @@ class TestRegisterApplicationForms(BaseApiTest):
         form = CreateNewApplicationForm(data)
         form.is_valid()
         self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
+
+        # Test form with no user is invalid
+        data = {'user': None}
+        form = ValidatedApplicationAdminForm(data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('user'), None)
+
+        form = CustomAdminApplicationForm(data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('user'), None)
+
+        # Test form with a user is valid
+        data = {'user': user}
+        form = ValidatedApplicationAdminForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('user'), None)
+
+        form = CustomAdminApplicationForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('user'), None)
 
         # Test form with website_uri valid URI.
         data = {'website_uri': 'https://www.example.org'}
@@ -418,6 +442,7 @@ class TestRegisterApplicationForms(BaseApiTest):
                 'allowed_auth_type': app.allowed_auth_type,
                 'require_demographic_scopes': False,
                 'scope': default_non_demographic_scopes,
+                'user': app.user,
             },
             instance=app,
         )
@@ -442,6 +467,7 @@ class TestRegisterApplicationForms(BaseApiTest):
                 'allowed_auth_type': app.allowed_auth_type,
                 'require_demographic_scopes': False,
                 'scope': default_scopes,
+                'user': app.user,
             },
             instance=app,
         )
@@ -469,6 +495,7 @@ class TestRegisterApplicationForms(BaseApiTest):
                 'allowed_auth_type': app.allowed_auth_type,
                 'require_demographic_scopes': True,
                 'scope': default_non_demographic_scopes,
+                'user': app.user,
             },
             instance=app,
         )
@@ -501,6 +528,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
                 'client_type': app.client_type,
                 'require_demographic_scopes': False,
                 'scope': default_non_demographic_scopes,
+                'user': app.user,
             },
             instance=app,
         )
@@ -527,6 +555,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
                 'client_type': app.client_type,
                 'require_demographic_scopes': False,
                 'scope': default_scopes,
+                'user': app.user,
             },
             instance=app,
         )
@@ -556,6 +585,7 @@ class TestAnotherApplicationAdminForm(BaseApiTest):
                 'client_type': app.client_type,
                 'require_demographic_scopes': True,
                 'scope': default_non_demographic_scopes,
+                'user': app.user,
             },
             instance=app,
         )

@@ -172,3 +172,175 @@ msgstr "Cancelar"
 #: templates/design_system/new_authorize_v2.html:168
 msgid "Connect"
 msgstr "Conectar"
+
+#: templates/design_system/authorize_v3.html:145
+msgid "Hi, "
+msgstr "Hola, "
+
+#: templates/design_system/authorize_v3.html:149
+msgid "Not you? "
+msgstr "¿No es usted? "
+
+#: templates/design_system/authorize_v3.html:156
+msgid "Switch account"
+msgstr "Cambiar de cuenta"
+
+#: templates/design_system/authorize_v3.html:165
+msgid "Share your Medicare information with "
+msgstr "Comparta su información de Medicare con "
+
+#: templates/design_system/authorize_v3.html:170
+msgid "Sharing with "
+msgstr "Compartir datos con "
+
+#: templates/design_system/authorize_v3.html:187
+msgid " means you give Medicare permission to automatically send your Medicare information to "
+msgstr "significa que usted autoriza a Medicare a enviar automáticamente su información de Medicare a "
+
+#: templates/design_system/authorize_v3.html:187
+msgid ". If you do not wish to share your information, select the <b>Cancel</b> button below to exit this page."
+msgstr ". Si no desea compartir su información, seleccione el botón <b>Cancelar</b> que aparece a continuación para salir de esta página."
+
+#: templates/design_system/authorize_v3.html:201
+msgid "Afterwards, you will need to give permission again. To stop sharing your data, visit "
+msgstr " Después, deberá volver a otorgar el permiso. Para dejar de compartir sus datos, visite"
+
+#: templates/design_system/authorize_v3.html:202
+msgid "https://www.medicare.gov/my/connected-apps"
+msgstr "https://www.es.medicare.gov/my/connected-apps"
+
+#: templates/design_system/authorize_v3.html:202
+msgid "Medicare.gov/my/connected-apps"
+msgstr "es.Medicare.gov/my/connected-apps"
+
+#: templates/design_system/authorize_v3.html:202
+msgid "or call 1-800-MEDICARE (1-800-633-4227)."
+msgstr "o llame al 1-800-MEDICARE (1-800-633-4227)."
+
+#: templates/design_system/authorize_v3.html:209
+msgid "Required Information"
+msgstr "Información Requerida"
+
+#: templates/design_system/authorize_v3.html:218
+msgid "Personal Information (required)"
+msgstr "Información personal (requerida)"
+
+#: templates/design_system/authorize_v3.html:219
+msgid "Your name, date of birth, race, and sex"
+msgstr "Su nombre, fecha de nacimiento, raza y sexo"
+
+#: templates/design_system/authorize_v3.html:242
+msgid "Medicare coverage (required)"
+msgstr "Cobertura de Medicare (requerido)"
+
+#: templates/design_system/authorize_v3.html:243
+msgid "This includes Medicare number, Medicare status, reason for Medicare eligibility, Medicaid coverage data"
+msgstr "Esto incluye el número de Medicare, el estatus de Medicare, el motivo de la elegibilidad para Medicare y los datos de cobertura de Medicaid"
+
+#: templates/design_system/authorize_v3.html:254
+msgid "Medicare coverage data, if applicable:"
+msgstr "Datos de cobertura de Medicare, si corresponde:"
+
+#: templates/design_system/authorize_v3.html:256
+msgid "Medicaid dual eligibility status"
+msgstr "Estatus de doble elegibilidad para Medicaid"
+
+#: templates/design_system/authorize_v3.html:257
+msgid "Medicaid state and eligibility date"
+msgstr "Estado y fecha de elegibilidad para Medicaid"
+
+#: templates/design_system/authorize_v3.html:258
+msgid "Low-income subsidy details (determination, copayment level, premium percentage)"
+msgstr "Detalles del subsidio por bajos ingresos (determinación, nivel de copago, porcentaje de la prima)"
+
+#: templates/design_system/authorize_v3.html:272
+msgid "Prescription drug claims (required)"
+msgstr "Solicitudes de reembolso de medicamentos recetados (requerido)"
+
+#: templates/design_system/authorize_v3.html:273
+msgid "This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments"
+msgstr "Esto incluye el código nacional de medicamentos (NDC), los detalles de la receta, los datos de la farmacia, el estatus de la solicitud, así como los costos y pagos"
+
+#: templates/design_system/authorize_v3.html:289
+msgid "Medicare claims (required)"
+msgstr "Reclamaciones de Medicare (requerido)"
+
+#: templates/design_system/authorize_v3.html:290
+msgid "This includes provider details, diagnoses, medical costs and payments, procedures, treatments, hospital stays, and prescriptions"
+msgstr "Esto incluye los datos del proveedor, diagnósticos, costos médicos y pagos, procedimientos, tratamientos, hospitalizaciones y recetas médicas"
+
+#: templates/design_system/authorize_v3.html:301
+msgid "Medicare claims data, if applicable:"
+msgstr "Datos de reclamaciones de Medicare, si corresponde:"
+
+#: templates/design_system/authorize_v3.html:303
+msgid "<b>Provider information</b> (provider ID number, name, specialty)"
+msgstr "<b>Información del proveedor</b> (número de identificación del proveedor, nombre, especialidad)"
+
+#: templates/design_system/authorize_v3.html:304
+msgid "<b>Diagnosis information</b> (diagnosis codes, related diagnosis group code, condition present on admission)"
+msgstr "<b>Información sobre el diagnóstico</b> (códigos de diagnóstico, código del grupo de diagnóstico relacionado, afección presente al momento del ingreso)"
+
+#: templates/design_system/authorize_v3.html:305
+msgid "<b>Medical costs and payments</b> (total charge amount, paid amount, out of pocket payment threshold)"
+msgstr "<b>Costos médicos y pagos</b> (importe total facturado, importe pagado, límite de gastos de bolsillo)"
+
+#: templates/design_system/authorize_v3.html:306
+msgid "<b>Procedure information</b> (procedure dates, procedure code)"
+msgstr "<b>Información sobre el procedimiento</b> (fechas del procedimiento, código del procedimiento)"
+
+#: templates/design_system/authorize_v3.html:307
+msgid "<b>Treatment information</b> (blood transfusions, dates of treatment, medical service information)"
+msgstr "<b>Información sobre el tratamiento</b> (transfusiones de sangre, fechas del tratamiento, información sobre servicios médicos)"
+
+#: templates/design_system/authorize_v3.html:308
+msgid "<b>Inpatient residence type</b> (hospital, long-term care, nursing facility)"
+msgstr "<b>Tipo de centro de internación</b> (hospital, atención a largo plazo, centro de enfermería especializada)"
+
+#: templates/design_system/authorize_v3.html:309
+msgid "<b>Prescription medication details</b> (fill number, quantity, refilles authorized, generic vs. brand name)"
+msgstr "<b>Detalles de medicamentos recetados</b> (número de despacho, cantidad, resurtidos autorizados, genérico frente a marca comercial)"
+
+#: templates/design_system/authorize_v3.html:315
+msgid "You can also grant access to (Optional):"
+msgstr "También puede dar acceso a (Opcional):"
+
+#: templates/design_system/authorize_v3.html:341
+msgid "Alcohol & substance use information"
+msgstr "Información sobre el consumo de alcohol y sustancias"
+
+#: templates/design_system/authorize_v3.html:342
+msgid "These include claims related to alcohol and/or substance use disorder treatment"
+msgstr "Esto incluye reclamaciones relacionadas con el tratamiento de trastornos por consumo de alcohol y/o sustancias."
+
+#: templates/design_system/authorize_v3.html:353
+msgid "Alcohol and substance abuse claims, if applicable:"
+msgstr "Reclamaciones por abuso de alcohol y sustancias, si corresponde:"
+
+#: templates/design_system/authorize_v3.html:355
+msgid "<b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)"
+msgstr "<b>Diagnósticos</b> (dependencia del alcohol o drogas, consumo perjudicial, uso indebido de drogas, síndrome de abstinencia, sobredosis, complicaciones causadas por el consumo de sustancias)"
+
+#: templates/design_system/authorize_v3.html:356
+msgid "<b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)"
+msgstr "<b>Servicios</b> (detección de consumo de alcohol y drogas, intervenciones breves, asesoramiento/terapia y servicios de tratamiento relacionados)"
+
+#: templates/design_system/authorize_v3.html:357
+msgid "<b>Procedures</b> (addiction counseling types, rehab referrals, detoxification, rehabilitation, medication management)"
+msgstr "<b>Procedimientos</b> (tipos de asesoramiento para adicciones, referidos a rehabilitación, desintoxicación, rehabilitación, manejo de medicamentos)"
+
+#: templates/design_system/authorize_v3.html:358
+msgid "<b>Mental health conditions related to substance abuse</b> (dementia, delirium, delusions, hallucinations. Disorder types: mood, amnesia, psychosis)"
+msgstr "<b>Afecciones de salud mental relacionadas con el abuso de sustancias</b> (demencia, delirio, ideas delirantes, alucinaciones; tipos de trastornos: del estado de ánimo, amnésicos, psicóticos)"
+
+#: templates/design_system/authorize_v3.html:428
+msgid "Review "
+msgstr "Consulte "
+
+#: templates/design_system/authorize_v3.html:461
+msgid "to learn how they manage your data."
+msgstr "para saber cómo manejan sus datos."
+
+#: templates/design_system/authorize_v3.html:473
+msgid "Share"
+msgstr "Compartir"
