@@ -17,7 +17,7 @@ def test_its_log_api_handler_absent_when_env_var_false():
     """Confirm that the its_log_api logging handler is not added to the base_local settings
     if ITS_LOG_API_ENABLED is false
     """
-    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'local'}):
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'local', 'DJANGO_SECRET_KEY': 'test'}):
         from hhs_oauth_server.settings import base_local  # adjust to your actual settings module
 
         assert 'its_log_api' not in base_local.LOGGING['loggers']['audit']['handlers']
@@ -28,7 +28,7 @@ def test_its_log_api_handler_present_when_env_var_true():
     """Confirm that the its_log_api logging handler is added to the base_local settings
     if ITS_LOG_API_ENABLED is true
     """
-    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'local'}):
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'local', 'DJANGO_SECRET_KEY': 'test'}):
         from hhs_oauth_server.settings import base_local
 
         importlib.reload(base_local)
@@ -42,7 +42,7 @@ def test_its_log_api_handler_absent_when_env_var_false_base_ec2():
     """Confirm that the its_log_api logging handler is not added to the base_local settings
     if ITS_LOG_API_ENABLED is false
     """
-    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'local'}):
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'test'}):
         from hhs_oauth_server.settings import base_ec2  # adjust to your actual settings module
 
         assert 'its_log_api' not in base_ec2.LOGGING['loggers']['audit']['handlers']
@@ -53,7 +53,7 @@ def test_its_log_api_handler_present_when_env_var_true_base_ec2():
     """Confirm that the its_log_api logging handler is added to the base_local settings
     if ITS_LOG_API_ENABLED is true
     """
-    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'local'}):
+    with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'test'}):
         from hhs_oauth_server.settings import base_ec2
 
         importlib.reload(base_ec2)
