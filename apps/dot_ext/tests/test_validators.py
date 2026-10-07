@@ -126,70 +126,6 @@ def test_get_waffle_switch(validator_class, waffle_switch):
     assert validator.get_waffle_switch() == waffle_switch
 
 
-# @pytest.mark.django_db
-# @pytest.mark.parametrize(
-#     'validator_class, location, missing_field, target_value, expected_error_message',
-#     [
-#         (AsymmetricAuthValidator, 'payload', 'iss', None, 'Missing required field: iss'),
-#         (AsymmetricAuthValidator, 'payload', 'sub', None, 'Missing required field: sub'),
-#         (AsymmetricAuthValidator, 'payload', 'aud', None, 'Missing required field: aud'),
-#         (AsymmetricAuthValidator, 'payload', 'jti', None, 'Missing required field: jti'),
-#         (AsymmetricAuthValidator, 'payload', 'exp', None, 'Missing required field: exp'),
-#         (CMSAlignedNetworksValidator, 'payload', 'iss', None, 'Missing required field: iss'),
-#         (CMSAlignedNetworksValidator, 'payload', 'sub', None, 'Missing required field: sub'),
-#         (CMSAlignedNetworksValidator, 'payload', 'aud', None, 'Missing required field: aud'),
-#         (CMSAlignedNetworksValidator, 'payload', 'jti', None, 'Missing required field: jti'),
-#         (CMSAlignedNetworksValidator, 'payload', 'exp', None, 'Missing required field: exp'),
-#         (CMSAlignedNetworksValidator, 'payload', 'extension', None, 'Missing required field: extension'),
-#         (AsymmetricAuthValidator, 'header', 'kid', None, 'Missing required field: kid'),
-#         (AsymmetricAuthValidator, 'header', 'typ', None, 'Missing required field: typ'),
-#         (CMSAlignedNetworksValidator, 'header', 'kid', None, 'Missing required field: kid'),
-#         (CMSAlignedNetworksValidator, 'header', 'typ', None, 'Missing required field: typ'),
-#         (AsymmetricAuthValidator, 'header', 'typ', 'invalid-jwt', 'Malformed JWT'),
-#         (CMSAlignedNetworksValidator, 'header', 'typ', 'invalid-jwt', 'Malformed JWT'),
-#     ],
-# )
-# @patch('apps.dot_ext.validators.jwt.decode_complete')
-# @override_switch('asymmetric_auth_validation', active=True)
-# @override_switch('client_credentials_validation', active=True)
-# def test_shared_fields_validation_returns_invalid_request_error(
-#     validator_class, location, missing_field, target_value, expected_error_message, caplog
-# ):
-#     """Test that missing required fields raise an InvalidRequestError."""
-#     # Headers are the same for both validators
-#     header_templates = {'typ': 'JWT', 'kid': 'some-kid'}
-#     header = header_templates.copy()
-#     payload_templates = {
-#         AsymmetricAuthValidator: ASYMMETRIC_AUTH_PAYLOAD,
-#         CMSAlignedNetworksValidator: CMS_ALIGNED_NETWORKS_PAYLOAD,
-#     }
-#     payload = payload_templates[validator_class].copy()
-
-#     if location == 'header':
-#         target_dic = header
-#     else:
-#         target_dic = payload
-
-#     if target_value is None:
-#         target_dic.pop(missing_field, None)
-#     else:
-#         # Make a bad value for the target field
-#         target_dic[missing_field] = target_value
-
-#     validator = validator_class()
-#     mock_jwk = MagicMock()
-#     dummy_jwks_client = MagicMock()
-
-#     dummy_jwks_client.get_signing_key_from_jwt.return_value = mock_jwk
-
-#     token = jwt.encode(payload, 'secret', algorithm='RS384')
-
-#     with caplog.at_level(logging.WARNING):
-#         with pytest.raises(InvalidRequestError):
-#             validator._decode_and_validate_token(token, 'client-id', dummy_jwks_client)
-#     assert expected_error_message in caplog.text
-
-
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'validator_class, jku, header',
@@ -959,7 +895,7 @@ def create_mock_pyjwk(kid: str, kty: str, fake_crypto_material: str) -> MagicMoc
     """Helper factory to create mock objects that mirror pyjwt.PyJWK instances."""
     mock_jwk_obj = MagicMock()
     mock_jwk_obj.key_id = kid
-    mock_jwk_obj.jwk = {'kty': kty}
+    mock_jwk_obj.key_type = kty
     mock_jwk_obj.key = fake_crypto_material
     return mock_jwk_obj
 

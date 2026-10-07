@@ -129,7 +129,7 @@ class BaseTokenValidator(ABC):
         pass
 
     @abstractmethod
-    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_client: jwt.PyJWKClient) -> dict:
+    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
         pass
 
     def _decode_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
@@ -152,13 +152,13 @@ class BaseTokenValidator(ABC):
         waffle_switch = self.get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
             required_fields = self.get_required_fields()
+            # Get the signing key from the JWKS URI
             signing_key = self._get_signing_key(token, jwks_uri)
-            # pyjwt handles:
-            # header - alg, kid
-            # payload - iss, aud, exp
             host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
             try:
-                # NOTE: This function also handles subject and issuer validation matching the provided client_id
+                # pyjwt handles:
+                # header - alg, kid
+                # payload - iss, aud, exp, sub, aud
                 data = jwt.decode_complete(
                     token,
                     signing_key,
@@ -219,7 +219,7 @@ class BaseTokenValidator(ABC):
         potential_keys = jwks_client.get_signing_keys()
         keys_list = []
         for key in potential_keys:
-            key_kty = key.jwk.get('kty')
+            key_kty = key.key_type
             key_kid = key.key_id
             # Need to ensure that we only consider keys that match both the token's kid and alg
             # Spec here: https://hl7.org/fhir/smart-app-launch/STU2.2/client-confidential-asymmetric.html
@@ -260,10 +260,10 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         Returns:
             dict: The processed payload extracted from the IAL JWT.
         """
-        payload = self._decode_and_validate_token(token, client_id, jwt.PyJWKClient(jwks_uri))
+        payload = self._decode_and_validate_token(token, client_id, jwks_uri)
         id_token = self._validate_smart_extension(payload)
         csp_jwks_url = self._get_csp_jwks_url(id_token)
-        ial_valid = self._validate_ial_jwt(id_token, jwt.PyJWKClient(csp_jwks_url))
+        ial_valid = self._validate_ial_jwt(id_token, csp_jwks_url)
         processed_payload = self._parse_ial_into_parameter(ial_valid)
         return processed_payload
 
