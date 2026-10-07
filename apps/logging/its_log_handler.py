@@ -1,6 +1,6 @@
 import json
 import logging
-import threading
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict
 
 import requests
@@ -60,6 +60,7 @@ class ITSLogAPIHandler(logging.Handler):
 
     API_URL = 'http://host.docker.internal:8888/v1/log/create'
     API_KEY = '1234567890123456123456789012345612345678901234561234567890123456'
+    executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='its-log')
 
     def emit(self, record) -> None:
         """Format the log message if it is a log type we want to post to its-log,
@@ -83,7 +84,7 @@ class ITSLogAPIHandler(logging.Handler):
             return
         payload = self._build_payload(updated_log_message)
 
-        threading.Thread(target=self._post_to_api, args=(payload,), daemon=True).start()
+        self.executor.submit(self._post_to_api, payload)
 
     def _parse_log_message(self, record) -> Dict[str, Any]:
         """Extracts the msg attribute of the log record, checks that value is a string that starts with

@@ -2,6 +2,7 @@ import importlib
 import json
 import logging
 import os
+from time import sleep
 from unittest.mock import patch
 
 import pytest
@@ -521,4 +522,8 @@ def test_post_api_is_called_with_specific_payload(mock_post_to_api, log_message,
             }
         )
         log_handler.emit(record)
+        # Without this sleep, the second and third parametrized tests will fail. They fail as ThreadPoolExecutor.submit
+        # does not execute the function immediately. We could also modify the test executor to immediately submit any
+        # threads, but then that would differ from how it would work in prod. Neither solution is ideal
+        sleep(0.1)
         mock_post_to_api.assert_called_with(expected_payload)
