@@ -79,6 +79,14 @@ ENV/
 docker-compose/certstore/
 */certstore/*
 
+#  Never commit certs or private keys (pull them from Secrets Manager instead).
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
 # tmp files
 docker-compose/tmp/
 locust-out/
