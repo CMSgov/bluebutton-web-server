@@ -681,3 +681,257 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
     else:
         result = validator._get_csp_jwks_url(token)
         assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    'payload, mock_normalized_address, expected_output',
+    [
+        (
+            {
+                'family_name': 'Smith',
+                'given_name': 'John',
+                'phone_number': '+15555555555',
+                'phone_number_verified': True,
+                'email': 'john@example.com',
+                'gender': 'MALE',
+                'birthdate': '1990-01-01',
+                'address': {
+                    'street_address': '123 Main St',
+                    'locality': 'Baltimore',
+                    'region': 'MD',
+                    'postal_code': '21201',
+                    'country': 'US',
+                },
+                'ssn_itin_short': '1234',
+            },
+            '123 Main St, Baltimore, MD, 21201',
+            {
+                'id': 'IDIMatchInputParameters',
+                'meta': {
+                    'profile': [
+                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters',
+                    ],
+                },
+                'parameter': [
+                    {
+                        'name': 'IDIPatient',
+                        'resource': {
+                            'resourceType': 'Patient',
+                            'meta': {
+                                'profile': [
+                                    'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient',
+                                ],
+                            },
+                            'name': [{'use': 'official', 'family': 'Smith', 'given': ['John']}],
+                            'gender': 'male',
+                            'birthDate': '1990-01-01',
+                            'telecom': [
+                                {'system': 'phone', 'value': '+15555555555', 'use': 'mobile', 'rank': 1},
+                                {'system': 'email', 'value': 'john@example.com', 'use': 'home', 'rank': 2},
+                            ],
+                            'address': [
+                                {
+                                    'use': 'home',
+                                    'type': 'both',
+                                    'text': '123 Main St, Baltimore, MD, 21201',
+                                    'line': ['123 Main St, Baltimore, MD, 21201'],
+                                    'city': 'Baltimore',
+                                    'state': 'MD',
+                                    'postalCode': '21201',
+                                    'country': 'US',
+                                }
+                            ],
+                            'identifier': [
+                                {
+                                    'use': 'official',
+                                    'system': 'http://hl7.org/fhir/sid/us-ssn',
+                                    'type': {
+                                        'coding': [
+                                            {
+                                                'code': 'SS',
+                                                'display': 'Social Security Number',
+                                                'system': 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                                            },
+                                        ],
+                                    },
+                                    'value': '1234',
+                                }
+                            ],
+                        },
+                    }
+                ],
+                'resourceType': 'Parameters',
+            },
+        ),
+        (
+            {
+                'family_name': 'Doe',
+                'given_name': 'Jane',
+                'phone_number': '+15555555555',
+                'phone_number_verified': False,  # set to false for testing
+                'email': 'jane@example.com',
+            },
+            None,
+            {
+                'id': 'IDIMatchInputParameters',
+                'meta': {
+                    'profile': [
+                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters',
+                    ],
+                },
+                'parameter': [
+                    {
+                        'name': 'IDIPatient',
+                        'resource': {
+                            'address': [],
+                            'gender': 'unknown',
+                            'identifier': [],
+                            'meta': {
+                                'profile': [
+                                    'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient',
+                                ],
+                            },
+                            'name': [
+                                {
+                                    'family': 'Doe',
+                                    'given': [
+                                        'Jane',
+                                    ],
+                                    'use': 'official',
+                                },
+                            ],
+                            'resourceType': 'Patient',
+                            'telecom': [
+                                {
+                                    'rank': 2,
+                                    'system': 'email',
+                                    'use': 'home',
+                                    'value': 'jane@example.com',
+                                },
+                            ],
+                        },
+                    },
+                ],
+                'resourceType': 'Parameters',
+            },
+        ),
+        (
+            {
+                'family_name': 'Doe',
+                'given_name': 'Sam',
+                'SSN': '000-11-6789',  # Short version of SSN missing, slice last 4 digits
+            },
+            None,
+            {
+                'id': 'IDIMatchInputParameters',
+                'meta': {
+                    'profile': [
+                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters',
+                    ],
+                },
+                'parameter': [
+                    {
+                        'name': 'IDIPatient',
+                        'resource': {
+                            'address': [],
+                            'gender': 'unknown',
+                            'identifier': [
+                                {
+                                    'system': 'http://hl7.org/fhir/sid/us-ssn',
+                                    'type': {
+                                        'coding': [
+                                            {
+                                                'code': 'SS',
+                                                'display': 'Social Security Number',
+                                                'system': 'http://terminology.hl7.org/CodeSystem/v2-0203',
+                                            },
+                                        ],
+                                    },
+                                    'use': 'official',
+                                    'value': '6789',
+                                },
+                            ],
+                            'meta': {
+                                'profile': [
+                                    'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient',
+                                ],
+                            },
+                            'name': [
+                                {
+                                    'family': 'Doe',
+                                    'given': [
+                                        'Sam',
+                                    ],
+                                    'use': 'official',
+                                },
+                            ],
+                            'resourceType': 'Patient',
+                            'telecom': [],
+                        },
+                    },
+                ],
+                'resourceType': 'Parameters',
+            },
+        ),
+        (
+            {
+                'family_name': 'Doe',
+                'given_name': 'Sam',
+                # Historical address information for the patient gets parsed into the FHIR Patient resource as old addresses
+                'historical_address': [
+                    {
+                        'street_address': '456 Old Rd',
+                        'locality': 'Boston',
+                        'region': 'MA',
+                        'postal_code': '02108',
+                        'country': 'US',
+                    }
+                ],
+            },
+            '456 Old Rd, Boston, MA, 02108',
+            {
+                'resourceType': 'Parameters',
+                'id': 'IDIMatchInputParameters',
+                'meta': {
+                    'profile': [
+                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters'
+                    ]
+                },
+                'parameter': [
+                    {
+                        'name': 'IDIPatient',
+                        'resource': {
+                            'resourceType': 'Patient',
+                            'meta': {
+                                'profile': ['http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient']
+                            },
+                            'identifier': [],
+                            'name': [{'use': 'official', 'family': 'Doe', 'given': ['Sam']}],
+                            'telecom': [],
+                            'gender': 'unknown',
+                            'address': [
+                                {
+                                    'use': 'old',
+                                    'type': 'both',
+                                    'text': '456 Old Rd, Boston, MA, 02108',
+                                    'line': ['456 Old Rd, Boston, MA, 02108'],
+                                    'city': 'Boston',
+                                    'state': 'MA',
+                                    'postalCode': '02108',
+                                    'country': 'US',
+                                }
+                            ],
+                        },
+                    }
+                ],
+            },
+        ),
+    ],
+)
+@patch('apps.dot_ext.validators.normalize_address')
+def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_address, expected_output):
+    """Test _parse_into_parameter for correct behavior"""
+    validator = CMSAlignedNetworksValidator()
+    mock_normalize.return_value = mock_normalized_address
+    result = validator._parse_ial_into_parameter(payload)
+    assert result == expected_output
