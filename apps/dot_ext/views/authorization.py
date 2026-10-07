@@ -8,7 +8,6 @@ from functools import wraps
 from http import HTTPStatus
 from urllib.parse import parse_qs, urlencode, urlparse
 
-# from django.conf import settings
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
@@ -18,8 +17,6 @@ from django.http import HttpRequest, JsonResponse
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-
-# from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt

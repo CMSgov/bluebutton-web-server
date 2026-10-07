@@ -297,16 +297,20 @@ def test_validate_time_comparison_unsuccessful(validator_class, mock_payload, cl
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_and_decode_token_cache_successful(
     mock_decode_complete,
+    mock_asym_auth_get_signing_key,
+    mock_cms_get_signing_key,
     validator_class,
     jti,
 ):
     """Test correct cache behavior for _validate_and_decode_token"""
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_asym_auth_get_signing_key.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     with freeze_time() as frozen_time:
         # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
         test_payload = CMS_ALIGNED_NETWORKS_PAYLOAD.copy()
@@ -316,7 +320,7 @@ def test_validate_and_decode_token_cache_successful(
             'header': {'typ': 'JWT'},
         }
 
-        result = validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+        result = validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
         assert result == test_payload
 
         # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -338,17 +342,20 @@ def test_validate_and_decode_token_cache_successful(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_decode_and_validate_token_cache_replay_unsuccessful(
     mock_decode_complete,
+    mock_asym_auth_get_signing_key,
+    mock_cms_get_signing_key,
     validator_class,
     jti,
 ):
     """Test _decode_and_validate_token fails on second cache hit with same iss/jti combo"""
-
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_asym_auth_get_signing_key.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
     test_payload = CMS_ALIGNED_NETWORKS_PAYLOAD.copy()
     test_payload['jti'] = jti
@@ -357,7 +364,7 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
         'header': {'typ': 'JWT'},
     }
 
-    result = validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+    result = validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
     assert result == test_payload
 
     # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -366,7 +373,7 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
 
     # Second call with same jti/iss fails
     with pytest.raises(InvalidRequestError):
-        validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+        validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -379,17 +386,21 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_decode_and_validate_token_invalid_header(
     mock_decode_complete,
+    mock_asym_auth_get_signing_key,
+    mock_cms_get_signing_key,
     validator_class,
     header,
 ):
     """Test _decode_and_validate_token fails with invalid typ in header"""
 
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_asym_auth_get_signing_key.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     # Return invalid headers that aren't 'JWT'
     mock_decode_complete.return_value = {
         'payload': CMS_ALIGNED_NETWORKS_PAYLOAD,
@@ -397,7 +408,7 @@ def test_decode_and_validate_token_invalid_header(
     }
 
     with pytest.raises(InvalidRequestError):
-        validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+        validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -410,16 +421,20 @@ def test_decode_and_validate_token_invalid_header(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_decode_and_validate_token_expired(
     mock_decode_complete,
+    mock_asym_auth_get_signing_key,
+    mock_cms_get_signing_key,
     validator_class,
 ):
     """Test _decode_and_validate_token fails with expired token"""
 
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_asym_auth_get_signing_key.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     # Make expiration time 6 minutes in the past to simulate an expired token scenario
     # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
     test_payload = CMS_ALIGNED_NETWORKS_PAYLOAD.copy()
@@ -430,7 +445,7 @@ def test_decode_and_validate_token_expired(
     }
 
     with pytest.raises(InvalidRequestError):
-        validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+        validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -441,17 +456,17 @@ def test_decode_and_validate_token_expired(
     ],
 )
 @override_switch('client_credentials_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_success(
     mock_decode_complete,
+    mock_cms_get_signing_key,
     validator_class,
     jti,
 ):
     """Test _validate_ial_jwt succeeds with basic validation."""
-
+    mock_cms_get_signing_key.return_value = MagicMock()
     with freeze_time() as frozen_time:
-        mock_jwks_client = MagicMock()
-        mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
         # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
         test_payload = VALID_IAL_JWT_PAYLOAD.copy()
         test_payload['jti'] = jti
@@ -462,7 +477,7 @@ def test_validate_ial_jwt_success(
 
         # Call succeeds
         validator = validator_class()
-        result = validator._validate_ial_jwt('token', mock_jwks_client)
+        result = validator._validate_ial_jwt('token', 'jwks_uri')
         assert result == test_payload
 
         # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -483,17 +498,18 @@ def test_validate_ial_jwt_success(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_decode_complete,
+    mock_cms_get_signing_key,
     validator_class,
     jti,
 ):
     """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
 
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     test_payload['jti'] = jti
@@ -502,7 +518,7 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
         'header': {'typ': 'JWT'},
     }
 
-    result = validator._validate_ial_jwt('token', mock_jwks_client)
+    result = validator._validate_ial_jwt('token', 'jwks_uri')
     assert result == test_payload
 
     # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -511,7 +527,7 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
 
     # Second call with same jti/iss fails
     with pytest.raises(InvalidRequestError):
-        validator._validate_ial_jwt('token', mock_jwks_client)
+        validator._validate_ial_jwt('token', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -523,17 +539,18 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_invalid_header(
     mock_decode_complete,
+    mock_cms_get_signing_key,
     validator_class,
     header,
 ):
     """Test _validate_ial_jwt fails with invalid typ in header"""
 
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     # Return invalid headers that aren't 'JWT'
     mock_decode_complete.return_value = {
         'payload': VALID_IAL_JWT_PAYLOAD,
@@ -541,7 +558,7 @@ def test_validate_ial_jwt_invalid_header(
     }
 
     with pytest.raises(InvalidRequestError):
-        validator._validate_ial_jwt('token', mock_jwks_client)
+        validator._validate_ial_jwt('token', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -554,9 +571,11 @@ def test_validate_ial_jwt_invalid_header(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_invalid_request(
     mock_decode_complete,
+    mock_cms_get_signing_key,
     validator_class,
     claim,
     value,
@@ -564,8 +583,7 @@ def test_validate_ial_jwt_invalid_request(
     """Test _validate_ial_jwt fails with invalid request"""
 
     validator = validator_class()
-    mock_jwks_client = MagicMock()
-    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     test_payload[claim] = value
@@ -575,7 +593,7 @@ def test_validate_ial_jwt_invalid_request(
     }
 
     with pytest.raises(InvalidRequestError):
-        validator._validate_ial_jwt('token', mock_jwks_client)
+        validator._validate_ial_jwt('token', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -935,3 +953,279 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
     mock_normalize.return_value = mock_normalized_address
     result = validator._parse_ial_into_parameter(payload)
     assert result == expected_output
+
+
+def create_mock_pyjwk(kid: str, kty: str, fake_crypto_material: str) -> MagicMock:
+    """Helper factory to create mock objects that mirror pyjwt.PyJWK instances."""
+    mock_jwk_obj = MagicMock()
+    mock_jwk_obj.key_id = kid
+    mock_jwk_obj.jwk = {'kty': kty}
+    mock_jwk_obj.key = fake_crypto_material
+    return mock_jwk_obj
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, token, jwks_uri, mocked_keys, token_kid, token_alg, should_raise, expected_key',
+    [
+        # Successful retrieval of signing key with matching kid in JWKS and correct algorithm
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'kid-v1',
+            'RS256',
+            False,
+            'real-rsa-key-material',
+        ),
+        # Successful retrieval of signing key with matching kid in JWKS and correct algorithm (switch algorithms)
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
+            ],
+            'kid-v1',
+            'ES384',
+            False,
+            'real-es-key-material',
+        ),
+        # Case where the 'kid' in the token does not match any key in the JWKS and thus should raise an error
+        # with 0 matching keys in the JWKS
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'non-existent-kid',
+            'RS256',
+            True,
+            None,
+        ),
+        # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
+        # with 0 matching keys in the JWKS
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'kid-v1',
+            'ES256',
+            True,
+            None,
+        ),
+        # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
+        # with 0 matching keys in the JWKS (switches algorithms)
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
+            ],
+            'kid-v1',
+            'RSA256',
+            True,
+            None,
+        ),
+        # Case where both the 'kid' and 'alg' in the token do not match any key in the JWKS and
+        # thus should raise an error with 0 matching keys in the JWKS
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'non-existent-kid',
+            'ES256',
+            True,
+            None,
+        ),
+        # Case where there are multiple matches
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+            ],
+            'kid-v1',
+            'ES384',
+            True,
+            None,
+        ),
+        # Case where there are multiple matches (switch alogrithms)
+        (
+            CMSAlignedNetworksValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+            ],
+            'kid-v1',
+            'RS256',
+            True,
+            None,
+        ),
+        # Successful retrieval of signing key with matching kid in JWKS and correct algorithm
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'kid-v1',
+            'RS256',
+            False,
+            'real-rsa-key-material',
+        ),
+        # Successful retrieval of signing key with matching kid in JWKS and correct algorithm (switch algorithms)
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
+            ],
+            'kid-v1',
+            'ES384',
+            False,
+            'real-es-key-material',
+        ),
+        # Case where the 'kid' in the token does not match any key in the JWKS and thus should raise an error
+        # with 0 matching keys in the JWKS
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'non-existent-kid',
+            'RS256',
+            True,
+            None,
+        ),
+        # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
+        # with 0 matching keys in the JWKS
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'kid-v1',
+            'ES256',
+            True,
+            None,
+        ),
+        # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
+        # with 0 matching keys in the JWKS (switches algorithms)
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
+            ],
+            'kid-v1',
+            'RSA256',
+            True,
+            None,
+        ),
+        # Case where both the 'kid' and 'alg' in the token do not match any key in the JWKS and
+        # thus should raise an error with 0 matching keys in the JWKS
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
+            ],
+            'non-existent-kid',
+            'ES256',
+            True,
+            None,
+        ),
+        # Case where there are multiple matches
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+            ],
+            'kid-v1',
+            'ES384',
+            True,
+            None,
+        ),
+        # Case where there are multiple matches (switch alogrithms)
+        (
+            AsymmetricAuthValidator,
+            'dummy_token',
+            'https://example.com/.well-known/jwks.json',
+            [
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+            ],
+            'kid-v1',
+            'RS256',
+            True,
+            None,
+        ),
+    ],
+)
+@patch('jwt.get_unverified_header')
+@patch('jwt.PyJWKClient')
+def test_get_signing_key(
+    mock_pyjwk_client,
+    mock_get_unverified_header,
+    validator_class,
+    token,
+    jwks_uri,
+    mocked_keys,
+    token_kid,
+    token_alg,
+    should_raise,
+    expected_key,
+):
+    """Test _get_signing_key for correct behavior"""
+    validator = validator_class()
+    mock_client_instance = MagicMock()
+    mock_client_instance.get_signing_keys.return_value = mocked_keys
+    mock_pyjwk_client.return_value = mock_client_instance
+    mock_get_unverified_header.return_value = {'kid': token_kid, 'alg': token_alg}
+
+    if should_raise:
+        with pytest.raises(InvalidRequestError):
+            validator._get_signing_key(token, jwks_uri)
+    else:
+        key = validator._get_signing_key(token, jwks_uri)
+        assert key.key == expected_key

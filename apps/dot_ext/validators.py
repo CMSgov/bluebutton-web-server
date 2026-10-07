@@ -132,7 +132,7 @@ class BaseTokenValidator(ABC):
     def authenticate_and_validate_token(self, token: str, client_id: str, jwks_client: jwt.PyJWKClient) -> dict:
         pass
 
-    def _decode_and_validate_token(self, token: str, client_id: str, jwks_client: jwt.PyJWKClient) -> dict:
+    def _decode_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
         """
         Validates and decodes a JWT token using the provided JWKS client. Used in client_credentials flow for CAN tokens
         and asymmetric auth flow.
@@ -140,7 +140,7 @@ class BaseTokenValidator(ABC):
         Args:
             token (str): The JWT token to validate and decode.
             client_id (str): The client ID to validate against the token's issuer and subject.
-            jwks_client (jwt.PyJWKClient): The JWKS client to fetch the signing key.
+            jwks_uri (str): The JWKS URI to fetch the signing key.
             required_fields (list[str]): The list of required fields to validate in the JWT payload.
 
         Raises:
@@ -152,7 +152,7 @@ class BaseTokenValidator(ABC):
         waffle_switch = self.get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
             required_fields = self.get_required_fields()
-            signing_key = jwks_client.get_signing_key_from_jwt(token)  # type: ignore
+            signing_key = self._get_signing_key(token, jwks_uri)
             # pyjwt handles:
             # header - alg, kid
             # payload - iss, aud, exp
@@ -194,6 +194,48 @@ class BaseTokenValidator(ABC):
             payload = jwt.decode(token, options={'verify_signature': False})
 
         return payload
+
+    def _get_signing_key(self, token: str, jwks_uri: str):
+        """
+        Retrieves the signing key for a given JWT token from the specified JWKS URI. We ensure
+        that the key matches both the token's 'kid' and the expected algorithm.
+
+        Args:
+            token (str): The JWT token for which the signing key is needed.
+            jwks_uri (str): The JWKS URI to fetch the signing keys from.
+
+        Raises:
+            InvalidRequestError: If no matching signing key is found or multiple matching keys are found.
+
+        Returns:
+            jwt.PyJWK: The matching signing key.
+        """
+        jwks_client = jwt.PyJWKClient(jwks_uri)
+        # Extract the algorithm and kidfrom the unverified header
+        unverified_header = jwt.get_unverified_header(token)
+        token_alg = unverified_header.get('alg')
+        token_kid = unverified_header.get('kid')
+        # Get potential signing keys from the JWKS URI
+        potential_keys = jwks_client.get_signing_keys()
+        keys_list = []
+        for key in potential_keys:
+            key_kty = key.jwk.get('kty')
+            key_kid = key.key_id
+            # Need to ensure that we only consider keys that match both the token's kid and alg
+            # Spec here: https://hl7.org/fhir/smart-app-launch/STU2.2/client-confidential-asymmetric.html
+            is_valid_rsa = token_alg.startswith('RS') and key_kty == 'RSA'
+            is_valid_ec = token_alg.startswith('ES') and key_kty == 'EC'
+            if key_kid == token_kid and (is_valid_rsa or is_valid_ec):
+                keys_list.append(key)
+
+        if len(keys_list) == 0:
+            log.warning('No matching signing key found')
+            raise InvalidRequestError
+        elif len(keys_list) > 1:
+            log.warning('Multiple matching signing keys found')
+            raise InvalidRequestError
+        else:
+            return keys_list[0]
 
 
 class CMSAlignedNetworksValidator(BaseTokenValidator):
@@ -259,12 +301,12 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         else:
             return payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
 
-    def _validate_ial_jwt(self, id_token: str, jwks_client: jwt.PyJWKClient) -> dict:
+    def _validate_ial_jwt(self, id_token: str, jwks_uri: str) -> dict:
         """Validates an IAL JWT from a trusted CSP
 
         Args:
             id_token (str): base64 encoded id_token jwt from cms_smart extension
-            jwks_client (jwt.PyJWKClient): instantiated client for the authorization jwt
+            jwks_uri (str): The JWKS URI for fetching signing keys.
 
         Raises:
             InvalidRequestError: if any validation step fails, log and raise
@@ -274,7 +316,7 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         """
         waffle_switch = self.get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
-            signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+            signing_key = self._get_signing_key(id_token, jwks_uri)
             try:
                 data = jwt.decode_complete(
                     id_token,
@@ -581,6 +623,7 @@ class AsymmetricAuthValidator(BaseTokenValidator):
         Raises:
             InvalidRequestError: if the 'jku' is not valid
         """
+        # Spec here: https://hl7.org/fhir/smart-app-launch/STU2.2/client-confidential-asymmetric.html
         waffle_switch = self.get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
             unverified_header = jwt.get_unverified_header(token)
@@ -613,5 +656,5 @@ class AsymmetricAuthValidator(BaseTokenValidator):
             InvalidRequestError: if the token is not valid
         """
         validated_jwks_uri = self._validate_and_get_jwks_uri(token, jwks_uri)
-        payload = self._decode_and_validate_token(token, client_id, jwt.PyJWKClient(validated_jwks_uri))
+        payload = self._decode_and_validate_token(token, client_id, validated_jwks_uri)
         return payload
