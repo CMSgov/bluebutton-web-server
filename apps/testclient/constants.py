@@ -189,13 +189,3 @@ class ResponseErrors:
             },
             status=HTTPStatus.UNAUTHORIZED,
         )
-
-    def TokenExpiredError(cls):
-        return JsonResponse(
-            {
-                'error': 'Access token has expired.',
-                'code': 'TokenExpiredError',
-                'help': 'Try authorizing again',
-            },
-            status=HTTPStatus.UNAUTHORIZED,
-        )

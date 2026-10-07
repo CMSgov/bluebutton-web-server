@@ -389,13 +389,9 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    try:
-        coverage = _get_fhir_data_as_json(
-            request, FhirDataParams(EndpointUrl.coverage, request.session['resource_uri'], version, None)
-        )
-    except FhirUnauthorizedError as err:
-        del request.session['token']
-        return ResponseErrors.Unauthorized(err.detail)
+    coverage = _get_fhir_data_as_json(
+        request, FhirDataParams(EndpointUrl.coverage, request.session['resource_uri'], version, None)
+    )
 
     nav_info, last_link = extract_page_nav(coverage)
 
@@ -455,9 +451,6 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             },
             status=HTTPStatus.BAD_REQUEST,
         )
-    except FhirUnauthorizedError as err:
-        del request.session['token']
-        return ResponseErrors.Unauthorized(err.detail)
 
     nav_info, last_link = extract_page_nav(eob)
 
@@ -565,14 +558,10 @@ def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    try:
-        patient = _get_fhir_data_as_json(
-            request,
-            FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']),
-        )
-    except FhirUnauthorizedError as err:
-        del request.session['token']
-        return ResponseErrors.Unauthorized(err.detail)
+    patient = _get_fhir_data_as_json(
+        request,
+        FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']),
+    )
 
     return render(
         request,
@@ -589,13 +578,9 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    try:
-        user_info = _get_fhir_data_as_json(
-            request, FhirDataParams(EndpointUrl.userinfo, request.session['resource_uri'], version, None)
-        )
-    except FhirUnauthorizedError as err:
-        del request.session['token']
-        return ResponseErrors.Unauthorized(err.detail)
+    user_info = _get_fhir_data_as_json(
+        request, FhirDataParams(EndpointUrl.userinfo, request.session['resource_uri'], version, None)
+    )
 
     return render(
         request,
@@ -612,16 +597,12 @@ def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_A
     if _link_session_or_version_is_bad(request.session, version):
         return _link_session_or_version_is_bad(request.session, version)
 
-    try:
-        c4dic_info = _get_fhir_data_as_json(
-            request,
-            FhirDataParams(
-                EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']
-            ),
-        )
-    except FhirUnauthorizedError as err:
-        del request.session['token']
-        return ResponseErrors.Unauthorized(err.detail)
+    c4dic_info = _get_fhir_data_as_json(
+        request,
+        FhirDataParams(
+            EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']
+        ),
+    )
 
     return render(
         request,
