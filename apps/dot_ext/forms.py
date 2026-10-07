@@ -351,17 +351,15 @@ class CreateNewApplicationForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         app = self.instance
-
-        new_user_model = User.objects.create(
+        new_user_model, _ = User.objects.get_or_create(
             username=self.cleaned_data.get('name') + '@example.com',
-            password=str(uuid.uuid4()),
-            is_active=True,
+            defaults={"password": str(uuid.uuid4()), "isactive": True}
         )
         group = Group.objects.get(name='BlueButton')
         new_user_model.groups.add(group)
         new_user_model.save()
 
-        UserProfile.objects.create(
+        UserProfile.objects.get_or_create(
             user=new_user_model,
             organization_name=self.cleaned_data.get('organization_name'),
         )
