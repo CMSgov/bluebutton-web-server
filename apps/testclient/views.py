@@ -83,12 +83,14 @@ def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict
     try:
         r = oath_session.get(uri)
     except TokenExpiredError:
-        return ResponseErrors.Unauthorized('Access token has expired.')
+        result_json = {'error': 'The access token has expired. Try authenticating again.'}
+        return result_json
 
     try:
         result_json = r.json()
     except JSONDecodeError as err:
         result_json = {'error': f'Unrecoverable error fetching FHIR data: {err.msg}'}
+        return result_json
 
     return result_json
 
@@ -387,8 +389,6 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     coverage = _get_fhir_data_as_json(
         request, FhirDataParams(EndpointUrl.coverage, request.session['resource_uri'], version, None)
     )
-    if isinstance(coverage, JsonResponse):
-        return coverage
 
     nav_info, last_link = extract_page_nav(coverage)
 
@@ -448,8 +448,6 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             },
             status=HTTPStatus.BAD_REQUEST,
         )
-    if isinstance(eob, JsonResponse):
-        return eob
 
     nav_info, last_link = extract_page_nav(eob)
 
@@ -561,8 +559,6 @@ def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         request,
         FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']),
     )
-    if isinstance(patient, JsonResponse):
-        return patient
 
     return render(
         request,
@@ -582,8 +578,6 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     user_info = _get_fhir_data_as_json(
         request, FhirDataParams(EndpointUrl.userinfo, request.session['resource_uri'], version, None)
     )
-    if isinstance(user_info, JsonResponse):
-        return user_info
 
     return render(
         request,
@@ -606,8 +600,6 @@ def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_A
             EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']
         ),
     )
-    if isinstance(c4dic_info, JsonResponse):
-        return c4dic_info
 
     return render(
         request,
