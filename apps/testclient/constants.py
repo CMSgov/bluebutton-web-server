@@ -63,14 +63,6 @@ class EndpointFormatException(Exception):
     pass
 
 
-class FhirUnauthorizedError(Exception):
-    """Raised when the FHIR backend rejects the session token (e.g. it has expired)."""
-
-    def __init__(self, detail):
-        self.detail = detail
-        super().__init__(detail)
-
-
 class EndpointUrl:
     userinfo = 'userinfo'
     patient = 'patient'

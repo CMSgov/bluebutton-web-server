@@ -12,7 +12,7 @@ from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError, MissingTokenError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError, MissingTokenError, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 from waffle.decorators import waffle_switch
 
@@ -20,7 +20,7 @@ from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.dot_ext.utils import get_oauth_param
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
-from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, FhirUnauthorizedError, ResponseErrors
+from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, ResponseErrors
 from apps.testclient.utils import (
     _start_url_with_http_or_https,
     extract_page_nav,
@@ -72,23 +72,18 @@ def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest
     return uri
 
 
-def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
-    """Make a call to the FHIR backend and return the JSON data from the call"""
+def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object] | JsonResponse:
+    """Make a call to the FHIR backend and return the JSON data from the call."""
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     if params.version in [Versions.V1, Versions.V2] and request.GET.get('nav_link', None):
         uri = _build_pagination_uri(uri, params, request)
 
     oath_session = _get_oauth2_session_with_token(request)
-    r = oath_session.get(uri)
-
-    if r.status_code == HTTPStatus.UNAUTHORIZED:
-        detail = None
-        try:
-            detail = r.json().get('detail')
-        except JSONDecodeError:
-            pass
-        raise FhirUnauthorizedError(detail)
+    try:
+        r = oath_session.get(uri)
+    except TokenExpiredError:
+        return ResponseErrors.Unauthorized('Access token has expired.')
 
     try:
         result_json = r.json()
@@ -392,6 +387,8 @@ def _test_coverage(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     coverage = _get_fhir_data_as_json(
         request, FhirDataParams(EndpointUrl.coverage, request.session['resource_uri'], version, None)
     )
+    if isinstance(coverage, JsonResponse):
+        return coverage
 
     nav_info, last_link = extract_page_nav(coverage)
 
@@ -451,6 +448,8 @@ def _test_eob(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
             },
             status=HTTPStatus.BAD_REQUEST,
         )
+    if isinstance(eob, JsonResponse):
+        return eob
 
     nav_info, last_link = extract_page_nav(eob)
 
@@ -562,6 +561,8 @@ def _test_patient(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         request,
         FhirDataParams(EndpointUrl.patient, request.session['resource_uri'], version, request.session['patient']),
     )
+    if isinstance(patient, JsonResponse):
+        return patient
 
     return render(
         request,
@@ -581,6 +582,8 @@ def _test_userinfo(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     user_info = _get_fhir_data_as_json(
         request, FhirDataParams(EndpointUrl.userinfo, request.session['resource_uri'], version, None)
     )
+    if isinstance(user_info, JsonResponse):
+        return user_info
 
     return render(
         request,
@@ -603,6 +606,8 @@ def _test_digital_insurance_card(request: HttpRequest, version=Versions.NOT_AN_A
             EndpointUrl.digital_insurance_card, request.session['resource_uri'], version, request.session['patient']
         ),
     )
+    if isinstance(c4dic_info, JsonResponse):
+        return c4dic_info
 
     return render(
         request,
