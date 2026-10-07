@@ -18,7 +18,7 @@ def test_its_log_api_handler_absent_when_env_var_false():
     if ITS_LOG_API_ENABLED is false
     """
     with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'local', 'DJANGO_SECRET_KEY': 'test'}):
-        from hhs_oauth_server.settings import base_local  # adjust to your actual settings module
+        from hhs_oauth_server.settings import base_local
 
         assert 'its_log_api' not in base_local.LOGGING['loggers']['audit']['handlers']
         assert 'its_log_api' not in base_local.LOGGING['loggers']['hhs_server']['handlers']
@@ -39,18 +39,18 @@ def test_its_log_api_handler_present_when_env_var_true():
 
 
 def test_its_log_api_handler_absent_when_env_var_false_base_ec2():
-    """Confirm that the its_log_api logging handler is not added to the base_local settings
+    """Confirm that the its_log_api logging handler is not added to the base_ec2 settings
     if ITS_LOG_API_ENABLED is false
     """
     with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'False', 'TARGET_ENV': 'test'}):
-        from hhs_oauth_server.settings import base_ec2  # adjust to your actual settings module
+        from hhs_oauth_server.settings import base_ec2
 
         assert 'its_log_api' not in base_ec2.LOGGING['loggers']['audit']['handlers']
         assert 'its_log_api' not in base_ec2.LOGGING['loggers']['hhs_server']['handlers']
 
 
 def test_its_log_api_handler_present_when_env_var_true_base_ec2():
-    """Confirm that the its_log_api logging handler is added to the base_local settings
+    """Confirm that the its_log_api logging handler is added to the base_ec2 settings
     if ITS_LOG_API_ENABLED is true
     """
     with patch.dict(os.environ, {'ITS_LOG_API_ENABLED': 'True', 'TARGET_ENV': 'test'}):
@@ -75,7 +75,8 @@ def test_its_log_api_handler_present_when_env_var_true_base_ec2():
 )
 @patch('apps.logging.its_log_handler.ITSLogAPIHandler._post_to_api')
 def test_log_not_posted_when_type_is_skippable(mock_post_to_api, log_type):
-    """Confirm that we do not call the _post_to_api function if testclient is in the log.path
+    """Confirm that we do not call the _post_to_api function if the log_type is not one of the types
+    we want to post to its-log
 
     Args:
         mock_post_to_api: Patch for the _post_to_api function
@@ -311,7 +312,7 @@ def test_build_payload(log_message, expected_result):
     ],
 )
 def test_format_log_message_fhir_id_retrieval(log_message, expected_fhir_id_v2, expected_fhir_id_v3):
-    """_summary_
+    """Confirm we successfully retrieve fhir_id values for different log types in the _format_log_message function
 
     Args:
         log_message: Log message being passed for formatting
