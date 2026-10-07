@@ -8,8 +8,6 @@ from functools import wraps
 from http import HTTPStatus
 from urllib.parse import parse_qs, urlencode, urlparse
 
-import jwt
-
 # from django.conf import settings
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
@@ -823,7 +821,7 @@ class TokenView(DotTokenView):
                         id_match_payload = can_validator.authenticate_and_validate_token(
                             request.POST.get('client_assertion', ''),
                             app.client_id,
-                            jwks_client=jwt.PyJWKClient(app.jwks_uri),
+                            app.jwks_uri,
                         )
 
                         headers = {

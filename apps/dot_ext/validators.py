@@ -203,14 +203,14 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
     def get_waffle_switch(self) -> str:
         return 'client_credentials_validation'
 
-    def authenticate_and_validate_token(self, token: str, client_id: str, **kwargs) -> dict:
+    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
         """
         Authenticates and validates a client credentials token.
 
         Args:
             token (str): The client credentials JWT.
             client_id (str): The client ID of the application making the request.
-            **kwargs: Additional keyword arguments, such as a PyJWKClient instance.
+            jwks_uri (str): The JWKS URI for fetching signing keys.
 
         Raises:
             InvalidRequestError: If any validation step fails.
@@ -218,7 +218,7 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         Returns:
             dict: The processed payload extracted from the IAL JWT.
         """
-        payload = self._decode_and_validate_token(token, client_id, **kwargs)
+        payload = self._decode_and_validate_token(token, client_id, jwt.PyJWKClient(jwks_uri))
         id_token = self._validate_smart_extension(payload)
         csp_jwks_url = self._get_csp_jwks_url(id_token)
         ial_valid = self._validate_ial_jwt(id_token, jwt.PyJWKClient(csp_jwks_url))
@@ -264,13 +264,13 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
 
         Args:
             id_token (str): base64 encoded id_token jwt from cms_smart extension
-            jwks_client (PyJWKClient): instantiated client for the authorization jwt
+            jwks_client (jwt.PyJWKClient): instantiated client for the authorization jwt
 
         Raises:
             InvalidRequestError: if any validation step fails, log and raise
 
         Returns:
-            str: the decoded payload of the IAL JWT
+            dict: the decoded payload of the IAL JWT
         """
         waffle_switch = self.get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
@@ -570,13 +570,13 @@ class AsymmetricAuthValidator(BaseTokenValidator):
     def get_required_fields(self) -> list[str]:
         return ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS
 
-    def _validate_jku(self, token: str, jwks_uri: str) -> None:
+    def _validate_and_get_jwks_uri(self, token: str, registered_jwks_uri: str) -> None:
         """
         Validates the 'jku' (JSON Web Key URL) parameter against the expected jwks_uri.
 
         Args:
             token (str): the base64 encoded auth jwt
-            jwks_uri (str): the expected JSON Web Key URL
+            registered_jwks_uri (str): the expected JSON Web Key URL
 
         Raises:
             InvalidRequestError: if the 'jku' is not valid
@@ -585,26 +585,26 @@ class AsymmetricAuthValidator(BaseTokenValidator):
         if waffle.switch_is_active(waffle_switch):
             unverified_header = jwt.get_unverified_header(token)
             jku = unverified_header.get('jku')
-            # Just return if not present since it's optional
-            if not jku:
-                return
-
-            if jku != jwks_uri:
-                log.warning('id_token did not have a valid jku')
-                raise InvalidRequestError(
-                    status_code=HTTPStatus.BAD_REQUEST,
-                )
+            if jku:
+                if jku != registered_jwks_uri:
+                    log.warning('id_token did not have a valid jku')
+                    raise InvalidRequestError(
+                        status_code=HTTPStatus.BAD_REQUEST,
+                    )
+                return jku
+            else:
+                return registered_jwks_uri
         else:
-            return
+            return registered_jwks_uri
 
-    def authenticate_and_validate_token(self, token: str, client_id: str, **kwargs) -> dict:
+    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
         """
         Authenticates and validates the given token using the provided client ID and JWKS client.
 
         Args:
             token (str): the base64 encoded auth jwt
             client_id (str): the client ID to validate against
-            jwks_client (jwt.PyJWKClient): the JWKS client to use for validation
+            jwks_uri (str): the JWKS URI to use for validation
 
         Returns:
             dict: the decoded and validated token payload
@@ -612,7 +612,6 @@ class AsymmetricAuthValidator(BaseTokenValidator):
         Raises:
             InvalidRequestError: if the token is not valid
         """
-        jwks_uri = kwargs.get('jwks_uri')
-        self._validate_jku(token, jwks_uri)
-        payload = self._decode_and_validate_token(token, client_id)
+        validated_jwks_uri = self._validate_and_get_jwks_uri(token, jwks_uri)
+        payload = self._decode_and_validate_token(token, client_id, jwt.PyJWKClient(validated_jwks_uri))
         return payload

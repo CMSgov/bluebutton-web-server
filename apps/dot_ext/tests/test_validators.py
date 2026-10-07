@@ -203,14 +203,14 @@ def test_get_waffle_switch(validator_class, waffle_switch):
     ],
 )
 @override_switch('asymmetric_auth_validation', active=True)
-def test_validate_jku_successful(validator_class, jku, header):
+def test_validate_and_get_jwks_uri_successful(validator_class, jku, header):
     """Test the validation of the 'jku' header field for successful cases."""
     validator = validator_class()
     token = jwt.encode(ASYMMETRIC_AUTH_PAYLOAD.copy(), 'secret', algorithm='HS256', headers=header)
 
     # Should not raise an error
-    response = validator._validate_jku(token, jku)
-    assert response is None
+    response = validator._validate_and_get_jwks_uri(token, jku)
+    assert response == jku
 
 
 @pytest.mark.django_db
@@ -221,7 +221,7 @@ def test_validate_jku_successful(validator_class, jku, header):
     ],
 )
 @override_switch('asymmetric_auth_validation', active=True)
-def test_validate_jku_unsuccessful(validator_class, jku):
+def test_validate_and_get_jwks_uri_unsuccessful(validator_class, jku):
     """Test the validation of the 'jku' header field does not accept a mismatched JWKS URL."""
     validator = validator_class()
     header = {'typ': 'JWT', 'kid': 'some-kid', 'jku': 'not-a-valid-url'}
@@ -229,7 +229,7 @@ def test_validate_jku_unsuccessful(validator_class, jku):
 
     # Should raise an error
     with pytest.raises(InvalidRequestError):
-        validator._validate_jku(token, jku)
+        validator._validate_and_get_jwks_uri(token, jku)
 
 
 def test_validate_time_comparison_successful():
