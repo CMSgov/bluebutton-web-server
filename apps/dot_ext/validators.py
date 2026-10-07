@@ -52,7 +52,6 @@ from apps.dot_ext.utils import build_jwks_urls, validate_latin_extended_string
 from apps.testclient.utils import _start_url_with_http_or_https
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
-JWKS_URLS = build_jwks_urls()
 
 
 class RedirectURIValidator(URIValidator):
@@ -518,10 +517,21 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
-    def _get_csp_jwks_url(id_token: str) -> str:
-        # Determine if this is CLEAR or ID.ME
+    def _get_csp_jwks_url(self, id_token: str) -> str:
+        """Get the JSON Web Key Set (JWKS) URL for the given ID token.
+
+        Args:
+            id_token (str): The ID token to extract the issuer from.
+
+        Returns:
+            str: The JWKS URL corresponding to the issuer.
+
+        Raises:
+            InvalidRequestError: If the ID token does not have a valid issuer.
+        """
         pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
-        csp_jwks_url = JWKS_URLS.get(pre_verified_ial.get('iss', ''))
+        url_map = build_jwks_urls()
+        csp_jwks_url = url_map.get(pre_verified_ial.get('iss', ''))
 
         if not csp_jwks_url:
             log.warning('id_token did not have a valid iss')

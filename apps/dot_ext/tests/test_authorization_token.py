@@ -1,18 +1,14 @@
-import datetime
 import json
 import os
 from base64 import b64encode
-from datetime import timezone
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
 import pytest
-from django.core.cache import cache
 from django.http import HttpRequest
 from django.test.client import Client
-from freezegun import freeze_time
 from oauth2_provider.models import get_access_token_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidRequestError
 from waffle.testutils import override_switch
@@ -32,10 +28,8 @@ from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     AUTH_CODE_TYPE,
     CC_SYSTEM_MEDICARE_NUMBER,
-    CLEAR_HIGHER_ISS,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_TYPE,
-    IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
     PATIENT_DATA_CANNOT_BE_FOUND,
 )
@@ -234,43 +228,6 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
 
         result = view_instance._validate_client_credentials_request(mock_request)
         assert result is None
-
-    def test_validate_environment_for_id_token(self) -> None:
-        """Confirm that, given a specific environment and an issuer URL, the
-        _validate_idme_url_for_id_token_and_environment will correctly return True or False
-        """
-        view_instance = TokenView()
-        os.environ['TARGET_ENV'] = 'prod'
-        result = view_instance._validate_idme_url_for_id_token_and_environment(CLEAR_HIGHER_ISS)
-        assert result
-
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
-        assert not result
-
-        os.environ['TARGET_ENV'] = 'impl'
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
-        assert not result
-
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
-        assert result
-
-        os.environ['TARGET_ENV'] = 'test'
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
-        assert not result
-
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
-        assert result
-
-        os.environ['TARGET_ENV'] = 'local'
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
-        assert not result
-
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_LOWER_ISS)
-        assert result
-
-        os.environ['TARGET_ENV'] = 'prod'
-        result = view_instance._validate_idme_url_for_id_token_and_environment(IDME_HIGHER_ISS)
-        assert result
 
     def test_retrieve_prior_include_samhsa_and_part_d_eob_only_values_non_refresh_token_grant_type(self) -> None:
         """The _retrieve_prior_include_samhsa_and_part_d_eob_only_values will always return a value of True for
@@ -647,145 +604,6 @@ class TestTokenResponseFields(BaseApiTest):
                 assert '"req_grant_type": "client_credentials"' in request_logs.output[0]
                 assert '"req_app_name": "CC App"' in request_logs.output[0]
                 assert f'"csp": "{IDME_LOWER_ISS}"' in auth_logs.output[1]
-
-
-class TestTokenPrivateMethods(BaseApiTest):
-    def setUp(self):
-        super().setUp()
-        self.mock_jwks_client = MagicMock()
-        self.mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
-        self.token_view = TokenView()
-        self.mock_authorization_jwt_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_authorization_jwt',
-            'sub': 'test_iss',
-            'exp': datetime.datetime.now(timezone.utc).timestamp(),
-            'extensions': {
-                'cms_smart': {
-                    'version': '1',
-                    'purpose_of_use': 'PATRQT',
-                    'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
-                }
-            },
-        }
-        self.mock_ial_jwt_payload = {
-            'iss': 'test_iss',
-            'jti': 'test_validate_ial_jwt',
-            'sub': 'test_sub',
-            'aud': 'test_aud',
-            'exp': datetime.datetime.now(timezone.utc).timestamp() + 300,
-            'iat': datetime.datetime.now(timezone.utc).timestamp(),
-            'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
-            'identity_assurance_level': 2,
-            'family_name': 'Doe',
-            'given_name': 'John',
-            'birthdate': '1990-01-01',
-        }
-
-    @override_switch('client_credentials_validation', active=True)
-    @patch('jwt.decode_complete')
-    def test_validate_authorization_jwt_success(
-        self,
-        mock_decode_complete,
-    ):
-        """Test _validate_authorization_jwt succeeds with basic validation"""
-
-        with freeze_time() as frozen_time:
-            self.mock_authorization_jwt_payload['jti'] = 'test_validate_authorization_jwt_cache_success'
-            mock_decode_complete.return_value = {
-                'payload': self.mock_authorization_jwt_payload,
-                'header': {'typ': 'JWT'},
-            }
-
-            result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
-            assert result == self.mock_authorization_jwt_payload.get('extensions', {}).get('cms_smart', {}).get(
-                'id_token'
-            )
-
-            # Assert cache has the key we'd expect and that the result is what we'd expect
-            cache_key = (
-                f'{self.mock_authorization_jwt_payload.get("iss")}-{self.mock_authorization_jwt_payload.get("jti")}'
-            )
-            assert cache.get(cache_key) == 'sentinel'
-
-            # Advance time by 300 seconds and assert cache no longer has key
-            frozen_time.tick(delta=datetime.timedelta(seconds=300))
-            assert cache.get(cache_key) is None
-
-    @override_switch('client_credentials_validation', active=True)
-    @patch('jwt.decode_complete')
-    def test_validate_authorization_jwt_cache_replay(
-        self,
-        mock_decode_complete,
-    ):
-        """Test _validate_authorization_jwt succeeds on first cache hit"""
-        self.mock_authorization_jwt_payload['jti'] = 'test_validate_authorization_jwt_cache_replay'
-        mock_decode_complete.return_value = {
-            'payload': self.mock_authorization_jwt_payload,
-            'header': {'typ': 'JWT'},
-        }
-
-        result = self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
-        assert result == self.mock_authorization_jwt_payload.get('extensions', {}).get('cms_smart', {}).get('id_token')
-
-        # Assert cache has the key we'd expect and that the result is what we'd expect
-        cache_key = f'{self.mock_authorization_jwt_payload.get("iss")}-{self.mock_authorization_jwt_payload.get("jti")}'
-        assert cache.get(cache_key) == 'sentinel'
-
-        # Second call with same jti/iss fails
-        with pytest.raises(InvalidRequestError):
-            self.token_view._validate_authorization_jwt('token', 'test_iss', self.mock_jwks_client)
-
-    @override_switch('client_credentials_validation', active=True)
-    @patch('jwt.decode_complete')
-    def test_validate_ial_jwt_success(
-        self,
-        mock_decode_complete,
-    ):
-        """Test _validate_ial_jwt succeeds with basic validation."""
-
-        with freeze_time() as frozen_time:
-            self.mock_ial_jwt_payload['jti'] = 'test_validate_ial_jwt_cache_success'
-            mock_decode_complete.return_value = {
-                'payload': self.mock_ial_jwt_payload,
-                'header': {'typ': 'JWT'},
-            }
-
-            # Call succeeds
-            result = self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
-            assert result == self.mock_ial_jwt_payload
-
-            # Assert cache has the key we'd expect and that the result is what we'd expect
-            cache_key = f'{self.mock_ial_jwt_payload.get("iss")}-{self.mock_ial_jwt_payload.get("jti")}'
-            assert cache.get(cache_key) == 'sentinel'
-
-            # Advance time by 300 seconds and assert cache no longer has key
-            frozen_time.tick(delta=datetime.timedelta(seconds=300))
-            assert cache.get(cache_key) is None
-
-    @override_switch('client_credentials_validation', active=True)
-    @patch('jwt.decode_complete')
-    def test_validate_ial_jwt_cache_replay(
-        self,
-        mock_decode_complete,
-    ):
-        """Test _validate_ial_jwt fails on second call with same jti (replay detected)."""
-        self.mock_ial_jwt_payload['jti'] = 'test_validate_ial_jwt_cache_replay'
-        mock_decode_complete.return_value = {
-            'payload': self.mock_ial_jwt_payload,
-            'header': {'typ': 'JWT'},
-        }
-
-        # First call succeeds
-        self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
-
-        # Assert cache contains expected key
-        cache_key = f'{self.mock_ial_jwt_payload.get("iss")}-{self.mock_ial_jwt_payload.get("jti")}'
-        assert cache.get(cache_key) == 'sentinel'
-
-        # Second call with same jti/iss fails
-        with pytest.raises(InvalidRequestError):
-            self.token_view._validate_ial_jwt('token', self.mock_jwks_client)
 
 
 @pytest.mark.integration

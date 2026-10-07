@@ -1,20 +1,27 @@
 import datetime
 import logging
+import os
 from datetime import timezone
+from unittest.mock import MagicMock, patch
 
-# from unittest.mock import MagicMock, patch
 import jwt
 import pytest
-
-# from django.core.cache import cache
+from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-
-# from freezegun import freeze_time
+from freezegun import freeze_time
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
 
-from apps.dot_ext.constants import ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS, CAN_REQUIRED_CLAIM_FIELDS
+from apps.dot_ext.constants import (
+    ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS,
+    CAN_REQUIRED_CLAIM_FIELDS,
+    CLEAR_HIGHER_ISS,
+    CLEAR_LOWER_ISS,
+    IDME_HIGHER_ISS,
+    IDME_LOWER_ISS,
+)
 from apps.dot_ext.validators import (
     AsymmetricAuthValidator,
     CMSAlignedNetworksValidator,
@@ -39,6 +46,19 @@ EXTENSIONS_PAYLOAD = {
     }
 }
 CMS_ALIGNED_NETWORKS_PAYLOAD = {**ASYMMETRIC_AUTH_PAYLOAD, **EXTENSIONS_PAYLOAD}
+VALID_IAL_JWT_PAYLOAD = {
+    'iss': 'test_iss',
+    'jti': 'test_validate_ial_jwt',
+    'sub': 'test_sub',
+    'aud': 'test_aud',
+    'exp': datetime.datetime.now(timezone.utc).timestamp() + 300,
+    'iat': datetime.datetime.now(timezone.utc).timestamp(),
+    'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 60,
+    'identity_assurance_level': 2,
+    'family_name': 'Doe',
+    'given_name': 'John',
+    'birthdate': '1990-01-01',
+}
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
@@ -214,8 +234,8 @@ def test_validate_jku_unsuccessful(validator_class, jku):
 
 def test_validate_time_comparison_successful():
     """Test the successful comparison of time-related fields."""
-    # Set auth time to be 3 minutes ago
     validator = CMSAlignedNetworksValidator()
+    # Set auth time to be 3 minutes ago
     mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180}
     response = validator._validate_time_comparison(mock_payload, 'auth_time', 300)
     assert response is True
@@ -268,3 +288,396 @@ def test_validate_time_comparison_unsuccessful(validator_class, mock_payload, cl
     validator = validator_class()
     with pytest.raises(InvalidRequestError):
         validator._validate_time_comparison(mock_payload, claim_key, time_window)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, jti',
+    [(CMSAlignedNetworksValidator, 'can_cache_replay'), (AsymmetricAuthValidator, 'asym_auth_cache_replay')],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_validate_and_decode_token_cache_successful(
+    mock_decode_complete,
+    validator_class,
+    jti,
+):
+    """Test correct cache behavior for _validate_and_decode_token"""
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    with freeze_time() as frozen_time:
+        # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
+        test_payload = CMS_ALIGNED_NETWORKS_PAYLOAD.copy()
+        test_payload['jti'] = jti
+        mock_decode_complete.return_value = {
+            'payload': test_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        result = validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+        assert result == test_payload
+
+        # Assert cache has the key we'd expect and that the result is what we'd expect
+        cache_key = f'{test_payload.get("iss")}-{test_payload.get("jti")}'
+        assert cache.get(cache_key) == 'sentinel'
+
+        # Advance time by 300 seconds and assert cache no longer has key
+        frozen_time.tick(delta=datetime.timedelta(seconds=300))
+        assert cache.get(cache_key) is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, jti',
+    [
+        (CMSAlignedNetworksValidator, 'can_cache_replay'),
+        (AsymmetricAuthValidator, 'asym_auth_cache_replay'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_decode_and_validate_token_cache_replay_unsuccessful(
+    mock_decode_complete,
+    validator_class,
+    jti,
+):
+    """Test _decode_and_validate_token fails on second cache hit with same iss/jti combo"""
+
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
+    test_payload = CMS_ALIGNED_NETWORKS_PAYLOAD.copy()
+    test_payload['jti'] = jti
+    mock_decode_complete.return_value = {
+        'payload': test_payload,
+        'header': {'typ': 'JWT'},
+    }
+
+    result = validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+    assert result == test_payload
+
+    # Assert cache has the key we'd expect and that the result is what we'd expect
+    cache_key = f'{test_payload.get("iss")}-{test_payload.get("jti")}'
+    assert cache.get(cache_key) == 'sentinel'
+
+    # Second call with same jti/iss fails
+    with pytest.raises(InvalidRequestError):
+        validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, header',
+    [
+        (CMSAlignedNetworksValidator, 'invalid-typ'),
+        (AsymmetricAuthValidator, 'invalid-typ'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_decode_and_validate_token_invalid_header(
+    mock_decode_complete,
+    validator_class,
+    header,
+):
+    """Test _decode_and_validate_token fails with invalid typ in header"""
+
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    # Return invalid headers that aren't 'JWT'
+    mock_decode_complete.return_value = {
+        'payload': CMS_ALIGNED_NETWORKS_PAYLOAD,
+        'header': {'typ': header},
+    }
+
+    with pytest.raises(InvalidRequestError):
+        validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class',
+    [
+        (CMSAlignedNetworksValidator),
+        (AsymmetricAuthValidator),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_decode_and_validate_token_expired(
+    mock_decode_complete,
+    validator_class,
+):
+    """Test _decode_and_validate_token fails with expired token"""
+
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    # Make expiration time 6 minutes in the past to simulate an expired token scenario
+    # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
+    test_payload = CMS_ALIGNED_NETWORKS_PAYLOAD.copy()
+    test_payload['exp'] = datetime.datetime.now(timezone.utc).timestamp() + 360
+    mock_decode_complete.return_value = {
+        'payload': test_payload,
+        'header': {'typ': 'JWT'},
+    }
+
+    with pytest.raises(InvalidRequestError):
+        validator._decode_and_validate_token('token', 'test_iss', mock_jwks_client)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, jti',
+    [
+        (CMSAlignedNetworksValidator, 'can_cache_replay'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@patch('jwt.decode_complete')
+def test_validate_ial_jwt_success(
+    mock_decode_complete,
+    validator_class,
+    jti,
+):
+    """Test _validate_ial_jwt succeeds with basic validation."""
+
+    with freeze_time() as frozen_time:
+        mock_jwks_client = MagicMock()
+        mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+        # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
+        test_payload = VALID_IAL_JWT_PAYLOAD.copy()
+        test_payload['jti'] = jti
+        mock_decode_complete.return_value = {
+            'payload': test_payload,
+            'header': {'typ': 'JWT'},
+        }
+
+        # Call succeeds
+        validator = validator_class()
+        result = validator._validate_ial_jwt('token', mock_jwks_client)
+        assert result == test_payload
+
+        # Assert cache has the key we'd expect and that the result is what we'd expect
+        cache_key = f'{test_payload.get("iss")}-{test_payload.get("jti")}'
+        assert cache.get(cache_key) == 'sentinel'
+
+        # Advance time by 300 seconds and assert cache no longer has key
+        frozen_time.tick(delta=datetime.timedelta(seconds=300))
+        assert cache.get(cache_key) is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, jti',
+    [
+        (CMSAlignedNetworksValidator, 'can_cache_replay'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_validate_ial_jwt_cache_replay_unsuccessful(
+    mock_decode_complete,
+    validator_class,
+    jti,
+):
+    """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
+
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
+    test_payload = VALID_IAL_JWT_PAYLOAD.copy()
+    test_payload['jti'] = jti
+    mock_decode_complete.return_value = {
+        'payload': test_payload,
+        'header': {'typ': 'JWT'},
+    }
+
+    result = validator._validate_ial_jwt('token', mock_jwks_client)
+    assert result == test_payload
+
+    # Assert cache has the key we'd expect and that the result is what we'd expect
+    cache_key = f'{test_payload.get("iss")}-{test_payload.get("jti")}'
+    assert cache.get(cache_key) == 'sentinel'
+
+    # Second call with same jti/iss fails
+    with pytest.raises(InvalidRequestError):
+        validator._validate_ial_jwt('token', mock_jwks_client)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, header',
+    [
+        (CMSAlignedNetworksValidator, 'invalid-typ'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_validate_ial_jwt_invalid_header(
+    mock_decode_complete,
+    validator_class,
+    header,
+):
+    """Test _validate_ial_jwt fails with invalid typ in header"""
+
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    # Return invalid headers that aren't 'JWT'
+    mock_decode_complete.return_value = {
+        'payload': VALID_IAL_JWT_PAYLOAD,
+        'header': {'typ': header},
+    }
+
+    with pytest.raises(InvalidRequestError):
+        validator._validate_ial_jwt('token', mock_jwks_client)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, claim, value',
+    [
+        (CMSAlignedNetworksValidator, 'identity_assurance_level', 1),
+        (CMSAlignedNetworksValidator, 'birthdate', 'cdjcdhbfdf'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+@patch('jwt.decode_complete')
+def test_validate_ial_jwt_invalid_request(
+    mock_decode_complete,
+    validator_class,
+    claim,
+    value,
+):
+    """Test _validate_ial_jwt fails with invalid request"""
+
+    validator = validator_class()
+    mock_jwks_client = MagicMock()
+    mock_jwks_client.get_signing_key_from_jwt.return_value = MagicMock()
+    # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
+    test_payload = VALID_IAL_JWT_PAYLOAD.copy()
+    test_payload[claim] = value
+    mock_decode_complete.return_value = {
+        'payload': test_payload,
+        'header': {'typ': 'JWT'},
+    }
+
+    with pytest.raises(InvalidRequestError):
+        validator._validate_ial_jwt('token', mock_jwks_client)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, target_env, parameter, expected_result',
+    [
+        (CMSAlignedNetworksValidator, 'prod', CLEAR_HIGHER_ISS, True),
+        (CMSAlignedNetworksValidator, 'prod', CLEAR_LOWER_ISS, True),
+        (CMSAlignedNetworksValidator, 'prod', IDME_HIGHER_ISS, True),
+        (CMSAlignedNetworksValidator, 'prod', IDME_LOWER_ISS, False),
+        (CMSAlignedNetworksValidator, 'impl', IDME_HIGHER_ISS, False),
+        (CMSAlignedNetworksValidator, 'impl', IDME_LOWER_ISS, True),
+        (CMSAlignedNetworksValidator, 'test', IDME_HIGHER_ISS, False),
+        (CMSAlignedNetworksValidator, 'test', IDME_LOWER_ISS, True),
+        (CMSAlignedNetworksValidator, 'local', IDME_HIGHER_ISS, False),
+        (CMSAlignedNetworksValidator, 'local', IDME_LOWER_ISS, True),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+def test_validate_environment_for_id_token(validator_class, target_env, parameter, expected_result) -> None:
+    """Confirm that, given a specific environment and an issuer URL, the
+    _validate_idme_url_for_id_token_and_environment will correctly return True or False
+    """
+    validator = validator_class()
+    os.environ['TARGET_ENV'] = target_env
+    result = validator._validate_idme_url_for_id_token_and_environment(parameter)
+    assert result == expected_result
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'payload, expected_output, should_raise',
+    [
+        (EXTENSIONS_PAYLOAD, 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj', False),
+        ({}, None, True),
+        (
+            {
+                'extensions': {
+                    'cms_smart': {
+                        'version': 'INVALID',
+                        'purpose_of_use': 'PATRQT',
+                        'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                    }
+                }
+            },
+            None,
+            True,
+        ),
+        (
+            {
+                'extensions': {
+                    'cms_smart': {
+                        'version': '1',
+                        'purpose_of_use': 'INVALID',
+                        'id_token': 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj',
+                    }
+                }
+            },
+            None,
+            True,
+        ),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+def test_validate_smart_extension(payload, expected_output, should_raise):
+    """Test _validate_smart_extension for correct behavior"""
+    validator = CMSAlignedNetworksValidator()
+    if should_raise:
+        with pytest.raises(InvalidRequestError):
+            validator._validate_smart_extension(payload)
+    else:
+        result = validator._validate_smart_extension(payload)
+        assert result == expected_output
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'iss, expected_result, should_raise, environment',
+    [
+        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'prod'),
+        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'local'),
+        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'test'),
+        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'sbx'),
+        (IDME_HIGHER_ISS, settings.IDME_HIGHER_JWKS_URL, False, 'prod'),
+        (IDME_LOWER_ISS, settings.IDME_LOWER_JWKS_URL, False, 'local'),
+        (IDME_LOWER_ISS, settings.IDME_LOWER_JWKS_URL, False, 'test'),
+        (IDME_LOWER_ISS, settings.IDME_LOWER_JWKS_URL, False, 'sbx'),
+        ('INVALID_ISS', None, True, 'local'),
+        ('INVALID_ISS', None, True, 'test'),
+        ('INVALID_ISS', None, True, 'sbx'),
+        ('INVALID_ISS', None, True, 'prod'),
+    ],
+)
+@override_switch('client_credentials_validation', active=True)
+def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, settings):
+    """Test _get_csp_jwks_url for correct behavior"""
+    validator = CMSAlignedNetworksValidator()
+    settings.TARGET_ENV = environment
+    token = jwt.encode({'iss': iss}, 'secret', algorithm='HS256')
+    if should_raise:
+        with pytest.raises(InvalidRequestError):
+            validator._get_csp_jwks_url(token)
+    else:
+        result = validator._get_csp_jwks_url(token)
+        assert result == expected_result
