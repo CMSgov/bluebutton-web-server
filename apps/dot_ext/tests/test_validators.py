@@ -1,6 +1,5 @@
 import datetime
 import json
-import logging
 import os
 from datetime import timezone
 from unittest.mock import MagicMock, patch
@@ -28,7 +27,6 @@ from apps.dot_ext.validators import (
     CMSAlignedNetworksValidator,
     validate_url,
 )
-from apps.logging.constants import HHS_SERVER_LOGNAME_FMT
 
 ASYMMETRIC_AUTH_PAYLOAD = {
     'iss': 'test-client-id',
@@ -60,11 +58,10 @@ VALID_IAL_JWT_PAYLOAD = {
     'given_name': 'John',
     'birthdate': '1990-01-01',
 }
-log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def create_mock_pyjwk(kid: str, kty: str, fake_key: str) -> MagicMock:
-    """Helper factory to create mock objects that mirror pyjwt.PyJWK instances."""
+    """Helper factory to create mock objects that mirror jwks_client.get_signing_keys() return."""
     mock_jwk_obj = MagicMock()
     mock_jwk_obj.key_id = kid
     mock_jwk_obj.key_type = kty
