@@ -815,7 +815,7 @@ class TokenView(DotTokenView):
                     log.info(f'client_credentials token call was made for app: {app.name}')
                     try:
                         can_validator = CMSAlignedNetworksValidator()
-                        id_match_payload = can_validator.authenticate_and_validate_token(
+                        id_match_payload, csp_issuer = can_validator.authenticate_and_validate_token(
                             request.POST.get('client_assertion', ''),
                             app.client_id,
                             app.jwks_uri,
@@ -839,7 +839,7 @@ class TokenView(DotTokenView):
                         log_dict = {
                             'type': 'request_response_middleware',
                             'app_name': app.name,
-                            # 'csp': pre_verified_ial.get('iss', None),
+                            'csp': csp_issuer,
                             'patient': None,
                             'path': request.path,
                             'patient_match_found': False,

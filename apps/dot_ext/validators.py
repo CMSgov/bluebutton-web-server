@@ -258,14 +258,14 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
             InvalidRequestError: If any validation step fails.
 
         Returns:
-            dict: The processed payload extracted from the IAL JWT.
+            tuple[dict, str]: A tuple containing the processed payload extracted from the IAL JWT and the CSP issuer.
         """
         payload = self._decode_and_validate_token(token, client_id, jwks_uri)
         id_token = self._validate_smart_extension(payload)
-        csp_jwks_url = self._get_csp_jwks_url(id_token)
+        csp_jwks_url, csp_issuer = self._get_csp_jwks_url(id_token)
         ial_valid = self._validate_ial_jwt(id_token, csp_jwks_url)
         processed_payload = self._parse_ial_into_parameter(ial_valid)
-        return processed_payload
+        return processed_payload, csp_issuer
 
     def _validate_smart_extension(self, payload: dict) -> dict:
         """
@@ -559,27 +559,28 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
 
         return id_match_payload.model_dump(mode='json', exclude_none=True)
 
-    def _get_csp_jwks_url(self, id_token: str) -> str:
+    def _get_csp_jwks_url(self, id_token: str) -> tuple[str, str]:
         """Get the JSON Web Key Set (JWKS) URL for the given ID token.
 
         Args:
             id_token (str): The ID token to extract the issuer from.
 
         Returns:
-            str: The JWKS URL corresponding to the issuer.
+            tuple[str, str]: A tuple containing the JWKS URL and the issuer.
 
         Raises:
             InvalidRequestError: If the ID token does not have a valid issuer.
         """
         pre_verified_ial = jwt.decode(id_token, options={'verify_signature': False})
+        csp_issuer = pre_verified_ial.get('iss', '')
         url_map = build_jwks_urls()
-        csp_jwks_url = url_map.get(pre_verified_ial.get('iss', ''))
+        csp_jwks_url = url_map.get(csp_issuer)
 
         if not csp_jwks_url:
             log.warning('id_token did not have a valid iss')
             raise InvalidRequestError
 
-        return csp_jwks_url
+        return csp_jwks_url, csp_issuer
 
     def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
         """Determine if the issuer of the id_token is valid for the environment for ID.me client_credentials
