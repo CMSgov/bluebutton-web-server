@@ -1,0 +1,42 @@
+{
+    "id": "IDIMatchInputParameters",
+    "meta": {
+        "profile": [
+            "http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters"
+        ]
+    },
+    "parameter": [
+        {
+            "name": "IDIPatient",
+            "resource": {
+                "address": [],
+                "gender": "unknown",
+                "identifier": [],
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient"
+                    ]
+                },
+                "name": [
+                    {
+                        "family": "Doe",
+                        "given": [
+                            "Jane"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "resourceType": "Patient",
+                "telecom": [
+                    {
+                        "rank": 2,
+                        "system": "email",
+                        "use": "home",
+                        "value": "jane@example.com"
+                    }
+                ]
+            }
+        }
+    ],
+    "resourceType": "Parameters"
+}

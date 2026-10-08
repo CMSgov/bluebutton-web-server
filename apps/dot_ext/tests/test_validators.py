@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 from datetime import timezone
@@ -62,13 +63,21 @@ VALID_IAL_JWT_PAYLOAD = {
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def create_mock_pyjwk(kid: str, kty: str, fake_crypto_material: str) -> MagicMock:
+def create_mock_pyjwk(kid: str, kty: str, fake_key: str) -> MagicMock:
     """Helper factory to create mock objects that mirror pyjwt.PyJWK instances."""
     mock_jwk_obj = MagicMock()
     mock_jwk_obj.key_id = kid
     mock_jwk_obj.key_type = kty
-    mock_jwk_obj.key = fake_crypto_material
+    mock_jwk_obj.key = fake_key
     return mock_jwk_obj
+
+
+def load_fhir_json(filename):
+    """Helper function to load JSON test data from the test_data directory."""
+    base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, 'test_data', filename)
+    with open(file_path, 'r') as f:
+        return json.load(f)
 
 
 class ValidateURLTests(TestCase):
@@ -647,9 +656,10 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
 
 
 @pytest.mark.parametrize(
-    'payload, mock_normalized_address, expected_output',
+    'payload, mock_normalized_address, json_file_response',
     [
         (
+            # Happy path test case for a valid patient payload
             {
                 'family_name': 'Smith',
                 'given_name': 'John',
@@ -668,179 +678,35 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
                 'ssn_itin_short': '1234',
             },
             '123 Main St, Baltimore, MD, 21201',
-            {
-                'id': 'IDIMatchInputParameters',
-                'meta': {
-                    'profile': [
-                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters',
-                    ],
-                },
-                'parameter': [
-                    {
-                        'name': 'IDIPatient',
-                        'resource': {
-                            'resourceType': 'Patient',
-                            'meta': {
-                                'profile': [
-                                    'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient',
-                                ],
-                            },
-                            'name': [{'use': 'official', 'family': 'Smith', 'given': ['John']}],
-                            'gender': 'male',
-                            'birthDate': '1990-01-01',
-                            'telecom': [
-                                {'system': 'phone', 'value': '+15555555555', 'use': 'mobile', 'rank': 1},
-                                {'system': 'email', 'value': 'john@example.com', 'use': 'home', 'rank': 2},
-                            ],
-                            'address': [
-                                {
-                                    'use': 'home',
-                                    'type': 'both',
-                                    'text': '123 Main St, Baltimore, MD, 21201',
-                                    'line': ['123 Main St, Baltimore, MD, 21201'],
-                                    'city': 'Baltimore',
-                                    'state': 'MD',
-                                    'postalCode': '21201',
-                                    'country': 'US',
-                                }
-                            ],
-                            'identifier': [
-                                {
-                                    'use': 'official',
-                                    'system': 'http://hl7.org/fhir/sid/us-ssn',
-                                    'type': {
-                                        'coding': [
-                                            {
-                                                'code': 'SS',
-                                                'display': 'Social Security Number',
-                                                'system': 'http://terminology.hl7.org/CodeSystem/v2-0203',
-                                            },
-                                        ],
-                                    },
-                                    'value': '1234',
-                                }
-                            ],
-                        },
-                    }
-                ],
-                'resourceType': 'Parameters',
-            },
+            'happy_path_response.json',
         ),
+        # Test case for a patient with an unverified phone number
         (
             {
                 'family_name': 'Doe',
                 'given_name': 'Jane',
                 'phone_number': '+15555555555',
-                'phone_number_verified': False,  # set to false for testing
+                'phone_number_verified': False,
                 'email': 'jane@example.com',
             },
             None,
-            {
-                'id': 'IDIMatchInputParameters',
-                'meta': {
-                    'profile': [
-                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters',
-                    ],
-                },
-                'parameter': [
-                    {
-                        'name': 'IDIPatient',
-                        'resource': {
-                            'address': [],
-                            'gender': 'unknown',
-                            'identifier': [],
-                            'meta': {
-                                'profile': [
-                                    'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient',
-                                ],
-                            },
-                            'name': [
-                                {
-                                    'family': 'Doe',
-                                    'given': [
-                                        'Jane',
-                                    ],
-                                    'use': 'official',
-                                },
-                            ],
-                            'resourceType': 'Patient',
-                            'telecom': [
-                                {
-                                    'rank': 2,
-                                    'system': 'email',
-                                    'use': 'home',
-                                    'value': 'jane@example.com',
-                                },
-                            ],
-                        },
-                    },
-                ],
-                'resourceType': 'Parameters',
-            },
+            'phone_unverified_response.json',
         ),
         (
+            # Test case for a patient with an SSN that needs slicing
             {
                 'family_name': 'Doe',
                 'given_name': 'Sam',
-                'SSN': '000-11-6789',  # Short version of SSN missing, slice last 4 digits
+                'SSN': '000-11-6789',
             },
             None,
-            {
-                'id': 'IDIMatchInputParameters',
-                'meta': {
-                    'profile': [
-                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters',
-                    ],
-                },
-                'parameter': [
-                    {
-                        'name': 'IDIPatient',
-                        'resource': {
-                            'address': [],
-                            'gender': 'unknown',
-                            'identifier': [
-                                {
-                                    'system': 'http://hl7.org/fhir/sid/us-ssn',
-                                    'type': {
-                                        'coding': [
-                                            {
-                                                'code': 'SS',
-                                                'display': 'Social Security Number',
-                                                'system': 'http://terminology.hl7.org/CodeSystem/v2-0203',
-                                            },
-                                        ],
-                                    },
-                                    'use': 'official',
-                                    'value': '6789',
-                                },
-                            ],
-                            'meta': {
-                                'profile': [
-                                    'http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient',
-                                ],
-                            },
-                            'name': [
-                                {
-                                    'family': 'Doe',
-                                    'given': [
-                                        'Sam',
-                                    ],
-                                    'use': 'official',
-                                },
-                            ],
-                            'resourceType': 'Patient',
-                            'telecom': [],
-                        },
-                    },
-                ],
-                'resourceType': 'Parameters',
-            },
+            'slice_ssn_response.json',
         ),
+        # Test case for a patient with historical address information
         (
             {
                 'family_name': 'Doe',
                 'given_name': 'Sam',
-                # Historical address information for the patient gets parsed into the FHIR Patient resource as old addresses
                 'historical_address': [
                     {
                         'street_address': '456 Old Rd',
@@ -852,50 +718,16 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
                 ],
             },
             '456 Old Rd, Boston, MA, 02108',
-            {
-                'resourceType': 'Parameters',
-                'id': 'IDIMatchInputParameters',
-                'meta': {
-                    'profile': [
-                        'http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters'
-                    ]
-                },
-                'parameter': [
-                    {
-                        'name': 'IDIPatient',
-                        'resource': {
-                            'resourceType': 'Patient',
-                            'meta': {
-                                'profile': ['http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient']
-                            },
-                            'identifier': [],
-                            'name': [{'use': 'official', 'family': 'Doe', 'given': ['Sam']}],
-                            'telecom': [],
-                            'gender': 'unknown',
-                            'address': [
-                                {
-                                    'use': 'old',
-                                    'type': 'both',
-                                    'text': '456 Old Rd, Boston, MA, 02108',
-                                    'line': ['456 Old Rd, Boston, MA, 02108'],
-                                    'city': 'Boston',
-                                    'state': 'MA',
-                                    'postalCode': '02108',
-                                    'country': 'US',
-                                }
-                            ],
-                        },
-                    }
-                ],
-            },
+            'historical_address_response.json',
         ),
     ],
 )
 @patch('apps.dot_ext.validators.normalize_address')
-def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_address, expected_output):
+def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_address, json_file_response):
     """Test _parse_into_parameter for correct behavior"""
     validator = CMSAlignedNetworksValidator()
     mock_normalize.return_value = mock_normalized_address
+    expected_output = load_fhir_json(json_file_response)
     result = validator._parse_ial_into_parameter(payload)
     assert result == expected_output
 

@@ -1,0 +1,36 @@
+{
+    "resourceType": "Parameters",
+    "id": "IDIMatchInputParameters",
+    "meta": {
+        "profile": [
+            "http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters"
+        ]
+    },
+    "parameter": [
+        {
+            "name": "IDIPatient",
+            "resource": {
+                "resourceType": "Patient",
+                "meta": {
+                    "profile": ["http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient"]
+                },
+                "identifier": [],
+                "name": [{"use": "official", "family": "Doe", "given": ["Sam"]}],
+                "telecom": [],
+                "gender": "unknown",
+                "address": [
+                    {
+                        "use": "old",
+                        "type": "both",
+                        "text": "456 Old Rd, Boston, MA, 02108",
+                        "line": ["456 Old Rd, Boston, MA, 02108"],
+                        "city": "Boston",
+                        "state": "MA",
+                        "postalCode": "02108",
+                        "country": "US"
+                    }
+                ]
+            }
+        }
+    ]
+}
