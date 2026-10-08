@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import time
 import urllib.request as urllib_request
 from http import HTTPStatus
@@ -55,7 +56,6 @@ def authenticate(request):
 
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)
-
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
@@ -131,6 +131,8 @@ def callback(request):
     except NotFound as e:
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
+    except requests.exceptions.HTTPError:
+            return JsonResponse({'error': 'Bad Gateway'}, status=HTTPStatus.BAD_GATEWAY)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
         # This was an error where we couldn't find the hicn or mbi in the userinfo response.
         # This is a 404 error, but we want to show a custom page for this case.
@@ -236,6 +238,9 @@ def mymedicare_login(request):
         elif language == 'en':
             mymedicare_login_url += '&lang=en-us'
     next_uri = request.GET.get('next', '')
+
+    if '\x00' in next_uri or not re.match(r'^/v[123]/o/authorize/\?', next_uri):
+        return JsonResponse({'error': 'The next value was not valid.'}, status=status.HTTP_400_BAD_REQUEST)
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 
