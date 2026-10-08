@@ -61,9 +61,6 @@ class OAuth2ConfigSLSx(object):
         self.firstname = args_dict.get('first_name', '') if args_dict else ''
         self.lastname = args_dict.get('last_name', '') if args_dict else ''
         self.email = args_dict.get('email', '') if args_dict else ''
-        print('HEALTH CHECK ENDPOINT: ', self.healthcheck_endpoint)
-        print('token ENDPOINT: ', self.token_endpoint)
-        print('Signout CHECK ENDPOINT: ', self.signout_endpoint)
         super().__init__()
 
     @property
@@ -149,6 +146,7 @@ class OAuth2ConfigSLSx(object):
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
+        print('what is the request: ', request.__dict__)
         print('headers for get_user_info: ', headers)
         print(
             'endpoint: ',
@@ -164,30 +162,6 @@ class OAuth2ConfigSLSx(object):
         self.userinfo_status_code = response.status_code
         response.raise_for_status()
         print('USER INFO RESPONSE: ', response.json())
-
-        headers = self.slsx_common_headers(request)
-        headers.update(self.auth_header())
-        print('headers for test_medicare_response: ', headers)
-        test_medicare_response = requests.get(
-            'https://test.medicare.gov/account/api/proxy/relationship?my-position=user',
-            headers=headers,
-            allow_redirects=False,
-            verify=self.verify_ssl_internal,
-            hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
-        )
-        print('TEST MEDICARE GOV RESPONSE: ', test_medicare_response.json())
-
-        headers = self.slsx_common_headers(request)
-        headers.update(self.auth_header())
-        print('headers for test_account_medicare_response: ', headers)
-        test_account_medicare_response = requests.get(
-            'https://test.accounts.cms.gov/account/api/proxy/relationship?my-position=user',
-            headers=headers,
-            allow_redirects=False,
-            verify=self.verify_ssl_internal,
-            hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
-        )
-        print('TEST MEDICARE ACCOUNTS GOV RESPONSE: ', test_account_medicare_response.json())
 
         # Get data.user part of response
         data_user_response = response.json().get('data', {}).get('user', None)
@@ -420,3 +394,23 @@ class OAuth2ConfigSLSx(object):
         log_dict = {'type': 'Authentication:success', 'sub': self.user_id, 'user': None, 'path': path}
         log_dict.update(extra)
         logger.info(log_dict)
+
+    def retrieve_relationships_data(self, request):
+        headers = self.slsx_common_headers(request)
+        headers['Origin'] = 'https://test.medicare.gov'
+        headers['Referer'] = 'https://test.medicare.gov/'
+        headers.update(self.auth_header())
+        print('headers for test_medicare_response: ', headers)
+        test_medicare_response = requests.get(
+            'https://test.medicare.gov/account/api/proxy/relationship?my-position=user',
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_internal,
+            hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
+        )
+        print('TEST MEDICARE GOV RESPONSE: ', test_medicare_response.json())
+
+        if test_medicare_response.json().get('relationships'):
+            print('RETURNING THE RELATIONSHIPS DATA')
+            return test_medicare_response.json().get('relationships')
+        return []
