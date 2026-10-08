@@ -177,74 +177,90 @@ def test_validate_and_get_jwks_uri(jku, header, should_raise):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'mock_payload, claim_key, time_window, should_raise',
+    'claim_key, subtract, time_delta, string, should_raise',
     [
         # Case where the 'auth_time' field is a string, which should raise an error
         (
-            {'auth_time': "I'm a string"},
             'auth_time',
-            300,
+            False,
+            0,
+            True,
             True,
         ),
         # Case where the 'iat' field is a string, which should raise an error
         (
-            {'iat': "I'm a string"},
             'iat',
-            300,
+            False,
+            0,
+            True,
             True,
         ),
         # Case where the 'auth_time' field is in the future, which should raise an error
         (
-            {'auth_time': datetime.datetime.now(timezone.utc).timestamp() + 60},
             'auth_time',
-            300,
+            False,
+            60,
+            False,
             True,
         ),
         # Case where the 'iat' field is in the future, which should raise an error
         (
-            {'iat': datetime.datetime.now(timezone.utc).timestamp() + 60},
             'iat',
-            300,
+            False,
+            60,
+            False,
             True,
         ),
         # Case where the 'auth_time' field is too far in the past, which should raise an error
         (
-            {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 301},
             'auth_time',
-            300,
+            True,
+            301,
+            False,
             True,
         ),
         # Case where the 'iat' field is too far in the past, which should raise an error
         (
-            {'iat': datetime.datetime.now(timezone.utc).timestamp() - 301},
             'iat',
-            300,
+            True,
+            301,
+            False,
             True,
         ),
         # Case where the 'auth_time' field is within the acceptable time window, which should not raise an error
         (
-            {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180},
             'auth_time',
-            300,
+            True,
+            180,
+            False,
             False,
         ),
         # Case where the 'iat' field is within the acceptable time window, which should not raise an error
         (
-            {'iat': datetime.datetime.now(timezone.utc).timestamp() - 180},
             'iat',
-            300,
+            True,
+            180,
+            False,
             False,
         ),
     ],
 )
-def test_validate_time_comparison(mock_payload, claim_key, time_window, should_raise):
+def test_validate_time_comparison(claim_key, subtract, time_delta, string, should_raise):
     """Test the successful and unsuccessful _validate_time_comparison cases."""
     validator = CMSAlignedNetworksValidator()
+    test_payload = VALID_IAL_JWT_PAYLOAD.copy()
+    if subtract:
+        test_payload[claim_key] = datetime.datetime.now(timezone.utc).timestamp() - time_delta
+    else:
+        if string:
+            test_payload[claim_key] = "I'm a string"
+        else:
+            test_payload[claim_key] = datetime.datetime.now(timezone.utc).timestamp() + time_delta
     if should_raise:
         with pytest.raises(InvalidRequestError):
-            validator._validate_time_comparison(mock_payload, claim_key, time_window)
+            validator._validate_time_comparison(test_payload, claim_key, 300)
     else:
-        response = validator._validate_time_comparison(mock_payload, claim_key, time_window)
+        response = validator._validate_time_comparison(test_payload, claim_key, 300)
         assert response is True
 
 

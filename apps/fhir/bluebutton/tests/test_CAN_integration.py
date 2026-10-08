@@ -376,6 +376,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
     assert combined_scopes in scope, f'Expected scope "{combined_scopes}" to be in response scope "{scope}"'
 
 
+@pytest.mark.skipif(os.getenv('CAN_INTEGRATION_TEST') != 'true', reason='Mirror CAN integration testing for now')
 @pytest.mark.integration
 @pytest.mark.django_db
 @override_switch('asymmetric_auth_validation', active=True)

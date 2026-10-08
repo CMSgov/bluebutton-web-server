@@ -453,14 +453,13 @@ class TestTokenResponseFields(BaseApiTest):
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
     @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
-    @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
-    @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
+    @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator.authenticate_and_validate_token')
     @patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
     @override_switch('enable_auditevents', active=True)
     def test_client_credentials_token_and_refresh(
-        self, mock_get_patient, mock_create_user, mock_validate_ial, mock_validate_auth, mock_get_and_update
+        self, mock_get_patient, mock_create_user, mock_authenticate_and_validate_token, mock_get_and_update
     ):
         """Verify that a client_credentials token response includes "patient" and "refresh_token", and that the refresh_token can be used to refresh the access token."""
 
@@ -469,8 +468,7 @@ class TestTokenResponseFields(BaseApiTest):
                 # Mocking the matched user
                 mock_create_user.return_value = self.user
                 mock_get_and_update.return_value = None
-                mock_validate_auth.return_value = self.mock_val_auth_jwt_response
-                mock_validate_ial.return_value = self.mock_val_ial_jwt_response
+                mock_authenticate_and_validate_token.return_value = (self.mock_val_auth_jwt_response, IDME_LOWER_ISS)
 
                 # Mock patient match result
                 # is_patient_match_found expects at least 2 entries in successful match
@@ -558,20 +556,18 @@ class TestTokenResponseFields(BaseApiTest):
                 assert f'"csp": "{IDME_LOWER_ISS}"' in auth_logs.output[1]
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
-    @patch('apps.dot_ext.views.authorization.TokenView._validate_authorization_jwt')
-    @patch('apps.dot_ext.views.authorization.TokenView._validate_ial_jwt')
+    @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator.authenticate_and_validate_token')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
     def test_client_credentials_returns_patient_match_not_found_401(
-        self, mock_get_patient, mock_validate_ial, mock_validate_auth
+        self,
+        mock_get_patient,
+        mock_authenticate_and_validate_token,
     ):
         """Verify that a client_credentials token response is a 401 because a patient match wasn't found."""
 
         with self.assertLogs('hhs_server.apps.dot_ext.views.authorization', level='INFO') as auth_logs:
             with self.assertLogs('audit.hhs_oauth_server.request_logging', level='INFO') as request_logs:
-                mock_validate_auth.return_value = self.mock_val_auth_jwt_response
-                mock_validate_ial.return_value = self.mock_val_ial_jwt_response
-
                 # Mock patient match result not returning a patient resource
                 # This covers the case when there are no matches or multiple matches,
                 # because BFD will return no patient resource regardless
@@ -581,6 +577,9 @@ class TestTokenResponseFields(BaseApiTest):
                         {'resource': {'id': 'org-example', 'resourceType': 'Organization'}},
                     ],
                 }
+
+                # Mock the authenticate_and_validate_token response
+                mock_authenticate_and_validate_token.return_value = (self.mock_val_auth_jwt_response, IDME_LOWER_ISS)
 
                 assertion = jwt.encode({'iss': self.application.client_id}, 'secret', algorithm='HS256')
 
