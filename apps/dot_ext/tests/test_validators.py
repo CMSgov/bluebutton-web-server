@@ -125,7 +125,7 @@ class ValidateURLTests(TestCase):
 def test_get_required_fields(validator_class, expected_fields):
     """Test that the validator returns the correct required fields."""
     validator = validator_class()
-    assert validator.get_required_fields() == expected_fields
+    assert validator._get_required_fields() == expected_fields
 
 
 @pytest.mark.parametrize(
@@ -138,7 +138,7 @@ def test_get_required_fields(validator_class, expected_fields):
 def test_get_waffle_switch(validator_class, waffle_switch):
     """Test that the validator returns the correct waffle switch."""
     validator = validator_class()
-    assert validator.get_waffle_switch() == waffle_switch
+    assert validator._get_waffle_switch() == waffle_switch
 
 
 @pytest.mark.django_db
@@ -629,8 +629,9 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
         with pytest.raises(InvalidRequestError):
             validator._get_csp_jwks_url(token)
     else:
-        result = validator._get_csp_jwks_url(token)
+        result, csp_issuer = validator._get_csp_jwks_url(token)
         assert result == expected_result
+        assert csp_issuer == iss
 
 
 @pytest.mark.parametrize(
