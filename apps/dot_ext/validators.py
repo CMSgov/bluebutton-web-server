@@ -121,11 +121,11 @@ def validate_logo_image(value):
 
 class BaseTokenValidator(ABC):
     @abstractmethod
-    def get_required_fields(self) -> list[str]:
+    def _get_required_fields(self) -> list[str]:
         pass
 
     @abstractmethod
-    def get_waffle_switch(self) -> str:
+    def _get_waffle_switch(self) -> str:
         pass
 
     @abstractmethod
@@ -141,7 +141,6 @@ class BaseTokenValidator(ABC):
             token (str): The JWT token to validate and decode.
             client_id (str): The client ID to validate against the token's issuer and subject.
             jwks_uri (str): The JWKS URI to fetch the signing key.
-            required_fields (list[str]): The list of required fields to validate in the JWT payload.
 
         Raises:
             InvalidRequestError: If the token is invalid or any validation checks fail.
@@ -149,9 +148,9 @@ class BaseTokenValidator(ABC):
         Returns:
             dict: The decoded JWT payload.
         """
-        waffle_switch = self.get_waffle_switch()
+        waffle_switch = self._get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
-            required_fields = self.get_required_fields()
+            required_fields = self._get_required_fields()
             # Get the signing key from the JWKS URI
             signing_key = self._get_signing_key(token, jwks_uri)
             host = _start_url_with_http_or_https(settings.HOSTNAME_URL)
@@ -239,10 +238,12 @@ class BaseTokenValidator(ABC):
 
 
 class CMSAlignedNetworksValidator(BaseTokenValidator):
-    def get_required_fields(self) -> list[str]:
+    def _get_required_fields(self) -> list[str]:
+        """Returns the list of required claim fields for the CMS Aligned Networks Validator."""
         return CAN_REQUIRED_CLAIM_FIELDS
 
-    def get_waffle_switch(self) -> str:
+    def _get_waffle_switch(self) -> str:
+        """Returns the waffle switch name for the CMS Aligned Networks Validator."""
         return 'client_credentials_validation'
 
     def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
@@ -280,7 +281,7 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         Returns:
             dict: The extracted id_token from the CMS Smart extension.
         """
-        waffle_switch = self.get_waffle_switch()
+        waffle_switch = self._get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
             cms_smart = payload.get('extensions', {}).get('cms_smart')
             if not cms_smart:
@@ -314,7 +315,7 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         Returns:
             dict: the decoded payload of the IAL JWT
         """
-        waffle_switch = self.get_waffle_switch()
+        waffle_switch = self._get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
             signing_key = self._get_signing_key(id_token, jwks_uri)
             try:
@@ -590,7 +591,6 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         Returns:
             bool: Whether or not the environment is valid for the id token issuer
         """
-
         # If the issue does not contain oidc, it is not ID.me, and it must be CLEAR
         # CLEAR does not differentiate between environments at this time
         if ID_ME_URL_CONTAINS not in issuer:
@@ -607,10 +607,12 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
 
 
 class AsymmetricAuthValidator(BaseTokenValidator):
-    def get_waffle_switch(self) -> str:
+    def _get_waffle_switch(self) -> str:
+        """Returns the waffle switch name for the Asymmetric Auth Validator."""
         return 'asymmetric_auth_validation'
 
-    def get_required_fields(self) -> list[str]:
+    def _get_required_fields(self) -> list[str]:
+        """Returns the list of required claim fields for the Asymmetric Auth Validator."""
         return ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS
 
     def _validate_and_get_jwks_uri(self, token: str, registered_jwks_uri: str) -> None:
@@ -625,7 +627,7 @@ class AsymmetricAuthValidator(BaseTokenValidator):
             InvalidRequestError: if the 'jku' is not valid
         """
         # Spec here: https://hl7.org/fhir/smart-app-launch/STU2.2/client-confidential-asymmetric.html
-        waffle_switch = self.get_waffle_switch()
+        waffle_switch = self._get_waffle_switch()
         if waffle.switch_is_active(waffle_switch):
             unverified_header = jwt.get_unverified_header(token)
             jku = unverified_header.get('jku')

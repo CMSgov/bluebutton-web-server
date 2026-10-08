@@ -146,102 +146,109 @@ def test_get_waffle_switch(validator_class, waffle_switch):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'validator_class, jku, header',
+    'jku, header, should_raise',
     [
+        # Case for testing the 'jku' header field validation matches the expected JWKS URL
         (
-            AsymmetricAuthValidator,
             'https://example.com/jwks.json',
             {'typ': 'JWT', 'kid': 'some-kid', 'jku': 'https://example.com/jwks.json'},
+            False,
         ),
-        (AsymmetricAuthValidator, 'https://example.com/jwks.json', {'typ': 'JWT', 'kid': 'some-kid'}),
-    ],
-)
-@override_switch('asymmetric_auth_validation', active=True)
-def test_validate_and_get_jwks_uri_successful(validator_class, jku, header):
-    """Test the validation of the 'jku' header field for successful cases."""
-    validator = validator_class()
-    token = jwt.encode(ASYMMETRIC_AUTH_PAYLOAD.copy(), 'secret', algorithm='HS256', headers=header)
-
-    # Should not raise an error
-    response = validator._validate_and_get_jwks_uri(token, jku)
-    assert response == jku
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    'validator_class, jku',
-    [
-        (AsymmetricAuthValidator, 'random'),
-    ],
-)
-@override_switch('asymmetric_auth_validation', active=True)
-def test_validate_and_get_jwks_uri_unsuccessful(validator_class, jku):
-    """Test the validation of the 'jku' header field does not accept a mismatched JWKS URL."""
-    validator = validator_class()
-    header = {'typ': 'JWT', 'kid': 'some-kid', 'jku': 'not-a-valid-url'}
-    token = jwt.encode(ASYMMETRIC_AUTH_PAYLOAD.copy(), 'secret', algorithm='HS256', headers=header)
-
-    # Should raise an error
-    with pytest.raises(InvalidRequestError):
-        validator._validate_and_get_jwks_uri(token, jku)
-
-
-def test_validate_time_comparison_successful():
-    """Test the successful comparison of time-related fields."""
-    validator = CMSAlignedNetworksValidator()
-    # Set auth time to be 3 minutes ago
-    mock_payload = {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180}
-    response = validator._validate_time_comparison(mock_payload, 'auth_time', 300)
-    assert response is True
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    'validator_class, mock_payload, claim_key, time_window',
-    [
+        # Case where the 'jku' header is missing
+        ('https://example.com/jwks.json', {'typ': 'JWT', 'kid': 'some-kid'}, False),
+        # Case where the 'jku' header does not match the expected JWKS URL
         (
-            CMSAlignedNetworksValidator,
+            'different-jwks_url',
+            {'typ': 'JWT', 'kid': 'some-kid', 'jku': 'https://example.com/jwks.json'},
+            True,
+        ),
+    ],
+)
+@override_switch('asymmetric_auth_validation', active=True)
+def test_validate_and_get_jwks_uri(jku, header, should_raise):
+    """Test the validation of the 'jku' header field for successful and unsuccessful cases."""
+    validator = AsymmetricAuthValidator()
+    token = jwt.encode(ASYMMETRIC_AUTH_PAYLOAD.copy(), 'secret', algorithm='HS256', headers=header)
+
+    if should_raise:
+        with pytest.raises(InvalidRequestError):
+            validator._validate_and_get_jwks_uri(token, jku)
+    else:
+        response = validator._validate_and_get_jwks_uri(token, jku)
+        assert response == jku
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'mock_payload, claim_key, time_window, should_raise',
+    [
+        # Case where the 'auth_time' field is a string, which should raise an error
+        (
             {'auth_time': "I'm a string"},
             'auth_time',
             300,
+            True,
         ),
+        # Case where the 'iat' field is a string, which should raise an error
         (
-            CMSAlignedNetworksValidator,
             {'iat': "I'm a string"},
             'iat',
             300,
+            True,
         ),
+        # Case where the 'auth_time' field is in the future, which should raise an error
         (
-            CMSAlignedNetworksValidator,
             {'auth_time': datetime.datetime.now(timezone.utc).timestamp() + 60},
             'auth_time',
             300,
+            True,
         ),
+        # Case where the 'iat' field is in the future, which should raise an error
         (
-            CMSAlignedNetworksValidator,
             {'iat': datetime.datetime.now(timezone.utc).timestamp() + 60},
             'iat',
             300,
+            True,
         ),
+        # Case where the 'auth_time' field is too far in the past, which should raise an error
         (
-            CMSAlignedNetworksValidator,
             {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 301},
             'auth_time',
             300,
+            True,
         ),
+        # Case where the 'iat' field is too far in the past, which should raise an error
         (
-            CMSAlignedNetworksValidator,
             {'iat': datetime.datetime.now(timezone.utc).timestamp() - 301},
             'iat',
             300,
+            True,
+        ),
+        # Case where the 'auth_time' field is within the acceptable time window, which should not raise an error
+        (
+            {'auth_time': datetime.datetime.now(timezone.utc).timestamp() - 180},
+            'auth_time',
+            300,
+            False,
+        ),
+        # Case where the 'iat' field is within the acceptable time window, which should not raise an error
+        (
+            {'iat': datetime.datetime.now(timezone.utc).timestamp() - 180},
+            'iat',
+            300,
+            False,
         ),
     ],
 )
-def test_validate_time_comparison_unsuccessful(validator_class, mock_payload, claim_key, time_window):
-    """Test the unsuccessful comparison of time-related fields."""
-    validator = validator_class()
-    with pytest.raises(InvalidRequestError):
-        validator._validate_time_comparison(mock_payload, claim_key, time_window)
+def test_validate_time_comparison(mock_payload, claim_key, time_window, should_raise):
+    """Test the successful and unsuccessful _validate_time_comparison cases."""
+    validator = CMSAlignedNetworksValidator()
+    if should_raise:
+        with pytest.raises(InvalidRequestError):
+            validator._validate_time_comparison(mock_payload, claim_key, time_window)
+    else:
+        response = validator._validate_time_comparison(mock_payload, claim_key, time_window)
+        assert response is True
 
 
 @pytest.mark.django_db
@@ -385,7 +392,6 @@ def test_decode_and_validate_token_expired(
     validator_class,
 ):
     """Test _decode_and_validate_token fails with expired token"""
-
     validator = validator_class()
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
@@ -403,34 +409,25 @@ def test_decode_and_validate_token_expired(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'validator_class, jti',
-    [
-        (CMSAlignedNetworksValidator, 'can_cache_replay'),
-    ],
-)
 @override_switch('client_credentials_validation', active=True)
 @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_success(
     mock_decode_complete,
     mock_cms_get_signing_key,
-    validator_class,
-    jti,
 ):
     """Test _validate_ial_jwt succeeds with basic validation."""
     mock_cms_get_signing_key.return_value = MagicMock()
     with freeze_time() as frozen_time:
         # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
         test_payload = VALID_IAL_JWT_PAYLOAD.copy()
-        test_payload['jti'] = jti
+        test_payload['jti'] = 'can_cache_replay'
         mock_decode_complete.return_value = {
             'payload': test_payload,
             'header': {'typ': 'JWT'},
         }
 
-        # Call succeeds
-        validator = validator_class()
+        validator = CMSAlignedNetworksValidator()
         result = validator._validate_ial_jwt('token', 'jwks_uri')
         assert result == test_payload
 
@@ -444,12 +441,6 @@ def test_validate_ial_jwt_success(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'validator_class, jti',
-    [
-        (CMSAlignedNetworksValidator, 'can_cache_replay'),
-    ],
-)
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
 @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
@@ -457,16 +448,13 @@ def test_validate_ial_jwt_success(
 def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_decode_complete,
     mock_cms_get_signing_key,
-    validator_class,
-    jti,
 ):
     """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
-
-    validator = validator_class()
+    validator = CMSAlignedNetworksValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
-    test_payload['jti'] = jti
+    test_payload['jti'] = 'can_cache_replay'
     mock_decode_complete.return_value = {
         'payload': test_payload,
         'header': {'typ': 'JWT'},
@@ -485,12 +473,6 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'validator_class, header',
-    [
-        (CMSAlignedNetworksValidator, 'invalid-typ'),
-    ],
-)
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
 @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
@@ -498,17 +480,14 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
 def test_validate_ial_jwt_invalid_header(
     mock_decode_complete,
     mock_cms_get_signing_key,
-    validator_class,
-    header,
 ):
     """Test _validate_ial_jwt fails with invalid typ in header"""
-
-    validator = validator_class()
+    validator = CMSAlignedNetworksValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Return invalid headers that aren't 'JWT'
     mock_decode_complete.return_value = {
         'payload': VALID_IAL_JWT_PAYLOAD,
-        'header': {'typ': header},
+        'header': {'typ': 'random_header'},
     }
 
     with pytest.raises(InvalidRequestError):
@@ -517,10 +496,10 @@ def test_validate_ial_jwt_invalid_header(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'validator_class, claim, value',
+    'claim, value',
     [
-        (CMSAlignedNetworksValidator, 'identity_assurance_level', 1),
-        (CMSAlignedNetworksValidator, 'birthdate', 'cdjcdhbfdf'),
+        ('identity_assurance_level', 1),
+        ('birthdate', 'cdjcdhbfdf'),
     ],
 )
 @override_switch('client_credentials_validation', active=True)
@@ -530,13 +509,11 @@ def test_validate_ial_jwt_invalid_header(
 def test_validate_ial_jwt_invalid_request(
     mock_decode_complete,
     mock_cms_get_signing_key,
-    validator_class,
     claim,
     value,
 ):
-    """Test _validate_ial_jwt fails with invalid request"""
-
-    validator = validator_class()
+    """Test _validate_ial_jwt fails with invalid identity assurance level or birthdate"""
+    validator = CMSAlignedNetworksValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
@@ -552,26 +529,26 @@ def test_validate_ial_jwt_invalid_request(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'validator_class, target_env, parameter, expected_result',
+    'target_env, parameter, expected_result',
     [
-        (CMSAlignedNetworksValidator, 'prod', CLEAR_HIGHER_ISS, True),
-        (CMSAlignedNetworksValidator, 'prod', CLEAR_LOWER_ISS, True),
-        (CMSAlignedNetworksValidator, 'prod', IDME_HIGHER_ISS, True),
-        (CMSAlignedNetworksValidator, 'prod', IDME_LOWER_ISS, False),
-        (CMSAlignedNetworksValidator, 'impl', IDME_HIGHER_ISS, False),
-        (CMSAlignedNetworksValidator, 'impl', IDME_LOWER_ISS, True),
-        (CMSAlignedNetworksValidator, 'test', IDME_HIGHER_ISS, False),
-        (CMSAlignedNetworksValidator, 'test', IDME_LOWER_ISS, True),
-        (CMSAlignedNetworksValidator, 'local', IDME_HIGHER_ISS, False),
-        (CMSAlignedNetworksValidator, 'local', IDME_LOWER_ISS, True),
+        ('prod', CLEAR_HIGHER_ISS, True),
+        ('prod', CLEAR_LOWER_ISS, True),
+        ('prod', IDME_HIGHER_ISS, True),
+        ('prod', IDME_LOWER_ISS, False),
+        ('impl', IDME_HIGHER_ISS, False),
+        ('impl', IDME_LOWER_ISS, True),
+        ('test', IDME_HIGHER_ISS, False),
+        ('test', IDME_LOWER_ISS, True),
+        ('local', IDME_HIGHER_ISS, False),
+        ('local', IDME_LOWER_ISS, True),
     ],
 )
 @override_switch('client_credentials_validation', active=True)
-def test_validate_environment_for_id_token(validator_class, target_env, parameter, expected_result) -> None:
+def test_validate_environment_for_id_token(target_env, parameter, expected_result) -> None:
     """Confirm that, given a specific environment and an issuer URL, the
     _validate_idme_url_for_id_token_and_environment will correctly return True or False
     """
-    validator = validator_class()
+    validator = CMSAlignedNetworksValidator()
     os.environ['TARGET_ENV'] = target_env
     result = validator._validate_idme_url_for_id_token_and_environment(parameter)
     assert result == expected_result
@@ -581,8 +558,11 @@ def test_validate_environment_for_id_token(validator_class, target_env, paramete
 @pytest.mark.parametrize(
     'payload, expected_output, should_raise',
     [
+        # Valid payload with correct extensions should return the id_token without raising an error
         (EXTENSIONS_PAYLOAD, 'alksjdlksajdlskajdskladsksdalkdsakldaskldaskljadsj', False),
+        # Invalid payload without extensions should raise an error
         ({}, None, True),
+        # Invalid payload with incorrect version should raise an error
         (
             {
                 'extensions': {
@@ -596,6 +576,7 @@ def test_validate_environment_for_id_token(validator_class, target_env, paramete
             None,
             True,
         ),
+        # Invalid payload with incorrect purpose_of_use should raise an error
         (
             {
                 'extensions': {
@@ -692,8 +673,8 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
             None,
             'phone_unverified_response.json',
         ),
+        # Test case for a patient with an SSN that needs slicing
         (
-            # Test case for a patient with an SSN that needs slicing
             {
                 'family_name': 'Doe',
                 'given_name': 'Sam',
@@ -742,13 +723,13 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'kid-v1',
             'RS256',
             False,
-            'real-rsa-key-material',
+            'real-rsa-key',
         ),
         # Successful retrieval of signing key with matching kid in JWKS and correct algorithm (switch algorithms)
         (
@@ -756,13 +737,13 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
                 create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
             ],
             'kid-v1',
             'ES384',
             False,
-            'real-es-key-material',
+            'real-es-key',
         ),
         # Case where the 'kid' in the token does not match any key in the JWKS and thus should raise an error
         # with 0 matching keys in the JWKS
@@ -771,7 +752,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'non-existent-kid',
@@ -786,7 +767,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'kid-v1',
@@ -801,7 +782,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
                 create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
             ],
             'kid-v1',
@@ -816,7 +797,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'non-existent-kid',
@@ -830,8 +811,8 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
             ],
             'kid-v1',
             'ES384',
@@ -844,8 +825,8 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
             ],
             'kid-v1',
             'RS256',
@@ -858,13 +839,13 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'kid-v1',
             'RS256',
             False,
-            'real-rsa-key-material',
+            'real-rsa-key',
         ),
         # Successful retrieval of signing key with matching kid in JWKS and correct algorithm (switch algorithms)
         (
@@ -872,13 +853,13 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
                 create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
             ],
             'kid-v1',
             'ES384',
             False,
-            'real-es-key-material',
+            'real-es-key',
         ),
         # Case where the 'kid' in the token does not match any key in the JWKS and thus should raise an error
         # with 0 matching keys in the JWKS
@@ -887,7 +868,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'non-existent-kid',
@@ -902,7 +883,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'kid-v1',
@@ -917,7 +898,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
                 create_mock_pyjwk('different-kid', 'EC', 'ignored-key'),
             ],
             'kid-v1',
@@ -932,7 +913,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
                 create_mock_pyjwk('different-kid', 'RSA', 'ignored-key'),
             ],
             'non-existent-kid',
@@ -946,8 +927,8 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
-                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key-material'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
+                create_mock_pyjwk('kid-v1', 'EC', 'real-es-key'),
             ],
             'kid-v1',
             'ES384',
@@ -960,8 +941,8 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
-                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key-material'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
+                create_mock_pyjwk('kid-v1', 'RSA', 'real-rsa-key'),
             ],
             'kid-v1',
             'RS256',
