@@ -636,6 +636,7 @@ class AsymmetricAuthValidator(BaseTokenValidator):
                     )
                 return jku
             else:
+                # Just use the registered JWKS URI if 'jku' is not present in the token header
                 return registered_jwks_uri
         else:
             return registered_jwks_uri

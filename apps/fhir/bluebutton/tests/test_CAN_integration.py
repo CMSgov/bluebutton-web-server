@@ -28,6 +28,7 @@ from apps.constants import (
     TEST_APP_CLIENT_SECRET,
 )
 from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIALS_TYPE
+from apps.dot_ext.validators import AsymmetricAuthValidator
 
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
 # the URL we POST to and the `aud` claim inside the client_assertion, which the
@@ -213,7 +214,7 @@ def get_clear_id_token(client_id: str, client_secret: str, code: str, code_verif
     return response.json().get('id_token')
 
 
-def construct_ial_payload(id_token: str, app_client_id: str) -> dict:
+def construct_can_ial_payload(id_token: str, app_client_id: str) -> dict:
     """
     Constructs the payload for the IAL (Identity Assurance Level) request to the Blue Button API token endpoint.
 
@@ -231,6 +232,25 @@ def construct_ial_payload(id_token: str, app_client_id: str) -> dict:
         'jti': str(uuid.uuid4()),  # Randomly generated uuid
         'exp': int(time.time()) + 300,  # Current time + 5 minutes (300 seconds)
         'extensions': {'cms_smart': {'version': '1', 'purpose_of_use': 'PATRQT', 'id_token': id_token}},
+    }
+
+
+def construct_asymmetric_auth_ial_payload(app_client_id: str) -> dict:
+    """
+    Constructs the payload for the IAL (Identity Assurance Level) request to the Blue Button API token endpoint.
+
+    Args:
+        app_client_id (str): The client ID of the application.
+
+    Returns:
+        dict: A dictionary representing the payload for the IAL request.
+    """
+    return {
+        'iss': app_client_id,
+        'sub': app_client_id,
+        'aud': BB2_TOKEN_URL,
+        'jti': str(uuid.uuid4()),  # Randomly generated uuid
+        'exp': int(time.time()) + 300,  # Current time + 5 minutes (300 seconds)
     }
 
 
@@ -252,7 +272,7 @@ def get_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dic
     auth_code = get_clear_authorization_code(driver, CLEAR_CLIENT_ID, code_challenge)
     # Exchange code for id token
     id_token = get_clear_id_token(CLEAR_CLIENT_ID, CLEAR_CLIENT_SECRET, auth_code, code_verifier)
-    ial_payload = construct_ial_payload(id_token, app_client_id)
+    ial_payload = construct_can_ial_payload(id_token, app_client_id)
 
     # Use the private key to sign the payload and create a client_assertion JWT
     client_assertion = jwt.encode(
@@ -354,3 +374,44 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
     # AuditEvent is also returned in the response from the requests library so don't do an exact assertion,
     # just check that the combined scopes are in the returned scope.
     assert combined_scopes in scope, f'Expected scope "{combined_scopes}" to be in response scope "{scope}"'
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+@override_switch('asymmetric_auth_validation', active=True)
+@override_switch('v3_endpoints', active=True)
+def test_asymmetric_auth_flow_integration(basic_user, create_application):
+    """
+    Integration test for asymmetric auth flow that generates a JWT using the test-app
+    and goes through asymmetric auth flow validation by verifying jku header and signature
+    """
+    # Set up basic user and application
+    user = basic_user()
+    application = create_application(
+        name='test',
+        grant_type='client-credentials',
+        user=user,
+        allowed_auth_type=CLIENT_CREDENTIALS_TYPE,
+        jwks_uri='http://localhost:8000/.well-known/jwks.json',
+        client_id=TEST_APP_CLIENT_ID,
+        client_secret=TEST_APP_CLIENT_SECRET,
+    )
+
+    # Construct the IAL payload for the asymmetric auth flow
+    ial_payload = construct_asymmetric_auth_ial_payload(application.client_id)
+
+    # Use the private key to sign the payload and create a client_assertion JWT
+    # Add jku (JSON Web Key Set URL) to the JWT header for asymmetric auth validation
+    client_assertion = jwt.encode(
+        ial_payload,
+        CAN_PRIVATE_KEY,
+        algorithm='RS384',
+        headers={'kid': TEST_APP_KID, 'typ': 'JWT', 'jku': 'http://localhost:8000/.well-known/jwks.json'},
+    )
+
+    asymmetric_auth_validator = AsymmetricAuthValidator()
+    json_payload = asymmetric_auth_validator.authenticate_and_validate_token(
+        client_assertion, application.client_id, application.jwks_uri
+    )
+    # Right now we're just returning the payload since we're just testing validation for now
+    assert json_payload == ial_payload

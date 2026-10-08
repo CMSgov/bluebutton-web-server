@@ -62,6 +62,15 @@ VALID_IAL_JWT_PAYLOAD = {
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
+def create_mock_pyjwk(kid: str, kty: str, fake_crypto_material: str) -> MagicMock:
+    """Helper factory to create mock objects that mirror pyjwt.PyJWK instances."""
+    mock_jwk_obj = MagicMock()
+    mock_jwk_obj.key_id = kid
+    mock_jwk_obj.key_type = kty
+    mock_jwk_obj.key = fake_crypto_material
+    return mock_jwk_obj
+
+
 class ValidateURLTests(TestCase):
     def test_valid_urls(self):
         valid_urls = [
@@ -889,15 +898,6 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
     mock_normalize.return_value = mock_normalized_address
     result = validator._parse_ial_into_parameter(payload)
     assert result == expected_output
-
-
-def create_mock_pyjwk(kid: str, kty: str, fake_crypto_material: str) -> MagicMock:
-    """Helper factory to create mock objects that mirror pyjwt.PyJWK instances."""
-    mock_jwk_obj = MagicMock()
-    mock_jwk_obj.key_id = kid
-    mock_jwk_obj.key_type = kty
-    mock_jwk_obj.key = fake_crypto_material
-    return mock_jwk_obj
 
 
 @pytest.mark.django_db
