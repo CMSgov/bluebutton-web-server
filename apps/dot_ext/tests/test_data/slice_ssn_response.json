@@ -1,0 +1,50 @@
+{
+    "id": "IDIMatchInputParameters",
+    "meta": {
+        "profile": [
+            "http://hl7.org/fhir/us/identity-matching/StructureDefinition/idi-match-input-parameters"
+        ]
+    },
+    "parameter": [
+        {
+            "name": "IDIPatient",
+            "resource": {
+                "address": [],
+                "gender": "unknown",
+                "identifier": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/us-ssn",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "SS",
+                                    "display": "Social Security Number",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203"
+                                }
+                            ]
+                        },
+                        "use": "official",
+                        "value": "6789"
+                    }
+                ],
+                "meta": {
+                    "profile": [
+                        "http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient"
+                    ]
+                },
+                "name": [
+                    {
+                        "family": "Doe",
+                        "given": [
+                            "Sam"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "resourceType": "Patient",
+                "telecom": []
+            }
+        }
+    ],
+    "resourceType": "Parameters"
+}
