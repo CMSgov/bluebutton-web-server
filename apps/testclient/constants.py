@@ -170,14 +170,3 @@ class ResponseErrors:
             },
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
-
-    @classmethod
-    def Unauthorized(cls, detail=None):
-        return JsonResponse(
-            {
-                'error': detail or 'Authentication credentials were not provided.',
-                'code': 'Unauthorized',
-                'help': 'Your access token is missing, invalid, or expired. Try authorizing again.',
-            },
-            status=HTTPStatus.UNAUTHORIZED,
-        )
