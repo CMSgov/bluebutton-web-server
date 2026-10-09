@@ -30,7 +30,7 @@ resource "datadog_synthetics_test" "fhir_endpoints" {
   type    = "api"
   subtype = "http"
   status  = "live"
-  message = "Synthetics test ${each.key} has failed. ${module.common_datadog_monitors.notify}"
+  message = "Synthetics test ${each.key} has failed."
 
   locations = module.synthetics.non_private_location_ids
 
@@ -157,7 +157,7 @@ resource "datadog_synthetics_test" "userinfo_endpoints" {
   type    = "api"
   subtype = "http"
   status  = "live"
-  message = "Synthetics test ${each.key} has failed. ${module.common_datadog_monitors.notify}"
+  message = "Synthetics test ${each.key} has failed."
 
   locations = module.synthetics.non_private_location_ids
 
@@ -253,7 +253,7 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
   type    = "api"
   subtype = "http"
   status  = "live"
-  message = "Synthetics test ${each.key} has failed. ${module.common_datadog_monitors.notify}"
+  message = "Synthetics test ${each.key} has failed."
 
   locations = module.synthetics.non_private_location_ids
 
@@ -315,4 +315,41 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
       elementsoperator = "atLeastOneElementMatches"
     }
   }
+}
+
+locals {
+  all_endpoint_tests = merge(
+    datadog_synthetics_test.fhir_endpoints,
+    datadog_synthetics_test.userinfo_endpoints,
+    datadog_synthetics_test.insurance_card_endpoints,
+  )
+
+  composite_groups = [
+    for version in local.versions: {
+      version = version,
+      test_ids = [for test in local.all_endpoint_tests : test.monitor_id if strcontains(test.name, "v${version}")]
+    }
+  ]
+}
+
+resource "datadog_monitor" "api_endpoints_composite" {
+  for_each = { for group in local.composite_groups : "v${group.version}" => group }
+
+  name    = "[${upper(local.env)}] [${local.app}] Synthetics — ${each.key} API Endpoints Composite"
+  type    = "composite"
+  message = <<-EOT
+  One or more synthetics tests against the API endpoints have failed.
+
+  [Contains these tests](https://app.ddog-gov.com/synthetics/tests?query=${urlencode("monitor_id:(${join(" OR ", each.value.test_ids)})")}&from_ts={{eval "last_triggered_at_epoch-${local.monitor_config.synthetics.min_failure_duration}*1000"}}&to_ts={{last_triggered_at_epoch}}&live=false)
+
+  ${module.common_datadog_monitors.notify}
+  EOT
+
+  query = join(" || ", each.value.test_ids)
+
+  notify_no_data = true
+
+  require_full_window = false
+
+  tags = module.synthetics.base_tags
 }
