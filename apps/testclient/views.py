@@ -12,7 +12,7 @@ from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError, MissingTokenError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError, MissingTokenError, TokenExpiredError
 from requests_oauthlib import OAuth2Session
 from waffle.decorators import waffle_switch
 
@@ -73,19 +73,24 @@ def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest
 
 
 def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
-    """Make a call to the FHIR backend and return the JSON data from the call"""
+    """Make a call to the FHIR backend and return the JSON data from the call."""
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
     if params.version in [Versions.V1, Versions.V2] and request.GET.get('nav_link', None):
         uri = _build_pagination_uri(uri, params, request)
 
     oath_session = _get_oauth2_session_with_token(request)
-    r = oath_session.get(uri)
+    try:
+        r = oath_session.get(uri)
+    except TokenExpiredError:
+        result_json = {'error': 'The access token has expired. Try authenticating again.'}
+        return result_json
 
     try:
         result_json = r.json()
     except JSONDecodeError as err:
         result_json = {'error': f'Unrecoverable error fetching FHIR data: {err.msg}'}
+        return result_json
 
     return result_json
 
