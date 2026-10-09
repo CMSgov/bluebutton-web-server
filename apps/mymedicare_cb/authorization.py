@@ -1,4 +1,5 @@
 import datetime
+from typing import Any, Dict, List
 
 import requests
 from django.conf import settings
@@ -149,7 +150,7 @@ class OAuth2ConfigSLSx(object):
         print('what is the request: ', request.__dict__)
         print('headers for get_user_info: ', headers)
         print(
-            'endpoint: ',
+            'userinfo endpoint: ',
             self.userinfo_endpoint + '/' + self.user_id,
         )
         response = requests.get(
@@ -161,7 +162,6 @@ class OAuth2ConfigSLSx(object):
         )
         self.userinfo_status_code = response.status_code
         response.raise_for_status()
-        print('USER INFO RESPONSE: ', response.json())
 
         # Get data.user part of response
         data_user_response = response.json().get('data', {}).get('user', None)
@@ -395,22 +395,30 @@ class OAuth2ConfigSLSx(object):
         log_dict.update(extra)
         logger.info(log_dict)
 
-    def retrieve_relationships_data(self, request):
+    def retrieve_relationships_data(self, request) -> List[Dict[str, Any]]:
+        """_summary_
+
+        Args:
+            request (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         headers = self.slsx_common_headers(request)
+        # TODO: Make dynamic based on env var
         headers['Origin'] = 'https://test.medicare.gov'
-        headers['Referer'] = 'https://test.medicare.gov/'
+        headers['Referer'] = 'https://test.medicare.gov'
         headers.update(self.auth_header())
         print('headers for test_medicare_response: ', headers)
-        test_medicare_response = requests.get(
+        response = requests.get(
             'https://test.medicare.gov/account/api/proxy/relationship?my-position=user',
             headers=headers,
             allow_redirects=False,
             verify=self.verify_ssl_internal,
             hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
         )
-        print('TEST MEDICARE GOV RESPONSE: ', test_medicare_response.json())
+        print('TEST MEDICARE GOV RESPONSE: ', response.json())
 
-        if test_medicare_response.json().get('relationships'):
-            print('RETURNING THE RELATIONSHIPS DATA')
-            return test_medicare_response.json().get('relationships')
+        if response.json().get('relationships'):
+            return response.json().get('relationships')
         return []

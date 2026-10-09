@@ -245,6 +245,7 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
+        print('self.request.session: ', self.request.session.__dict__)
         if self.version == Versions.V3:
             kwargs['beneficiary_name'] = self.request.beneficiary_name
             scopes_from_request = kwargs.get('scopes', [])

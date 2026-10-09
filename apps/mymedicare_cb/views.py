@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+from waffle import switch_is_active
 
 from apps.dot_ext.loggers import (
     clear_session_auth_flow_trace,
@@ -60,10 +61,13 @@ def authenticate(request):
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
     slsx_client.get_user_info(request)
-
+    print('REQUEST CHECK: ', request.__dict__)
+    print('REQUEST SESSION CEHCK: ', request.session.__dict__)
     request.session['user_relationships'] = []
-    # if request.session.version == Versions.V3 and switch_is_active('proxy_access'):
-    request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
+    if (
+        request.session.get('version') == Versions.V3 or request.session.get('version') == Versions.V2
+    ) and switch_is_active('proxy_access'):
+        request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
 
     # Signout bene to prevent SSO issues per BB2-544
     slsx_client.user_signout(request)

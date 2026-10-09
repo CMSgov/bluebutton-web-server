@@ -326,7 +326,6 @@ class SLSxUserInfoResponse(SLSResponse):
         return 'SLSx_userinfo'
 
     def to_dict(self):
-        print('WE ARE IN to_dict')
         # handle case where response text is empty or none json,
         # e.g. reconcile with additional slsx flow singout validation
         # added to slsx flow
@@ -341,7 +340,6 @@ class SLSxUserInfoResponse(SLSResponse):
                 json_exception = {'message': 'JSONDecodeError thrown when parsing response text.'}
 
         event_dict.update(super().to_dict().copy())
-        print('WE ARE IN to_dict event_dict: ', event_dict)
 
         resp_dict = {
             'type': event_dict.get('type', ''),
