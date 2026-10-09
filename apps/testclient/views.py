@@ -72,7 +72,7 @@ def _build_pagination_uri(uri: str, params: FhirDataParams, request: HttpRequest
     return uri
 
 
-def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object] | JsonResponse:
+def _get_fhir_data_as_json(request: HttpRequest, params: FhirDataParams) -> Dict[str, object]:
     """Make a call to the FHIR backend and return the JSON data from the call."""
     uri = EndpointUrl.fmt(params.name, params.uri, params.version, params.patient)
 
