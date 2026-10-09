@@ -417,8 +417,9 @@ class OAuth2ConfigSLSx(object):
             verify=self.verify_ssl_internal,
             hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
         )
-        print('TEST MEDICARE GOV RESPONSE: ', response.json())
+        print('TEST MEDICARE GOV RESPONSE: ', response)
 
         if response.json().get('relationships'):
+            print('TEST MEDICARE GOV RESPONSE: ', response.json())
             return response.json().get('relationships')
         return []
