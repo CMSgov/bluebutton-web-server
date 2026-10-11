@@ -16,7 +16,7 @@
 /bb/prod/app/nonsensitive/target_env: prod
 /bb/prod/app/nonsensitive/django_application_title: Blue Button API
 /bb/prod/app/nonsensitive/signup_timeout_days: "7"
-/bb/prod/app/nonsensitive/cors_origin_allow_all: "True"
+/bb/prod/app/nonsensitive/cors_origin_allow_all: "False"
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
 #ENC[AES256_GCM,data:dI8KK9uBMTe93U/s,iv:Y8grfxtOYQCgPlclkmaAbcHA3oKSLY1PutJivUU7Lks=,tag:FeEUBDFEfyWGhivSyw6iAQ==,type:comment]
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
