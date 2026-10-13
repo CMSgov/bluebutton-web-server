@@ -60,19 +60,9 @@ def authenticate(request):
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
-    try:
-        slsx_client.get_user_info(request)
-    except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
-        # This was an error where we couldn't find the hicn or mbi in the userinfo response.
-        # This is a 404 error, but we want to show a custom page for this case.
-        user_relationships = slsx_client.retrieve_relationships_data(request)
-        print('user_relationships: ', user_relationships)
-        if not switch_is_active('proxy_access') and not slsx_client.retrieve_relationships_data(request):
-            print('IF EVAL')
-            return TemplateResponse(request, 'bene_404_no_mbi.html', status=HTTPStatus.NOT_FOUND)
-        else:
-            print('EXPECTED ELSE EVALUATED')
-            pass
+    # TODO: Add try/except block for BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException
+    # so we do not show the bene_404_no_mbi.html page to a non-bene user if they have relationships data
+    slsx_client.get_user_info(request)
 
     request.session['user_relationships'] = []
     # TODO: Once there is v3 data for our synthetic CSP users, remove the V2 check
@@ -153,10 +143,10 @@ def callback(request):
         user_not_found_error = e
     except requests.exceptions.HTTPError:
         return JsonResponse({'error': 'Bad Gateway'}, status=HTTPStatus.BAD_GATEWAY)
-    # except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
-    #     # This was an error where we couldn't find the hicn or mbi in the userinfo response.
-    #     # This is a 404 error, but we want to show a custom page for this case.
-    #     return TemplateResponse(request, 'bene_404_no_mbi.html', status=HTTPStatus.NOT_FOUND)
+    except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
+        # This was an error where we couldn't find the hicn or mbi in the userinfo response.
+        # This is a 404 error, but we want to show a custom page for this case.
+        return TemplateResponse(request, 'bene_404_no_mbi.html', status=HTTPStatus.NOT_FOUND)
     except BBMyMedicareCallbackCrosswalkCreateException as e:
         # This is essentially an internal error where we have a conflict with the
         # current state of the system. Instead of a 500, we'll return a 409.
