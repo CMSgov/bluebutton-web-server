@@ -113,3 +113,44 @@ resource "datadog_monitor" "on_call_insurance_card_endpoints" {
 
   tags = module.synthetics.base_tags
 }
+
+locals {
+  on_call_all_endpoint_tests = merge(
+    datadog_monitor.on_call_health,
+    datadog_monitor.on_call_fhir_endpoints,
+    datadog_monitor.on_call_userinfo_endpoints,
+    datadog_monitor.on_call_insurance_card_endpoints,
+  )
+
+  on_call_composite_groups = [
+    for version in local.versions : {
+      version  = version,
+      test_ids = [for test in local.on_call_all_endpoint_tests : test.monitor_id if strcontains(test.name, "v${version}")]
+    }
+  ]
+}
+
+resource "datadog_monitor" "on_call_api_endpoints_composite" {
+  for_each = {
+    for group in local.on_call_composite_groups : "v${group.version}" => group
+    if length(group.test_ids) > 0
+  }
+
+  name    = "[${upper(local.env)}] [${local.app}] On Call — Synthetics ${each.key} API Endpoints Composite"
+  type    = "composite"
+  message = <<-EOT
+  One or more synthetics tests have failed over the failure duration limit for on call.
+
+  [Contains these tests](https://app.ddog-gov.com/synthetics/tests?query=${urlencode("monitor_id:(${join(" OR ", each.value.test_ids)})")}&from_ts={{eval "last_triggered_at_epoch-${local.monitor_config.synthetics.min_failure_duration}*1000"}}&to_ts={{last_triggered_at_epoch}}&live=false)
+
+  ${module.common_datadog_monitors.notify}
+  EOT
+
+  query = join(" || ", each.value.test_ids)
+
+  notify_no_data = true
+
+  require_full_window = false
+
+  tags = module.synthetics.base_tags
+}
