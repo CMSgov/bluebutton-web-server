@@ -377,8 +377,13 @@ add_mask_if_codebuild() {
     fi
 
     # Only add the mask for the sensitive value in codebuild environment.
+    # every line masked or the rest of the key ends up in the log.
     if [ "${TARGET_ENV}" == "codebuild" ]; then
-        echo "::add-mask::$sensitive_value"
+        while IFS= read -r line; do
+            if [ -n "$line" ]; then
+                echo "::add-mask::$line"
+            fi
+        done <<< "$sensitive_value"
     fi
 }
 
