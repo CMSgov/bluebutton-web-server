@@ -311,20 +311,24 @@ configure_slsx () {
     echo "✅ set_sls_credentials"
 }
 
-# Needed to add this for CAN integration tests. 
-configure_CAN_integration_credentials_if_local () {
-    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "true" ]]; then
-        echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
-        export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
-        add_mask_if_codebuild "$CLEAR_CLIENT_SECRET"
-        export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
-        add_mask_if_codebuild "$CLEAR_CLIENT_ID"
+# Needed to add this for Asymmetric Auth and CAN integration tests. 
+configure_integration_credentials_if_local () {
+    if [ "${TARGET_ENV}" == "local" ] || [ "${TARGET_ENV}" == "codebuild" ]; then
+        # Used in asymmetric auth flow too and not just for client_credentials flow. So, we always need it.
         export CAN_PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id csp/private-key --query 'SecretString' --output text)
         add_mask_if_codebuild "$CAN_PRIVATE_KEY"
         export JWKS_PUBLIC_KEY_PEM=$(aws secretsmanager get-secret-value --secret-id csp/jwks-public-key-pem --query 'SecretString' --output text)
         add_mask_if_codebuild "$JWKS_PUBLIC_KEY_PEM"
+        echo "✅ set_integration_credentials"
+        if [ "${CAN_INTEGRATION_TEST}" == "true" ]; then
+            echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
+            export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
+            add_mask_if_codebuild "$CLEAR_CLIENT_SECRET"
+            export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
+            add_mask_if_codebuild "$CLEAR_CLIENT_ID"
 
-        echo "✅ set_CAN_integration_credentials"
+            echo "✅ set_CAN_integration_credentials"
+        fi
     fi
 }
 

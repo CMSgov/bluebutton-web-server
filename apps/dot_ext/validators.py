@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from os import path as ospath
-from typing import Any
+from typing import Any, Union
 
 import jwt
 import waffle
@@ -122,14 +122,25 @@ def validate_logo_image(value):
 class BaseTokenValidator(ABC):
     @abstractmethod
     def _get_required_fields(self) -> list[str]:
+        """
+        Returns a list of required claim fields for the specific token validator."""
         pass
 
     @abstractmethod
     def _get_waffle_switch(self) -> str:
+        """
+        Returns the name of the waffle switch for the specific token validator.
+        """
         pass
 
     @abstractmethod
-    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
+    def authenticate_and_validate_token(
+        self, token: str, client_id: str, jwks_uri: str
+    ) -> Union[dict, tuple[dict, str]]:
+        """
+        Authenticates and validates a token. It can either return a single dictionary (for asymmetric auth flow)
+        or a tuple of a dictionary and a string (for client_credentials flow where the string is the csp issuer).
+        """
         pass
 
     def _decode_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
@@ -246,7 +257,7 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         """Returns the waffle switch name for the CMS Aligned Networks Validator."""
         return 'client_credentials_validation'
 
-    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
+    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> tuple[dict, str]:
         """
         Authenticates and validates a client credentials token.
 
