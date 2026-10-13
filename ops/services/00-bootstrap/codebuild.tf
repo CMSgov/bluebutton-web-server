@@ -92,7 +92,8 @@ resource "aws_codebuild_project" "main" {
   }
 
   lifecycle {
-    ignore_changes = [source[0].auth]
+    # VPC config added for test integration (BB2-4668). Ignore to avoid accidental removal.
+    ignore_changes = [source[0].auth, vpc_config]
   }
 }
 
