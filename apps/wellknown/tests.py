@@ -111,7 +111,6 @@ class TestJwksJson:
     def url(self):
         return reverse('jwks-json')
 
-    @override_switch('enable_jwks_endpoint', active=True)
     def test_local_serves_public_jwks(self, client, url, settings):
         settings.TARGET_ENV = 'local'
         response = client.get(url)
@@ -124,7 +123,6 @@ class TestJwksJson:
             assert 'd' not in key  # this ensures it is not a private key
         assert len({k['kid'] for k in keys}) == len(keys)
 
-    @override_switch('enable_jwks_endpoint', active=True)
     def test_local_jwks_verifies_signed_jwt(self, client, url, settings, monkeypatch):
         settings.TARGET_ENV = 'local'
         rsa_pem = _private_key_pem(rsa.generate_private_key(public_exponent=65537, key_size=2048))
@@ -145,12 +143,6 @@ class TestJwksJson:
             token = jwt.encode({'iss': 'x'}, pem, algorithm=alg, headers={'kid': jwk['kid']})
             assert jwt.decode(token, jwt.PyJWK(jwk).key, algorithms=[alg])['iss'] == 'x'
 
-    @override_switch('enable_jwks_endpoint', active=False)
-    def test_local_switch_disabled_is_404(self, client, url, settings):
-        settings.TARGET_ENV = 'local'
-        assert client.get(url).status_code == HTTPStatus.NOT_FOUND
-
-    @override_switch('enable_jwks_endpoint', active=True)
     def test_non_local_without_configured_key_is_404(self, client, url, settings):
         settings.TARGET_ENV = 'prod'
         assert client.get(url).status_code == HTTPStatus.NOT_FOUND

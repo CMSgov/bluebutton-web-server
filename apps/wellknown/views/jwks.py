@@ -9,7 +9,6 @@ from django.http import Http404, JsonResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 from jwt.algorithms import ECAlgorithm, RSAAlgorithm
-from waffle import switch_is_active
 
 from apps.constants import AUTH_SIGNING_ALG_ES384, CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
 
@@ -29,7 +28,7 @@ def _local_jwks() -> dict:
     if isinstance(loaded, rsa.RSAPrivateKey):
         rsa_key = loaded
     else:
-        rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
 
     if isinstance(loaded, ec.EllipticCurvePrivateKey):
         ec_key = loaded
@@ -53,15 +52,14 @@ def jwks_json(request):
 
     Publishes the public keys used to validate signed ``client_assertion`` JWTs against an
     application's registered ``jwks_uri``. Deployed environments supply the JWKS document via
-    ``JWKS_PUBLIC_KEY_PEM``. In the ``local`` environment, with that unset and the
-    ``enable_jwks_endpoint`` switch active, a local development JWKS is served instead.
-    Returns 404 otherwise.
+    ``JWKS_PUBLIC_KEY_PEM``. In the ``local`` environment, with that unset, a local development
+    JWKS is served instead. Returns 404 otherwise.
     """
     public_pem = os.getenv('JWKS_PUBLIC_KEY_PEM', '').strip()
     if public_pem:
         return JsonResponse(json.loads(public_pem))
 
-    if getattr(settings, 'TARGET_ENV', None) == 'local' and switch_is_active('enable_jwks_endpoint'):
+    if getattr(settings, 'TARGET_ENV', None) == 'local':
         return JsonResponse(_local_jwks())
 
     raise Http404()
