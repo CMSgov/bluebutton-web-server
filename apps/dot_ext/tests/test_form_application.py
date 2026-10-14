@@ -670,3 +670,29 @@ class TestCreateNewApplicationForm(BaseApiTest):
             form.errors,
             {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
         )
+
+    def test_no_errors_when_changed_name_is_reused(self):
+        """
+        Assert that CreateNewApplicationForm does not give a validation error when
+        there are no demographic scopes selected and require_demographic_scopes==False
+        """
+        call_command('create_blue_button_scopes')
+        default_scopes = ProtectedCapability.objects.filter(default=True)
+        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
+        user = self._create_user('anna', '123456')
+        app = self._create_application(name='an app', user=user)
+        form = CreateNewApplicationForm(
+            data={
+                'allowed_auth_type': app.allowed_auth_type,
+                'organization_name': 'org',
+                'require_demographic_scopes': False,
+                'scope': default_non_demographic_scopes,
+            },
+            instance=app,
+        )
+        app.name = "an app 2"
+        app = self._create_application(name='an app', user=user)
+        self.assertTrue(form.is_bound)
+        self.assertTrue(form.is_valid())
+        self.assertDictEqual(form.errors, {})
+
