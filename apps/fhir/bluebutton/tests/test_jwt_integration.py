@@ -54,7 +54,7 @@ CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET')
 CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY')
 # The key id advertised in the testclient's self-hosted JWKS and stamped on the
 # client_assertion header.
-TEST_APP_KID = 'my-key-id-1'
+TEST_APP_KID = 'local-jwks-rs384'
 
 # Convert the raw string to a boolean for easier use in the test
 is_client_enabled = ENABLE_CLIENT.lower() == 'true'
