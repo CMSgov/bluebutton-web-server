@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+from waffle import switch_is_active
 
 from apps.dot_ext.loggers import (
     clear_session_auth_flow_trace,
@@ -59,7 +60,16 @@ def authenticate(request):
     # Get user_info. TODO: Move userinfo type validations in to this method.
     # get_user_info() will do validation, and then populate values from user info
     # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
+    # TODO: Add try/except block for BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException
+    # so we do not show the bene_404_no_mbi.html page to a non-bene user if they have relationships data
     slsx_client.get_user_info(request)
+
+    request.session['user_relationships'] = []
+    # TODO: Once there is v3 data for our synthetic CSP users, remove the V2 check
+    if (
+        request.session.get('version') == Versions.V3 or request.session.get('version') == Versions.V2
+    ) and switch_is_active('proxy_access'):
+        request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
 
     # Signout bene to prevent SSO issues per BB2-544
     slsx_client.user_signout(request)
@@ -132,7 +142,7 @@ def callback(request):
         # We can't immediately return because we need the next_uri
         user_not_found_error = e
     except requests.exceptions.HTTPError:
-            return JsonResponse({'error': 'Bad Gateway'}, status=HTTPStatus.BAD_GATEWAY)
+        return JsonResponse({'error': 'Bad Gateway'}, status=HTTPStatus.BAD_GATEWAY)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException:
         # This was an error where we couldn't find the hicn or mbi in the userinfo response.
         # This is a 404 error, but we want to show a custom page for this case.

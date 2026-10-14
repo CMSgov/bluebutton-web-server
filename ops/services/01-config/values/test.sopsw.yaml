@@ -66,6 +66,7 @@
 /bb/test/app/sensitive/slsx_signout_endpoint: ENC[AES256_GCM,data:egXI93QsTdzjH+LwJrfbf9HxN193RPqIs2Cfp8f690TOtKQ9qA==,iv:7767HhBGLm1kZmE5tRxdQ2x/5JX65QySstTN2mI/QJ0=,tag:Jfr4wHpmoOOHp7s8Td1U0Q==,type:str]
 /bb/test/app/sensitive/slsx_userinfo_endpoint: ENC[AES256_GCM,data:Onnuo5Re22OzRlIZma+KKEC746+RZPWwqtOOEPugZA3shAEZeH0=,iv:v1gNYs9qK82p7fPecyj4ppPWeaweVYCa70zpxCgCfOo=,tag:MuReRZO0PHAXy0lDXY3H7A==,type:str]
 /bb/test/app/sensitive/slsx_health_check_endpoint: ENC[AES256_GCM,data:iT+srSaceMX1tJqOk9+5XYqIXaZmQGMQKQhGCX3HSIE3sk4b,iv:60+V/hG6sOpCdU3PBDMT0OBCM8/dD/19X/UI+dxe1yg=,tag:9VOqja0nx/ISktSZO7C3Ng==,type:str]
+/bb/test/app/sensitive/django_slsx_relationships_endpoint: ENC[AES256_GCM,data:bHOUS0cGMEtlReUYQDGUO58EBkF02Wzq6aandmyFT0EkPhPVx0Sf8DgAtL7cGMiQUgI8dY90exkZz8XDFlRizRe+bwyXYtWglQ==,iv:05yMGB9W0pNtU/e8TmV+6ry80uXiH55TxRaI3tvTLEk=,tag:X3Ml7YTaPUkp0tkkdHUsuQ==,type:str]
 /bb/test/app/nonsensitive/django_slsx_verify_ssl_internal: "False"
 /bb/test/app/nonsensitive/django_slsx_verify_ssl_external: "True"
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
@@ -93,8 +94,8 @@
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias
+      aws_profile: ""
       created_at: "2026-02-22T22:21:23Z"
       enc: AQICAHjCRjpjjspeLLDbz5d7MRwUBQRNyInOggSiHCDqEVlZ/wE4H5UweLFUDz/VMIDE6ifJAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMuTJ8Z3WucM46W/mCAgEQgDuN3a/FEApHY6J/ndbv5qyYgmv8E60QifMuIuzRFCPsI3OBhema9+jYidohHCI0JBh/BBXzGfBPK/+FIg==
-      aws_profile: ""
   unencrypted_regex: /nonsensitive/
-  version: 3.12.2
+  version: 3.13.3
