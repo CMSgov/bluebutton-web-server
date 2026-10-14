@@ -40,6 +40,7 @@ class OAuth2ConfigSLSx(object):
     token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
     signout_endpoint = settings.SLSX_SIGNOUT_ENDPOINT
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
+    relationships_endpoint = settings.SLSX_RELATIONSHIPS_ENDPOINT
 
     # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
     verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
@@ -147,12 +148,7 @@ class OAuth2ConfigSLSx(object):
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
-        print('what is the request: ', request.__dict__)
-        print('headers for get_user_info: ', headers)
-        print(
-            'userinfo endpoint: ',
-            self.userinfo_endpoint + '/' + self.user_id,
-        )
+
         response = requests.get(
             self.userinfo_endpoint + '/' + self.user_id,
             headers=headers,
@@ -396,30 +392,36 @@ class OAuth2ConfigSLSx(object):
         logger.info(log_dict)
 
     def retrieve_relationships_data(self, request) -> List[Dict[str, Any]]:
-        """_summary_
+        """Retrieve proxy relationship data for a user from medicare.gov. User token is retrieved
+        via the auth_header function
 
         Args:
-            request (_type_): _description_
+            request: The authentication request for a user
 
         Returns:
-            _type_: _description_
+            List[Dict[str, Any]]: If there is no relationships data for the user, a blank list will be returned.
+            If there is relationships data, it will be returned as a list of dictionaries
         """
+
+        logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
+        log_dict = {'type': 'Authentication:relationships_retrieval', 'msg': 'Retrieving proxy relationships data'}
+        logger.info(log_dict)
         headers = self.slsx_common_headers(request)
-        # TODO: Make dynamic based on env var
-        headers['Origin'] = 'https://test.medicare.gov'
-        headers['Referer'] = 'https://test.medicare.gov'
+
+        origin_and_referer_url = self.relationships_endpoint.split('/account')[0]
+
+        headers['Origin'] = origin_and_referer_url
+        headers['Referer'] = origin_and_referer_url
         headers.update(self.auth_header())
-        print('headers for test_medicare_response: ', headers)
+
         response = requests.get(
-            'https://test.medicare.gov/account/api/proxy/relationship?my-position=user',
+            self.relationships_endpoint,
             headers=headers,
             allow_redirects=False,
             verify=self.verify_ssl_internal,
             hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
         )
-        print('TEST MEDICARE GOV RESPONSE: ', response)
 
         if response.json().get('relationships'):
-            print('TEST MEDICARE GOV RESPONSE: ', response.json())
             return response.json().get('relationships')
         return []
