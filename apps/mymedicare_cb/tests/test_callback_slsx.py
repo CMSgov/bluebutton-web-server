@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import jsonschema
 from django.contrib.auth.models import Group, User
 from django.template.response import TemplateResponse
+from django.test import RequestFactory
 from django.test.client import Client
 from django.urls import reverse
 from django.utils.dateparse import parse_duration
@@ -42,6 +43,7 @@ from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponse
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.mymedicare_cb.views import generate_nonce
 from apps.test import BaseApiTest
+from apps.versions import Versions
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME, MOCK_FHIR_V3_ENDPOINT_HOSTNAME
 
 
@@ -282,7 +284,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             'content': patient_response,
         }
 
-    def _test_callback_url_success(self, version):
+    @patch('apps.mymedicare_cb.authorization.OAuth2ConfigSLSx.retrieve_relationships_data')
+    @override_switch('proxy_access', active=True)
+    def _test_callback_url_success(self, version, mock_relationships_call):
+        mock_relationships_call.return_value = []
         # create a state
         state = generate_nonce()
         # We ALWAYS version our next_uri, and therefore
@@ -337,6 +342,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
+            # TODO: Remove v2 from this check after we can get BFD data from v3
+            if version in [Versions.V2, Versions.V3]:
+                mock_relationships_call.assert_called_once()
+            else:
+                mock_relationships_call.assert_not_called()
 
     def test_callback_url_failure(self):
         # create a state
@@ -355,8 +365,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 self.callback_url,
                 data={'req_token': '0000-test_req_token-0000', 'relay': state},
             )
-            responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Bad Gateway")
+            responseContent = json.loads(response.content.decode('utf-8'))
+            self.assertEqual(responseContent['error'], 'Bad Gateway')
 
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID='test', SLSX_CLIENT_SECRET='stest'):
@@ -390,7 +400,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 self.assertEqual(sls_auth_header, 'Basic dGVzdDpzdGVzdA==')
                 return {
                     'status_code': status.HTTP_401_UNAUTHORIZED,
-                        'content': {
+                    'content': {
                         'error': 'nope!',
                     },
                 }
@@ -510,8 +520,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
-            responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Bad Gateway")
+            responseContent = json.loads(response.content.decode('utf-8'))
+            self.assertEqual(responseContent['error'], 'Bad Gateway')
 
         # With HTTMock sls_user_info_http_error_mock
         with HTTMock(
@@ -525,8 +535,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             catchall,
         ):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
-            responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Bad Gateway")
+            responseContent = json.loads(response.content.decode('utf-8'))
+            self.assertEqual(responseContent['error'], 'Bad Gateway')
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(
@@ -539,8 +549,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.fhir_patient_info_mock_v3,
             catchall,
         ):
-            responseContent = json.loads(response.content.decode("utf-8"))
-            self.assertEqual(responseContent["error"],"Bad Gateway")
+            responseContent = json.loads(response.content.decode('utf-8'))
+            self.assertEqual(responseContent['error'], 'Bad Gateway')
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
         with HTTMock(
@@ -1199,3 +1209,31 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             )
             self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
             self.assertEqual(response.json()['error'], 'Failed to retrieve data from data source.')
+
+
+@patch('apps.mymedicare_cb.authorization.requests.get')
+def test_retrieve_relationships_data(mock_get):
+    """Confirm that the origin and referer headers are properly set on the call
+    to retrieve relationships data
+
+    Args:
+        mock_get: Mock the get call in retrieve_relationships_data
+    """
+    slsx_client = OAuth2ConfigSLSx()
+    mock_get.return_value = MagicMock(
+        status_code=HTTPStatus.BAD_REQUEST,
+        json=MagicMock(return_value={'type': 'BadRequest', 'message': 'MUST_BE_CSP_USER', 'name': 'BadRequest'}),
+    )
+    factory = RequestFactory()
+    request = factory.get(
+        slsx_client.relationships_endpoint,
+    )
+
+    slsx_client.retrieve_relationships_data(request)
+
+    mock_get.assert_called_once()
+    _, kwargs = mock_get.call_args
+    headers = kwargs['headers']
+
+    assert headers['Origin'] == 'https://test.medicare.gov'
+    assert headers['Referer'] == 'https://test.medicare.gov'

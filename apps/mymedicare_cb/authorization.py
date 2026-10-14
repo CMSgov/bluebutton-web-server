@@ -419,7 +419,6 @@ class OAuth2ConfigSLSx(object):
             headers=headers,
             allow_redirects=False,
             verify=self.verify_ssl_internal,
-            hooks={'response': [response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)]},
         )
 
         if response.json().get('relationships'):
