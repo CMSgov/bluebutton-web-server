@@ -353,7 +353,7 @@ class CreateNewApplicationForm(forms.ModelForm):
         app = self.instance
         new_user_model, _ = User.objects.get_or_create(
             username=self.cleaned_data.get('name') + '@example.com',
-            defaults={"password": str(uuid.uuid4()), "isactive": True}
+            defaults={"password": str(uuid.uuid4()), "is_active": True}
         )
         group = Group.objects.get(name='BlueButton')
         new_user_model.groups.add(group)
