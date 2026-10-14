@@ -352,4 +352,11 @@ resource "datadog_monitor" "api_endpoints_composite" {
   require_full_window = false
 
   tags = module.synthetics.base_tags
+
+  lifecycle {
+    precondition {
+      condition     = length(each.value.test_ids) <= 10
+      error_message = "Datadog only allows 10 monitors in a composite."
+    }
+  }
 }
