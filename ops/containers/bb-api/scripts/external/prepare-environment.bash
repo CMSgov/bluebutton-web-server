@@ -39,11 +39,11 @@ set_bfd_urls
 gonogo "set_bfd_urls"
 
 ####################################
-# CAN_INTEGRATION_TEST_CREDENTIALS
-# retrieves the credentials for CAN integration tests and sets them as environment variables
-# only does it for local or codebuild environments
-configure_CAN_integration_credentials_if_local
-gonogo "configure_CAN_integration_credentials_if_local"
+# INTEGRATION_TEST_CREDENTIALS
+# Retrieves the credentials for integration tests like CAN and Asymmetric Auth
+# and sets them as environment variables. Only does it for local or codebuild environments
+configure_integration_credentials_if_local
+gonogo "configure_integration_credentials_if_local"
 
 ####################################
 # CERTS

@@ -251,6 +251,8 @@ data "aws_iam_policy_document" "github_actions_tofu" {
       "application-autoscaling:DeregisterScalableTarget",
       "application-autoscaling:PutScalingPolicy",
       "application-autoscaling:DeleteScalingPolicy",
+      "application-autoscaling:PutScheduledAction",
+      "application-autoscaling:DeleteScheduledAction",
     ]
     resources = ["*"]
   }
