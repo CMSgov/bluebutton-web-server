@@ -15,22 +15,6 @@ echo_msg "DEBUG: " ${DEBUG_MODE}
 echo_msg "PERMISSION SCREEN: " ${USE_NEW_PERM_SCREEN}
 echo_msg 
 
-set_slsx () {
-		export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-		export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-		export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-		export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-		export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
-}
-
-set_msls () {
-		export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://localhost:8080/sso/authorize?client_id=bb2api"
-		export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://localhost:8080/health"
-		export DJANGO_SLSX_TOKEN_ENDPOINT="http://localhost:8080/sso/session"
-		export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://localhost:8080/sso/signout"
-		export DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
-}
-
 # BB2 runs with network_mode: host on the Podman/Docker machine.
 # The selenium compose project has its own isolated bridge network whose gateway
 # does NOT route to the host-networked BB2. host.docker.internal (the machine

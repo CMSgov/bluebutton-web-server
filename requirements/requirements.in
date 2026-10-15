@@ -8,7 +8,7 @@ django-cors-headers == 4.0.0 # used in our settings
 django-environ == 0.12.0
 django-filter == 25.2
 django-getenv == 1.3.2
-django-oauth-toolkit == 2.2.0
+django-oauth-toolkit == 2.4.0
 django-ses == 3.5.0 # used in our settings
 django-storages == 1.13.2
 django-waffle == 3.0.0
@@ -18,10 +18,10 @@ fhir.resources == 8.2.0
 gunicorn == 25.0.3 # used to run the app
 oauthlib == 3.2.2
 psycopg2-binary == 2.9.11 # required by django postgres backend
-pyjwt == 2.13.0
+pyjwt == 2.14.0
 python-dateutil == 2.8.2
 python-dotenv == 1.2.2
-pytz == 2023.3
+pytz == 2025.2
 requests == 2.33.0
 requests_oauthlib == 1.3.1
 usaddress == 0.5.16
