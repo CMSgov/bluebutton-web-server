@@ -30,15 +30,15 @@ resource "datadog_downtime_schedule" "test_overnight_weekends" {
     timezone = "UTC"
 
     recurrence {
-      start    = "2026-07-23T02:00:00"
-      duration = "12h"
-      rrule    = "FREQ=DAILY;INTERVAL=1;BYHOUR=2;BYMINUTE=0"
+      start    = "2026-07-23T00:00:00"
+      duration = "14h"
+      rrule    = "FREQ=DAILY;INTERVAL=1;BYHOUR=0;BYMINUTE=0"
     }
 
     recurrence {
-      start    = "2026-07-25T02:00:00"
+      start    = "2026-07-25T00:00:00"
       duration = "2d"
-      rrule    = "FREQ=WEEKLY;INTERVAL=1;BYHOUR=2;BYMINUTE=0;BYDAY=SA"
+      rrule    = "FREQ=WEEKLY;INTERVAL=1;BYHOUR=0;BYMINUTE=0;BYDAY=SA"
     }
   }
 }
