@@ -22,6 +22,10 @@ PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~'
 ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
 # CAN Flow also requires the 'extensions' claim (smart extension)
 CAN_REQUIRED_CLAIM_FIELDS = ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS + ['extensions']
+CAN_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
+# Asymmetric Auth Flow requires authorization_code params as well
+ASYMMETRIC_AUTH_REQUIRED_PARAMS = CAN_REQUIRED_PARAMS + ['code', 'redirect_uri', 'code_verifier']
+
 
 # List of value keys that are being tracked via request.session
 SESSION_AUTH_FLOW_TRACE_KEYS = [
@@ -593,6 +597,7 @@ CLIENT_CREDENTIALS_TYPE = 'CLIENT_CREDENTIALS'
 AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE = 'AUTH_CODE_AND_CLIENT_CREDS'
 
 CLIENT_CREDENTIALS_SUPPORTED_TYPES = [CLIENT_CREDENTIALS_TYPE, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE]
+ASYMMETRIC_AUTH_SUPPORTED_TYPES = [AUTH_CODE_TYPE, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE]
 AUTH_CODE_SUPPORTED_TYPES = [AUTH_CODE_TYPE, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE]
 
 YYYY_MM_DD_REGEX = r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$'
