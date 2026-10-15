@@ -249,3 +249,45 @@ resource "aws_appautoscaling_policy" "ecs_memory_policy" {
     }
   }
 }
+
+# morning peak pre-scaling, don't apply between 4:45 and 5:40 ET
+locals {
+  peak_scaling_services = nonsensitive({
+    for k, v in local.service_config : k => v
+    if v.autoscale_enabled && contains(var.peak_scaling.envs, local.workspace)
+  })
+}
+
+resource "aws_appautoscaling_scheduled_action" "peak_scale_up" {
+  for_each           = local.peak_scaling_services
+  name               = "${local.app_prefix}-${local.workspace}-${each.key}-peak-scale-up"
+  service_namespace  = aws_appautoscaling_target.ecs_autoscale[each.key].service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_autoscale[each.key].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_autoscale[each.key].scalable_dimension
+  schedule           = var.peak_scaling.scale_up_cron
+  timezone           = var.peak_scaling.timezone
+
+  scalable_target_action {
+    min_capacity = var.peak_scaling.min_capacity
+    max_capacity = max(each.value.max_capacity, var.peak_scaling.min_capacity)
+  }
+}
+
+# back to baseline, cpu/mem policies drain the extra tasks
+resource "aws_appautoscaling_scheduled_action" "peak_scale_down" {
+  for_each           = local.peak_scaling_services
+  name               = "${local.app_prefix}-${local.workspace}-${each.key}-peak-scale-down"
+  service_namespace  = aws_appautoscaling_target.ecs_autoscale[each.key].service_namespace
+  resource_id        = aws_appautoscaling_target.ecs_autoscale[each.key].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_autoscale[each.key].scalable_dimension
+  schedule           = var.peak_scaling.scale_down_cron
+  timezone           = var.peak_scaling.timezone
+
+  scalable_target_action {
+    min_capacity = each.value.min_capacity
+    max_capacity = each.value.max_capacity
+  }
+
+  # aws chokes on parallel writes to the same target
+  depends_on = [aws_appautoscaling_scheduled_action.peak_scale_up]
+}

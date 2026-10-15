@@ -3,7 +3,7 @@ import uuid
 
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
-from django.db.utils import IntegrityError
+from django.db.utils import DataError, IntegrityError
 from oauth2_provider.models import get_application_model
 
 from apps.dot_ext.constants import AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, SESSION_AUTH_FLOW_TRACE_KEYS
@@ -87,7 +87,7 @@ def create_session_auth_flow_trace(request):
                     AuthFlowUuid.objects.create(
                         auth_uuid=new_auth_uuid, client_id=application.client_id, auth_pkce_method=auth_pkce_method
                     )
-            except IntegrityError:
+            except (IntegrityError, DataError):
                 pass
         except Application.DoesNotExist:
             # Clear values in session. Set to empty value to denote not found.

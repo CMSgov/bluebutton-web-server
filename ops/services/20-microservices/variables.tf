@@ -120,3 +120,21 @@ variable "log_groups" {
   default     = ["debug", "error", "info", "login_failed", "admin_access", "perf_mon"]
   description = "Historical log groups from EC2 deployment, subject to change"
 }
+# daily 5am ET burst, scale out ahead of it
+variable "peak_scaling" {
+  type = object({
+    envs            = list(string)
+    min_capacity    = number
+    scale_up_cron   = string
+    scale_down_cron = string
+    timezone        = string
+  })
+  default = {
+    envs            = ["prod"]
+    min_capacity    = 5
+    scale_up_cron   = "cron(45 4 * * ? *)" # 4:45 ET
+    scale_down_cron = "cron(40 5 * * ? *)" # 5:40 ET
+    timezone        = "America/New_York"
+  }
+  description = "Scheduled scale out for the morning traffic burst"
+}

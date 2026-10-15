@@ -53,9 +53,9 @@ YAML files in `ops/services/30-monitors/config`:
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | 6060c64a243664d8d37e2ee52fcbd37fb2ed3168 |
+| <a name="module_common_datadog_monitors"></a> [common\_datadog\_monitors](#module\_common\_datadog\_monitors) | github.com/CMSgov/cdap/terraform/modules/datadog_monitors | 2cb7cfb707140f7b9eb8967cbb62eb1c95df9ee9 |
 | <a name="module_platform"></a> [platform](#module\_platform) | ../../modules/platform | n/a |
-| <a name="module_synthetics"></a> [synthetics](#module\_synthetics) | github.com/CMSgov/cdap/terraform/modules/datadog_synthetics | 6060c64a243664d8d37e2ee52fcbd37fb2ed3168 |
+| <a name="module_synthetics"></a> [synthetics](#module\_synthetics) | github.com/CMSgov/cdap/terraform/modules/datadog_synthetics | 2cb7cfb707140f7b9eb8967cbb62eb1c95df9ee9 |
 
 <!--WARNING: GENERATED CONTENT with terraform-docs, e.g.
      'terraform-docs --config "$(git rev-parse --show-toplevel)/.terraform-docs.yml" .'
