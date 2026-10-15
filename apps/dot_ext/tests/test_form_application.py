@@ -690,7 +690,8 @@ class TestCreateNewApplicationForm(BaseApiTest):
             },
             instance=app,
         )
-        app.name = "an app 2"
+        app.name = 'an opp'
+        app.save(update_fields=['name'])
         app = self._create_application(name='an app', user=user)
         self.assertTrue(form.is_bound)
         self.assertTrue(form.is_valid())
