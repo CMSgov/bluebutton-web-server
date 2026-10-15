@@ -325,8 +325,8 @@ locals {
   )
 
   composite_groups = [
-    for version in local.versions: {
-      version = version,
+    for version in local.versions : {
+      version  = version,
       test_ids = [for test in local.all_endpoint_tests : test.monitor_id if strcontains(test.name, "v${version}")]
     }
   ]

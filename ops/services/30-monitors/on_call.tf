@@ -114,7 +114,7 @@ locals {
 
   on_call_composite_groups = [
     for version in local.versions : {
-      version  = version,
+      version     = version,
       monitor_ids = [for monitor in local.on_call_all_endpoint_monitors : monitor.id if strcontains(monitor.name, "v${version}")]
     }
   ]
