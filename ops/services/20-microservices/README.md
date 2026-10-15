@@ -198,6 +198,7 @@ tofu apply
 | <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch log retention in days | `number` | `30` | no |
 | <a name="input_memory_target_value"></a> [memory\_target\_value](#input\_memory\_target\_value) | Memory target for auto scaling | `number` | `80` | no |
 | <a name="input_parent_env"></a> [parent\_env](#input\_parent\_env) | The parent environment of the current solution. Will correspond with `terraform.workspace`.<br/>Necessary on `tofu init` and `tofu workspace select` \_only\_. In all other situations, parent env<br/>will be divined from `terraform.workspace`. | `string` | `null` | no |
+| <a name="input_peak_scaling"></a> [peak\_scaling](#input\_peak\_scaling) | Scheduled scale out for the morning traffic burst | <pre>object({<br/>    envs            = list(string)<br/>    min_capacity    = number<br/>    scale_up_cron   = string<br/>    scale_down_cron = string<br/>    timezone        = string<br/>  })</pre> | <pre>{<br/>  "envs": [<br/>    "prod"<br/>  ],<br/>  "min_capacity": 5,<br/>  "scale_down_cron": "cron(40 5 * * ? *)",<br/>  "scale_up_cron": "cron(45 4 * * ? *)",<br/>  "timezone": "America/New_York"<br/>}</pre> | no |
 | <a name="input_region"></a> [region](#input\_region) | AWS region for resources | `string` | `"us-east-1"` | no |
 | <a name="input_root_module"></a> [root\_module](#input\_root\_module) | Root module URL for tracking (e.g., GitHub URL) | `string` | `"https://github.com/CMSgov/bluebutton-web-server"` | no |
 | <a name="input_secondary_region"></a> [secondary\_region](#input\_secondary\_region) | Secondary AWS region for DR/failover | `string` | `"us-west-2"` | no |
@@ -226,6 +227,8 @@ tofu apply
 | ---- | ---- |
 | [aws_appautoscaling_policy.ecs_cpu_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy) | resource |
 | [aws_appautoscaling_policy.ecs_memory_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy) | resource |
+| [aws_appautoscaling_scheduled_action.peak_scale_down](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_scheduled_action) | resource |
+| [aws_appautoscaling_scheduled_action.peak_scale_up](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_scheduled_action) | resource |
 | [aws_appautoscaling_target.ecs_autoscale](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_target) | resource |
 | [aws_cloudwatch_event_rule.guardduty_findings](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
 | [aws_cloudwatch_event_rule.guardduty_runtime_health](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
