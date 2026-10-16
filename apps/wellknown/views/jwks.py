@@ -15,12 +15,12 @@ from apps.constants import AUTH_SIGNING_ALG_ES384, CLIENT_CREDENTIALS_ACCEPTED_J
 
 # the lru_cache is used so that the possible creation of RSA keypairs only happens once
 @lru_cache(maxsize=1)
-def _local_jwks() -> dict:
-    """Build a public-only JWKS for local development, one key per accepted JWT algorithm.
+def _local_private_keys() -> tuple:
+    """Return the ``(rsa_key, ec_key)`` private keys backing ``_local_jwks``.
 
     ``JWKS_PRIVATE_KEY_PEM`` (a PEM private key, RSA or P-384 EC) gives a developer a stable key
-    for signing ``client_assertion`` JWTs; it is used for the matching algorithm family. Any
-    family without a supplied key gets an ephemeral keypair that lives for the process.
+    for signing ``client_assertion`` JWTs; it is meant to be a unique ephemeral key that lives just
+    for each time the containers are spun up.
     """
     pem = os.getenv('JWKS_PRIVATE_KEY_PEM', '').strip()
     loaded = load_pem_private_key(pem.encode('utf-8'), password=None) if pem else None
@@ -34,6 +34,13 @@ def _local_jwks() -> dict:
         ec_key = loaded
     else:
         ec_key = ec.generate_private_key(ec.SECP384R1())
+
+    return rsa_key, ec_key
+
+
+def _local_jwks() -> dict:
+    """Build a public-only JWKS for local development, one key per accepted JWT algorithm."""
+    rsa_key, ec_key = _local_private_keys()
 
     keys = []
     for alg in CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS:

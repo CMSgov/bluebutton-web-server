@@ -15,7 +15,7 @@ from apps.constants import (
     PRIVATE_KEY_JWT,
 )
 from apps.wellknown.constants import SCOPES_SUPPORTED_V3_ONLY
-from apps.wellknown.views.jwks import _local_jwks
+from apps.wellknown.views.jwks import _local_private_keys
 
 pytestmark = pytest.mark.django_db
 
@@ -105,7 +105,7 @@ class TestJwksJson:
         # to ensure that it does not leak over to other tests
         monkeypatch.setenv('JWKS_PUBLIC_KEY_PEM', '')
         yield
-        _local_jwks.cache_clear()
+        _local_private_keys.cache_clear()
 
     @pytest.fixture
     def url(self):
@@ -131,7 +131,7 @@ class TestJwksJson:
         jwks_by_pem = {}
         for pem in (rsa_pem, ec_pem):
             monkeypatch.setenv('JWKS_PRIVATE_KEY_PEM', pem.decode())
-            _local_jwks.cache_clear()
+            _local_private_keys.cache_clear()
             # getting the public keys from /.well-known/jwks.json
             keys = client.get(url).json()['keys']
             jwks_by_pem[pem] = {key['alg']: key for key in keys}
