@@ -59,14 +59,14 @@ def jwks_json(request):
 
     Publishes the public keys used to validate signed ``client_assertion`` JWTs against an
     application's registered ``jwks_uri``. Deployed environments supply the JWKS document via
-    ``JWKS_PUBLIC_KEY_PEM``. In the ``local`` environment, with that unset, a local development
-    JWKS is served instead. Returns 404 otherwise.
+    ``JWKS_PUBLIC_KEY_PEM``. In the ``local`` and ``codebuild`` environments, with that unset, a local
+    development JWKS is served instead. Returns 404 otherwise.
     """
     public_pem = os.getenv('JWKS_PUBLIC_KEY_PEM', '').strip()
     if public_pem:
         return JsonResponse(json.loads(public_pem))
 
-    if getattr(settings, 'TARGET_ENV', None) == 'local':
+    if getattr(settings, 'TARGET_ENV', None) in ('local', 'codebuild'):
         return JsonResponse(_local_jwks())
 
     raise Http404()
