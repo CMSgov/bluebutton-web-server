@@ -421,18 +421,16 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-# In local development we default to allowing all origins for convenience.
-CORS_ORIGIN_ALLOW_ALL = env.bool('CORS_ORIGIN_ALLOW_ALL', default=False)
-_CORS_ALLOWED = env('CORS_ALLOWED_ORIGINS', default='')
-CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(',') if o.strip()]
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
+
+CORS_URLS_REGEX = r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))'
+
+CORS_ALLOW_CREDENTIALS = False
 
 # Restrict allowed HTTP methods and headers for CORS
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
     'OPTIONS',
 ]
 
@@ -440,6 +438,7 @@ CORS_ALLOW_HEADERS = (
     'accept',
     'authorization',
     'content-type',
+    'prefer',  # v3 strict query-parameter validation
     'user-agent',
     'x-csrftoken',
     'x-requested-with',

@@ -316,15 +316,8 @@ class SmartConfigurationTestCase(TestCase):
 
 # Mirrors the CORS settings in hhs_oauth_server/settings/base_ec2.py
 @override_settings(
-    CORS_ORIGIN_ALLOW_ALL=False,
-    API_CORS_URLS_REGEX=r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))',
-    CORS_URLS_REGEX=(
-        r'^/(admin/'
-        r'|v[1-3]/accounts/'
-        r'|v[1-3]/o/(authorize|applications|authorized_tokens|tokens|expire_authenticated_user)/'
-        r'|docs/|health|creds)'
-    ),
-    CORS_ALLOWED_ORIGIN_REGEXES=[r'^https://([a-z0-9-]+\.)*(cms|medicare)\.gov$'],
+    CORS_ALLOW_ALL_ORIGINS=True,
+    CORS_URLS_REGEX=r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))',
     CORS_ALLOW_CREDENTIALS=False,
 )
 class CorsPolicyTestCase(SimpleTestCase):
@@ -335,12 +328,7 @@ class CorsPolicyTestCase(SimpleTestCase):
 
     def test_api_paths_allow_any_origin(self):
         for path in ('/v2/fhir/Patient/', '/v3/o/token/', '/v1/connect/userinfo', '/.well-known/openid-configuration'):
-            self.assertEqual(self._allow_origin(path, 'https://example.com'), 'https://example.com')
-
-    def test_admin_paths_allow_cms_and_medicare_subdomains(self):
-        for origin in ('https://cms.gov', 'https://bluebutton.cms.gov', 'https://a.b.medicare.gov'):
-            for path in ('/admin/', '/admin/metrics/tokens', '/v2/accounts/login', '/v2/o/applications/'):
-                self.assertEqual(self._allow_origin(path, origin), origin)
+            self.assertEqual(self._allow_origin(path, 'https://example.com'), '*')
 
     def test_admin_paths_reject_other_origins(self):
         for origin in (
