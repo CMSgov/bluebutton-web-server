@@ -29,18 +29,18 @@ management_urlpatterns = [
         views.ApplicationRegistration.as_view(),
         name='register-v2',
     ),
-    re_path(
-        r'^applications/(?P<pk>[\w-]+)/$',
+    path(
+        r'^applications/<int:pk>/$',
         oauth2_views.ApplicationDetail.as_view(),
         name='detail-v2',
     ),
-    re_path(
-        r'^applications/(?P<pk>[\w-]+)/delete/$',
+    path(
+        r'^applications/<int:pk>/delete/$',
         views.ApplicationDelete.as_view(),
         name='delete-v2',
     ),
-    re_path(
-        r'^applications/(?P<pk>[\w-]+)/update/$',
+    path(
+        'applications/<int:pk>/update/',
         views.ApplicationUpdate.as_view(),
         name='update-v2',
     ),
