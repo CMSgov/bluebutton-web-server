@@ -65,10 +65,7 @@ def authenticate(request):
     slsx_client.get_user_info(request)
 
     request.session['user_relationships'] = []
-    # TODO: Once there is v3 data for our synthetic CSP users, remove the V2 check
-    if (
-        request.session.get('version') == Versions.V3 or request.session.get('version') == Versions.V2
-    ) and switch_is_active('proxy_access'):
+    if request.session.get('version') == Versions.V3 and switch_is_active('proxy_access'):
         request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
 
     # Signout bene to prevent SSO issues per BB2-544

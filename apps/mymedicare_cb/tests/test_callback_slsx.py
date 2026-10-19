@@ -342,8 +342,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
-            # TODO: Remove v2 from this check after we can get BFD data from v3
-            if version in [Versions.V2, Versions.V3]:
+            if version == Versions.V3:
                 mock_relationships_call.assert_called_once()
             else:
                 mock_relationships_call.assert_not_called()
