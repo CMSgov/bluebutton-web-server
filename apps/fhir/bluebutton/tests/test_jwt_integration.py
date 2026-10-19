@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 import jwt
 import pytest
 import requests
+from cryptography.hazmat.primitives import serialization
 from django.contrib.auth.models import Group
 from django.test.client import Client
 from selenium import webdriver
@@ -29,6 +30,7 @@ from apps.constants import (
 )
 from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIALS_TYPE
 from apps.dot_ext.validators import AsymmetricAuthValidator
+from apps.wellknown.views.jwks import _local_private_keys
 
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
 # the URL we POST to and the `aud` claim inside the client_assertion, which the
@@ -51,13 +53,25 @@ OTP_CODE = '123456'
 CLEAR_REDIRECT_URI = 'http://localhost:3001/api/clear/callback'
 CLEAR_CLIENT_ID = os.getenv('CLEAR_CLIENT_ID')
 CLEAR_CLIENT_SECRET = os.getenv('CLEAR_CLIENT_SECRET')
-CAN_PRIVATE_KEY = os.getenv('CAN_PRIVATE_KEY')
 # The key id advertised in the testclient's self-hosted JWKS and stamped on the
 # client_assertion header.
 TEST_APP_KID = 'local-jwks-rs384'
 
 # Convert the raw string to a boolean for easier use in the test
 is_client_enabled = ENABLE_CLIENT.lower() == 'true'
+
+
+def get_can_private_key() -> bytes | str:
+    """Returns CAN_PRIVATE_KEY if set, otherwise the PEM of the RSA key behind the local JWKS."""
+    env_key = os.getenv('CAN_PRIVATE_KEY')
+    if env_key:
+        return env_key
+    rsa_key, _unused_ec_key = _local_private_keys()
+    return rsa_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
 
 
 def generate_pkce_data() -> tuple:
@@ -277,7 +291,7 @@ def get_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dic
     # Use the private key to sign the payload and create a client_assertion JWT
     client_assertion = jwt.encode(
         ial_payload,
-        CAN_PRIVATE_KEY,
+        get_can_private_key(),
         algorithm='RS384',
         headers={'kid': TEST_APP_KID, 'typ': 'JWT'},
     )
@@ -404,7 +418,7 @@ def test_asymmetric_auth_flow_integration(basic_user, create_application):
     # Add jku (JSON Web Key Set URL) to the JWT header for asymmetric auth validation
     client_assertion = jwt.encode(
         ial_payload,
-        CAN_PRIVATE_KEY,
+        get_can_private_key(),
         algorithm='RS384',
         headers={'kid': TEST_APP_KID, 'typ': 'JWT', 'jku': 'http://localhost:8000/.well-known/jwks.json'},
     )
