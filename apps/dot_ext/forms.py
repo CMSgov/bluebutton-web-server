@@ -15,7 +15,7 @@ from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, PRINTABLE_SPECIAL_ASCII
-from apps.dot_ext.models import Application
+from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
 
@@ -98,6 +98,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
+        if not name:
+            raise forms.ValidationError(_('Application name is required.'))
         app_model = get_application_model()
         if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError(
@@ -184,20 +186,42 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         return app
 
 
-class CreateNewApplicationForm(CustomRegisterApplicationForm):
+class CreateApplicationForm(CustomRegisterApplicationForm):
+    # Needed for user profile creation, but not part of the Application model
     organization_name = forms.CharField(required=True)
+    # Add a user_type field to the form to allow the developers to choose
+    # between creating a new user or selecting an existing user
+    USER_CHOICES = [
+        ('existing', 'Choose Existing User'),
+        ('new', 'Create New User'),
+    ]
+    user_type = forms.ChoiceField(choices=USER_CHOICES, widget=forms.RadioSelect, initial='new', required=True)
 
     def __init__(self, *args, **kwargs):
         user = None
         super().__init__(user, *args, **kwargs)
-        # Hide this field and don't make it required since we handle it in the save function
+        # Hide agree field and don't make it required since we handle it in the save function
         self.fields['agree'].widget = forms.HiddenInput()
         self.fields['agree'].required = False
+        self.fields['organization_name'].label = 'Organization Name*'
+        self.fields['user_type'].label = 'User Type*'
+        self.fields['scope'].label = 'Scopes*'
+        self.fields['allowed_auth_type'].label = 'Allowed Auth Type*'
+        self.fields['name'].label = 'Name*'
+        self.fields['name'].required = True
+        self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
+            queryset=InternalApplicationLabels.objects.all(), widget=forms.SelectMultiple
+        )
+        self.fields['internal_application_labels'].required = False
+        self.fields['require_demographic_scopes'].label = 'Are Demographic Scopes Required?*'
+        self.fields['require_demographic_scopes'].required = True
 
     class Meta:
         model = get_application_model()
         fields = (
             'name',
+            'user_type',
+            'user',
             'organization_name',
             'contacts',
             'agree',
@@ -216,6 +240,19 @@ class CreateNewApplicationForm(CustomRegisterApplicationForm):
             'allowed_auth_type',
             'part_d_eob_only',
         )
+
+    def clean_user(self):
+        user_type = self.cleaned_data.get('user_type')
+        user = self.cleaned_data.get('user')
+        # Validate that the user field is filled out correctly based on the user_type selection
+        if user_type == 'existing' and not user:
+            raise forms.ValidationError(
+                'You must select an existing user when choosing the "Choose Existing User" option.'
+            )
+        elif user_type == 'new' and user:
+            raise forms.ValidationError('You cannot select a user when choosing the "Create New User" option.')
+
+        return user
 
     @override
     def clean(self):
@@ -241,32 +278,129 @@ class CreateNewApplicationForm(CustomRegisterApplicationForm):
 
     @override
     def clean_agree(self):
-        # Handle agree in the save function
-        return True
+        return self.cleaned_data.get('agree', True)
 
     @override
     def save(self, *args, **kwargs):
         app = self.instance
+        user_type = self.cleaned_data.get('user_type')
+        if user_type == 'new':
+            # If the user_type is 'new', we create a new user and associate it with the application
+            # This returns a tuple of (user, created), where 'created' is a boolean indicating if the
+            # user was created or already existed.  We don't use the 'created' value here, but it could
+            # be useful for logging or other purposes.
+            new_user_model, created = User.objects.get_or_create(
+                username=self.cleaned_data.get('name') + '@example.com',
+                password=str(uuid.uuid4()),
+                is_active=True,
+            )
+            group = Group.objects.get(name='BlueButton')
+            new_user_model.groups.add(group)
+            new_user_model.save()
 
-        new_user_model = User.objects.get_or_create(
-            username=self.cleaned_data.get('name') + '@example.com',
-            password=str(uuid.uuid4()),
-            is_active=True,
+            UserProfile.objects.get_or_create(
+                user=new_user_model,
+                organization_name=self.cleaned_data.get('organization_name'),
+            )
+
+            app = super().save(*args, **kwargs)
+            app.agree = True
+            app.user = new_user_model
+            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+            app.client_type = Application.CLIENT_CONFIDENTIAL
+            app.save()
+            uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
+            if uri:
+                app.logo_uri = uri
+                app.save()
+            return app
+        else:
+            # If the user_type is 'existing', we just save the application with the selected user
+            app = super().save(*args, **kwargs)
+            app.agree = True
+            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+            app.client_type = Application.CLIENT_CONFIDENTIAL
+            app.save()
+            uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
+            if uri:
+                app.logo_uri = uri
+                app.save()
+            return app
+
+
+class EditApplicationForm(CreateApplicationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # We don't want the ability to choose the user type for editing an application,
+        # so we hide it from the form and set it to an 'existing' user type.
+        if 'user_type' in self.fields:
+            self.fields['user_type'].initial = 'existing'
+            self.fields['user_type'].widget = forms.HiddenInput()
+            self.fields['user_type'].required = False
+        # User field is required for editing an application, so we set it to required and change the label
+        self.fields['user'].label = 'User*'
+        self.fields['user'].required = True
+        self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
+        self.fields['authorization_grant_type'].label = 'Authorization Grant Type*'
+        self.fields['redirect_uris'].label = 'Redirect URIs*'
+        # Hide the organization_name field since it's not part of the Application model
+        # and is only used for creating new users
+        self.fields['organization_name'].required = False
+        self.fields['organization_name'].widget = forms.HiddenInput()
+        # Disable the logo_uri field since we don't want users to edit it directly, they should use the logo_image field instead
+        self.fields['logo_uri'].disabled = True
+        self.fields['scope'].label = 'Scopes*'
+        self.fields['client_type'].label = 'Client Type*'
+        self.fields['client_id'].label = 'Client ID*'
+        self.fields['data_access_type'].label = 'Data Access Type*'
+
+    class Meta:
+        model = get_application_model()
+        fields = (
+            'data_access_type',
+            'client_id',
+            'user',
+            'client_type',
+            'user_type',
+            'authorization_grant_type',
+            'client_secret_plain',
+            'client_secret',
+            'name',
+            'skip_authorization',
+            'scope',
+            'require_demographic_scopes',
+            'agree',
+            'allowed_auth_type',
+            'op_tos_uri',
+            'op_policy_uri',
+            'client_uri',
+            'website_uri',
+            'redirect_uris',
+            'logo_uri',
+            'logo_image',
+            'tos_uri',
+            'policy_uri',
+            'software_id',
+            'contacts',
+            'support_email',
+            'support_phone_number',
+            'description',
+            'internal_application_labels',
+            'active',
+            'first_active',
+            'last_active',
+            'jwks_uri',
+            'part_d_eob_only',
         )
-        group = Group.objects.get(name='BlueButton')
-        new_user_model.groups.add(group)
-        new_user_model.save()
 
-        UserProfile.objects.get_or_create(
-            user=new_user_model,
-            organization_name=self.cleaned_data.get('organization_name'),
-        )
+    @override
+    def clean_user(self):
+        # We handle the user being required in the form init, so we just return the cleaned data here
+        return self.cleaned_data.get('user')
 
+    @override
+    def save(self, *args, **kwargs):
         app = super().save(*args, **kwargs)
-        app.agree = True
-        app.user = new_user_model
-        app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
-        app.client_type = Application.CLIENT_CONFIDENTIAL
         app.save()
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
