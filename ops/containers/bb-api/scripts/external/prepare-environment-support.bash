@@ -312,20 +312,22 @@ configure_slsx () {
     echo "✅ set_sls_credentials"
 }
 
-# Needed to add this for CAN integration tests. 
-configure_CAN_integration_credentials_if_local () {
-    if [[ ( "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ) && "${CAN_INTEGRATION_TEST}" == "true" ]]; then
-        echo "Running locally or in codebuild. Need to retrieve CAN_integration test secrets"
-        export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
-        add_mask_if_codebuild "$CLEAR_CLIENT_SECRET"
-        export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
-        add_mask_if_codebuild "$CLEAR_CLIENT_ID"
-        export CAN_PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id csp/private-key --query 'SecretString' --output text)
-        add_mask_if_codebuild "$CAN_PRIVATE_KEY"
-        export JWKS_PUBLIC_KEY_PEM=$(aws secretsmanager get-secret-value --secret-id csp/jwks-public-key-pem --query 'SecretString' --output text)
-        add_mask_if_codebuild "$JWKS_PUBLIC_KEY_PEM"
+# Needed to add this for Asymmetric Auth and CAN integration tests. 
+configure_integration_credentials_if_local () {
+    if [[ "${TARGET_ENV}" == "local" || "${TARGET_ENV}" == "codebuild" ]]; then
+            if [ -z "${JWKS_PRIVATE_KEY_PEM}" ]; then
+                export JWKS_PRIVATE_KEY_PEM=$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 2>/dev/null)
+                add_mask_if_codebuild "$JWKS_PRIVATE_KEY_PEM"
+            fi
+            echo "✅ generating local JWKS keypair"
+        if [ "${CAN_INTEGRATION_TEST}" == "true" ]; then
+            export CLEAR_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_secret --query 'SecretString' --output text)
+            add_mask_if_codebuild "$CLEAR_CLIENT_SECRET"
+            export CLEAR_CLIENT_ID=$(aws secretsmanager get-secret-value --secret-id csp/clear_client_id --query 'SecretString' --output text)
+            add_mask_if_codebuild "$CLEAR_CLIENT_ID"
 
-        echo "✅ set_CAN_integration_credentials"
+            echo "✅ set_CAN_integration_credentials"
+        fi
     fi
 }
 
@@ -374,8 +376,13 @@ add_mask_if_codebuild() {
     fi
 
     # Only add the mask for the sensitive value in codebuild environment.
+    # every line masked or the rest of the key ends up in the log.
     if [ "${TARGET_ENV}" == "codebuild" ]; then
-        echo "::add-mask::$sensitive_value"
+        while IFS= read -r line; do
+            if [ -n "$line" ]; then
+                echo "::add-mask::$line"
+            fi
+        done <<< "$sensitive_value"
     fi
 }
 
