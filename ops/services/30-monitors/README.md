@@ -66,6 +66,7 @@ YAML files in `ops/services/30-monitors/config`:
 
 | Name | Type |
 | ---- | ---- |
+| [datadog_downtime_schedule.test_overnight_weekends](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/downtime_schedule) | resource |
 | [datadog_monitor.api_endpoints_composite](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_monitor.on_call_api_endpoints_composite](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
 | [datadog_monitor.on_call_fhir_endpoints](https://registry.terraform.io/providers/datadog/datadog/latest/docs/resources/monitor) | resource |
