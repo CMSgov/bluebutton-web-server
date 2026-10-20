@@ -135,9 +135,7 @@ resource "datadog_synthetics_test" "health" {
 
 locals {
   static_site_envs = {
-    # skip test for now, since it is not public
-    # TODO
-    # "test": "https://test.static.bluebutton.cms.gov/",
+    "test": "https://test.static.bluebutton.cms.gov/",
     "staging" : "https://staging.bluebutton.cms.gov/",
     "prod" : "https://bluebutton.cms.gov/"
   }
@@ -163,6 +161,19 @@ resource "datadog_synthetics_test" "static_site_uptime" {
   }
 
   tags = module.synthetics.base_tags
+
+  dynamic "config_variable" {
+    for_each = each.key == "prod" ? [] : [1]
+    content {
+      name    = "AKAMAI_COOKIE"
+      type    = "text"
+      secure  = true
+      pattern = each.key == "test" ? data.aws_ssm_parameter.static_site_akamai_aca_token_test[0].value : data.aws_ssm_parameter.static_site_akamai_aca_token_staging[0].value
+
+    }
+  }
+
+  request_headers = each.key == "prod" ? {} : {cookie = "{{ AKAMAI_COOKIE }}"}
 
   request_definition {
     method = "GET"
