@@ -292,7 +292,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 X_FRAME_OPTIONS = 'DENY'
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = bool_env(env('CORS_ALLOW_ALL_ORIGINS', default=False))
+CORS_ALLOW_ALL_ORIGINS = bool_env(env('CORS_ALLOW_ALL_ORIGINS', default=True))
 
 CORS_URLS_REGEX = r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))'
 
