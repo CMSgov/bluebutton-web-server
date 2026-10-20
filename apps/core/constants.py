@@ -28,4 +28,9 @@ WAFFLE_FEATURE_SWITCHES = (
         True,
         'Are we verifying JWT properties and signatures on client_credentials flow',
     ),
+    (
+        'asymmetric_auth_validation',
+        True,
+        'Are we verifying JWT properties and signatures on asymmetric_auth flow',
+    ),
 )
