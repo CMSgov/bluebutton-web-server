@@ -30,12 +30,12 @@ management_urlpatterns = [
         name='register-v2',
     ),
     path(
-        r'^applications/<int:pk>/$',
+        'applications/<int:pk>/',
         oauth2_views.ApplicationDetail.as_view(),
         name='detail-v2',
     ),
     path(
-        r'^applications/<int:pk>/delete/$',
+        'applications/<int:pk>/delete/',
         views.ApplicationDelete.as_view(),
         name='delete-v2',
     ),
