@@ -81,6 +81,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'redirect_uris',
             'logo_image',
             'website_uri',
+            'logo_uri',
             'description',
             'policy_uri',
             'tos_uri',
@@ -189,13 +190,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class CreateApplicationForm(CustomRegisterApplicationForm):
     # Needed for user profile creation, but not part of the Application model
     organization_name = forms.CharField(required=True)
-    # Add a user_type field to the form to allow the developers to choose
+    # Add a user_mode field to the form to allow the developers to choose
     # between creating a new user or selecting an existing user
     USER_CHOICES = [
         ('existing', 'Choose Existing User'),
         ('new', 'Create New User'),
     ]
-    user_type = forms.ChoiceField(choices=USER_CHOICES, widget=forms.RadioSelect, initial='new', required=True)
+    user_mode = forms.ChoiceField(choices=USER_CHOICES, widget=forms.RadioSelect, initial='new', required=True)
 
     def __init__(self, *args, **kwargs):
         user = None
@@ -204,11 +205,9 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         self.fields['agree'].widget = forms.HiddenInput()
         self.fields['agree'].required = False
         self.fields['organization_name'].label = 'Organization Name*'
-        self.fields['user_type'].label = 'User Type*'
+        self.fields['user_mode'].label = 'User Mode*'
         self.fields['scope'].label = 'Scopes*'
         self.fields['allowed_auth_type'].label = 'Allowed Auth Type*'
-        self.fields['name'].label = 'Name*'
-        self.fields['name'].required = True
         self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
             queryset=InternalApplicationLabels.objects.all(), widget=forms.SelectMultiple
         )
@@ -220,7 +219,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         model = get_application_model()
         fields = (
             'name',
-            'user_type',
+            'user_mode',
             'user',
             'organization_name',
             'contacts',
@@ -242,14 +241,14 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         )
 
     def clean_user(self):
-        user_type = self.cleaned_data.get('user_type')
+        user_mode = self.cleaned_data.get('user_mode')
         user = self.cleaned_data.get('user')
-        # Validate that the user field is filled out correctly based on the user_type selection
-        if user_type == 'existing' and not user:
+        # Validate that the user field is filled out correctly based on the user_mode selection
+        if user_mode == 'existing' and not user:
             raise forms.ValidationError(
                 'You must select an existing user when choosing the "Choose Existing User" option.'
             )
-        elif user_type == 'new' and user:
+        elif user_mode == 'new' and user:
             raise forms.ValidationError('You cannot select a user when choosing the "Create New User" option.')
 
         return user
@@ -278,14 +277,14 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
     @override
     def clean_agree(self):
-        return self.cleaned_data.get('agree', True)
+        return self.cleaned_data.get('agree')
 
     @override
     def save(self, *args, **kwargs):
         app = self.instance
-        user_type = self.cleaned_data.get('user_type')
-        if user_type == 'new':
-            # If the user_type is 'new', we create a new user and associate it with the application
+        user_mode = self.cleaned_data.get('user_mode')
+        if user_mode == 'new':
+            # If the user_mode is 'new', we create a new user and associate it with the application
             # This returns a tuple of (user, created), where 'created' is a boolean indicating if the
             # user was created or already existed.  We don't use the 'created' value here, but it could
             # be useful for logging or other purposes.
@@ -315,7 +314,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                 app.save()
             return app
         else:
-            # If the user_type is 'existing', we just save the application with the selected user
+            # If the user_mode is 'existing', we just save the application with the selected user
             app = super().save(*args, **kwargs)
             app.agree = True
             app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
@@ -333,10 +332,10 @@ class EditApplicationForm(CreateApplicationForm):
         super().__init__(*args, **kwargs)
         # We don't want the ability to choose the user type for editing an application,
         # so we hide it from the form and set it to an 'existing' user type.
-        if 'user_type' in self.fields:
-            self.fields['user_type'].initial = 'existing'
-            self.fields['user_type'].widget = forms.HiddenInput()
-            self.fields['user_type'].required = False
+        if 'user_mode' in self.fields:
+            self.fields['user_mode'].initial = 'existing'
+            self.fields['user_mode'].widget = forms.HiddenInput()
+            self.fields['user_mode'].required = False
         # User field is required for editing an application, so we set it to required and change the label
         self.fields['user'].label = 'User*'
         self.fields['user'].required = True
@@ -361,7 +360,7 @@ class EditApplicationForm(CreateApplicationForm):
             'client_id',
             'user',
             'client_type',
-            'user_type',
+            'user_mode',
             'authorization_grant_type',
             'client_secret_plain',
             'client_secret',
