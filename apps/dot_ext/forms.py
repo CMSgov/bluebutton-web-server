@@ -201,7 +201,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     def __init__(self, *args, **kwargs):
         user = None
         super().__init__(user, *args, **kwargs)
-        # Hide agree field and don't make it required since we handle it in the save function
+        # Hide agree field and don't make it required since we handle later it in the save function
         self.fields['agree'].widget = forms.HiddenInput()
         self.fields['agree'].required = False
         self.fields['organization_name'].label = 'Organization Name*'
