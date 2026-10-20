@@ -10,7 +10,7 @@
 locals {
   # BCDA AWS account — where the its-log ECR repo and cross-account IAM policies live.
   bcda_account_id   = sensitive(data.aws_ssm_parameter.bcda_account_id.value)
-  its_log_repo_name = "cdap-its-log-sidecar"
+  its_log_repo_name = "cdap-its-log"
   its_log_image_url = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
   its_log_repo_arn  = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
 
@@ -182,6 +182,7 @@ resource "aws_efs_file_system" "its_log" {
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
 
+  # If a file hasn't been accessed in 30 days, move it from standard storage into infrequent access storage
   lifecycle_policy {
     transition_to_ia = "AFTER_30_DAYS"
   }
