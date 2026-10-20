@@ -272,9 +272,9 @@ resource "aws_iam_role_policy" "its_log_s3_sync_scheduler_run_task" {
 }
 
 resource "aws_scheduler_schedule" "its_log_s3_sync" {
-  name                          = "${local.app_prefix}-${local.workspace}-its-log-s3-sync"
-  schedule_expression           = var.its_log_s3_sync_schedule
-  schedule_expression_timezone  = "UTC"
+  name                         = "${local.app_prefix}-${local.workspace}-its-log-s3-sync"
+  schedule_expression          = var.its_log_s3_sync_schedule
+  schedule_expression_timezone = "UTC"
 
   flexible_time_window {
     mode = "OFF"
@@ -286,8 +286,8 @@ resource "aws_scheduler_schedule" "its_log_s3_sync" {
 
     ecs_parameters {
       task_definition_arn = aws_ecs_task_definition.its_log_s3_sync.arn
-      launch_type          = "FARGATE"
-      platform_version     = "LATEST"
+      launch_type         = "FARGATE"
+      platform_version    = "LATEST"
 
       network_configuration {
         subnets          = local.private_subnets

@@ -9,10 +9,10 @@
 
 locals {
   # BCDA AWS account — where the its-log ECR repo and cross-account IAM policies live.
-  bcda_account_id = sensitive(data.aws_ssm_parameter.bcda_account_id.value)
-  its_log_repo_name    = "cdap-its-log-sidecar"
-  its_log_image_url    = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
-  its_log_repo_arn     = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
+  bcda_account_id   = sensitive(data.aws_ssm_parameter.bcda_account_id.value)
+  its_log_repo_name = "cdap-its-log-sidecar"
+  its_log_image_url = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
+  its_log_repo_arn  = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
 
   its_log_cpu    = coalesce(try(var.service_overrides["its-log"].cpu, null), 256)
   its_log_memory = coalesce(try(var.service_overrides["its-log"].memory, null), 512)
@@ -283,7 +283,7 @@ resource "aws_ecs_task_definition" "its_log" {
     }]
 
     mountPoints = [{
-      sourceVolume  = "its-log-efs"
+      sourceVolume = "its-log-efs"
       # TODO: Modify this based on where we actually end up writing to in its-log, something like "/app/its-log/api/data"
       containerPath = "/mnt/its-log"
       readOnly      = false
@@ -300,7 +300,7 @@ resource "aws_ecs_task_definition" "its_log" {
         "awslogs-stream-prefix" = "ecs"
       }
     }
-  }, {
+    }, {
     name      = "datadog-agent"
     image     = "public.ecr.aws/datadog/agent:7.82.1-fips"
     essential = false
@@ -398,7 +398,7 @@ resource "aws_ecs_task_definition" "its_log" {
       startPeriod = 15
     }
 
-    
+
   }])
 
   task_role_arn            = aws_iam_role.its_log_task.arn
@@ -431,13 +431,13 @@ resource "aws_ecs_task_definition" "its_log" {
 }
 
 resource "aws_ecs_service" "its_log" {
-  name                    = "${local.app_prefix}-${local.workspace}-its-log-service"
-  cluster                 = data.aws_ecs_cluster.main.arn
-  task_definition         = aws_ecs_task_definition.its_log.arn
-  desired_count           = local.its_log_count
-  enable_execute_command  = true
-  launch_type             = "FARGATE"
-  platform_version        = "LATEST"
+  name                   = "${local.app_prefix}-${local.workspace}-its-log-service"
+  cluster                = data.aws_ecs_cluster.main.arn
+  task_definition        = aws_ecs_task_definition.its_log.arn
+  desired_count          = local.its_log_count
+  enable_execute_command = true
+  launch_type            = "FARGATE"
+  platform_version       = "LATEST"
 
   network_configuration {
     assign_public_ip = false

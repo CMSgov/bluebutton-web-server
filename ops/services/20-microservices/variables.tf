@@ -20,7 +20,7 @@ variable "service_overrides" {
     min_capacity      = optional(number)
     max_capacity      = optional(number)
     health_check_path = optional(string)
-    port      = optional(number)
+    port              = optional(number)
   }))
   default     = {}
   description = <<-EOT
