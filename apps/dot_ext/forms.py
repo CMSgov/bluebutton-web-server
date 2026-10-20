@@ -205,6 +205,8 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         self.fields['agree'].widget = forms.HiddenInput()
         self.fields['agree'].required = False
         self.fields['organization_name'].label = 'Organization Name*'
+        self.fields['name'].label = 'Name*'
+        self.fields['name'].required = True
         self.fields['user_mode'].label = 'User Mode*'
         self.fields['scope'].label = 'Scopes*'
         self.fields['allowed_auth_type'].label = 'Allowed Auth Type*'
@@ -346,8 +348,6 @@ class EditApplicationForm(CreateApplicationForm):
         # and is only used for creating new users
         self.fields['organization_name'].required = False
         self.fields['organization_name'].widget = forms.HiddenInput()
-        # Disable the logo_uri field since we don't want users to edit it directly, they should use the logo_image field instead
-        self.fields['logo_uri'].disabled = True
         self.fields['scope'].label = 'Scopes*'
         self.fields['client_type'].label = 'Client Type*'
         self.fields['client_id'].label = 'Client ID*'

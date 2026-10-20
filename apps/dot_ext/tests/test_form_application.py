@@ -97,14 +97,14 @@ from apps.dot_ext.forms import (
             CreateApplicationForm,
             {'name': ''},
             'name',
-            'Application name is required.',
+            'This field is required.',
             False,
         ),
         (
             EditApplicationForm,
             {'name': ''},
             'name',
-            'Application name is required.',
+            'This field is required.',
             False,
         ),
         # Test form with invalid app name has error (app name contains non-ascii char(s)).
