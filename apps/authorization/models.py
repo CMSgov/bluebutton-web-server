@@ -17,13 +17,17 @@ class DataAccessGrant(models.Model):
     application = models.ForeignKey(oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     expiration_date = models.DateTimeField(null=True, blank=True, verbose_name='Expiration Date')
+    proxy = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False, null=True, related_name='proxy'
+    )
 
     class Meta:
         unique_together = ('beneficiary', 'application')
         indexes = [
-            models.Index(fields=['beneficiary', 'application']),
+            models.Index(fields=['beneficiary', 'application', 'proxy']),
             models.Index(fields=['beneficiary']),
             models.Index(fields=['application']),
+            models.Index(fields=['proxy']),
         ]
 
     @property
