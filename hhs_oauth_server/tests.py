@@ -8,9 +8,8 @@ File created by: 'Mark Scrimshire: @ekivemark'
 
 import json
 
-from corsheaders.middleware import CorsMiddleware
-from django.http import HttpResponse
-from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.conf import settings
+from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
 
@@ -314,32 +313,22 @@ class SmartConfigurationTestCase(TestCase):
         self.assertCountEqual(response_json['scopes_supported'], SCOPES_SUPPORTED)
 
 
-# Mirrors the CORS settings in hhs_oauth_server/settings/base_ec2.py
-@override_settings(
-    CORS_ALLOW_ALL_ORIGINS=True,
-    CORS_URLS_REGEX=r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))',
-    CORS_ALLOW_CREDENTIALS=False,
-)
-class CorsPolicyTestCase(SimpleTestCase):
-    def _allow_origin(self, path, origin):
-        request = RequestFactory().get(path, HTTP_ORIGIN=origin)
-        response = CorsMiddleware(lambda r: HttpResponse())(request)
-        return response.get('Access-Control-Allow-Origin')
+class CorsPolicyTestCase(TestCase):
+    def test_cors_middleware_is_not_installed(self):
+        self.assertNotIn('corsheaders', settings.INSTALLED_APPS)
+        self.assertNotIn('corsheaders.middleware.CorsMiddleware', settings.MIDDLEWARE)
 
-    def test_api_paths_allow_any_origin(self):
-        for path in ('/v2/fhir/Patient/', '/v3/o/token/', '/v1/connect/userinfo', '/.well-known/openid-configuration'):
-            self.assertEqual(self._allow_origin(path, 'https://example.com'), '*')
+    def test_cross_origin_response_has_no_cors_headers(self):
+        response = self.client.get(reverse('openid-configuration'), HTTP_ORIGIN='https://example.com')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+        self.assertNotIn('Access-Control-Allow-Credentials', response)
 
-    def test_admin_paths_reject_other_origins(self):
-        for origin in (
-            'https://example.com',
-            'https://evilcms.gov',
-            'https://cms.gov.example.com',
-            'http://www.cms.gov',
-            'https://www.medicare.gov:8443',
-        ):
-            self.assertIsNone(self._allow_origin('/admin/', origin))
-
-    def test_unlisted_paths_get_no_cors_headers(self):
-        for path in ('/', '/mymedicare/login', '/v2/o/'):
-            self.assertIsNone(self._allow_origin(path, 'https://www.cms.gov'))
+    def test_preflight_does_not_allow_cross_origin_requests(self):
+        response = self.client.options(
+            reverse('openid-configuration'),
+            HTTP_ORIGIN='https://example.com',
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD='GET',
+        )
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+        self.assertNotIn('Access-Control-Allow-Methods', response)

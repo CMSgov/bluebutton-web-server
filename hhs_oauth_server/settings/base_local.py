@@ -68,7 +68,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     # Must be before CommonMiddleware but after SessionMiddleware
     'django.middleware.locale.LocaleMiddleware',
     # Middleware that can send a response must be below this line
@@ -150,7 +149,6 @@ INSTALLED_APPS = [
     'apps.authorization',
     'apps.bb2_tools',
     # 3rd Party ---------------------
-    'corsheaders',
     'django_bootstrap5',
     'waffle',
     # DOT must be installed after apps.dot_ext in order to override templates
@@ -419,30 +417,6 @@ REST_FRAMEWORK = {
         'token': env('TOKEN_THROTTLE_RATE', default='100000/s'),
     },
 }
-
-# CORS settings
-CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=True)
-
-CORS_URLS_REGEX = r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))'
-
-CORS_ALLOW_CREDENTIALS = False
-
-# Restrict allowed HTTP methods and headers for CORS
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    'OPTIONS',
-]
-
-CORS_ALLOW_HEADERS = (
-    'accept',
-    'authorization',
-    'content-type',
-    'prefer',  # v3 strict query-parameter validation
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-)
 
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.

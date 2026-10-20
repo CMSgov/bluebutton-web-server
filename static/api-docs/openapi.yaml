@@ -1994,7 +1994,7 @@ components:
                     type: string
                     documentation: The offset used for result pagination
             security:
-              cors: true
+              cors: false
               service:
                 - text: OAuth
                   coding:
@@ -2376,7 +2376,7 @@ components:
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
                         - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
             security:
-              cors: true
+              cors: false
               service:
                 - text: OAuth
                   coding:
@@ -2499,7 +2499,7 @@ components:
               type: token
               documentation: A patient identifier
           security:
-            cors: true
+            cors: false
             service:
             - text: OAuth
               coding:
