@@ -135,7 +135,7 @@ resource "datadog_synthetics_test" "health" {
 
 locals {
   static_site_envs = {
-    "test": "https://test.static.bluebutton.cms.gov/",
+    "test" : "https://test.static.bluebutton.cms.gov/",
     "staging" : "https://staging.bluebutton.cms.gov/",
     "prod" : "https://bluebutton.cms.gov/"
   }
@@ -173,7 +173,7 @@ resource "datadog_synthetics_test" "static_site_uptime" {
     }
   }
 
-  request_headers = each.key == "prod" ? {} : {cookie = "{{ AKAMAI_COOKIE }}"}
+  request_headers = each.key == "prod" ? {} : { cookie = "{{ AKAMAI_COOKIE }}" }
 
   request_definition {
     method = "GET"

@@ -36,10 +36,10 @@ data "aws_ssm_parameter" "datadog_bbuser10000_access_token" {
 
 data "aws_ssm_parameter" "static_site_akamai_aca_token_test" {
   count = local.env == "prod" ? 1 : 0
-  name = "/${local.app}/${local.env}/app/sensitive/static_site_akamai_aca_token_test"
+  name  = "/${local.app}/${local.env}/app/sensitive/static_site_akamai_aca_token_test"
 }
 
 data "aws_ssm_parameter" "static_site_akamai_aca_token_staging" {
   count = local.env == "prod" ? 1 : 0
-  name = "/${local.app}/${local.env}/app/sensitive/static_site_akamai_aca_token_staging"
+  name  = "/${local.app}/${local.env}/app/sensitive/static_site_akamai_aca_token_staging"
 }
