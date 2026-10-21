@@ -66,7 +66,7 @@
 /bb/test/app/sensitive/slsx_signout_endpoint: ENC[AES256_GCM,data:egXI93QsTdzjH+LwJrfbf9HxN193RPqIs2Cfp8f690TOtKQ9qA==,iv:7767HhBGLm1kZmE5tRxdQ2x/5JX65QySstTN2mI/QJ0=,tag:Jfr4wHpmoOOHp7s8Td1U0Q==,type:str]
 /bb/test/app/sensitive/slsx_userinfo_endpoint: ENC[AES256_GCM,data:Onnuo5Re22OzRlIZma+KKEC746+RZPWwqtOOEPugZA3shAEZeH0=,iv:v1gNYs9qK82p7fPecyj4ppPWeaweVYCa70zpxCgCfOo=,tag:MuReRZO0PHAXy0lDXY3H7A==,type:str]
 /bb/test/app/sensitive/slsx_health_check_endpoint: ENC[AES256_GCM,data:iT+srSaceMX1tJqOk9+5XYqIXaZmQGMQKQhGCX3HSIE3sk4b,iv:60+V/hG6sOpCdU3PBDMT0OBCM8/dD/19X/UI+dxe1yg=,tag:9VOqja0nx/ISktSZO7C3Ng==,type:str]
-/bb/test/app/sensitive/django_slsx_relationships_endpoint: ENC[AES256_GCM,data:bHOUS0cGMEtlReUYQDGUO58EBkF02Wzq6aandmyFT0EkPhPVx0Sf8DgAtL7cGMiQUgI8dY90exkZz8XDFlRizRe+bwyXYtWglQ==,iv:05yMGB9W0pNtU/e8TmV+6ry80uXiH55TxRaI3tvTLEk=,tag:X3Ml7YTaPUkp0tkkdHUsuQ==,type:str]
+/bb/test/app/sensitive/django_slsx_relationships_endpoint: ENC[AES256_GCM,data:oAYMSEu0KTYIqyIIjj6xhsnRVsMegHIZWfqCFYu09e7tp3Sh9NdpAFxPu7BFE9XMN3u6/fQ2qkUUDS0hymvB9UNBUD85H1Sp0g==,iv:hL2pR/qr0CdAzTe/RFCk/8Rcc/TGEGqPN+1KQqzWxPo=,tag:qv2HFQLdaYI6mrE8GAZ52A==,type:str]
 /bb/test/app/nonsensitive/django_slsx_verify_ssl_internal: "False"
 /bb/test/app/nonsensitive/django_slsx_verify_ssl_external: "True"
 #ENC[AES256_GCM,data:NEJYqpcJLWvsdG8PYRiAeGCrFpURmucrKzWdyMaq6WEstOCPfJS6JfMTFhthqBzBu8CVXGDcQlvlnlXpNH1SjOGpTA7vsBFt2shvegI=,iv:H9c/gKlV7taXi3VeOGys7O2XBdZ/EQvd0NSBsY6I48g=,tag:qS6CR1nX3w+jUcGPLAyWgg==,type:comment]
