@@ -747,7 +747,9 @@ class TokenView(DotTokenView):
                         return request_validation_result
                     # Only support v3 calls or calls having supported types
                     try:
-                        asymmetric_auth_validator.check_if_call_is_allowed(app, version, 'asymmetric_auth')
+                        asymmetric_auth_validator.check_if_call_is_allowed(
+                            app.allowed_auth_type, version, 'asymmetric_auth'
+                        )
                     except InvalidRequestError as e:
                         return JsonResponse(
                             {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
@@ -782,7 +784,7 @@ class TokenView(DotTokenView):
                     return request_validation_result
 
                 try:
-                    can_validator.check_if_call_is_allowed(app, version, 'client_credentials')
+                    can_validator.check_if_call_is_allowed(app.allowed_auth_type, version, 'client_credentials')
                 except InvalidRequestError as e:
                     return JsonResponse(
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},

@@ -23,8 +23,9 @@ ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
 # CAN Flow also requires the 'extensions' claim (smart extension)
 CAN_REQUIRED_CLAIM_FIELDS = ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS + ['extensions']
 CAN_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
-# Asymmetric Auth Flow requires authorization_code params as well
-ASYMMETRIC_AUTH_REQUIRED_PARAMS = CAN_REQUIRED_PARAMS + ['code', 'redirect_uri', 'code_verifier']
+# These are the main custom fields we validate for asymmetric auth
+# grant_type, code, redirect_uri, and code_verifier get validated inside create_token_response
+ASYMMETRIC_AUTH_REQUIRED_PARAMS = ['client_assertion_type', 'client_assertion']
 
 
 # List of value keys that are being tracked via request.session

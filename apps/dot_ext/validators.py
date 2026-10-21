@@ -53,7 +53,6 @@ from apps.dot_ext.constants import (
     URL_REGEX,
     YYYY_MM_DD_REGEX,
 )
-from apps.dot_ext.models import Application
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.utils import build_jwks_urls, validate_latin_extended_string
 from apps.testclient.utils import _start_url_with_http_or_https
@@ -303,11 +302,11 @@ class BaseTokenValidator(ABC):
 
         return None
 
-    def check_if_call_is_allowed(self, app: Application, version: int, call_type: str) -> bool:
+    def check_if_call_is_allowed(self, allowed_auth_type: str, version: int, call_type: str) -> bool:
         """Checks if the version for the call is v3 + the app is allowed to do this and has a jwks_uri
 
         Args:
-            app (Application): model
+            allowed_auth_type (str): model
             version (Versions): Version constant
             call_type (str): The type of call being made
 
@@ -320,10 +319,10 @@ class BaseTokenValidator(ABC):
                 f'A {call_type} token call was made for version: {version}. You must use {Versions.V3} for {call_type} calls.'
             )
         supported_types = self._get_supported_types()
-        if app.allowed_auth_type not in supported_types:
+        if allowed_auth_type not in supported_types:
             log.warning(f'A {call_type} token call was made for an app that does not have {call_type} enabled')
             raise InvalidRequestError(
-                f'A {call_type} token call was made for an app that does not have {call_type} enabled.'
+                f'A {call_type} token call was made for an app that does not have {allowed_auth_type} enabled.'
             )
 
 
