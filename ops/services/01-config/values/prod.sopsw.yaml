@@ -71,6 +71,7 @@
 /bb/prod/app/sensitive/slsx_signout_endpoint: ENC[AES256_GCM,data:UP2KHeKC6yfN,iv:tVT8ucaSuk0JeUT0wT6+ZA2UifGr8fibrZ5C9LwAqpI=,tag:qbT+eukoDpJZYjDDfNgodg==,type:str]
 /bb/prod/app/sensitive/slsx_userinfo_endpoint: ENC[AES256_GCM,data:jjHghn+ei92B,iv:UagZRBksR/c1KbB27i+eCosS7o5QHESFE3KEWSg2OCU=,tag:5Vhrh7z84TuKg/9GPbEFag==,type:str]
 /bb/prod/app/sensitive/slsx_health_check_endpoint: ENC[AES256_GCM,data:XOqBKnBJoBkG,iv:S6zD87v38ulFFEApNEqcdU5ZrhRP1f1nXGby+eUS6sY=,tag:pTOtiRBnADPw/TIZR4lGDA==,type:str]
+/bb/prod/app/sensitive/django_slsx_relationships_endpoint: ENC[AES256_GCM,data:0plM6QA3vo90Wk+esghBtScKJm+JBkiHD+ERdvFiJ7U7P88VmsDuorfVyowR2Xd3HFpPjCSdk8xiV6C5sD1Er5KUbms=,iv:suKskNbapvYCk2UgLcZ9UcKw4Rm/kzY9BEniEOSLnn4=,tag:JFj3noGPhF/kUSGkXYJbew==,type:str]
 /bb/prod/app/nonsensitive/django_slsx_verify_ssl_internal: "False"
 /bb/prod/app/nonsensitive/django_slsx_verify_ssl_external: "True"
 #ENC[AES256_GCM,data:cjxYrqg/L58XyzZNVBl/xzq6OkIsxhtHe/gyDGvbSnUMuEmBybfd4e+JzGhG49ztVDIUP1btyokUy6mF5BOW53npkRsJrqJoPzLpGeQ=,iv:qaDWHiwa+TT+2/uBMtdSIm7EpbwgeTsMx8XUhBcDh48=,tag:FsvNuBIpoRdn1KWTaIM7iA==,type:comment]
