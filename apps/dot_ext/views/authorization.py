@@ -293,6 +293,7 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             self.application = validate_app_is_active(request)
+            request.application_id = self.application.id
         except InvalidClientError as error:
             return TemplateResponse(
                 request,
@@ -839,6 +840,7 @@ class TokenView(DotTokenView):
                         log_dict = {
                             'type': 'request_response_middleware',
                             'app_name': app.name,
+                            'app_id': app.id,
                             'csp': csp_issuer,
                             'patient': None,
                             'path': request.path,

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import requests
 from django.core.serializers.json import DjangoJSONEncoder
 
 import apps.logging.request_logger as logging
@@ -16,6 +17,7 @@ from apps.dot_ext.models import (
     get_token_bene_counts,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
+from apps.logging.constants import APP_LEVEL_METRICS, APP_NAMES_TO_IGNORE, GLOBAL_METRICS
 from apps.logging.utils import format_timestamp
 
 """
@@ -24,7 +26,7 @@ from apps.logging.utils import format_timestamp
 logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
 
 
-def log_global_state_metrics(group_timestamp=None, report_flag=True):
+def log_global_state_metrics(group_timestamp=None, report_flag=True, its_log_flag=False):
     """
     For use in apps/logging/management/commands/log_global_metrics.py management command
     NOTE:  print statements are for output when run via Jenkins
@@ -53,6 +55,11 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
     beneficiary_app_pair_counts = get_beneficiary_grant_app_pair_counts()
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
+
+    # TODO: Change this before we actually start running this in prod. For testing purposes, it is helpful
+    # to have the current day. For actual prod, we'll need to look at the prior day.
+    # prior_day = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    prior_day = datetime.now().strftime('%Y-%m-%d')
 
     log_dict = {
         'type': 'global_state_metrics',
@@ -237,6 +244,19 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
 
     logger.info(log_dict)
 
+    if its_log_flag:
+        for metric in GLOBAL_METRICS:
+            ping_api([], '0', metric, prior_day)
+
+        for key in log_dict.keys():
+            val_to_post = log_dict[key]
+
+            if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
+                val_to_post = str(val_to_post)
+            # ping_api([key], val_to_post, 'global')
+            # ping_api([], val_to_post, 'total_' + key, 'global_state_metrics')
+            ping_api([], val_to_post, 'total_' + key, prior_day)
+
     if report_flag:
         print('---')
         print('---    Wrote top level log entry: [REDACTED]')
@@ -251,6 +271,9 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
 
     start_time = datetime.utcnow().timestamp()
     count = 0
+    active_apps = 0
+    active_apps_w_gt_25_real_benes = 0
+    active_apps_w_lt_25_real_benes = 0
     for app in applications:
         # Get UserProfile for application's dev user
         try:
@@ -301,9 +324,34 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             'user_limit_data_access': True,
         }
 
+        if app.name not in APP_NAMES_TO_IGNORE and app.active and log_dict.get('real_bene_cnt', 0) > 25:
+            active_apps_w_gt_25_real_benes += 1
+        elif app.name not in APP_NAMES_TO_IGNORE and app.active:
+            active_apps_w_lt_25_real_benes += 1
+
+        if app.active and app.name not in APP_NAMES_TO_IGNORE:
+            active_apps += 1
+
         logger.info(log_dict, cls=DjangoJSONEncoder)
 
-        count = count + 1
+        if its_log_flag and app.name not in APP_NAMES_TO_IGNORE:
+            # post all metrics for all apps to ensure we have data populated for each app, each day
+            for metric in APP_LEVEL_METRICS:
+                tag = [str(app.id), app.name]
+                ping_api(tag, '0', metric, prior_day)
+
+            for key in log_dict.keys():
+                tag = [str(app.id), app.name]
+                val_to_post = log_dict[key]
+
+                if isinstance(val_to_post, bool) or isinstance(val_to_post, int):
+                    val_to_post = str(val_to_post)
+
+                ping_api(tag, val_to_post, 'app_' + key, prior_day)
+    if its_log_flag:
+        ping_api([], str(active_apps_w_gt_25_real_benes), 'app_active_bene_cnt_gt25', prior_day)
+        ping_api([], str(active_apps_w_lt_25_real_benes), 'app_active_bene_cnt_le25', prior_day)
+        ping_api([], str(active_apps), 'app_all', prior_day)
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
@@ -317,3 +365,40 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         )
         print('---')
         print('SUCCESS')
+
+
+def ping_api(tags, value, operation, date):
+    try:
+        result = requests.post(
+            'http://host.docker.internal:8888/v1/summary/create',
+            headers={'x-api-key': 'abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh'},
+            json={
+                'tags': tags,
+                'count': 1,
+                'value': value,
+                'operation': operation,
+                'date': date,
+            },
+            timeout=2,
+        )
+        return result
+    except Exception:
+        pass  # Never let logging failures crash your app
+
+
+def ping_events_api(tags, value, cluster):
+    try:
+        result = requests.post(
+            'http://host.docker.internal:8888/v1/log/create',
+            headers={'x-api-key': '1234567890123456123456789012345612345678901234561234567890123456'},
+            json={
+                'tags': tags,
+                'value': value,
+                'cluster': cluster,
+                'type': 'text',
+            },
+            timeout=2,
+        )
+        return result
+    except Exception:
+        pass  # Never let logging failures crash your app
