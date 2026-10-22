@@ -1,4 +1,5 @@
 import datetime
+from typing import Any, Dict, List
 
 import requests
 from django.conf import settings
@@ -39,6 +40,7 @@ class OAuth2ConfigSLSx(object):
     token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
     signout_endpoint = settings.SLSX_SIGNOUT_ENDPOINT
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
+    relationships_endpoint = settings.SLSX_RELATIONSHIPS_ENDPOINT
 
     # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
     verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
@@ -388,3 +390,37 @@ class OAuth2ConfigSLSx(object):
         log_dict = {'type': 'Authentication:success', 'sub': self.user_id, 'user': None, 'path': path}
         log_dict.update(extra)
         logger.info(log_dict)
+
+    def retrieve_relationships_data(self, request) -> List[Dict[str, Any]]:
+        """Retrieve proxy relationship data for a user from medicare.gov. User token is retrieved
+        via the auth_header function
+
+        Args:
+            request: The authentication request for a user
+
+        Returns:
+            List[Dict[str, Any]]: If there is no relationships data for the user, a blank list will be returned.
+            If there is relationships data, it will be returned as a list of dictionaries
+        """
+
+        logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
+        log_dict = {'type': 'Authentication:relationships_retrieval', 'msg': 'Retrieving proxy relationships data'}
+        logger.info(log_dict)
+        headers = self.slsx_common_headers(request)
+
+        origin_and_referer_url = self.relationships_endpoint.split('/account')[0]
+
+        headers['Origin'] = origin_and_referer_url
+        headers['Referer'] = origin_and_referer_url
+        headers.update(self.auth_header())
+
+        response = requests.get(
+            self.relationships_endpoint,
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_internal,
+        )
+
+        if response.json().get('relationships'):
+            return response.json().get('relationships')
+        return []
