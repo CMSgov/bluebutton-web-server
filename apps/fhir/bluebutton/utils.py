@@ -613,7 +613,7 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
     if format_type.lower() == 'xml':
         security = """
 <security>
-    <cors>true</cors>
+    <cors>false</cors>
     <service>
         <text>OAuth</text>
         <coding>
@@ -652,7 +652,7 @@ def build_oauth_resource(request, version=Versions.NOT_AN_API_VERSION, format_ty
     else:  # json
         security = {}
 
-        security['cors'] = True
+        security['cors'] = False
         security['service'] = [
             {
                 'text': 'OAuth',

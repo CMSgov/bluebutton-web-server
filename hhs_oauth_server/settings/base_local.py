@@ -68,7 +68,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     # Must be before CommonMiddleware but after SessionMiddleware
     'django.middleware.locale.LocaleMiddleware',
     # Middleware that can send a response must be below this line
@@ -150,7 +149,6 @@ INSTALLED_APPS = [
     'apps.authorization',
     'apps.bb2_tools',
     # 3rd Party ---------------------
-    'corsheaders',
     'django_bootstrap5',
     'waffle',
     # DOT must be installed after apps.dot_ext in order to override templates
@@ -419,34 +417,6 @@ REST_FRAMEWORK = {
         'token': env('TOKEN_THROTTLE_RATE', default='100000/s'),
     },
 }
-
-# CORS settings
-# In local development we default to allowing all origins for convenience.
-CORS_ORIGIN_ALLOW_ALL = env.bool('CORS_ORIGIN_ALLOW_ALL', default=True)
-# TODO: Uncomment once Fargate migration is complete and we would have a better sense of what allowed origins would be.
-# Once a Fargate post migration ticket is created, this should be addressed then.
-# It is a possible security hardening that can be decided upon later.
-# _CORS_ALLOWED = env("CORS_ALLOWED_ORIGINS", "")
-# CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(",") if o.strip()]
-
-# # Restrict allowed HTTP methods and headers for CORS
-# CORS_ALLOW_METHODS = [
-#     "GET",
-#     "POST",
-#     "PUT",
-#     "PATCH",
-#     "DELETE",
-#     "OPTIONS",
-# ]
-
-# CORS_ALLOW_HEADERS = (
-#     "accept",
-#     "authorization",
-#     "content-type",
-#     "user-agent",
-#     "x-csrftoken",
-#     "x-requested-with",
-# )
 
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
