@@ -32,10 +32,15 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
     # in multiple spots within the conditional block. Also, if it turns out to not be an OperationOutcome, we want
     # the conditional block to handle the exception as it would have before this change
     if version == Versions.V3 and response.status_code >= 400 and response.status_code < 600:
-        response_json = r.json()
-        if is_operation_outcome(response_json):
-            return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
+        try:
+            response_json = r.json()
 
+            if is_operation_outcome(response_json):
+                return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
+        except JSONDecodeError:
+            msg = 'Invalid response from server api'
+            err = JSONDecodeException(msg)
+            # Do nothing here; fall through and return `err`
     if response.status_code is None:
         # This should be impossible.
         msg = 'No status code from the upstream server'
@@ -70,10 +75,17 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
                 if diagnostics is not None:
                     err = BadRequestToBackendError('{}:{}'.format(msg, diagnostics))
         except JSONDecodeError:
-            # Do nothing here; fall through and return `err`
-            pass
+            msg = 'Invalid response from server api'
+            err = JSONDecodeException(msg)
         return err
     elif response.status_code >= 500:
+        try:
+            json = r.json()
+        except JSONDecodeError:
+            msg = 'Invalid response from server api'
+            err = JSONDecodeException(msg)
+            return err
+
         # Anything that is a 500-class error from upstream becomes a 502
         # as we propagate it forward.
         msg = 'A failure occurred contacting the upstream server'
@@ -91,6 +103,8 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
 class UpstreamServerException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
+class JSONDecodeException(APIException):
+    status_code = status.HTTP_502_BAD_GATEWAY
 
 class BadRequestToBackendError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
