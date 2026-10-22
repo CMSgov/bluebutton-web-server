@@ -20,7 +20,7 @@ try:
         EOB_SCOPE,
         PATIENT_SCOPE,
     )
-    from apps.dot_ext.models import Application
+    from apps.dot_ext.models import Application, InternalApplicationLabels
     from apps.fhir.bluebutton.models import Crosswalk
 except ModuleNotFoundError:
     pass
@@ -204,7 +204,7 @@ def create_capability(db):
 
 
 @pytest.fixture
-def create_application(db):
+def create_application(create_internal_application_labels):
     """
     Factory fixture that creates an Application instance with a name,
     client_type, grant_type, and optional capability.
@@ -239,6 +239,14 @@ def create_application(db):
             **kwargs,
         )
 
+        label = create_internal_application_labels(
+            label='Research app - multiple studies',
+            slug='research-app-multiple-studies',
+            description='Desc: place holder',
+        )
+
+        application.internal_application_labels.add(label)
+
         # Set data access type if provided
         if data_access_type:
             application.data_access_type = data_access_type
@@ -251,6 +259,29 @@ def create_application(db):
         return application
 
     return _create_application
+
+
+@pytest.fixture
+def create_internal_application_labels(db):
+    def _create_internal_application_labels(label, slug, description):
+        """
+        Helper method that creates a InternalApplicationLabels instance
+        """
+        # Create capability, if does not already exist
+        try:
+            label = InternalApplicationLabels.objects.get(slug=slug)
+            return label
+        except InternalApplicationLabels.DoesNotExist:
+            pass
+
+        label = InternalApplicationLabels.objects.create(
+            label=label,
+            slug=slug,
+            description=description,
+        )
+        return label
+
+    return _create_internal_application_labels
 
 
 @pytest.fixture

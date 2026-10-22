@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 from datetime import timezone
+from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -9,16 +10,22 @@ import pytest
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.http import HttpRequest, JsonResponse
 from django.test import TestCase
 from freezegun import freeze_time
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
 
+from apps.constants import CLIENT_CREDENTIALS
 from apps.dot_ext.constants import (
     ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS,
+    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_TYPE,
     CAN_REQUIRED_CLAIM_FIELDS,
     CLEAR_HIGHER_ISS,
     CLEAR_LOWER_ISS,
+    CLIENT_ASSERTION_TYPE_VALUE,
+    CLIENT_CREDENTIALS_TYPE,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
 )
@@ -992,3 +999,249 @@ def test_get_signing_key(
     else:
         key = validator._get_signing_key(token, jwks_uri)
         assert key.key == expected_key
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'validator_class, allowed_auth_type, version, call_type, should_fail, status_code, expected_message',
+    [
+        # Tests successful cases for both validators
+        (AsymmetricAuthValidator, AUTH_CODE_TYPE, 3, 'asymmetric_auth', False, None, None),
+        (CMSAlignedNetworksValidator, CLIENT_CREDENTIALS_TYPE, 3, 'client_credentials', False, None, None),
+        (AsymmetricAuthValidator, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE, 3, 'asymmetric_auth', False, None, None),
+        (
+            CMSAlignedNetworksValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            3,
+            'client_credentials',
+            False,
+            None,
+            None,
+        ),
+        # Test different versions raise error
+        (
+            AsymmetricAuthValidator,
+            AUTH_CODE_TYPE,
+            1,
+            'asymmetric_auth',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
+        ),
+        (
+            CMSAlignedNetworksValidator,
+            CLIENT_CREDENTIALS_TYPE,
+            1,
+            'client_credentials',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 1. You must use version 3 for client_credentials calls.',
+        ),
+        (
+            AsymmetricAuthValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            1,
+            'asymmetric_auth',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
+        ),
+        (
+            CMSAlignedNetworksValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            1,
+            'client_credentials',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 1. You must use version 3 for client_credentials calls.',
+        ),
+        (
+            AsymmetricAuthValidator,
+            AUTH_CODE_TYPE,
+            2,
+            'asymmetric_auth',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
+        ),
+        (
+            CMSAlignedNetworksValidator,
+            CLIENT_CREDENTIALS_TYPE,
+            2,
+            'client_credentials',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 2. You must use version 3 for client_credentials calls.',
+        ),
+        (
+            AsymmetricAuthValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            2,
+            'asymmetric_auth',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
+        ),
+        (
+            CMSAlignedNetworksValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            2,
+            'client_credentials',
+            True,
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 2. You must use version 3 for client_credentials calls.',
+        ),
+        # Tests for having unsupported allowed auth type
+        (
+            AsymmetricAuthValidator,
+            CLIENT_CREDENTIALS_TYPE,
+            3,
+            'asymmetric_auth',
+            True,
+            HTTPStatus.FORBIDDEN,
+            'This application, new_app, does not yet have access to this authorization method.',
+        ),
+        (
+            CMSAlignedNetworksValidator,
+            AUTH_CODE_TYPE,
+            3,
+            'client_credentials',
+            True,
+            HTTPStatus.FORBIDDEN,
+            'This application, new_app, does not yet have access to this authorization method.',
+        ),
+    ],
+)
+def test_check_if_call_is_allowed(
+    validator_class, allowed_auth_type, version, call_type, should_fail, status_code, expected_message
+):
+    validator = validator_class()
+    app_name = 'new_app'
+    if should_fail:
+        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type, app_name)
+        assert isinstance(result, JsonResponse)
+        assert result.status_code == status_code
+        response_data = json.loads(result.content.decode('utf-8'))
+        assert expected_message in response_data['message']
+    else:
+        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type, app_name)
+        assert result is None
+
+
+@pytest.mark.parametrize(
+    'validator_class, post_data, expected_message, should_fail, should_raise_error',
+    [
+        # All parameters valid and present
+        (
+            CMSAlignedNetworksValidator,
+            {
+                'grant_type': CLIENT_CREDENTIALS,
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+            },
+            None,
+            False,
+            False,
+        ),
+        (
+            AsymmetricAuthValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+            },
+            None,
+            False,
+            False,
+        ),
+        # Missing required parameters returns a 400 JsonResponse
+        (
+            CMSAlignedNetworksValidator,
+            {'grant_type': 'authorization_code', 'scope': 'patient/ExplanationOfBenefit.rs'},
+            'Missing Required Parameter(s): client_assertion_type, client_assertion',
+            True,
+            False,
+        ),
+        (
+            AsymmetricAuthValidator,
+            {'grant_type': 'authorization_code', 'scope': 'patient/ExplanationOfBenefit.rs'},
+            'Missing Required Parameter(s): client_assertion_type, client_assertion',
+            True,
+            False,
+        ),
+        # Wrong client_assertion_type value raises InvalidRequestError
+        (
+            CMSAlignedNetworksValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': 'invalid-urn-type',
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+            },
+            'client_assertion_type was wrong',
+            True,
+            True,
+        ),
+        (
+            AsymmetricAuthValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': 'invalid-urn-type',
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+            },
+            'client_assertion_type was wrong',
+            True,
+            True,
+        ),
+        # Client mistakenly passes a client_secret raises InvalidRequestError
+        (
+            CMSAlignedNetworksValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+                'client_secret': 'super_secret_string',
+            },
+            'client_secret should not be included in client_credentials call',
+            True,
+            True,
+        ),
+        (
+            AsymmetricAuthValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+                'client_secret': 'super_secret_string',
+            },
+            'client_secret should not be included in client_credentials call',
+            True,
+            True,
+        ),
+    ],
+)
+def test_validate_request_params(validator_class, post_data, expected_message, should_fail, should_raise_error):
+    validator = validator_class()
+
+    mock_request = MagicMock(spec=HttpRequest)
+    mock_request.POST = post_data
+
+    if should_fail:
+        if should_raise_error:
+            with pytest.raises(InvalidRequestError) as exc_info:
+                result = validator.validate_request_params(mock_request)
+                assert expected_message in str(exc_info.value)
+        else:
+            result = validator.validate_request_params(mock_request)
+            assert isinstance(result, JsonResponse)
+            assert result.status_code == HTTPStatus.BAD_REQUEST
+            response_data = json.loads(result.content.decode('utf-8'))
+            assert expected_message in response_data['message']
+    else:
+        result = validator.validate_request_params(mock_request)
+        assert result is None

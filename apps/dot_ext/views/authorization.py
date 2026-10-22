@@ -59,11 +59,8 @@ from apps.constants import (
     USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
 )
 from apps.dot_ext.constants import (
-    APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
-    CLIENT_ASSERTION_TYPE_VALUE,
-    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CLIENT_CREDENTIALS_TYPE,
     DATETIME_ISO_FORMAT,
     PATIENT_DATA_CANNOT_BE_FOUND,
@@ -77,7 +74,7 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import AccessTokenExtension, Application, Approval
+from apps.dot_ext.models import AccessTokenExtension, Approval
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
@@ -91,7 +88,7 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
 )
-from apps.dot_ext.validators import CMSAlignedNetworksValidator
+from apps.dot_ext.validators import AsymmetricAuthValidator, CMSAlignedNetworksValidator
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import Crosswalk, hash_id_value
 from apps.fhir.bluebutton.utils import (
@@ -638,21 +635,6 @@ class TokenView(DotTokenView):
         except ObjectDoesNotExist:
             raise AccessDeniedError(description='Unable to verify permission.')
 
-    def _check_if_client_credentials_call_is_allowed(self, app: Application, version: int) -> bool:
-        """Checks if the version for the call is v3 + the app is allowed to do this and has a jwks_uri
-
-        Args:
-            app (Application): model
-            version (Versions): Version constant
-
-        Returns:
-            bool: if the app is allowed to make a client_credential call
-        """
-        if version != Versions.V3:
-            log.warning(f'A client_credentials token call was made for version: {version}')
-            return False
-        return app.allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES
-
     def _create_or_retrieve_user(self, mbi: str, fhir_id_v3: str, request: HttpRequest = None) -> User:
         """Create or retrieve the user object associated with the mbi_hash
 
@@ -692,45 +674,6 @@ class TokenView(DotTokenView):
             )
 
         return user
-
-    def _validate_client_credentials_request(self, request: HttpRequest):
-        """Checks required params for a client_credential request and their values
-
-        Args:
-            request (HttpRequest): the Django request object
-
-        Raises:
-            InvalidRequestError: if client_assertion_type is not correct
-
-        Returns:
-            JsonResponse or None: Returns a 400 error response if params are missing, else None
-        """
-        required_params = [
-            'grant_type',
-            'scope',
-            'client_assertion_type',
-            'client_assertion',
-        ]
-        missing_params = [param for param in required_params if not request.POST.get(param)]
-
-        if missing_params:
-            return JsonResponse(
-                {
-                    'status_code': HTTPStatus.BAD_REQUEST,
-                    'message': f'Missing Required Parameter(s): {", ".join(missing_params)}',
-                },
-                status=HTTPStatus.BAD_REQUEST,
-            )
-
-        if (client_assertion_type := request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
-            log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
-            raise InvalidRequestError('client_assertion_type was wrong')
-
-        if request.POST.get('client_secret'):
-            log.warning('client_secret should not be included in client_credentials call')
-            raise InvalidRequestError('client_secret should not be included in client_credentials call')
-
-        return None
 
     def _retrieve_prior_include_samhsa_and_part_d_eob_only_values(
         self, grant_type: str, request: HttpRequest, app_part_d_eob_only: bool
@@ -778,93 +721,43 @@ class TokenView(DotTokenView):
 
             app = validate_app_is_active(request)
 
-            if grant_type == 'authorization_code' and app.allowed_auth_type == 'CLIENT_CREDENTIALS':
-                error_message = APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
-                    app.name
-                )
-                return JsonResponse(
-                    {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
-                    status=HTTPStatus.FORBIDDEN,
-                )
-            elif grant_type == CLIENT_CREDENTIALS:
-                # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
-                # in logs for client_credentials calls. This enables us to track CAN metrics app by app
-                request.can_client_id = app.client_id
+            if grant_type == 'authorization_code':
+                client_assertion = request.POST.get('client_assertion', '')
+                client_assertion_type = request.POST.get('client_assertion_type', '')
 
-                # Check for malformed request
-                request_validation_result = self._validate_client_credentials_request(request)
-                if request_validation_result:
-                    return request_validation_result
-                allow_client_credentials_call = self._check_if_client_credentials_call_is_allowed(app, version)
-
-                if not allow_client_credentials_call:
-                    error_message = APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(app.name)
+                if app.allowed_auth_type == 'CLIENT_CREDENTIALS':
+                    error_message = (
+                        APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(
+                            app.name
+                        )
+                    )
                     return JsonResponse(
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                         status=HTTPStatus.FORBIDDEN,
                     )
-                else:
-                    # since we're not getting the user info from SLS, don't return openid scope in this flow
-                    scopes = request.POST.get('scope', '').split()
-                    if OPENID_SCOPE in scopes:
-                        request.POST._mutable = True
-                        request.POST['scope'] = ' '.join(s for s in scopes if s != OPENID_SCOPE)
-                        request.POST._mutable = False
+                elif client_assertion and client_assertion_type:
+                    # Distinguish between symmetric and asymmetric authentication by
+                    # checking for the presence of a client_assertion or client assertion
+                    # type parameter in the request. If it is present, we will use asymmetric authentication.
+                    asymmetric_auth_validator = AsymmetricAuthValidator()
 
-                    # Allow client credentials call to proceed, to be implemented in a later ticket
-                    log.info(f'client_credentials token call was made for app: {app.name}')
+                    # Check for required params for asymmetric authentication
+                    request_validation_result = asymmetric_auth_validator.validate_request_params(request)
+                    if request_validation_result:
+                        return request_validation_result
+                    # Only support v3 calls or calls having supported types
+                    call_allowed_result = asymmetric_auth_validator.check_if_call_is_allowed(
+                        app.allowed_auth_type, version, 'asymmetric_auth', app.name
+                    )
+                    if call_allowed_result:
+                        return call_allowed_result
                     try:
-                        can_validator = CMSAlignedNetworksValidator()
-                        id_match_payload, csp_issuer = can_validator.authenticate_and_validate_token(
-                            request.POST.get('client_assertion', ''),
+                        # Validate the JWT
+                        asymmetric_auth_validator.authenticate_and_validate_token(
+                            client_assertion,
                             app.client_id,
                             app.jwks_uri,
                         )
-
-                        headers = {
-                            'X-CLIENT-ID': app.client_id,
-                            'X-CLIENT-NAME': app.name,
-                            'X-CLIENT-IP': get_ip_from_request(request),
-                        }
-                        url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
-
-                        patient_bundle = get_patient_match_response_json(
-                            url=url,
-                            json=id_match_payload,
-                            headers=headers,
-                            method='POST',
-                        )
-                        patient_match_found, patient = is_patient_match_found(patient_bundle)
-
-                        log_dict = {
-                            'type': 'request_response_middleware',
-                            'app_name': app.name,
-                            'csp': csp_issuer,
-                            'patient': None,
-                            'path': request.path,
-                            'patient_match_found': False,
-                        }
-
-                        if patient_match_found and patient:
-                            mbi = extract_mbi_from_patient(patient)
-                            fhir_id = extract_fhir_id_from_patient(patient)
-                            user = self._create_or_retrieve_user(mbi, fhir_id, request)
-
-                            log_dict['patient_match_found'] = True
-                            log_dict['patient'] = fhir_id
-                            log.info(json.dumps(log_dict))
-                            create_or_update_data_access_grant_client_credential_flow(user, app)
-                        else:
-                            log.info(json.dumps(log_dict))
-                            log.debug(f'No patient match found for client_credentials call for app: {app.name}')
-                            # We return a 401 here because the token request wasn't authorized since we couldn't verify a single patient
-                            return JsonResponse(
-                                {
-                                    'status_code': HTTPStatus.UNAUTHORIZED,
-                                    'message': PATIENT_DATA_CANNOT_BE_FOUND,
-                                },
-                                status=HTTPStatus.UNAUTHORIZED,
-                            )
                     except Exception as e:
                         log.error(f'Error validating jwt: {e}')
                         return JsonResponse(
@@ -874,6 +767,93 @@ class TokenView(DotTokenView):
                             },
                             status=HTTPStatus.BAD_REQUEST,
                         )
+            elif grant_type == CLIENT_CREDENTIALS:
+                # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
+                # in logs for client_credentials calls. This enables us to track CAN metrics app by app
+                request.can_client_id = app.client_id
+
+                can_validator = CMSAlignedNetworksValidator()
+
+                # Check for malformed request
+                request_validation_result = can_validator.validate_request_params(request)
+                if request_validation_result:
+                    return request_validation_result
+
+                # Only support v3 calls or calls having supported types
+                call_allowed_result = can_validator.check_if_call_is_allowed(
+                    app.allowed_auth_type, version, 'asymmetric_auth', app.name
+                )
+                if call_allowed_result:
+                    return call_allowed_result
+
+                # since we're not getting the user info from SLS, don't return openid scope in this flow
+                scopes = request.POST.get('scope', '').split()
+                if OPENID_SCOPE in scopes:
+                    request.POST._mutable = True
+                    request.POST['scope'] = ' '.join(s for s in scopes if s != OPENID_SCOPE)
+                    request.POST._mutable = False
+
+                log.info(f'client_credentials token call was made for app: {app.name}')
+                try:
+                    id_match_payload, csp_issuer = can_validator.authenticate_and_validate_token(
+                        request.POST.get('client_assertion', ''),
+                        app.client_id,
+                        app.jwks_uri,
+                    )
+
+                    headers = {
+                        'X-CLIENT-ID': app.client_id,
+                        'X-CLIENT-NAME': app.name,
+                        'X-CLIENT-IP': get_ip_from_request(request),
+                    }
+                    url = f'{fhir_settings.fhir_url_v3}/v3/fhir/Patient/{IDI_MATCH_ENDPOINT}'
+
+                    patient_bundle = get_patient_match_response_json(
+                        url=url,
+                        json=id_match_payload,
+                        headers=headers,
+                        method='POST',
+                    )
+                    patient_match_found, patient = is_patient_match_found(patient_bundle)
+
+                    log_dict = {
+                        'type': 'request_response_middleware',
+                        'app_name': app.name,
+                        'csp': csp_issuer,
+                        'patient': None,
+                        'path': request.path,
+                        'patient_match_found': False,
+                    }
+
+                    if patient_match_found and patient:
+                        mbi = extract_mbi_from_patient(patient)
+                        fhir_id = extract_fhir_id_from_patient(patient)
+                        user = self._create_or_retrieve_user(mbi, fhir_id, request)
+
+                        log_dict['patient_match_found'] = True
+                        log_dict['patient'] = fhir_id
+                        log.info(json.dumps(log_dict))
+                        create_or_update_data_access_grant_client_credential_flow(user, app)
+                    else:
+                        log.info(json.dumps(log_dict))
+                        log.debug(f'No patient match found for client_credentials call for app: {app.name}')
+                        # We return a 401 here because the token request wasn't authorized since we couldn't verify a single patient
+                        return JsonResponse(
+                            {
+                                'status_code': HTTPStatus.UNAUTHORIZED,
+                                'message': PATIENT_DATA_CANNOT_BE_FOUND,
+                            },
+                            status=HTTPStatus.UNAUTHORIZED,
+                        )
+                except Exception as e:
+                    log.error(f'Error validating jwt: {e}')
+                    return JsonResponse(
+                        {
+                            'status_code': HTTPStatus.BAD_REQUEST,
+                            'message': 'Bad request',
+                        },
+                        status=HTTPStatus.BAD_REQUEST,
+                    )
 
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
