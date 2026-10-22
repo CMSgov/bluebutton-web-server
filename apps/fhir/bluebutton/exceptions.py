@@ -41,7 +41,6 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
             msg = 'Invalid response from server api'
             err = JSONDecodeException(msg)
             # Do nothing here; fall through and return `err`
-            pass
     if response.status_code is None:
         # This should be impossible.
         msg = 'No status code from the upstream server'
@@ -78,10 +77,15 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
         except JSONDecodeError:
             msg = 'Invalid response from server api'
             err = JSONDecodeException(msg)
-            # Do nothing here; fall through and return `err`
-            pass
         return err
     elif response.status_code >= 500:
+        try:
+            json = r.json()
+        except JSONDecodeError:
+            msg = 'Invalid response from server api'
+            err = JSONDecodeException(msg)
+            return err
+
         # Anything that is a 500-class error from upstream becomes a 502
         # as we propagate it forward.
         msg = 'A failure occurred contacting the upstream server'
@@ -100,7 +104,7 @@ class UpstreamServerException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
 class JSONDecodeException(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_502_BAD_GATEWAY
 
 class BadRequestToBackendError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
