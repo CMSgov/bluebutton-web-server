@@ -1,10 +1,10 @@
 from http import HTTPStatus
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
-from unittest.mock import patch, MagicMock
 
 from apps.constants import SAMPLE_CAN_USER_FHIR_ID_V3
 
@@ -15,7 +15,7 @@ client = Client()
 @override_switch('require-scopes', active=True)
 @override_switch('enable_auditevents', active=True)
 @patch('apps.fhir.views.generic.requests.get')
-def test_json_decode_error(basic_user, get_access_token, create_capability):
+def test_json_decode_error(basic_user, get_access_token, create_capability, mock_get):
     """Make an actual live call to BFD for the patient endpoint that returns a JSONDecodeError
 
     Args:
