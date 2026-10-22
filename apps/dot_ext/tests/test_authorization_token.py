@@ -23,6 +23,7 @@ from apps.constants import (
     TEST_APP_CLIENT_SECRET,
 )
 from apps.dot_ext.constants import (
+    APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED,
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     AUTH_CODE_TYPE,
     CC_SYSTEM_MEDICARE_NUMBER,
@@ -48,67 +49,45 @@ client = Client()
 
 
 class TestAuthorizeTokenEndpoint(BaseApiTest):
-    # def test_check_if_client_credentials_call_is_allowed(self) -> None:
-    #     view_instance = TokenView()
-    #     mock_app = Application(
-    #         name='TestApp',
-    #         allowed_auth_type='AUTH_CODE',
-    #         jwks_uri='https://valid.jwks.json',
-    #     )
+    @override_switch('v3_endpoints', active=True)
+    def test_client_credentials_wrong_auth_type(self):
+        """Ensure a bad request is thrown when a v3 token calls is made, with grant_type = client_credentials
+        and the application for the request does not have allowed_auth_type in
+        ['AUTH_CODE_AND_CLIENT_CREDS', 'CLIENT_CREDENTIALS']
+        """
+        redirect_uri = 'http://localhost'
+        # create a user
+        self._create_user('anna', '123456')
 
-    #     for version in Versions.supported_versions():
-    #         result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, version)
-    #         assert not result
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri,
+        )
+        application.scope.add(capability_a, capability_b)
 
-    #     mock_app.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
-    #     result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
-    #     assert result
+        # Identification from client_assertion (Private Key JWT)
+        assertion = jwt.encode({'iss': application.client_id}, 'secret', algorithm='HS256')
+        token_request_data = {
+            'grant_type': CLIENT_CREDENTIALS,
+            'redirect_uri': redirect_uri,
+            'scope': 'patient/ExplanationOfBenefit.rs',
+            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            'client_assertion': assertion,
+        }
+        body = urlencode(token_request_data)
+        response = self.client.post(
+            f'/v{Versions.V3}/o/token/',
+            data=body,
+            content_type='application/x-www-form-urlencoded',
+        )
 
-    #     mock_app.allowed_auth_type = 'CLIENT_CREDENTIALS'
-    #     result = view_instance._check_if_client_credentials_call_is_allowed(mock_app, Versions.V3)
-    #     assert result
-
-    # @override_switch('v3_endpoints', active=True)
-    # def test_client_credentials(self):
-    #     """Ensure a bad request is thrown when a v3 token calls is made, with grant_type = client_credentials
-    #     and the application for the request does not have allowed_auth_type in
-    #     ['AUTH_CODE_AND_CLIENT_CREDS', 'CLIENT_CREDENTIALS']
-    #     """
-    #     redirect_uri = 'http://localhost'
-    #     # create a user
-    #     self._create_user('anna', '123456')
-
-    #     capability_a = self._create_capability('Capability A', [])
-    #     capability_b = self._create_capability('Capability B', [])
-    #     # create an application and add capabilities
-    #     application = self._create_application(
-    #         'an app',
-    #         grant_type=Application.GRANT_AUTHORIZATION_CODE,
-    #         client_type=Application.CLIENT_CONFIDENTIAL,
-    #         redirect_uris=redirect_uri,
-    #     )
-    #     application.scope.add(capability_a, capability_b)
-
-    #     # Identification from client_assertion (Private Key JWT)
-    #     assertion = jwt.encode({'iss': application.client_id}, 'secret', algorithm='HS256')
-    #     token_request_data = {
-    #         'grant_type': CLIENT_CREDENTIALS,
-    #         'redirect_uri': redirect_uri,
-    #         'scope': 'patient/ExplanationOfBenefit.rs',
-    #         'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
-    #         'client_assertion': assertion,
-    #     }
-    #     body = urlencode(token_request_data)
-    #     response = self.client.post(
-    #         f'/v{Versions.V3}/o/token/',
-    #         data=body,
-    #         content_type='application/x-www-form-urlencoded',
-    #     )
-
-    #     assert response.status_code == HTTPStatus.FORBIDDEN
-    #     assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED.format(
-    #         application.name
-    #     )
+        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert response.json()['message'] == APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED.format(application.name)
 
     @override_switch('v3_endpoints', active=True)
     def test_authorization_code_grant_type_when_app_is_only_allowed_client_credentials(
@@ -160,7 +139,7 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
             'code_challenge': code_challenge,
             'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
         }
-        response = self.client.post(response['Location'], data=payload)
+        response = self.client.post(response['Location'], data=payload, secure=True)
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         query_dict = parse_qs(urlparse(response['Location']).query)
@@ -185,47 +164,6 @@ class TestAuthorizeTokenEndpoint(BaseApiTest):
         assert response.json()['message'] == (
             APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE.format(application.name)
         )
-
-    # def test_validate_client_credentials_request_raise_missing_params(self) -> None:
-    #     view_instance = TokenView()
-    #     mock_request = MagicMock()
-    #     mock_request.POST = {'_encoding': 'utf-8', '_mutable': False}
-
-    #     # Pass the mock request to your function
-    #     result = view_instance._validate_client_credentials_request(mock_request)
-    #     result_dict = json.loads(result.content)
-    #     assert result_dict['status_code'] == HTTPStatus.BAD_REQUEST
-    #     assert result_dict['message'] == (
-    #         'Missing Required Parameter(s): grant_type, scope, client_assertion_type, client_assertion'
-    #     )
-
-    # def test_validate_client_credentials_request_raise_invalid_request(self) -> None:
-    #     view_instance = TokenView()
-    #     mock_request = MagicMock()
-    #     mock_request.POST = {
-    #         'grant_type': CLIENT_CREDENTIALS,
-    #         'redirect_uri': 'test.com',
-    #         'scope': 'patient/ExplanationOfBenefit.rs',
-    #         'client_assertion_type': 'incorrect-assertion',
-    #         'client_assertion': 'test',
-    #     }
-
-    #     with self.assertRaises(InvalidRequestError):
-    #         view_instance._validate_client_credentials_request(mock_request)
-
-    # def test_validate_client_credentials_request(self) -> None:
-    #     view_instance = TokenView()
-    #     mock_request = MagicMock()
-    #     mock_request.POST = {
-    #         'grant_type': CLIENT_CREDENTIALS,
-    #         'redirect_uri': 'test.com',
-    #         'scope': 'patient/ExplanationOfBenefit.rs',
-    #         'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
-    #         'client_assertion': 'test',
-    #     }
-
-    #     result = view_instance._validate_client_credentials_request(mock_request)
-    #     assert result is None
 
     def test_retrieve_prior_include_samhsa_and_part_d_eob_only_values_non_refresh_token_grant_type(self) -> None:
         """The _retrieve_prior_include_samhsa_and_part_d_eob_only_values will always return a value of True for

@@ -35,11 +35,11 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import (
+    APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED,
     ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS,
-    ASYMMETRIC_AUTH_REQUIRED_PARAMS,
-    ASYMMETRIC_AUTH_SUPPORTED_TYPES,
+    AUTH_CODE_SUPPORTED_TYPES,
+    CAN_AND_ASYMMETRIC_AUTH_REQUIRED_PARAMS,
     CAN_REQUIRED_CLAIM_FIELDS,
-    CAN_REQUIRED_PARAMS,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
     CLIENT_ASSERTION_TYPE_VALUE,
@@ -150,12 +150,11 @@ class BaseTokenValidator(ABC):
         """
         pass
 
-    @abstractmethod
     def _get_required_params(self) -> list[str]:
         """
         Returns a list of required parameters for the specific token validator to validate against the incoming request.
         """
-        pass
+        return CAN_AND_ASYMMETRIC_AUTH_REQUIRED_PARAMS
 
     @abstractmethod
     def _get_supported_types(self) -> list[str]:
@@ -242,7 +241,7 @@ class BaseTokenValidator(ABC):
             jwt.PyJWK: The matching signing key.
         """
         jwks_client = jwt.PyJWKClient(jwks_uri)
-        # Extract the algorithm and kidfrom the unverified header
+        # Extract the algorithm and kid from the unverified header
         unverified_header = jwt.get_unverified_header(token)
         token_alg = unverified_header.get('alg')
         token_kid = unverified_header.get('kid')
@@ -302,28 +301,44 @@ class BaseTokenValidator(ABC):
 
         return None
 
-    def check_if_call_is_allowed(self, allowed_auth_type: str, version: int, call_type: str) -> bool:
+    def check_if_call_is_allowed(
+        self, allowed_auth_type: str, version: int, call_type: str, app_name: str
+    ) -> None | JsonResponse:
         """Checks if the version for the call is v3 + the app is allowed to do this and has a jwks_uri
 
         Args:
             allowed_auth_type (str): model
             version (Versions): Version constant
             call_type (str): The type of call being made
+            app_name (str): the name of the app
 
         Returns:
-            bool: if the app is allowed to make a client_credential call
+            None if it passes validation, JSONResponse if a validation step fails
         """
         if version != Versions.V3:
-            log.warning(f'A {call_type} token call was made for version: {version}.')
-            raise InvalidRequestError(
-                f'A {call_type} token call was made for version: {version}. You must use {Versions.V3} for {call_type} calls.'
+            log.warning(f'A {call_type} token call was made for version: {version} from app {app_name}.')
+            return JsonResponse(
+                {
+                    'error': 'invalid_request',
+                    'message': f'A {call_type} token call was made for version: {version}. You must use version {Versions.V3} for {call_type} calls.',
+                },
+                status=HTTPStatus.BAD_REQUEST,
             )
         supported_types = self._get_supported_types()
         if allowed_auth_type not in supported_types:
-            log.warning(f'A {call_type} token call was made for an app that does not have {call_type} enabled')
-            raise InvalidRequestError(
-                f'A {call_type} token call was made for an app that does not have {allowed_auth_type} enabled.'
+            log.warning(
+                f'A {call_type} token call was made from app {app_name} that does not have {call_type} enabled.'
             )
+            error_message = APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED.format(app_name)
+            return JsonResponse(
+                {
+                    'error': 'invalid_grant',
+                    'message': error_message,
+                },
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        return None
 
 
 class CMSAlignedNetworksValidator(BaseTokenValidator):
@@ -334,10 +349,6 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
     def _get_waffle_switch(self) -> str:
         """Returns the waffle switch name for the CMS Aligned Networks Validator."""
         return 'client_credentials_validation'
-
-    def _get_required_params(self) -> list[str]:
-        """Returns the list of required parameters for the CMS Aligned Networks Validator."""
-        return CAN_REQUIRED_PARAMS
 
     def _get_supported_types(self) -> list[str]:
         """Returns the list of supported types for the CMS Aligned Networks Validator."""
@@ -712,13 +723,9 @@ class AsymmetricAuthValidator(BaseTokenValidator):
         """Returns the list of required claim fields for the Asymmetric Auth Validator."""
         return ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS
 
-    def _get_required_params(self) -> list[str]:
-        """Returns the list of required parameters for the Asymmetric Auth Validator."""
-        return ASYMMETRIC_AUTH_REQUIRED_PARAMS
-
     def _get_supported_types(self) -> list[str]:
         """Returns the list of supported types for the Asymmetric Auth Validator."""
-        return ASYMMETRIC_AUTH_SUPPORTED_TYPES
+        return AUTH_CODE_SUPPORTED_TYPES
 
     def _validate_and_get_jwks_uri(self, token: str, registered_jwks_uri: str) -> None:
         """

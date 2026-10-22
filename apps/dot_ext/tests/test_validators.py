@@ -1003,13 +1003,21 @@ def test_get_signing_key(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'validator_class, allowed_auth_type, version, call_type, should_raise, expected_message',
+    'validator_class, allowed_auth_type, version, call_type, should_fail, status_code, expected_message',
     [
         # Tests successful cases for both validators
-        (AsymmetricAuthValidator, AUTH_CODE_TYPE, 3, 'asymmetric_auth', False, None),
-        (CMSAlignedNetworksValidator, CLIENT_CREDENTIALS_TYPE, 3, 'client_credentials', False, None),
-        (AsymmetricAuthValidator, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE, 3, 'asymmetric_auth', False, None),
-        (CMSAlignedNetworksValidator, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE, 3, 'client_credentials', False, None),
+        (AsymmetricAuthValidator, AUTH_CODE_TYPE, 3, 'asymmetric_auth', False, None, None),
+        (CMSAlignedNetworksValidator, CLIENT_CREDENTIALS_TYPE, 3, 'client_credentials', False, None, None),
+        (AsymmetricAuthValidator, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE, 3, 'asymmetric_auth', False, None, None),
+        (
+            CMSAlignedNetworksValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            3,
+            'client_credentials',
+            False,
+            None,
+            None,
+        ),
         # Test different versions raise error
         (
             AsymmetricAuthValidator,
@@ -1017,7 +1025,8 @@ def test_get_signing_key(
             1,
             'asymmetric_auth',
             True,
-            'A asymmetric_auth token call was made for version: 1. You must use 3 for asymmetric_auth calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
         ),
         (
             CMSAlignedNetworksValidator,
@@ -1025,7 +1034,8 @@ def test_get_signing_key(
             1,
             'client_credentials',
             True,
-            'A client_credentials token call was made for version: 1. You must use 3 for client_credentials calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 1. You must use version 3 for client_credentials calls.',
         ),
         (
             AsymmetricAuthValidator,
@@ -1033,7 +1043,8 @@ def test_get_signing_key(
             1,
             'asymmetric_auth',
             True,
-            'A asymmetric_auth token call was made for version: 1. You must use 3 for asymmetric_auth calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
         ),
         (
             CMSAlignedNetworksValidator,
@@ -1041,7 +1052,8 @@ def test_get_signing_key(
             1,
             'client_credentials',
             True,
-            'A client_credentials token call was made for version: 1. You must use 3 for client_credentials calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 1. You must use version 3 for client_credentials calls.',
         ),
         (
             AsymmetricAuthValidator,
@@ -1049,7 +1061,8 @@ def test_get_signing_key(
             2,
             'asymmetric_auth',
             True,
-            'A asymmetric_auth token call was made for version: 2. You must use 3 for asymmetric_auth calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
         ),
         (
             CMSAlignedNetworksValidator,
@@ -1057,7 +1070,8 @@ def test_get_signing_key(
             2,
             'client_credentials',
             True,
-            'A client_credentials token call was made for version: 2. You must use 3 for client_credentials calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 2. You must use version 3 for client_credentials calls.',
         ),
         (
             AsymmetricAuthValidator,
@@ -1065,7 +1079,8 @@ def test_get_signing_key(
             2,
             'asymmetric_auth',
             True,
-            'A asymmetric_auth token call was made for version: 2. You must use 3 for asymmetric_auth calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
         ),
         (
             CMSAlignedNetworksValidator,
@@ -1073,7 +1088,8 @@ def test_get_signing_key(
             2,
             'client_credentials',
             True,
-            'A client_credentials token call was made for version: 2. You must use 3 for client_credentials calls.',
+            HTTPStatus.BAD_REQUEST,
+            'A client_credentials token call was made for version: 2. You must use version 3 for client_credentials calls.',
         ),
         # Tests for having unsupported allowed auth type
         (
@@ -1082,7 +1098,8 @@ def test_get_signing_key(
             3,
             'asymmetric_auth',
             True,
-            'A asymmetric_auth token call was made for an app that does not have CLIENT_CREDENTIALS enabled.',
+            HTTPStatus.FORBIDDEN,
+            'This application, new_app, does not yet have access to this authorization method.',
         ),
         (
             CMSAlignedNetworksValidator,
@@ -1090,20 +1107,24 @@ def test_get_signing_key(
             3,
             'client_credentials',
             True,
-            'A client_credentials token call was made for an app that does not have AUTH_CODE enabled.',
+            HTTPStatus.FORBIDDEN,
+            'This application, new_app, does not yet have access to this authorization method.',
         ),
     ],
 )
 def test_check_if_call_is_allowed(
-    validator_class, allowed_auth_type, version, call_type, should_raise, expected_message
+    validator_class, allowed_auth_type, version, call_type, should_fail, status_code, expected_message
 ):
     validator = validator_class()
-    if should_raise:
-        with pytest.raises(InvalidRequestError) as exc_info:
-            result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type)
-            assert expected_message in str(exc_info.value)
+    app_name = 'new_app'
+    if should_fail:
+        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type, app_name)
+        assert isinstance(result, JsonResponse)
+        assert result.status_code == status_code
+        response_data = json.loads(result.content.decode('utf-8'))
+        assert expected_message in response_data['message']
     else:
-        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type)
+        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type, app_name)
         assert result is None
 
 
@@ -1126,8 +1147,10 @@ def test_check_if_call_is_allowed(
         (
             AsymmetricAuthValidator,
             {
+                'grant_type': 'authorization_code',
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
                 'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
             },
             None,
             False,
@@ -1143,8 +1166,8 @@ def test_check_if_call_is_allowed(
         ),
         (
             AsymmetricAuthValidator,
-            {'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE},
-            'Missing Required Parameter(s): client_assertion',
+            {'grant_type': 'authorization_code', 'scope': 'patient/ExplanationOfBenefit.rs'},
+            'Missing Required Parameter(s): client_assertion_type, client_assertion',
             True,
             False,
         ),
@@ -1164,8 +1187,10 @@ def test_check_if_call_is_allowed(
         (
             AsymmetricAuthValidator,
             {
+                'grant_type': 'authorization_code',
                 'client_assertion_type': 'invalid-urn-type',
                 'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
             },
             'client_assertion_type was wrong',
             True,
@@ -1188,8 +1213,10 @@ def test_check_if_call_is_allowed(
         (
             AsymmetricAuthValidator,
             {
+                'grant_type': 'authorization_code',
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
                 'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
                 'client_secret': 'super_secret_string',
             },
             'client_secret should not be included in client_credentials call',
@@ -1213,6 +1240,8 @@ def test_validate_request_params(validator_class, post_data, expected_message, s
             result = validator.validate_request_params(mock_request)
             assert isinstance(result, JsonResponse)
             assert result.status_code == HTTPStatus.BAD_REQUEST
+            response_data = json.loads(result.content.decode('utf-8'))
+            assert expected_message in response_data['message']
     else:
         result = validator.validate_request_params(mock_request)
         assert result is None

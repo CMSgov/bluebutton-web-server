@@ -22,10 +22,9 @@ PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~'
 ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
 # CAN Flow also requires the 'extensions' claim (smart extension)
 CAN_REQUIRED_CLAIM_FIELDS = ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS + ['extensions']
-CAN_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
-# These are the main custom fields we validate for asymmetric auth
-# grant_type, code, redirect_uri, and code_verifier get validated inside create_token_response
-ASYMMETRIC_AUTH_REQUIRED_PARAMS = ['client_assertion_type', 'client_assertion']
+# Asymmetric Auth technically has more fields to be validated against than CAN but
+# code, redirect_uri, and code_verifier get validated inside create_token_response within authorization.py
+CAN_AND_ASYMMETRIC_AUTH_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
 
 
 # List of value keys that are being tracked via request.session
@@ -567,7 +566,7 @@ BENE_PERSONAL_INFO_SCOPES = [
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = 'User access cannot be found. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
-APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
+APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED = (
     'This application, {}, does not yet have access to this authorization method.'
     ' If you are the app maintainer, please contact the Blue Button API team.'
     ' If you are a Medicare Beneficiary and need assistance, please contact'
@@ -598,7 +597,6 @@ CLIENT_CREDENTIALS_TYPE = 'CLIENT_CREDENTIALS'
 AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE = 'AUTH_CODE_AND_CLIENT_CREDS'
 
 CLIENT_CREDENTIALS_SUPPORTED_TYPES = [CLIENT_CREDENTIALS_TYPE, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE]
-ASYMMETRIC_AUTH_SUPPORTED_TYPES = [AUTH_CODE_TYPE, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE]
 AUTH_CODE_SUPPORTED_TYPES = [AUTH_CODE_TYPE, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE]
 
 YYYY_MM_DD_REGEX = r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$'

@@ -746,15 +746,11 @@ class TokenView(DotTokenView):
                     if request_validation_result:
                         return request_validation_result
                     # Only support v3 calls or calls having supported types
-                    try:
-                        asymmetric_auth_validator.check_if_call_is_allowed(
-                            app.allowed_auth_type, version, 'asymmetric_auth'
-                        )
-                    except InvalidRequestError as e:
-                        return JsonResponse(
-                            {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
-                            status=HTTPStatus.FORBIDDEN,
-                        )
+                    call_allowed_result = asymmetric_auth_validator.check_if_call_is_allowed(
+                        app.allowed_auth_type, version, 'asymmetric_auth', app.name
+                    )
+                    if call_allowed_result:
+                        return call_allowed_result
                     try:
                         # Validate the JWT
                         asymmetric_auth_validator.authenticate_and_validate_token(
@@ -783,13 +779,12 @@ class TokenView(DotTokenView):
                 if request_validation_result:
                     return request_validation_result
 
-                try:
-                    can_validator.check_if_call_is_allowed(app.allowed_auth_type, version, 'client_credentials')
-                except InvalidRequestError as e:
-                    return JsonResponse(
-                        {'status_code': HTTPStatus.FORBIDDEN, 'message': str(e)},
-                        status=HTTPStatus.FORBIDDEN,
-                    )
+                # Only support v3 calls or calls having supported types
+                call_allowed_result = can_validator.check_if_call_is_allowed(
+                    app.allowed_auth_type, version, 'asymmetric_auth', app.name
+                )
+                if call_allowed_result:
+                    return call_allowed_result
 
                 # since we're not getting the user info from SLS, don't return openid scope in this flow
                 scopes = request.POST.get('scope', '').split()
