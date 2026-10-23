@@ -1,13 +1,8 @@
-from typing import override
-
-from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from oauth2_provider.models import AccessToken, get_application_model
 
-from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 from apps.dot_ext.csv import ExportCsvMixin
-from apps.dot_ext.forms import CreateNewApplicationForm, CustomRegisterApplicationForm
+from apps.dot_ext.forms import CreateApplicationForm, EditApplicationForm
 from apps.dot_ext.models import ApplicationLabel, AuthFlowUuid, InternalApplicationLabelsProxy
 
 Application = get_application_model()
@@ -37,89 +32,18 @@ class CreateNewApplication(Application):
         app_label = 'bluebutton'
 
 
-class CustomAdminApplicationForm(CustomRegisterApplicationForm):
-    description = forms.CharField(
-        label='Application Description',
-        help_text='Note text size and HTML tags are not validated under ADMIN.',
-        widget=forms.Textarea,
-        empty_value='',
-        required=False,
-    )
-
-    def __init__(self, *args, **kwargs):
-        user = None
-        super().__init__(user, *args, **kwargs)
-        self.fields['logo_uri'].widget.attrs['readonly'] = False
-        self.fields['user'].label = 'User*'
-        self.fields['user'].required = True
-
-    class Meta:
-        model = MyApplication
-        fields = (
-            'data_access_type',
-            'client_id',
-            'user',
-            'client_type',
-            'authorization_grant_type',
-            'client_secret_plain',
-            'client_secret',
-            'name',
-            'skip_authorization',
-            'scope',
-            'require_demographic_scopes',
-            'agree',
-            'op_tos_uri',
-            'op_policy_uri',
-            'client_uri',
-            'website_uri',
-            'redirect_uris',
-            'logo_uri',
-            'logo_image',
-            'tos_uri',
-            'policy_uri',
-            'software_id',
-            'contacts',
-            'support_email',
-            'support_phone_number',
-            'description',
-            'internal_application_labels',
-            'active',
-            'first_active',
-            'last_active',
-            'allowed_auth_type',
-            'jwks_uri',
-            'part_d_eob_only',
-        )
-
-    @override
-    def clean_agree(self):
-        return self.cleaned_data.get('agree')
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        if 'require_demographic_scopes' in cleaned_data and 'scope' in cleaned_data:
-            require_demographic_scopes = cleaned_data['require_demographic_scopes']
-            scope = cleaned_data['scope']
-
-            demographic_scopes_query = scope.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
-            if require_demographic_scopes:
-                if not demographic_scopes_query.exists():
-                    raise ValidationError(
-                        'Must have at least one demographic scope when require_demographic_scopes==True.'
-                    )
-            else:  # False or None
-                if demographic_scopes_query.exists():
-                    raise ValidationError(
-                        'Cannot have demographic scopes when require_demographic_scopes==False or None.'
-                    )
-
-        return cleaned_data
-
-
 @admin.register(MyApplication)
 class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
-    form = CustomAdminApplicationForm
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Override the get_form method to use different forms for creating and updating applications.
+        """
+        if obj is None:
+            kwargs['form'] = CreateApplicationForm
+        else:
+            kwargs['form'] = EditApplicationForm
+
+        return super().get_form(request, obj, **kwargs)
 
     def get_list_display(self, request):
         return (
@@ -204,7 +128,7 @@ class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
 
 @admin.register(CreateNewApplication)
 class CreateNewApplicationAdmin(admin.ModelAdmin):
-    form = CreateNewApplicationForm
+    form = CreateApplicationForm
     list_display = (
         'name',
         'user',
