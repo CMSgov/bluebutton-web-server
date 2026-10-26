@@ -60,11 +60,22 @@ resource "aws_lb_listener" "https" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
-  certificate_arn   = local.acm_certificate != null ? local.acm_certificate.arn : null
+  certificate_arn   = local.acm_certificate_arn
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.tg[each.key].arn
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(local.tagged_alb_certs) <= 1
+      error_message = "more than one cert tagged bb_alb_cert=${local.env}, untag the old one"
+    }
+    precondition {
+      condition     = local.acm_certificate_arn != null
+      error_message = "no ALB cert found for ${local.env}, tag one with bb_alb_cert=${local.env}"
+    }
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-https" }

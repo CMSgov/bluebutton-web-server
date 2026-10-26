@@ -100,3 +100,13 @@ data "aws_ssm_parameter" "bcda_account_id" {
 data "aws_secretsmanager_secret_version" "cdap_kms_key_arn" {
   secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.workspace}/kms/key-arn"
 }
+
+# sandbox and prod share an account so the tag value is the env, not just true
+data "aws_resourcegroupstaggingapi_resources" "alb_cert" {
+  resource_type_filters = ["acm:certificate"]
+
+  tag_filter {
+    key    = "bb_alb_cert"
+    values = [local.env]
+  }
+}
