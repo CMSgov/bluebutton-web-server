@@ -32,6 +32,6 @@ watchtower == 3.4.0
 # for running tests inside the container
 beautifulsoup4 == 4.12.2
 jsonschema == 4.17.3
-pillow == 12.3.0 # imported as `PIL`
+pillow == 13.0.0 # imported as `PIL`
 pytest == 9.0.3
 pytest-django == 4.11.1
