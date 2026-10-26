@@ -1,6 +1,5 @@
 import uuid
 
-# from random import randrange
 import pytest
 from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
@@ -19,8 +18,6 @@ from waffle.testutils import override_switch
 
 from apps.dot_ext.forms import CustomRegisterApplicationForm
 from apps.dot_ext.models import Application
-
-# from apps.test import BaseApiTest
 
 
 def get_form_fields(frm):
