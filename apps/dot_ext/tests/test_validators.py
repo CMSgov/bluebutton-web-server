@@ -424,13 +424,16 @@ def test_decode_and_validate_token_expired(
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
 @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._validate_time_comparison')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_success(
     mock_decode_complete,
+    mock_validate_time_comparison,
     mock_cms_get_signing_key,
 ):
     """Test _validate_ial_jwt succeeds with basic validation."""
     mock_cms_get_signing_key.return_value = MagicMock()
+    mock_validate_time_comparison.return_value = True
     with freeze_time() as frozen_time:
         # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
         test_payload = VALID_IAL_JWT_PAYLOAD.copy()
@@ -457,14 +460,17 @@ def test_validate_ial_jwt_success(
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
 @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._validate_time_comparison')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_decode_complete,
+    mock_validate_time_comparison,
     mock_cms_get_signing_key,
 ):
     """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
     validator = CMSAlignedNetworksValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
+    mock_validate_time_comparison.return_value = True
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     test_payload['jti'] = 'can_cache_replay'
@@ -497,9 +503,10 @@ def test_validate_ial_jwt_invalid_header(
     """Test _validate_ial_jwt fails with invalid typ in header"""
     validator = CMSAlignedNetworksValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
+    test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     # Return invalid headers that aren't 'JWT'
     mock_decode_complete.return_value = {
-        'payload': VALID_IAL_JWT_PAYLOAD,
+        'payload': test_payload,
         'header': {'typ': 'random_header'},
     }
 
