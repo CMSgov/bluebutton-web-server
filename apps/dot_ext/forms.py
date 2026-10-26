@@ -87,6 +87,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'tos_uri',
             'support_email',
             'support_phone_number',
+            'jwks_uri',
             'contacts',
             'agree',
             'require_demographic_scopes',
