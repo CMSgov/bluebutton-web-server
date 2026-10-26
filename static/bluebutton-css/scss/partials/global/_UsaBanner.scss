@@ -10,7 +10,7 @@ $font-weight-normal: 400;
 $usa-banner-close__background-color: #f2f2f2;
 $font-size-lg: 18px;
 $usa-banner-action__color: $color-primary-darker;
-$usa-banner-lock-icon__color: $color-green-light;
+$usa-banner-lock-icon__color: $color-success-darker;
 
 .ds-c-usa-banner {
   background-color: $usa-banner__background-color;
@@ -31,7 +31,7 @@ $usa-banner-lock-icon__color: $color-green-light;
   padding: $spacer-1 $spacer-2 $spacer-1 $spacer-2;
   position: relative;
 
-  @media (min-width: $width-sm) {
+  @media (min-width: $media-width-sm) {
     min-height: 0;
     padding-bottom: 4px;
     padding-top: 4px;
@@ -108,10 +108,6 @@ $usa-banner-lock-icon__color: $color-green-light;
   margin: 0;
   padding: 0;
   text-align: left;
-
-  &:focus {
-    @include focus-styles;
-  }
 }
 
 .ds-c-usa-banner__button-text {
@@ -124,7 +120,7 @@ $usa-banner-lock-icon__color: $color-green-light;
   overflow: hidden;
   padding: 4px $spacer-2 $spacer-2 $spacer-1;
 
-  @media (min-width: $width-sm) {
+  @media (min-width: $media-width-sm) {
     padding-bottom: $spacer-3;
     padding-top: $spacer-3;
   }
@@ -134,7 +130,7 @@ $usa-banner-lock-icon__color: $color-green-light;
   display: flex;
   flex-direction: column;
 
-  @media (min-width: $width-sm) {
+  @media (min-width: $media-width-sm) {
     flex-flow: row nowrap;
   }
 }
@@ -145,7 +141,7 @@ $usa-banner-lock-icon__color: $color-green-light;
   max-width: 64ex;
   padding: $spacer-2 12px 0 12px;
 
-  @media (min-width: $width-sm) {
+  @media (min-width: $media-width-sm) {
     padding: 0 $spacer-1;
     width: 50%;
   }
@@ -192,7 +188,7 @@ $usa-banner-lock-icon__color: $color-green-light;
 }
 
 .ds-c-usa-banner__header--expanded {
-  @media (min-width: $width-sm) {
+  @media (min-width: $media-width-sm) {
     background-color: transparent;
     padding-right: 0;
     .ds-c-usa-banner__button-text::after {
