@@ -9,9 +9,7 @@
         {
             "name": "IDIPatient",
             "resource": {
-                "address": [],
                 "gender": "unknown",
-                "identifier": [],
                 "meta": {
                     "profile": [
                         "http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient"
