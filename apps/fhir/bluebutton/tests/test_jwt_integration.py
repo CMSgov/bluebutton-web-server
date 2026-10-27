@@ -69,14 +69,6 @@ is_client_enabled = ENABLE_CLIENT.lower() == 'true'
 client = Client()
 
 
-def add_pkce_defaults(payload):
-    auth_payload = dict(payload)
-    auth_payload.setdefault('state', '0123456789abcdef')
-    auth_payload.setdefault('code_challenge', 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo')
-    auth_payload.setdefault('code_challenge_method', CODE_CHALLENGE_METHOD_S256)
-    return auth_payload
-
-
 def get_can_private_key() -> bytes | str:
     """Returns CAN_PRIVATE_KEY if set, otherwise the PEM of the RSA key behind the local JWKS."""
     env_key = os.getenv('CAN_PRIVATE_KEY')
@@ -461,7 +453,7 @@ def test_asymmetric_auth_flow_integration_successful(basic_user, create_applicat
         'code_challenge': code_challenge,
         'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
     }
-    consent_response = client.post(response['Location'], data=consent_payload, secure=True)
+    consent_response = client.post(response['Location'], data=consent_payload)
 
     # Assert that the login flow correctly redirects the browser to the application callback
     assert consent_response.status_code == HTTPStatus.FOUND

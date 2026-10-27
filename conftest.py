@@ -267,7 +267,6 @@ def create_internal_application_labels(db):
         """
         Helper method that creates a InternalApplicationLabels instance
         """
-        # Create capability, if does not already exist
         try:
             label = InternalApplicationLabels.objects.get(slug=slug)
             return label

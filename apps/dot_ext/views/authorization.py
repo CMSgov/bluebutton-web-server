@@ -781,7 +781,7 @@ class TokenView(DotTokenView):
 
                 # Only support v3 calls or calls having supported types
                 call_allowed_result = can_validator.check_if_call_is_allowed(
-                    app.allowed_auth_type, version, 'asymmetric_auth', app.name
+                    app.allowed_auth_type, version, 'client_credentials', app.name
                 )
                 if call_allowed_result:
                     return call_allowed_result
