@@ -9,7 +9,7 @@ run-selenium-local:
 
 build-selenium:
 	@echo "Building Selenium Image"
-	docker build \
+	docker build --load \
 		-t selenium-local:latest \
 		-f Dockerfile.selenium .
 

@@ -13,21 +13,21 @@ CAN_INTEGRATION_TEST ?= false
 
 build-local:
 	@echo "Building local"
-	docker build \
+	docker build --load \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
 		-t bb-api:latest -f Dockerfile ../../..
 
 build-local-no-cache:
 	@echo "Building local no cache"
-	docker build --no-cache \
+	docker build --load --no-cache \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
 		-t bb-api:latest -f Dockerfile ../../..
 
 build-codebuild:
 	@echo "Building codebuild"
-	docker build \
+	docker build --load \
 		--build-arg RELEASE_TAG="codebuild" \
 		--build-arg BUILD_TARGET="codebuild" \
 		-t bb-api:codebuild -f Dockerfile ../../..

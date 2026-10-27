@@ -2,7 +2,7 @@
 
 build-local:
 	@echo "Building container to compile the requirements"
-	docker build \
+	docker build --load \
 		-t bb-requirements:latest \
 		-f Dockerfile ../../..
 
