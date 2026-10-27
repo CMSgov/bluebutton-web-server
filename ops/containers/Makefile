@@ -30,7 +30,6 @@ build-production:
 		--build-arg RELEASE_TAG="$(RELEASE_TAG)" \
 		--build-arg BUILD_TARGET="production" \
 		--no-cache \
-		--load \
 		-t bb:latest \
 		-f bb-api/Dockerfile .
 

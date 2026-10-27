@@ -3,7 +3,6 @@
 build-local:
 	docker build \
 		-t bb-css:latest \
-		--load \
 		-f Dockerfile ../../..
 
 run-local:
