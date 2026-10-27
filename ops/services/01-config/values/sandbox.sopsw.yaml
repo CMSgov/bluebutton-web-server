@@ -68,6 +68,7 @@
 /bb/sandbox/app/sensitive/slsx_signout_endpoint: ENC[AES256_GCM,data:HdWQOrFvJv1mP+4g6u+lFmLq2YWbo9EHX6h5ocWwdMcKhdZyrQPkiw==,iv:8mkbla+jXnqnbLPTvLdFoOhjJ+htrD28zA1JsQHzS9I=,tag:YPqoe21jcwmfW4fxFPE5Hg==,type:str]
 /bb/sandbox/app/sensitive/slsx_userinfo_endpoint: ENC[AES256_GCM,data:enwxYCsdoNU1bzGenRYuBzK08a/bMnK6sSdMIevYJDZsowbySH8u+AE=,iv:IqIahXPvUTtL1kll4jpap7WxXTxhO2n2m1YIlW1m+GM=,tag:fdStGkniCOnIyHPt4jEQeQ==,type:str]
 /bb/sandbox/app/sensitive/slsx_health_check_endpoint: ENC[AES256_GCM,data:cZ7ZIytQ+2ZmU8xKEiMccSBbHWObpt+eRLA+R0L1f1H0s6euBPeB,iv:nLcjHo260gcIOuWHU8qNCEhIp6YcXXgI2iQrrtIJSAo=,tag:9XS3kkvzVC1outxTl6WsCw==,type:str]
+/bb/sandbox/app/sensitive/django_slsx_relationships_endpoint: ENC[AES256_GCM,data:hT8Ra89Rv73RWnv+76ZqmKDCkADcN+tNf3mkPp18cPE2zYZ7Z1oZgxgm4JNLjBAZIaWz1/TbnshGJDKSOZqGg9v6LRE=,iv:sKwV0zzbfVuqlhK6oRrI1QuPxvjAtG+66ORSGSX8pX4=,tag:1/knJicWu5SeFG2pz2lKuA==,type:str]
 /bb/sandbox/app/nonsensitive/django_slsx_verify_ssl_internal: "False"
 /bb/sandbox/app/nonsensitive/django_slsx_verify_ssl_external: "True"
 #ENC[AES256_GCM,data:etJuMbKWQ0eVN2BYCoqNPOCysTgkaSkJlDAhs4q7QcdoMf8EN+xJ4RwNOf+xCRGcOZeHkzUJlCETeZ179TWzfB3N49R8p3LU2ZrSF54=,iv:ZwQ7c8FbeCF4jQKXALyxcK+WXwV5o6X2/QFGqAeo2tI=,tag:4Utwk/gsCx+eMXSo5L9SCw==,type:comment]
@@ -95,10 +96,8 @@
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-sandbox-app-key-alias
+      aws_profile: ""
       created_at: "2026-02-24T23:04:28Z"
       enc: AQICAHhUPoxZNyOnpuDP24ai5S2lMxNNAUDgk8DjK8R9xG23wwHTm/8HDbVqqW9LQtGVIh9OAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMnqaIsdnO68nTDAA7AgEQgDvcA27FQO5FAyhXC6OY9JcWEvW5wqEeDK0MgHw8zXkFOFdwR1mii1W52+kyiHBc4fm1f+TDr8XzL4TJtg==
-      aws_profile: ""
-  lastmodified: "2026-05-11T21:06:02Z"
-  mac: ENC[AES256_GCM,data:y5+NVK7X/8iY8rQlCeQHv1K+U6D2fB026gEiPToTrkYUT9mb4ptNlLeWE5Fb0+67reXIHNtdme2DzSNeEC2ZQAculOXak5kjSr80U9EXF9CB/5HIgGTGNm8CXM2Ts8NXsA997VuP7vU9A3JNNhNhURXhDpwJT4TYNfmgORSstcw=,iv:FVCd3jU/67bmlXAE0cgY+UmzsQM+viF67p15jBgV/m4=,tag:lWohGRqbpUrcJhGKD86LWg==,type:str]
   unencrypted_regex: /nonsensitive/
-  version: 3.12.2
+  version: 3.13.3
