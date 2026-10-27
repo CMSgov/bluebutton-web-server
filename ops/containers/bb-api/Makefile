@@ -16,7 +16,6 @@ build-local:
 	docker build \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
-		--load \
 		-t bb-api:latest -f Dockerfile ../../..
 
 build-local-no-cache:
@@ -24,7 +23,6 @@ build-local-no-cache:
 	docker build --no-cache \
 		--build-arg RELEASE_TAG="local" \
 		--build-arg BUILD_TARGET="local" \
-		--load \
 		-t bb-api:latest -f Dockerfile ../../..
 
 build-codebuild:
