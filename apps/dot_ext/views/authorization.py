@@ -740,7 +740,7 @@ class TokenView(DotTokenView):
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                         status=HTTPStatus.FORBIDDEN,
                     )
-                elif client_assertion and client_assertion_type:
+                elif client_assertion or client_assertion_type:
                     # Distinguish between symmetric and asymmetric authentication by
                     # checking for the presence of a client_assertion and client assertion
                     # type parameter in the request. If it is present, we will use asymmetric authentication.

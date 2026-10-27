@@ -170,7 +170,7 @@ class BaseTokenRequestValidator(ABC):
             log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
             raise InvalidRequestError('client_assertion_type was wrong')
 
-        if request.POST.get('client_secret'):
+        if 'client_secret' in request.POST:
             log.warning('client_secret should not be included in client_credentials call')
             raise InvalidRequestError('client_secret should not be included in client_credentials call')
 

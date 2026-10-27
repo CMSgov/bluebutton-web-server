@@ -1228,6 +1228,33 @@ def test_check_if_call_is_allowed(
             True,
             True,
         ),
+        # Client mistakenly passes an empty client_secret raises InvalidRequestError
+        (
+            CMSAlignedNetworksTokenRequestValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+                'client_secret': '',
+            },
+            'client_secret should not be included in client_credentials call',
+            True,
+            True,
+        ),
+        (
+            AsymmetricAuthTokenRequestValidator,
+            {
+                'grant_type': 'authorization_code',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': 'valid.jwt.string',
+                'scope': 'patient/ExplanationOfBenefit.rs',
+                'client_secret': '',
+            },
+            'client_secret should not be included in client_credentials call',
+            True,
+            True,
+        ),
     ],
 )
 def test_validate_request_params(validator_class, post_data, expected_message, should_fail, should_raise_error):
