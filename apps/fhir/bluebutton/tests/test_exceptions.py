@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from unittest.mock import MagicMock, patch
+from httmock import HTTMock, all_requests
 
 import pytest
 from django.test.client import Client
@@ -12,10 +12,8 @@ client = Client()
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
-@override_switch('require-scopes', active=True)
-@override_switch('enable_auditevents', active=True)
-@patch('apps.fhir.views.generic.requests.get')
-def test_json_decode_error(basic_user, get_access_token, create_capability, mock_get):
+@override_switch('require-scopes', active=False)
+def test_json_decode_error(basic_user, get_access_token, create_capability):
     """Make an actual live call to BFD for the patient endpoint that returns a JSONDecodeError
 
     Args:
@@ -32,19 +30,19 @@ def test_json_decode_error(basic_user, get_access_token, create_capability, mock
     )
     access_token = get_access_token(
         user.username,
-        'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs patient/AuditEvent.rs',
+        'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs patient/Search.rs',
     )
-    create_capability('patient/AuditEvent.rs', [['GET', '/v[3]/fhir/patient[/]?$']])
+    create_capability('patient/Search.rs', [['GET', '/v[3]/fhir/Patient[/]?$']])
 
-    mock_response = MagicMock()
-    mock_response.status_code = 500
-    mock_response.json.return_value = "mocked_payload"
-    mock_get.return_value = mock_response
+    text_string = "bad"
+    byte_data = text_string.encode("utf-8")
 
-    response = client.get(
-        reverse('bb_oauth_fhir_patient_read_or_update_or_delete'),
-        Authorization='Bearer %s' % (access_token),
-    )
+    @all_requests
+    def catchall(url, req):
+        return {'status_code': HTTPStatus.INTERNAL_SERVER_ERROR, 'content': 'bad content', 'backend_response_text': 'bad content', 'backend_response': {'_content': byte_data}}
 
-    assert response.status_code == HTTPStatus.Bad_Gateway
+    with HTTMock(catchall):
+        response = client.get(reverse('bb_oauth_fhir_patient_search'), Authorization='Bearer %s' % (access_token))
+
+    assert response.status_code == HTTPStatus.BAD_GATEWAY
 

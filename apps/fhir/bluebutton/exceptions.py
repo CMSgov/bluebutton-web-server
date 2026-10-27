@@ -40,26 +40,27 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
         except JSONDecodeError:
             msg = 'Invalid response from server api'
             err = JSONDecodeException(msg)
-            # Do nothing here; fall through and return `err`
     if response.status_code is None:
         # This should be impossible.
         msg = 'No status code from the upstream server'
         err = UpstreamServerException(msg)
-        return err
     elif response.status_code < 300:
+        pass
         # If we're returning a "good" status, short circuit and
         # return a None value.
-        return err
     elif response.status_code == 404:
         err = NotFound('Not found.')
-        return err
     elif response.status_code >= 300 and response.status_code < 400:
         # If we are being redirected, that's unexpected from our FHIR servers.
         # Wrap the error and return
         msg = 'An error occurred contacting the upstream server'
         err = UpstreamServerException(msg)
-        return err
     elif response.status_code >= 400 and response.status_code < 500:
+        print("made it")
+        print("made it")
+        print("made it")
+        print("made it")
+        print("made it")
         # In the 400-range, we will return those to the client.
         # We'll try and parse the JSON. If we can, we'll formulate a
         # more detailed message. If we can't, we'll return a default
@@ -77,7 +78,6 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
         except JSONDecodeError:
             msg = 'Invalid response from server api'
             err = JSONDecodeException(msg)
-        return err
     elif response.status_code >= 500:
         try:
             json = r.json()
@@ -90,13 +90,10 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
         # as we propagate it forward.
         msg = 'A failure occurred contacting the upstream server'
         err = UpstreamServerException(msg)
-        return err
     else:
         # Fallthrough
         pass
 
-    # Our default is to return our None-type error response
-    # However, this fallthrough is unlikely/cannot be reached.
     return err
 
 
