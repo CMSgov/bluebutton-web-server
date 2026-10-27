@@ -60,7 +60,7 @@ resource "aws_lb_listener" "https" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
-  certificate_arn   = local.acm_certificate_arn
+  certificate_arn   = local.acm_certificate != null ? local.acm_certificate.arn : null
 
   default_action {
     type             = "forward"
@@ -68,14 +68,9 @@ resource "aws_lb_listener" "https" {
   }
 
   lifecycle {
-    precondition {
-      condition     = length(local.tagged_alb_certs) <= 1
-      error_message = "more than one cert tagged bb_alb_cert=${local.env}, untag the old one"
-    }
-    precondition {
-      condition     = local.acm_certificate_arn != null
-      error_message = "no ALB cert found for ${local.env}, tag one with bb_alb_cert=${local.env}"
-    }
+    # cert is set once at create, after that swaps are done by hand per the ssl/acm runbook (akamai checks first).
+    # stops the most_recent lookup from moving :443 to a newer cert on apply
+    ignore_changes = [certificate_arn]
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-https" }

@@ -43,10 +43,6 @@ locals {
   acm_certificate      = module.platform.acm_certificate
   permissions_boundary = module.platform.permissions_boundary
 
-  # tagged cert wins over the most_recent domain lookup, so a newer cert for the same domain can't sneak in on apply
-  tagged_alb_certs    = data.aws_resourcegroupstaggingapi_resources.alb_cert.resource_tag_mapping_list[*].resource_arn
-  acm_certificate_arn = length(local.tagged_alb_certs) == 1 ? local.tagged_alb_certs[0] : try(local.acm_certificate.arn, null)
-
   # Sandbox reuses impl content bucket; bucket_env (prod) is for ECR/app-config only
   content_env = local.parent_env == "sandbox" ? "impl" : local.parent_env
 
