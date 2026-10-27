@@ -1,8 +1,9 @@
 .PHONY: build-local run-local
 
 build-local:
-	docker build --load \
+	docker build \
 		-t bb-css:latest \
+		--load \
 		-f Dockerfile ../../..
 
 run-local:
