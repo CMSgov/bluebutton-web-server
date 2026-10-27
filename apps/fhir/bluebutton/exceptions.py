@@ -38,7 +38,7 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
             if is_operation_outcome(response_json):
                 return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
         except JSONDecodeError:
-            msg = 'Invalid response from server api'
+            msg = 'Invalid response from upstream server'
             err = JSONDecodeException(msg)
     if response.status_code is None:
         # This should be impossible.
@@ -56,11 +56,6 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
         msg = 'An error occurred contacting the upstream server'
         err = UpstreamServerException(msg)
     elif response.status_code >= 400 and response.status_code < 500:
-        print("made it")
-        print("made it")
-        print("made it")
-        print("made it")
-        print("made it")
         # In the 400-range, we will return those to the client.
         # We'll try and parse the JSON. If we can, we'll formulate a
         # more detailed message. If we can't, we'll return a default
@@ -76,13 +71,13 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
                 if diagnostics is not None:
                     err = BadRequestToBackendError('{}:{}'.format(msg, diagnostics))
         except JSONDecodeError:
-            msg = 'Invalid response from server api'
+            msg = 'Invalid response from upstream server'
             err = JSONDecodeException(msg)
     elif response.status_code >= 500:
         try:
             json = r.json()
         except JSONDecodeError:
-            msg = 'Invalid response from server api'
+            msg = 'Invalid response from upstream server'
             err = JSONDecodeException(msg)
             return err
 
