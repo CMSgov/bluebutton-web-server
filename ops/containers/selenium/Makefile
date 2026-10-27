@@ -11,6 +11,7 @@ build-selenium:
 	@echo "Building Selenium Image"
 	docker build \
 		-t selenium-local:latest \
+		--load \
 		-f Dockerfile.selenium .
 
 run-remote:
