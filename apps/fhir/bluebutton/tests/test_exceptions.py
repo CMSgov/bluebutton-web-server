@@ -1,9 +1,9 @@
 from http import HTTPStatus
-from httmock import HTTMock, all_requests
 
 import pytest
 from django.test.client import Client
 from django.urls import reverse
+from httmock import HTTMock, all_requests
 from waffle.testutils import override_switch
 
 from apps.constants import SAMPLE_CAN_USER_FHIR_ID_V2, SAMPLE_CAN_USER_FHIR_ID_V3
