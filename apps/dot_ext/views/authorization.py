@@ -88,7 +88,12 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
 )
-from apps.dot_ext.validators import AsymmetricAuthValidator, CMSAlignedNetworksValidator
+from apps.dot_ext.validators import (
+    AsymmetricAuthJWTValidator,
+    AsymmetricAuthTokenRequestValidator,
+    CMSAlignedNetworksJWTValidator,
+    CMSAlignedNetworksTokenRequestValidator,
+)
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import Crosswalk, hash_id_value
 from apps.fhir.bluebutton.utils import (
@@ -737,23 +742,23 @@ class TokenView(DotTokenView):
                     )
                 elif client_assertion and client_assertion_type:
                     # Distinguish between symmetric and asymmetric authentication by
-                    # checking for the presence of a client_assertion or client assertion
+                    # checking for the presence of a client_assertion and client assertion
                     # type parameter in the request. If it is present, we will use asymmetric authentication.
-                    asymmetric_auth_validator = AsymmetricAuthValidator()
+                    asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator()
 
                     # Check for required params for asymmetric authentication
-                    request_validation_result = asymmetric_auth_validator.validate_request_params(request)
+                    request_validation_result = asymmetric_auth_token_req_validator.validate_request_params(request)
                     if request_validation_result:
                         return request_validation_result
                     # Only support v3 calls or calls having supported types
-                    call_allowed_result = asymmetric_auth_validator.check_if_call_is_allowed(
-                        app.allowed_auth_type, version, 'asymmetric_auth', app.name
+                    call_allowed_result = asymmetric_auth_token_req_validator.check_if_call_is_allowed(
+                        app.allowed_auth_type, version, app.name
                     )
                     if call_allowed_result:
                         return call_allowed_result
                     try:
-                        # Validate the JWT
-                        asymmetric_auth_validator.authenticate_and_validate_token(
+                        asymmetric_auth_jwt_validator = AsymmetricAuthJWTValidator()
+                        asymmetric_auth_jwt_validator.authenticate_and_validate_token(
                             client_assertion,
                             app.client_id,
                             app.jwks_uri,
@@ -772,16 +777,16 @@ class TokenView(DotTokenView):
                 # in logs for client_credentials calls. This enables us to track CAN metrics app by app
                 request.can_client_id = app.client_id
 
-                can_validator = CMSAlignedNetworksValidator()
+                can_token_req_validator = CMSAlignedNetworksTokenRequestValidator()
 
                 # Check for malformed request
-                request_validation_result = can_validator.validate_request_params(request)
+                request_validation_result = can_token_req_validator.validate_request_params(request)
                 if request_validation_result:
                     return request_validation_result
 
                 # Only support v3 calls or calls having supported types
-                call_allowed_result = can_validator.check_if_call_is_allowed(
-                    app.allowed_auth_type, version, 'client_credentials', app.name
+                call_allowed_result = can_token_req_validator.check_if_call_is_allowed(
+                    app.allowed_auth_type, version, app.name
                 )
                 if call_allowed_result:
                     return call_allowed_result
@@ -795,7 +800,8 @@ class TokenView(DotTokenView):
 
                 log.info(f'client_credentials token call was made for app: {app.name}')
                 try:
-                    id_match_payload, csp_issuer = can_validator.authenticate_and_validate_token(
+                    can_jwt_validator = CMSAlignedNetworksJWTValidator()
+                    id_match_payload, csp_issuer = can_jwt_validator.authenticate_and_validate_token(
                         request.POST.get('client_assertion', ''),
                         app.client_id,
                         app.jwks_uri,

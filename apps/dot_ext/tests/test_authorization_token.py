@@ -389,7 +389,7 @@ class TestTokenResponseFields(BaseApiTest):
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
     @patch('apps.dot_ext.views.authorization.get_and_update_from_refresh')
-    @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator.authenticate_and_validate_token')
+    @patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator.authenticate_and_validate_token')
     @patch('apps.dot_ext.views.authorization.TokenView._create_or_retrieve_user')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
@@ -492,7 +492,7 @@ class TestTokenResponseFields(BaseApiTest):
                 assert f'"csp": "{IDME_LOWER_ISS}"' in auth_logs.output[1]
 
     @patch.dict(os.environ, {'TARGET_ENV': 'local'})
-    @patch('apps.dot_ext.validators.CMSAlignedNetworksValidator.authenticate_and_validate_token')
+    @patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator.authenticate_and_validate_token')
     @patch('apps.dot_ext.views.authorization.get_patient_match_response_json')
     @override_switch('v3_endpoints', active=True)
     def test_client_credentials_returns_patient_match_not_found_401(

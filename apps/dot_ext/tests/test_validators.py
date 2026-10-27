@@ -30,8 +30,10 @@ from apps.dot_ext.constants import (
     IDME_LOWER_ISS,
 )
 from apps.dot_ext.validators import (
-    AsymmetricAuthValidator,
-    CMSAlignedNetworksValidator,
+    AsymmetricAuthJWTValidator,
+    AsymmetricAuthTokenRequestValidator,
+    CMSAlignedNetworksJWTValidator,
+    CMSAlignedNetworksTokenRequestValidator,
     validate_url,
 )
 
@@ -125,8 +127,8 @@ class ValidateURLTests(TestCase):
 @pytest.mark.parametrize(
     'validator_class, expected_fields',
     [
-        (AsymmetricAuthValidator, ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS),
-        (CMSAlignedNetworksValidator, CAN_REQUIRED_CLAIM_FIELDS),
+        (AsymmetricAuthJWTValidator, ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS),
+        (CMSAlignedNetworksJWTValidator, CAN_REQUIRED_CLAIM_FIELDS),
     ],
 )
 def test_get_required_fields(validator_class, expected_fields):
@@ -138,8 +140,8 @@ def test_get_required_fields(validator_class, expected_fields):
 @pytest.mark.parametrize(
     'validator_class, waffle_switch',
     [
-        (AsymmetricAuthValidator, 'asymmetric_auth_validation'),
-        (CMSAlignedNetworksValidator, 'client_credentials_validation'),
+        (AsymmetricAuthJWTValidator, 'asymmetric_auth_validation'),
+        (CMSAlignedNetworksJWTValidator, 'client_credentials_validation'),
     ],
 )
 def test_get_waffle_switch(validator_class, waffle_switch):
@@ -171,7 +173,7 @@ def test_get_waffle_switch(validator_class, waffle_switch):
 @override_switch('asymmetric_auth_validation', active=True)
 def test_validate_and_get_jwks_uri(jku, header, should_raise):
     """Test the validation of the 'jku' header field for successful and unsuccessful cases."""
-    validator = AsymmetricAuthValidator()
+    validator = AsymmetricAuthJWTValidator()
     token = jwt.encode(ASYMMETRIC_AUTH_PAYLOAD.copy(), 'secret', algorithm='HS256', headers=header)
 
     if should_raise:
@@ -254,7 +256,7 @@ def test_validate_and_get_jwks_uri(jku, header, should_raise):
 )
 def test_validate_time_comparison(claim_key, subtract, time_delta, string, should_raise):
     """Test the successful and unsuccessful _validate_time_comparison cases."""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     if subtract:
         test_payload[claim_key] = datetime.datetime.now(timezone.utc).timestamp() - time_delta
@@ -274,12 +276,12 @@ def test_validate_time_comparison(claim_key, subtract, time_delta, string, shoul
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'validator_class, jti',
-    [(CMSAlignedNetworksValidator, 'can_cache_replay'), (AsymmetricAuthValidator, 'asym_auth_cache_replay')],
+    [(CMSAlignedNetworksJWTValidator, 'can_cache_replay'), (AsymmetricAuthJWTValidator, 'asym_auth_cache_replay')],
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
-@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthJWTValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_and_decode_token_cache_successful(
     mock_decode_complete,
@@ -317,14 +319,14 @@ def test_validate_and_decode_token_cache_successful(
 @pytest.mark.parametrize(
     'validator_class, jti',
     [
-        (CMSAlignedNetworksValidator, 'can_cache_replay'),
-        (AsymmetricAuthValidator, 'asym_auth_cache_replay'),
+        (CMSAlignedNetworksJWTValidator, 'can_cache_replay'),
+        (AsymmetricAuthJWTValidator, 'asym_auth_cache_replay'),
     ],
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
-@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthJWTValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_decode_and_validate_token_cache_replay_unsuccessful(
     mock_decode_complete,
@@ -361,14 +363,14 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
 @pytest.mark.parametrize(
     'validator_class, header',
     [
-        (CMSAlignedNetworksValidator, 'invalid-typ'),
-        (AsymmetricAuthValidator, 'invalid-typ'),
+        (CMSAlignedNetworksJWTValidator, 'invalid-typ'),
+        (AsymmetricAuthJWTValidator, 'invalid-typ'),
     ],
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
-@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthJWTValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_decode_and_validate_token_invalid_header(
     mock_decode_complete,
@@ -396,14 +398,14 @@ def test_decode_and_validate_token_invalid_header(
 @pytest.mark.parametrize(
     'validator_class',
     [
-        (CMSAlignedNetworksValidator),
-        (AsymmetricAuthValidator),
+        (CMSAlignedNetworksJWTValidator),
+        (AsymmetricAuthJWTValidator),
     ],
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
-@patch('apps.dot_ext.validators.AsymmetricAuthValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
+@patch('apps.dot_ext.validators.AsymmetricAuthJWTValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_decode_and_validate_token_expired(
     mock_decode_complete,
@@ -430,8 +432,8 @@ def test_decode_and_validate_token_expired(
 
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._validate_time_comparison')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._validate_time_comparison')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_success(
     mock_decode_complete,
@@ -450,7 +452,7 @@ def test_validate_ial_jwt_success(
             'header': {'typ': 'JWT'},
         }
 
-        validator = CMSAlignedNetworksValidator()
+        validator = CMSAlignedNetworksJWTValidator()
         result = validator._validate_ial_jwt('token', 'jwks_uri')
         assert result == test_payload
 
@@ -466,8 +468,8 @@ def test_validate_ial_jwt_success(
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._validate_time_comparison')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._validate_time_comparison')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_decode_complete,
@@ -475,7 +477,7 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_cms_get_signing_key,
 ):
     """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
     mock_validate_time_comparison.return_value = True
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
@@ -501,14 +503,14 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_invalid_header(
     mock_decode_complete,
     mock_cms_get_signing_key,
 ):
     """Test _validate_ial_jwt fails with invalid typ in header"""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     # Return invalid headers that aren't 'JWT'
@@ -531,7 +533,7 @@ def test_validate_ial_jwt_invalid_header(
 )
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
-@patch('apps.dot_ext.validators.CMSAlignedNetworksValidator._get_signing_key')
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
 @patch('jwt.decode_complete')
 def test_validate_ial_jwt_invalid_request(
     mock_decode_complete,
@@ -540,7 +542,7 @@ def test_validate_ial_jwt_invalid_request(
     value,
 ):
     """Test _validate_ial_jwt fails with invalid identity assurance level or birthdate"""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
@@ -575,7 +577,7 @@ def test_validate_environment_for_id_token(target_env, parameter, expected_resul
     """Confirm that, given a specific environment and an issuer URL, the
     _validate_idme_url_for_id_token_and_environment will correctly return True or False
     """
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     os.environ['TARGET_ENV'] = target_env
     result = validator._validate_idme_url_for_id_token_and_environment(parameter)
     assert result == expected_result
@@ -622,7 +624,7 @@ def test_validate_environment_for_id_token(target_env, parameter, expected_resul
 @override_switch('client_credentials_validation', active=True)
 def test_validate_smart_extension(payload, expected_output, should_raise):
     """Test _validate_smart_extension for correct behavior"""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     if should_raise:
         with pytest.raises(InvalidRequestError):
             validator._validate_smart_extension(payload)
@@ -652,7 +654,7 @@ def test_validate_smart_extension(payload, expected_output, should_raise):
 @override_switch('client_credentials_validation', active=True)
 def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, settings):
     """Test _get_csp_jwks_url for correct behavior"""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     settings.TARGET_ENV = environment
     token = jwt.encode({'iss': iss}, 'secret', algorithm='HS256')
     if should_raise:
@@ -734,7 +736,7 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
 @patch('apps.dot_ext.validators.normalize_address')
 def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_address, json_file_response):
     """Test _parse_into_parameter for correct behavior"""
-    validator = CMSAlignedNetworksValidator()
+    validator = CMSAlignedNetworksJWTValidator()
     mock_normalize.return_value = mock_normalized_address
     expected_output = load_fhir_json(json_file_response)
     result = validator._parse_ial_into_parameter(payload)
@@ -747,7 +749,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
     [
         # Successful retrieval of signing key with matching kid in JWKS and correct algorithm
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -761,7 +763,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Successful retrieval of signing key with matching kid in JWKS and correct algorithm (switch algorithms)
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -776,7 +778,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where the 'kid' in the token does not match any key in the JWKS and thus should raise an error
         # with 0 matching keys in the JWKS
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -791,7 +793,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
         # with 0 matching keys in the JWKS
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -806,7 +808,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
         # with 0 matching keys in the JWKS (switches algorithms)
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -821,7 +823,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where both the 'kid' and 'alg' in the token do not match any key in the JWKS and
         # thus should raise an error with 0 matching keys in the JWKS
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -835,7 +837,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Case where there are multiple matches
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -849,7 +851,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Case where there are multiple matches (switch alogrithms)
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -863,7 +865,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Successful retrieval of signing key with matching kid in JWKS and correct algorithm
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -877,7 +879,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Successful retrieval of signing key with matching kid in JWKS and correct algorithm (switch algorithms)
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -892,7 +894,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where the 'kid' in the token does not match any key in the JWKS and thus should raise an error
         # with 0 matching keys in the JWKS
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -907,7 +909,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
         # with 0 matching keys in the JWKS
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -922,7 +924,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where the 'alg' in the token does not match the key's algorithm and thus should raise an error
         # with 0 matching keys in the JWKS (switches algorithms)
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -937,7 +939,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         # Case where both the 'kid' and 'alg' in the token do not match any key in the JWKS and
         # thus should raise an error with 0 matching keys in the JWKS
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -951,7 +953,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Case where there are multiple matches
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -965,7 +967,7 @@ def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_addre
         ),
         # Case where there are multiple matches (switch alogrithms)
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthJWTValidator,
             'dummy_token',
             'https://example.com/.well-known/jwks.json',
             [
@@ -1010,109 +1012,105 @@ def test_get_signing_key(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'validator_class, allowed_auth_type, version, call_type, should_fail, status_code, expected_message',
+    'validator_class, allowed_auth_type, version, should_fail, status_code, expected_message',
     [
         # Tests successful cases for both validators
-        (AsymmetricAuthValidator, AUTH_CODE_TYPE, 3, 'asymmetric_auth', False, None, None),
-        (CMSAlignedNetworksValidator, CLIENT_CREDENTIALS_TYPE, 3, 'client_credentials', False, None, None),
-        (AsymmetricAuthValidator, AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE, 3, 'asymmetric_auth', False, None, None),
+        (AsymmetricAuthTokenRequestValidator, AUTH_CODE_TYPE, 3, False, None, None),
+        (CMSAlignedNetworksTokenRequestValidator, CLIENT_CREDENTIALS_TYPE, 3, False, None, None),
         (
-            CMSAlignedNetworksValidator,
+            AsymmetricAuthTokenRequestValidator,
             AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             3,
-            'client_credentials',
+            False,
+            None,
+            None,
+        ),
+        (
+            CMSAlignedNetworksTokenRequestValidator,
+            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            3,
             False,
             None,
             None,
         ),
         # Test different versions raise error
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             AUTH_CODE_TYPE,
             1,
-            'asymmetric_auth',
             True,
             HTTPStatus.BAD_REQUEST,
             'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
         ),
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             CLIENT_CREDENTIALS_TYPE,
             1,
-            'client_credentials',
             True,
             HTTPStatus.BAD_REQUEST,
             'A client_credentials token call was made for version: 1. You must use version 3 for client_credentials calls.',
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             1,
-            'asymmetric_auth',
             True,
             HTTPStatus.BAD_REQUEST,
             'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
         ),
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             1,
-            'client_credentials',
             True,
             HTTPStatus.BAD_REQUEST,
             'A client_credentials token call was made for version: 1. You must use version 3 for client_credentials calls.',
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             AUTH_CODE_TYPE,
             2,
-            'asymmetric_auth',
             True,
             HTTPStatus.BAD_REQUEST,
             'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
         ),
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             CLIENT_CREDENTIALS_TYPE,
             2,
-            'client_credentials',
             True,
             HTTPStatus.BAD_REQUEST,
             'A client_credentials token call was made for version: 2. You must use version 3 for client_credentials calls.',
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             2,
-            'asymmetric_auth',
             True,
             HTTPStatus.BAD_REQUEST,
             'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
         ),
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             2,
-            'client_credentials',
             True,
             HTTPStatus.BAD_REQUEST,
             'A client_credentials token call was made for version: 2. You must use version 3 for client_credentials calls.',
         ),
         # Tests for having unsupported allowed auth type
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             CLIENT_CREDENTIALS_TYPE,
             3,
-            'asymmetric_auth',
             True,
             HTTPStatus.FORBIDDEN,
             'This application, new_app, does not yet have access to this authorization method.',
         ),
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             AUTH_CODE_TYPE,
             3,
-            'client_credentials',
             True,
             HTTPStatus.FORBIDDEN,
             'This application, new_app, does not yet have access to this authorization method.',
@@ -1120,18 +1118,18 @@ def test_get_signing_key(
     ],
 )
 def test_check_if_call_is_allowed(
-    validator_class, allowed_auth_type, version, call_type, should_fail, status_code, expected_message
+    validator_class, allowed_auth_type, version, should_fail, status_code, expected_message
 ):
     validator = validator_class()
     app_name = 'new_app'
     if should_fail:
-        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type, app_name)
+        result = validator.check_if_call_is_allowed(allowed_auth_type, version, app_name)
         assert isinstance(result, JsonResponse)
         assert result.status_code == status_code
         response_data = json.loads(result.content.decode('utf-8'))
         assert expected_message in response_data['message']
     else:
-        result = validator.check_if_call_is_allowed(allowed_auth_type, version, call_type, app_name)
+        result = validator.check_if_call_is_allowed(allowed_auth_type, version, app_name)
         assert result is None
 
 
@@ -1140,7 +1138,7 @@ def test_check_if_call_is_allowed(
     [
         # All parameters valid and present
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             {
                 'grant_type': CLIENT_CREDENTIALS,
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
@@ -1152,7 +1150,7 @@ def test_check_if_call_is_allowed(
             False,
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             {
                 'grant_type': 'authorization_code',
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
@@ -1165,14 +1163,14 @@ def test_check_if_call_is_allowed(
         ),
         # Missing required parameters returns a 400 JsonResponse
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             {'grant_type': 'authorization_code', 'scope': 'patient/ExplanationOfBenefit.rs'},
             'Missing Required Parameter(s): client_assertion_type, client_assertion',
             True,
             False,
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             {'grant_type': 'authorization_code', 'scope': 'patient/ExplanationOfBenefit.rs'},
             'Missing Required Parameter(s): client_assertion_type, client_assertion',
             True,
@@ -1180,7 +1178,7 @@ def test_check_if_call_is_allowed(
         ),
         # Wrong client_assertion_type value raises InvalidRequestError
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             {
                 'grant_type': 'authorization_code',
                 'client_assertion_type': 'invalid-urn-type',
@@ -1192,7 +1190,7 @@ def test_check_if_call_is_allowed(
             True,
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             {
                 'grant_type': 'authorization_code',
                 'client_assertion_type': 'invalid-urn-type',
@@ -1205,7 +1203,7 @@ def test_check_if_call_is_allowed(
         ),
         # Client mistakenly passes a client_secret raises InvalidRequestError
         (
-            CMSAlignedNetworksValidator,
+            CMSAlignedNetworksTokenRequestValidator,
             {
                 'grant_type': 'authorization_code',
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
@@ -1218,7 +1216,7 @@ def test_check_if_call_is_allowed(
             True,
         ),
         (
-            AsymmetricAuthValidator,
+            AsymmetricAuthTokenRequestValidator,
             {
                 'grant_type': 'authorization_code',
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
