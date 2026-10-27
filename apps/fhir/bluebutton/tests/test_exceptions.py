@@ -6,14 +6,15 @@ from django.test.client import Client
 from django.urls import reverse
 from waffle.testutils import override_switch
 
-from apps.constants import SAMPLE_CAN_USER_FHIR_ID_V3
+from apps.constants import SAMPLE_CAN_USER_FHIR_ID_V2, SAMPLE_CAN_USER_FHIR_ID_V3
 
 client = Client()
 
 @pytest.mark.integration
+@pytest.mark.parametrize("version", ['2','3'])
 @override_switch('v3_endpoints', active=True)
 @override_switch('require-scopes', active=False)
-def test_json_decode_error(basic_user, get_access_token, create_capability):
+def test_json_decode_error(basic_user, get_access_token, create_capability, version):
     """Make an actual live call to BFD for the patient endpoint that returns a JSONDecodeError
 
     Args:
@@ -25,14 +26,14 @@ def test_json_decode_error(basic_user, get_access_token, create_capability):
         username='damon',
         first_name='Damon',
         last_name='Mychart',
-        fhir_id_v2='custom_fhir_id',
+        fhir_id_v2=SAMPLE_CAN_USER_FHIR_ID_V2,
         fhir_id_v3=SAMPLE_CAN_USER_FHIR_ID_V3,
     )
     access_token = get_access_token(
         user.username,
         'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs patient/Search.rs',
     )
-    create_capability('patient/Search.rs', [['GET', '/v[3]/fhir/Patient[/]?$']])
+    create_capability('patient/Search.rs', [['GET', '/v['+ version + ']/fhir/Patient[/]?$']])
 
     text_string = "bad"
     byte_data = text_string.encode("utf-8")
