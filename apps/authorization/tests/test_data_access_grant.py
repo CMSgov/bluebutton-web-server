@@ -46,6 +46,7 @@ class TestDataAccessGrant(BaseApiTest):
         DataAccessGrant.objects.create(
             application=test_app,
             beneficiary=bene_user,
+            proxy=bene_user,
         )
         dag = DataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')
 
@@ -64,6 +65,8 @@ class TestDataAccessGrant(BaseApiTest):
                 DataAccessGrant.objects.create(
                     application=test_app,
                     beneficiary=bene_user,
+                    # Add proxy here as well to ensure the IntegrityError is raised correctly
+                    proxy=bene_user,
                 )
 
         # 4. Test delete and archived.

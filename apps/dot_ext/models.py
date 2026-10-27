@@ -526,6 +526,7 @@ class AccessTokenExtension(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     part_d_eob_only = models.BooleanField(null=False, default=False, verbose_name='Part D EOB Claims Only')
+    proxy = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False, null=True)
 
     class Meta:
         db_table = 'oauth2_provider_accesstoken_extension'

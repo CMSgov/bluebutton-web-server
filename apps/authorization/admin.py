@@ -8,6 +8,7 @@ class DataAccessGrantAdmin(admin.ModelAdmin):
     list_display = (
         'application',
         'beneficiary',
+        'proxy',
         'expiration_date',
         'created_at',
     )
@@ -20,6 +21,7 @@ class DataAccessGrantAdmin(admin.ModelAdmin):
     search_fields = (
         'application__name',
         'beneficiary__username',
+        'proxy__username',
     )
 
 
@@ -28,6 +30,7 @@ class ArchivedDataAccessGrantAdmin(admin.ModelAdmin):
     list_display = (
         'application',
         'beneficiary',
+        'proxy',
         'expiration_date',
         'created_at',
     )
@@ -40,4 +43,5 @@ class ArchivedDataAccessGrantAdmin(admin.ModelAdmin):
     search_fields = (
         'application__name',
         'beneficiary__username',
+        'proxy__username',
     )
