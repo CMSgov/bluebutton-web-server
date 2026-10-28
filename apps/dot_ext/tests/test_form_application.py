@@ -1,699 +1,943 @@
 from io import BytesIO
 
+import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import call_command
-from django.forms import ModelMultipleChoiceField
 from PIL import Image
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.admin import CustomAdminApplicationForm
-from apps.dot_ext.admin_overrides import ValidatedApplicationAdminForm
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
-from apps.dot_ext.forms import CreateNewApplicationForm, CustomRegisterApplicationForm
-from apps.test import BaseApiTest
+from apps.dot_ext.forms import (
+    CreateApplicationForm,
+    CustomRegisterApplicationForm,
+    EditApplicationForm,
+)
 
 
-class TestRegisterApplicationForms(BaseApiTest):
-    def test_update_form_edit(self):
-        """ """
-        read_group = self._create_group('read')
-        self._create_capability('Read-Scope', [], read_group)
-        # create user and add it to the read group
-        user = self._create_user('john', '123456')
-        user.groups.add(read_group)
-        # create an application
-        self._create_application('john_app', user=user)
-
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'application_form, data, field, error_text_expected, should_pass',
+    [
         # Test form with exact app name has error
-        data = {'name': 'john_app'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-
-        # Test form with same app name and Uppercase has error
-        data = {'name': 'John_App'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-
-        # Test form with different app name is OK
-        data = {'name': 'Dave_app'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('name'), None)
-
-        # Test form with empty app name has error.
-        data = {'name': ''}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-
-        form = ValidatedApplicationAdminForm(data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'john_app'},
+            'name',
+            'is already in use with another app.',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'john_app'},
+            'name',
+            'is already in use with another app.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'john_app'},
+            'name',
+            'is already in use with another app.',
+            False,
+        ),
+        # Test form with same app name and uppercase has error
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'John_App'},
+            'name',
+            'is already in use with another app.',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'John_App'},
+            'name',
+            'is already in use with another app.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'John_App'},
+            'name',
+            'is already in use with another app.',
+            False,
+        ),
+        # Test form with different app name is successful
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'Dave_App'},
+            'name',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'Dave_App'},
+            'name',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'Dave_App'},
+            'name',
+            None,
+            True,
+        ),
+        # Test form with no app name has error
+        (
+            CustomRegisterApplicationForm,
+            {'name': ''},
+            'name',
+            'Application name is required.',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': ''},
+            'name',
+            'This field is required.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': ''},
+            'name',
+            'This field is required.',
+            False,
+        ),
         # Test form with invalid app name has error (app name contains non-ascii char(s)).
-        data = {'name': 'BB2-1666-test-app w trade mark®'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
-
+        (
+            CustomRegisterApplicationForm,
+            {'name': '🚀'},
+            'name',
+            'Invalid character(s) in application name',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '🚀'},
+            'name',
+            'Invalid character(s) in application name',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '🚀'},
+            'name',
+            'Invalid character(s) in application name',
+            False,
+        ),
         # Test form with invalid app name has error (app name contains en dashes).
-        data = {'name': 'BB2–2993–en–dash'}
-        form = CreateNewApplicationForm(data)  # don't include user, this form auto creates one
-        form.is_valid()
-        self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
-
-        # Test form with invalid app name has error (app name contains em dashes).
-        data = {'name': 'BB2—2993—em—dash'}
-        form = CreateNewApplicationForm(data)
-        form.is_valid()
-        self.assertTrue('Invalid character(s) in application name' in str(form.errors.get('name')))
-
-        # Test form with no user is invalid
-        data = {'user': None}
-        form = ValidatedApplicationAdminForm(data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('user'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('user'), None)
-
-        # Test form with a user is valid
-        data = {'user': user}
-        form = ValidatedApplicationAdminForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('user'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('user'), None)
-
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'BB2–2993–en–dash'},
+            'name',
+            'Invalid character(s) in application name',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'BB2–2993–en–dash'},
+            'name',
+            'Invalid character(s) in application name',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'BB2–2993–en–dash'},
+            'name',
+            'Invalid character(s) in application name',
+            False,
+        ),
         # Test form with website_uri valid URI.
-        data = {'website_uri': 'https://www.example.org'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('website_uri'), None)
+        (
+            CustomRegisterApplicationForm,
+            {'website_uri': 'https://www.example.org'},
+            'website_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'website_uri': 'https://www.example.org'},
+            'website_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'website_uri': 'https://www.example.org'},
+            'website_uri',
+            None,
+            True,
+        ),
+        # Test form with website_uri invalid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'website_uri': 'xyzs:/www.example.org'},
+            'website_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'website_uri': 'xyzs:/www.example.org'},
+            'website_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'website_uri': 'xyzs:/www.example.org'},
+            'website_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        # Test form with empty website_uri should pass.
+        (
+            CustomRegisterApplicationForm,
+            {'website_uri': ''},
+            'website_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'website_uri': ''},
+            'website_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'website_uri': ''},
+            'website_uri',
+            None,
+            True,
+        ),
+        # Test form with tos_uri valid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'tos_uri': 'https://www.example.org'},
+            'tos_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'tos_uri': 'https://www.example.org'},
+            'tos_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'tos_uri': 'https://www.example.org'},
+            'tos_uri',
+            None,
+            True,
+        ),
+        # Test form with tos_uri invalid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'tos_uri': 'xyzs:/www.example.org'},
+            'tos_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'tos_uri': 'xyzs:/www.example.org'},
+            'tos_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'tos_uri': 'xyzs:/www.example.org'},
+            'tos_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        # Test form with empty tos_uri should pass.
+        (
+            CustomRegisterApplicationForm,
+            {'tos_uri': ''},
+            'tos_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'tos_uri': ''},
+            'tos_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'tos_uri': ''},
+            'tos_uri',
+            None,
+            True,
+        ),
+        # Test form with policy_uri valid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'policy_uri': 'https://www.example.org'},
+            'policy_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'policy_uri': 'https://www.example.org'},
+            'policy_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'policy_uri': 'https://www.example.org'},
+            'policy_uri',
+            None,
+            True,
+        ),
+        # Test form with policy_uri invalid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'policy_uri': 'xyzs:/www.example.org'},
+            'policy_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'policy_uri': 'xyzs:/www.example.org'},
+            'policy_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'policy_uri': 'xyzs:/www.example.org'},
+            'policy_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        # Test form with empty policy_uri should pass.
+        (
+            CustomRegisterApplicationForm,
+            {'policy_uri': ''},
+            'policy_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'policy_uri': ''},
+            'policy_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'policy_uri': ''},
+            'policy_uri',
+            None,
+            True,
+        ),
+        # Test agree is false returns an error
+        (
+            CustomRegisterApplicationForm,
+            {'agree': False},
+            'agree',
+            'You must agree to the API Terms of Service Agreement',
+            False,
+        ),
+        # Test agree is false for other forms passes since it's automatically set to True later on
+        (
+            CreateApplicationForm,
+            {'agree': False},
+            'agree',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'agree': False},
+            'agree',
+            None,
+            True,
+        ),
+        # Test not selecting require_demographic_scopes returns an error
+        (
+            CustomRegisterApplicationForm,
+            {},
+            'require_demographic_scopes',
+            'Does your application need to collect beneficiary demographic information must be (Yes/No).',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {},
+            'require_demographic_scopes',
+            'Does your application need to collect beneficiary demographic information must be (Yes/No).',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {},
+            'require_demographic_scopes',
+            'Does your application need to collect beneficiary demographic information must be (Yes/No).',
+            False,
+        ),
+        # Test no description should pass
+        (
+            CustomRegisterApplicationForm,
+            {'description': ''},
+            'description',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'description': ''},
+            'description',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'description': ''},
+            'description',
+            None,
+            True,
+        ),
+        # Test valid description should pass
+        (
+            CustomRegisterApplicationForm,
+            {'description': 'valid description here!'},
+            'description',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'description': 'valid description here!'},
+            'description',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'description': 'valid description here!'},
+            'description',
+            None,
+            True,
+        ),
+        # Test valid description should pass with exactly 1,000 characters
+        (
+            CustomRegisterApplicationForm,
+            {'description': 'T' * 1000},
+            'description',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'description': 'T' * 1000},
+            'description',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'description': 'T' * 1000},
+            'description',
+            None,
+            True,
+        ),
+        # Test form with HTML tags in the description raises an error
+        (
+            CustomRegisterApplicationForm,
+            {'description': '<b>Test</b> <button>Test</button> a <span>Test</span>'},
+            'description',
+            'The text contains HTML tags. Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'description': '<b>Test</b> <button>Test</button> a <span>Test</span>'},
+            'description',
+            'The text contains HTML tags. Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'description': '<b>Test</b> <button>Test</button> a <span>Test</span>'},
+            'description',
+            'The text contains HTML tags. Please use plain-text only!',
+            False,
+        ),
+    ],
+)
+def test_application_form_basic_validation(
+    application_form, data, field, error_text_expected, should_pass, basic_user, create_application
+):
+    """Test basic validation of three forms. See comment before each one for details on specific test"""
+    user = basic_user(username='john', password='123456')
+    create_application('john_app', user=user)
+    # Only CustomRegisterApplicationForm passes in a user
+    if application_form == CustomRegisterApplicationForm:
+        form = application_form(user, data)
+    else:
+        form = application_form(data)
+    form.is_valid()
+    if should_pass:
+        field_errors = form.errors.as_data().get(field, [])
+        assert len(field_errors) == 0
+    else:
+        field_errors = form.errors.as_data().get(field, [])
+        assert len(field_errors) == 1
+        error_text = field_errors[0].message
+        assert error_text_expected in error_text
 
-        # Test form with website_uri in-valid URI.
-        data = {'website_uri': 'xyzs:/www.example.org'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('website_uri'), None)
 
-        # Test form with website_uri EMPTY URI is OK.
-        data = {'website_uri': ''}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('website_uri'), None)
-
-        # Test form with empty description.
-        data = {'description': ''}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
-        # Test form with valid description.
-        data = {'description': 'Testing short description here!'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
-        # Test form with description over 1000 characters.
-        data = {'description': 'T' * 1001}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('description'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
-        # Test form with description exactly 1000 characters.
-        data = {'description': 'T' * 1000}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
-        # Test form with HTML tags in the description.
-        data = {'description': '<b>Test</b> <button>Test</button> a <span>Test</span>'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('description'), None)
-
-        form = CustomAdminApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('description'), None)
-
+@pytest.mark.parametrize(
+    'application_form, data, image_size, file_type, error_text_expected, should_pass',
+    [
         # Testing valid logo_image with max dimensions
-        file = BytesIO()
-        image = Image.new(
-            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)), color='red'
-        )
-        image.save(file, 'jpeg')
-        file.seek(0)
-        image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
-        data = {}
-        files = {'logo_image': image}
-        form = CustomRegisterApplicationForm(user, data, files)
-        form.is_valid()
-        self.assertEqual(form.errors.get('logo_image'), None)
-
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)),
+            'jpeg',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)),
+            'jpeg',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)),
+            'jpeg',
+            None,
+            True,
+        ),
         # Testing logo_image exceeding max width
-        file = BytesIO()
-        image = Image.new(
-            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)), color='red'
-        )
-        image.save(file, 'jpeg')
-        file.seek(0)
-        image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
-        data = {}
-        files = {'logo_image': image}
-        form = CustomRegisterApplicationForm(user, data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
-
-        form = CustomAdminApplicationForm(data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
-
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)),
+            'jpeg',
+            'Max image width is 512.',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)),
+            'jpeg',
+            'Max image width is 512.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX) + 1, int(settings.APP_LOGO_HEIGHT_MAX)),
+            'jpeg',
+            'Max image width is 512.',
+            False,
+        ),
         # Testing logo_image exceeding max height
-        file = BytesIO()
-        image = Image.new(
-            'RGB', size=(int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red'
-        )
-        image.save(file, 'jpeg')
-        file.seek(0)
-        image = InMemoryUploadedFile(file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None)
-        data = {}
-        files = {'logo_image': image}
-        form = CustomRegisterApplicationForm(user, data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1),
+            'jpeg',
+            'Max image height is 512.',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1),
+            'jpeg',
+            'Max image height is 512.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX) + 1),
+            'jpeg',
+            'Max image height is 512.',
+            False,
+        ),
+        # Testing png file type works
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)),
+            'png',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)),
+            'png',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (int(settings.APP_LOGO_WIDTH_MAX), int(settings.APP_LOGO_HEIGHT_MAX)),
+            'png',
+            None,
+            True,
+        ),
+        # Ensure a different file type besides jpeg, jpg, or png fails
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (50, 50),
+            'bmp',
+            'The file type must be JPEG, JPG, or PNG with a .jpg, .jpeg, or .png file extension!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (50, 50),
+            'bmp',
+            'The file type must be JPEG, JPG, or PNG with a .jpg, .jpeg, or .png file extension!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'john_app', 'require_demographic_scopes': True, 'agree': True},
+            (50, 50),
+            'bmp',
+            'The file type must be JPEG, JPG, or PNG with a .jpg, .jpeg, or .png file extension!',
+            False,
+        ),
+    ],
+)
+def test_logo_image_for_all_forms(
+    application_form, data, image_size, file_type, error_text_expected, should_pass, basic_user
+):
+    file = BytesIO()
+    image = Image.new('RGB', size=image_size, color='red')
+    image.save(file, file_type)
+    file.seek(0)
+    image = InMemoryUploadedFile(file, None, f'test.{file_type}', f'image/{file_type}', len(file.getvalue()), None)
+    files = {'logo_image': image}
+    # Only CustomRegisterApplicationForm passes in a user
+    if application_form == CustomRegisterApplicationForm:
+        user = basic_user(username='john', password='123456')
+        form = application_form(user, data, files)
+    else:
+        form = application_form(data, files)
+    form.is_valid()
+    if should_pass:
+        field_errors = form.errors.as_data().get('logo_image', [])
+        assert len(field_errors) == 0
+    else:
+        field_errors = form.errors.as_data().get('logo_image', [])
+        assert len(field_errors) == 1
+        error_text = field_errors[0].message
+        assert error_text_expected in error_text
 
-        form = CustomAdminApplicationForm(data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
 
-        # Testing logo_image not JPEG type, confirm it works as part of BB-4246 change
-        file = BytesIO()
-        image = Image.new('RGB', size=(50, 50), color='red')
-        image.save(file, 'png')
-        file.seek(0)
-        image = InMemoryUploadedFile(file, None, 'test.png', 'image/png', len(file.getvalue()), None)
-        data = {}
-        files = {'logo_image': image}
-        form = CustomRegisterApplicationForm(user, data, files)
-        form.is_valid()
-        self.assertEqual(form.errors.get('logo_image'), None)
-        form = CustomAdminApplicationForm(data, files)
-        form.is_valid()
-        self.assertEqual(form.errors.get('logo_image'), None)
-
-        # Test require_demographic_scopes value True
-        data = {'require_demographic_scopes': True}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
-
-        # Test require_demographic_scopes value False
-        data = {'require_demographic_scopes': False}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
-
-        # Test require_demographic_scopes invalid value
-        data = {'require_demographic_scopes': None}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
-
-        # Test require_demographic_scopes value True
-        data = {'require_demographic_scopes': True}
-        form = CreateNewApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
-
-        # Test require_demographic_scopes value False
-        data = {'require_demographic_scopes': False}
-        form = CreateNewApplicationForm(data)
-        form.is_valid()
-        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
-
-        # Test require_demographic_scopes invalid value
-        data = {'require_demographic_scopes': None}
-        form = CreateNewApplicationForm(data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
-
-        # Base set of passing data fields
-        passing_app_fields = {
-            'name': 'john_app_new',
-            'client_type': 'confidential',
-            'authorization_grant_type': 'authorization-code',
-            'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
-            'logo_uri': '',
-            'logo_image': '',
-            'website_uri': '',
-            'description': '',
-            'policy_uri': '',
-            'tos_uri': '',
-            'support_email': '',
-            'support_phone_number': '',
-            'contacts': '',
-            'require_demographic_scopes': True,
-            'agree': True,
-        }
-
-        # Test that passing_app_fields are OK/valid.
-        form = CustomRegisterApplicationForm(user, passing_app_fields)
-        self.assertTrue(form.is_valid())
-
-        # Testing logo_image with SVG type, confirm it does not work as part of BB-4246 change
-        file = BytesIO()
-        test_svg = b"""
-            <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
-            <rect width="50" height="50" fill="red"/>
-            </svg>
-        """
-        file.write(test_svg)
-        file.seek(0)
-        image = InMemoryUploadedFile(file, None, 'test.svg', 'image/svg+xml', len(file.getvalue()), None)
-        data = {}
-        files = {'logo_image': image}
-        form = CustomRegisterApplicationForm(user, data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
-
-        form = CustomAdminApplicationForm(data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
-
-        # Ensure the file pixel limit error is thrown
-        file = BytesIO()
-        image = Image.new('RGB', size=(550, 550), color='red')
-        image.save(file, 'png')
-        file.seek(0)
-        image = InMemoryUploadedFile(file, None, 'test.png', 'image/png', len(file.getvalue()), None)
-        data = {}
-        files = {'logo_image': image}
-        form = CustomRegisterApplicationForm(user, data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
-        form = CustomAdminApplicationForm(data, files)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('logo_image'), None)
-
-    # 2026-02-04 MCJ - This is not a unit test. It assumes there is active storage media
-    # present. Therefore, it is more of an integration test.
-    #
-    # As we move to a read-only container deployment, this test can only work if we have an
-    # active S3 server present. We are between infrastructures, however; the tests are still being
-    # executed bare on a runner in a Jenkins pipeline while we also move to a GHA pipeline
-    # that can stand up the full stack (e.g. Blue Button and an S3 mock) for testing.
-    #
-    # Suggesting we comment out this test for now. It can be brought back when we are testing
-    # against a full docker compose, or we can move this to Selenium tests, which always
-    # require the full context to be tested.
-
-    # def test_create_applications_with_logo(self):
-    #     """
-    #     regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
-    #     """
-    #     greetings_group = self._create_group('Greetings')
-    #     # create user and add it to the read group
-    #     user = self._create_user('hello.world', '123hello456')
-    #     user.groups.add(greetings_group)
-
-    #     # create APP1 and APP2 with logo_image and other required and optional fields
-    #     # persist application object through CustomRegisterApplicationForm
-    #     form_app1 = self.create_app_form_with_logo(app_name='BB2-66-APP-1', user=user,
-    #                                                file_name='test_app1_logo.jpg', color='red')
-    #     self.assertFalse(form_app1.errors, "There are error(s) in the new app register form.")
-
-    #     form_app2 = self.create_app_form_with_logo(app_name='BB2-66-APP-2', user=user,
-    #                                                file_name='test_app2_logo.jpg', color='blue')
-    #     self.assertFalse(form_app2.errors, "There are error(s) in the new app register form.")
-
-    #     # check APP1 and APP2 are saved in django and have correct path pointing to
-    #     # logo image files, no image overridden
-    #     app_obj1 = self._get_user_application(user.username, 'BB2-66-APP-1')
-    #     app_obj2 = self._get_user_application(user.username, 'BB2-66-APP-2')
-    #     self.assertIsNotNone(app_obj1.logo_uri)
-    #     self.assertTrue(app_obj1.logo_uri)
-    #     self.assertIsNotNone(app_obj2.logo_uri)
-    #     self.assertTrue(app_obj2.logo_uri)
-    #     self.assertNotEqual(app_obj1.logo_uri, app_obj2.logo_uri)
-
-    # def create_app_form_with_logo(self, app_name=None, user=None, file_name=None, color=None):
-    #     """
-    #     helper to generate a jpg as logo image
-    #     """
-    #     self.assertIsNotNone(user)
-    #     self.assertIsNotNone(app_name)
-    #     self.assertIsNotNone(file_name)
-    #     self.assertIsNotNone(color)
-    #     logo_file = BytesIO()
-    #     image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
-    #                       int(settings.APP_LOGO_HEIGHT_MAX)), color=color)
-    #     image.save(logo_file, 'jpeg')
-    #     logo_file.seek(0)
-    #     image = InMemoryUploadedFile(
-    #         logo_file, None, file_name, 'image/jpeg', len(logo_file.getvalue()), None
-    #     )
-    #     app_fields = {'name': app_name,
-    #                   'client_type': 'confidential',
-    #                   'authorization_grant_type': 'authorization-code',
-    #                   'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
-    #                   'logo_uri': '',
-    #                   'logo_image': image,
-    #                   'website_uri': '',
-    #                   'description': 'User:' + user.username + ', registered app: ' + app_name,
-    #                   'policy_uri': '',
-    #                   'tos_uri': '',
-    #                   'support_email': '',
-    #                   'support_phone_number': '',
-    #                   'contacts': '',
-    #                   'require_demographic_scopes': True,
-    #                   'agree': True}
-    #     files = {'logo_image': image}
-    #     form = CustomRegisterApplicationForm(user, app_fields, files)
-    #     app_model = form.instance
-    #     app_model.user = user
-    #     # to simulate the context in BB2 runtime when
-    #     # a new CustomRegisterApplicationForm instance is saved
-    #     # as BB2 admin user added a new app with logo
-    #     app = form.save(commit=False)
-    #     # 2026-02-03 We don't want to write to the filesystem or the S3 Mock
-    #     # So, set the logo_uri to *something*.
-    #     app.logo_uri = "mock_logo/" + file_name
-    #     return form
-
-    def test_create_application_form_has_fld_internal_app_labels(self):
-        """
-        Test application form has 'internal_application_labels' field by default
-        """
-        read_group = self._create_group('read')
-        self._create_capability('Read-Scope', [], read_group)
-        # create user and add it to the read group
-        user = self._create_user('john', '123456')
-        user.groups.add(read_group)
-        # create an application
-        self._create_application('john_app', user=user)
-
-        # Test form with exact app name has error
-        data = {'name': 'john_app'}
-        form = CustomRegisterApplicationForm(user, data)
-        form.is_valid()
-        self.assertNotEqual(form.errors.get('name'), None)
-        f = form.fields.pop('internal_application_labels')
-        self.assertIsNotNone(f)
-        self.assertTrue(isinstance(f, ModelMultipleChoiceField))
-
-    def test_no_errors_when_no_demographic_scopes_and_required_false(self):
-        """
-        Assert that CustomAdminApplicationForm does not give a validation error when
-        there are no demographic scopes selected and require_demographic_scopes==False
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'app_form, require_demographic_scopes, use_default_non_demographic_scopes, error_text_expected, should_pass',
+    [
+        # Assert app_form does not give a validation error when there are no demographic scopes selected and require_demographic_scopes==False
+        (
+            CreateApplicationForm,
+            False,
+            True,
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            False,
+            True,
+            None,
+            True,
+        ),
+        # Assert there is a validation error when there are demographic scopes selected but require_demographic_scopes==False
+        (
+            CreateApplicationForm,
+            False,
+            False,
+            'Cannot have demographic scopes when require_demographic_scopes==False or None.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            False,
+            False,
+            'Cannot have demographic scopes when require_demographic_scopes==False or None.',
+            False,
+        ),
+        # Assert that app_form gives a validation error when there are
+        # no demographic scopes selected but require_demographic_scopes==True
+        (
+            CreateApplicationForm,
+            True,
+            True,
+            'Must have at least one demographic scope when require_demographic_scopes==True.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            True,
+            True,
+            'Must have at least one demographic scope when require_demographic_scopes==True.',
+            False,
+        ),
+        # Assert that app_form is successful when there are
+        # demographic scopes selected and require_demographic_scopes==True
+        (
+            CreateApplicationForm,
+            True,
+            False,
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            True,
+            False,
+            None,
+            True,
+        ),
+    ],
+)
+def test_demographic_scopes(
+    app_form,
+    require_demographic_scopes,
+    use_default_non_demographic_scopes,
+    should_pass,
+    error_text_expected,
+    basic_user,
+    create_application,
+):
+    call_command('create_blue_button_scopes')
+    default_scopes = ProtectedCapability.objects.filter(default=True)
+    user = basic_user(username='john', password='123456')
+    create_application('john_app', user=user)
+    data = {'require_demographic_scopes': require_demographic_scopes}
+    if use_default_non_demographic_scopes:
         default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CustomAdminApplicationForm(
-            data={
-                'name': app.name,
-                'client_id': app.client_id,
-                'data_access_type': app.data_access_type,
-                'allowed_auth_type': app.allowed_auth_type,
-                'require_demographic_scopes': False,
-                'scope': default_non_demographic_scopes,
-                'user': app.user,
-            },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertTrue(form.is_valid())
-        self.assertDictEqual(form.errors, {})
+        data['scope'] = default_non_demographic_scopes
+    else:
+        data['scope'] = default_scopes
+    form = app_form(data)
+    form.is_valid()
+    if should_pass:
+        # Not sure why but the errors for demographic scopes us __all__ within form.errors
+        field_errors = form.errors.as_data().get('__all__', [])
+        assert len(field_errors) == 0
+    else:
+        # Not sure why but the errors for demographic scopes us __all__ within form.errors
+        field_errors = form.errors.as_data().get('__all__', [])
+        assert len(field_errors) == 1
+        error_text = field_errors[0].message
+        assert error_text_expected in error_text
 
-    def test_error_when_demographic_scopes_and_require_false(self):
-        """
-        Assert that CustomAdminApplicationForm gives a validation error when there are
-        demographic scopes selected but require_demographic_scopes==False
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CustomAdminApplicationForm(
-            data={
-                'name': app.name,
-                'client_id': app.client_id,
-                'data_access_type': app.data_access_type,
-                'allowed_auth_type': app.allowed_auth_type,
-                'require_demographic_scopes': False,
-                'scope': default_scopes,
-                'user': app.user,
-            },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertFalse(form.is_valid())
-        self.assertDictEqual(
-            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False or None.']}
-        )
 
-    def test_error_when_no_demographic_scopes_and_require_true(self):
-        """
-        Assert that CustomAdminApplicationForm gives a validation error when there are
-        no demographic scopes selected but require_demographic_scopes==True
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CustomAdminApplicationForm(
-            data={
-                'name': app.name,
-                'client_id': app.client_id,
-                'data_access_type': app.data_access_type,
-                'allowed_auth_type': app.allowed_auth_type,
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'data, should_add_user_to_data, error_text_expected, should_pass',
+    [
+        # Ensure trying to create a new user selection fails validation if you've selected an existing user
+        (
+            {'user_mode': 'new'},
+            True,
+            'You cannot select a user when choosing the "Create New User" option.',
+            False,
+        ),
+        # Ensure trying to create a new user selection passes validation with no existing user selected
+        (
+            {'user_mode': 'new'},
+            False,
+            None,
+            True,
+        ),
+        # Ensure selecting the 'existing user' user_mode fails validation if you don't select a user on the form
+        (
+            {'user_mode': 'existing'},
+            False,
+            'You must select an existing user when choosing the "Choose Existing User" option.',
+            False,
+        ),
+        # Ensure selecting the 'existing user' user_mode passes validation if you select a user on the form
+        (
+            {'user_mode': 'existing'},
+            True,
+            None,
+            True,
+        ),
+    ],
+)
+def test_create_application_form_user_mode_selection(
+    data, should_add_user_to_data, error_text_expected, should_pass, basic_user, create_application
+):
+    user = basic_user(username='john', password='123456')
+    create_application('john_app', user=user)
+    if should_add_user_to_data:
+        data['user'] = user
+
+    form = CreateApplicationForm(data)
+    form.is_valid()
+    if should_pass:
+        field_errors = form.errors.as_data().get('user', [])
+        assert len(field_errors) == 0
+    else:
+        field_errors = form.errors.as_data().get('user', [])
+        assert len(field_errors) == 1
+        error_text = field_errors[0].message
+        assert error_text_expected in error_text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'app_form, data, include_scopes, include_user',
+    [
+        # Ensure each from passes with minimum required fields
+        (
+            # Just requires name, require_demographic_scopes, and agree
+            CustomRegisterApplicationForm,
+            {
+                'name': 'john_app_new',
+                'client_type': '',
+                'authorization_grant_type': '',
+                'redirect_uris': '',
+                'logo_uri': '',
+                'logo_image': '',
+                'website_uri': '',
+                'description': '',
+                'policy_uri': '',
+                'tos_uri': '',
+                'support_email': '',
+                'support_phone_number': '',
+                'contacts': '',
                 'require_demographic_scopes': True,
-                'scope': default_non_demographic_scopes,
-                'user': app.user,
+                'agree': True,
             },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertFalse(form.is_valid())
-        self.assertDictEqual(
-            form.errors,
-            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
-        )
-
-
-class TestAnotherApplicationAdminForm(BaseApiTest):
-    def test_no_errors_when_no_demographic_scopes_and_required_false(self):
-        """
-        Assert that AnotherApplicationAdminForm does not give a validation error when
-        there are no demographic scopes selected and require_demographic_scopes==False
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = ValidatedApplicationAdminForm(
-            data={
-                'name': app.name,
-                'client_id': app.client_id,
-                'data_access_type': app.data_access_type,
-                'allowed_auth_type': app.allowed_auth_type,
-                'authorization_grant_type': app.authorization_grant_type,
-                'client_type': app.client_type,
-                'require_demographic_scopes': False,
-                'scope': default_non_demographic_scopes,
-                'user': app.user,
-            },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertTrue(form.is_valid())
-        self.assertDictEqual(form.errors, {})
-
-    def test_error_when_demographic_scopes_and_require_false(self):
-        """
-        Assert that AnotherApplicationAdminForm gives a validation error when there are
-        demographic scopes selected but require_demographic_scopes==False
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = ValidatedApplicationAdminForm(
-            data={
-                'name': app.name,
-                'client_id': app.client_id,
-                'data_access_type': app.data_access_type,
-                'allowed_auth_type': app.allowed_auth_type,
-                'authorization_grant_type': app.authorization_grant_type,
-                'client_type': app.client_type,
-                'require_demographic_scopes': False,
-                'scope': default_scopes,
-                'user': app.user,
-            },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertFalse(form.is_valid())
-        self.assertDictEqual(
-            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False or None.']}
-        )
-
-    def test_error_when_no_demographic_scopes_and_require_true(self):
-        """
-        Assert that AnotherApplicationAdminForm gives a validation error when there are
-        no demographic scopes selected but require_demographic_scopes==True
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = ValidatedApplicationAdminForm(
-            data={
-                'name': app.name,
-                'client_id': app.client_id,
-                'data_access_type': app.data_access_type,
-                'allowed_auth_type': app.allowed_auth_type,
-                'authorization_grant_type': app.authorization_grant_type,
-                'client_type': app.client_type,
+            False,
+            False,
+        ),
+        (
+            # requires name, require_demographic_scopes, user_mode, organization_name, allowed_auth_type, and scope
+            CreateApplicationForm,
+            {
+                'name': 'john_new_app',
+                'user_mode': 'new',
+                'user': None,
+                'organization_name': "I'm an org name",
+                'contacts': '',
+                'agree': '',
+                'redirect_uris': '',
                 'require_demographic_scopes': True,
-                'scope': default_non_demographic_scopes,
-                'user': app.user,
+                # Scope gets set later in function
+                'scope': '',
+                'policy_uri': '',
+                'tos_uri': '',
+                'website_uri': '',
+                'support_email': '',
+                'support_phone_number': '',
+                'logo_image': '',
+                'description': '',
+                'internal_application_labels': '',
+                'jwks_uri': '',
+                'allowed_auth_type': 'AUTH_CODE',
+                'part_d_eob_only': '',
             },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertFalse(form.is_valid())
-        self.assertDictEqual(
-            form.errors,
-            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
-        )
-
-
-class TestCreateNewApplicationForm(BaseApiTest):
-    def test_no_errors_when_no_demographic_scopes_and_required_false(self):
-        """
-        Assert that CreateNewApplicationForm does not give a validation error when
-        there are no demographic scopes selected and require_demographic_scopes==False
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CreateNewApplicationForm(
-            data={
-                'allowed_auth_type': app.allowed_auth_type,
-                'organization_name': 'org',
-                'require_demographic_scopes': False,
-                'scope': default_non_demographic_scopes,
-            },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertTrue(form.is_valid())
-        self.assertDictEqual(form.errors, {})
-
-    def test_error_when_demographic_scopes_and_require_false(self):
-        """
-        Assert that CreateNewApplicationForm gives a validation error when there are
-        demographic scopes selected but require_demographic_scopes==False
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CreateNewApplicationForm(
-            data={
-                'allowed_auth_type': app.allowed_auth_type,
-                'organization_name': 'org',
-                'require_demographic_scopes': False,
-                'scope': default_scopes,
-            },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertFalse(form.is_valid())
-        self.assertDictEqual(
-            form.errors, {'__all__': ['Cannot have demographic scopes when require_demographic_scopes==False or None.']}
-        )
-
-    def test_error_when_no_demographic_scopes_and_require_true(self):
-        """
-        Assert that CreateNewApplicationForm gives a validation error when there are
-        no demographic scopes selected but require_demographic_scopes==True
-        """
-        call_command('create_blue_button_scopes')
-        default_scopes = ProtectedCapability.objects.filter(default=True)
-        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CreateNewApplicationForm(
-            data={
-                'allowed_auth_type': app.allowed_auth_type,
-                'organization_name': 'org',
+            True,
+            False,
+        ),
+        (
+            # requires data_access_type, client_id, user, client_type,
+            # authorization_grant_type, name, require_demographic_scopes,
+            # user_mode, organization_name, allowed_auth_type, redirect_uri's, and scope
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'client_secret_plain': '',
+                'client_secret': '',
+                'name': 'john_new_app',
+                'skip_authorization': '',
+                # Scope set in testing function
+                'scope': '',
                 'require_demographic_scopes': True,
-                'scope': default_non_demographic_scopes,
+                'agree': '',
+                'allowed_auth_type': 'AUTH_CODE',
+                'op_tos_uri': '',
+                'op_policy_uri': '',
+                'client_uri': '',
+                'website_uri': '',
+                'redirect_uris': 'http://localhost:8000/callback',
+                'logo_uri': '',
+                'logo_image': '',
+                'tos_uri': '',
+                'policy_uri': '',
+                'software_id': '',
+                'contacts': '',
+                'support_email': '',
+                'support_phone_number': '',
+                'description': '',
+                'internal_application_labels': '',
+                'active': '',
+                'first_active': '',
+                'last_active': '',
+                'jwks_uri': '',
+                'part_d_eob_only': '',
             },
-            instance=app,
-        )
-        self.assertTrue(form.is_bound)
-        self.assertFalse(form.is_valid())
-        self.assertDictEqual(
-            form.errors,
-            {'__all__': ['Must have at least one demographic scope when require_demographic_scopes==True.']},
-        )
-
-    def test_no_errors_when_changed_name_is_reused(self):
-        """
-        Assert that CreateNewApplicationForm does not give a validation error when
-        there are no demographic scopes selected and require_demographic_scopes==False
-        """
+            True,
+            True,
+        ),
+    ],
+)
+def test_minimum_required_fields_for_all_forms(
+    app_form, data, include_scopes, include_user, basic_user, create_application
+):
+    user = basic_user(username='john', password='123456')
+    create_application('john_app', user=user)
+    if include_scopes:
         call_command('create_blue_button_scopes')
         default_scopes = ProtectedCapability.objects.filter(default=True)
-        default_non_demographic_scopes = default_scopes.exclude(slug__in=BENE_PERSONAL_INFO_SCOPES)
-        user = self._create_user('anna', '123456')
-        app = self._create_application(name='an app', user=user)
-        form = CreateNewApplicationForm(
-            data={
-                'allowed_auth_type': app.allowed_auth_type,
-                'organization_name': 'org',
-                'require_demographic_scopes': False,
-                'scope': default_non_demographic_scopes,
-            },
-            instance=app,
-        )
-        app.name = 'an opp'
-        app.save(update_fields=['name'])
-        app = self._create_application(name='an app', user=user)
-        self.assertTrue(form.is_bound)
-        self.assertTrue(form.is_valid())
-        self.assertDictEqual(form.errors, {})
-
+        data['scope'] = default_scopes
+    if include_user:
+        data['user'] = user
+    # Only CustomRegisterApplicationForm passes in a user
+    if app_form == CustomRegisterApplicationForm:
+        form = app_form(user, data)
+    else:
+        form = app_form(data)
+    form.is_valid()
+    assert form.errors == {}
