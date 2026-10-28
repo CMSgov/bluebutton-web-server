@@ -37,6 +37,11 @@ locals {
 
   # Conditional resource creation (sandbox doesn't create resources, reuses prod)
   create_resources = local.env != "sandbox"
+
+  # test runner lives in the VPC so integration tests can resolve *.bfd.cmscloud.local (BB2-5311)
+  runner_in_vpc = local.create_resources && local.env == "test"
+  # false until 20-microservices has created the api sg (fresh env)
+  runner_vpc_ready = local.runner_in_vpc && length(try(data.aws_security_groups.runner_api[0].ids, [])) == 1
 }
 
 # ============================================================================
