@@ -774,7 +774,7 @@ class TokenView(DotTokenView):
                             app.jwks_uri,
                         )
                     except Exception as e:
-                        log.error(f'Error validating jwt: {e}')
+                        log.warning(f'Error validating jwt: {e}')
                         return JsonResponse(
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
@@ -878,7 +878,7 @@ class TokenView(DotTokenView):
                             status=HTTPStatus.UNAUTHORIZED,
                         )
                 except Exception as e:
-                    log.error(f'Error validating jwt: {e}')
+                    log.warning(f'Error validating jwt: {e}')
                     return JsonResponse(
                         {
                             'status_code': HTTPStatus.BAD_REQUEST,
