@@ -277,6 +277,7 @@ Setup your local venv (or whatever flavor of local python environment) and insta
     * `python -m venv venv` (or if using uv `uv venv --python 3.12`)
     * `source venv/bin/activate`
 2. Install the requirements into the environment `pip install -r requirements/requirements.dev.txt`
+	* If you get an error like: `"ERROR: In --require-hashes mode, all requirements must have their versions pinned with"`, then add the --no-deps flag to the above. `pip install --no=deps -r requirements/requirements.dev.txt`
 3. Run `pytest -m 'not integration'` or `make unit-test`
 
 #### debugging - unit
