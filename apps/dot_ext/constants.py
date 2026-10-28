@@ -22,9 +22,9 @@ PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~'
 ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
 # CAN Flow also requires the 'extensions' claim (smart extension)
 CAN_REQUIRED_CLAIM_FIELDS = ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS + ['extensions']
-# Asymmetric Auth technically has more fields to be validated against than CAN but
-# code, redirect_uri, and code_verifier get validated inside create_token_response within authorization.py
-CAN_AND_ASYMMETRIC_AUTH_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
+CAN_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
+# Required params based upon spec here: https://hl7.org/fhir/smart-app-launch/STU2.2/app-launch.html
+ASYMMETRIC_AUTH_REQUIRED_PARAMS = CAN_REQUIRED_PARAMS + ['code_verifier', 'redirect_uri', 'code']
 
 
 # List of value keys that are being tracked via request.session

@@ -37,9 +37,10 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED,
     ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS,
+    ASYMMETRIC_AUTH_REQUIRED_PARAMS,
     AUTH_CODE_SUPPORTED_TYPES,
-    CAN_AND_ASYMMETRIC_AUTH_REQUIRED_PARAMS,
     CAN_REQUIRED_CLAIM_FIELDS,
+    CAN_REQUIRED_PARAMS,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
     CLIENT_ASSERTION_TYPE_VALUE,
@@ -133,7 +134,7 @@ class BaseTokenRequestValidator(ABC):
         """
         Returns a list of required parameters for the token request validator to validate against the incoming request.
         """
-        return CAN_AND_ASYMMETRIC_AUTH_REQUIRED_PARAMS
+        pass
 
     @abstractmethod
     def _get_supported_types(self) -> list[str]:
@@ -222,6 +223,10 @@ class CMSAlignedNetworksTokenRequestValidator(BaseTokenRequestValidator):
         """Returns the list of supported types for the CMS Aligned Networks Validator."""
         return CLIENT_CREDENTIALS_SUPPORTED_TYPES
 
+    def _get_required_params(self):
+        """Returns the list of supported types for the CMS Aligned Networks Validator."""
+        return CAN_REQUIRED_PARAMS
+
 
 class AsymmetricAuthTokenRequestValidator(BaseTokenRequestValidator):
     """Validation class for token request validation specific to the asymmetric auth flow"""
@@ -231,6 +236,12 @@ class AsymmetricAuthTokenRequestValidator(BaseTokenRequestValidator):
     def _get_supported_types(self) -> list[str]:
         """Returns the list of supported types for the Asymmetric Auth Validator."""
         return AUTH_CODE_SUPPORTED_TYPES
+
+    def _get_required_params(self) -> list[str]:
+        """
+        Returns a list of required parameters for the token request validator to validate against the incoming request.
+        """
+        return ASYMMETRIC_AUTH_REQUIRED_PARAMS
 
 
 class BaseJWTValidator(ABC):

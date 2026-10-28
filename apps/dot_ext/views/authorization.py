@@ -787,8 +787,8 @@ class TokenView(DotTokenView):
                     # We want to fail if somehow an app made it here without providing
                     # client_assertion and client_assertion_type and they are only
                     # approved for asymmetric auth
-                    # (An Asymmetric-Only app has a jwks_uri but its client_secret field is completely empty)
-                    is_asymmetric_only = bool(app.jwks_uri and not app.client_secret)
+                    # (An Asymmetric-Only app has a jwks_uri but its client_secret_plain field is completely empty)
+                    is_asymmetric_only = bool(app.jwks_uri and not app.client_secret_plain)
 
                     if is_asymmetric_only:
                         return JsonResponse(
