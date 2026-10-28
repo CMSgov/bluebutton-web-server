@@ -729,6 +729,7 @@ class TokenView(DotTokenView):
             if grant_type == 'authorization_code':
                 client_assertion = request.POST.get('client_assertion', '')
                 client_assertion_type = request.POST.get('client_assertion_type', '')
+                has_asymmetric_params = bool(client_assertion_type or client_assertion)
 
                 if app.allowed_auth_type == 'CLIENT_CREDENTIALS':
                     error_message = (
@@ -740,10 +741,10 @@ class TokenView(DotTokenView):
                         {'status_code': HTTPStatus.FORBIDDEN, 'message': error_message},
                         status=HTTPStatus.FORBIDDEN,
                     )
-                elif client_assertion or client_assertion_type:
+                elif has_asymmetric_params:
                     # Distinguish between symmetric and asymmetric authentication by
-                    # checking for the presence of a client_assertion and client assertion
-                    # type parameter in the request. If it is present, we will use asymmetric authentication.
+                    # checking for the presence of a client assertion or client_assertion_type from the app above.
+                    # If it is present, we will use asymmetric authentication.
                     asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator()
 
                     # Check for required params for asymmetric authentication
@@ -756,6 +757,15 @@ class TokenView(DotTokenView):
                     )
                     if call_allowed_result:
                         return call_allowed_result
+
+                    if not app.jwks_uri or not app.client_id:
+                        return JsonResponse(
+                            {
+                                'status_code': HTTPStatus.UNAUTHORIZED,
+                                'message': 'Asymmetric authentication is not properly configured for this application.',
+                            },
+                            status=HTTPStatus.UNAUTHORIZED,
+                        )
                     try:
                         asymmetric_auth_jwt_validator = AsymmetricAuthJWTValidator()
                         asymmetric_auth_jwt_validator.authenticate_and_validate_token(
@@ -769,6 +779,22 @@ class TokenView(DotTokenView):
                             {
                                 'status_code': HTTPStatus.BAD_REQUEST,
                                 'message': 'Bad request',
+                            },
+                            status=HTTPStatus.BAD_REQUEST,
+                        )
+                else:
+                    # Symmetric auth flow
+                    # We want to fail if somehow an app made it here without providing
+                    # client_assertion and client_assertion_type and they are only
+                    # approved for asymmetric auth
+                    # (An Asymmetric-Only app has a jwks_uri but its client_secret field is completely empty)
+                    is_asymmetric_only = bool(app.jwks_uri and not app.client_secret)
+
+                    if is_asymmetric_only:
+                        return JsonResponse(
+                            {
+                                'status_code': HTTPStatus.BAD_REQUEST,
+                                'message': 'This application requires asymmetric authentication. Missing required assertion parameters.',
                             },
                             status=HTTPStatus.BAD_REQUEST,
                         )
