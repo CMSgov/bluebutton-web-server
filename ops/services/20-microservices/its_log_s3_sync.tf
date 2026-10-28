@@ -168,14 +168,14 @@ resource "aws_ecs_task_definition" "its_log_s3_sync" {
 
     entryPoint = ["sh", "-c"]
     command = [
-      "aws s3 sync /mnt/its-log s3://$AURORA_EXPORT_BUCKET_NAME/its-log/ --delete"
+      "aws s3 sync /its-log/data s3://$AURORA_EXPORT_BUCKET_NAME/its-log/ --delete"
     ]
 
     readonlyRootFilesystem = false
 
     mountPoints = [{
       sourceVolume  = "its-log-efs"
-      containerPath = "/mnt/its-log"
+      containerPath = "/its-log/data"
       readOnly      = true
     }]
 
@@ -199,8 +199,8 @@ resource "aws_ecs_task_definition" "its_log_s3_sync" {
   task_role_arn            = aws_iam_role.its_log_s3_sync_task.arn
   execution_role_arn       = aws_iam_role.its_log_s3_sync_execution.arn
   network_mode             = "awsvpc"
-  cpu                      = 256
-  memory                   = 512
+  cpu                      = 128
+  memory                   = 256
   requires_compatibilities = ["FARGATE"]
 
   runtime_platform {

@@ -14,10 +14,10 @@ locals {
   its_log_image_url = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
   its_log_repo_arn  = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
 
-  its_log_cpu    = coalesce(try(var.service_overrides["its-log"].cpu, null), 256)
-  its_log_memory = coalesce(try(var.service_overrides["its-log"].memory, null), 512)
+  its_log_cpu    = coalesce(try(var.service_overrides["its-log"].cpu, null), 128)
+  its_log_memory = coalesce(try(var.service_overrides["its-log"].memory, null), 256)
   its_log_count  = coalesce(try(var.service_overrides["its-log"].count, null), 1)
-  its_log_port   = coalesce(try(var.service_overrides["its-log"].port, null), 8080)
+  its_log_port   = coalesce(try(var.service_overrides["its-log"].port, null), 8888)
 }
 
 resource "aws_cloudwatch_log_group" "its_log" {
@@ -285,8 +285,7 @@ resource "aws_ecs_task_definition" "its_log" {
 
     mountPoints = [{
       sourceVolume = "its-log-efs"
-      # TODO: Modify this based on where we actually end up writing to in its-log, something like "/app/its-log/api/data"
-      containerPath = "/mnt/its-log"
+      containerPath = "/its-log/data"
       readOnly      = false
     }]
 
@@ -373,6 +372,39 @@ resource "aws_ecs_task_definition" "its_log" {
         name  = "DD_APM_TELEMETRY_ENABLED"
         value = "false"
       },
+      {
+        name  = "ITSLOG_BUFFER_FLUSHWAITSEC"
+        value = "1"
+      },
+      {
+        name  = "ITSLOG_BUFFER_LENGTH"
+        value = "2000"
+      },
+      {
+        name  = "ITSLOG_GINMODE"
+        value = "debug"
+      },
+      {
+        name  = "ITSLOG_ZAPMODE"
+        value = "debug"
+      },
+      {
+        name  = "ITSLOG_PROXIES_TRUSTED"
+        value = "TBD"
+      },
+      {
+        name  = "ITSLOG_SERVE_HOST"
+        # TODO: Update this once we have a DNS configured
+        value = "localhost"
+      },
+      {
+        name  = "ITSLOG_SERVE_PORT"
+        value = "8888"
+      },
+      {
+        name  = "ITSLOG_STORAGE_PATH"
+        value = "its-log/data"
+      }
     ]
 
     secrets = [
