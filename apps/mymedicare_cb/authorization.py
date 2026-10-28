@@ -421,7 +421,7 @@ class OAuth2ConfigSLSx(object):
             verify=self.verify_ssl_internal,
         )
 
-        logger.info('Status of Request: %s' % response.status_code)
+        logger.info({'Status of Request':response.status_code})
 
         if response.json().get('relationships'):
             return response.json().get('relationships')
