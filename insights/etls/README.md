@@ -6,3 +6,6 @@ Blue Button API metrics.
 
 There is a script within insights/scripts, called encode_etl_post_to_logging_api.py. The purpose of that script
 is to take every file within the etls directory, encode it, and post it to the its-log API so the ETL can be used.
+
+If you add a new ETL for its-log, add it to this directory. You'll also need to modify the encode_etl_post_to_logging_api.py
+script (details in the script).

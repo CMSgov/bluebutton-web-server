@@ -476,7 +476,7 @@ def summarize():
         if not app_name or not app_id:
             continue
 
-        app_tag = app_id + '.' + app_name
+        app_tag = str(app_id) + '.' + app_name
 
         if event_dict.get('type') == REQUEST_RESPONSE_MIDDLEWARE_TYPE:
             for metric in evaluate_request_response_metrics(event_dict):
