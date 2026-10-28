@@ -23,7 +23,7 @@
 			</div>
 		{% endif %}
 
-		<h1 class="ds-u-font-size--h2">{{ application.name }} has asked for some of your data.</h1>
+		<h1 class="ds-u-font-size--2xl">{{ application.name }} has asked for some of your data.</h1>
 
 		<ul>
 			<li>Information about your doctor/hospital visits</li>
@@ -39,17 +39,17 @@
 			{% if application.require_demographic_scopes %}
 				<fieldset class="ds-c-fieldset bene-auth-fieldset">
 					<legend class="ds-c-label">
-						<h2 class="ds-u-font-size--h3">Privacy Options</h2>
+						<h2 class="ds-u-font-size--xl">Privacy Options</h2>
 					</legend>
 					<input class="ds-c-choice" id="radio-1" type="radio" name="share_demographic_scopes" value="True" checked />
 					<label for="radio-1">
-						<span class="ds-u-font-size--lead">Share all of your data</span>
-						<span class="ds-c-field__hint">This app will have access to both your healthcare data and some personal information</span>
+						<span class="ds-u-font-size--lg">Share all of your data</span>
+						<span class="ds-c-hint">This app will have access to both your healthcare data and some personal information</span>
 					</label>
 					<input class="ds-c-choice" id="radio-2" type="radio" name="share_demographic_scopes" value="False"/>
 					<label for="radio-2">
-						<span class="ds-u-font-size--lead">Share healthcare data, but not your personal info</span>
-						<span class="ds-c-field__hint">Block some of your personal data like name, address, date of birth, race, and sex</span>
+						<span class="ds-u-font-size--lg">Share healthcare data, but not your personal info</span>
+						<span class="ds-c-hint">Block some of your personal data like name, address, date of birth, race, and sex</span>
 					</label>
 				</fieldset>
 			{% endif %}
