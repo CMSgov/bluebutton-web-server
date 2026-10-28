@@ -32,28 +32,29 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
     # in multiple spots within the conditional block. Also, if it turns out to not be an OperationOutcome, we want
     # the conditional block to handle the exception as it would have before this change
     if version == Versions.V3 and response.status_code >= 400 and response.status_code < 600:
-        response_json = r.json()
-        if is_operation_outcome(response_json):
-            return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
+        try:
+            response_json = r.json()
 
+            if is_operation_outcome(response_json):
+                return OperationOutcomeException(status_code=response.status_code, issue=response_json.get('issue'))
+        except JSONDecodeError:
+            msg = 'Invalid response from upstream server'
+            err = JSONDecodeException(msg)
     if response.status_code is None:
         # This should be impossible.
         msg = 'No status code from the upstream server'
         err = UpstreamServerException(msg)
-        return err
     elif response.status_code < 300:
+        pass
         # If we're returning a "good" status, short circuit and
         # return a None value.
-        return err
     elif response.status_code == 404:
         err = NotFound('Not found.')
-        return err
     elif response.status_code >= 300 and response.status_code < 400:
         # If we are being redirected, that's unexpected from our FHIR servers.
         # Wrap the error and return
         msg = 'An error occurred contacting the upstream server'
         err = UpstreamServerException(msg)
-        return err
     elif response.status_code >= 400 and response.status_code < 500:
         # In the 400-range, we will return those to the client.
         # We'll try and parse the JSON. If we can, we'll formulate a
@@ -70,27 +71,32 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
                 if diagnostics is not None:
                     err = BadRequestToBackendError('{}:{}'.format(msg, diagnostics))
         except JSONDecodeError:
-            # Do nothing here; fall through and return `err`
-            pass
-        return err
+            msg = 'Invalid response from upstream server'
+            err = JSONDecodeException(msg)
     elif response.status_code >= 500:
+        try:
+            json = r.json()
+        except JSONDecodeError:
+            msg = 'Invalid response from upstream server'
+            err = JSONDecodeException(msg)
+            return err
+
         # Anything that is a 500-class error from upstream becomes a 502
         # as we propagate it forward.
         msg = 'A failure occurred contacting the upstream server'
         err = UpstreamServerException(msg)
-        return err
     else:
         # Fallthrough
         pass
 
-    # Our default is to return our None-type error response
-    # However, this fallthrough is unlikely/cannot be reached.
     return err
 
 
 class UpstreamServerException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
+class JSONDecodeException(APIException):
+    status_code = status.HTTP_502_BAD_GATEWAY
 
 class BadRequestToBackendError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
