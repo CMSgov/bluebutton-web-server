@@ -87,6 +87,7 @@ FROM base AS build-dev
 # Only install socat if we are building the local container.
 USER root
 RUN dnf install -y \
+    gettext \
     openssl \
     socat \
     tree \
