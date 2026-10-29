@@ -747,7 +747,7 @@ class TokenView(DotTokenView):
                     # Distinguish between symmetric and asymmetric authentication by
                     # checking for the presence of a client assertion or client_assertion_type from the app above.
                     # If it is present, we will use asymmetric authentication.
-                    if waffle.switch_is_active('allow_asymmetric_auth'):
+                    if waffle.switch_is_active('enable_asymmetric_auth'):
                         asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator()
 
                         # Check for required params for asymmetric authentication

@@ -402,7 +402,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 @pytest.mark.integration
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'app_config, request_payload_overrides, expected, allow_asymm_auth_switch_active',
+    'app_config, request_payload_overrides, expected, enable_asymm_auth_switch_active',
     [
         # Test a successful case with allowed auth type as just auth_code
         (
@@ -644,7 +644,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
             },
             True,
         ),
-        # Ensure allow_asymmetric_auth waffle switch not enabled returns a 403
+        # Ensure enable_asymmetric_auth waffle switch not enabled returns a 403
         (
             {
                 'client_secret': TEST_APP_CLIENT_SECRET,
@@ -670,7 +670,7 @@ def test_asymmetric_auth_flow_integration(
     app_config,
     request_payload_overrides,
     expected,
-    allow_asymm_auth_switch_active,
+    enable_asymm_auth_switch_active,
     basic_user,
     create_application,
     create_capability,
@@ -683,9 +683,9 @@ def test_asymmetric_auth_flow_integration(
         request_payload_overrides (dict) : Runtime parameters used to explicitly update, overwrite, or mutate the standard token request.
         expected (dict) : The outcome assertion criteria. Tracks whether a case should successfully return a
             token pair or gracefully terminate with a verified HTTP status and error string match.
-        allow_asymm_auth_switch_active (bool) : True if allow_asymmetric_auth is active, otherwise False
+        enable_asymm_auth_switch_active (bool) : True if enable_asymmetric_auth is active, otherwise False
     """
-    with override_switch('allow_asymmetric_auth', active=allow_asymm_auth_switch_active):
+    with override_switch('enable_asymmetric_auth', active=enable_asymm_auth_switch_active):
         user = basic_user()
         eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v/fhir/ExplanationOfBenefit[/]?$']])
 

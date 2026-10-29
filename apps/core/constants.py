@@ -34,7 +34,7 @@ WAFFLE_FEATURE_SWITCHES = (
         'Are we verifying JWT properties and signatures on asymmetric_auth flow',
     ),
     (
-        'allow_asymmetric_auth',
+        'enable_asymmetric_auth',
         True,
         'Are we allowing the asymmetric_auth flow',
     ),
