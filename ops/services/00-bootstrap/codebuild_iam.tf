@@ -142,3 +142,47 @@ resource "aws_iam_role_policy" "kms" {
   role   = aws_iam_role.codebuild[0].id
   policy = data.aws_iam_policy_document.kms[0].json
 }
+
+# VPC mode - codebuild creates the runner ENI itself using this role
+data "aws_iam_policy_document" "vpc" {
+  count = local.runner_in_vpc ? 1 : 0
+
+  statement {
+    sid = "AllowRunnerENI"
+    actions = [
+      "ec2:CreateNetworkInterface",
+      "ec2:DeleteNetworkInterface",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DescribeDhcpOptions",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeVpcs"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "AllowRunnerENIPermission"
+    actions   = ["ec2:CreateNetworkInterfacePermission"]
+    resources = ["arn:aws:ec2:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:network-interface/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "ec2:AuthorizedService"
+      values   = ["codebuild.amazonaws.com"]
+    }
+
+    condition {
+      test     = "ArnEquals"
+      variable = "ec2:Subnet"
+      values   = [for s in local.private_subnet_ids : "arn:aws:ec2:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:subnet/${s}"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "vpc" {
+  count  = local.runner_in_vpc ? 1 : 0
+  name   = "vpc"
+  role   = aws_iam_role.codebuild[0].id
+  policy = data.aws_iam_policy_document.vpc[0].json
+}
