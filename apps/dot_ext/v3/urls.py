@@ -31,18 +31,18 @@ management_urlpatterns = [
         waffle_switch('v3_endpoints')(views.ApplicationRegistration.as_view()),
         name='register-v3',
     ),
-    re_path(
-        r'^applications/(?P<pk>[\w-]+)/$',
+    path(
+        'applications/<int:pk>/',
         waffle_switch('v3_endpoints')(oauth2_views.ApplicationDetail.as_view()),
         name='detail-v3',
     ),
-    re_path(
-        r'^applications/(?P<pk>[\w-]+)/delete/$',
+    path(
+        'applications/<int:pk>/delete/',
         waffle_switch('v3_endpoints')(views.ApplicationDelete.as_view()),
         name='delete-v3',
     ),
-    re_path(
-        r'^applications/(?P<pk>[\w-]+)/update/$',
+    path(
+        'applications/<int:pk>/update/',
         waffle_switch('v3_endpoints')(views.ApplicationUpdate.as_view()),
         name='update-v3',
     ),

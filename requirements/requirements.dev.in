@@ -8,5 +8,5 @@ httmock == 1.4.0
 pre-commit == 4.6.2 # for running git hooks
 locust == 2.43.3 # used for load testing
 selenium == 4.16.0
-setuptools == 83.0.0 # TODO do we need this defined here?
+setuptools == 84.1.0 # TODO do we need this defined here?
 urllib3 == 2.8.0
