@@ -5,13 +5,15 @@ import secrets
 import time
 import urllib
 import uuid
-from urllib.parse import urlencode
+from http import HTTPStatus
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import jwt
 import pytest
 import requests
 from cryptography.hazmat.primitives import serialization
 from django.contrib.auth.models import Group
+from django.http import HttpRequest
 from django.test.client import Client
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -22,14 +24,20 @@ from waffle.testutils import override_switch
 
 from apps.constants import (
     CLIENT_CREDENTIALS,
+    CODE_CHALLENGE_METHOD_S256,
     COVERAGE_SCOPE,
     EOB_SCOPE,
     PATIENT_SCOPE,
     TEST_APP_CLIENT_ID,
     TEST_APP_CLIENT_SECRET,
 )
-from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE, CLIENT_CREDENTIALS_TYPE
-from apps.dot_ext.validators import AsymmetricAuthValidator
+from apps.dot_ext.constants import (
+    AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+    AUTH_CODE_TYPE,
+    CLIENT_ASSERTION_TYPE_VALUE,
+    CLIENT_CREDENTIALS_TYPE,
+)
+from apps.dot_ext.models import Application
 from apps.wellknown.views.jwks import _local_private_keys
 
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
@@ -59,6 +67,7 @@ TEST_APP_KID = 'local-jwks-rs384'
 
 # Convert the raw string to a boolean for easier use in the test
 is_client_enabled = ENABLE_CLIENT.lower() == 'true'
+client = Client()
 
 
 def get_can_private_key() -> bytes | str:
@@ -228,9 +237,9 @@ def get_clear_id_token(client_id: str, client_secret: str, code: str, code_verif
     return response.json().get('id_token')
 
 
-def construct_can_ial_payload(id_token: str, app_client_id: str) -> dict:
+def construct_can_payload(id_token: str, app_client_id: str) -> dict:
     """
-    Constructs the payload for the IAL (Identity Assurance Level) request to the Blue Button API token endpoint.
+    Constructs the payload for the CAN request to the Blue Button API token endpoint.
 
     Args:
         id_token (str): The ID token received from Clear.
@@ -249,9 +258,9 @@ def construct_can_ial_payload(id_token: str, app_client_id: str) -> dict:
     }
 
 
-def construct_asymmetric_auth_ial_payload(app_client_id: str) -> dict:
+def construct_asymmetric_auth_payload(app_client_id: str) -> dict:
     """
-    Constructs the payload for the IAL (Identity Assurance Level) request to the Blue Button API token endpoint.
+    Constructs the payload for the Asymmetric Auth request to the Blue Button API token endpoint.
 
     Args:
         app_client_id (str): The client ID of the application.
@@ -268,7 +277,7 @@ def construct_asymmetric_auth_ial_payload(app_client_id: str) -> dict:
     }
 
 
-def get_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dict:
+def get_can_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dict:
     """
     Generates the payload for the access token request to the Blue Button API token endpoint.
 
@@ -286,7 +295,7 @@ def get_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) -> dic
     auth_code = get_clear_authorization_code(driver, CLEAR_CLIENT_ID, code_challenge)
     # Exchange code for id token
     id_token = get_clear_id_token(CLEAR_CLIENT_ID, CLEAR_CLIENT_SECRET, auth_code, code_verifier)
-    ial_payload = construct_can_ial_payload(id_token, app_client_id)
+    ial_payload = construct_can_payload(id_token, app_client_id)
 
     # Use the private key to sign the payload and create a client_assertion JWT
     client_assertion = jwt.encode(
@@ -318,7 +327,6 @@ def get_access_token_response(json_payload: dict) -> dict:
         dict: A dictionary containing the access token and other related information.
     """
     if is_client_enabled:
-        client = Client()
         url = '/v3/o/token'
 
         response = client.post(
@@ -372,7 +380,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         app_client_id = application.client_id
     combined_scopes = f'{EOB_SCOPE} {COVERAGE_SCOPE} {PATIENT_SCOPE}'
 
-    json_payload = get_payload(driver, app_client_id, combined_scopes)
+    json_payload = get_can_payload(driver, app_client_id, combined_scopes)
 
     access_token_response = get_access_token_response(json_payload)
 
@@ -392,40 +400,344 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 
 @pytest.mark.integration
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    'app_config, request_payload_overrides, expected',
+    [
+        # Test a successful case with allowed auth type as just auth_code
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+            },
+            {
+                'should_pass': True,
+                'status_code': None,
+                'error_description': None,
+            },
+        ),
+        # Test a successful case with allowed auth type as both auth code and client credentials
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+            },
+            {
+                'should_pass': True,
+                'status_code': None,
+                'error_description': None,
+            },
+        ),
+        # Test unsuccessful case where invalid code isn't included in request
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            },
+            {'token_url': '/v3/o/token', 'code': None},  # strips 'code' from request_token_data
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): code',
+            },
+        ),
+        # Test unsuccessful case where code_verifier isn't included in request
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            },
+            {'token_url': '/v3/o/token', 'code_verifier': None},  # strips 'code_verifier' from request_token_data
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): code_verifier',
+            },
+        ),
+        # Test unsuccessful case where client_assertion isn't included in request
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion_type': None,  # Strips client_assertion_type from token request data
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): client_assertion_type',
+            },
+        ),
+        # Test unsuccessful case where scope isn't included in request
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'scope': None,  # Strips scope from token request data
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): scope',
+            },
+        ),
+        # Test unsuccessful case where app's jwks_uri is missing
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': '',  # Emulates missing application JWKS URI config on our backend
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.UNAUTHORIZED,
+                'error_description': 'Asymmetric authentication is not properly configured for this application.',
+            },
+        ),
+        # Test unsuccessful case where app's client_assertion is missing.
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion': None,  # Strips client_assertion
+                # Emulates adding back client_id to request to get past validate_app_is_active
+                # and hit the validate_params function instead
+                'client_id': TEST_APP_CLIENT_ID,
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): client_assertion',
+            },
+        ),
+        # Test redirect_uri not being included fails
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'redirect_uri': None,  # Explicitly strips 'redirect_uri' from token request data
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): redirect_uri',
+            },
+        ),
+        # Ensure v2 call fails
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v2/o/token',  # Emulates calling version 2
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
+            },
+        ),
+        # Ensure v1 call fails
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v1/o/token',  # Emulates calling version 1
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
+            },
+        ),
+        # Ensure different client_assertion_type fails
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion_type': 'random_client_assertion_type',  # Emulates invalid assertion type
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'client_assertion_type was wrong',
+            },
+        ),
+        # Ensure client_secret in request for asymmetric auth fails
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_secret': TEST_APP_CLIENT_SECRET,  # Emulates sending a secret along with asymmetric assertions
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'client_secret should not be included in client_credentials call',
+            },
+        ),
+    ],
+)
 @override_switch('asymmetric_auth_validation', active=True)
 @override_switch('v3_endpoints', active=True)
-def test_asymmetric_auth_flow_integration(basic_user, create_application):
+def test_asymmetric_auth_flow_integration(
+    app_config,
+    request_payload_overrides,
+    expected,
+    basic_user,
+    create_application,
+    create_capability,
+):
     """
-    Integration test for asymmetric auth flow that generates a JWT using the test-app
-    and goes through asymmetric auth flow validation by verifying jku header and signature
+    Integration test checking validation barriers along the Asymmetric Authentication token path.
+
+    Params:
+        app_config (dict) : Parameters passed in to create an application
+        request_payload_overrides (dict) : Runtime parameters used to explicitly update, overwrite, or mutate the standard token request.
+        expected (dict) : The outcome assertion criteria. Tracks whether a case should successfully return a
+            token pair or gracefully terminate with a verified HTTP status and error string match.
     """
-    # Set up basic user and application
     user = basic_user()
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v/fhir/ExplanationOfBenefit[/]?$']])
+
     application = create_application(
         name='test',
-        grant_type='client-credentials',
+        grant_type=Application.GRANT_AUTHORIZATION_CODE,
         user=user,
-        allowed_auth_type=CLIENT_CREDENTIALS_TYPE,
-        jwks_uri='http://localhost:8000/.well-known/jwks.json',
+        client_type=Application.CLIENT_CONFIDENTIAL,
+        allowed_auth_type=app_config['allowed_auth_type'],
+        jwks_uri=app_config['jwks_uri'],
         client_id=TEST_APP_CLIENT_ID,
-        client_secret=TEST_APP_CLIENT_SECRET,
+        client_secret=app_config['client_secret'],
+        redirect_uris=app_config['redirect_uri'],
+        capability=eob_capability,
     )
 
-    # Construct the IAL payload for the asymmetric auth flow
-    ial_payload = construct_asymmetric_auth_ial_payload(application.client_id)
+    request = HttpRequest()
+    client.login(request=request, username='john', password='123456')
 
-    # Use the private key to sign the payload and create a client_assertion JWT
-    # Add jku (JSON Web Key Set URL) to the JWT header for asymmetric auth validation
+    code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+    auth_url = '/v3/o/authorize'
+    auth_payload = {
+        'client_id': application.client_id,
+        'response_type': 'code',
+        'redirect_uri': app_config['redirect_uri'],
+        'code_challenge': code_challenge,
+        'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+    }
+    response = client.get(auth_url, data=auth_payload)
+
+    consent_payload = {
+        'client_id': application.client_id,
+        'response_type': 'code',
+        'redirect_uri': app_config['redirect_uri'],
+        'scope': [EOB_SCOPE],
+        'expires_in': 86400,
+        'allow': True,
+        'state': '0123456789abcdef',
+        'code_challenge': code_challenge,
+        'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+    }
+    consent_response = client.post(response['Location'], data=consent_payload)
+    assert consent_response.status_code == HTTPStatus.FOUND
+
+    query_dict = parse_qs(urlparse(consent_response['Location']).query)
+    authorization_code = query_dict.get('code')[0]
+
+    ial_payload = construct_asymmetric_auth_payload(application.client_id)
     client_assertion = jwt.encode(
         ial_payload,
         get_can_private_key(),
         algorithm='RS384',
-        headers={'kid': TEST_APP_KID, 'typ': 'JWT', 'jku': 'http://localhost:8000/.well-known/jwks.json'},
+        headers={
+            'kid': TEST_APP_KID,
+            'typ': 'JWT',
+            'jku': 'http://localhost:8000/.well-known/jwks.json',
+        },
     )
 
-    asymmetric_auth_validator = AsymmetricAuthValidator()
-    json_payload = asymmetric_auth_validator.authenticate_and_validate_token(
-        client_assertion, application.client_id, application.jwks_uri
+    token_request_data = {
+        'client_assertion': client_assertion,
+        'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+        'grant_type': 'authorization_code',
+        'scope': EOB_SCOPE,
+        'code': authorization_code,
+        'redirect_uri': app_config['redirect_uri'],
+        'code_verifier': 'test123456789123456789123456789123456789123456789',
+    }
+
+    overrides = request_payload_overrides.copy()
+    token_url = overrides.pop('token_url', '/v3/o/token')
+    # Updates token request data dict based upon the test
+    token_request_data.update(overrides)
+    token_request_data = {k: v for k, v in token_request_data.items() if v is not None}
+
+    access_token_response = client.post(
+        token_url,
+        data=urlencode(token_request_data),
+        content_type='application/x-www-form-urlencoded',
     )
-    # Right now we're just returning the payload since we're just testing validation for now
-    assert json_payload == ial_payload
+    access_token_response_json = access_token_response.json()
+
+    if expected['should_pass']:
+        assert 'access_token' in access_token_response_json, 'Access token missing from response'
+        assert 'refresh_token' in access_token_response_json, 'Refresh token missing from response'
+        scope = access_token_response_json.get('scope', '')
+        assert EOB_SCOPE in scope, f'Expected scope "{EOB_SCOPE}" to be in response scope "{scope}"'
+    else:
+        assert access_token_response.status_code == expected['status_code']
+        assert expected['error_description'] in access_token_response_json.values()
