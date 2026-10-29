@@ -782,22 +782,6 @@ class TokenView(DotTokenView):
                             },
                             status=HTTPStatus.BAD_REQUEST,
                         )
-                else:
-                    # Symmetric auth flow
-                    # We want to fail if somehow an app made it here without providing
-                    # client_assertion and client_assertion_type and they are only
-                    # approved for asymmetric auth
-                    # (An Asymmetric-Only app has a jwks_uri but its client_secret_plain field is completely empty)
-                    is_asymmetric_only = bool(app.jwks_uri and not app.client_secret_plain)
-
-                    if is_asymmetric_only:
-                        return JsonResponse(
-                            {
-                                'status_code': HTTPStatus.BAD_REQUEST,
-                                'message': 'This application requires asymmetric authentication. Missing required assertion parameters.',
-                            },
-                            status=HTTPStatus.BAD_REQUEST,
-                        )
             elif grant_type == CLIENT_CREDENTIALS:
                 # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
                 # in logs for client_credentials calls. This enables us to track CAN metrics app by app

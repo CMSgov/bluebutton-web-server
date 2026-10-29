@@ -401,297 +401,290 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 @pytest.mark.integration
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'app_client_secret, app_jwks_uri, app_redirect_uri, app_allowed_auth_type, client_assertion_type, should_pass, token_url, remove_field, token_request_fields, status_code, error_description, add_field, field',
+    'app_config, request_payload_overrides, expected',
     [
         # Test a successful case with allowed auth type as just auth_code
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            True,
-            '/v3/o/token',
-            False,
-            [],
-            None,
-            None,
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+            },
+            {
+                'should_pass': True,
+                'status_code': None,
+                'error_description': None,
+            },
         ),
         # Test a successful case with allowed auth type as both auth code and client credentials
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            True,
-            '/v3/o/token',
-            False,
-            [],
-            None,
-            None,
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+            },
+            {
+                'should_pass': True,
+                'status_code': None,
+                'error_description': None,
+            },
         ),
-        # Test unsuccessful case where code isn't included in request
+        # Test unsuccessful case where invalid code isn't included in request
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['code'],
-            HTTPStatus.BAD_REQUEST,
-            'Missing Required Parameter(s): code',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            },
+            {'token_url': '/v3/o/token', 'code': None},  # strips 'code' from request_token_data
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): code',
+            },
         ),
         # Test unsuccessful case where code_verifier isn't included in request
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['code_verifier'],
-            HTTPStatus.BAD_REQUEST,
-            'Missing Required Parameter(s): code_verifier',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
+            },
+            {'token_url': '/v3/o/token', 'code_verifier': None},  # strips 'code_verifier' from request_token_data
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): code_verifier',
+            },
         ),
         # Test unsuccessful case where client_assertion isn't included in request
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['client_assertion_type'],
-            HTTPStatus.BAD_REQUEST,
-            'Missing Required Parameter(s): client_assertion_type',
-            True,
-            'client_id',
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion_type': None,  # Strips client_assertion_type from token request data
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): client_assertion_type',
+            },
         ),
         # Test unsuccessful case where scope isn't included in request
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['scope'],
-            HTTPStatus.BAD_REQUEST,
-            'Missing Required Parameter(s): scope',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'scope': None,  # Strips scope from token request data
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): scope',
+            },
         ),
         # Test unsuccessful case where app's jwks_uri is missing
         (
-            TEST_APP_CLIENT_SECRET,
-            '',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            False,
-            [],
-            HTTPStatus.UNAUTHORIZED,
-            'Asymmetric authentication is not properly configured for this application.',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': '',  # Emulates missing application JWKS URI config on our backend
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.UNAUTHORIZED,
+                'error_description': 'Asymmetric authentication is not properly configured for this application.',
+            },
         ),
         # Test unsuccessful case where app's client_assertion is missing.
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['client_assertion'],
-            HTTPStatus.BAD_REQUEST,
-            'Missing Required Parameter(s): client_assertion',
-            True,
-            'client_id',
-        ),
-        # Test unsuccessful case where an empty secret is passed in without
-        # client_assertion or client_assertion_type parameters.
-        (
-            '',
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['client_assertion', 'client_assertion_type'],
-            HTTPStatus.BAD_REQUEST,
-            'This application requires asymmetric authentication. Missing required assertion parameters.',
-            True,
-            'client_id',
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion': None,  # Strips client_assertion
+                # Emulates adding back client_id to request to get past validate_app_is_active
+                # and hit the validate_params function instead
+                'client_id': TEST_APP_CLIENT_ID,
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): client_assertion',
+            },
         ),
         # Test redirect_uri not being included fails
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            True,
-            ['redirect_uri'],
-            HTTPStatus.BAD_REQUEST,
-            'Missing Required Parameter(s): redirect_uri',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'redirect_uri': None,  # Explicitly strips 'redirect_uri' from token request data
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'Missing Required Parameter(s): redirect_uri',
+            },
         ),
         # Ensure v2 call fails
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v2/o/token',
-            False,
-            [],
-            HTTPStatus.BAD_REQUEST,
-            'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v2/o/token',  # Emulates calling version 2
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
+            },
         ),
         # Ensure v1 call fails
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v1/o/token',
-            False,
-            [],
-            HTTPStatus.BAD_REQUEST,
-            'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v1/o/token',  # Emulates calling version 1
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
+            },
         ),
         # Ensure different client_assertion_type fails
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            'random_client_assertion_type',
-            False,
-            '/v3/o/token',
-            False,
-            [],
-            HTTPStatus.BAD_REQUEST,
-            'client_assertion_type was wrong',
-            False,
-            None,
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_assertion_type': 'random_client_assertion_type',  # Emulates invalid assertion type
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'client_assertion_type was wrong',
+            },
         ),
         # Ensure client_secret in request for asymmetric auth fails
         (
-            TEST_APP_CLIENT_SECRET,
-            'http://localhost:8000/.well-known/jwks.json',
-            'com.custom.bluebutton://example.it',
-            AUTH_CODE_TYPE,
-            CLIENT_ASSERTION_TYPE_VALUE,
-            False,
-            '/v3/o/token',
-            False,
-            [],
-            HTTPStatus.BAD_REQUEST,
-            'client_secret should not be included in client_credentials call',
-            True,
-            'client_secret',
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+                'client_secret': TEST_APP_CLIENT_SECRET,  # Emulates sending a secret along with asymmetric assertions
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'error_description': 'client_secret should not be included in client_credentials call',
+            },
         ),
     ],
 )
 @override_switch('asymmetric_auth_validation', active=True)
 @override_switch('v3_endpoints', active=True)
 def test_asymmetric_auth_flow_integration(
-    app_client_secret,
-    app_jwks_uri,
-    app_redirect_uri,
-    app_allowed_auth_type,
-    client_assertion_type,
-    should_pass,
-    token_url,
-    remove_field,
-    token_request_fields,
-    status_code,
-    error_description,
-    add_field,
-    field,
+    app_config,
+    request_payload_overrides,
+    expected,
     basic_user,
     create_application,
     create_capability,
 ):
     """
-    Integration test for asymmetric auth flow that:
-    1. Gets a valid auth code after posting to the authorize endpoint
-    2. Generates a JWT using the test-app
-    3. Goes through asymmetric auth flow validation by verifying jku header and signature.
-    4. Successfully returns an access token response or returns an error
+    Integration test checking validation barriers along the Asymmetric Authentication token path.
+
+    Params:
+        app_config (dict) : Parameters passed in to create an application
+        request_payload_overrides (dict) : Runtime parameters used to explicitly update, overwrite, or mutate the standard token request.
+        expected (dict) : The outcome assertion criteria. Tracks whether a case should successfully return a
+            token pair or gracefully terminate with a verified HTTP status and error string match.
     """
-    # Set up basic user and application
     user = basic_user()
-    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v[3]/fhir/ExplanationOfBenefit[/]?$']])
+    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v/fhir/ExplanationOfBenefit[/]?$']])
+
     application = create_application(
         name='test',
         grant_type=Application.GRANT_AUTHORIZATION_CODE,
         user=user,
         client_type=Application.CLIENT_CONFIDENTIAL,
-        allowed_auth_type=app_allowed_auth_type,
-        jwks_uri=app_jwks_uri,
+        allowed_auth_type=app_config['allowed_auth_type'],
+        jwks_uri=app_config['jwks_uri'],
         client_id=TEST_APP_CLIENT_ID,
-        client_secret=app_client_secret,
-        redirect_uris=app_redirect_uri,
+        client_secret=app_config['client_secret'],
+        redirect_uris=app_config['redirect_uri'],
         capability=eob_capability,
     )
-    # Login as client
+
     request = HttpRequest()
     client.login(request=request, username='john', password='123456')
 
     code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
-    # Hit the authorize endpoint
     auth_url = '/v3/o/authorize'
     auth_payload = {
         'client_id': application.client_id,
         'response_type': 'code',
-        'redirect_uri': app_redirect_uri,
+        'redirect_uri': app_config['redirect_uri'],
         'code_challenge': code_challenge,
         'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
     }
     response = client.get(auth_url, data=auth_payload)
-    # Post the authorization form with only one scope selected
+
     consent_payload = {
         'client_id': application.client_id,
         'response_type': 'code',
-        'redirect_uri': app_redirect_uri,
+        'redirect_uri': app_config['redirect_uri'],
         'scope': [EOB_SCOPE],
         'expires_in': 86400,
         'allow': True,
@@ -700,42 +693,38 @@ def test_asymmetric_auth_flow_integration(
         'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
     }
     consent_response = client.post(response['Location'], data=consent_payload)
-
-    # Assert that the login flow correctly redirects the browser to the application callback
     assert consent_response.status_code == HTTPStatus.FOUND
 
-    # Parse out the authorization code parameter from redirect location
     query_dict = parse_qs(urlparse(consent_response['Location']).query)
     authorization_code = query_dict.get('code')[0]
 
-    # Construct the IAL payload for the asymmetric auth flow
     ial_payload = construct_asymmetric_auth_payload(application.client_id)
-
-    # Use the private key to sign the payload and create a client_assertion JWT
-    # Add jku (JSON Web Key Set URL) to the JWT header for asymmetric auth validation
     client_assertion = jwt.encode(
         ial_payload,
         get_can_private_key(),
         algorithm='RS384',
-        headers={'kid': TEST_APP_KID, 'typ': 'JWT', 'jku': 'http://localhost:8000/.well-known/jwks.json'},
+        headers={
+            'kid': TEST_APP_KID,
+            'typ': 'JWT',
+            'jku': 'http://localhost:8000/.well-known/jwks.json',
+        },
     )
-    client_assertion_type = client_assertion_type
-    grant_type = 'authorization_code'
 
     token_request_data = {
         'client_assertion': client_assertion,
-        'client_assertion_type': client_assertion_type,
-        'grant_type': grant_type,
+        'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+        'grant_type': 'authorization_code',
         'scope': EOB_SCOPE,
         'code': authorization_code,
-        'redirect_uri': app_redirect_uri,
+        'redirect_uri': app_config['redirect_uri'],
         'code_verifier': 'test123456789123456789123456789123456789123456789',
     }
-    if add_field:
-        token_request_data[field] = application.client_id
-    if remove_field:
-        for k in token_request_fields:
-            token_request_data.pop(k)
+
+    overrides = request_payload_overrides.copy()
+    token_url = overrides.pop('token_url', '/v3/o/token')
+    # Updates token request data dict based upon the test
+    token_request_data.update(overrides)
+    token_request_data = {k: v for k, v in token_request_data.items() if v is not None}
 
     access_token_response = client.post(
         token_url,
@@ -743,13 +732,12 @@ def test_asymmetric_auth_flow_integration(
         content_type='application/x-www-form-urlencoded',
     )
     access_token_response_json = access_token_response.json()
-    if should_pass:
-        assert 'access_token' in access_token_response_json, 'Access token not found in response'
-        assert 'refresh_token' in access_token_response_json, 'Refresh token not found in response'
-        scope = access_token_response_json.get('scope')
-        # AuditEvent is also returned in the response from the requests library so don't do an exact assertion,
-        # just check that the combined scopes are in the returned scope.
+
+    if expected['should_pass']:
+        assert 'access_token' in access_token_response_json, 'Access token missing from response'
+        assert 'refresh_token' in access_token_response_json, 'Refresh token missing from response'
+        scope = access_token_response_json.get('scope', '')
         assert EOB_SCOPE in scope, f'Expected scope "{EOB_SCOPE}" to be in response scope "{scope}"'
     else:
-        assert access_token_response.status_code == status_code
-        assert error_description in access_token_response_json.values()
+        assert access_token_response.status_code == expected['status_code']
+        assert expected['error_description'] in access_token_response_json.values()
