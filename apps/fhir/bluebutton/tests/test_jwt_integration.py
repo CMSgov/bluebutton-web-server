@@ -32,6 +32,7 @@ from apps.constants import (
     TEST_APP_CLIENT_SECRET,
 )
 from apps.dot_ext.constants import (
+    ASYMMETRIC_AUTH_DISABLED,
     AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
     AUTH_CODE_TYPE,
     CLIENT_ASSERTION_TYPE_VALUE,
@@ -401,7 +402,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 @pytest.mark.integration
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'app_config, request_payload_overrides, expected',
+    'app_config, request_payload_overrides, expected, allow_asymm_auth_switch_active',
     [
         # Test a successful case with allowed auth type as just auth_code
         (
@@ -419,6 +420,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': None,
                 'error_description': None,
             },
+            True,
         ),
         # Test a successful case with allowed auth type as both auth code and client credentials
         (
@@ -436,6 +438,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': None,
                 'error_description': None,
             },
+            True,
         ),
         # Test unsuccessful case where invalid code isn't included in request
         (
@@ -451,6 +454,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'Missing Required Parameter(s): code',
             },
+            True,
         ),
         # Test unsuccessful case where code_verifier isn't included in request
         (
@@ -466,6 +470,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'Missing Required Parameter(s): code_verifier',
             },
+            True,
         ),
         # Test unsuccessful case where client_assertion isn't included in request
         (
@@ -484,6 +489,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'Missing Required Parameter(s): client_assertion_type',
             },
+            True,
         ),
         # Test unsuccessful case where scope isn't included in request
         (
@@ -502,6 +508,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'Missing Required Parameter(s): scope',
             },
+            True,
         ),
         # Test unsuccessful case where app's jwks_uri is missing
         (
@@ -520,6 +527,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.UNAUTHORIZED,
                 'error_description': 'Asymmetric authentication is not properly configured for this application.',
             },
+            True,
         ),
         # Test unsuccessful case where app's client_assertion is missing.
         (
@@ -541,6 +549,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'Missing Required Parameter(s): client_assertion',
             },
+            True,
         ),
         # Test redirect_uri not being included fails
         (
@@ -559,6 +568,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'Missing Required Parameter(s): redirect_uri',
             },
+            True,
         ),
         # Ensure v2 call fails
         (
@@ -576,6 +586,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'A asymmetric_auth token call was made for version: 2. You must use version 3 for asymmetric_auth calls.',
             },
+            True,
         ),
         # Ensure v1 call fails
         (
@@ -593,6 +604,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'A asymmetric_auth token call was made for version: 1. You must use version 3 for asymmetric_auth calls.',
             },
+            True,
         ),
         # Ensure different client_assertion_type fails
         (
@@ -611,6 +623,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'client_assertion_type was wrong',
             },
+            True,
         ),
         # Ensure client_secret in request for asymmetric auth fails
         (
@@ -629,6 +642,25 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
                 'status_code': HTTPStatus.BAD_REQUEST,
                 'error_description': 'client_secret should not be included in client_credentials call',
             },
+            True,
+        ),
+        # Ensure allow_asymmetric_auth waffle switch not enabled returns a 403
+        (
+            {
+                'client_secret': TEST_APP_CLIENT_SECRET,
+                'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
+                'redirect_uri': 'com.custom.bluebutton://example.it',
+                'allowed_auth_type': AUTH_CODE_TYPE,
+            },
+            {
+                'token_url': '/v3/o/token',
+            },
+            {
+                'should_pass': False,
+                'status_code': HTTPStatus.FORBIDDEN,
+                'error_description': ASYMMETRIC_AUTH_DISABLED,
+            },
+            False,
         ),
     ],
 )
@@ -638,6 +670,7 @@ def test_asymmetric_auth_flow_integration(
     app_config,
     request_payload_overrides,
     expected,
+    allow_asymm_auth_switch_active,
     basic_user,
     create_application,
     create_capability,
@@ -650,94 +683,96 @@ def test_asymmetric_auth_flow_integration(
         request_payload_overrides (dict) : Runtime parameters used to explicitly update, overwrite, or mutate the standard token request.
         expected (dict) : The outcome assertion criteria. Tracks whether a case should successfully return a
             token pair or gracefully terminate with a verified HTTP status and error string match.
+        allow_asymm_auth_switch_active (bool) : True if allow_asymmetric_auth is active, otherwise False
     """
-    user = basic_user()
-    eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v/fhir/ExplanationOfBenefit[/]?$']])
+    with override_switch('allow_asymmetric_auth', active=allow_asymm_auth_switch_active):
+        user = basic_user()
+        eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v/fhir/ExplanationOfBenefit[/]?$']])
 
-    application = create_application(
-        name='test',
-        grant_type=Application.GRANT_AUTHORIZATION_CODE,
-        user=user,
-        client_type=Application.CLIENT_CONFIDENTIAL,
-        allowed_auth_type=app_config['allowed_auth_type'],
-        jwks_uri=app_config['jwks_uri'],
-        client_id=TEST_APP_CLIENT_ID,
-        client_secret=app_config['client_secret'],
-        redirect_uris=app_config['redirect_uri'],
-        capability=eob_capability,
-    )
+        application = create_application(
+            name='test',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            user=user,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            allowed_auth_type=app_config['allowed_auth_type'],
+            jwks_uri=app_config['jwks_uri'],
+            client_id=TEST_APP_CLIENT_ID,
+            client_secret=app_config['client_secret'],
+            redirect_uris=app_config['redirect_uri'],
+            capability=eob_capability,
+        )
 
-    request = HttpRequest()
-    client.login(request=request, username='john', password='123456')
+        request = HttpRequest()
+        client.login(request=request, username='john', password='123456')
 
-    code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
-    auth_url = '/v3/o/authorize'
-    auth_payload = {
-        'client_id': application.client_id,
-        'response_type': 'code',
-        'redirect_uri': app_config['redirect_uri'],
-        'code_challenge': code_challenge,
-        'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-    }
-    response = client.get(auth_url, data=auth_payload)
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+        auth_url = '/v3/o/authorize'
+        auth_payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': app_config['redirect_uri'],
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        response = client.get(auth_url, data=auth_payload)
 
-    consent_payload = {
-        'client_id': application.client_id,
-        'response_type': 'code',
-        'redirect_uri': app_config['redirect_uri'],
-        'scope': [EOB_SCOPE],
-        'expires_in': 86400,
-        'allow': True,
-        'state': '0123456789abcdef',
-        'code_challenge': code_challenge,
-        'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-    }
-    consent_response = client.post(response['Location'], data=consent_payload)
-    assert consent_response.status_code == HTTPStatus.FOUND
+        consent_payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': app_config['redirect_uri'],
+            'scope': [EOB_SCOPE],
+            'expires_in': 86400,
+            'allow': True,
+            'state': '0123456789abcdef',
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        consent_response = client.post(response['Location'], data=consent_payload)
+        assert consent_response.status_code == HTTPStatus.FOUND
 
-    query_dict = parse_qs(urlparse(consent_response['Location']).query)
-    authorization_code = query_dict.get('code')[0]
+        query_dict = parse_qs(urlparse(consent_response['Location']).query)
+        authorization_code = query_dict.get('code')[0]
 
-    ial_payload = construct_asymmetric_auth_payload(application.client_id)
-    client_assertion = jwt.encode(
-        ial_payload,
-        get_can_private_key(),
-        algorithm='RS384',
-        headers={
-            'kid': TEST_APP_KID,
-            'typ': 'JWT',
-            'jku': 'http://localhost:8000/.well-known/jwks.json',
-        },
-    )
+        ial_payload = construct_asymmetric_auth_payload(application.client_id)
+        client_assertion = jwt.encode(
+            ial_payload,
+            get_can_private_key(),
+            algorithm='RS384',
+            headers={
+                'kid': TEST_APP_KID,
+                'typ': 'JWT',
+                'jku': 'http://localhost:8000/.well-known/jwks.json',
+            },
+        )
 
-    token_request_data = {
-        'client_assertion': client_assertion,
-        'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
-        'grant_type': 'authorization_code',
-        'scope': EOB_SCOPE,
-        'code': authorization_code,
-        'redirect_uri': app_config['redirect_uri'],
-        'code_verifier': 'test123456789123456789123456789123456789123456789',
-    }
+        token_request_data = {
+            'client_assertion': client_assertion,
+            'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+            'grant_type': 'authorization_code',
+            'scope': EOB_SCOPE,
+            'code': authorization_code,
+            'redirect_uri': app_config['redirect_uri'],
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
+        }
 
-    overrides = request_payload_overrides.copy()
-    token_url = overrides.pop('token_url', '/v3/o/token')
-    # Updates token request data dict based upon the test
-    token_request_data.update(overrides)
-    token_request_data = {k: v for k, v in token_request_data.items() if v is not None}
+        overrides = request_payload_overrides.copy()
+        token_url = overrides.pop('token_url', '/v3/o/token')
+        # Updates token request data dict based upon the test
+        token_request_data.update(overrides)
+        token_request_data = {k: v for k, v in token_request_data.items() if v is not None}
 
-    access_token_response = client.post(
-        token_url,
-        data=urlencode(token_request_data),
-        content_type='application/x-www-form-urlencoded',
-    )
-    access_token_response_json = access_token_response.json()
+        access_token_response = client.post(
+            token_url,
+            data=urlencode(token_request_data),
+            content_type='application/x-www-form-urlencoded',
+        )
+        access_token_response_json = access_token_response.json()
 
-    if expected['should_pass']:
-        assert 'access_token' in access_token_response_json, 'Access token missing from response'
-        assert 'refresh_token' in access_token_response_json, 'Refresh token missing from response'
-        scope = access_token_response_json.get('scope', '')
-        assert EOB_SCOPE in scope, f'Expected scope "{EOB_SCOPE}" to be in response scope "{scope}"'
-    else:
-        assert access_token_response.status_code == expected['status_code']
-        assert expected['error_description'] in access_token_response_json.values()
+        if expected['should_pass']:
+            assert 'access_token' in access_token_response_json, 'Access token missing from response'
+            assert 'refresh_token' in access_token_response_json, 'Refresh token missing from response'
+            scope = access_token_response_json.get('scope', '')
+            assert EOB_SCOPE in scope, f'Expected scope "{EOB_SCOPE}" to be in response scope "{scope}"'
+        else:
+            assert access_token_response.status_code == expected['status_code']
+            assert expected['error_description'] in access_token_response_json.values()

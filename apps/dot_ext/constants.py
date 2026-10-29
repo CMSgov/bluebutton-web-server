@@ -591,6 +591,12 @@ APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE
     ' If you are a Medicare Beneficiary and need assistance, please contact'
     ' the support team for the application you are trying to access.'
 )
+ASYMMETRIC_AUTH_DISABLED = (
+    'Asymmetric Authentication is currently disabled.'
+    ' If you are the app maintainer, please contact the Blue Button API team.'
+    ' If you are a Medicare Beneficiary and need assistance, please contact'
+    ' the support team for the application you are trying to access.'
+)
 
 AUTH_CODE_TYPE = 'AUTH_CODE'
 CLIENT_CREDENTIALS_TYPE = 'CLIENT_CREDENTIALS'

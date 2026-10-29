@@ -8,6 +8,7 @@ from functools import wraps
 from http import HTTPStatus
 from urllib.parse import parse_qs, urlencode, urlparse
 
+import waffle
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
@@ -60,6 +61,7 @@ from apps.constants import (
 )
 from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
+    ASYMMETRIC_AUTH_DISABLED,
     AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
     CLIENT_CREDENTIALS_TYPE,
     DATETIME_ISO_FORMAT,
@@ -745,42 +747,51 @@ class TokenView(DotTokenView):
                     # Distinguish between symmetric and asymmetric authentication by
                     # checking for the presence of a client assertion or client_assertion_type from the app above.
                     # If it is present, we will use asymmetric authentication.
-                    asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator()
+                    if waffle.switch_is_active('allow_asymmetric_auth'):
+                        asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator()
 
-                    # Check for required params for asymmetric authentication
-                    request_validation_result = asymmetric_auth_token_req_validator.validate_request_params(request)
-                    if request_validation_result:
-                        return request_validation_result
-                    # Only support v3 calls or calls having supported types
-                    call_allowed_result = asymmetric_auth_token_req_validator.check_if_call_is_allowed(
-                        app.allowed_auth_type, version, app.name
-                    )
-                    if call_allowed_result:
-                        return call_allowed_result
+                        # Check for required params for asymmetric authentication
+                        request_validation_result = asymmetric_auth_token_req_validator.validate_request_params(request)
+                        if request_validation_result:
+                            return request_validation_result
+                        # Only support v3 calls or calls having supported types
+                        call_allowed_result = asymmetric_auth_token_req_validator.check_if_call_is_allowed(
+                            app.allowed_auth_type, version, app.name
+                        )
+                        if call_allowed_result:
+                            return call_allowed_result
 
-                    if not app.jwks_uri or not app.client_id:
+                        if not app.jwks_uri or not app.client_id:
+                            return JsonResponse(
+                                {
+                                    'status_code': HTTPStatus.UNAUTHORIZED,
+                                    'message': 'Asymmetric authentication is not properly configured for this application.',
+                                },
+                                status=HTTPStatus.UNAUTHORIZED,
+                            )
+                        try:
+                            asymmetric_auth_jwt_validator = AsymmetricAuthJWTValidator()
+                            asymmetric_auth_jwt_validator.authenticate_and_validate_token(
+                                client_assertion,
+                                app.client_id,
+                                app.jwks_uri,
+                            )
+                        except Exception as e:
+                            log.warning(f'Failed to validate jwt: {e}')
+                            return JsonResponse(
+                                {
+                                    'status_code': HTTPStatus.BAD_REQUEST,
+                                    'message': 'Bad request',
+                                },
+                                status=HTTPStatus.BAD_REQUEST,
+                            )
+                    else:
                         return JsonResponse(
                             {
-                                'status_code': HTTPStatus.UNAUTHORIZED,
-                                'message': 'Asymmetric authentication is not properly configured for this application.',
+                                'status_code': HTTPStatus.FORBIDDEN,
+                                'message': ASYMMETRIC_AUTH_DISABLED,
                             },
-                            status=HTTPStatus.UNAUTHORIZED,
-                        )
-                    try:
-                        asymmetric_auth_jwt_validator = AsymmetricAuthJWTValidator()
-                        asymmetric_auth_jwt_validator.authenticate_and_validate_token(
-                            client_assertion,
-                            app.client_id,
-                            app.jwks_uri,
-                        )
-                    except Exception as e:
-                        log.warning(f'Failed to validate jwt: {e}')
-                        return JsonResponse(
-                            {
-                                'status_code': HTTPStatus.BAD_REQUEST,
-                                'message': 'Bad request',
-                            },
-                            status=HTTPStatus.BAD_REQUEST,
+                            status=HTTPStatus.FORBIDDEN,
                         )
             elif grant_type == CLIENT_CREDENTIALS:
                 # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
