@@ -91,6 +91,15 @@
 /bb/test/app/sensitive/medicare_gov_synthetic_tests_akamai_token: ENC[AES256_GCM,data:TF1Z+Chw79Ls52kUN0i4JQ==,iv:/U33TP6bXpMWXKB63J/qamkBmvrMZ+J4sMrVAc9QlfM=,tag:i32a+SbAfCdjvJURjaYl4Q==,type:str]
 /bb/test/app/sensitive/datadog_bbuser00000_access_token: ENC[AES256_GCM,data:m+CaA53CquRzg1lVsN5YhXnfQQUHElHnS6kz8f6u,iv:qwlyYafX/KGKbhxLFzpwSvNQM/wgjy8pCz2k190cDas=,tag:5G+zuAiyJtzNzNlScmjylQ==,type:str]
 /bb/test/app/sensitive/datadog_bbuser10000_access_token: ENC[AES256_GCM,data:pGKpbTKdW17T2uNZMnyAZQLPm6m7zu03CMGcJi3P,iv:JmPhZ/2kkpbInuHTCQFZ+FCih1pogObUrCT/AVqw6MY=,tag:BqEI37zKnQivL6stLM9EPg==,type:str]
+#ENC[AES256_GCM,data:DS9y9H0L/KAaYF5o7o0BTam+NsxhPBFKVn0uEnQZoxngrup8vD2IpQliyUA8aotnjqYa+DhWFYbRIYdtLBetYLugqkFZUDPyNCatVg==,iv:HPVt3yGJ5+HCSBRxPTEaABEnyKcSfUEixfbcTxJK2kI=,tag:j5Ff2Qr1cIxPTNf5jZhbAQ==,type:comment]
+#ENC[AES256_GCM,data:IFPezSW1kHA=,iv:W1XI1Dkg0TZQFRAlt6teocLzqekNpBAtA6XMbZ6lA9g=,tag:VnG9H+RBdHIK2tRZTmBreg==,type:comment]
+#ENC[AES256_GCM,data:zu3fPyTzLbXu0co+gj5Uxhc/u+jjv+OHzmiRCTVMHtI2RqJ8b2GCSok3TW4iQtb8LTbdu5YFWhetf0CYMF1yfsmdlMv6jJ4S5XLeSg==,iv:7RZudPBjJLNgPi4HK2q1gmNKZq1jESPBkPZDs8lIqA4=,tag:9EzhISa7cNh6exnUshpjlA==,type:comment]
+/bb/test/app/nonsensitive/its_log_api_enabled: "False"
+/bb/test/app/sensitive/itslog_apikey:
+  app_id: ENC[AES256_GCM,data:Gi4=,iv:pU0UYuU8KN2KPx9wgUJgxwUdV3Kg3gKo4iJ/o5DebJ8=,tag:BT+1x65YY7T6sVmBGTgf9Q==,type:str]
+  key_id: ENC[AES256_GCM,data:dC9Z30TqcvM=,iv:2VsiWvyX2WrTdSAGxd/vUvLjpJ1e80zEvt4L/IKs9Yg=,tag:QCRPSSMFLcj1U+elfJ7SYQ==,type:str]
+  permission: ENC[AES256_GCM,data:yUH4rGI=,iv:qSTyo21jKZDPu94UxMaWVyBOhB9MH76OdV8a4fclddk=,tag:tFKn181qZHdiJ75FtZfFrw==,type:str]
+  key: ENC[AES256_GCM,data:TAImukHzdbGuE4kWqkN9iqsvuQluqoTVZT5qVJF3vI+xf43FiMCwLOOgYWvB4iVnhGvFpLnwxydO3ILyYV8Z2g==,iv:kOIgQeGgqlCWU/17d97CQKRM89amzzu1kbRiB1oFfho=,tag:KfMWQSbMrcuQU5t6wBnY2Q==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias

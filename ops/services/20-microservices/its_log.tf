@@ -17,7 +17,9 @@ locals {
   its_log_cpu    = coalesce(try(var.service_overrides["its-log"].cpu, null), 128)
   its_log_memory = coalesce(try(var.service_overrides["its-log"].memory, null), 256)
   its_log_count  = coalesce(try(var.service_overrides["its-log"].count, null), 1)
-  its_log_port   = coalesce(try(var.service_overrides["its-log"].port, null), 8888)
+  its_log_serve_port   = coalesce(try(var.service_overrides["its-log"].port, null), 8888)
+  its_log_serve_host = "${aws_service_discovery_service.its_log.name}.${aws_service_discovery_private_dns_namespace.internal.name}"
+
 }
 
 resource "aws_cloudwatch_log_group" "its_log" {
@@ -27,7 +29,7 @@ resource "aws_cloudwatch_log_group" "its_log" {
   tags              = local.default_tags
 }
 
-# Inbound allowed only from the BB api service's security group, on its_log_port.
+# Inbound allowed only from the BB api service's security group, on its_log_serve_port.
 resource "aws_security_group" "its_log_sg" {
   name_prefix = "${local.app_prefix}-${local.workspace}-its-log-"
   description = "its-log service — inbound from api service only"
@@ -35,8 +37,8 @@ resource "aws_security_group" "its_log_sg" {
 
   ingress {
     description     = "Allow BB api service to reach its-log"
-    from_port       = local.its_log_port
-    to_port         = local.its_log_port
+    from_port       = local.its_log_serve_port
+    to_port         = local.its_log_serve_port
     protocol        = "tcp"
     security_groups = [aws_security_group.ecs_sg["api"].id]
   }
@@ -279,7 +281,7 @@ resource "aws_ecs_task_definition" "its_log" {
     readonlyRootFilesystem = true
 
     portMappings = [{
-      containerPort = local.its_log_port
+      containerPort = local.its_log_serve_port
       protocol      = "tcp"
     }]
 
@@ -289,7 +291,10 @@ resource "aws_ecs_task_definition" "its_log" {
       readOnly      = false
     }]
 
-    environment = var.its_log_environment_variables
+    environment = concat(var.its_log_environment_variables, [
+      { name = "ITSLOG_SERVE_HOST", value = local.its_log_serve_host },
+      { name = "ITSLOG_SERVE_PORT", value = tostring(local.its_log_serve_port) },
+    ])
     secrets     = local.its_log_all_secrets
 
     logConfiguration = {
@@ -478,6 +483,10 @@ resource "aws_ecs_service" "its_log" {
     security_groups  = [aws_security_group.its_log_sg.id]
   }
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.its_log.arn
+  }
+
   deployment_circuit_breaker {
     enable   = true
     rollback = true
@@ -488,4 +497,24 @@ resource "aws_ecs_service" "its_log" {
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-service" }
+}
+
+resource "aws_service_discovery_private_dns_namespace" "internal" {
+  name = "${local.app_prefix}-${local.workspace}.internal"
+  vpc  = local.vpc_id
+}
+
+resource "aws_service_discovery_service" "its_log" {
+  name = "its-log"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.internal.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
 }
