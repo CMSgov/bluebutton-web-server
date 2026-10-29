@@ -1080,17 +1080,20 @@ def test_v3_search_passes_through_query_parameter(client, create_token, search_u
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
-def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token) -> None:
+def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token, basic_user) -> None:
     """Ensure that if a v3 search EOB call is made with an explicit _security=42CFRPart2 parameter, and the
     access token's AccessTokenExtension has include_samhsa=False, the auto-appended _security:not=42CFRPart2
     conflicts with the explicit _security parameter and BFD returns an OperationOutcome error
     """
+    proxy_user = basic_user('proxy_user', 'proxy_password')
 
     access_token = create_token()
     access_token_extension = AccessTokenExtension()
     access_token_extension.access_token = AccessToken.objects.get(token=access_token)
     access_token_extension.include_samhsa = False
     access_token_extension.part_d_eob_only = False
+    # Demonstrate that access_token_extension records can be saved with a proxy user
+    access_token_extension.proxy = proxy_user
     access_token_extension.save()
 
     url = reverse(SEARCH_EOB_URLS[Versions.V3])

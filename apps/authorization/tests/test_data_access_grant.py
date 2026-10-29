@@ -436,3 +436,31 @@ class TestDataAccessGrant(BaseApiTest):
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()
+
+
+def test_creating_multiple_access_grants_with_different_proxy_ids_succeeds(basic_user, create_application):
+    bene_user = basic_user('test_user', 'password')
+    proxy_user = basic_user('proxy_user', 'proxy_password')
+    second_proxy_user = basic_user('second_proxy_user', 'second_proxy_password')
+    app = create_application('test_app', user=bene_user)
+
+    # Create access grant for bene, passing the bene as the proxy
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=bene_user,
+    )
+    # Create access grant for first proxy user
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=proxy_user,
+    )
+    # Create access grant for second proxy user
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=second_proxy_user,
+    )
+    data_access_grants = DataAccessGrant.objects.filter(beneficiary__username='test_user', application__name='test_app')
+    assert len(data_access_grants) == 3
