@@ -10,7 +10,7 @@
 locals {
   # BCDA AWS account — where the its-log ECR repo and cross-account IAM policies live.
   bcda_account_id   = sensitive(data.aws_ssm_parameter.bcda_account_id.value)
-  its_log_repo_name = "cdap-its-log"
+  its_log_repo_name = sensitive(data.aws_ssm_parameter.its_log_repo_name.value)
   its_log_image_url = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
   its_log_repo_arn  = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
 
