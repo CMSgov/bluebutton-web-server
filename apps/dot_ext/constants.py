@@ -22,6 +22,10 @@ PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~'
 ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
 # CAN Flow also requires the 'extensions' claim (smart extension)
 CAN_REQUIRED_CLAIM_FIELDS = ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS + ['extensions']
+CAN_REQUIRED_PARAMS = ['grant_type', 'client_assertion_type', 'client_assertion', 'scope']
+# Required params based upon spec here: https://hl7.org/fhir/smart-app-launch/STU2.2/app-launch.html
+ASYMMETRIC_AUTH_REQUIRED_PARAMS = CAN_REQUIRED_PARAMS + ['code_verifier', 'redirect_uri', 'code']
+
 
 # List of value keys that are being tracked via request.session
 SESSION_AUTH_FLOW_TRACE_KEYS = [
@@ -562,7 +566,7 @@ BENE_PERSONAL_INFO_SCOPES = [
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG = 'User access cannot be found. To refresh Medicare data, end user must re-authenticate and consent to share their data.'
 
-APPLICATION_DOES_NOT_HAVE_CLIENT_CREDENTIALS_ENABLED = (
+APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED = (
     'This application, {}, does not yet have access to this authorization method.'
     ' If you are the app maintainer, please contact the Blue Button API team.'
     ' If you are a Medicare Beneficiary and need assistance, please contact'
