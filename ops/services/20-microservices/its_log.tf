@@ -14,10 +14,10 @@ locals {
   its_log_image_url = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
   its_log_repo_arn  = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
 
-  its_log_cpu    = coalesce(try(var.service_overrides["its-log"].cpu, null), 128)
-  its_log_memory = coalesce(try(var.service_overrides["its-log"].memory, null), 256)
-  its_log_count  = coalesce(try(var.service_overrides["its-log"].count, null), 1)
-  its_log_serve_port   = coalesce(try(var.service_overrides["its-log"].port, null), 8888)
+  its_log_cpu        = coalesce(try(var.service_overrides["its-log"].cpu, null), 128)
+  its_log_memory     = coalesce(try(var.service_overrides["its-log"].memory, null), 256)
+  its_log_count      = coalesce(try(var.service_overrides["its-log"].count, null), 1)
+  its_log_serve_port = coalesce(try(var.service_overrides["its-log"].port, null), 8888)
   its_log_serve_host = "${aws_service_discovery_service.its_log.name}.${aws_service_discovery_private_dns_namespace.internal.name}"
 
 }
@@ -286,7 +286,7 @@ resource "aws_ecs_task_definition" "its_log" {
     }]
 
     mountPoints = [{
-      sourceVolume = "its-log-efs"
+      sourceVolume  = "its-log-efs"
       containerPath = "/its-log/data"
       readOnly      = false
     }]
@@ -295,7 +295,7 @@ resource "aws_ecs_task_definition" "its_log" {
       { name = "ITSLOG_SERVE_HOST", value = local.its_log_serve_host },
       { name = "ITSLOG_SERVE_PORT", value = tostring(local.its_log_serve_port) },
     ])
-    secrets     = local.its_log_all_secrets
+    secrets = local.its_log_all_secrets
 
     logConfiguration = {
       logDriver = "awslogs"
@@ -398,7 +398,7 @@ resource "aws_ecs_task_definition" "its_log" {
         value = "TBD"
       },
       {
-        name  = "ITSLOG_SERVE_HOST"
+        name = "ITSLOG_SERVE_HOST"
         # TODO: Update this once we have a DNS configured
         value = "localhost"
       },
