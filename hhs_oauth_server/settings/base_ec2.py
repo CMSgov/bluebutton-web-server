@@ -206,7 +206,6 @@ INSTALLED_APPS = [
     'apps.authorization',
     'apps.bb2_tools',
     # 3rd Party ---------------------
-    'corsheaders',
     'django_bootstrap5',
     'waffle',
     # dot (django-oauth-toolkit) must be installed after apps.dot_ext in order to override templates
@@ -261,7 +260,6 @@ MIDDLEWARE = [
     'hhs_oauth_server.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     # Must be before CommonMiddleware but after SessionMiddleware
     'django.middleware.locale.LocaleMiddleware',
     # Middleware that can send a response must be below this line
@@ -290,32 +288,6 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 SECURE_SSL_REDIRECT = False  # ALB handles HTTPS redirect
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 X_FRAME_OPTIONS = 'DENY'
-
-CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
-# TODO: Uncomment once Fargate migration is complete and we would have a better sense of what allowed origins would be.
-# Once a Fargate post migration ticket is created, this should be addressed then.
-# It is a possible security hardening that can be decided upon later.
-# _CORS_ALLOWED = env("CORS_ALLOWED_ORIGINS", "")
-# CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(",") if o.strip()]
-
-# # Restrict allowed HTTP methods and headers for CORS
-# CORS_ALLOW_METHODS = [
-#     "GET",
-#     "POST",
-#     "PUT",
-#     "PATCH",
-#     "DELETE",
-#     "OPTIONS",
-# ]
-
-# CORS_ALLOW_HEADERS = (
-#     "accept",
-#     "authorization",
-#     "content-type",
-#     "user-agent",
-#     "x-csrftoken",
-#     "x-requested-with",
-# )
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 

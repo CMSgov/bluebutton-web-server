@@ -8,6 +8,7 @@ File created by: 'Mark Scrimshire: @ekivemark'
 
 import json
 
+from django.conf import settings
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
@@ -310,3 +311,24 @@ class SmartConfigurationTestCase(TestCase):
         self.assertEqual(type(json.loads(response_content)), type({}))
         self.assertCountEqual(response_json['capabilities'], CAPABILITIES)
         self.assertCountEqual(response_json['scopes_supported'], SCOPES_SUPPORTED)
+
+
+class CorsPolicyTestCase(TestCase):
+    def test_cors_middleware_is_not_installed(self):
+        self.assertNotIn('corsheaders', settings.INSTALLED_APPS)
+        self.assertNotIn('corsheaders.middleware.CorsMiddleware', settings.MIDDLEWARE)
+
+    def test_cross_origin_response_has_no_cors_headers(self):
+        response = self.client.get(reverse('openid-configuration'), HTTP_ORIGIN='https://example.com')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+        self.assertNotIn('Access-Control-Allow-Credentials', response)
+
+    def test_preflight_does_not_allow_cross_origin_requests(self):
+        response = self.client.options(
+            reverse('openid-configuration'),
+            HTTP_ORIGIN='https://example.com',
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD='GET',
+        )
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+        self.assertNotIn('Access-Control-Allow-Methods', response)

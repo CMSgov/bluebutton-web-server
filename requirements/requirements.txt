@@ -449,7 +449,6 @@ django==6.0.8 \
     #   dj-database-url
     #   django-axes
     #   django-bootstrap5
-    #   django-cors-headers
     #   django-filter
     #   django-ipware
     #   django-oauth-toolkit
@@ -463,11 +462,7 @@ django-axes==5.41.1 \
 django-bootstrap5==25.3 \
     --hash=sha256:3d381a5329a1439ac3237456c28cc8170c62b4c56ad3564d57876ffc3d4c5e78 \
     --hash=sha256:cc36f1a19d3200c0f5628c703320edb5c4e39e19bf17607fadf58ddb11828912
-    # via -r /code/requirements/requirements.in
-django-cors-headers==4.0.0 \
-    --hash=sha256:a971cd4c75b29974068cc36b5c595698822f1e0edd5f1b32ea42ea37326ad4aa \
-    --hash=sha256:e3cbd247a1a835da4cf71a70d4214378813ea7e08337778b82cb2c1bc19d28d6
-    # via -r /code/requirements/requirements.in
+    # via -r requirements.in
 django-environ==0.12.0 \
     --hash=sha256:227dc891453dd5bde769c3449cf4a74b6f2ee8f7ab2361c93a07068f4179041a \
     --hash=sha256:92fb346a158abda07ffe6eb23135ce92843af06ecf8753f43adf9d2366dcc0ca

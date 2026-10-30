@@ -142,7 +142,7 @@
                 }
             ],
             "security": {
-                "cors": true,
+                "cors": false,
                 "service": [
                     {
                         "text": "OAuth",

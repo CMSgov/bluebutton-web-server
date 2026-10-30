@@ -1724,7 +1724,7 @@ components:
                         - `cursor=200` the first record is the 201st record
                         - `cursor=1000` the first record is the 1001st record
             security:
-              cors: true
+              cors: false
               service:
                 - text: OAuth
                   coding:
@@ -2131,7 +2131,7 @@ components:
                          - `cursor=200` the first record is the 201st record
                          - `cursor=1000` the first record is the 1001st record
             security:
-              cors: true
+              cors: false
               service:
                 - text: OAuth
                   coding:
@@ -2538,7 +2538,7 @@ components:
                          - `cursor=200` the first record is the 201st record
                          - `cursor=1000` the first record is the 1001st record
             security:
-              cors: true
+              cors: false
               service:
                 - text: OAuth
                   coding:

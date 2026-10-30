@@ -415,7 +415,7 @@ class Security_Metadata_test(BaseApiTest):
 
         result = build_oauth_resource(request, version=Versions.V1)
 
-        expected = True
+        expected = False
 
         self.assertEqual(result['cors'], expected)
 
@@ -427,7 +427,7 @@ class Security_Metadata_test(BaseApiTest):
 
         result = build_oauth_resource(request, Versions.V1, 'json')
 
-        expected = True
+        expected = False
 
         self.assertEqual(result['cors'], expected)
 
@@ -439,9 +439,9 @@ class Security_Metadata_test(BaseApiTest):
 
         result = build_oauth_resource(request, Versions.V1, 'xml')
 
-        expected = '<cors>true</cors>'
+        expected = '<cors>false</cors>'
 
-        self.assertEqual(result[16:33], expected)
+        self.assertIn(expected, result)
 
 
 class PatientMatchResponseJsonTestCase(BaseApiTest):
