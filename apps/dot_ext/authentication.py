@@ -27,6 +27,10 @@ class SLSAuthentication(authentication.BaseAuthentication):
         if not hasattr(request, 'client'):
             request.client = None
 
+        # OAuth2Validator (django-oauth-toolkit >= 3) reads request.grant_type
+        if not hasattr(request, 'grant_type'):
+            request.grant_type = None
+
         # populates request.client with Application if successful
         validator = OAuth2Validator()
         authenticated = validator.authenticate_client(request)
