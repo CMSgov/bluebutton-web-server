@@ -6,6 +6,7 @@ from oauth2_provider.admin import ApplicationAdmin
 from oauth2_provider.models import get_application_model
 
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
+from apps.dot_ext.validators import validate_application_name
 
 
 class ValidatedApplicationAdminForm(forms.ModelForm):
@@ -15,6 +16,11 @@ class ValidatedApplicationAdminForm(forms.ModelForm):
         self.fields['user'].label = 'User*'
         self.fields['name'].required = True
         self.fields['name'].label = 'Name*'
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        validate_application_name(name)
+        return name
 
     def clean(self):
         cleaned_data = super().clean()

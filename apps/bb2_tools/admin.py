@@ -3,7 +3,7 @@ import json
 from django.contrib import admin
 from django.db.models import Count, DateTimeField, Max, Min, Q
 from django.db.models.functions import Trunc
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 
 from apps.accounts.models import UserProfile
@@ -353,7 +353,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         ordering='MyConnectedApps',
     )
     def get_connected_applications(self, obj):
-        inlinehtml = '<div><ul>'
+        connected_applications = []
         tokens = (
             MyAccessTokenViewer.objects.filter(user=obj.user_id)
             .values('user', 'application')
@@ -361,7 +361,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         )
         for t in tokens:
             app = get_application_model().objects.get(id=t['application'])
-            inlinehtml += '<li>App:{}, Token Count:{}</li>'.format(app.name, t['token_count'])
+            connected_applications.append((app.name, 'Token Count', t['token_count']))
 
         refreshtokens = (
             MyRefreshTokenViewer.objects.filter(user=obj.user_id)
@@ -370,7 +370,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         )
         for t in refreshtokens:
             app = get_application_model().objects.get(id=t['application'])
-            inlinehtml += '<li>App:{}, Refresh Token Count:{}</li>'.format(app.name, t['token_count'])
+            connected_applications.append((app.name, 'Refresh Token Count', t['token_count']))
 
         archivedtokens = (
             MyArchivedTokenViewer.objects.filter(user=obj.user_id)
@@ -379,11 +379,16 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
         )
         for t in archivedtokens:
             app = get_application_model().objects.get(id=t['application'])
-            inlinehtml += '<li>App:{}, Archived Token Count:{}</li>'.format(app.name, t['token_count'])
+            connected_applications.append((app.name, 'Archived Token Count', t['token_count']))
 
-        inlinehtml += '</ul></div>'
-
-        return format_html(format_string=inlinehtml, args={}, kwargs={})
+        return format_html(
+            '<div><ul>{}</ul></div>',
+            format_html_join(
+                '',
+                '<li>App:{}, {}:{}</li>',
+                connected_applications,
+            ),
+        )
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
