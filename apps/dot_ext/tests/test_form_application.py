@@ -217,6 +217,72 @@ from apps.dot_ext.forms import (
             None,
             True,
         ),
+        # Test form with jwks_uri valid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': 'https://www.example.org'},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': 'https://www.example.org'},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': 'https://www.example.org'},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        # Test form with jwks_uri invalid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': 'xyzs:/www.example.org'},
+            'jwks_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': 'xyzs:/www.example.org'},
+            'jwks_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': 'xyzs:/www.example.org'},
+            'jwks_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        # Test form with empty jwks_uri should pass.
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': ''},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': ''},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': ''},
+            'jwks_uri',
+            None,
+            True,
+        ),
         # Test form with tos_uri valid URI.
         (
             CustomRegisterApplicationForm,

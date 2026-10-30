@@ -66,6 +66,12 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         validators=[validate_url],
         widget=URLInput,
     )
+    jwks_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
     agree_label = (
         'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*'
         % (settings.TOS_URI)
@@ -87,6 +93,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'tos_uri',
             'support_email',
             'support_phone_number',
+            'jwks_uri',
             'contacts',
             'agree',
             'require_demographic_scopes',
