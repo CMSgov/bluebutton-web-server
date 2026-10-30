@@ -30,6 +30,9 @@ strong {
 
 h2 {
   margin-bottom: 1rem;
+  font-size: clamp(1.5rem, 1rem + 1.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 // NOTE: Fix for weird overflow issue.

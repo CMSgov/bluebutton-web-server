@@ -16,11 +16,11 @@
          <div class="container-fluid row-container-fluid" >
 
              {% if user.is_superuser %}
-                    {% if export_settings.ALLOWED_HOSTS %}<div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-size--small">{{ export_settings.ALLOWED_HOSTS|last }}</div>
+                    {% if export_settings.ALLOWED_HOSTS %}<div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-size--sm">{{ export_settings.ALLOWED_HOSTS|last }}</div>
                     {% endif %}
              {% else %}
                     {% if export_settings.DEBUG %}
-                       <div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ export_settings.ALLOWED_HOSTS|last }}</div>
+                       <div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--sm">{{ export_settings.ALLOWED_HOSTS|last }}</div>
                     {% endif %}
              {% endif %}
 
