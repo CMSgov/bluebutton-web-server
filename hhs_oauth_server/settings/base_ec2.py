@@ -798,6 +798,9 @@ SLSX_HEALTH_CHECK_ENDPOINT = env('DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://t
 SLSX_TOKEN_ENDPOINT = env('DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
 SLSX_SIGNOUT_ENDPOINT = env('DJANGO_SLSX_SIGNOUT_ENDPOINT', 'https://test.medicare.gov/sso/signout')
 SLSX_USERINFO_ENDPOINT = env('DJANGO_SLSX_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/users')
+SLSX_RELATIONSHIPS_ENDPOINT = env(
+    'DJANGO_SLSX_RELATIONSHIPS_ENDPOINT', 'https://test.medicare.gov/account/api/proxy/relationship?my-position=user'
+)
 
 # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
 SLSX_VERIFY_SSL_INTERNAL = env('DJANGO_SLSX_VERIFY_SSL_INTERNAL', False)
