@@ -421,6 +421,8 @@ class OAuth2ConfigSLSx(object):
             verify=self.verify_ssl_internal,
         )
 
+        log_dict = {'type': 'Authentication:relationships_retrieval', 'status': response.status_code}
+
         if response.json().get('relationships'):
             return response.json().get('relationships')
         return []
