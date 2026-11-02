@@ -1,5 +1,5 @@
 boto3 == 1.42.12
-ddtrace == 4.13.0 # used to collect traces for Datadog
+ddtrace == 4.15.6 # used to collect traces for Datadog
 dj-database-url == 2.0.0
 django == 6.0.8
 django-axes == 8.3.1
