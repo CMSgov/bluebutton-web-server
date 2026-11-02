@@ -12,6 +12,7 @@ import waffle
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.http import HttpRequest, JsonResponse
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.html import strip_tags
@@ -34,10 +35,16 @@ from apps.constants import (
     HHS_SERVER_LOGNAME_FMT,
 )
 from apps.dot_ext.constants import (
+    APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED,
     ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS,
+    ASYMMETRIC_AUTH_REQUIRED_PARAMS,
+    AUTH_CODE_SUPPORTED_TYPES,
     CAN_REQUIRED_CLAIM_FIELDS,
+    CAN_REQUIRED_PARAMS,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+    CLIENT_ASSERTION_TYPE_VALUE,
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
     ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
@@ -50,6 +57,7 @@ from apps.dot_ext.constants import (
 from apps.dot_ext.parser import normalize_address
 from apps.dot_ext.utils import build_jwks_urls, validate_latin_extended_string
 from apps.testclient.utils import _start_url_with_http_or_https
+from apps.versions import Versions
 
 log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -119,7 +127,126 @@ def validate_logo_image(value):
         )
 
 
-class BaseTokenValidator(ABC):
+class BaseTokenRequestValidator(ABC):
+    """Base validation class for token request validation"""
+
+    def _get_required_params(self) -> list[str]:
+        """
+        Returns a list of required parameters for the token request validator to validate against the incoming request.
+        """
+        pass
+
+    @abstractmethod
+    def _get_supported_types(self) -> list[str]:
+        """
+        Returns a list of supported types for the specific token validator.
+        """
+        pass
+
+    def validate_request_params(self, request: HttpRequest):
+        """Checks required params for a client_credential or asymmetric auth request and their values
+
+        Args:
+            request (HttpRequest): the Django request object
+
+        Raises:
+            InvalidRequestError: if client_assertion_type is not correct
+
+        Returns:
+            JsonResponse or None: Returns a 400 error response if params are missing, else None
+        """
+        required_params = self._get_required_params()
+        missing_params = [param for param in required_params if not request.POST.get(param)]
+
+        if missing_params:
+            return JsonResponse(
+                {
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'message': f'Missing Required Parameter(s): {", ".join(missing_params)}',
+                },
+                status=HTTPStatus.BAD_REQUEST,
+            )
+
+        if (client_assertion_type := request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
+            log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
+            raise InvalidRequestError('client_assertion_type was wrong')
+
+        if 'client_secret' in request.POST:
+            log.warning('client_secret should not be included in client_credentials call')
+            raise InvalidRequestError('client_secret should not be included in client_credentials call')
+
+        return None
+
+    def check_if_call_is_allowed(self, allowed_auth_type: str, version: int, app_name: str) -> None | JsonResponse:
+        """Checks if the version for the call is v3 + the app is allowed to do this and has a jwks_uri
+
+        Args:
+            allowed_auth_type (str): model
+            version (Versions): Version constant
+            app_name (str): the name of the app
+
+        Returns:
+            None if it passes validation, JSONResponse if a validation step fails
+        """
+        if version != Versions.V3:
+            log.warning(f'A {self.call_type} token call was made for version: {version} from app {app_name}.')
+            return JsonResponse(
+                {
+                    'error': 'invalid_request',
+                    'message': f'A {self.call_type} token call was made for version: {version}. You must use version {Versions.V3} for {self.call_type} calls.',
+                },
+                status=HTTPStatus.BAD_REQUEST,
+            )
+        supported_types = self._get_supported_types()
+        if allowed_auth_type not in supported_types:
+            log.warning(
+                f'A {self.call_type} token call was made from app {app_name} that does not have {self.call_type} enabled.'
+            )
+            error_message = APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED.format(app_name)
+            return JsonResponse(
+                {
+                    'error': 'invalid_grant',
+                    'message': error_message,
+                },
+                status=HTTPStatus.FORBIDDEN,
+            )
+
+        return None
+
+
+class CMSAlignedNetworksTokenRequestValidator(BaseTokenRequestValidator):
+    """Validation class for token request validation specific to the CAN auth flow"""
+
+    call_type = 'client_credentials'
+
+    def _get_supported_types(self) -> list[str]:
+        """Returns the list of supported types for the CMS Aligned Networks Validator."""
+        return CLIENT_CREDENTIALS_SUPPORTED_TYPES
+
+    def _get_required_params(self):
+        """Returns the list of supported types for the CMS Aligned Networks Validator."""
+        return CAN_REQUIRED_PARAMS
+
+
+class AsymmetricAuthTokenRequestValidator(BaseTokenRequestValidator):
+    """Validation class for token request validation specific to the asymmetric auth flow"""
+
+    call_type = 'asymmetric_auth'
+
+    def _get_supported_types(self) -> list[str]:
+        """Returns the list of supported types for the Asymmetric Auth Validator."""
+        return AUTH_CODE_SUPPORTED_TYPES
+
+    def _get_required_params(self) -> list[str]:
+        """
+        Returns a list of required parameters for the token request validator to validate against the incoming request.
+        """
+        return ASYMMETRIC_AUTH_REQUIRED_PARAMS
+
+
+class BaseJWTValidator(ABC):
+    """Base validation class for JSON Web Token validation"""
+
     @abstractmethod
     def _get_required_fields(self) -> list[str]:
         """
@@ -143,7 +270,7 @@ class BaseTokenValidator(ABC):
         """
         pass
 
-    def _decode_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
+    def _decode_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> bool:
         """
         Validates and decodes a JWT token using the provided JWKS client. Used in client_credentials flow for CAN tokens
         and asymmetric auth flow.
@@ -221,7 +348,7 @@ class BaseTokenValidator(ABC):
             jwt.PyJWK: The matching signing key.
         """
         jwks_client = jwt.PyJWKClient(jwks_uri)
-        # Extract the algorithm and kidfrom the unverified header
+        # Extract the algorithm and kid from the unverified header
         unverified_header = jwt.get_unverified_header(token)
         token_alg = unverified_header.get('alg')
         token_kid = unverified_header.get('kid')
@@ -248,7 +375,9 @@ class BaseTokenValidator(ABC):
             return keys_list[0]
 
 
-class CMSAlignedNetworksValidator(BaseTokenValidator):
+class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
+    """Validation class for JSON Web Token validation specific to the CAN auth flow"""
+
     def _get_required_fields(self) -> list[str]:
         """Returns the list of required claim fields for the CMS Aligned Networks Validator."""
         return CAN_REQUIRED_CLAIM_FIELDS
@@ -617,7 +746,9 @@ class CMSAlignedNetworksValidator(BaseTokenValidator):
         return True
 
 
-class AsymmetricAuthValidator(BaseTokenValidator):
+class AsymmetricAuthJWTValidator(BaseJWTValidator):
+    """Validation class for JSON Web Token validation specific to the asymmetric auth flow"""
+
     def _get_waffle_switch(self) -> str:
         """Returns the waffle switch name for the Asymmetric Auth Validator."""
         return 'asymmetric_auth_validation'
