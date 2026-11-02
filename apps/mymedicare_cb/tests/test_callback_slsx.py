@@ -248,7 +248,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
     @override_switch('v3_endpoints', active=True)
     def test_callback_url_success_v3(self):
-        self._test_callback_url_success(3)
+        self._test_callback_url_succes(3)
 
     # mock fhir user info endpoint
     @urlmatch(
@@ -278,7 +278,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         path=r'/v3/fhir/Patient/',
     )
     def fhir_patient_info_mock_v3(self, url, request):
-        print('fhir_patient_info_mock_v3')
         return {
             'status_code': status.HTTP_200_OK,
             'content': patient_response,
@@ -1211,9 +1210,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
 
 @patch('apps.mymedicare_cb.authorization.requests.get')
-def test_retrieve_relationships_data(mock_get):
+def test_dont_retrieve_relationships_data(mock_get):
     """Confirm that the origin and referer headers are properly set on the call
-    to retrieve relationships data
+    to retrieve relationships data, but the user is not csp user
 
     Args:
         mock_get: Mock the get call in retrieve_relationships_data
@@ -1229,6 +1228,59 @@ def test_retrieve_relationships_data(mock_get):
     )
 
     slsx_client.retrieve_relationships_data(request)
+
+    mock_get.assert_not_called()
+    _, kwargs = mock_get.call_args
+    headers = kwargs['headers']
+
+    assert headers['Origin'] == 'https://test.medicare.gov'
+    assert headers['Referer'] == 'https://test.medicare.gov'
+
+log_schema = copy.deepcopy("{'status': 'ok', 'code': 200, 'data': {'user': {'id': '13b08664-a2e0-4cd1-81e6-c9c6f561c66e', 'username': 'csp-S76Va0Sv3arhJKxtbL2o7ga', 'email': None, 'firstName': 'James', 'middleName': None, 'lastName': 'Test', 'suffix': None, 'dateOfBirth': '1999-08-16', 'ssn': None, 'city': None, 'state': None, 'addressLine1': None, 'addressLine2': None, 'zipcode': None, 'zipcodeExtension': None, 'phoneNumber': None, 'challenges': [], 'webBrokerInfo': {}, 'isManuallyDisabled': False, 'requiresConfirm': None, 'loa': 2, 'loaAdminReason': None, 'lastLoginTime': 1792418079, 'createdTime': 1784638644, 'updatedTime': 1792418079, 'hicn': None, 'passwordExpirationTime': 1855576479000, 'isDisabled': False, 'bedapBeneKey': None, 'normalizedEmail': None, 'customUserInfo': {}, 'mfa_info': {'prompt_for_mfa_enrollment': False, 'configured_options': []}, 'isCspUser': True, 'cspInfo': [{'cspIdentifier': 'login_dot_gov', 'email': 'jamesdemery+93@navapbc.com'}]}}}")
+
+#   Update json schema for what changed (mbi = None/Null).
+@patch(
+    'apps.mymedicare_cb.models.match_fhir_id',
+    return_value=(
+        MatchFhirIdResult(
+            error='Failure', error_type=MatchFhirIdErrorType.UPSTREAM, lookup_type=MatchFhirIdLookupType.MBI
+        )
+    ),
+)
+@patch(
+    'apps.mymedicare_cb.authorization.requests.get',
+    return_value=(
+
+    ),
+)
+def test_retrieve_relationships_data(mock_get):
+    """Confirm that the origin and referer headers are properly set on the call
+    to retrieve relationships data, and the user is correctly set
+
+    Args:
+        mock_get: Mock the get call in retrieve_relationships_data
+    """
+    slsx_client = OAuth2ConfigSLSx()
+    mock_get.return_value = MagicMock(
+        status_code=HTTPStatus.OK,
+        json=MagicMock(return_value={'type': 'relationships', 'message': 'success', 'name': 'relationships'}),
+    )
+    factory = RequestFactory()
+    request = factory.get(
+        slsx_client.relationships_endpoint,
+    )
+
+    with HTTMock(
+        self.mock_response.slsx_token_mock,
+        self.mock_response.slsx_user_info_csp_user_mock,
+        self.mock_response.slsx_health_ok_mock,
+        self.mock_response.slsx_signout_ok_mock,
+        self.fhir_patient_info_mock_v1,
+        self.fhir_patient_info_mock_v2,
+        self.fhir_patient_info_mock_v3,
+        catchall,
+    ):
+        slsx_client.retrieve_relationships_data(request)
 
     mock_get.assert_called_once()
     _, kwargs = mock_get.call_args
