@@ -103,6 +103,7 @@ class MockUrlSLSxResponses:
                             'hicn': '1234567890A',
                             'customUserInfo': {'mbi': '1SA0A00AA00'},
                             'mbi': '1SA0A00AA00',
+                            'isCsp': True,
                         }
                     },
                 },
@@ -312,56 +313,3 @@ class MockUrlSLSxResponses:
                     },
                 },
             }
-    # mock sls user info endpoint with isCspUser
-    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_empty_mbi_mock(self, url, request):
-        if is_called_by_validate_user_signout():
-            return {'status_code': status.HTTP_403_FORBIDDEN}
-        else:
-            return {
-                'status_code': status.HTTP_200_OK,
-                'content': {
-                    'status': 'ok',
-                    'code': status.HTTP_200_OK,
-                    'data': {
-                        'user': {
-                            'id': '13b08664-a2e0-4cd1-81e6-c9c6f561c66e',
-                            'username': 'csp-S76Va0Sv3arhJKxtbL2o7ga',
-                            'email': None,
-                            'firstName': 'James',
-                            'middleName': None,
-                            'lastName': 'Test',
-                            'suffix': None,
-                            'dateOfBirth': '1999-08-16',
-                            'ssn': None,
-                            'city': None,
-                            'state': None,
-                            'addressLine1': None,
-                            'addressLine2': None,
-                            'zipcode': None,
-                            'zipcodeExtension': None,
-                            'phoneNumber': None,
-                            'challenges': [],
-                            'webBrokerInfo': {},
-                            'isManuallyDisabled': False,
-                            'requiresConfirm': None,
-                            'loa': 2,
-                            'loaAdminReason': None,
-                            'lastLoginTime': 1792418079,
-                            'createdTime': 1784638644,
-                            'updatedTime': 1792418079,
-                            'hicn': None,
-                            'passwordExpirationTime': 1855576479000,
-                            'isDisabled': False,
-                            'bedapBeneKey': None,
-                            'normalizedEmail': None,
-                            'customUserInfo': {},
-                            'mfa_info': {'prompt_for_mfa_enrollment': False, 'configured_options': []},
-                            'isCspUser': True,
-                            'cspInfo': [{'cspIdentifier': 'login_dot_gov', 'email': 'jamesdemery+93@navapbc.com'}],
-
-                        }
-                    },
-                },
-            }
-

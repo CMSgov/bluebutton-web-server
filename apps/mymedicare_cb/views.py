@@ -65,6 +65,8 @@ def authenticate(request):
     user = slsx_client.get_user_info(request)
 
     if "isCspUser" in user and user.isCspUser == True:
+        print ("isCspUser" in user)
+        print(user)
         request.session['user_relationships'] = []
         if request.session.get('version') == Versions.V3 and switch_is_active('proxy_access'):
             request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
