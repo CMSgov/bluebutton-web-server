@@ -13,9 +13,7 @@ class DataAccessGrantPermission(permissions.BasePermission):
     def has_permission(self, request, view) -> bool:  # type: ignore
         dag = None
         try:
-            dag = DataAccessGrant.objects.get(
-                beneficiary=request.auth.user, application=request.auth.application, proxy=request.auth.user
-            )
+            dag = DataAccessGrant.objects.get(beneficiary=request.auth.user, application=request.auth.application)
         except DataAccessGrant.DoesNotExist:
             return False
 

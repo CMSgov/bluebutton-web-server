@@ -948,7 +948,7 @@ class TokenView(DotTokenView):
                 dag_expiry = ''
                 if user_is_anb:
                     try:
-                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app, proxy=token.user)
+                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if grant_type == REFRESH_TOKEN:
                             dag.update_90_day_rolling_window()
                         if dag.expiration_date is not None:
@@ -957,7 +957,7 @@ class TokenView(DotTokenView):
                         dag_expiry = ''
                 elif app.data_access_type == 'THIRTEEN_MONTH':
                     try:
-                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app, proxy=token.user)
+                        dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
                         if dag.expiration_date is not None:
                             dag_expiry = dag.expiration_date.strftime(DATETIME_ISO_FORMAT)
                     except DataAccessGrant.DoesNotExist:
@@ -1078,7 +1078,7 @@ class RevokeView(DotRevokeTokenView):
             log.debug(f'Token {escaped_tkn} was not found.')
 
         try:
-            dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app, proxy=token.user)
+            dag = DataAccessGrant.objects.get(beneficiary=token.user, application=app)
             dag.delete()
         except Exception:
             log.debug(f'DAG lookup failed for token {escaped_tkn}.')
