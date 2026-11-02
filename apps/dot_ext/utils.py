@@ -344,7 +344,9 @@ def validate_app_is_active(request: HttpRequest) -> Application:
             refresh_code = request.POST.get(REFRESH_TOKEN, None)
             try:
                 refresh_token = RefreshToken.objects.get(token=refresh_code)
-                dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
+                dag = DataAccessGrant.objects.get(
+                    beneficiary=refresh_token.user, application=app, proxy=refresh_token.user
+                )
 
                 if dag:
                     # If we get a DAG, but it has expired, we pass back a message (again)

@@ -17,6 +17,7 @@ def app_authorized_record_grant(sender, request, user, application, **kwargs):
         dag, was_created = DataAccessGrant.objects.get_or_create(
             beneficiary=user,
             application=application,
+            proxy=user,
         )
 
         # Update expiration date on re-auth
