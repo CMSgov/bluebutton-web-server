@@ -104,3 +104,17 @@ data "aws_ssm_parameter" "its_log_repo_name" {
 data "aws_secretsmanager_secret_version" "cdap_kms_key_arn" {
   secret_id = "arn:aws:secretsmanager:${var.region}:${sensitive(data.aws_ssm_parameter.bcda_account_id.value)}:secret:/cdap/bb/${local.workspace}/kms/key-arn"
 }
+
+# Retrieve secrets in the same way BB API does, but with a different path so we don't
+# grab all the secrets the main API has
+data "aws_secretsmanager_secrets" "its_log_secrets" {
+  filter {
+    name   = "name"
+    values = ["/bb2/${local.secrets_env}/its-log/"]
+  }
+}
+
+data "aws_secretsmanager_secret" "its_log_secrets" {
+  for_each = toset(data.aws_secretsmanager_secrets.its_log_secrets.arns)
+  arn      = each.value
+}

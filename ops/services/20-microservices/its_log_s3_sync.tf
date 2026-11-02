@@ -168,14 +168,14 @@ resource "aws_ecs_task_definition" "its_log_s3_sync" {
 
     entryPoint = ["sh", "-c"]
     command = [
-      "aws s3 sync /its-log/data s3://$AURORA_EXPORT_BUCKET_NAME/its-log/ --delete"
+      "aws s3 sync /its-log/export s3://$AURORA_EXPORT_BUCKET_NAME/its-log/ --delete"
     ]
 
-    readonlyRootFilesystem = false
+    readonlyRootFilesystem = true
 
     mountPoints = [{
       sourceVolume  = "its-log-efs"
-      containerPath = "/its-log/data"
+      containerPath = "/its-log/export"
       readOnly      = true
     }]
 

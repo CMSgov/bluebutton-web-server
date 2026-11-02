@@ -43,13 +43,6 @@ resource "aws_security_group" "its_log_sg" {
     security_groups = [aws_security_group.ecs_sg["api"].id]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-sg" }
 }
 
@@ -108,20 +101,6 @@ resource "aws_iam_role_policy" "its_log_execution_logs" {
       Resource = "${aws_cloudwatch_log_group.its_log.arn}:*"
     }]
   })
-}
-
-# Retrieve secrets in the same way BB API does, but with a different path so we don't
-# grab all the secrets the main API has
-data "aws_secretsmanager_secrets" "its_log_secrets" {
-  filter {
-    name   = "name"
-    values = ["/bb2/${local.secrets_env}/its-log/"]
-  }
-}
-
-data "aws_secretsmanager_secret" "its_log_secrets" {
-  for_each = toset(data.aws_secretsmanager_secrets.its_log_secrets.arns)
-  arn      = each.value
 }
 
 locals {
@@ -205,13 +184,6 @@ resource "aws_security_group" "its_log_efs_sg" {
     security_groups = [aws_security_group.its_log_sg.id]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-efs-sg" }
 }
 
@@ -226,7 +198,6 @@ resource "aws_efs_access_point" "its_log" {
   file_system_id = aws_efs_file_system.its_log.id
 
   posix_user {
-    # TODO: Change if the uid in the its-log container is different than the default of 1000
     uid = 1000
     gid = 1000
   }
@@ -234,10 +205,9 @@ resource "aws_efs_access_point" "its_log" {
   root_directory {
     path = "/its-log"
     creation_info {
-      # TODO: Change if the uid in the its-log container is different than the default of 1000
       owner_uid   = 1000
       owner_gid   = 1000
-      permissions = "750"
+      permissions = "700"
     }
   }
 
@@ -285,15 +255,50 @@ resource "aws_ecs_task_definition" "its_log" {
       protocol      = "tcp"
     }]
 
-    mountPoints = [{
-      sourceVolume  = "its-log-efs"
-      containerPath = "/its-log/data"
-      readOnly      = false
-    }]
+    mountPoints = [
+      {
+        sourceVolume  = "its-log-efs"
+        containerPath = "/its-log/data"
+        readOnly      = false
+      }, 
+      {
+        sourceVolume  = "its-log-efs"
+        containerPath = "/its-log/archive"
+        readOnly      = false
+      }
+    ]
 
     environment = concat(var.its_log_environment_variables, [
       { name = "ITSLOG_SERVE_HOST", value = local.its_log_serve_host },
-      { name = "ITSLOG_SERVE_PORT", value = tostring(local.its_log_serve_port) },
+      # TODO: Add to SOPS file as nonsensitive
+      {
+        name  = "ITSLOG_BUFFER_FLUSHWAITSEC"
+        value = "1"
+      },
+      {
+        name  = "ITSLOG_BUFFER_LENGTH"
+        value = "2000"
+      },
+      {
+        name  = "ITSLOG_GINMODE"
+        value = "debug"
+      },
+      {
+        name  = "ITSLOG_ZAPMODE"
+        value = "debug"
+      },
+      {
+        name  = "ITSLOG_PROXIES_TRUSTED"
+        value = "TBD"
+      },
+      {
+        name  = "ITSLOG_SERVE_PORT"
+        value = "8888"
+      },
+      {
+        name  = "ITSLOG_STORAGE_PATH"
+        value = "its-log/data"
+      }
     ])
     secrets = local.its_log_all_secrets
 
@@ -346,7 +351,7 @@ resource "aws_ecs_task_definition" "its_log" {
       },
       {
         name  = "DD_APM_ENABLED"
-        value = "true"
+        value = "false"
       },
       {
         name  = "DD_ENV"
@@ -376,39 +381,6 @@ resource "aws_ecs_task_definition" "its_log" {
         # https://docs.datadoghq.com/tracing/configure_data_security/?tab=environmentvariables#telemetry-collection
         name  = "DD_APM_TELEMETRY_ENABLED"
         value = "false"
-      },
-      {
-        name  = "ITSLOG_BUFFER_FLUSHWAITSEC"
-        value = "1"
-      },
-      {
-        name  = "ITSLOG_BUFFER_LENGTH"
-        value = "2000"
-      },
-      {
-        name  = "ITSLOG_GINMODE"
-        value = "debug"
-      },
-      {
-        name  = "ITSLOG_ZAPMODE"
-        value = "debug"
-      },
-      {
-        name  = "ITSLOG_PROXIES_TRUSTED"
-        value = "TBD"
-      },
-      {
-        name = "ITSLOG_SERVE_HOST"
-        # TODO: Update this once we have a DNS configured
-        value = "localhost"
-      },
-      {
-        name  = "ITSLOG_SERVE_PORT"
-        value = "8888"
-      },
-      {
-        name  = "ITSLOG_STORAGE_PATH"
-        value = "its-log/data"
       }
     ]
 
@@ -435,6 +407,7 @@ resource "aws_ecs_task_definition" "its_log" {
       interval    = 30
       startPeriod = 15
     }
+    # TODO: Add dynamic volume like ecs.tf
 
 
   }])
@@ -473,7 +446,7 @@ resource "aws_ecs_service" "its_log" {
   cluster                = data.aws_ecs_cluster.main.arn
   task_definition        = aws_ecs_task_definition.its_log.arn
   desired_count          = local.its_log_count
-  enable_execute_command = true
+  enable_execute_command = false
   launch_type            = "FARGATE"
   platform_version       = "LATEST"
 
@@ -492,9 +465,9 @@ resource "aws_ecs_service" "its_log" {
     rollback = true
   }
 
-  lifecycle {
-    ignore_changes = [desired_count, task_definition]
-  }
+  # lifecycle {
+  #  ignore_changes = [desired_count, task_definition]
+  # }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-service" }
 }
