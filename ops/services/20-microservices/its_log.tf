@@ -296,6 +296,14 @@ resource "aws_ecs_task_definition" "its_log" {
         "awslogs-stream-prefix" = "ecs"
       }
     }
+
+    healthCheck = {
+      retries     = 3
+      command     = ["CMD-SHELL", "curl -f http://localhost:8888/v1/health"]
+      timeout     = 5
+      interval    = 30
+      startPeriod = 15
+    }
   }])
 
   task_role_arn            = aws_iam_role.its_log_task.arn
