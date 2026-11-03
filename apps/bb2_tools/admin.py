@@ -1,6 +1,8 @@
 import json
 
+from django import forms
 from django.contrib import admin
+from django.db import transaction
 from django.db.models import Count, DateTimeField, Max, Min, Q
 from django.db.models.functions import Trunc
 from django.utils.html import format_html
@@ -12,6 +14,7 @@ from apps.bb2_tools.models import (
     AccessTokenStats,
     ApplicationStats,
     ArchivedTokenStats,
+    ATestModel,
     BeneficiaryDashboard,
     DummyAdminObject,
     MyAccessTokenViewer,
@@ -776,3 +779,18 @@ class UserTypeFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.filter(userprofile__user_type=self.value())
         return queryset
+
+
+class ATestForm(forms.ModelForm):
+    field = forms.NullBooleanField(label='field')
+
+    def clean(self):
+        with transaction.atomic():
+            ATestModel(field=None).save()
+
+        return
+
+
+@admin.register(ATestModel)
+class ATestAdminWithErrors(admin.ModelAdmin):
+    form = ATestForm
