@@ -1282,11 +1282,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 @patch('apps.mymedicare_cb.authorization.requests.get')
 def test_retrieve_relationships_data(mock_get):
     """Confirm that the origin and referer headers are properly set on the call
-    to retrieve relationships data, and the user is correctly set
+    to retrieve relationships data
 
     Args:
         mock_get: Mock the get call in retrieve_relationships_data
-        mock_user: Mock the get_user_info call in auth
     """
 
     slsx_client = OAuth2ConfigSLSx()
