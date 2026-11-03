@@ -94,6 +94,3 @@ def summarize():
         summaries.append(global_summary)
 
     return summaries
-
-summarize()
-

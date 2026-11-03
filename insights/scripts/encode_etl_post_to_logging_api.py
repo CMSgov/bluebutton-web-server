@@ -29,10 +29,7 @@ def encode_file(file_path: str) -> str:
 
 
 def post_etl_to_its_log(etl_name: str, file_extension: str, encoded_file: str) -> None:
-    print('file extension: ', file_extension)
-    if file_extension == 'go':
-        file_extension = 'golang'
-    elif file_extension == 'star':
+    if file_extension == 'star':
         file_extension = 'starlark'
     payload = {
         'name': etl_name,
@@ -50,7 +47,6 @@ def main():
         'insights/etls/app-summary.star',
         'insights/etls/remove-outdated-summaries.sql',
         'insights/etls/global-metrics.star',
-        'insights/etls/db-to-csv.go',
     ]
     for file in files:
         logger.info(f'file: {file}')

@@ -499,5 +499,3 @@ def summarize():
         print("ROW: ", row)
 
     return returning_summary_rows
-
-summarize()
