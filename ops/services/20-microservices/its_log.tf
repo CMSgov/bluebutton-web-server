@@ -439,6 +439,18 @@ resource "aws_ecs_task_definition" "its_log" {
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-task" }
+  
+  dynamic "volume" {
+    for_each = [
+      "datadog-run",
+      "datadog-tmp",
+      "datadog-etc",
+      "datadog-confd"
+    ]
+    content {
+      name = volume.value
+    }
+  }
 }
 
 resource "aws_ecs_service" "its_log" {
