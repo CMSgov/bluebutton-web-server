@@ -14,8 +14,8 @@ locals {
   its_log_image_url = "${local.bcda_account_id}.dkr.ecr.${local.region}.amazonaws.com/${local.its_log_repo_name}"
   its_log_repo_arn  = "arn:aws:ecr:${local.region}:${local.bcda_account_id}:repository/${local.its_log_repo_name}"
 
-  its_log_cpu        = coalesce(try(var.service_overrides["its-log"].cpu, null), 128)
-  its_log_memory     = coalesce(try(var.service_overrides["its-log"].memory, null), 256)
+  its_log_cpu        = coalesce(try(var.service_overrides["its-log"].cpu, null), 256)
+  its_log_memory     = coalesce(try(var.service_overrides["its-log"].memory, null), 512)
   its_log_count      = coalesce(try(var.service_overrides["its-log"].count, null), 1)
   its_log_serve_port = coalesce(try(var.service_overrides["its-log"].port, null), 8888)
   its_log_serve_host = "${aws_service_discovery_service.its_log.name}.${aws_service_discovery_private_dns_namespace.internal.name}"
@@ -23,16 +23,16 @@ locals {
 }
 
 resource "aws_cloudwatch_log_group" "its_log" {
-  name              = "/ecs/${local.app_prefix}-${local.workspace}-its-log"
+  name              = "/aws/ecs/fargate/${local.app_prefix}-${local.workspace}-its-log"
   retention_in_days = var.log_retention_days
-  kms_key_id        = local.kms_key_arn
+  kms_key_id        = local.parent_env == "test" ? local.kms_key_arn : null
   tags              = local.default_tags
 }
 
 # Inbound allowed only from the BB api service's security group, on its_log_serve_port.
 resource "aws_security_group" "its_log_sg" {
   name_prefix = "${local.app_prefix}-${local.workspace}-its-log-"
-  description = "its-log service — inbound from api service only"
+  description = "its log service inbound from api service only"
   vpc_id      = local.vpc_id
 
   ingress {
@@ -173,7 +173,7 @@ resource "aws_efs_file_system" "its_log" {
 
 resource "aws_security_group" "its_log_efs_sg" {
   name_prefix = "${local.app_prefix}-${local.workspace}-its-log-efs-"
-  description = "its-log EFS mount targets — inbound NFS from its-log task only"
+  description = "its log EFS mount targets inbound NFS from its-log task only"
   vpc_id      = local.vpc_id
 
   ingress {
@@ -270,7 +270,7 @@ resource "aws_ecs_task_definition" "its_log" {
 
     environment = concat(var.its_log_environment_variables, [
       { name = "ITSLOG_SERVE_HOST", value = local.its_log_serve_host },
-      { name = "ITSLOG_SERVE_PORT", value = local.its_log_serve_host }
+      { name = "ITSLOG_SERVE_PORT", value = tostring(local.its_log_serve_port) }
     ])
     secrets = local.its_log_all_secrets
 
