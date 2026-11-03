@@ -270,35 +270,7 @@ resource "aws_ecs_task_definition" "its_log" {
 
     environment = concat(var.its_log_environment_variables, [
       { name = "ITSLOG_SERVE_HOST", value = local.its_log_serve_host },
-      # TODO: Add to SOPS file as nonsensitive
-      {
-        name  = "ITSLOG_BUFFER_FLUSHWAITSEC"
-        value = "1"
-      },
-      {
-        name  = "ITSLOG_BUFFER_LENGTH"
-        value = "2000"
-      },
-      {
-        name  = "ITSLOG_GINMODE"
-        value = "debug"
-      },
-      {
-        name  = "ITSLOG_ZAPMODE"
-        value = "debug"
-      },
-      {
-        name  = "ITSLOG_PROXIES_TRUSTED"
-        value = "TBD"
-      },
-      {
-        name  = "ITSLOG_SERVE_PORT"
-        value = "8888"
-      },
-      {
-        name  = "ITSLOG_STORAGE_PATH"
-        value = "its-log/data"
-      }
+      { name = "ITSLOG_SERVE_PORT", value = local.its_log_serve_host }
     ])
     secrets = local.its_log_all_secrets
 
@@ -439,7 +411,7 @@ resource "aws_ecs_task_definition" "its_log" {
   }
 
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-task" }
-  
+
   dynamic "volume" {
     for_each = [
       "datadog-run",
