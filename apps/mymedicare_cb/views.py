@@ -64,7 +64,7 @@ def authenticate(request):
     # so we do not show the bene_404_no_mbi.html page to a non-bene user if they have relationships data
     user = slsx_client.get_user_info(request)
     if "isCspUser" in user:
-        if user["isCspUser"] == True:
+        if user["isCspUser"]:
             request.session['user_relationships'] = []
             if request.session.get('version') == Versions.V3 and switch_is_active('proxy_access'):
                 request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
