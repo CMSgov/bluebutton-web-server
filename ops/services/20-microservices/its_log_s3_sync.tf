@@ -1,3 +1,4 @@
+/*
 # ============================================================================
 # its-log → shared export bucket (bb-{{env}}-aurora-export)
 # Scheduled Fargate task that mounts the its-log EFS access point read-only
@@ -304,3 +305,4 @@ output "its_log_s3_sync_task_role_arn" {
   value       = aws_iam_role.its_log_s3_sync_task.arn
   description = "Role ARN to register in cdap-prod's kms_shares and bucket policy for its-log S3 sync write access."
 }
+*/

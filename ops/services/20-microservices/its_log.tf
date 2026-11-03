@@ -260,7 +260,7 @@ resource "aws_ecs_task_definition" "its_log" {
         sourceVolume  = "its-log-efs"
         containerPath = "/its-log/data"
         readOnly      = false
-      }, 
+      },
       {
         sourceVolume  = "its-log-efs"
         containerPath = "/its-log/archive"
