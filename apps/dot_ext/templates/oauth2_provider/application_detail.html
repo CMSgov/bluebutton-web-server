@@ -1,4 +1,5 @@
 {% extends "oauth2_provider/base.html" %}
+{% load waffle_tags %}
 
 {% load i18n %}
 {% load static %}
@@ -165,6 +166,12 @@
                     {% endif %}
                   </div>
 
+                  {% switch enable_jwt_sbx_settings %}
+                  <!-- Allowed Auth Type -->
+                  <div class="ds-u-margin-bottom--2">
+                    <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Allowed Authorization Type</p>
+                    <p>{{ application.allowed_auth_type }}</p>
+                  </div>
                   <!-- JWKS URI -->
                   <div class="ds-u-margin-bottom--2">
                     <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">JWKS URI</p>
@@ -174,6 +181,7 @@
                     No JWKS URI entered.
                     {% endif %}
                   </div>
+                  {% endswitch %}
             
                 </div>
               </div>
