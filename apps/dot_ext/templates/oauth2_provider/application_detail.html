@@ -125,7 +125,7 @@
                   </div>
                 </div>
                 <div class="info-card-right">
-                  <!-- Website URL -->
+                <!-- Website URL -->
                 <div class="ds-u-margin-bottom--2">
                     <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Organization Website</p>
                     {% if application.website_uri %}
@@ -162,6 +162,16 @@
                     <p>{{ application.support_email }}</p>
                     {% else %}
                     <p>You haven't entered a support email.</p>
+                    {% endif %}
+                  </div>
+
+                  <!-- JWKS URI -->
+                  <div class="ds-u-margin-bottom--2">
+                    <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">JWKS URI</p>
+                    {% if application.jwks_uri %}
+                    <a href="{{ application.jwks_uri }}">{{ application.jwks_uri }}</a>
+                    {% else %}
+                    No JWKS URI entered.
                     {% endif %}
                   </div>
             
