@@ -1278,3 +1278,33 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             )
             self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
             self.assertEqual(response.json()['error'], 'Failed to retrieve data from data source.')
+
+@patch('apps.mymedicare_cb.authorization.requests.get')
+def test_retrieve_relationships_data(mock_get):
+    """Confirm that the origin and referer headers are properly set on the call
+    to retrieve relationships data, and the user is correctly set
+
+    Args:
+        mock_get: Mock the get call in retrieve_relationships_data
+        mock_user: Mock the get_user_info call in auth
+    """
+
+    slsx_client = OAuth2ConfigSLSx()
+    mock_get.return_value = MagicMock(
+        status_code=HTTPStatus.OK,
+        json=MagicMock(return_value={'type': 'relationships', 'message': 'success', 'name': 'relationships'}),
+    )
+    factory = RequestFactory()
+
+    request = factory.get(
+        slsx_client.relationships_endpoint,
+    )
+
+    slsx_client.retrieve_relationships_data(request)
+
+    mock_get.assert_called_once()
+    _, kwargs = mock_get.call_args
+    headers = kwargs['headers']
+
+    assert headers['Origin'] == 'https://test.medicare.gov'
+    assert headers['Referer'] == 'https://test.medicare.gov'
