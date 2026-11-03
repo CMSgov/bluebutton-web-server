@@ -120,10 +120,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                 self.cleaned_data['allowed_auth_type'] = 'AUTH_CODE'
                 self.cleaned_data['jwks_uri'] = None
 
+        allowed_auth_type = self.cleaned_data.get('allowed_auth_type')
+        jwks_uri = self.cleaned_data.get('jwks_uri')
+
         # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
-        if self.cleaned_data.get(
-            'allowed_auth_type'
-        ) in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.cleaned_data.get('jwks_uri'):
+        if allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not jwks_uri:
             raise forms.ValidationError(
                 "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
             )
