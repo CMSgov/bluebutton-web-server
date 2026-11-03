@@ -2,6 +2,7 @@ import logging
 import uuid
 from typing import override
 
+import waffle
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -108,8 +109,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     required_css_class = 'required'
 
     def clean(self):
-        waffle_switch_is_active = 'allowed_auth_type' in self.data or 'jwks_uri' in self.data
-        if not waffle_switch_is_active:
+
+        if not waffle.switch_is_active('enable_jwt_sbx_settings'):
             if self.instance and self.instance.pk:
                 # Use the existing value already saved in the database
                 self.cleaned_data['allowed_auth_type'] = self.instance.allowed_auth_type
