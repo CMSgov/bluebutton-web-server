@@ -156,6 +156,22 @@ locals {
     "rand_secret",
     "s3_storage_bucket_name_pfx",
     "s3_storage_bucket_name_sfx",
+    # SLSx imp/test creds were hand-added for local dev/selenium, the api task doesn't use them
+    "medicare_slsx_imp_login_uri",
+    "medicare_slsx_test_login_uri",
+    "slsx_imp_client_id",
+    "slsx_imp_client_secret",
+    "slsx_imp_health_check_endpoint",
+    "slsx_imp_signout_endpoint",
+    "slsx_imp_token_endpoint",
+    "slsx_imp_userinfo_endpoint",
+    "slsx_test_client_id",
+    "slsx_test_client_secret",
+    "slsx_test_health_check_endpoint",
+    "slsx_test_signout_endpoint",
+    "slsx_test_token_endpoint",
+    "slsx_test_userinfo_endpoint",
+    "slsx_test_user_info_endpoint",
   ])
 
   # SM basenames that need renaming to match Django env var names

@@ -12,7 +12,7 @@ reqs-install:
 reqs-install-dev:
 	pip install -r requirements/requirements.dev.txt
 
-generate generate-requirements:
+requirements generate generate-requirements:
 	$(MAKE) -C ops/containers requirements
 
 unit-test:

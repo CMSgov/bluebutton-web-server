@@ -67,6 +67,12 @@ resource "aws_lb_listener" "https" {
     target_group_arn = aws_lb_target_group.tg[each.key].arn
   }
 
+  lifecycle {
+    # cert is set once at create, after that swaps are done by hand per the ssl/acm runbook (akamai checks first).
+    # stops the most_recent lookup from moving :443 to a newer cert on apply
+    ignore_changes = [certificate_arn]
+  }
+
   tags = { Name = "${local.app_prefix}-${local.workspace}-${each.key}-https" }
 }
 

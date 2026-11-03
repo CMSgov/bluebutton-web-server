@@ -91,6 +91,16 @@ resource "aws_codebuild_project" "main" {
     }
   }
 
+  # same network as the api task so integration tests can reach BFD test
+  dynamic "vpc_config" {
+    for_each = local.runner_vpc_ready ? [1] : []
+    content {
+      vpc_id             = local.vpc_id
+      subnets            = local.private_subnet_ids
+      security_group_ids = [one(data.aws_security_groups.runner_api[0].ids), data.aws_security_group.runner_shared[0].id]
+    }
+  }
+
   lifecycle {
     ignore_changes = [source[0].auth]
   }
@@ -115,7 +125,37 @@ resource "aws_codebuild_webhook" "runner" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+# api sg is owned by 20-microservices. plural lookup so a fresh env skips the vpc instead of erroring
+data "aws_security_groups" "runner_api" {
+  count = local.runner_in_vpc ? 1 : 0
+
+  filter {
+    name   = "group-name"
+    values = ["bb-${local.env}-ecs-api-sg"]
+  }
+
+  filter {
+    name   = "vpc-id"
+    values = [local.vpc_id]
+  }
+}
+
+# CMS Cloud managed, don't touch
+data "aws_security_group" "runner_shared" {
+  count  = local.runner_vpc_ready ? 1 : 0
+  name   = "cmscloud-shared-services"
+  vpc_id = local.vpc_id
+}
+
 data "aws_secretsmanager_secret" "github_token" {
   count = local.create_resources ? 1 : 0
   name  = "/bb/${local.env}/gitpat"
+}
+
+# don't let the runner quietly fall out of the vpc, integration tests would just start failing on dns
+check "runner_in_vpc" {
+  assert {
+    condition     = local.runner_vpc_ready == local.runner_in_vpc
+    error_message = "bb-${local.env}-ecs-api-sg not found, runner is NOT in the vpc. apply 20-microservices then re-run bootstrap"
+  }
 }
