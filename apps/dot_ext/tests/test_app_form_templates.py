@@ -72,7 +72,7 @@ def check_template(frm, tmplt, ctx_prefix, switch_active):
     ref_fields = get_ref_flds_from_template(tmplt, ctx_prefix)
     # If the switch is disabled, we expect jwks_uri to NOT be in the active reference fields
     if not switch_active:
-        ref_fields = [f for f in ref_fields if f != 'jwks_uri']
+        ref_fields = [f for f in ref_fields if f != 'jwks_uri' and f != 'allowed_auth_type']
     diff_flds = set(ref_fields) - set(form_fields)
     assert set(ref_fields).issubset(set(form_fields)), (
         'template {} referenced fields {} not in application context.'.format(tmplt, diff_flds)
@@ -86,6 +86,9 @@ def check_template(frm, tmplt, ctx_prefix, switch_active):
 
     if not switch_active:
         assert 'jwks_uri' not in page_w_fld, 'jwks_uri was found in HTML even though the switch is disabled.'
+        assert 'allowed_auth_type' not in page_w_fld, (
+            'allowed_auth_type was found in HTML even though the switch is disabled.'
+        )
 
     # assert rendering values
     ctx = context[ctx_prefix]
@@ -103,7 +106,7 @@ def test_app_forms_templates(switch_active, basic_user):
     u = basic_user()
     form = CustomRegisterApplicationForm(u)
 
-    with override_switch('asymmetric_auth_validation', active=switch_active):
+    with override_switch('enable_jwt_sbx_settings', active=switch_active):
         check_template(form, 'include/app-form-required-info.html', 'application', switch_active)
         check_template(form, 'include/app-form-optional-info.html', 'application', switch_active)
 

@@ -14,7 +14,11 @@ from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, PRINTABLE_SPECIAL_ASCII
+from apps.dot_ext.constants import (
+    BENE_PERSONAL_INFO_SCOPES,
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    PRINTABLE_SPECIAL_ASCII,
+)
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
@@ -79,6 +83,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
+        self.fields['allowed_auth_type'].required = False
 
     class Meta:
         model = get_application_model()
@@ -97,11 +102,31 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'contacts',
             'agree',
             'require_demographic_scopes',
+            'allowed_auth_type',
         )
 
     required_css_class = 'required'
 
     def clean(self):
+        waffle_switch_is_active = 'allowed_auth_type' in self.data or 'jwks_uri' in self.data
+        if not waffle_switch_is_active:
+            if self.instance and self.instance.pk:
+                # Use the existing value already saved in the database
+                self.cleaned_data['allowed_auth_type'] = self.instance.allowed_auth_type
+                self.cleaned_data['jwks_uri'] = self.instance.jwks_uri
+            else:
+                # Defaults for a new application if the fields are not present in the form data
+                self.cleaned_data['allowed_auth_type'] = 'AUTH_CODE'
+                self.cleaned_data['jwks_uri'] = None
+
+        # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
+        if self.cleaned_data.get(
+            'allowed_auth_type'
+        ) in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.cleaned_data.get('jwks_uri'):
+            raise forms.ValidationError(
+                "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
+            )
+
         return self.cleaned_data
 
     def clean_name(self):
@@ -175,7 +200,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             )
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
-        app.save()
 
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
