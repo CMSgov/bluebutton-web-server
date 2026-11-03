@@ -201,6 +201,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             )
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
+        app.save()
 
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
@@ -289,11 +290,18 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
     @override
     def clean(self):
-        cleaned_data = super().clean()
 
-        if 'require_demographic_scopes' in cleaned_data and 'scope' in cleaned_data:
-            require_demographic_scopes = cleaned_data['require_demographic_scopes']
-            scope = cleaned_data['scope']
+        # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
+        if self.cleaned_data.get(
+            'allowed_auth_type'
+        ) in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.cleaned_data.get('jwks_uri'):
+            raise forms.ValidationError(
+                "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
+            )
+
+        if 'require_demographic_scopes' in self.cleaned_data and 'scope' in self.cleaned_data:
+            require_demographic_scopes = self.cleaned_data['require_demographic_scopes']
+            scope = self.cleaned_data['scope']
 
             demographic_scopes_query = scope.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
             if require_demographic_scopes:
@@ -307,7 +315,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                         'Cannot have demographic scopes when require_demographic_scopes==False or None.'
                     )
 
-        return cleaned_data
+        return self.cleaned_data
 
     @override
     def clean_agree(self):
@@ -401,7 +409,6 @@ class EditApplicationForm(CreateApplicationForm):
             'scope',
             'require_demographic_scopes',
             'agree',
-            'allowed_auth_type',
             'op_tos_uri',
             'op_policy_uri',
             'client_uri',
@@ -421,6 +428,7 @@ class EditApplicationForm(CreateApplicationForm):
             'first_active',
             'last_active',
             'jwks_uri',
+            'allowed_auth_type',
             'part_d_eob_only',
         )
 
