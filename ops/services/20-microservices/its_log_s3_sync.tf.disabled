@@ -1,4 +1,8 @@
-/*
+# NOTE: This file will have the extension .tf.disabled until we are ready to apply it 
+# Still sorting out a few details on how we will sync files between the its-log EFS and
+# the BCDA s3 bucket
+
+
 # ============================================================================
 # its-log → shared export bucket (bb-{{env}}-aurora-export)
 # Scheduled Fargate task that mounts the its-log EFS access point read-only
