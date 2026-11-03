@@ -39,7 +39,7 @@ Now, whenever you try to commit to the repo, you will be prevented from committi
 
 To automatically format your files on save (highly recommended), do the following:
 
-* Press Cmd + Shft + P
+* Press Cmd + Shift + P
 * Type Open User Settings  and select it
 * Add the following to your VS Code User Settings file:
 ```json
@@ -65,11 +65,12 @@ make build-local
 expands to
 
 ```bash
-make requirements
 make css
 ```
 
-followed by commands to build the `mslsx` and `bb-api` containers. This is necessary if you are working on static assets, changing the `requirements.txt` files, or working on MSLS.
+followed by commands to build the `mslsx` and `bb-api` containers. This is necessary if you are working on static assets or working on MSLS.
+
+To regenerate the requirements files, run `make generate` before `make build-local`.
 
 ## migrating and collecting static files
 
@@ -143,7 +144,7 @@ make run-local bfd=test auth=live READ_ONLY=false
 This will allow you to make a new migration and not run into any read-only file system issues.
 
 After altering models, open a new terminal and log into a running stack using
-`docker exec -u root -it <contatiner_id> bash` (for root permissions), and then run
+`docker exec -u root -it <container_id> bash` (for root permissions), and then run
 
 ```
 python manage.py makemigrations
