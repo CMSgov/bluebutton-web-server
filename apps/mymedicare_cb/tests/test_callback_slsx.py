@@ -250,6 +250,17 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def test_callback_url_success_v3(self):
         self._test_callback_url_success(3)
 
+    def test_callback_url_no_csp_v1(self):
+        self._test_callback_url_no_csp(1)
+
+    def test_callback_url_no_csp_v2(self):
+        self._test_callback_url_no_csp(2)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_callback_url_no_csp_v3(self):
+        self._test_callback_url_no_csp(3)
+
+
     # mock fhir user info endpoint
     @urlmatch(
         netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,
@@ -341,6 +352,70 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
+            if version == Versions.V3:
+                mock_relationships_call.assert_called_once()
+            else:
+                mock_relationships_call.assert_not_called()
+
+    @patch('apps.mymedicare_cb.authorization.OAuth2ConfigSLSx.retrieve_relationships_data')
+    @override_switch('proxy_access', active=True)
+    def _test_callback_url_no_csp(self, version, mock_relationships_call):
+        mock_relationships_call.return_value = []
+        # create a state
+        state = generate_nonce()
+        # We ALWAYS version our next_uri, and therefore
+        # this test should include a versioned next_uri for authenticity.
+        AnonUserState.objects.create(
+            state=state,
+            next_uri=(
+                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'
+                '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
+            ),
+        )
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMock(
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_is_csp_false_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
+            catchall,
+        ):
+            # need to fake an auth flow context to pass
+            # validation of Request.prepare(...) in
+            # apps.fhir.server.authentication.py->search_fhir_id_by_identifier(...)
+            s = self.client.session
+            s.update(
+                {
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',  # betterleaks:allow
+                    'auth_app_id': '2',
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',  # betterleaks:allow
+                    'version': version,
+                }
+            )
+            s.save()
+
+            response = self.client.get(
+                self.callback_url,
+                data={'req_token': '0000-test_req_token-0000', 'relay': state},
+            )
+
+            # assert http redirect
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+            self.assertIn('client_id=test', response.url)
+            self.assertIn('redirect_uri=test.com', response.url)
+            self.assertIn('response_type=token', response.url)
+            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
+            # assert login
+            self.assertNotIn('_auth_user_id', self.client.session)
+            mock_relationships_call.assert_not_called()
 
     def test_callback_url_failure(self):
         # create a state
@@ -1203,80 +1278,3 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             )
             self.assertEqual(response.status_code, HTTPStatus.BAD_GATEWAY)
             self.assertEqual(response.json()['error'], 'Failed to retrieve data from data source.')
-
-#   Update json schema for what changed (mbi = None/Null).
-@patch('apps.mymedicare_cb.authorization.requests.get')
-def test_retrieve_relationships_data(mock_get):
-    """Confirm that the origin and referer headers are properly set on the call
-    to retrieve relationships data, and the user is correctly set
-
-    Args:
-        mock_get: Mock the get call in retrieve_relationships_data
-        mock_user: Mock the get_user_info call in auth
-    """
-
-    slsx_client = OAuth2ConfigSLSx()
-    mock_get.return_value = MagicMock(
-        status_code=HTTPStatus.OK,
-        json=MagicMock(return_value={'type': 'relationships', 'message': 'success', 'name': 'relationships'}),
-    )
-    factory = RequestFactory()
-
-    request = factory.get(
-        slsx_client.relationships_endpoint,
-    )
-
-    slsx_client.retrieve_relationships_data(request)
-
-    mock_get.assert_called_once()
-    _, kwargs = mock_get.call_args
-    headers = kwargs['headers']
-
-    assert headers['Origin'] == 'https://test.medicare.gov'
-    assert headers['Referer'] == 'https://test.medicare.gov'
-
-#   Update json schema for what changed (mbi = None/Null).
-@patch('apps.mymedicare_cb.authorization.requests.get')
-@patch('apps.mymedicare_cb.authorization.OAuth2ConfigSLSx.get_user_info')
-def test_dont_retrieve_relationships_data(mock_user, mock_get):
-    """Confirm that the origin and referer headers are properly set on the call
-    to retrieve relationships data, and the user is correctly set
-
-    Args:
-        mock_get: Mock the get call in retrieve_relationships_data
-        mock_user: Mock the get_user_info call in auth
-    """
-
-    mock_user.return_value = MagicMock(
-        status_code=HTTPStatus.OK,
-        json=MagicMock(return_value={'status': 'ok', 'code': 200, 'data': {'user': {'id': '13b08664-a2e0-4cd1-81e6-c9c6f561c66e', 'username': 'csp-S76Va0Sv3arhJKxtbL2o7ga', 'email': None, 'firstName': 'James', 'middleName': None, 'lastName': 'Test', 'suffix': None, 'dateOfBirth': '1999-08-16', 'ssn': None, 'city': None, 'state': None, 'addressLine1': None, 'addressLine2': None, 'zipcode': None, 'zipcodeExtension': None, 'phoneNumber': None, 'challenges': [], 'webBrokerInfo': {}, 'isManuallyDisabled': False, 'requiresConfirm': None, 'loa': 2, 'loaAdminReason': None, 'lastLoginTime': 1792418079, 'createdTime': 1784638644, 'updatedTime': 1792418079, 'hicn': None, 'passwordExpirationTime': 1855576479000, 'isDisabled': False, 'bedapBeneKey': None, 'normalizedEmail': None, 'customUserInfo': {}, 'mfa_info': {'prompt_for_mfa_enrollment': False, 'configured_options': []}, 'isCspUser': False, 'cspInfo': [{'cspIdentifier': 'login_dot_gov', 'email': 'jamesdemery+93@navapbc.com'}]}}}),
-    )
-    slsx_client = OAuth2ConfigSLSx()
-    factory = RequestFactory()
-    request = factory.get(
-        slsx_client.get_user_info,
-    )
-
-    slsx_client.get_user_info(request)
-
-    mock_user.assert_called_once()
-    _, _ = mock_user.call_args
-
-    mock_get.return_value = MagicMock(
-        status_code=HTTPStatus.OK,
-        json=MagicMock(return_value={'type': 'relationships', 'message': 'success', 'name': 'relationships'}),
-    )
-
-    request = factory.get(
-        slsx_client.relationships_endpoint,
-    )
-
-    slsx_client.retrieve_relationships_data(request)
-
-
-    mock_get.assert_not_called()
-    _, kwargs = mock_get.call_args
-    headers = kwargs['headers']
-
-    assert headers['Origin'] == 'https://test.medicare.gov'
-    assert headers['Referer'] == 'https://test.medicare.gov'
