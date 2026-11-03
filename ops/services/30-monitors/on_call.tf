@@ -121,7 +121,7 @@ locals {
 }
 
 resource "datadog_monitor" "on_call_api_endpoints_composite" {
-  for_each = {
+  for_each = local.env == "test" ? {} : {
     for group in local.on_call_composite_groups : "v${group.version}" => group
   }
 

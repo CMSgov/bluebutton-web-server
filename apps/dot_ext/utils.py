@@ -194,7 +194,7 @@ def get_application_from_data(request):
         validate_client_id(client_id)
 
     if request.POST.get('client_assertion'):
-        # for client credentials flow, we need to get the client_id from the client_assertion
+        # for client credentials or asymmetric auth flow, we need to get the client_id from the client_assertion
         try:
             client_assertion_token = request.POST.get('client_assertion')
             auth_jwt = jwt.decode(client_assertion_token, options={'verify_signature': False})
