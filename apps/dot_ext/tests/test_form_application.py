@@ -85,6 +85,28 @@ from apps.dot_ext.forms import (
             None,
             True,
         ),
+        # Test plain-text punctuation in an application name remains valid
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'Research & Analytics (v2)'},
+            'name',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'Research & Analytics (v2)'},
+            'name',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'Research & Analytics (v2)'},
+            'name',
+            None,
+            True,
+        ),
         # Test form with no app name has error
         (
             CustomRegisterApplicationForm,
@@ -149,6 +171,70 @@ from apps.dot_ext.forms import (
             {'name': 'BB2–2993–en–dash'},
             'name',
             'Invalid character(s) in application name',
+            False,
+        ),
+        # Test form with HTML in the application name raises an error
+        (
+            CustomRegisterApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CustomRegisterApplicationForm,
+            {'name': '<script>alert(document.domain)</script>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '<script>alert(document.domain)</script>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '<script>alert(document.domain)</script>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CustomRegisterApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
             False,
         ),
         # Test form with website_uri valid URI.
@@ -504,6 +590,23 @@ def test_application_form_basic_validation(
         assert len(field_errors) == 1
         error_text = field_errors[0].message
         assert error_text_expected in error_text
+
+
+@pytest.mark.django_db
+def test_existing_html_application_name_must_be_renamed(basic_user, create_application):
+    user = basic_user(username='john', password='123456')
+    malicious_name = '<img src=x onerror=alert(document.domain)>'
+    application = create_application(malicious_name, user=user)
+    form = CustomRegisterApplicationForm(
+        user,
+        data={'name': malicious_name},
+        instance=application,
+    )
+
+    assert not form.is_valid()
+    assert form.errors['name'] == [
+        'Application names cannot contain angle brackets (< or >). Please use plain-text only!'
+    ]
 
 
 @pytest.mark.parametrize(
