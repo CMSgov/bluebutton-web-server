@@ -170,11 +170,6 @@ resource "aws_efs_file_system" "its_log" {
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
 
-  # If a file hasn't been accessed in 30 days, move it from standard storage into infrequent access storage
-  lifecycle_policy {
-    transition_to_ia = "AFTER_30_DAYS"
-  }
-
   tags = { Name = "${local.app_prefix}-${local.workspace}-its-log-efs" }
 }
 
