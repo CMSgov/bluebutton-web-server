@@ -36,6 +36,11 @@ WAFFLE_FEATURE_SWITCHES = (
     (
         'enable_asymmetric_auth',
         True,
-        'Are we allowing the asymmetric_auth flow',
+        'This allows token requests to use asymmetric authorization.',
+    ),
+    (
+        'enable_jwt_sbx_settings',
+        True,
+        'This allows users in the sandbox account management UI to set JWKs and allowed auth type settings on their apps.',
     ),
 )
