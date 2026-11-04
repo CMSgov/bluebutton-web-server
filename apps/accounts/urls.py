@@ -10,7 +10,7 @@ from django.urls import path, re_path
 from waffle.decorators import waffle_switch
 
 from .views.api_profile import my_profile
-from .views.core import account_settings, activation_verify, create_account
+from .views.core import account_settings, activation_verify, create_account, select_account
 from .views.login import LoginView, PasswordChangeView
 
 urlpatterns = [
@@ -26,6 +26,12 @@ urlpatterns = [
         r'^login$|^mfa/login$',
         waffle_switch('login')(LoginView.as_view()),
         name='login',
+    ),
+    path('select', account_select, name='account_select'),
+    re_path(
+        r'^select$$',
+        waffle_switch('login')(select_account,
+        name='select',
     ),
     path(
         'password-change',
