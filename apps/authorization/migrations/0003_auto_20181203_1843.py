@@ -2,12 +2,21 @@
 
 from django.db import migrations
 from django.conf import settings
-from oauth2_provider.settings import oauth2_settings
-from apps.authorization.models import update_grants
+from django.utils import timezone
 
 
-def migrate_grants(*args, **kwargs):
-    update_grants()
+# Uses the historical models: the current AccessToken model has columns
+# added by later oauth2_provider migrations that do not exist yet at this point.
+def migrate_grants(apps, schema_editor):
+    db_alias = schema_editor.connection.alias
+    AccessToken = apps.get_model(*settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL.split('.'))
+    DataAccessGrant = apps.get_model('authorization', 'DataAccessGrant')
+    tokens = AccessToken.objects.using(db_alias).filter(expires__gt=timezone.now())
+    for token in tokens:
+        DataAccessGrant.objects.using(db_alias).get_or_create(
+            beneficiary_id=token.user_id,
+            application_id=token.application_id,
+        )
 
 
 class Migration(migrations.Migration):
