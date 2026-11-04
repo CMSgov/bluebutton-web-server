@@ -101,6 +101,7 @@
 /bb/test/its-log/nonsensitive/itslog_zapmode: debug
 /bb/test/its-log/nonsensitive/itslog_proxies_trusted: TBD
 /bb/test/its-log/nonsensitive/itslog_storage_path: its-log/data
+/bb/test/its-log/nonsensitive/its_log_repo_name: cdap-its-log
 /bb/test/its-log/sensitive/itslog_apikey: ENC[AES256_GCM,data:3sx92OynYjYhjbsdPLzwAu+2dbgDPPKpwNTm5Xv3yKPHdrDd43PwdtsBsdilfreipYvzfGS+8eZF2RfbnOatxg==,iv:BH77KQAMgaUTAojUyEnleKVHR2KXMe3mlA9wcMjJQKE=,tag:tWXf+mxPthX8Q+HIratdTw==,type:str]
 sops:
   kms:
