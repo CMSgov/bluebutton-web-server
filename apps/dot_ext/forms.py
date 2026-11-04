@@ -2,6 +2,7 @@ import logging
 import uuid
 from typing import override
 
+import waffle
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -14,10 +15,14 @@ from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import HHS_SERVER_LOGNAME_FMT
-from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, PRINTABLE_SPECIAL_ASCII
+from apps.dot_ext.constants import (
+    BENE_PERSONAL_INFO_SCOPES,
+    CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    PRINTABLE_SPECIAL_ASCII,
+)
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
+from apps.dot_ext.validators import validate_application_name, validate_logo_image, validate_notags, validate_url
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -66,6 +71,12 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         validators=[validate_url],
         widget=URLInput,
     )
+    jwks_uri = forms.CharField(
+        required=False,
+        max_length=512,
+        validators=[validate_url],
+        widget=URLInput,
+    )
     agree_label = (
         'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*'
         % (settings.TOS_URI)
@@ -73,6 +84,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
+        self.fields['allowed_auth_type'].required = False
 
     class Meta:
         model = get_application_model()
@@ -87,20 +99,43 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'tos_uri',
             'support_email',
             'support_phone_number',
+            'jwks_uri',
             'contacts',
             'agree',
             'require_demographic_scopes',
+            'allowed_auth_type',
         )
 
     required_css_class = 'required'
 
     def clean(self):
+
+        if not waffle.switch_is_active('enable_jwt_sbx_settings'):
+            if self.instance and self.instance.pk:
+                # Use the existing value already saved in the database
+                self.cleaned_data['allowed_auth_type'] = self.instance.allowed_auth_type
+                self.cleaned_data['jwks_uri'] = self.instance.jwks_uri
+            else:
+                # Defaults for a new application if the fields are not present in the form data
+                self.cleaned_data['allowed_auth_type'] = 'AUTH_CODE'
+                self.cleaned_data['jwks_uri'] = None
+
+        allowed_auth_type = self.cleaned_data.get('allowed_auth_type')
+        jwks_uri = self.cleaned_data.get('jwks_uri')
+
+        # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
+        if allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not jwks_uri:
+            raise forms.ValidationError(
+                "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
+            )
+
         return self.cleaned_data
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if not name:
             raise forms.ValidationError(_('Application name is required.'))
+        validate_application_name(name)
         app_model = get_application_model()
         if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError(
@@ -257,11 +292,18 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
     @override
     def clean(self):
-        cleaned_data = super().clean()
 
-        if 'require_demographic_scopes' in cleaned_data and 'scope' in cleaned_data:
-            require_demographic_scopes = cleaned_data['require_demographic_scopes']
-            scope = cleaned_data['scope']
+        # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
+        if self.cleaned_data.get(
+            'allowed_auth_type'
+        ) in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.cleaned_data.get('jwks_uri'):
+            raise forms.ValidationError(
+                "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
+            )
+
+        if 'require_demographic_scopes' in self.cleaned_data and 'scope' in self.cleaned_data:
+            require_demographic_scopes = self.cleaned_data['require_demographic_scopes']
+            scope = self.cleaned_data['scope']
 
             demographic_scopes_query = scope.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
             if require_demographic_scopes:
@@ -275,7 +317,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                         'Cannot have demographic scopes when require_demographic_scopes==False or None.'
                     )
 
-        return cleaned_data
+        return self.cleaned_data
 
     @override
     def clean_agree(self):
@@ -369,7 +411,6 @@ class EditApplicationForm(CreateApplicationForm):
             'scope',
             'require_demographic_scopes',
             'agree',
-            'allowed_auth_type',
             'op_tos_uri',
             'op_policy_uri',
             'client_uri',
@@ -389,6 +430,7 @@ class EditApplicationForm(CreateApplicationForm):
             'first_active',
             'last_active',
             'jwks_uri',
+            'allowed_auth_type',
             'part_d_eob_only',
         )
 
