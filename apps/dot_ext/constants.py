@@ -17,7 +17,7 @@ HEADERS = {
     'Limit': 'X-RateLimit-Limit',
     'Reset': 'X-RateLimit-Reset',
 }
-PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;<=>?@[\\]^_`{|}~'
+PRINTABLE_SPECIAL_ASCII = '!"#$%&\'()*+,-/:;=?@[\\]^_`{|}~'
 
 ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS = ['iss', 'sub', 'aud', 'jti', 'exp']
 # CAN Flow also requires the 'extensions' claim (smart extension)
