@@ -583,6 +583,7 @@ data "aws_iam_policy_document" "efs" {
       "elasticfilesystem:DescribeLifecycleConfiguration",
       "elasticfilesystem:DescribeMountTargets",
       "elasticfilesystem:DescribeAccessPoints",
+      "elasticfilesystem:DescribeMountTargetSecurityGroups",
       "ec2:CreateNetworkInterface",
       "ec2:ModifyNetworkInterfaceAttribute",
       "ec2:DetachNetworkInterface",
