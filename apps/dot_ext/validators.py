@@ -103,6 +103,13 @@ def validate_notags(value):
         raise ValidationError(_('The text contains HTML tags. Please use plain-text only!'))
 
 
+def validate_application_name(value):
+    if '<' in value or '>' in value:
+        raise ValidationError(
+            _('Application names cannot contain angle brackets (< or >). Please use plain-text only!')
+        )
+
+
 # Validate the application logo imagefield in form clean
 def validate_logo_image(value):
     file_extension = ospath.splitext(value.name)[1]
