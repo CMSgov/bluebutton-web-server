@@ -581,6 +581,8 @@ data "aws_iam_policy_document" "efs" {
     actions = [
       "elasticfilesystem:DescribeFileSystems",
       "elasticfilesystem:DescribeLifecycleConfiguration",
+      "elasticfilesystem:DescribeMountTargets",
+      "elasticfilesystem:DescribeAccessPoints",
       "ec2:CreateNetworkInterface",
       "ec2:ModifyNetworkInterfaceAttribute",
       "ec2:DetachNetworkInterface",
@@ -609,7 +611,8 @@ data "aws_iam_policy_document" "servicediscovery" {
     sid = "AllowGitHubConnectionServiceDiscovery"
     actions = [
       "servicediscovery:GetNamespace",
-      "servicediscovery:ListTagsForResource"
+      "servicediscovery:ListTagsForResource",
+      "servicediscovery:GetService"
     ]
     resources = ["*"]
   }
