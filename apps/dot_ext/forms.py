@@ -22,7 +22,7 @@ from apps.dot_ext.constants import (
 )
 from apps.dot_ext.models import Application, InternalApplicationLabels
 from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.dot_ext.validators import validate_logo_image, validate_notags, validate_url
+from apps.dot_ext.validators import validate_application_name, validate_logo_image, validate_notags, validate_url
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -135,6 +135,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         name = self.cleaned_data.get('name')
         if not name:
             raise forms.ValidationError(_('Application name is required.'))
+        validate_application_name(name)
         app_model = get_application_model()
         if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError(
