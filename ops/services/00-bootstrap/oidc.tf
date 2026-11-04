@@ -596,7 +596,7 @@ data "aws_iam_policy_document" "efs" {
 resource "aws_iam_role_policy" "efs" {
   count  = local.create_resources ? 1 : 0
   name   = "efs"
-  role   = aws_iam_role.codebuild[0].id
+  role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.efs[0].json
 }
 
@@ -616,7 +616,7 @@ data "aws_iam_policy_document" "servicediscovery" {
 resource "aws_iam_role_policy" "servicediscovery" {
   count  = local.create_resources ? 1 : 0
   name   = "service_discovery"
-  role   = aws_iam_role.codebuild[0].id
+  role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.servicediscovery[0].json
 }
 
