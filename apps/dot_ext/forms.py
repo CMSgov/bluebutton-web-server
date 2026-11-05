@@ -326,6 +326,9 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     @override
     def save(self, *args, **kwargs):
         app = self.instance
+        app.agree = True
+        app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+        app.client_type = Application.CLIENT_CONFIDENTIAL
         user_mode = self.cleaned_data.get('user_mode')
         if user_mode == 'new':
             # If the user_mode is 'new', we create a new user and associate it with the application
@@ -345,30 +348,15 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                 user=new_user_model,
                 organization_name=self.cleaned_data.get('organization_name'),
             )
-
-            app = super().save(*args, **kwargs)
-            app.agree = True
             app.user = new_user_model
-            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
-            app.client_type = Application.CLIENT_CONFIDENTIAL
+        # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
+        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm
+        app = super(CustomRegisterApplicationForm, self).save(*args, **kwargs)
+        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
+        if uri:
+            app.logo_uri = uri
             app.save()
-            uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
-            if uri:
-                app.logo_uri = uri
-                app.save()
-            return app
-        else:
-            # If the user_mode is 'existing', we just save the application with the selected user
-            app = super().save(*args, **kwargs)
-            app.agree = True
-            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
-            app.client_type = Application.CLIENT_CONFIDENTIAL
-            app.save()
-            uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
-            if uri:
-                app.logo_uri = uri
-                app.save()
-            return app
+        return app
 
 
 class EditApplicationForm(CreateApplicationForm):
@@ -442,11 +430,6 @@ class EditApplicationForm(CreateApplicationForm):
     @override
     def save(self, *args, **kwargs):
         app = super().save(*args, **kwargs)
-        app.save()
-        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
-        if uri:
-            app.logo_uri = uri
-            app.save()
         return app
 
 
