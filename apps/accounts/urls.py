@@ -27,10 +27,10 @@ urlpatterns = [
         waffle_switch('login')(LoginView.as_view()),
         name='login',
     ),
-    path('select', account_select, name='account_select'),
+    path('select', select_account, name='select_account'),
     re_path(
         r'^select$$',
-        waffle_switch('login')(select_account,
+        waffle_switch('login')(select_account),
         name='select',
     ),
     path(

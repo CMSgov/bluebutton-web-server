@@ -79,7 +79,7 @@ def account_settings(request):
 
 @never_cache
 @login_required
-def account_select(request):
+def select_account(request):
     name = _('Select an account to manage')
     up, created = UserProfile.objects.get_or_create(user=request.user)
 
