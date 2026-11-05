@@ -250,6 +250,17 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def test_callback_url_success_v3(self):
         self._test_callback_url_success(3)
 
+    def test_callback_url_no_csp_v1(self):
+        self._test_callback_url_no_csp(1)
+
+    def test_callback_url_no_csp_v2(self):
+        self._test_callback_url_no_csp(2)
+
+    @override_switch('v3_endpoints', active=True)
+    def test_callback_url_no_csp_v3(self):
+        self._test_callback_url_no_csp(3)
+
+
     # mock fhir user info endpoint
     @urlmatch(
         netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,
@@ -278,7 +289,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         path=r'/v3/fhir/Patient/',
     )
     def fhir_patient_info_mock_v3(self, url, request):
-        print('fhir_patient_info_mock_v3')
         return {
             'status_code': status.HTTP_200_OK,
             'content': patient_response,
@@ -346,6 +356,66 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 mock_relationships_call.assert_called_once()
             else:
                 mock_relationships_call.assert_not_called()
+
+    @patch('apps.mymedicare_cb.authorization.OAuth2ConfigSLSx.retrieve_relationships_data')
+    @override_switch('proxy_access', active=True)
+    def _test_callback_url_no_csp(self, version, mock_relationships_call):
+        mock_relationships_call.return_value = []
+        # create a state
+        state = generate_nonce()
+        # We ALWAYS version our next_uri, and therefore
+        # this test should include a versioned next_uri for authenticity.
+        AnonUserState.objects.create(
+            state=state,
+            next_uri=(
+                f'http://www.doesnotexist.gov?next=/v{version}/o/authorize'
+                '&client_id=test&redirect_uri=test.com&response_type=token&state=test'
+            ),
+        )
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMock(
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_is_csp_false_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
+            self.fhir_patient_info_mock_v1,
+            self.fhir_patient_info_mock_v2,
+            self.fhir_patient_info_mock_v3,
+            catchall,
+        ):
+            # need to fake an auth flow context to pass
+            # validation of Request.prepare(...) in
+            # apps.fhir.server.authentication.py->search_fhir_id_by_identifier(...)
+            s = self.client.session
+            s.update(
+                {
+                    'auth_uuid': '84b4afdc-d85d-4ea4-b44c-7bde77634429',  # betterleaks:allow
+                    'auth_app_id': '2',
+                    'auth_app_name': 'TestApp-001',
+                    'auth_client_id': 'uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop',  # betterleaks:allow
+                    'version': version,
+                }
+            )
+            s.save()
+
+            response = self.client.get(
+                self.callback_url,
+                data={'req_token': '0000-test_req_token-0000', 'relay': state},
+            )
+
+            # assert http redirect
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+            self.assertIn('client_id=test', response.url)
+            self.assertIn('redirect_uri=test.com', response.url)
+            self.assertIn('response_type=token', response.url)
+            self.assertIn(f'http://www.doesnotexist.gov/v{version}/o/authorize/', response.url)
+            # assert login
+            self.assertNotIn('_auth_user_id', self.client.session)
+            mock_relationships_call.assert_not_called()
 
     def test_callback_url_failure(self):
         # create a state
@@ -1220,8 +1290,8 @@ def test_retrieve_relationships_data(mock_get):
     """
     slsx_client = OAuth2ConfigSLSx()
     mock_get.return_value = MagicMock(
-        status_code=HTTPStatus.BAD_REQUEST,
-        json=MagicMock(return_value={'type': 'BadRequest', 'message': 'MUST_BE_CSP_USER', 'name': 'BadRequest'}),
+        status_code=HTTPStatus.OK,
+        json=MagicMock(return_value={'type': 'relationships', 'message': 'success', 'name': 'relationships'}),
     )
     factory = RequestFactory()
     request = factory.get(

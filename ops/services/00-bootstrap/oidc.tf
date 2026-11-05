@@ -571,3 +571,58 @@ resource "aws_iam_role_policy" "github_actions_tofu" {
   role   = local.github_actions_role_id
   policy = data.aws_iam_policy_document.github_actions_tofu.json
 }
+
+# Ensure Tofu Plan GHA can access EFS resources
+data "aws_iam_policy_document" "efs" {
+  count = local.create_resources ? 1 : 0
+
+  statement {
+    sid = "AllowGitHubConnectionEFS"
+    actions = [
+      "elasticfilesystem:DescribeFileSystems",
+      "elasticfilesystem:DescribeLifecycleConfiguration",
+      "elasticfilesystem:DescribeMountTargets",
+      "elasticfilesystem:DescribeAccessPoints",
+      "elasticfilesystem:DescribeMountTargetSecurityGroups",
+      "ec2:CreateNetworkInterface",
+      "ec2:ModifyNetworkInterfaceAttribute",
+      "ec2:DetachNetworkInterface",
+      "kms:CreateGrant",
+      "kms:RetireGrant",
+      "kms:ListGrants",
+      "logs:DisassociateKmsKey",
+      "logs:AssociateKmsKey"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "efs" {
+  count  = local.create_resources ? 1 : 0
+  name   = "efs"
+  role   = local.github_actions_role_id
+  policy = data.aws_iam_policy_document.efs[0].json
+}
+
+# Ensure Tofu Plan GHA can access EFS resources
+data "aws_iam_policy_document" "servicediscovery" {
+  count = local.create_resources ? 1 : 0
+
+  statement {
+    sid = "AllowGitHubConnectionServiceDiscovery"
+    actions = [
+      "servicediscovery:GetNamespace",
+      "servicediscovery:ListTagsForResource",
+      "servicediscovery:GetService"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "servicediscovery" {
+  count  = local.create_resources ? 1 : 0
+  name   = "service_discovery"
+  role   = local.github_actions_role_id
+  policy = data.aws_iam_policy_document.servicediscovery[0].json
+}
+
