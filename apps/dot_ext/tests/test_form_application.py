@@ -1022,7 +1022,7 @@ def test_create_application_form_user_mode_selection(
             False,
         ),
         (
-            # requires name, require_demographic_scopes, user_mode, organization_name, allowed_auth_type, and scope
+            # requires name, data_access_type, require_demographic_scopes, user_mode, organization_name, allowed_auth_type, and scope
             CreateApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
