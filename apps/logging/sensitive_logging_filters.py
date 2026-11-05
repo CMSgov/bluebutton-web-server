@@ -23,21 +23,34 @@ def mask_if_has_mbi(text):
     return re.sub(MBI_PATTERN, '***MBI***', str(text), flags=re.VERBOSE)
 
 
-def mask_mbi(value_to_mask):
-    if isinstance(value_to_mask, str):
-        return mask_if_has_mbi(value_to_mask)
+def mask_with(func):
+    def inner(value_to_mask):
+        if isinstance(value_to_mask, str):
+            return func(value_to_mask)
 
-    if isinstance(value_to_mask, tuple):
-        return tuple([mask_if_has_mbi(arg) for arg in value_to_mask])
+        if isinstance(value_to_mask, tuple):
+            return tuple([func(arg) for arg in value_to_mask])
 
-    if isinstance(value_to_mask, list):
-        return [mask_if_has_mbi(arg) for arg in value_to_mask]
+        if isinstance(value_to_mask, list):
+            return [func(arg) for arg in value_to_mask]
 
-    if isinstance(value_to_mask, dict):
-        for key, value in value_to_mask.items():
-            value_to_mask[key] = mask_mbi(value)
+        if isinstance(value_to_mask, dict):
+            for key, value in value_to_mask.items():
+                value_to_mask[key] = inner(value)
 
-    return value_to_mask
+        return value_to_mask
+
+    return inner
+
+
+mask_mbi = mask_with(mask_if_has_mbi)
+
+
+def _mask_erroring_database_rows(text):
+    return re.sub(r'(?<=Failing row contains )\(.*\)', '***REDACTED***', str(text))
+
+
+mask_erroring_database_rows = mask_with(_mask_erroring_database_rows)
 
 
 class SensitiveDataFilter(logging.Filter):
@@ -45,6 +58,8 @@ class SensitiveDataFilter(logging.Filter):
         try:
             record.args = mask_mbi(record.args)
             record.msg = mask_mbi(record.msg)
+            record.args = mask_erroring_database_rows(record.args)
+            record.msg = mask_erroring_database_rows(record.msg)
             return True
-        except Exception:
-            pass
+        except Exception as e:
+            raise e

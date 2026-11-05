@@ -80,6 +80,7 @@ MIDDLEWARE = [
     'apps.dot_ext.throttling.ThrottleMiddleware',
     'waffle.middleware.WaffleMiddleware',
     'apps.dot_ext.middleware.AuthorizationViewMiddleware',
+    'apps.logging.exception_handler.ProcessExceptionMiddleware',
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
     # on failed user authentication attempts from login views.
@@ -418,6 +419,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'token': env('TOKEN_THROTTLE_RATE', default='100000/s'),
     },
+    'EXCEPTION_HANDLER': 'apps.logging.exception_handler.custom_exception_handler',
 }
 
 # CORS settings

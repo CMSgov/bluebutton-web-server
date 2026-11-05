@@ -1,10 +1,12 @@
 import logging
 
 from django.core.exceptions import ImproperlyConfigured
+from django.db import transaction
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.bb2_tools.models import ATestModel
 from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.health.checks import (
     bfd_services,
@@ -67,3 +69,8 @@ class CheckBFD(Check):
 
 class CheckDB(Check):
     services = db_services
+
+
+class AlwaysFails(APIView):
+    with transaction.atomic():
+        ATestModel(field=None).save()
