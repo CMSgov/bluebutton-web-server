@@ -237,6 +237,8 @@ locals {
     # Tags to add to spans and profiles
     # https://ddtrace.readthedocs.io/en/stable/configuration.html#DD_TAGS
     { name = "DD_TAGS", value = "application:${local.app}" },
+    { name = "ITSLOG_SERVE_HOST", value = local.its_log_serve_host },
+    { name = "ITSLOG_SERVE_PORT", value = tostring(local.its_log_serve_port) },
   ]
 
   # SSM individual params → ECS environment format
