@@ -255,6 +255,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     class Meta:
         model = get_application_model()
         fields = (
+            'data_access_type',
             'name',
             'user_mode',
             'user',
