@@ -291,31 +291,29 @@ SECURE_SSL_REDIRECT = False  # ALB handles HTTPS redirect
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 X_FRAME_OPTIONS = 'DENY'
 
-CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
-# TODO: Uncomment once Fargate migration is complete and we would have a better sense of what allowed origins would be.
-# Once a Fargate post migration ticket is created, this should be addressed then.
-# It is a possible security hardening that can be decided upon later.
-# _CORS_ALLOWED = env("CORS_ALLOWED_ORIGINS", "")
-# CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(",") if o.strip()]
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = bool_env(env('CORS_ALLOW_ALL_ORIGINS', default=True))
 
-# # Restrict allowed HTTP methods and headers for CORS
-# CORS_ALLOW_METHODS = [
-#     "GET",
-#     "POST",
-#     "PUT",
-#     "PATCH",
-#     "DELETE",
-#     "OPTIONS",
-# ]
+CORS_URLS_REGEX = r'^/(\.well-known/|v[1-3]/(fhir/|connect/|o/(token|revoke_token|revoke|introspect)/?$))'
 
-# CORS_ALLOW_HEADERS = (
-#     "accept",
-#     "authorization",
-#     "content-type",
-#     "user-agent",
-#     "x-csrftoken",
-#     "x-requested-with",
-# )
+CORS_ALLOW_CREDENTIALS = False
+
+# Restrict allowed HTTP methods and headers for CORS
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'OPTIONS',
+]
+
+CORS_ALLOW_HEADERS = (
+    'accept',
+    'authorization',
+    'content-type',
+    'prefer',  # v3 strict query-parameter validation
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+)
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
