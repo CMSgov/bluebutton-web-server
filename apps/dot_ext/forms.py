@@ -203,7 +203,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             )
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
-        app.save()
 
         default_scopes = ProtectedCapability.objects.filter(default__exact=True)
         demographic_scopes = ProtectedCapability.objects.filter(slug__in=BENE_PERSONAL_INFO_SCOPES)
