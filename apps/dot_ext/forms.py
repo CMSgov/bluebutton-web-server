@@ -325,11 +325,13 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
     @override
     def save(self, *args, **kwargs):
-        app = self.instance
-        app.agree = True
-        app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
-        app.client_type = Application.CLIENT_CONFIDENTIAL
         user_mode = self.cleaned_data.get('user_mode')
+        app = self.instance
+        # If the application is new (i.e., it doesn't have a primary key yet), we set some default values for the application fields.
+        if app.pk is None:
+            app.agree = True
+            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+            app.client_type = Application.CLIENT_CONFIDENTIAL
         if user_mode == 'new':
             # If the user_mode is 'new', we create a new user and associate it with the application
             # This returns a tuple of (user, created), where 'created' is a boolean indicating if the
@@ -350,7 +352,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
             )
             app.user = new_user_model
         # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
-        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm
+        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's save method to run here, since we already handle those in this form's save method.
         app = super(CustomRegisterApplicationForm, self).save(*args, **kwargs)
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
