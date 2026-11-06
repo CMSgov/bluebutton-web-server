@@ -495,7 +495,5 @@ def summarize():
             "value": str(count),
             "count": 1,
         })
-    for row in returning_summary_rows:
-        print("ROW: ", row)
 
     return returning_summary_rows
