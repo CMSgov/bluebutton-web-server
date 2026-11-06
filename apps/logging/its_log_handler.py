@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict
 
 import requests
+from django.conf import settings
 
 from apps.logging.constants import HHS_SERVER_LOGNAME_FMT
 
@@ -59,7 +60,7 @@ class ITSLogAPIHandler(logging.Handler):
     """
 
     API_URL = 'http://host.docker.internal:8888/v1/log/create'
-    API_KEY = '1234567890123456123456789012345612345678901234561234567890123456'
+    API_KEY = settings.ITS_LOG_API_KEY
     executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='its-log')
 
     def emit(self, record) -> None:

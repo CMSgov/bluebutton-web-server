@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 import apps.logging.request_logger as logging
@@ -371,7 +372,7 @@ def ping_api(tags, value, operation, date):
     try:
         result = requests.post(
             'http://host.docker.internal:8888/v1/summary/create',
-            headers={'x-api-key': 'abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh'},
+            headers={'x-api-key': settings.ITS_LOG_API_KEY},
             json={
                 'tags': tags,
                 'count': 1,
@@ -390,7 +391,7 @@ def ping_events_api(tags, value, cluster):
     try:
         result = requests.post(
             'http://host.docker.internal:8888/v1/log/create',
-            headers={'x-api-key': '1234567890123456123456789012345612345678901234561234567890123456'},
+            headers={'x-api-key': settings.ITS_LOG_API_KEY},
             json={
                 'tags': tags,
                 'value': value,

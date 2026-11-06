@@ -10,6 +10,7 @@ import base64
 import logging
 
 import requests
+from django.conf import settings
 
 logger = logging.getLogger('etl_creation_script')
 
@@ -17,8 +18,6 @@ ETL_FILE_EXTENSIONS = ['.star', '.sql', '.go']
 ETL_FILE_DIR = 'insights/etls'
 ETL_CREATION_ENDPOINT = 'http://localhost:8888/v1/etl/create'
 SEQUENCE_CREATION_ENDPOINT = 'http://localhost:8888/v1/sequence/create'
-# Note: This is a dummy API key for local development
-API_KEY = 'abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh'
 
 
 def encode_file(file_path: str) -> str:
@@ -38,7 +37,9 @@ def post_etl_to_its_log(etl_name: str, file_extension: str, encoded_file: str) -
         'date': 'today',
     }
 
-    response = requests.post(ETL_CREATION_ENDPOINT, headers={'x-api-key': API_KEY}, json=payload, timeout=5)
+    response = requests.post(
+        ETL_CREATION_ENDPOINT, headers={'x-api-key': settings.ITS_LOG_API_KEY}, json=payload, timeout=5
+    )
     logger.info(f'response status code: {response.status_code}')
 
 
@@ -68,7 +69,7 @@ def main():
         'date': 'today',
     }
     sequence_response = requests.post(
-        SEQUENCE_CREATION_ENDPOINT, headers={'x-api-key': API_KEY}, json=sequence_payload, timeout=5
+        SEQUENCE_CREATION_ENDPOINT, headers={'x-api-key': settings.ITS_LOG_API_KEY}, json=sequence_payload, timeout=5
     )
     logger.info(f'sequence creation status code: {sequence_response.status_code}')
 
