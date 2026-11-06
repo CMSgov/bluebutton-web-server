@@ -10,7 +10,13 @@ class Command(BaseCommand):
     help = 'Management command to log global state type metrics when called on a schedule.'
 
     def add_arguments(self, parser):
-        # Optional argument to prevent console report in unit tests.
+        # Optional argument to post to ITS-log API
+        parser.add_argument(
+            '-l',
+            '--post-to-its-log',
+            action='store_false',
+            help='Post results to ITS-log API.',
+        )
         parser.add_argument(
             '-n',
             '--no-report',
@@ -23,5 +29,6 @@ class Command(BaseCommand):
         group_timestamp = format_timestamp(datetime.now())
 
         report_flag = False if options.get('no_report', None) else True
+        its_log_flag = False if options.get('post_to_its_log', None) else True
 
-        log_global_state_metrics(group_timestamp, report_flag)
+        log_global_state_metrics(group_timestamp, report_flag, its_log_flag)
