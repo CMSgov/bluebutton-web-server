@@ -2,16 +2,21 @@
 
 from django.conf import settings
 from django.db import migrations, models
-from apps.authorization.models import update_grants
+from django.utils import timezone
 
 
-# Functions from the following migrations need manual copying.
-# Move them and any dependencies into this file, then update the
-# RunPython operations to refer to the local versions:
-# apps.authorization.migrations.0003_auto_20181203_1843
-
-def migrate_grants(*args, **kwargs):
-    update_grants()
+# Uses the historical models: the current AccessToken model has columns
+# added by later oauth2_provider migrations that do not exist yet at this point.
+def migrate_grants(apps, schema_editor):
+    db_alias = schema_editor.connection.alias
+    AccessToken = apps.get_model(*settings.OAUTH2_PROVIDER_ACCESS_TOKEN_MODEL.split('.'))
+    DataAccessGrant = apps.get_model('authorization', 'DataAccessGrant')
+    tokens = AccessToken.objects.using(db_alias).filter(expires__gt=timezone.now())
+    for token in tokens:
+        DataAccessGrant.objects.using(db_alias).get_or_create(
+            beneficiary_id=token.user_id,
+            application_id=token.application_id,
+        )
 
 class Migration(migrations.Migration):
 

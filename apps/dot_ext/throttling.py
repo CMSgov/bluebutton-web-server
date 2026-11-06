@@ -16,9 +16,12 @@ class TokenRateThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         try:
-            ident = request.auth
+            auth = request.auth
         except AttributeError:
             ident = self.get_ident(request)
+        else:
+            # DOT >= 3 no longer renders the raw token in str(AccessToken)
+            ident = getattr(auth, 'token_checksum', auth)
 
         return self.cache_format % {
             'scope': self.scope,
