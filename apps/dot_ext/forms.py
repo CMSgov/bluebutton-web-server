@@ -233,13 +233,12 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     ]
     user_mode = forms.ChoiceField(choices=USER_CHOICES, widget=forms.RadioSelect, initial='new', required=True)
 
-    AUTH_PATH_CHOICES = [
-        ('symmetric', 'Symmetric'),
-        ('asymmetric', 'Asymmetric'),
-        ('both', 'Both'),
+    CLIENT_SECRET_ACTION_CHOICES = [
+        ('generate_client_secret', 'Generate a client secret'),
+        ('no_client_secret', 'Do not generate a client secret'),
     ]
-    auth_path = forms.ChoiceField(
-        choices=AUTH_PATH_CHOICES, widget=forms.RadioSelect, initial='symmetric', required=True
+    client_secret_action = forms.ChoiceField(
+        choices=CLIENT_SECRET_ACTION_CHOICES, initial='generate_client_secret', required=True
     )
 
     def __init__(self, *args, **kwargs):
@@ -254,7 +253,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         self.fields['user_mode'].label = 'User Mode*'
         self.fields['scope'].label = 'Scopes*'
         self.fields['allowed_auth_type'].label = 'Allowed Auth Type*'
-        self.fields['auth_path'].label = 'Authentication Path*'
+        self.fields['client_secret_action'].label = 'Client Secret Action*'
         self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
             queryset=InternalApplicationLabels.objects.all(), widget=forms.SelectMultiple
         )
@@ -267,7 +266,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         fields = (
             'data_access_type',
             'name',
-            'auth_path',
+            'client_secret_action',
             'user_mode',
             'user',
             'organization_name',
@@ -301,16 +300,6 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                 )
             elif user_mode == 'new' and user:
                 raise forms.ValidationError('You cannot select a user when choosing the "Create New User" option.')
-
-        if 'jwks_uri' in self.cleaned_data and 'auth_path' in self.cleaned_data:
-            auth_path = self.cleaned_data.get('auth_path')
-            jwks_uri = self.cleaned_data.get('jwks_uri')
-
-            # Validation for jwks_uri based on auth_path
-            if (auth_path == 'asymmetric' or auth_path == 'both') and not jwks_uri:
-                raise forms.ValidationError(f'The jwks_uri cannot be empty when auth_path is {auth_path}.')
-            if auth_path == 'symmetric' and jwks_uri:
-                raise forms.ValidationError(f'The jwks_uri must be empty when auth_path is {auth_path}.')
 
         if 'allowed_auth_type' in self.cleaned_data and 'jwks_uri' in self.cleaned_data:
             allowed_auth_type = self.cleaned_data.get('allowed_auth_type')
@@ -346,13 +335,12 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     @override
     def save(self, *args, **kwargs):
         user_mode = self.cleaned_data.get('user_mode')
-        auth_path = self.cleaned_data.get('auth_path')
+        client_secret_action = self.cleaned_data.get('client_secret_action')
         app = self.instance
         # If the application is new (i.e., it doesn't have a primary key yet), we set some default values for the application fields.
-        if app.pk is None:
-            app.agree = True
-            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
-            app.client_type = Application.CLIENT_CONFIDENTIAL
+        app.agree = True
+        app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+        app.client_type = Application.CLIENT_CONFIDENTIAL
         if user_mode == 'new':
             # If the user_mode is 'new', we create a new user and associate it with the application
             # This returns a tuple of (user, created), where 'created' is a boolean indicating if the
@@ -372,19 +360,11 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                 organization_name=self.cleaned_data.get('organization_name'),
             )
             app.user = new_user_model
-        # Should not have a client secret/client_secret_plain if the auth_path is asymmetric
-        if auth_path == 'asymmetric':
+        # Should not have a client secret/client_secret_plain if the client_secret_action is no_client_secret
+        if client_secret_action == 'no_client_secret':
             app.hash_client_secret = False
             app.client_secret = ''
             app.client_secret_plain = ''
-        else:
-            # Handle the case of switching to symmetric or both from asymmetric,
-            # where the application currently has no client secret
-            is_currently_asymmetric = bool(app.pk and not app.client_secret and not app.client_secret_plain)
-            if is_currently_asymmetric:
-                app.hash_client_secret = True
-                app.client_secret_plain = generate_client_secret()
-                app.client_secret = app.client_secret_plain
         # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
         # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's
         # save method to run here
@@ -397,6 +377,15 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
 
 class EditApplicationForm(CreateApplicationForm):
+    CLIENT_SECRET_ACTION_CHOICES = [
+        ('generate_client_secret', 'Generate a client secret'),
+        ('no_client_secret', 'Remove the existing client secret'),
+        # Add a choice to leave the existing client secret unchanged,
+        # which is the default behavior when editing an application
+        ('no_change', 'Leave the existing client secret unchanged'),
+    ]
+    client_secret_action = forms.ChoiceField(choices=CLIENT_SECRET_ACTION_CHOICES, initial='no_change', required=True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # We don't need the ability to choose the user mode for editing an application,
@@ -405,19 +394,6 @@ class EditApplicationForm(CreateApplicationForm):
             self.fields['user_mode'].initial = 'existing'
             self.fields['user_mode'].widget = forms.HiddenInput()
             self.fields['user_mode'].required = False
-        # If editing an existing record, pre-select the correct radio/dropdown option for
-        # auth_path based on the current values of jwks_uri and client_secret
-        if self.instance and self.instance.pk:
-            current_jwks = self.instance.jwks_uri
-            has_secret = bool(getattr(self.instance, 'client_secret', None))
-
-            if current_jwks and has_secret:
-                self.fields['auth_path'].initial = 'both'
-            elif current_jwks:
-                self.fields['auth_path'].initial = 'asymmetric'
-            else:
-                self.fields['auth_path'].initial = 'symmetric'
-        # User field is required for editing an application, so we set it to required and change the label
         self.fields['user'].label = 'User*'
         self.fields['user'].required = True
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
@@ -436,7 +412,7 @@ class EditApplicationForm(CreateApplicationForm):
         model = get_application_model()
         fields = (
             'data_access_type',
-            'auth_path',
+            'client_secret_action',
             'client_id',
             'user',
             'client_type',
@@ -471,6 +447,28 @@ class EditApplicationForm(CreateApplicationForm):
             'allowed_auth_type',
             'part_d_eob_only',
         )
+
+    def save(self, *args, **kwargs):
+        app = self.instance
+        client_secret_action = self.cleaned_data.get('client_secret_action')
+
+        if client_secret_action == 'generate_client_secret':
+            app.hash_client_secret = True
+            app.client_secret_plain = generate_client_secret()
+            app.client_secret = app.client_secret_plain
+        elif client_secret_action == 'no_client_secret':
+            app.hash_client_secret = False
+            app.client_secret = ''
+            app.client_secret_plain = ''
+        # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
+        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's
+        # save method to run here
+        app = super(CustomRegisterApplicationForm, self).save(*args, **kwargs)
+        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
+        if uri:
+            app.logo_uri = uri
+            app.save()
+        return app
 
 
 class SimpleAllowForm(DotAllowForm):
