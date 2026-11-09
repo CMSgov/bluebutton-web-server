@@ -1146,7 +1146,7 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
 
 
 @pytest.mark.integration
-def test_access_grant_creation_null_proxy_ids(basic_user, create_application) -> None:
+def test_access_grant_creation_fails_null_proxy_ids(basic_user, create_application) -> None:
     """Confirm that if an attempt is made to create multiple data access grants for a
     beneficiary_id/application_id combo that all have a null proxy, that an IntegrityError
     is raised.
@@ -1168,4 +1168,31 @@ def test_access_grant_creation_null_proxy_ids(basic_user, create_application) ->
             application=app,
             beneficiary=bene_user,
             proxy=None,
+        )
+
+
+@pytest.mark.integration
+def test_access_grant_creation_fails_proxy_id_used_multiple_times(basic_user, create_application) -> None:
+    """Confirm that if an attempt is made to create multiple data access grants for a
+    beneficiary_id/application_id combo that all have a proxy_id that already exists for
+    the beneficiary_id/application_id combo, that an IntegrityError is raised.
+
+    Args:
+        basic_user: Fixture for a basic_user
+        create_application: Fixture to create an application
+    """
+    bene_user = basic_user('test_user', 'password')
+    proxy_user = basic_user('proxy_user', 'password')
+    app = create_application('test_app', user=bene_user)
+
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=proxy_user,
+    )
+    with pytest.raises(IntegrityError):
+        DataAccessGrant.objects.create(
+            application=app,
+            beneficiary=bene_user,
+            proxy=proxy_user,
         )
