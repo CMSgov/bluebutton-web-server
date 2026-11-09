@@ -6,8 +6,6 @@ from urllib.parse import parse_qs, urlparse
 
 import pytz
 from dateutil.relativedelta import relativedelta
-from django.db import transaction
-from django.db.utils import IntegrityError
 from django.http import HttpRequest
 from django.urls import reverse
 from django.utils import timezone as django_timezone
@@ -46,7 +44,6 @@ class TestDataAccessGrant(BaseApiTest):
         DataAccessGrant.objects.create(
             application=test_app,
             beneficiary=bene_user,
-            proxy=bene_user,
         )
         dag = DataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')
 
@@ -59,17 +56,7 @@ class TestDataAccessGrant(BaseApiTest):
         dag = DataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')
         self.assertEqual('2030-01-15 00:00:00+00:00', str(dag.expiration_date))
 
-        # 3. Test unique constraints.
-        with transaction.atomic():
-            with self.assertRaises(IntegrityError):
-                DataAccessGrant.objects.create(
-                    application=test_app,
-                    beneficiary=bene_user,
-                    # Add proxy here as well to ensure the IntegrityError is raised correctly
-                    proxy=bene_user,
-                )
-
-        # 4. Test delete and archived.
+        # 3. Test delete and archived.
         #     Verify it doesn't exist yet.
         with self.assertRaises(ArchivedDataAccessGrant.DoesNotExist):
             ArchivedDataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')

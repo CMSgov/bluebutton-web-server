@@ -29,8 +29,6 @@ class DataAccessGrant(models.Model):
                 nulls_distinct=False,
             )
         ]
-        # Keeping this as unit tests don't respect the unique constraint without it
-        unique_together = ('beneficiary', 'application', 'proxy')
         indexes = [
             models.Index(fields=['beneficiary', 'application']),
             models.Index(fields=['beneficiary']),

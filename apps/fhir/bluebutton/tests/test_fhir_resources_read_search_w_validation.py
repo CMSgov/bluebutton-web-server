@@ -2,12 +2,14 @@ import json
 from http import HTTPStatus
 
 import pytest
+from django.db.utils import IntegrityError
 from django.test.client import Client
 from django.urls import reverse
 from httmock import HTTMock, all_requests
 from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch
 
+from apps.authorization.models import DataAccessGrant
 from apps.constants import (
     APPLICATION_DOES_NOT_HAVE_VALID_SCOPES,
     C4BB_PROFILE_URLS,
@@ -1141,3 +1143,21 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
     assert 'NCH' not in response.json()['link'][0]['url']
     assert 'NationalClaimsHistory' not in response.json()['link'][0]['url']
     assert '_source=DDPS' in response.json()['link'][0]['url']
+
+
+@pytest.mark.integration
+def test_acces_grant_creation_null_proxy_ids(basic_user, create_application) -> None:
+    bene_user = basic_user('test_user', 'password')
+    app = create_application('test_app', user=bene_user)
+    # Create access grant for bene, passing the bene as the proxy
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=None,
+    )
+    with pytest.raises(IntegrityError):
+        DataAccessGrant.objects.create(
+            application=app,
+            beneficiary=bene_user,
+            proxy=None,
+        )
