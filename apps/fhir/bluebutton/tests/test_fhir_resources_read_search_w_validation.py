@@ -1146,10 +1146,18 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
 
 
 @pytest.mark.integration
-def test_acces_grant_creation_null_proxy_ids(basic_user, create_application) -> None:
+def test_access_grant_creation_null_proxy_ids(basic_user, create_application) -> None:
+    """Confirm that if an attempt is made to create multiple data access grants for a
+    beneficiary_id/application_id combo that all have a null proxy, that an IntegrityError
+    is raised.
+
+    Args:
+        basic_user: Fixture for a basic_user
+        create_application: Fixture to create an application
+    """
     bene_user = basic_user('test_user', 'password')
     app = create_application('test_app', user=bene_user)
-    # Create access grant for bene, passing the bene as the proxy
+
     DataAccessGrant.objects.create(
         application=app,
         beneficiary=bene_user,
