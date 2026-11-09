@@ -77,49 +77,17 @@ def account_settings(request):
     )
     return render(request, 'account-settings.html', {'name': name, 'form': form})
 
+
 @never_cache
 @login_required
-def select_account(request):
+def account_select(request):
     name = _('Select an account to manage')
     up, created = UserProfile.objects.get_or_create(user=request.user)
-
-    if settings.DEBUG:
-        # Display all the groups the user is in.
-        groups = request.user.groups.values_list('name', flat=True)
-
-    if request.method == 'POST':
-        form = AccountSettingsForm(request.POST, request=request)
-        if form.is_valid():
-            data = form.cleaned_data
-            # update the user info
-            request.user.first_name = data['first_name']
-            request.user.last_name = data['last_name']
-            request.user.save()
-            # update the user profile
-            up.organization_name = data['organization_name']
-            up.save()
-            messages.success(request, 'Your account settings have been updated.')
-            return HttpResponseRedirect(reverse('account_settings'))
-
-        else:
-            # the form had errors
-            return render(request, 'account-select.html', {'form': form, 'name': name})
-
-    # this is an HTTP GET
-    form = AccountSettingsForm(
-        initial={
-            'username': request.user.username,
-            'email': request.user.email,
-            'organization_name': up.organization_name,
-            'create_applications': up.create_applications,
-            'last_name': request.user.last_name,
-            'first_name': request.user.first_name,
-            'access_key_reset': up.access_key_reset,
-        },
-        request=request,
-    )
-    return render(request, 'account-settings.html', {'name': name, 'form': form})
-
+    print(up)
+    for item in up.__dict__:
+        print(str(item) + ': ' + str(up.__dict__[item]))
+    relationships = []
+    return render(request, 'account-select.html', {'name': name, 'user': up, 'relationships': relationships})
 
 
 def activation_verify(request, activation_key):

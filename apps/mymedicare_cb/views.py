@@ -48,7 +48,9 @@ def authenticate(request):
     slsx_client = OAuth2ConfigSLSx()
 
     request_token = request.GET.get('req_token', None)
-
+    print(request)
+    print(request_token)
+    print(request_state)
     slsx_client.validate_asserts(
         request,
         [(request_token is None, 'SLSx request_token is missing in callback error.')],

@@ -1,0 +1,28 @@
+
+{% extends "oauth2_provider/base.html" %}
+{% load i18n %}
+{% load django_bootstrap5 %}
+
+{% block bannerBackButton %}
+  <a class="banner-back-button" href="/" style="outline-color: transparent; background-color: transparent"><i data-feather="arrow-left"></i>Back to Dashboard</a>
+{% endblock %}
+
+{% block bannerTitle %}
+  {{name}}
+{% endblock %}
+
+{% block bannerDescription %}{% endblock %}
+
+{% block bannerCallToActionButtons %}{% endblock %}
+
+{% block Content %}
+
+<div class="container">
+      <div class="bb-c-card bb-width--75 ds-u-padding--2 bb-raised-section ds-u-color--secondary-lighter">
+        <div class="ds-u-margin-y--2">
+          
+          <h2>{{user}}</h2>
+
+        </div>
+      </div>
+</div>
