@@ -335,6 +335,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     @override
     def save(self, *args, **kwargs):
         user_mode = self.cleaned_data.get('user_mode')
+        client_secret_action = self.cleaned_data.get('client_secret_action')
         app = self.instance
         # If the application is new (i.e., it doesn't have a primary key yet), we set some default values for the application fields.
         if app.pk is None:
