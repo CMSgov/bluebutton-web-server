@@ -1,4 +1,5 @@
 from io import BytesIO
+from unittest.mock import patch
 
 import pytest
 from django.conf import settings
@@ -984,10 +985,10 @@ def test_create_application_form_user_mode_selection(
     form = CreateApplicationForm(data)
     form.is_valid()
     if should_pass:
-        field_errors = form.errors.as_data().get('user', [])
+        field_errors = form.errors.as_data().get('__all__', [])
         assert len(field_errors) == 0
     else:
-        field_errors = form.errors.as_data().get('user', [])
+        field_errors = form.errors.as_data().get('__all__', [])
         assert len(field_errors) == 1
         error_text = field_errors[0].message
         assert error_text_expected in error_text
@@ -1022,10 +1023,12 @@ def test_create_application_form_user_mode_selection(
             False,
         ),
         (
-            # requires name, data_access_type, require_demographic_scopes, user_mode, organization_name, allowed_auth_type, and scope
+            # requires name, data_access_type, require_demographic_scopes,
+            # user_mode, organization_name, allowed_auth_type, client_secret_action, and scope
             CreateApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': 'generate_client_secret',
                 'name': 'john_new_app',
                 'user_mode': 'new',
                 'user': None,
@@ -1054,10 +1057,12 @@ def test_create_application_form_user_mode_selection(
         (
             # requires data_access_type, client_id, user, client_type,
             # authorization_grant_type, name, require_demographic_scopes,
-            # user_mode, organization_name, allowed_auth_type, redirect_uri's, and scope
+            # user_mode, organization_name, allowed_auth_type, redirect_uri's,
+            # client_secret_action, and scope
             EditApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': 'generate_client_secret',
                 'client_id': 'test-client-id',
                 # User gets set inside test function
                 'user': None,
@@ -1280,3 +1285,110 @@ def test_jwks_uri_and_allowed_auth_type_validation(
             assert len(field_errors) == 1
             error_text = field_errors[0].message
             assert error_text_expected in error_text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'app_form, data, expected_secret',
+    [
+        # Ensure that the client_secret_action field behaves correctly for each form and removes a client secret as expected
+        (
+            CreateApplicationForm,
+            {
+                'name': 'john_new_app',
+                'user_mode': 'existing',
+                # User gets set inside test function
+                'user': None,
+                'data_access_type': 'THIRTEEN_MONTH',
+                'require_demographic_scopes': True,
+                'organization_name': "I'm an org name",
+                'allowed_auth_type': 'AUTH_CODE',
+                'agree': True,
+                # Set to have no client secret
+                'client_secret_action': 'no_client_secret',
+            },
+            '',  # No client secret should be generated, so it should be empty
+        ),
+        (
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': 'no_client_secret',
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'name': 'john_new_app',
+                # Scope set in testing function
+                'scope': '',
+                'require_demographic_scopes': True,
+                'allowed_auth_type': 'AUTH_CODE',
+                'redirect_uris': 'http://localhost:8000/callback',
+            },
+            '',  # Remove the existing client secret, so it should be empty
+        ),
+        # Ensure that the client_secret_action field behaves correctly for each form and generates a client secret as expected
+        (
+            CreateApplicationForm,
+            {
+                'name': 'john_new_app',
+                'user_mode': 'existing',
+                # User gets set inside test function
+                'user': None,
+                'data_access_type': 'THIRTEEN_MONTH',
+                'require_demographic_scopes': True,
+                'organization_name': "I'm an org name",
+                'allowed_auth_type': 'AUTH_CODE',
+                'scope': '',
+                # Set to generate a client secret
+                'client_secret_action': 'generate_client_secret',
+            },
+            'mocked_secret',  # A client secret should be generated, so it should not be empty
+        ),
+        (
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                # Set to generate a client secret
+                'client_secret_action': 'generate_client_secret',
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'name': 'john_new_app',
+                # Scope set in testing function
+                'scope': '',
+                'require_demographic_scopes': True,
+                'allowed_auth_type': 'AUTH_CODE',
+                'redirect_uris': 'http://localhost:8000/callback',
+            },
+            'mocked_secret',  # Generate a new client secret, so it should not be empty
+        ),
+    ],
+)
+@patch('apps.dot_ext.forms.generate_client_secret')
+def test_client_secret_action_choices(
+    mock_generate_client_secret, app_form, data, expected_secret, basic_user, create_application
+):
+    """Test that the client_secret_action field has the correct choices and initial value"""
+    user = basic_user(username='john', password='123456')
+    app_instance = create_application('john_app', user=user)
+    mock_generate_client_secret.return_value = 'mocked_secret'
+    # Add the default scopes and user to the data dictionary for the form
+    call_command('create_blue_button_scopes')
+    default_scopes = ProtectedCapability.objects.filter(default=True)
+    data['scope'] = default_scopes
+    data['user'] = user
+
+    form = app_form(data, instance=app_instance)
+    assert form.is_valid()
+
+    form.save()
+
+    assert app_instance.client_secret_plain == expected_secret

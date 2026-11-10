@@ -337,10 +337,11 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         user_mode = self.cleaned_data.get('user_mode')
         client_secret_action = self.cleaned_data.get('client_secret_action')
         app = self.instance
-        # If the application is new (i.e., it doesn't have a primary key yet), we set some default values for the application fields.
-        app.agree = True
-        app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
-        app.client_type = Application.CLIENT_CONFIDENTIAL
+        if not app.pk:
+            # If the application is new (i.e., it doesn't have a primary key yet), we set some default values for the application fields.
+            app.agree = True
+            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+            app.client_type = Application.CLIENT_CONFIDENTIAL
         if user_mode == 'new':
             # If the user_mode is 'new', we create a new user and associate it with the application
             # This returns a tuple of (user, created), where 'created' is a boolean indicating if the
@@ -360,11 +361,16 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                 organization_name=self.cleaned_data.get('organization_name'),
             )
             app.user = new_user_model
-        # Should not have a client secret/client_secret_plain if the client_secret_action is no_client_secret
+
         if client_secret_action == 'no_client_secret':
             app.hash_client_secret = False
             app.client_secret = ''
             app.client_secret_plain = ''
+        elif client_secret_action == 'generate_client_secret':
+            app.hash_client_secret = True
+            app.client_secret_plain = generate_client_secret()
+            app.client_secret = app.client_secret_plain
+
         # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
         # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's
         # save method to run here
@@ -447,28 +453,6 @@ class EditApplicationForm(CreateApplicationForm):
             'allowed_auth_type',
             'part_d_eob_only',
         )
-
-    def save(self, *args, **kwargs):
-        app = self.instance
-        client_secret_action = self.cleaned_data.get('client_secret_action')
-
-        if client_secret_action == 'generate_client_secret':
-            app.hash_client_secret = True
-            app.client_secret_plain = generate_client_secret()
-            app.client_secret = app.client_secret_plain
-        elif client_secret_action == 'no_client_secret':
-            app.hash_client_secret = False
-            app.client_secret = ''
-            app.client_secret_plain = ''
-        # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
-        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's
-        # save method to run here
-        app = super(CustomRegisterApplicationForm, self).save(*args, **kwargs)
-        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
-        if uri:
-            app.logo_uri = uri
-            app.save()
-        return app
 
 
 class SimpleAllowForm(DotAllowForm):
