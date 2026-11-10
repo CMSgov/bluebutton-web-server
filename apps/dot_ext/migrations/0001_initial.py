@@ -4,14 +4,15 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import migrations, models
-from oauth2_provider.validators import RedirectURIValidator
+from apps.dot_ext.validators import RedirectURIValidator
+from oauth2_provider.settings import oauth2_settings
 
 import django.db.models.deletion
 import oauth2_provider.generators
 
 
 def check_redirect_uri(value):
-    validator = RedirectURIValidator()
+    validator = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
     validator(value)
 
 

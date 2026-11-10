@@ -17,13 +17,23 @@ class DataAccessGrant(models.Model):
     application = models.ForeignKey(oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     expiration_date = models.DateTimeField(null=True, blank=True, verbose_name='Expiration Date')
+    proxy = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False, null=True, related_name='proxy'
+    )
 
     class Meta:
-        unique_together = ('beneficiary', 'application')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['beneficiary', 'application', 'proxy'],
+                name='beneficiary_application_proxy_unique',
+                nulls_distinct=False,
+            )
+        ]
         indexes = [
             models.Index(fields=['beneficiary', 'application']),
             models.Index(fields=['beneficiary']),
             models.Index(fields=['application']),
+            models.Index(fields=['proxy']),
         ]
 
     @property
@@ -73,10 +83,20 @@ class ArchivedDataAccessGrant(models.Model):
     archived_at = models.DateTimeField(auto_now_add=True)
     expiration_date = models.DateTimeField(null=True, blank=True, verbose_name='Expiration Date')
 
+    proxy = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        editable=False,
+        db_constraint=False,
+        null=True,
+        related_name='archived_proxy',
+    )
+
     class Meta:
         indexes = [
             models.Index(fields=['beneficiary']),
             models.Index(fields=['application']),
+            models.Index(fields=['proxy']),
         ]
 
     @property

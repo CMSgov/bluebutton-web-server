@@ -6,8 +6,6 @@ from urllib.parse import parse_qs, urlparse
 
 import pytz
 from dateutil.relativedelta import relativedelta
-from django.db import transaction
-from django.db.utils import IntegrityError
 from django.http import HttpRequest
 from django.urls import reverse
 from django.utils import timezone as django_timezone
@@ -58,15 +56,7 @@ class TestDataAccessGrant(BaseApiTest):
         dag = DataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')
         self.assertEqual('2030-01-15 00:00:00+00:00', str(dag.expiration_date))
 
-        # 3. Test unique constraints.
-        with transaction.atomic():
-            with self.assertRaises(IntegrityError):
-                DataAccessGrant.objects.create(
-                    application=test_app,
-                    beneficiary=bene_user,
-                )
-
-        # 4. Test delete and archived.
+        # 3. Test delete and archived.
         #     Verify it doesn't exist yet.
         with self.assertRaises(ArchivedDataAccessGrant.DoesNotExist):
             ArchivedDataAccessGrant.objects.get(beneficiary__username='test_beneficiary', application__name='test_app')
@@ -433,3 +423,38 @@ class TestDataAccessGrant(BaseApiTest):
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()
+
+
+def test_creating_multiple_access_grants_with_different_proxy_ids_succeeds(basic_user, create_application) -> None:
+    """Ensure that we can create multiple data access grants with the same bene/app id combo, as long as each
+    record has a different proxy
+
+    Args:
+        basic_user: Fixture to create a user
+        create_application: Fixture to create an application
+    """
+    bene_user = basic_user('test_user', 'password')
+    proxy_user = basic_user('proxy_user', 'proxy_password')
+    second_proxy_user = basic_user('second_proxy_user', 'second_proxy_password')
+    app = create_application('test_app', user=bene_user)
+
+    # Create access grant for bene, passing the bene as the proxy
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=None,
+    )
+    # Create access grant for first proxy user
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=proxy_user,
+    )
+    # Create access grant for second proxy user
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=second_proxy_user,
+    )
+    data_access_grants = DataAccessGrant.objects.filter(beneficiary__username='test_user', application__name='test_app')
+    assert len(data_access_grants) == 3
