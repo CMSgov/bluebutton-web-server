@@ -192,7 +192,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
 ITSLOG_APIKEY = env('ITSLOG_APIKEY', default=None)
-print('SHOW ME THE KEY: ', ITSLOG_APIKEY)
 
 
 def _add_its_log_api_handler(loggers_list):
