@@ -44,6 +44,7 @@ def archive_removed_grant(sender, instance=None, **kwargs):
         expiration_date=instance.expiration_date,
         application=instance.application,
         beneficiary=instance.beneficiary,
+        proxy=instance.proxy,
     )
 
 
