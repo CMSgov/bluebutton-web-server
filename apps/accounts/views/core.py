@@ -84,8 +84,10 @@ def account_select(request):
     name = _('Select an account to manage')
     up, created = UserProfile.objects.get_or_create(user=request.user)
     print(up)
-    for item in up.__dict__:
-        print(str(item) + ': ' + str(up.__dict__[item]))
+    print(request)
+    print(request.get)
+    for item in list(request):
+        print(str(item) + ': ' + str(request[item]))
     relationships = []
     return render(request, 'account-select.html', {'name': name, 'user': up, 'relationships': relationships})
 

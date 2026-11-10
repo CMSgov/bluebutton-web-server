@@ -372,6 +372,8 @@ class AuthorizationView(DotAuthorizationView):
         return None
 
     def get_template_names(self):
+        print('pinged')
+        print(self.request.session['user_relationships'])
         # Default template
         default_tpl = 'design_system/new_authorize_v2.html'
 

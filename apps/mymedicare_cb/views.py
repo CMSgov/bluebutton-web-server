@@ -48,9 +48,6 @@ def authenticate(request):
     slsx_client = OAuth2ConfigSLSx()
 
     request_token = request.GET.get('req_token', None)
-    print(request)
-    print(request_token)
-    print(request_state)
     slsx_client.validate_asserts(
         request,
         [(request_token is None, 'SLSx request_token is missing in callback error.')],
@@ -66,6 +63,7 @@ def authenticate(request):
     # so we do not show the bene_404_no_mbi.html page to a non-bene user if they have relationships data
     user = slsx_client.get_user_info(request)
     request.session['user_relationships'] = []
+    user['isCspUser'] = True
     if 'isCspUser' in user and user['isCspUser']:
         if request.session.get('version') == Versions.V3 and switch_is_active('proxy_access'):
             request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
