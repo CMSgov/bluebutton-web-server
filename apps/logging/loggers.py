@@ -372,7 +372,7 @@ def ping_api(tags, value, operation, date):
     try:
         result = requests.post(
             'http://host.docker.internal:8888/v1/summary/create',
-            headers={'x-api-key': settings.ITS_LOG_API_KEY},
+            headers={'x-api-key': settings.ITSLOG_APIKEY},
             json={
                 'tags': tags,
                 'count': 1,
@@ -391,7 +391,7 @@ def ping_events_api(tags, value, cluster):
     try:
         result = requests.post(
             'http://host.docker.internal:8888/v1/log/create',
-            headers={'x-api-key': settings.ITS_LOG_API_KEY},
+            headers={'x-api-key': settings.ITSLOG_APIKEY},
             json={
                 'tags': tags,
                 'value': value,

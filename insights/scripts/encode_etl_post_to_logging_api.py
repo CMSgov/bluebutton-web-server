@@ -5,7 +5,7 @@ rather than needing to do it manually.
 If you add a new ETL for its-log, add the file in the etls directory. If you want the file to be ignored and not posted in this
 script, prefix the file with an underscore.
 
-Must run the script from the project root and set the ITS_LOG_API_KEY value in your terminal before running.
+Must run the script from the project root and set the ITSLOG_APIKEY value in your terminal before running.
 """
 
 import base64
@@ -20,7 +20,8 @@ ETL_CREATION_ENDPOINT = 'http://localhost:8888/v1/etl/create'
 SEQUENCE_CREATION_ENDPOINT = 'http://localhost:8888/v1/sequence/create'
 ETL_DIRECTORY = Path('insights/etls')
 # Can't use settings in this script so retrieve via getenv
-API_KEY = os.getenv('ITS_LOG_API_KEY')
+API_KEY = os.getenv('ITSLOG_APIKEY')
+print('API_KEY: ', API_KEY)
 
 
 def encode_file(file_path: Path) -> str:

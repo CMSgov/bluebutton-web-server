@@ -60,7 +60,7 @@ class ITSLogAPIHandler(logging.Handler):
     """
 
     API_URL = 'http://host.docker.internal:8888/v1/log/create'
-    API_KEY = settings.ITS_LOG_API_KEY
+    API_KEY = settings.ITSLOG_APIKEY
     executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='its-log')
 
     def emit(self, record) -> None:

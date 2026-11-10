@@ -453,7 +453,7 @@ AWS_REGION_NAME = env('AWS_DEFAULT_REGION', 'us-east-1')
 BOTO3_LOGS_CLIENT = boto3.client('logs', region_name=AWS_REGION_NAME)
 
 ITS_LOG_API_ENABLED = bool_env(env('ITS_LOG_API_ENABLED', 'False'))
-ITS_LOG_API_KEY = env('ITSLOG_APIKEY', default=None)
+ITSLOG_APIKEY = env('ITSLOG_APIKEY', default=None)
 
 
 def _add_its_log_api_handler(loggers_list):

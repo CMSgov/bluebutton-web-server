@@ -103,6 +103,7 @@ load_env_vars () {
         export MIGRATE="${MIGRATE}"
         export COLLECTSTATIC="${COLLECTSTATIC}"
         export ITS_LOG_API_ENABLED="${ITS_LOG_API_ENABLED:-false}"
+        export ITSLOG_APIKEY="${ITSLOG_APIKEY}"
         return 0
     else
         echo "⛔ Cannot load env vars for non-local environments."
