@@ -1185,12 +1185,23 @@ def test_access_grant_creation_fails_proxy_id_used_multiple_times(basic_user, cr
     proxy_user = basic_user('proxy_user', 'password')
     app = create_application('test_app', user=bene_user)
 
+    # This is what the data access grant for the bene would look like, with a null proxy
+    DataAccessGrant.objects.create(
+        application=app,
+        beneficiary=bene_user,
+        proxy=None,
+    )
+
+    # This is what the data access grant would look like for the proxy, will create without issue
+    # as the unique constraint has not been validated
     DataAccessGrant.objects.create(
         application=app,
         beneficiary=bene_user,
         proxy=proxy_user,
     )
     with pytest.raises(IntegrityError):
+        # Because we already created a data access grant for this proxy, attempting to create
+        # another one will violate the unique constraint
         DataAccessGrant.objects.create(
             application=app,
             beneficiary=bene_user,

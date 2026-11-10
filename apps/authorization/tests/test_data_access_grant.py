@@ -425,7 +425,14 @@ class TestDataAccessGrant(BaseApiTest):
         application.save()
 
 
-def test_creating_multiple_access_grants_with_different_proxy_ids_succeeds(basic_user, create_application):
+def test_creating_multiple_access_grants_with_different_proxy_ids_succeeds(basic_user, create_application) -> None:
+    """Ensure that we can create multiple data access grants with the same bene/app id combo, as long as each
+    record has a different proxy
+
+    Args:
+        basic_user: Fixture to create a user
+        create_application: Fixture to create an application
+    """
     bene_user = basic_user('test_user', 'password')
     proxy_user = basic_user('proxy_user', 'proxy_password')
     second_proxy_user = basic_user('second_proxy_user', 'second_proxy_password')
@@ -435,7 +442,7 @@ def test_creating_multiple_access_grants_with_different_proxy_ids_succeeds(basic
     DataAccessGrant.objects.create(
         application=app,
         beneficiary=bene_user,
-        proxy=bene_user,
+        proxy=None,
     )
     # Create access grant for first proxy user
     DataAccessGrant.objects.create(
