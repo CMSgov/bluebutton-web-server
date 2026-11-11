@@ -1,8 +1,9 @@
+import base64
 import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
 from apps.dot_ext.constants import CLEAR_HIGHER_ISS, IDME_HIGHER_ISS, IDME_LOWER_ISS, SUPPORTED_VERSION_TEST_CASES
@@ -14,6 +15,7 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
     validate_client_id,
     validate_latin_extended_string,
+    validate_symmetric_client_secret,
 )
 from apps.versions import VersionNotMatched
 
@@ -246,3 +248,38 @@ def test_build_jwks_urls_returns_lower_environment(settings) -> None:
     }
     result = build_jwks_urls()
     assert result == expected
+
+
+valid_b64 = base64.b64encode(b'client_id:secret123').decode('utf-8')
+empty_secret_b64 = base64.b64encode(b'client_id:').decode('utf-8')
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'post_data, headers, expected_result',
+    [
+        # Valid client secret in post body ensures client_secret is not empty and is False
+        ({'client_secret': 'valid_secret_123'}, {}, False),
+        # Valid client secret in header ensures client secret is not empty and is False
+        ({}, {'HTTP_AUTHORIZATION': f'Basic {valid_b64}'}, False),
+        # Empty client secret being passed in to the post body returns True
+        ({'client_secret': ''}, {}, True),
+        # Client secret with spaces being passed in to the post body returns True
+        ({'client_secret': '    '}, {}, True),
+        # Empty client secret being passed into the header returns True
+        ({}, {'HTTP_AUTHORIZATION': f'Basic {empty_secret_b64}'}, True),
+        # No client secret in header or body returns True
+        ({}, {}, True),
+    ],
+)
+def test_validate_symmetric_client_secret(post_data, headers, expected_result):
+    """
+    Test successful and unsuccessful outcomes of validate_symmetric_client_secret
+    """
+    factory = RequestFactory()
+
+    request = factory.post('/token', data=post_data, **headers)
+
+    client_secret_empty = validate_symmetric_client_secret(request)
+
+    assert client_secret_empty is expected_result

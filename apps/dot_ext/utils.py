@@ -65,6 +65,35 @@ def validate_client_id(client_id: str) -> None:
         )
 
 
+def validate_symmetric_client_secret(request: HttpRequest) -> bool:
+    """
+    Validates that a client secret is not empty for symmetric authentication.
+    Looks at both the header and the post body.
+
+    Args:
+        - request (HttpRequest): Django HttpRequest object
+
+    Returns:
+        - bool: True if the client secret is empty, False if not
+    """
+    client_secret_empty = False
+    auth_header = request.META.get('HTTP_AUTHORIZATION', request.META.get('Authorization', ''))
+    # First check if it's in the auth header
+    if auth_header and auth_header.lower().startswith('basic'):
+        encoded_credentials = auth_header.split(' ')[1]  # Removes 'Basic ' to isolate credentials
+        decoded_credentials = b64decode(encoded_credentials).decode('utf-8').split(':')
+        client_secret = decoded_credentials[1]
+        if not client_secret.strip():
+            client_secret_empty = True
+    else:
+        # If not in header, check if it's in the POST body
+        client_secret = request.POST.get('client_secret', '')
+        if not client_secret.strip():
+            client_secret_empty = True
+
+    return client_secret_empty
+
+
 def get_oauth_param(request: HttpRequest, parameter: str, fallback_session_parameter: str = None) -> str | None:
     """Resolve an OAuth parameter from GET, then session, then session['oauth_params']. If those are not available,
     use request.POST.
