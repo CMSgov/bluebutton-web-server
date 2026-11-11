@@ -26,6 +26,9 @@ from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.validators import validate_application_name, validate_logo_image, validate_notags, validate_url
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+GENERATE_CLIENT_SECRET = 'generate_client_secret'
+NO_CLIENT_SECRET = 'no_client_secret'
+NO_CHANGE = 'no_change'
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
@@ -234,11 +237,11 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     user_mode = forms.ChoiceField(choices=USER_CHOICES, widget=forms.RadioSelect, initial='new', required=True)
 
     CLIENT_SECRET_ACTION_CHOICES = [
-        ('generate_client_secret', 'Generate a client secret'),
-        ('no_client_secret', 'Do not generate a client secret'),
+        (GENERATE_CLIENT_SECRET, 'Generate a client secret'),
+        (NO_CLIENT_SECRET, 'Do not generate a client secret'),
     ]
     client_secret_action = forms.ChoiceField(
-        choices=CLIENT_SECRET_ACTION_CHOICES, initial='generate_client_secret', required=True
+        choices=CLIENT_SECRET_ACTION_CHOICES, initial=GENERATE_CLIENT_SECRET, required=True
     )
 
     def __init__(self, *args, **kwargs):
@@ -301,6 +304,14 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
             elif user_mode == 'new' and user:
                 raise forms.ValidationError('You cannot select a user when choosing the "Create New User" option.')
 
+        if 'jwks_uri' and 'client_secret_action' in self.cleaned_data:
+            jwks_uri = self.cleaned_data.get('jwks_uri')
+            client_secret_action = self.cleaned_data.get('client_secret_action')
+            if not jwks_uri and client_secret_action == NO_CLIENT_SECRET:
+                raise forms.ValidationError(
+                    f'The jwks_uri cannot be empty when client_secret_action is {NO_CLIENT_SECRET}.'
+                )
+
         if 'allowed_auth_type' in self.cleaned_data and 'jwks_uri' in self.cleaned_data:
             allowed_auth_type = self.cleaned_data.get('allowed_auth_type')
             jwks_uri = self.cleaned_data.get('jwks_uri')
@@ -362,14 +373,16 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
             )
             app.user = new_user_model
 
-        if client_secret_action == 'no_client_secret':
+        if client_secret_action == NO_CLIENT_SECRET:
             app.hash_client_secret = False
             app.client_secret = ''
             app.client_secret_plain = ''
-        elif client_secret_action == 'generate_client_secret':
+        elif client_secret_action == GENERATE_CLIENT_SECRET:
             app.hash_client_secret = True
             app.client_secret_plain = generate_client_secret()
             app.client_secret = app.client_secret_plain
+        elif client_secret_action == NO_CHANGE:
+            pass
 
         # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
         # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's
@@ -384,13 +397,13 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
 class EditApplicationForm(CreateApplicationForm):
     CLIENT_SECRET_ACTION_CHOICES = [
-        ('generate_client_secret', 'Generate a client secret'),
-        ('no_client_secret', 'Remove the existing client secret'),
+        (GENERATE_CLIENT_SECRET, 'Generate a new client secret'),
+        (NO_CLIENT_SECRET, 'Remove the existing client secret'),
         # Add a choice to leave the existing client secret unchanged,
         # which is the default behavior when editing an application
-        ('no_change', 'Leave the existing client secret unchanged'),
+        (NO_CHANGE, 'Leave the existing client secret unchanged'),
     ]
-    client_secret_action = forms.ChoiceField(choices=CLIENT_SECRET_ACTION_CHOICES, initial='no_change', required=True)
+    client_secret_action = forms.ChoiceField(choices=CLIENT_SECRET_ACTION_CHOICES, initial=NO_CHANGE, required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

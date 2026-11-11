@@ -11,6 +11,9 @@ from waffle.testutils import override_switch
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
 from apps.dot_ext.forms import (
+    GENERATE_CLIENT_SECRET,
+    NO_CHANGE,
+    NO_CLIENT_SECRET,
     CreateApplicationForm,
     CustomRegisterApplicationForm,
     EditApplicationForm,
@@ -636,6 +639,22 @@ from apps.dot_ext.forms import (
             'The text contains HTML tags. Please use plain-text only!',
             False,
         ),
+        # Validation on empty jwks_uri and clearing a client_secret
+        # (client_secret_action is NO_CHANGE) raises a validation error
+        (
+            CreateApplicationForm,
+            {'client_secret_action': NO_CLIENT_SECRET, 'jwks_uri': ''},
+            '__all__',
+            f'The jwks_uri cannot be empty when client_secret_action is {NO_CLIENT_SECRET}.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'client_secret_action': NO_CLIENT_SECRET, 'jwks_uri': ''},
+            '__all__',
+            f'The jwks_uri cannot be empty when client_secret_action is {NO_CLIENT_SECRET}.',
+            False,
+        ),
     ],
 )
 def test_application_form_basic_validation(
@@ -1028,7 +1047,7 @@ def test_create_application_form_user_mode_selection(
             CreateApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
-                'client_secret_action': 'generate_client_secret',
+                'client_secret_action': GENERATE_CLIENT_SECRET,
                 'name': 'john_new_app',
                 'user_mode': 'new',
                 'user': None,
@@ -1062,7 +1081,7 @@ def test_create_application_form_user_mode_selection(
             EditApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
-                'client_secret_action': 'generate_client_secret',
+                'client_secret_action': GENERATE_CLIENT_SECRET,
                 'client_id': 'test-client-id',
                 # User gets set inside test function
                 'user': None,
@@ -1305,7 +1324,8 @@ def test_jwks_uri_and_allowed_auth_type_validation(
                 'allowed_auth_type': 'AUTH_CODE',
                 'agree': True,
                 # Set to have no client secret
-                'client_secret_action': 'no_client_secret',
+                'client_secret_action': NO_CLIENT_SECRET,
+                'jwks_uri': 'https://www.example.org',
             },
             '',  # No client secret should be generated, so it should be empty
         ),
@@ -1313,7 +1333,7 @@ def test_jwks_uri_and_allowed_auth_type_validation(
             EditApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
-                'client_secret_action': 'no_client_secret',
+                'client_secret_action': NO_CLIENT_SECRET,
                 'client_id': 'test-client-id',
                 # User gets set inside test function
                 'user': None,
@@ -1327,6 +1347,7 @@ def test_jwks_uri_and_allowed_auth_type_validation(
                 'require_demographic_scopes': True,
                 'allowed_auth_type': 'AUTH_CODE',
                 'redirect_uris': 'http://localhost:8000/callback',
+                'jwks_uri': 'https://www.example.org',
             },
             '',  # Remove the existing client secret, so it should be empty
         ),
@@ -1344,7 +1365,7 @@ def test_jwks_uri_and_allowed_auth_type_validation(
                 'allowed_auth_type': 'AUTH_CODE',
                 'scope': '',
                 # Set to generate a client secret
-                'client_secret_action': 'generate_client_secret',
+                'client_secret_action': GENERATE_CLIENT_SECRET,
             },
             'mocked_secret',  # A client secret should be generated, so it should not be empty
         ),
@@ -1353,7 +1374,7 @@ def test_jwks_uri_and_allowed_auth_type_validation(
             {
                 'data_access_type': 'THIRTEEN_MONTH',
                 # Set to generate a client secret
-                'client_secret_action': 'generate_client_secret',
+                'client_secret_action': GENERATE_CLIENT_SECRET,
                 'client_id': 'test-client-id',
                 # User gets set inside test function
                 'user': None,
@@ -1370,6 +1391,28 @@ def test_jwks_uri_and_allowed_auth_type_validation(
             },
             'mocked_secret',  # Generate a new client secret, so it should not be empty
         ),
+        (
+            # Ensure that NO_CHANGE leaves the existing client secret entirely untouched
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': NO_CHANGE,  # Instruct form not to modify the secret
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'name': 'john_new_app',
+                # Scope set in testing function
+                'scope': '',
+                'require_demographic_scopes': True,
+                'allowed_auth_type': 'AUTH_CODE',
+                'redirect_uris': 'http://localhost:8000/callback',
+            },
+            'original_secret',  # Expected secret must match the pre-existing instance secret
+        ),
     ],
 )
 @patch('apps.dot_ext.forms.generate_client_secret')
@@ -1380,6 +1423,10 @@ def test_client_secret_action_choices(
     user = basic_user(username='john', password='123456')
     app_instance = create_application('john_app', user=user)
     mock_generate_client_secret.return_value = 'mocked_secret'
+
+    app_instance.client_secret_plain = 'original_secret'
+    app_instance.save()
+
     # Add the default scopes and user to the data dictionary for the form
     call_command('create_blue_button_scopes')
     default_scopes = ProtectedCapability.objects.filter(default=True)
