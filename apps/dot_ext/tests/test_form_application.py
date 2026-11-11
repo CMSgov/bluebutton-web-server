@@ -9,11 +9,8 @@ from PIL import Image
 from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
+from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, GENERATE_CLIENT_SECRET, NO_CHANGE, NO_CLIENT_SECRET
 from apps.dot_ext.forms import (
-    GENERATE_CLIENT_SECRET,
-    NO_CHANGE,
-    NO_CLIENT_SECRET,
     CreateApplicationForm,
     CustomRegisterApplicationForm,
     EditApplicationForm,

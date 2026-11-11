@@ -19,6 +19,9 @@ from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import (
     BENE_PERSONAL_INFO_SCOPES,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    GENERATE_CLIENT_SECRET,
+    NO_CHANGE,
+    NO_CLIENT_SECRET,
     PRINTABLE_SPECIAL_ASCII,
 )
 from apps.dot_ext.models import Application, InternalApplicationLabels
@@ -26,9 +29,6 @@ from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.validators import validate_application_name, validate_logo_image, validate_notags, validate_url
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
-GENERATE_CLIENT_SECRET = 'generate_client_secret'
-NO_CLIENT_SECRET = 'no_client_secret'
-NO_CHANGE = 'no_change'
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
