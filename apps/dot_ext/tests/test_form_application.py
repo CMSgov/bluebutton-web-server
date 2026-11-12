@@ -637,7 +637,7 @@ from apps.dot_ext.forms import (
             False,
         ),
         # Validation on empty jwks_uri and clearing a client_secret
-        # (client_secret_action is NO_CHANGE) raises a validation error
+        # (client_secret_action is NO_CLIENT_SECRET) raises a validation error
         (
             CreateApplicationForm,
             {'client_secret_action': NO_CLIENT_SECRET, 'jwks_uri': ''},
