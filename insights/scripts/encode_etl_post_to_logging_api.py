@@ -21,7 +21,6 @@ SEQUENCE_CREATION_ENDPOINT = 'http://localhost:8888/v1/sequence/create'
 ETL_DIRECTORY = Path('insights/etls')
 # Can't use settings in this script so retrieve via getenv
 API_KEY = os.getenv('ITSLOG_APIKEY')
-print('API_KEY: ', API_KEY)
 
 
 def encode_file(file_path: Path) -> str:
