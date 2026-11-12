@@ -4,7 +4,12 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import User
 
-from apps.constants import USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, USER_TYPE_BENEFICIARY, USER_TYPE_DEV
+from apps.constants import (
+    USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY,
+    USER_TYPE_BENEFICIARY,
+    USER_TYPE_DEV,
+    USER_TYPE_MEDICARE_PROXY_USER,
+)
 
 from .models import (
     ActivationKey,
@@ -26,6 +31,7 @@ class UserTypeFilter(admin.SimpleListFilter):
             (USER_TYPE_BENEFICIARY, 'Beneficiary'),
             (USER_TYPE_DEV, 'Developer'),
             (USER_TYPE_ALIGNED_NETWORKS_BENEFICIARY, 'Aligned Network Beneficiary'),
+            (USER_TYPE_MEDICARE_PROXY_USER, 'Medicare Proxy User'),
         ]
 
     def queryset(self, request, queryset):
