@@ -185,7 +185,7 @@ class ITSLogAPIHandler(logging.Handler):
         Args:
             payload (dict): The payload being posted to the its-log API
         """
-        logger.info(f'Payload for its-log: {json.dumps(payload)}')
+        logger.debug(f'Payload for its-log: {json.dumps(payload)}')
         try:
             requests.post(self.API_URL, headers={'x-api-key': self.API_KEY}, json=payload, timeout=5)
             logger.info('Successfully posted to its-log')
