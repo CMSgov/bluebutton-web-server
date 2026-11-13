@@ -6,19 +6,24 @@ import pytest
 from selenium import webdriver
 
 try:
+    from urllib.parse import parse_qs, urlparse
+
     from django.contrib.auth.models import Group, User
     from django.core.management import call_command
+    from django.http import HttpRequest
     from django.utils.text import slugify
     from oauth2_provider.models import get_access_token_model
 
     from apps.authorization.models import DataAccessGrant
     from apps.capabilities.models import ProtectedCapability
     from apps.constants import (
+        CODE_CHALLENGE_METHOD_S256,
         COVERAGE_SCOPE,
         DEFAULT_SAMPLE_FHIR_ID_V2,
         DEFAULT_SAMPLE_FHIR_ID_V3,
         EOB_SCOPE,
         PATIENT_SCOPE,
+        TEST_APP_CLIENT_ID,
     )
     from apps.dot_ext.models import Application, InternalApplicationLabels
     from apps.fhir.bluebutton.models import Crosswalk
@@ -444,3 +449,131 @@ def bene_access_token(create_token):
         return create_token(first_name, last_name, **kwargs)
 
     return _bene_access_token
+
+
+@pytest.fixture
+def create_auth_code(basic_user, create_application, create_capability, get_auth_code, app_config):
+    """
+    Factory fixture producing a complete OAuth PKCE authorization setup:
+    user + capability + application + authorization code. Returns the auth code string.
+
+    Any extra keyword arguments (**app_kwargs) are forwarded directly to
+    create_application. Reach for get_auth_code directly when you already have
+    a custom user or application and only need a code.
+
+    Usage:
+        Defaults:
+        def test_something(create_auth_code):
+            auth_code = create_auth_code()
+
+        Overrides:
+        def test_something(create_auth_code):
+            auth_code = create_auth_code(
+                client_id='client_id',
+                client_secret='client_secret',
+                redirect_uri='redirect_uri',
+                client_type='client_type',
+            )
+    """
+
+    def _create_auth_code(
+        client_id: str = TEST_APP_CLIENT_ID,
+        redirect_uri: str = 'com.custom.bluebutton://example.it',
+        version: int = 3,
+        scope_name: str = EOB_SCOPE,
+        urls: list[list[str]] = [['GET', '/v/fhir/ExplanationOfBenefit[/]?$']],
+        code_challenge: str = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+        **app_kwargs,
+    ):
+        user = basic_user()
+        capability = create_capability(name=scope_name, urls=urls)
+        application = create_application(
+            name=f'{user.first_name}_{user.last_name}_test',
+            user=user,
+            capability=capability,
+            client_id=client_id,
+            redirect_uris=redirect_uri,
+            **app_kwargs,
+        )
+        return get_auth_code(
+            client_id=application.client_id,
+            redirect_uri=application.redirect_uris,
+            version=version,
+            scope_name=scope_name,
+            code_challenge=code_challenge,
+            username=user.username,
+        )
+
+    return _create_auth_code
+
+
+@pytest.fixture
+def get_auth_code(db, client):
+    """
+    Factory fixture that gets an OAuth authorization code.
+
+    Simulates a user logging in, initiating an authorization request, and approving
+    the consent form to produce a valid single-use authorization code.
+
+    This assumes that an application, capability, and a user have already been created
+    as a part of the test.
+
+    Usage:
+        # Use all defaults
+        def test_something(get_auth_code):
+            user = get_auth_code()
+
+        # Override specific values
+        def test_something(get_auth_code):
+            user = get_auth_code(
+                client_id='my-client-id',
+                redirect_uri='my-redirect-uri.com',
+                scope_name='patient/Coverage.rs',
+                username='gerome',
+            )
+    """
+
+    def _get_auth_code(
+        client_id: str = TEST_APP_CLIENT_ID,
+        redirect_uri: str = 'com.custom.bluebutton://example.it',
+        version: int = Versions.V3,
+        scope_name: str = EOB_SCOPE,
+        code_challenge: str = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo',
+        username: str = 'john',
+        password: str = '123456',
+        state: str = '0123456789abcdef',
+    ):
+
+        # User logs in
+        request = HttpRequest()
+        client.login(request=request, username=username, password=password)
+        # User initiates authorization request
+        payload = {
+            'client_id': client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        response = client.get(f'/v{version}/o/authorize', data=payload)
+        # User approves consent form
+        payload = {
+            'client_id': client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': [scope_name],
+            'expires_in': 86400,
+            'allow': True,
+            'state': state,
+            'code_challenge': code_challenge,
+            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
+        }
+        response = client.post(response['Location'], data=payload)
+
+        # Extract the authorization code
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.get('code')[0]
+
+        return authorization_code
+
+    return _get_auth_code

@@ -14,19 +14,24 @@ from django.http import HttpRequest
 from django.test import Client
 from django.urls import reverse
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
-
-# from oauth2_provider.compat import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.errors import AccessDeniedError as AccessDeniedTokenCustomError
 from waffle.testutils import override_switch
 
 from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
-from apps.constants import CODE_CHALLENGE_METHOD_S256, PATIENT_SCOPE
+from apps.constants import (
+    CODE_CHALLENGE_METHOD_S256,
+    EOB_SCOPE,
+    PATIENT_SCOPE,
+    TEST_APP_CLIENT_ID,
+    TEST_APP_CLIENT_SECRET,
+)
 from apps.dot_ext.constants import (
     APPLICATION_HAS_CLIENT_CREDENTIALS_ENABLED_NON_CLIENT_CREDENTIALS_AUTH_CALL_MADE,
     AUDIT_EVENT_SCOPE_ERROR_MESSAGE,
     CLIENT_CREDENTIALS_TYPE,
 )
 from apps.dot_ext.models import Application, ArchivedToken
+from apps.dot_ext.utils import create_authorization_header
 from apps.dot_ext.views import AuthorizationView, TokenView
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
@@ -36,6 +41,8 @@ from apps.versions import Versions
 
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
+
+client = Client()
 
 
 class TestAuthorizationView(BaseApiTest):
@@ -209,7 +216,7 @@ class TestAuthorizationView(BaseApiTest):
         # Test that request is unauthorized WITH OUT the client_secret.
         token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
 
         # Setup application's client_secret
         token_request_data.update({'client_secret': application.client_secret_plain})
@@ -1979,3 +1986,256 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.json()['message'] == expected_message
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    'post_data, header, app_config, expected_result',
+    [
+        (  # Empty post body client secret + no header + empty DB client secret returns bad request
+            {'client_secret': ''},
+            '',
+            # app configuration saving as an empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': '',
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret is empty or missing.',
+            },
+        ),
+        # Empty client secret in Basic header + no client secret in post body + empty DB client secret returns 400
+        (
+            {},
+            create_authorization_header(TEST_APP_CLIENT_ID, ''),
+            # app configuration saving as an empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': '',
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret is empty or missing.',
+            },
+        ),
+        # No post body client secret + no header + empty DB secret returns 400
+        (
+            {},
+            '',
+            # app configuration saving as an empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': '',
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret is empty or missing.',
+            },
+        ),
+        (  # Empty post body client secret + no header + non-empty DB client secret returns 400
+            {'client_secret': ''},
+            '',
+            # app configuration saving as a non-empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret is empty or missing.',
+            },
+        ),
+        # Empty client secret in Basic header + no client secret in post body + non-empty DB client secret returns 400
+        (
+            {},
+            create_authorization_header(TEST_APP_CLIENT_ID, ''),
+            # app configuration saving as a non-empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret is empty or missing.',
+            },
+        ),
+        # No post body client secret + no header + empty DB secret returns 400
+        (
+            {},
+            '',
+            # app configuration saving as a non-empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret is empty or missing.',
+            },
+        ),
+        # Valid client secret in post body + no header + non empty/valid DB secret returns 200
+        (
+            {'client_secret': TEST_APP_CLIENT_SECRET},
+            '',
+            # app configuration saving as a non-empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect passing
+            {
+                'status_code': HTTPStatus.OK,
+                'message': 'access_token',
+            },
+        ),
+        # No client secret in post body + valid header + non-empty/valid DB client secret returns 200
+        (
+            {},
+            create_authorization_header(TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET),
+            # app configuration saving as non empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.OK,
+                'message': 'access_token',
+            },
+        ),
+        # Valid header client secret + invalid client secret + non-empty/valid DB client secret in body produces a 400
+        (
+            {'client_secret': 'invalid-secret'},
+            create_authorization_header(TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET),
+            # app configuration saving as a non-empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret in Authorization header and POST body do not match.',
+            },
+        ),
+        # Invalid header client secret + valid client secret + non-empty/valid DB client secret in body produces a 400
+        (
+            {'client_secret': TEST_APP_CLIENT_SECRET},
+            create_authorization_header(TEST_APP_CLIENT_ID, 'invalid-secret'),
+            # app configuration saving as non empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'message': 'The client secret in Authorization header and POST body do not match.',
+            },
+        ),
+        # No header + invalid client secret body + non-empty/valid DB client secret in body produces a 401
+        (
+            {'client_secret': 'invalid-secret'},
+            '',
+            # app configuration saving as non empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect unauthorized
+            {
+                'status_code': HTTPStatus.UNAUTHORIZED,
+                'message': 'invalid_client',
+            },
+        ),
+        # No post body client secret + invalid client secret header + non-empty DB client secret in body produces a 401
+        (
+            {},
+            create_authorization_header(TEST_APP_CLIENT_ID, 'invalid-secret'),
+            # app configuration saving as non empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect unauthorized
+            {
+                'status_code': HTTPStatus.UNAUTHORIZED,
+                'message': 'invalid_client',
+            },
+        ),
+        # Valid secret in BOTH header and body and valid db secret returns 200
+        (
+            {'client_secret': 'test-client-secret'},
+            create_authorization_header(TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET),
+            # app configuration saving as non empty client secret
+            {
+                'client_type': Application.CLIENT_CONFIDENTIAL,
+                'client_secret': TEST_APP_CLIENT_SECRET,
+            },
+            # Expect passing
+            {
+                'status_code': HTTPStatus.OK,
+                'message': 'access_token',
+            },
+        ),
+        # No credentials and empty db client_secret but for public app produces 200
+        (
+            {},
+            '',
+            # app configuration saving as empty client secret
+            {
+                'client_type': Application.CLIENT_PUBLIC,
+                'client_secret': '',
+            },
+            # Expect a bad request
+            {
+                'status_code': HTTPStatus.OK,
+                'message': 'access_token',
+            },
+        ),
+    ],
+)
+@override_switch('v3_endpoints', active=True)
+def test_validate_symmetric_auth_client_secret(
+    post_data, header, app_config, expected_result, create_auth_code, client
+):
+    """
+    Ensure validate_symmetric_auth_client_secret function works properly by blocking empty or
+    mismatched client_secrets
+    """
+    # Assign constants for the test
+    redirect_uri = 'com.custom.bluebutton://example.it'
+    client_id = TEST_APP_CLIENT_ID
+    scope_name = EOB_SCOPE
+    code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+    code_verifier = 'test123456789123456789123456789123456789123456789'
+    grant_type = 'authorization_code'
+    auth_code = create_auth_code(
+        client_secret=app_config['client_secret'],
+        client_type=app_config['client_type'],
+        redirect_uri=redirect_uri,
+        client_id=client_id,
+        scope_name=scope_name,
+        code_challenge=code_challenge,
+        grant_type=grant_type,
+    )
+
+    token_request_data = {
+        'grant_type': grant_type,
+        'code': auth_code,
+        'redirect_uri': redirect_uri,
+        'code_verifier': code_verifier,
+        'scope': scope_name,
+        'client_id': client_id,
+    }
+    token_request_data.update(post_data)
+    response = client.post('/v3/o/token', data=token_request_data, HTTP_AUTHORIZATION=header)
+    assert response.status_code == expected_result['status_code']
+    assert expected_result['message'] in response.content.decode()

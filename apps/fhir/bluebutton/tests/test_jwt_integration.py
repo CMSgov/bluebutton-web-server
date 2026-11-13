@@ -6,14 +6,13 @@ import time
 import urllib
 import uuid
 from http import HTTPStatus
-from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.parse import urlencode
 
 import jwt
 import pytest
 import requests
 from cryptography.hazmat.primitives import serialization
 from django.contrib.auth.models import Group
-from django.http import HttpRequest
 from django.test.client import Client
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -24,7 +23,6 @@ from waffle.testutils import override_switch
 
 from apps.constants import (
     CLIENT_CREDENTIALS,
-    CODE_CHALLENGE_METHOD_S256,
     COVERAGE_SCOPE,
     EOB_SCOPE,
     PATIENT_SCOPE,
@@ -38,7 +36,6 @@ from apps.dot_ext.constants import (
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_TYPE,
 )
-from apps.dot_ext.models import Application
 from apps.wellknown.views.jwks import _local_private_keys
 
 # The v3 token endpoint. This MUST be identical everywhere it appears: it is both
@@ -407,9 +404,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test a successful case with allowed auth type as just auth_code
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -425,9 +420,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test a successful case with allowed auth type as both auth code and client credentials
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             },
             {
@@ -443,9 +436,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test unsuccessful case where invalid code isn't included in request
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             },
             {'token_url': '/v3/o/token', 'code': None},  # strips 'code' from request_token_data
@@ -459,9 +450,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test unsuccessful case where code_verifier isn't included in request
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_AND_CLIENT_CREDENTIALS_TYPE,
             },
             {'token_url': '/v3/o/token', 'code_verifier': None},  # strips 'code_verifier' from request_token_data
@@ -475,9 +464,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test unsuccessful case where client_assertion isn't included in request
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -494,9 +481,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test unsuccessful case where scope isn't included in request
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -513,9 +498,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test unsuccessful case where app's jwks_uri is missing
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': '',  # Emulates missing application JWKS URI config on our backend
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -532,9 +515,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test unsuccessful case where app's client_assertion is missing.
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -554,9 +535,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Test redirect_uri not being included fails
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -573,9 +552,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Ensure v2 call fails
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -591,9 +568,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Ensure v1 call fails
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -609,9 +584,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Ensure different client_assertion_type fails
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -628,9 +601,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Ensure client_secret in request for asymmetric auth fails
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -647,9 +618,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
         # Ensure enable_asymmetric_auth waffle switch not enabled returns a 403
         (
             {
-                'client_secret': TEST_APP_CLIENT_SECRET,
                 'jwks_uri': 'http://localhost:8000/.well-known/jwks.json',
-                'redirect_uri': 'com.custom.bluebutton://example.it',
                 'allowed_auth_type': AUTH_CODE_TYPE,
             },
             {
@@ -671,9 +640,7 @@ def test_asymmetric_auth_flow_integration(
     request_payload_overrides,
     expected,
     enable_asymm_auth_switch_active,
-    basic_user,
-    create_application,
-    create_capability,
+    create_auth_code,
 ):
     """
     Integration test checking validation barriers along the Asymmetric Authentication token path.
@@ -686,54 +653,24 @@ def test_asymmetric_auth_flow_integration(
         enable_asymm_auth_switch_active (bool) : True if enable_asymmetric_auth is active, otherwise False
     """
     with override_switch('enable_asymmetric_auth', active=enable_asymm_auth_switch_active):
-        user = basic_user()
-        eob_capability = create_capability(name=EOB_SCOPE, urls=[['GET', '/v/fhir/ExplanationOfBenefit[/]?$']])
-
-        application = create_application(
-            name='test',
-            grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            user=user,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            allowed_auth_type=app_config['allowed_auth_type'],
+        # Assign constants for the test
+        redirect_uri = 'com.custom.bluebutton://example.it'
+        client_id = TEST_APP_CLIENT_ID
+        scope_name = EOB_SCOPE
+        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
+        code_verifier = 'test123456789123456789123456789123456789123456789'
+        grant_type = 'authorization_code'
+        authorization_code = create_auth_code(
             jwks_uri=app_config['jwks_uri'],
-            client_id=TEST_APP_CLIENT_ID,
-            client_secret=app_config['client_secret'],
-            redirect_uris=app_config['redirect_uri'],
-            capability=eob_capability,
+            redirect_uri=redirect_uri,
+            client_id=client_id,
+            scope_name=scope_name,
+            code_challenge=code_challenge,
+            allowed_auth_type=app_config['allowed_auth_type'],
+            grant_type=grant_type,
         )
 
-        request = HttpRequest()
-        client.login(request=request, username='john', password='123456')
-
-        code_challenge = 'sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo'
-        auth_url = '/v3/o/authorize'
-        auth_payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': app_config['redirect_uri'],
-            'code_challenge': code_challenge,
-            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        }
-        response = client.get(auth_url, data=auth_payload)
-
-        consent_payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': app_config['redirect_uri'],
-            'scope': [EOB_SCOPE],
-            'expires_in': 86400,
-            'allow': True,
-            'state': '0123456789abcdef',
-            'code_challenge': code_challenge,
-            'code_challenge_method': CODE_CHALLENGE_METHOD_S256,
-        }
-        consent_response = client.post(response['Location'], data=consent_payload)
-        assert consent_response.status_code == HTTPStatus.FOUND
-
-        query_dict = parse_qs(urlparse(consent_response['Location']).query)
-        authorization_code = query_dict.get('code')[0]
-
-        ial_payload = construct_asymmetric_auth_payload(application.client_id)
+        ial_payload = construct_asymmetric_auth_payload(client_id)
         client_assertion = jwt.encode(
             ial_payload,
             get_can_private_key(),
@@ -748,16 +685,17 @@ def test_asymmetric_auth_flow_integration(
         token_request_data = {
             'client_assertion': client_assertion,
             'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
-            'grant_type': 'authorization_code',
-            'scope': EOB_SCOPE,
+            'grant_type': grant_type,
+            'scope': scope_name,
             'code': authorization_code,
-            'redirect_uri': app_config['redirect_uri'],
-            'code_verifier': 'test123456789123456789123456789123456789123456789',
+            'redirect_uri': redirect_uri,
+            'code_verifier': code_verifier,
         }
 
         overrides = request_payload_overrides.copy()
         token_url = overrides.pop('token_url', '/v3/o/token')
         # Updates token request data dict based upon the test
+        # Removes any items that are 'None' in the parametrization
         token_request_data.update(overrides)
         token_request_data = {k: v for k, v in token_request_data.items() if v is not None}
 
