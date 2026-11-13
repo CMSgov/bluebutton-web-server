@@ -799,12 +799,12 @@ class TokenView(DotTokenView):
                     is_confidential = getattr(app, 'client_type', '') == Application.CLIENT_CONFIDENTIAL
                     # Only validate client secret for confidential apps
                     if is_confidential:
-                        client_secret_empty = validate_symmetric_client_secret(request)
-                        if client_secret_empty:
+                        passes_cs_validation, cs_error_message = validate_symmetric_client_secret(request)
+                        if not passes_cs_validation:
                             return JsonResponse(
                                 {
                                     'status_code': HTTPStatus.BAD_REQUEST,
-                                    'message': 'The client secret is empty or missing.',
+                                    'message': cs_error_message,
                                 },
                                 status=HTTPStatus.BAD_REQUEST,
                             )
