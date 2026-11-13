@@ -61,3 +61,8 @@
 # ============================================================================
 /bb/${env}/app/nonsensitive/aws_s3_custom_domain: "s3.amazonaws.com"
 /bb/${env}/app/nonsensitive/aws_storage_bucket_name: "bb-test-static-content"
+
+# ============================================================================
+# ITS-log API
+# ============================================================================
+/bb/${env}/app/nonsensitive/its_log_api_enabled: "False"

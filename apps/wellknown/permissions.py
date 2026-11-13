@@ -2,7 +2,6 @@ import logging
 
 from django.contrib.auth import get_user_model
 from oauth2_provider.models import get_application_model
-from oauth2_provider.views.base import get_access_token_model
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
 from waffle import get_waffle_flag_model
@@ -22,7 +21,7 @@ class V3EarlyAdopterWellKnownPermission(permissions.BasePermission):
         if version < Versions.V3:
             return True
 
-        token = get_access_token_model().objects.get(token=request._auth)
+        token = request._auth
         application = get_application_model().objects.get(id=token.application_id)
         application_user = get_user_model().objects.get(id=application.user_id)
         flag = get_waffle_flag_model().get('v3_early_adopter')

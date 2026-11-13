@@ -120,7 +120,7 @@ class V3EarlyAdopterPermission(permissions.BasePermission):
         if view.version < Versions.V3:
             return True
 
-        token = get_access_token_model().objects.get(token=request._auth)
+        token = request._auth
         application = get_application_model().objects.get(id=token.application_id)
         application_user = get_user_model().objects.get(id=application.user_id)
         flag = get_waffle_flag_model().get('v3_early_adopter')
@@ -148,7 +148,7 @@ class AppScopePermission(permissions.BasePermission):
         if view.version < Versions.V3:
             return True
 
-        token = get_access_token_model().objects.get(token=request._auth)
+        token = request._auth
         if not token or not token.application_id:
             return False
         app_scopes = list(
@@ -206,7 +206,7 @@ class V2ExplanationOfBenefitPermission(permissions.BasePermission):
         if view.version == Versions.V3:
             return True
 
-        token = get_access_token_model().objects.get(token=request.auth)
+        token = request.auth
 
         try:
             extension = token.accesstokenextension
