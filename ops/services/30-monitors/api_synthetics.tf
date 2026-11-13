@@ -318,11 +318,11 @@ resource "datadog_synthetics_test" "insurance_card_endpoints" {
 }
 
 locals {
-  all_endpoint_tests = merge(
+  all_endpoint_tests = [for test in merge(
     datadog_synthetics_test.fhir_endpoints,
     datadog_synthetics_test.userinfo_endpoints,
     datadog_synthetics_test.insurance_card_endpoints,
-  )
+  ) : { monitor_id = test.monitor_id, name = test.name }]
 
   composite_groups = [
     for version in local.versions : {
