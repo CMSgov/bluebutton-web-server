@@ -130,7 +130,7 @@ resource "datadog_monitor" "on_call_api_endpoints_composite" {
   message = <<-EOT
   One or more synthetics tests have failed over the failure duration limit for on call.
 
-  [Contains these tests](https://app.ddog-gov.com/synthetics/tests?query=${urlencode("monitor_id:(${join(" OR ", each.value.monitor_ids)})")}&from_ts={{eval "last_triggered_at_epoch-${local.monitor_config.synthetics.min_failure_duration}*1000"}}&to_ts={{last_triggered_at_epoch}}&live=false)
+  [Contains these monitors](https://app.ddog-gov.com/monitors/manage?q=${urlencode("id:(${join(" OR ", each.value.monitor_ids)})")})
 
   ${module.common_datadog_monitors.notify}
   ${module.common_datadog_monitors.victorops_notify}
