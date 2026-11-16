@@ -452,7 +452,7 @@ def bene_access_token(create_token):
 
 
 @pytest.fixture
-def create_auth_code(basic_user, create_application, create_capability, get_auth_code, app_config):
+def create_auth_code(basic_user, create_application, create_capability, get_auth_code):
     """
     Factory fixture producing a complete OAuth PKCE authorization setup:
     user + capability + application + authorization code. Returns the auth code string.

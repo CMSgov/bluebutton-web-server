@@ -13,7 +13,6 @@ import pytest
 import requests
 from cryptography.hazmat.primitives import serialization
 from django.contrib.auth.models import Group
-from django.test.client import Client
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -65,7 +64,6 @@ TEST_APP_KID = 'local-jwks-rs384'
 
 # Convert the raw string to a boolean for easier use in the test
 is_client_enabled = ENABLE_CLIENT.lower() == 'true'
-client = Client()
 
 
 def get_can_private_key() -> bytes | str:
@@ -314,7 +312,7 @@ def get_can_payload(driver: webdriver.Chrome, app_client_id: str, scope: str) ->
     }
 
 
-def get_access_token_response(json_payload: dict) -> dict:
+def get_access_token_response(client, json_payload: dict) -> dict:
     """
     Exchanges the CAN request for an access token from the Blue Button API.
 
@@ -325,6 +323,8 @@ def get_access_token_response(json_payload: dict) -> dict:
         dict: A dictionary containing the access token and other related information.
     """
     if is_client_enabled:
+        # client = Client()
+
         url = '/v3/o/token'
 
         response = client.post(
@@ -346,7 +346,7 @@ def get_access_token_response(json_payload: dict) -> dict:
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
 @override_switch('v3_endpoints', active=True)
-def test_clear_integration_flow(driver, basic_user, create_application, create_capability):
+def test_clear_integration_flow(driver, basic_user, create_application, create_capability, client):
     """
     Integration test specifically against clear that does the following:
      - Runs through the auth process with a synth user in CLEAR to generate a valid IAL JWT (via selenium)
@@ -380,7 +380,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 
     json_payload = get_can_payload(driver, app_client_id, combined_scopes)
 
-    access_token_response = get_access_token_response(json_payload)
+    access_token_response = get_access_token_response(client, json_payload)
 
     assert access_token_response.status_code == 200, (
         f'Expected status code 200, got {access_token_response.status_code}'
@@ -636,11 +636,7 @@ def test_clear_integration_flow(driver, basic_user, create_application, create_c
 @override_switch('asymmetric_auth_validation', active=True)
 @override_switch('v3_endpoints', active=True)
 def test_asymmetric_auth_flow_integration(
-    app_config,
-    request_payload_overrides,
-    expected,
-    enable_asymm_auth_switch_active,
-    create_auth_code,
+    app_config, request_payload_overrides, expected, enable_asymm_auth_switch_active, create_auth_code, client
 ):
     """
     Integration test checking validation barriers along the Asymmetric Authentication token path.
