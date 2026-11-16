@@ -2102,7 +2102,7 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(
                 'client_type': Application.CLIENT_CONFIDENTIAL,
                 'client_secret': TEST_APP_CLIENT_SECRET,
             },
-            # Expect a bad request
+            # Expect passing
             {
                 'status_code': HTTPStatus.OK,
                 'message': 'access_token',
@@ -2192,7 +2192,7 @@ def test_failure_on_authorize_non_v3_with_audit_event_scope(
                 'client_type': Application.CLIENT_PUBLIC,
                 'client_secret': '',
             },
-            # Expect a bad request
+            # Expect passing
             {
                 'status_code': HTTPStatus.OK,
                 'message': 'access_token',
