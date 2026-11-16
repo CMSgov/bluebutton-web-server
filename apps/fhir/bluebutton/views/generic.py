@@ -5,7 +5,9 @@ from urllib.parse import quote
 import voluptuous
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.models import AccessToken
-from requests import Request, Session
+from requests import Request
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import Timeout as RequestsTimeout
 from rest_framework import exceptions, permissions
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import JSONParser
@@ -18,7 +20,11 @@ from apps.constants import FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT, HHS_SERVER_
 from apps.dot_ext.models import AccessTokenExtension
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
-from apps.fhir.bluebutton.exceptions import process_error_response
+from apps.fhir.bluebutton.exceptions import (
+    UpstreamServerException,
+    UpstreamTimeoutException,
+    process_error_response,
+)
 from apps.fhir.bluebutton.permissions import (
     ApplicationActivePermission,
     HasCrosswalk,
@@ -36,6 +42,7 @@ from apps.fhir.constants import ENFORCE_PARAM_VALIDATION, EXCLUDE_SAMHSA_PARAMET
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server import connection as backend_connection
+from apps.fhir.server.http import bfd_session, bfd_timeout, describe_request_error
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import VersionNotMatched, Versions
 
@@ -144,7 +151,7 @@ class FhirDataView(APIView):
         req = Request(
             'GET', target_url, params=get_parameters, headers=backend_connection.headers(request, url=target_url)
         )
-        s = Session()
+        s = bfd_session()
 
         # BB2-1544 request header url encode if header value (app name) contains char (>256)
         if req.headers.get('BlueButton-Application') is not None:
@@ -234,12 +241,31 @@ class FhirDataView(APIView):
         # Send signal
         fhir_server_auth = FhirServerAuth()
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver=api_ver_str)
-        r = s.send(
-            prepped,
-            cert=(fhir_server_auth['cert_file'], fhir_server_auth['key_file']),
-            timeout=fhir_settings.wait_time,
-            verify=fhir_settings.verify_server,
-        )
+        try:
+            r = s.send(
+                prepped,
+                cert=(fhir_server_auth['cert_file'], fhir_server_auth['key_file']),
+                timeout=bfd_timeout(),
+                verify=fhir_settings.verify_server,
+            )
+        except RequestsTimeout as e:
+            logger.warning(
+                'BFD request timed out: resource_type=%s api_ver=%s error=%s',
+                resource_type,
+                api_ver_str,
+                describe_request_error(e),
+            )
+            raise UpstreamTimeoutException()
+        except RequestsConnectionError as e:
+            logger.warning(
+                'BFD connection failed: resource_type=%s api_ver=%s error=%s',
+                resource_type,
+                api_ver_str,
+                describe_request_error(e),
+            )
+            raise UpstreamServerException('Unable to connect to the backend FHIR server.')
+        finally:
+            s.close()
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request, response=r, api_ver=api_ver_str)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)

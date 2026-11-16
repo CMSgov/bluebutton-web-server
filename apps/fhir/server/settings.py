@@ -22,6 +22,7 @@ DEFAULTS = {
     'KEY_FILE': '',
     'SERVER_VERIFY': False,
     'WAIT_TIME': 30,
+    'CONNECT_TIME': 5,
     'VERIFY_SERVER': False,
 }
 

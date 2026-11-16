@@ -1,5 +1,7 @@
 import json
+from unittest.mock import patch
 
+import requests
 from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
@@ -215,3 +217,23 @@ class TestAuthentication(BaseApiTest):
             self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
             self.assertIn('Unexpected in Patient search', match_fhir_id_result.error)
             self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
+
+    def test_match_fhir_id_bfd_unreachable(self):
+        """
+        Testing: BFD refuses the connection or times out
+        Expecting: an UPSTREAM error result instead of an unhandled exception
+        """
+        for bfd_exception in (
+            requests.exceptions.ConnectionError('Connection refused'),
+            requests.exceptions.ReadTimeout('Read timed out.'),
+        ):
+            with self.subTest(exception=type(bfd_exception).__name__):
+                with patch('requests.Session.send', side_effect=bfd_exception) as mock_send:
+                    match_fhir_id_result = match_fhir_id(
+                        mbi=self.test_mbi, hicn_hash=self.test_hicn_hash, request=self.request, version=Versions.V2
+                    )
+                self.assertIsNone(match_fhir_id_result.fhir_id)
+                self.assertEqual(match_fhir_id_result.lookup_type, MatchFhirIdLookupType.MBI)
+                self.assertEqual(match_fhir_id_result.error_type, MatchFhirIdErrorType.UPSTREAM)
+                self.assertIn(type(bfd_exception).__name__, match_fhir_id_result.error)
+                self.assertIsNotNone(mock_send.call_args.kwargs['timeout'])

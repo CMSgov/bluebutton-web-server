@@ -15,6 +15,7 @@ from apps.fhir.bluebutton.utils import (
     set_default_header,
 )
 from apps.fhir.constants import FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI, FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH
+from apps.fhir.server.http import bfd_session, bfd_timeout, describe_request_error
 from apps.fhir.server.loggers import log_match_fhir_id
 from apps.fhir.server.settings import fhir_settings
 from apps.versions import Versions
@@ -93,12 +94,12 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
     env = os.environ.get('TARGET_ENV')
     while retries <= max_retries:
         try:
-            s = requests.Session()
             payload = {'identifier': search_identifier}
             req = requests.Request('POST', url, headers=headers, data=payload)
             prepped = req.prepare()
             pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
-            response = s.send(prepped, cert=certs, verify=False)
+            with bfd_session() as s:
+                response = s.send(prepped, cert=certs, verify=False, timeout=bfd_timeout())
             post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
             response.raise_for_status()
             backend_data = response.json()
@@ -123,6 +124,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None, version=Versio
                 retries += 1
             else:
                 raise e
+        # Must come after SSLError, which is a subclass of ConnectionError.
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            raise UpstreamServerException(describe_request_error(e))
 
 
 class MatchFhirIdLookupType:

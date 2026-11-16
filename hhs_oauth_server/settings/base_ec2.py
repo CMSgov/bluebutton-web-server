@@ -752,6 +752,9 @@ FHIR_SERVER = {
     'CERT_FILE': os.path.join(FHIR_CLIENT_CERTSTORE, env('FHIR_CERT_FILE', 'ca.cert.pem')),
     'KEY_FILE': os.path.join(FHIR_CLIENT_CERTSTORE, env('FHIR_KEY_FILE', 'ca.key.nocrypt.pem')),
     'CLIENT_AUTH': True,
+    # Read timeout and connect timeout (seconds) for calls to BFD
+    'WAIT_TIME': int_env(env('FHIR_READ_TIMEOUT', 30)),
+    'CONNECT_TIME': int_env(env('FHIR_CONNECT_TIMEOUT', 5)),
 }
 
 # The mock FHIR endpoint is a hostname used in many tests. It was previously a host

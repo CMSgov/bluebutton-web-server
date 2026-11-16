@@ -5,6 +5,7 @@ from unittest.mock import patch
 from urllib.parse import unquote
 
 import pytest
+import requests
 from django.test import RequestFactory
 from django.urls import reverse
 from httmock import HTTMock, all_requests, urlmatch
@@ -381,6 +382,24 @@ def test_search_request_failed(
         response = client.get(reverse(SEARCH_PATIENT_URLS[version]), Authorization=f'Bearer {access_token}')
 
         assert response.status_code == HTTPStatus.BAD_GATEWAY
+
+
+@pytest.mark.parametrize(
+    'bfd_exception, expected_status',
+    (
+        (requests.exceptions.ReadTimeout('Read timed out.'), HTTPStatus.GATEWAY_TIMEOUT),
+        (requests.exceptions.ConnectTimeout('Connect timed out.'), HTTPStatus.GATEWAY_TIMEOUT),
+        (requests.exceptions.ConnectionError('Connection refused'), HTTPStatus.BAD_GATEWAY),
+    ),
+)
+@override_switch('v3_endpoints', active=True)
+def test_search_request_bfd_unreachable(client, version, bene_access_token, bfd_exception, expected_status):
+    access_token = bene_access_token(scope=EOB_READ_SCOPE)
+
+    with patch('requests.Session.send', side_effect=bfd_exception):
+        response = client.get(reverse(SEARCH_EOB_URLS[version]), Authorization=f'Bearer {access_token}')
+
+    assert response.status_code == expected_status
 
 
 @pytest.mark.parametrize('bfd_status_code', (500, 400))
