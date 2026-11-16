@@ -62,20 +62,10 @@ def authenticate(request):
     # TODO: Add try/except block for BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException
     # so we do not show the bene_404_no_mbi.html page to a non-bene user if they have relationships data
     user = slsx_client.get_user_info(request)
-    print('user is here')
-    print(user)
-    print('isCspUser' in user and user['isCspUser'])
-    print(user['isCspUser'])
     request.session['user_relationships'] = []
     if 'isCspUser' in user and user['isCspUser']:
-        print('is the session v3 ')
-        print(request.session.get('version') == Versions.V3)
-        print('with proxy access?')
-        print(switch_is_active('proxy_access'))
         if request.session.get('version') == Versions.V3 and switch_is_active('proxy_access'):
             request.session['user_relationships'] = slsx_client.retrieve_relationships_data(request)
-            print('here they are')
-            print(request.session['user_relationships'])
 
     # Signout bene to prevent SSO issues per BB2-544
     slsx_client.user_signout(request)

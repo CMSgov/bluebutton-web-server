@@ -195,17 +195,20 @@ a {
                     <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px; repeat(3,minmax(0,1fr))">
                             <div class={{selected.0}}>
                                 <h2>My account</h2>
-                                <form method="POST">
+                                    <form method="post">
                                     {% csrf_token %}
-                                    <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="select" value={% trans "Select" %}>
-                                </form>
+                                    <button class="ds-c-button" type="submit" id="display" name="action" value=0>{%trans Select %}</button>
+                                    </form>
                             </div>
                         {% if relationships|length > 1 %}
-                            {% for user in relationships|slice:":2" %}
+                            {% for user in relationships|slice:"1:3" %}
                                 <div class={{user.divClass}}>
                                     <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
                                     <p style="color: {{user.expiresColor}}">{{user.formattedExpiresAt}}</p>
-                                    <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="select" value={% trans "Select" %}>
+                                    <form method="post">
+                                    {% csrf_token %}
+                                    <button class="ds-c-button" type="submit" id="display" name="action" value={{foorloop.counter}}>{%trans Select %}</button>
+                                    </form>
                                 </div>
                             {% endfor %}
                         {% endif %}
@@ -216,7 +219,10 @@ a {
                                     <div class={{user.divClass}}>
                                         <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
                                         <p style="color: {{user.expiresColor}}">{{user.formattedExpiresAt}}</p>
-                                        <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="select" value={% trans "Select" %}>
+                                    <form method="post">
+                                    {% csrf_token %}
+                                    <button class="ds-c-button" type="submit" id="display" name="action" value={{foorloop.counter|add:3}}>{%trans Select %}</button>
+                                    </form>
                                     </div>
                                 {% endfor %}
                             </div>

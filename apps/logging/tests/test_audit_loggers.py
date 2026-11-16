@@ -328,8 +328,8 @@ class TestAuditEventLoggers(BaseApiTest):
                     data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
 
-                responseContent = json.loads(response.content.decode("utf-8"))
-                self.assertEqual(responseContent["error"],"Bad Gateway")
+                responseContent = json.loads(response.content.decode('utf-8'))
+                self.assertEqual(responseContent['error'], 'Bad Gateway')
             except requests.exceptions.HTTPError:
                 self.fail('HTTP Error should be expected.')
 
@@ -396,8 +396,8 @@ class TestAuditEventLoggers(BaseApiTest):
                     self.callback_url,
                     data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
-                responseContent = json.loads(response.content.decode("utf-8"))
-                self.assertEqual(responseContent["error"],"Bad Gateway")
+                responseContent = json.loads(response.content.decode('utf-8'))
+                self.assertEqual(responseContent['error'], 'Bad Gateway')
             except requests.exceptions.HTTPError:
                 self.fail('HTTP Error should be expected.')
 

@@ -260,7 +260,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def test_callback_url_no_csp_v3(self):
         self._test_callback_url_no_csp(3)
 
-
     # mock fhir user info endpoint
     @urlmatch(
         netloc=MOCK_FHIR_ENDPOINT_HOSTNAME,

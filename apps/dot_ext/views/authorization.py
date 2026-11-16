@@ -218,10 +218,13 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
+        if 'selected' not in self.request.session:
+            self.request.session['selected'] = ['ds-c-card'] * 6
+        kwargs['selected'] = self.request.session['selected']
+        if 'targetUser' not in self.request.session:
+            self.request.session['targetUser'] = 'your'
+        kwargs['targetUser'] = self.request.session['targetUser']
         if self.version == Versions.V3:
-            kwargs['unselected'] = True
-            kwargs['selected'] = ['ds-c-card'] * 6
-            kwargs['relationshipsIndex'] = None
             formattedRelationships = [{}] * 6
             relationshipUser = {
                 'id': '13bb7b83-5008-473b-8dd9-a2fb4bea9989',
@@ -237,11 +240,20 @@ class AuthorizationView(DotAuthorizationView):
                 'updatedTime': 1786468042,
                 'scopes': [],
             }
+
+            ##TODO USER HARDCODING TO BE REMOVED
             for i in range(6):
                 formattedRelationships[i] = copy.deepcopy(relationshipUser)
+            formattedRelationships[1]['userFirstName'] = 'Macy'
+            formattedRelationships[2]['userFirstName'] = 'Gracy'
+            formattedRelationships[3]['userFirstName'] = 'Lacy'
+            formattedRelationships[4]['userFirstName'] = 'Blacy'
+            formattedRelationships[5]['userFirstName'] = 'Shacy'
             formattedRelationships[3]['expiresAt'] = 1794614400
             formattedRelationships[4]['expiresAt'] = 1797414400
             formattedRelationships[5]['expiresAt'] = 1794614400
+
+            # expiration date logic
             for index, relationship in enumerate(formattedRelationships):
                 formattedRelationships[index]['divClass'] = kwargs['selected'][index]
                 if relationship['expiresAt'] is not None:
@@ -257,10 +269,11 @@ class AuthorizationView(DotAuthorizationView):
                     if diff < timedelta(days=30):
                         formattedRelationships[index]['expiresColor'] = '#FF0000'
                 else:
+                    # indefinite permission
                     formattedRelationships[index]['formattedExpiresAt'] = ''
-            kwargs['relationships'] = formattedRelationships
-            kwargs['beneficiary_name'] = self.request.beneficiary_name
-            print(kwargs['selected'])
+                kwargs['relationships'] = formattedRelationships
+                self.request.session['user_relationships'] = formattedRelationships
+                kwargs['beneficiary_name'] = self.request.beneficiary_name
             scopes_from_request = kwargs.get('scopes', [])
             application_scopes = list(
                 ProtectedCapability.objects.filter(Q(application=self.application))
@@ -414,8 +427,6 @@ class AuthorizationView(DotAuthorizationView):
         return None
 
     def get_template_names(self):
-        print('pinged')
-        print(self.request.session['user_relationships'])
         # Default template
         default_tpl = 'design_system/new_authorize_v2.html'
 
@@ -437,22 +448,25 @@ class AuthorizationView(DotAuthorizationView):
 
     def post(self, request, *args, **kwargs):
         # Update the variable based on the button clicked
-        print('button clicked')
         action = request.POST.get('action')
-        kwargs['relationshipsIndex'] = action
-        newDict = ['ds-c-card'] * 6
-        newDict[action] = 'ds-c-card-selected'
-        kwargs['selected'] = newDict
-        if action != 0:
-            kwargs['targetUser'] = (
-                self.request.session['user_relationships'][action].firstName
-                + ' '
-                + self.request.session['user_relationships'][action].lastName
-                + "'s"
-            )
-        else:
-            kwargs['targetUser'] = 'your'
+        if action is not None and action != '':
+            self.request.session['selected'] = ['ds-c-card'] * 6
+            print('we are doing this')
+            print(action)
+            if action is not None:
+                self.request.session['selected'][int(action)] = 'ds-c-card-selected'
+            if int(action) != 0:
+                self.request.session['targetUser'] = (
+                    self.request.session['user_relationships'][int(action)]['firstName']
+                    + ' '
+                    + self.request.session['user_relationships'][int(action)]['lastName']
+                    + "'s"
+                )
+            else:
+                self.request.session['targetUser'] = 'your'
 
+            # return redirect(request.path, *args, **kwargs)  # Reloads page to show updated value
+        print(self.request.session['selected'])
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
