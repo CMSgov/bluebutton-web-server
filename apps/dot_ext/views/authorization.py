@@ -1,3 +1,4 @@
+import copy
 import html
 import json
 import logging
@@ -218,7 +219,48 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         if self.version == Versions.V3:
+            kwargs['unselected'] = True
+            kwargs['selected'] = ['ds-c-card'] * 6
+            kwargs['relationshipsIndex'] = None
+            formattedRelationships = [{}] * 6
+            relationshipUser = {
+                'id': '13bb7b83-5008-473b-8dd9-a2fb4bea9989',
+                'userFirstName': 'Stacy',
+                'userLastName': 'Doe',
+                'beneFirstName': 'Stacy',
+                'beneLastName': 'Doe',
+                'role': 'beneficiary',
+                'roleLevel': 100,
+                'status': 'active',
+                'expiresAt': None,
+                'createdTime': 1785356755,
+                'updatedTime': 1786468042,
+                'scopes': [],
+            }
+            for i in range(6):
+                formattedRelationships[i] = copy.deepcopy(relationshipUser)
+            formattedRelationships[3]['expiresAt'] = 1794614400
+            formattedRelationships[4]['expiresAt'] = 1797414400
+            formattedRelationships[5]['expiresAt'] = 1794614400
+            for index, relationship in enumerate(formattedRelationships):
+                formattedRelationships[index]['divClass'] = kwargs['selected'][index]
+                if relationship['expiresAt'] is not None:
+                    # format expiresAt month/day/year
+                    dt = datetime.fromtimestamp(int(relationship['expiresAt']))
+                    formattedDate = dt.strftime('%m-%d-%Y')
+                    dateText = 'Authorization ends ' + formattedDate
+                    # Is expiresAt less than a month away
+                    now = datetime.now(timezone.utc)
+                    target_dt = datetime.fromtimestamp(int(relationship['expiresAt']), tz=timezone.utc)
+                    diff = abs(target_dt - now)
+                    formattedRelationships[index]['formattedExpiresAt'] = dateText
+                    if diff < timedelta(days=30):
+                        formattedRelationships[index]['expiresColor'] = '#FF0000'
+                else:
+                    formattedRelationships[index]['formattedExpiresAt'] = ''
+            kwargs['relationships'] = formattedRelationships
             kwargs['beneficiary_name'] = self.request.beneficiary_name
+            print(kwargs['selected'])
             scopes_from_request = kwargs.get('scopes', [])
             application_scopes = list(
                 ProtectedCapability.objects.filter(Q(application=self.application))
@@ -394,6 +436,23 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
+        # Update the variable based on the button clicked
+        print('button clicked')
+        action = request.POST.get('action')
+        kwargs['relationshipsIndex'] = action
+        newDict = ['ds-c-card'] * 6
+        newDict[action] = 'ds-c-card-selected'
+        kwargs['selected'] = newDict
+        if action != 0:
+            kwargs['targetUser'] = (
+                self.request.session['user_relationships'][action].firstName
+                + ' '
+                + self.request.session['user_relationships'][action].lastName
+                + "'s"
+            )
+        else:
+            kwargs['targetUser'] = 'your'
+
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
