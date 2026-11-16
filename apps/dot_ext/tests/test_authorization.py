@@ -42,8 +42,6 @@ from apps.versions import Versions
 AccessToken = get_access_token_model()
 RefreshToken = get_refresh_token_model()
 
-client = Client()
-
 
 class TestAuthorizationView(BaseApiTest):
     def _create_authorization_header(self, client_id, client_secret):
