@@ -1,13 +1,15 @@
 from io import BytesIO
+from unittest.mock import patch
 
 import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import call_command
 from PIL import Image
+from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES
+from apps.dot_ext.constants import BENE_PERSONAL_INFO_SCOPES, GENERATE_CLIENT_SECRET, NO_CHANGE, NO_CLIENT_SECRET
 from apps.dot_ext.forms import (
     CreateApplicationForm,
     CustomRegisterApplicationForm,
@@ -85,6 +87,28 @@ from apps.dot_ext.forms import (
             None,
             True,
         ),
+        # Test plain-text punctuation in an application name remains valid
+        (
+            CustomRegisterApplicationForm,
+            {'name': 'Research & Analytics (v2)'},
+            'name',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': 'Research & Analytics (v2)'},
+            'name',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'name': 'Research & Analytics (v2)'},
+            'name',
+            None,
+            True,
+        ),
         # Test form with no app name has error
         (
             CustomRegisterApplicationForm,
@@ -151,6 +175,70 @@ from apps.dot_ext.forms import (
             'Invalid character(s) in application name',
             False,
         ),
+        # Test form with HTML in the application name raises an error
+        (
+            CustomRegisterApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CustomRegisterApplicationForm,
+            {'name': '<script>alert(document.domain)</script>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '<script>alert(document.domain)</script>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '<script>alert(document.domain)</script>'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CustomRegisterApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'name': '<img src=x onerror=alert(document.domain)'},
+            'name',
+            'Application names cannot contain angle brackets (< or >). Please use plain-text only!',
+            False,
+        ),
         # Test form with website_uri valid URI.
         (
             CustomRegisterApplicationForm,
@@ -214,6 +302,72 @@ from apps.dot_ext.forms import (
             EditApplicationForm,
             {'website_uri': ''},
             'website_uri',
+            None,
+            True,
+        ),
+        # Test form with jwks_uri valid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': 'https://www.example.org'},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': 'https://www.example.org'},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': 'https://www.example.org'},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        # Test form with jwks_uri invalid URI.
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': 'xyzs:/www.example.org'},
+            'jwks_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': 'xyzs:/www.example.org'},
+            'jwks_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': 'xyzs:/www.example.org'},
+            'jwks_uri',
+            'Enter a valid URL',
+            False,
+        ),
+        # Test form with empty jwks_uri should pass.
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': ''},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': ''},
+            'jwks_uri',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': ''},
+            'jwks_uri',
             None,
             True,
         ),
@@ -482,10 +636,32 @@ from apps.dot_ext.forms import (
             'The text contains HTML tags. Please use plain-text only!',
             False,
         ),
+        # Validation on empty jwks_uri and clearing a client_secret
+        # (client_secret_action is NO_CLIENT_SECRET) raises a validation error
+        (
+            CreateApplicationForm,
+            {'client_secret_action': NO_CLIENT_SECRET, 'jwks_uri': ''},
+            '__all__',
+            f'The jwks_uri cannot be empty when client_secret_action is {NO_CLIENT_SECRET}.',
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'client_secret_action': NO_CLIENT_SECRET, 'jwks_uri': ''},
+            '__all__',
+            f'The jwks_uri cannot be empty when client_secret_action is {NO_CLIENT_SECRET}.',
+            False,
+        ),
     ],
 )
 def test_application_form_basic_validation(
-    application_form, data, field, error_text_expected, should_pass, basic_user, create_application
+    application_form,
+    data,
+    field,
+    error_text_expected,
+    should_pass,
+    basic_user,
+    create_application,
 ):
     """Test basic validation of three forms. See comment before each one for details on specific test"""
     user = basic_user(username='john', password='123456')
@@ -504,6 +680,23 @@ def test_application_form_basic_validation(
         assert len(field_errors) == 1
         error_text = field_errors[0].message
         assert error_text_expected in error_text
+
+
+@pytest.mark.django_db
+def test_existing_html_application_name_must_be_renamed(basic_user, create_application):
+    user = basic_user(username='john', password='123456')
+    malicious_name = '<img src=x onerror=alert(document.domain)>'
+    application = create_application(malicious_name, user=user)
+    form = CustomRegisterApplicationForm(
+        user,
+        data={'name': malicious_name},
+        instance=application,
+    )
+
+    assert not form.is_valid()
+    assert form.errors['name'] == [
+        'Application names cannot contain angle brackets (< or >). Please use plain-text only!'
+    ]
 
 
 @pytest.mark.parametrize(
@@ -808,10 +1001,10 @@ def test_create_application_form_user_mode_selection(
     form = CreateApplicationForm(data)
     form.is_valid()
     if should_pass:
-        field_errors = form.errors.as_data().get('user', [])
+        field_errors = form.errors.as_data().get('__all__', [])
         assert len(field_errors) == 0
     else:
-        field_errors = form.errors.as_data().get('user', [])
+        field_errors = form.errors.as_data().get('__all__', [])
         assert len(field_errors) == 1
         error_text = field_errors[0].message
         assert error_text_expected in error_text
@@ -846,9 +1039,12 @@ def test_create_application_form_user_mode_selection(
             False,
         ),
         (
-            # requires name, require_demographic_scopes, user_mode, organization_name, allowed_auth_type, and scope
+            # requires name, data_access_type, require_demographic_scopes,
+            # user_mode, organization_name, allowed_auth_type, client_secret_action, and scope
             CreateApplicationForm,
             {
+                'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': GENERATE_CLIENT_SECRET,
                 'name': 'john_new_app',
                 'user_mode': 'new',
                 'user': None,
@@ -877,10 +1073,12 @@ def test_create_application_form_user_mode_selection(
         (
             # requires data_access_type, client_id, user, client_type,
             # authorization_grant_type, name, require_demographic_scopes,
-            # user_mode, organization_name, allowed_auth_type, redirect_uri's, and scope
+            # user_mode, organization_name, allowed_auth_type, redirect_uri's,
+            # client_secret_action, and scope
             EditApplicationForm,
             {
                 'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': GENERATE_CLIENT_SECRET,
                 'client_id': 'test-client-id',
                 # User gets set inside test function
                 'user': None,
@@ -941,3 +1139,300 @@ def test_minimum_required_fields_for_all_forms(
         form = app_form(data)
     form.is_valid()
     assert form.errors == {}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'app_form, data, enable_jwt_sbx_settings_active, use_instance, field, error_text_expected, should_pass',
+    [
+        # Test form with empty jwks_uri when allowed_auth_type is 'client_credentials' raises an error
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'CLIENT_CREDENTIALS'},
+            True,
+            False,
+            '__all__',
+            "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'.",
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'CLIENT_CREDENTIALS'},
+            True,
+            False,
+            '__all__',
+            "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'.",
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'CLIENT_CREDENTIALS'},
+            True,
+            False,
+            '__all__',
+            "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'.",
+            False,
+        ),
+        # Test form with empty jwks_uri when allowed_auth_type is 'both' raises an error
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE_AND_CLIENT_CREDS'},
+            True,
+            False,
+            '__all__',
+            "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'.",
+            False,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE_AND_CLIENT_CREDS'},
+            True,
+            False,
+            '__all__',
+            "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'.",
+            False,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE_AND_CLIENT_CREDS'},
+            True,
+            False,
+            '__all__',
+            "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'.",
+            False,
+        ),
+        # Test form with empty jwks_uri when allowed_auth_type is 'authorization_code' passes validation
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE'},
+            True,
+            False,
+            '__all__',
+            None,
+            True,
+        ),
+        (
+            CreateApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE'},
+            True,
+            False,
+            '__all__',
+            None,
+            True,
+        ),
+        (
+            EditApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE'},
+            True,
+            False,
+            '__all__',
+            None,
+            True,
+        ),
+        # Test form is valid when enable_jwt_sbx_settings is inactive and app is being created
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': None, 'allowed_auth_type': 'AUTH_CODE'},
+            False,
+            False,  # use_instance = False
+            '__all__',
+            None,
+            True,
+        ),
+        # Test form is valid when enable_jwt_sbx_settings is inactive and app is being edited
+        # and the database has a value for jwks_uri and allowed_auth_type
+        (
+            CustomRegisterApplicationForm,
+            {'jwks_uri': '', 'allowed_auth_type': 'AUTH_CODE'},
+            False,
+            True,  # use_instance = True
+            '__all__',
+            None,
+            True,
+        ),
+    ],
+)
+def test_jwks_uri_and_allowed_auth_type_validation(
+    app_form,
+    data,
+    enable_jwt_sbx_settings_active,
+    use_instance,
+    field,
+    error_text_expected,
+    should_pass,
+    create_application,
+    basic_user,
+):
+    """Test jwks_uri and allowed_auth_type validation for all forms when enable_jwt_sbx_settings is active or inactive"""
+    with override_switch('enable_jwt_sbx_settings', enable_jwt_sbx_settings_active):
+        user = basic_user(username='john', password='123456')
+        app_instance = create_application('john_app', user=user)
+        # Setup specific instance properties for the database fallback path
+        # Used when switch is inactive and the form is being used to edit an existing application
+        app_instance.allowed_auth_type = 'AUTH_CODE_AND_CLIENT_CREDS'
+        app_instance.jwks_uri = 'https://database-original-value.com'
+        app_instance.save()
+
+        # Manage form kwargs dynamically
+        form_kwargs = {}
+        if use_instance:
+            form_kwargs['instance'] = app_instance
+        # Only CustomRegisterApplicationForm passes in a user
+        if app_form == CustomRegisterApplicationForm:
+            form = app_form(user, data, **form_kwargs)
+        else:
+            form = app_form(data, **form_kwargs)
+        form.is_valid()
+        if should_pass:
+            field_errors = form.errors.as_data().get(field, [])
+            assert len(field_errors) == 0
+            # Post-validation data state check for the inactive switch fallbacks
+            if not enable_jwt_sbx_settings_active:
+                if use_instance:
+                    # Use the database values for allowed_auth_type and jwks_uri when editing an existing application
+                    assert form.cleaned_data['allowed_auth_type'] == 'AUTH_CODE_AND_CLIENT_CREDS'
+                    assert form.cleaned_data['jwks_uri'] == 'https://database-original-value.com'
+                else:
+                    # Defaults to AUTH_CODE and None for jwks_uri when creating a new application
+                    assert form.cleaned_data['allowed_auth_type'] == 'AUTH_CODE'
+                    assert form.cleaned_data['jwks_uri'] is None
+        else:
+            field_errors = form.errors.as_data().get(field, [])
+            assert len(field_errors) == 1
+            error_text = field_errors[0].message
+            assert error_text_expected in error_text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'app_form, data, expected_secret',
+    [
+        # Ensure that the client_secret_action field behaves correctly for each form and removes a client secret as expected
+        (
+            CreateApplicationForm,
+            {
+                'name': 'john_new_app',
+                'user_mode': 'existing',
+                # User gets set inside test function
+                'user': None,
+                'data_access_type': 'THIRTEEN_MONTH',
+                'require_demographic_scopes': True,
+                'organization_name': "I'm an org name",
+                'allowed_auth_type': 'AUTH_CODE',
+                'agree': True,
+                # Set to have no client secret
+                'client_secret_action': NO_CLIENT_SECRET,
+                'jwks_uri': 'https://www.example.org',
+            },
+            '',  # No client secret should be generated, so it should be empty
+        ),
+        (
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': NO_CLIENT_SECRET,
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'name': 'john_new_app',
+                # Scope set in testing function
+                'scope': '',
+                'require_demographic_scopes': True,
+                'allowed_auth_type': 'AUTH_CODE',
+                'redirect_uris': 'http://localhost:8000/callback',
+                'jwks_uri': 'https://www.example.org',
+            },
+            '',  # Remove the existing client secret, so it should be empty
+        ),
+        # Ensure that the client_secret_action field behaves correctly for each form and generates a client secret as expected
+        (
+            CreateApplicationForm,
+            {
+                'name': 'john_new_app',
+                'user_mode': 'existing',
+                # User gets set inside test function
+                'user': None,
+                'data_access_type': 'THIRTEEN_MONTH',
+                'require_demographic_scopes': True,
+                'organization_name': "I'm an org name",
+                'allowed_auth_type': 'AUTH_CODE',
+                'scope': '',
+                # Set to generate a client secret
+                'client_secret_action': GENERATE_CLIENT_SECRET,
+            },
+            'mocked_secret',  # A client secret should be generated, so it should not be empty
+        ),
+        (
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                # Set to generate a client secret
+                'client_secret_action': GENERATE_CLIENT_SECRET,
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'name': 'john_new_app',
+                # Scope set in testing function
+                'scope': '',
+                'require_demographic_scopes': True,
+                'allowed_auth_type': 'AUTH_CODE',
+                'redirect_uris': 'http://localhost:8000/callback',
+            },
+            'mocked_secret',  # Generate a new client secret, so it should not be empty
+        ),
+        (
+            # Ensure that NO_CHANGE leaves the existing client secret entirely untouched
+            EditApplicationForm,
+            {
+                'data_access_type': 'THIRTEEN_MONTH',
+                'client_secret_action': NO_CHANGE,  # Instruct form not to modify the secret
+                'client_id': 'test-client-id',
+                # User gets set inside test function
+                'user': None,
+                'client_type': 'confidential',
+                # User mode automatically gets set to existing when instantiated
+                'user_mode': None,
+                'authorization_grant_type': 'authorization-code',
+                'name': 'john_new_app',
+                # Scope set in testing function
+                'scope': '',
+                'require_demographic_scopes': True,
+                'allowed_auth_type': 'AUTH_CODE',
+                'redirect_uris': 'http://localhost:8000/callback',
+            },
+            'original_secret',  # Expected secret must match the pre-existing instance secret
+        ),
+    ],
+)
+@patch('apps.dot_ext.forms.generate_client_secret')
+def test_client_secret_action_choices(
+    mock_generate_client_secret, app_form, data, expected_secret, basic_user, create_application
+):
+    """Test that the client_secret_action field has the correct choices and initial value"""
+    user = basic_user(username='john', password='123456')
+    app_instance = create_application('john_app', user=user)
+    mock_generate_client_secret.return_value = 'mocked_secret'
+
+    app_instance.client_secret_plain = 'original_secret'
+    app_instance.save()
+
+    # Add the default scopes and user to the data dictionary for the form
+    call_command('create_blue_button_scopes')
+    default_scopes = ProtectedCapability.objects.filter(default=True)
+    data['scope'] = default_scopes
+    data['user'] = user
+
+    form = app_form(data, instance=app_instance)
+    assert form.is_valid()
+
+    form.save()
+
+    assert app_instance.client_secret_plain == expected_secret

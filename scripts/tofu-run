@@ -21,7 +21,7 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 job_error=false
 temp_plan_out=$(mktemp)
-trap 'rm -f "$temp_plan_out" "${plan_log:-}"' EXIT
+trap 'rm -f "$temp_plan_out" "${plan_log:-}" "${init_log:-}"' EXIT
 
 # Derive parent_env for backend bucket selection (sandbox shares prod bucket)
 parent_env="$ENV"
@@ -45,10 +45,33 @@ if [[ -n "$account_id" ]]; then
   echo "::add-mask::$account_id"
 fi
 
-# CloudWatch log group for detailed plan output
+# error lines go to public GHA logs, account ids are masked but the rest of an ARN isn't
+scrub_arns() { sed -E 's/arn:aws[a-z-]*:[^[:space:]"]+/<arn>/g'; }
+
+# CloudWatch log group for full init/plan output (GHA only gets error lines)
 cw_log_group="/bb/${ENV}/tofu-plan"
-echo "View detailed plan output in CloudWatch:"
+echo "View detailed init/plan output in CloudWatch:"
 echo "  aws logs tail --since 1h --follow '$cw_log_group'"
+
+# ship a log file to CloudWatch as one event. warns instead of failing, aws stderr stays hidden so ARNs don't leak
+ship_to_cw() {
+  local stream="$1" file="$2" events
+  if aws logs create-log-group --log-group-name "$cw_log_group" > /dev/null 2>&1; then
+    aws logs put-retention-policy --log-group-name "$cw_log_group" --retention-in-days 30 > /dev/null 2>&1 ||
+      echo "::warning::couldn't set retention on $cw_log_group"
+  fi
+  # errors when the stream already exists (re-runs), that's fine
+  aws logs create-log-stream --log-group-name "$cw_log_group" --log-stream-name "$stream" > /dev/null 2>&1 || true
+
+  events=$(mktemp)
+  if ! jq -Rs --arg ts "$(date -u +%s)000" '[{timestamp: ($ts | tonumber), message: .}]' "$file" > "$events" 2> /dev/null; then
+    echo "::warning::couldn't build CloudWatch event for $stream"
+  elif ! aws logs put-log-events --log-group-name "$cw_log_group" --log-stream-name "$stream" \
+    --log-events "file://$events" > /dev/null 2>&1; then
+    echo "::warning::couldn't ship $stream to CloudWatch (too big, or no logs perms?)"
+  fi
+  rm -f "$events"
+}
 
 # ============================================================
 # Services deployed in strict dependency order:
@@ -78,14 +101,21 @@ for service in "${services[@]}"; do
 
   echo "::group::$service ($ENV)"
 
-  # Step 1: Init (suppress output to avoid leaking backend config in public logs)
-  if ! tofu init -reconfigure -no-color > /dev/null 2>&1; then
+  # Step 1: Init (keep output out of public logs, but show the error when it fails)
+  init_log=$(mktemp)
+  if ! tofu init -reconfigure -no-color > "$init_log" 2>&1; then
+    { grep -A3 -E '^Error:' "$init_log" || tail -n 5 "$init_log"; } | scrub_arns >&2
+    init_stream="${service}-init-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
+    ship_to_cw "$init_stream" "$init_log"
+    echo "full init output: $cw_log_group / $init_stream"
+    rm -f "$init_log"
     echo "::endgroup::"
     echo "::error::Error in tofu init for $service ($ENV)"
     if [ "${APPLY:-}" == "true" ]; then exit 1; fi
     job_error=true
     continue
   fi
+  rm -f "$init_log"
 
   # Step 2: Select or create workspace
   tofu workspace select -or-create=true "$ENV" -no-color > /dev/null 2>&1
@@ -99,19 +129,7 @@ for service in "${services[@]}"; do
   tofu plan -detailed-exitcode -input=false -out "$temp_plan_out" -no-color > "$plan_log" 2>&1 || plan_exit=$?
 
   # Push full plan output to CloudWatch for private review
-  cw_log_stream="${service}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
-  if aws logs create-log-group --log-group-name "$cw_log_group" 2>/dev/null; then
-    aws logs put-retention-policy --log-group-name "$cw_log_group" --retention-in-days 30 2>/dev/null || true
-  fi
-  aws logs create-log-stream --log-group-name "$cw_log_group" --log-stream-name "$cw_log_stream" 2>/dev/null || true
-  # Send plan log as a single event (use temp JSON file to avoid shell escaping issues)
-  cw_event_file=$(mktemp)
-  jq -Rs --arg ts "$(date -u +%s)000" '[{timestamp: ($ts | tonumber), message: .}]' "$plan_log" > "$cw_event_file"
-  aws logs put-log-events \
-    --log-group-name "$cw_log_group" \
-    --log-stream-name "$cw_log_stream" \
-    --log-events "file://$cw_event_file" > /dev/null 2>&1 || true
-  rm -f "$cw_event_file"
+  ship_to_cw "${service}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}" "$plan_log"
 
   if [ "$plan_exit" -eq 0 ]; then
     echo "No changes planned for $service ($ENV)"
@@ -122,7 +140,7 @@ for service in "${services[@]}"; do
   else
     # Show only error lines, not the full plan output
     # Account IDs are auto-masked by ::add-mask:: above
-    grep -E '^Error:|^  Error:|planning failed|exit status' "$plan_log" >&2 || true
+    grep -E '^Error:|^  Error:|planning failed|exit status' "$plan_log" | scrub_arns >&2 || true
     tofu_error="Error in tofu plan for $service ($ENV)"
     if [ "${APPLY:-}" == "true" ]; then
       echo "::endgroup::"

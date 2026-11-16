@@ -4,6 +4,7 @@ PATH="/venv/bin:$PATH"
 
 echo Generating requirements.txt
 pip-compile --generate-hashes \
+    --allow-unsafe \
     --output-file=/output/requirements.txt \
     /code/requirements/requirements.in
 if [ "$?" -ne 0 ]; then
@@ -13,6 +14,7 @@ fi
 
 echo Generating requirements.dev.txt
 pip-compile --generate-hashes \
+    --allow-unsafe \
     --output-file=/output/requirements.dev.txt \
     /code/requirements/requirements.dev.in
 if [ "$?" -ne 0 ]; then

@@ -235,7 +235,7 @@ def callback(request: HttpRequest):
         token_uri = request.session.get('token_uri', 'unknown token endpoint')
         logger.error(f'Error: failed to get token from {token_uri}')
         logger.error(str(err))
-        return ResponseErrors.Error(err.error if err else 'An unknown error occured')
+        return ResponseErrors.Error('An unknown error occurred')
 
     # If we cannot find a patient id in the tokent, return an error.
     # If we find a non-synthetic id, return an error.

@@ -20,6 +20,7 @@ variable "service_overrides" {
     min_capacity      = optional(number)
     max_capacity      = optional(number)
     health_check_path = optional(string)
+    port              = optional(number)
   }))
   default     = {}
   description = <<-EOT
@@ -138,3 +139,25 @@ variable "peak_scaling" {
   }
   description = "Scheduled scale out for the morning traffic burst"
 }
+
+variable "its_log_image_tag" {
+  type        = string
+  default     = "latest"
+  description = "Image tag for the its-log service"
+}
+
+variable "its_log_environment_variables" {
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  default     = []
+  description = "Non-sensitive environment variables for the its-log container."
+}
+
+variable "its_log_s3_sync_schedule" {
+  type        = string
+  default     = "cron(0 2 * * ? *)"
+  description = "EventBridge Scheduler expression for how often the sync runs. Currently set for daily at 2am UTC"
+}
+

@@ -1080,17 +1080,20 @@ def test_v3_search_passes_through_query_parameter(client, create_token, search_u
 
 @pytest.mark.integration
 @override_switch('v3_endpoints', active=True)
-def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token) -> None:
+def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token, basic_user) -> None:
     """Ensure that if a v3 search EOB call is made with an explicit _security=42CFRPart2 parameter, and the
     access token's AccessTokenExtension has include_samhsa=False, the auto-appended _security:not=42CFRPart2
     conflicts with the explicit _security parameter and BFD returns an OperationOutcome error
     """
+    proxy_user = basic_user('proxy_user', 'proxy_password')
 
     access_token = create_token()
     access_token_extension = AccessTokenExtension()
     access_token_extension.access_token = AccessToken.objects.get(token=access_token)
     access_token_extension.include_samhsa = False
     access_token_extension.part_d_eob_only = False
+    # Demonstrate that access_token_extension records can be saved with a proxy user
+    access_token_extension.proxy = proxy_user
     access_token_extension.save()
 
     url = reverse(SEARCH_EOB_URLS[Versions.V3])
@@ -1138,3 +1141,73 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
     assert 'NCH' not in response.json()['link'][0]['url']
     assert 'NationalClaimsHistory' not in response.json()['link'][0]['url']
     assert '_source=DDPS' in response.json()['link'][0]['url']
+
+
+# Commenting out until the migrations in the BB2-5239 PR have been applied in test, as that should allow
+# these tests to pass in the Github Action (they are failing now, likely due to the migrations not yet
+# being applied in the test env)
+# @pytest.mark.integration
+# def test_access_grant_creation_fails_null_proxy_ids(basic_user, create_application) -> None:
+#     """Confirm that if an attempt is made to create multiple data access grants for a
+#     beneficiary_id/application_id combo that all have a null proxy, that an IntegrityError
+#     is raised.
+
+#     Args:
+#         basic_user: Fixture for a basic_user
+#         create_application: Fixture to create an application
+#     """
+#     bene_user = basic_user('test_user', 'password')
+#     app = create_application('test_app', user=bene_user)
+
+#     DataAccessGrant.objects.create(
+#         application=app,
+#         beneficiary=bene_user,
+#         proxy=None,
+#     )
+#     with pytest.raises(IntegrityError):
+#         DataAccessGrant.objects.create(
+#             application=app,
+#             beneficiary=bene_user,
+#             proxy=None,
+#         )
+
+
+# Commenting out until the migrations in the BB2-5239 PR have been applied in test, as that should allow
+# these tests to pass in the Github Action (they are failing now, likely due to the migrations not yet
+# being applied in the test env)
+# @pytest.mark.integration
+# def test_access_grant_creation_fails_proxy_id_used_multiple_times(basic_user, create_application) -> None:
+#     """Confirm that if an attempt is made to create multiple data access grants for a
+#     beneficiary_id/application_id combo that all have a proxy_id that already exists for
+#     the beneficiary_id/application_id combo, that an IntegrityError is raised.
+
+#     Args:
+#         basic_user: Fixture for a basic_user
+#         create_application: Fixture to create an application
+#     """
+#     bene_user = basic_user('test_user', 'password')
+#     proxy_user = basic_user('proxy_user', 'password')
+#     app = create_application('test_app', user=bene_user)
+
+#     # This is what the data access grant for the bene would look like, with a null proxy
+#     DataAccessGrant.objects.create(
+#         application=app,
+#         beneficiary=bene_user,
+#         proxy=None,
+#     )
+
+#     # This is what the data access grant would look like for the proxy, will create without issue
+#     # as the unique constraint has not been validated
+#     DataAccessGrant.objects.create(
+#         application=app,
+#         beneficiary=bene_user,
+#         proxy=proxy_user,
+#     )
+#     with pytest.raises(IntegrityError):
+#         # Because we already created a data access grant for this proxy, attempting to create
+#         # another one will violate the unique constraint
+#         DataAccessGrant.objects.create(
+#             application=app,
+#             beneficiary=bene_user,
+#             proxy=proxy_user,
+#         )

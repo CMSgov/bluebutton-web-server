@@ -36,8 +36,9 @@ class OAuth2Validator(DotOAuth2Validator):
         return auth_string
 
     def authenticate_client(self, request, *args, **kwargs):
+        supported_grant_types = [CLIENT_CREDENTIALS, 'authorization_code']
         # Try to validate client based on issuer from the client assertion, otherwise use supermethod
-        if getattr(request, 'grant_type', None) == CLIENT_CREDENTIALS:
+        if getattr(request, 'grant_type', None) in supported_grant_types:
             if getattr(request, 'client_assertion_type', None) and getattr(request, 'client_assertion', None):
                 try:
                     payload = jwt.decode(request.client_assertion, options={'verify_signature': False})

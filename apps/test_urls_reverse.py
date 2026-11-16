@@ -15,6 +15,7 @@ EXPECTED = {
     'oauth2_provider_v2:delete-v2': '/v2/o/applications/1234567890/delete/',
     'oauth2_provider:detail': '/v1/o/applications/1234567890/',
     'oauth2_provider_v2:detail-v2': '/v2/o/applications/1234567890/',
+    'oauth2_provider_v3:detail-v3': '/v3/o/applications/1234567890/',
     'oauth2_provider:introspect': '/v1/o/introspect/',
     'oauth2_provider_v2:introspect-v2': '/v2/o/introspect/',
     'oauth2_provider:list': '/v1/o/applications/',

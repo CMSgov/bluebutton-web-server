@@ -14,9 +14,7 @@
                 "meta": {
                     "profile": ["http://hl7.org/fhir/us/identity-matching/StructureDefinition/IDI-Patient"]
                 },
-                "identifier": [],
                 "name": [{"use": "official", "family": "Doe", "given": ["Sam"]}],
-                "telecom": [],
                 "gender": "unknown",
                 "address": [
                     {

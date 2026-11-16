@@ -15,7 +15,7 @@ css:
 requirements:
 	$(MAKE) -C bb-requirements clean build-local run-local
 
-build-local: css requirements
+build-local: css
 	$(MAKE) -C mslsx build-local
 	$(MAKE) -C bb-api build-local
 

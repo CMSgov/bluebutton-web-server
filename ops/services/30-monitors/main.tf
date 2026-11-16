@@ -38,7 +38,7 @@ locals {
 }
 
 module "common_datadog_monitors" {
-  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=2cb7cfb707140f7b9eb8967cbb62eb1c95df9ee9"
+  source = "github.com/CMSgov/cdap/terraform/modules/datadog_monitors?ref=0f7e599e742d5540a7a3a22b7706fe25900598a0"
 
   app             = local.app
   env             = local.env
@@ -158,8 +158,10 @@ locals {
       # TODO can we get sandbox's error rate down so that we can have the same
       # thresholds across envs?
       thresholds = {
-        critical = local.env == "sandbox" ? 0.03 : 0.02
-        warning  = local.env == "sandbox" ? 0.02 : 0.01
+        critical          = local.env == "sandbox" ? 0.03 : 0.02
+        critical_recovery = local.env == "sandbox" ? 0.02 : 0.01
+        warning           = local.env == "sandbox" ? 0.02 : 0.01
+        warning_recovery  = local.env == "sandbox" ? 0.01 : 0.005
       }
 
       on_missing_data = "default"
@@ -180,8 +182,10 @@ locals {
       query = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name}.as_count() > 0.02"
 
       thresholds = {
-        critical = 0.02
-        warning  = 0.01
+        critical          = 0.02
+        critical_recovery = 0.01
+        warning           = 0.01
+        warning_recovery  = 0.005
       }
 
       on_missing_data = "default"
@@ -212,8 +216,10 @@ locals {
       query   = "sum(last_1h):sum:trace.postgres.query.errors{env:${local.env}, service:${local.app}} by {peer.db.name, resource}.as_count() / sum:trace.postgres.query.hits{env:${local.env}, service:${local.app}} by {peer.db.name, resource}.as_count() > 0.02"
 
       thresholds = {
-        critical = 0.02
-        warning  = 0.01
+        critical          = 0.02
+        crtiical_recovery = 0.01
+        warning           = 0.01
+        warning_recovery  = 0.005
       }
 
       on_missing_data = "default"

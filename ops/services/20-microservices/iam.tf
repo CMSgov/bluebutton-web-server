@@ -222,6 +222,11 @@ resource "aws_iam_role_policy_attachment" "execution_guardduty_ecr" {
   policy_arn = aws_iam_policy.guardduty_ecr.arn
 }
 
+resource "aws_iam_role_policy_attachment" "its_log_execution_guardduty_ecr" {
+  role       = aws_iam_role.its_log_execution.name
+  policy_arn = aws_iam_policy.guardduty_ecr.arn
+}
+
 # ============================================================================
 # Task Role (Container: runtime AWS access)
 # ============================================================================

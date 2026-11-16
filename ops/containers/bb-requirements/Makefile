@@ -4,6 +4,7 @@ build-local:
 	@echo "Building container to compile the requirements"
 	docker build \
 		-t bb-requirements:latest \
+		--load \
 		-f Dockerfile ../../..
 
 run-local:
