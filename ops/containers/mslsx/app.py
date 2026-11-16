@@ -184,7 +184,6 @@ def signout():
 
 @app.route('/account/api/proxy/relationship', methods=['GET'])
 def retrieve_relationships():
-    print('WE ARE IN THE OVERRIDE')
     relationships_response = {
         'relationships': [
             {
