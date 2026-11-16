@@ -420,6 +420,7 @@ class OAuth2ConfigSLSx(object):
             allow_redirects=False,
             verify=self.verify_ssl_internal,
         )
+        print('show me the response: ', response)
 
         log_dict = {'type': 'Authentication:relationships_retrieval', 'response_code': response.status_code}
         logger.info(log_dict)
