@@ -211,10 +211,10 @@ class TestAuthorizationView(BaseApiTest):
             'client_id': application.client_id,
             'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
-        # Test that request is unauthorized WITH OUT the client_secret.
+        # Test that request is bad request WITH OUT the client_secret.
         token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
         # Setup application's client_secret
         token_request_data.update({'client_secret': application.client_secret_plain})
