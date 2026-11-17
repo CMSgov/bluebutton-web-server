@@ -3,6 +3,7 @@ import html
 import json
 import logging
 import secrets
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -77,7 +78,7 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import AccessTokenExtension, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
@@ -90,6 +91,7 @@ from apps.dot_ext.utils import (
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
+    validate_symmetric_client_secret,
 )
 from apps.dot_ext.validators import (
     AsymmetricAuthJWTValidator,
@@ -218,9 +220,20 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
+        if 'applicationName' not in self.request.session:
+            self.request.session['applicationName'] = self.application.name
+            self.request.session['applicationURI'] = self.application.website_uri
+        kwargs['applicationName'] = self.request.session['applicationName']
+        if 'unselected' in self.request.session:
+            kwargs['unselected'] = False
+        if 'application' in self.request.session:
+            kwargs['application'] = self.request.session['application']
         if 'selected' not in self.request.session:
             self.request.session['selected'] = ['ds-c-card'] * 6
         kwargs['selected'] = self.request.session['selected']
+        if 'buttonClass' not in self.request.session:
+            self.request.session['buttonClass'] = ['ds-c-button ds-c-button--solid'] * 6
+        kwargs['buttonClass'] = self.request.session['buttonClass']
         if 'targetUser' not in self.request.session:
             self.request.session['targetUser'] = 'your'
         kwargs['targetUser'] = self.request.session['targetUser']
@@ -248,26 +261,34 @@ class AuthorizationView(DotAuthorizationView):
             formattedRelationships[2]['userFirstName'] = 'Gracy'
             formattedRelationships[3]['userFirstName'] = 'Lacy'
             formattedRelationships[4]['userFirstName'] = 'Blacy'
-            formattedRelationships[5]['userFirstName'] = 'Shacy'
+            formattedRelationships[5]['userFirstName'] = 'Shmacy'
             formattedRelationships[3]['expiresAt'] = 1794614400
-            formattedRelationships[4]['expiresAt'] = 1797414400
-            formattedRelationships[5]['expiresAt'] = 1794614400
+            formattedRelationships[4]['expiresAt'] = 1798214400
+            formattedRelationships[5]['expiresAt'] = 1797214400
 
             # expiration date logic
             for index, relationship in enumerate(formattedRelationships):
                 formattedRelationships[index]['divClass'] = kwargs['selected'][index]
+                formattedRelationships[index]['buttonClass'] = kwargs['buttonClass'][index]
                 if relationship['expiresAt'] is not None:
-                    # format expiresAt month/day/year
-                    dt = datetime.fromtimestamp(int(relationship['expiresAt']))
-                    formattedDate = dt.strftime('%m-%d-%Y')
-                    dateText = 'Authorization ends ' + formattedDate
-                    # Is expiresAt less than a month away
-                    now = datetime.now(timezone.utc)
-                    target_dt = datetime.fromtimestamp(int(relationship['expiresAt']), tz=timezone.utc)
-                    diff = abs(target_dt - now)
-                    formattedRelationships[index]['formattedExpiresAt'] = dateText
-                    if diff < timedelta(days=30):
+                    # permission is already expired
+                    if relationship['expiresAt'] <= time.time():
                         formattedRelationships[index]['expiresColor'] = '#FF0000'
+                        formattedRelationships[index]['formattedExpiresAt'] = 'Expired'
+                        formattedRelationships[index]['Expired'] = True
+                    else:
+                        # format expiresAt month/day/year
+                        dt = datetime.fromtimestamp(int(relationship['expiresAt']))
+                        formattedDate = dt.strftime('%m-%d-%Y')
+                        dateText = 'Authorization ends ' + formattedDate
+                        formattedRelationships[index]['formattedExpiresAt'] = dateText
+
+                        # if expiry is less than a month away, red text
+                        diff = int(relationship['expiresAt']) - time.time()
+                        if diff <= (timedelta(days=30).total_seconds()):
+                            formattedRelationships[index]['expiresColor'] = '#FF0000'
+                        else:
+                            formattedRelationships[index]['expiresColor'] = '#000000'
                 else:
                     # indefinite permission
                     formattedRelationships[index]['formattedExpiresAt'] = ''
@@ -352,6 +373,7 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             self.application = validate_app_is_active(request)
+            request.application_id = self.application.id
         except InvalidClientError as error:
             return TemplateResponse(
                 request,
@@ -449,24 +471,25 @@ class AuthorizationView(DotAuthorizationView):
     def post(self, request, *args, **kwargs):
         # Update the variable based on the button clicked
         action = request.POST.get('action')
+        self.request.session['application'] = request.POST.get('application')
+        self.request.session['unselected'] = request.POST.get('false')
         if action is not None and action != '':
             self.request.session['selected'] = ['ds-c-card'] * 6
-            print('we are doing this')
-            print(action)
+            self.request.session['buttonClass'] = ['ds-c-button ds-c-button--solid'] * 6
             if action is not None:
                 self.request.session['selected'][int(action)] = 'ds-c-card-selected'
+                self.request.session['buttonClass'][int(action)] = 'ds-c-button'
             if int(action) != 0:
                 self.request.session['targetUser'] = (
-                    self.request.session['user_relationships'][int(action)]['firstName']
+                    self.request.session['user_relationships'][int(action)]['userFirstName']
                     + ' '
-                    + self.request.session['user_relationships'][int(action)]['lastName']
+                    + self.request.session['user_relationships'][int(action)]['userLastName']
                     + "'s"
                 )
             else:
                 self.request.session['targetUser'] = 'your'
 
             # return redirect(request.path, *args, **kwargs)  # Reloads page to show updated value
-        print(self.request.session['selected'])
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -688,8 +711,9 @@ class ApprovalView(AuthorizationView):
         if hasattr(self, 'oauth2_data'):
             application = self.oauth2_data.get('application', None)
             if application is not None:
-                approval.application = self.oauth2_data.get('application', None)
+                approval.application = application
                 approval.save()
+                print(approval.application)
 
         # Set auth_uuid after super() return
         if auth_flow_dict:
@@ -868,6 +892,19 @@ class TokenView(DotTokenView):
                             },
                             status=HTTPStatus.FORBIDDEN,
                         )
+                else:
+                    is_confidential = getattr(app, 'client_type', '') == Application.CLIENT_CONFIDENTIAL
+                    # Only validate client secret for confidential apps
+                    if is_confidential:
+                        passes_cs_validation, cs_error_message = validate_symmetric_client_secret(request)
+                        if not passes_cs_validation:
+                            return JsonResponse(
+                                {
+                                    'status_code': HTTPStatus.BAD_REQUEST,
+                                    'message': cs_error_message,
+                                },
+                                status=HTTPStatus.BAD_REQUEST,
+                            )
             elif grant_type == CLIENT_CREDENTIALS:
                 # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
                 # in logs for client_credentials calls. This enables us to track CAN metrics app by app

@@ -78,20 +78,6 @@ def account_settings(request):
     return render(request, 'account-settings.html', {'name': name, 'form': form})
 
 
-@never_cache
-@login_required
-def account_select(request):
-    name = _('Select an account to manage')
-    up, created = UserProfile.objects.get_or_create(user=request.user)
-    print(up)
-    print(request)
-    print(request.get)
-    for item in list(request):
-        print(str(item) + ': ' + str(request[item]))
-    relationships = []
-    return render(request, 'account-select.html', {'name': name, 'user': up, 'relationships': relationships})
-
-
 def activation_verify(request, activation_key):
     is_valid, msg = validate_activation_key(activation_key)
     if is_valid:

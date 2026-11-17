@@ -12,6 +12,7 @@ set_slsx () {
     export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
     export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
     export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+    export DJANGO_SLSX_RELATIONSHIPS_ENDPOINT="https://test.medicare.gov/account/api/proxy/relationship?my-position=user"
 }
 
 set_msls () {
@@ -22,11 +23,13 @@ set_msls () {
         export DJANGO_SLSX_TOKEN_ENDPOINT="http://mslsx:8080/sso/session"
         export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://mslsx:8080/sso/signout"
         export DJANGO_SLSX_USERINFO_ENDPOINT="http://mslsx:8080/v1/users"
+        export DJANGO_SLSX_RELATIONSHIPS_ENDPOINT="http://mslsx:8080/account/api/proxy/relationship?my-position=user"
     else
         export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://localhost:8080/sso/authorize?client_id=bb2api"
         export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://localhost:8080/health"
         export DJANGO_SLSX_TOKEN_ENDPOINT="http://localhost:8080/sso/session"
         export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://localhost:8080/sso/signout"
         export DJANGO_SLSX_USERINFO_ENDPOINT="http://localhost:8080/v1/users"
+        export DJANGO_SLSX_RELATIONSHIPS_ENDPOINT="http://localhost:8080/account/api/proxy/relationship?my-position=user"
     fi
 }

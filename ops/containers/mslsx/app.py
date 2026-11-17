@@ -166,6 +166,7 @@ def userinfo(usr):
                     'lastName': user_info['last_name'],
                     'hicn': user_info['hicn'],
                     'mbi': user_info['mbi'],
+                    'isCspUser': True,
                 },
             },
         }
@@ -179,6 +180,60 @@ def userinfo(usr):
 @app.route('/sso/signout', methods=['GET'])
 def signout():
     return make_response(jsonify({'message': 'signed out.'}), 302)
+
+
+@app.route('/account/api/proxy/relationship', methods=['GET'])
+def retrieve_relationships():
+    relationships_response = {
+        'relationships': [
+            {
+                'id': '1404f7a1-c33f-480e-9925-23a34b1f7ce5',
+                'userFirstName': 'John',
+                'userLastName': 'Smith',
+                'beneFirstName': 'Jane',
+                'beneLastName': 'Smith',
+                'role': 'full',
+                'roleLevel': 90,
+                'status': 'active',
+                'expiresAt': None,
+                'createdTime': 1794602487,
+                'updatedTime': 1794602487,
+                'proxyType': 'caregiver',
+                'scopes': ['enrollment'],
+            },
+            {
+                'id': '1404f7a1-c33f-480e-9925-23a34b1f7ce5',
+                'userFirstName': 'John',
+                'userLastName': 'Smith',
+                'beneFirstName': 'Test',
+                'beneLastName': 'Smith',
+                'role': 'full',
+                'roleLevel': 90,
+                'status': 'active',
+                'expiresAt': 1826138478,
+                'createdTime': 1794602487,
+                'updatedTime': 1794602487,
+                'proxyType': 'caregiver',
+                'scopes': ['enrollment'],
+            },
+            {
+                'id': '1404f7a1-c33f-480e-9925-23a34b1f7ce5',
+                'userFirstName': 'John',
+                'userLastName': 'Smith',
+                'beneFirstName': 'Test',
+                'beneLastName': 'Smith',
+                'role': 'full',
+                'roleLevel': 10,
+                'status': 'active',
+                'expiresAt': None,
+                'createdTime': 1794602487,
+                'updatedTime': 1794602487,
+                'proxyType': 'caregiver',
+                'scopes': ['enrollment'],
+            },
+        ]
+    }
+    return make_response(jsonify(relationships_response))
 
 
 if __name__ == '__main__':

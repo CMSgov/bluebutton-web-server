@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.forms.widgets import URLInput
 from django.utils.translation import gettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
+from oauth2_provider.generators import generate_client_secret
 from oauth2_provider.models import get_application_model
 
 from apps.accounts.models import UserProfile
@@ -18,6 +19,9 @@ from apps.constants import HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.constants import (
     BENE_PERSONAL_INFO_SCOPES,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
+    GENERATE_CLIENT_SECRET,
+    NO_CHANGE,
+    NO_CLIENT_SECRET,
     PRINTABLE_SPECIAL_ASCII,
 )
 from apps.dot_ext.models import Application, InternalApplicationLabels
@@ -232,6 +236,14 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     ]
     user_mode = forms.ChoiceField(choices=USER_CHOICES, widget=forms.RadioSelect, initial='new', required=True)
 
+    CLIENT_SECRET_ACTION_CHOICES = [
+        (GENERATE_CLIENT_SECRET, 'Generate a client secret'),
+        (NO_CLIENT_SECRET, 'Do not generate a client secret'),
+    ]
+    client_secret_action = forms.ChoiceField(
+        choices=CLIENT_SECRET_ACTION_CHOICES, initial=GENERATE_CLIENT_SECRET, required=True
+    )
+
     def __init__(self, *args, **kwargs):
         user = None
         super().__init__(user, *args, **kwargs)
@@ -244,6 +256,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         self.fields['user_mode'].label = 'User Mode*'
         self.fields['scope'].label = 'Scopes*'
         self.fields['allowed_auth_type'].label = 'Allowed Auth Type*'
+        self.fields['client_secret_action'].label = 'Client Secret Action*'
         self.fields['internal_application_labels'] = forms.ModelMultipleChoiceField(
             queryset=InternalApplicationLabels.objects.all(), widget=forms.SelectMultiple
         )
@@ -256,6 +269,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
         fields = (
             'data_access_type',
             'name',
+            'client_secret_action',
             'user_mode',
             'user',
             'organization_name',
@@ -277,29 +291,35 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
             'part_d_eob_only',
         )
 
-    def clean_user(self):
-        user_mode = self.cleaned_data.get('user_mode')
-        user = self.cleaned_data.get('user')
-        # Validate that the user field is filled out correctly based on the user_mode selection
-        if user_mode == 'existing' and not user:
-            raise forms.ValidationError(
-                'You must select an existing user when choosing the "Choose Existing User" option.'
-            )
-        elif user_mode == 'new' and user:
-            raise forms.ValidationError('You cannot select a user when choosing the "Create New User" option.')
-
-        return user
-
     @override
     def clean(self):
+        if 'user_mode' in self.cleaned_data and 'user' in self.cleaned_data:
+            user_mode = self.cleaned_data.get('user_mode')
+            user = self.cleaned_data.get('user')
+            # Validate that the user field is filled out correctly based on the user_mode selection
+            if user_mode == 'existing' and not user:
+                raise forms.ValidationError(
+                    'You must select an existing user when choosing the "Choose Existing User" option.'
+                )
+            elif user_mode == 'new' and user:
+                raise forms.ValidationError('You cannot select a user when choosing the "Create New User" option.')
 
-        # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
-        if self.cleaned_data.get(
-            'allowed_auth_type'
-        ) in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not self.cleaned_data.get('jwks_uri'):
-            raise forms.ValidationError(
-                "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
-            )
+        if 'jwks_uri' and 'client_secret_action' in self.cleaned_data:
+            jwks_uri = self.cleaned_data.get('jwks_uri')
+            client_secret_action = self.cleaned_data.get('client_secret_action')
+            if not jwks_uri and client_secret_action == NO_CLIENT_SECRET:
+                raise forms.ValidationError(
+                    f'The jwks_uri cannot be empty when client_secret_action is {NO_CLIENT_SECRET}.'
+                )
+
+        if 'allowed_auth_type' in self.cleaned_data and 'jwks_uri' in self.cleaned_data:
+            allowed_auth_type = self.cleaned_data.get('allowed_auth_type')
+            jwks_uri = self.cleaned_data.get('jwks_uri')
+            # Ensure that jwks_uri is not null when allowed_auth_type is 'client_credentials' or 'both'
+            if allowed_auth_type in CLIENT_CREDENTIALS_SUPPORTED_TYPES and not jwks_uri:
+                raise forms.ValidationError(
+                    "The jwks_uri cannot be empty when allowed_auth_type is 'client_credentials' or 'both'."
+                )
 
         if 'require_demographic_scopes' in self.cleaned_data and 'scope' in self.cleaned_data:
             require_demographic_scopes = self.cleaned_data['require_demographic_scopes']
@@ -326,6 +346,7 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
     @override
     def save(self, *args, **kwargs):
         user_mode = self.cleaned_data.get('user_mode')
+        client_secret_action = self.cleaned_data.get('client_secret_action')
         app = self.instance
         # If the application is new (i.e., it doesn't have a primary key yet), we set some default values for the application fields.
         if app.pk is None:
@@ -351,8 +372,21 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
                 organization_name=self.cleaned_data.get('organization_name'),
             )
             app.user = new_user_model
+
+        if client_secret_action == NO_CLIENT_SECRET:
+            app.hash_client_secret = False
+            app.client_secret = ''
+            app.client_secret_plain = ''
+        elif client_secret_action == GENERATE_CLIENT_SECRET:
+            app.hash_client_secret = True
+            app.client_secret_plain = generate_client_secret()
+            app.client_secret = app.client_secret_plain
+        elif client_secret_action == NO_CHANGE:
+            pass
+
         # Use Models.form save here and not CustomRegisterApplicationForm's save method here,
-        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's save method to run here, since we already handle those in this form's save method.
+        # because we don't want the scopes override or agree logging parts of CustomRegisterApplicationForm's
+        # save method to run here
         app = super(CustomRegisterApplicationForm, self).save(*args, **kwargs)
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None))
         if uri:
@@ -362,15 +396,23 @@ class CreateApplicationForm(CustomRegisterApplicationForm):
 
 
 class EditApplicationForm(CreateApplicationForm):
+    CLIENT_SECRET_ACTION_CHOICES = [
+        (GENERATE_CLIENT_SECRET, 'Generate a new client secret'),
+        (NO_CLIENT_SECRET, 'Remove the existing client secret'),
+        # Add a choice to leave the existing client secret unchanged,
+        # which is the default behavior when editing an application
+        (NO_CHANGE, 'Leave the existing client secret unchanged'),
+    ]
+    client_secret_action = forms.ChoiceField(choices=CLIENT_SECRET_ACTION_CHOICES, initial=NO_CHANGE, required=True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # We don't want the ability to choose the user type for editing an application,
-        # so we hide it from the form and set it to an 'existing' user type.
+        # We don't need the ability to choose the user mode for editing an application,
+        # so we hide it from the form and set it to an 'existing' user mode.
         if 'user_mode' in self.fields:
             self.fields['user_mode'].initial = 'existing'
             self.fields['user_mode'].widget = forms.HiddenInput()
             self.fields['user_mode'].required = False
-        # User field is required for editing an application, so we set it to required and change the label
         self.fields['user'].label = 'User*'
         self.fields['user'].required = True
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
@@ -389,6 +431,7 @@ class EditApplicationForm(CreateApplicationForm):
         model = get_application_model()
         fields = (
             'data_access_type',
+            'client_secret_action',
             'client_id',
             'user',
             'client_type',
@@ -423,16 +466,6 @@ class EditApplicationForm(CreateApplicationForm):
             'allowed_auth_type',
             'part_d_eob_only',
         )
-
-    @override
-    def clean_user(self):
-        # We handle the user being required in the form init, so we just return the cleaned data here
-        return self.cleaned_data.get('user')
-
-    @override
-    def save(self, *args, **kwargs):
-        app = super().save(*args, **kwargs)
-        return app
 
 
 class SimpleAllowForm(DotAllowForm):
