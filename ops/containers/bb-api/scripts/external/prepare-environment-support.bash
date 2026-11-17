@@ -258,6 +258,7 @@ configure_slsx () {
         DJANGO_SLSX_TOKEN_ENDPOINT="http://${MSLSX_HOST}:8080/sso/session"
         DJANGO_SLSX_SIGNOUT_ENDPOINT="http://${MSLSX_HOST}:8080/sso/signout"
         DJANGO_SLSX_USERINFO_ENDPOINT="http://${MSLSX_HOST}:8080/v1/users"
+        DJANGO_SLSX_RELATIONSHIPS_ENDPOINT="http://${MSLSX_HOST}:8080/account/api/proxy/relationship?my-position=user"
         
         DJANGO_SLSX_CLIENT_ID=bb2api
         DJANGO_SLSX_CLIENT_SECRET="xxxxx"

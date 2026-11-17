@@ -26,6 +26,7 @@ else
     DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT:-"https://test.medicare.gov/sso/session"}
     DJANGO_SLSX_SIGNOUT_ENDPOINT=${DJANGO_SLSX_SIGNOUT_ENDPOINT:-"https://test.medicare.gov/sso/signout"}
     DJANGO_SLSX_USERINFO_ENDPOINT=${DJANGO_SLSX_USERINFO_ENDPOINT:-"https://test.accounts.cms.gov/v1/users"}
+    DJANGO_SLSX_RELATIONSHIPS_ENDPOINT=${DJANGO_SLSX_RELATIONSHIPS_ENDPOINT:-"https://test.medicare.gov/account/api/proxy/relationship?my-position=user"}
 fi
 
 if [ "${DB_MIGRATIONS}" = true ]
