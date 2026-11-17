@@ -102,6 +102,8 @@ load_env_vars () {
         export SUPER_USER_PASSWORD="${SUPER_USER_PASSWORD:-blue123}"
         export MIGRATE="${MIGRATE}"
         export COLLECTSTATIC="${COLLECTSTATIC}"
+        export ITS_LOG_API_ENABLED="${ITS_LOG_API_ENABLED:-false}"
+        export ITSLOG_APIKEY="${ITSLOG_APIKEY}"
         return 0
     else
         echo "⛔ Cannot load env vars for non-local environments."
@@ -256,6 +258,7 @@ configure_slsx () {
         DJANGO_SLSX_TOKEN_ENDPOINT="http://${MSLSX_HOST}:8080/sso/session"
         DJANGO_SLSX_SIGNOUT_ENDPOINT="http://${MSLSX_HOST}:8080/sso/signout"
         DJANGO_SLSX_USERINFO_ENDPOINT="http://${MSLSX_HOST}:8080/v1/users"
+        DJANGO_SLSX_RELATIONSHIPS_ENDPOINT="http://${MSLSX_HOST}:8080/account/api/proxy/relationship?my-position=user"
         
         DJANGO_SLSX_CLIENT_ID=bb2api
         DJANGO_SLSX_CLIENT_SECRET="xxxxx"
