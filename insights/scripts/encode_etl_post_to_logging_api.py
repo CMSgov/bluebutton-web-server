@@ -16,11 +16,14 @@ import requests
 
 ETL_FILE_EXTENSIONS = ['.star', '.sql', '.go']
 ETL_FILE_DIR = 'insights/etls'
-ETL_CREATION_ENDPOINT = 'http://localhost:8888/v1/etl/create'
-SEQUENCE_CREATION_ENDPOINT = 'http://localhost:8888/v1/sequence/create'
 ETL_DIRECTORY = Path('insights/etls')
 # Can't use settings in this script so retrieve via getenv
 API_KEY = os.getenv('ITSLOG_APIKEY')
+ITSLOG_SERVE_HOST = os.getenv('ITSLOG_SERVE_HOST')
+ITSLOG_SERVE_PORT = os.getenv('ITSLOG_SERVE_PORT')
+ITSLOG_BASE_URL = f'http://{ITSLOG_SERVE_HOST}:{ITSLOG_SERVE_PORT}'
+ETL_CREATION_ENDPOINT = f'http://{ITSLOG_SERVE_HOST}:{ITSLOG_SERVE_PORT}/v1/etl/create'
+SEQUENCE_CREATION_ENDPOINT = f'http://{ITSLOG_SERVE_HOST}:{ITSLOG_SERVE_PORT}/v1/sequence/create'
 
 
 def encode_file(file_path: Path) -> str:

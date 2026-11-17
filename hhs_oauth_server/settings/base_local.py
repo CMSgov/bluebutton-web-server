@@ -192,6 +192,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
 ITSLOG_APIKEY = env('ITSLOG_APIKEY', default=None)
+ITSLOG_SERVE_HOST = env('ITSLOG_SERVE_HOST', default='host.docker.internal')
+ITSLOG_SERVE_PORT = env('ITSLOG_SERVE_PORT', default='8888')
+
+ITSLOG_BASE_URL = f'http://{ITSLOG_SERVE_HOST}:{ITSLOG_SERVE_PORT}'
 
 
 def _add_its_log_api_handler(loggers_list):

@@ -104,6 +104,8 @@ load_env_vars () {
         export COLLECTSTATIC="${COLLECTSTATIC}"
         export ITS_LOG_API_ENABLED="${ITS_LOG_API_ENABLED:-false}"
         export ITSLOG_APIKEY="${ITSLOG_APIKEY}"
+        export ITSLOG_SERVE_HOST="${ITSLOG_SERVE_HOST:-host.docker.internal}"
+        export ITSLOG_SERVE_PORT="${ITSLOG_SERVE_PORT:-8888}"
         return 0
     else
         echo "⛔ Cannot load env vars for non-local environments."

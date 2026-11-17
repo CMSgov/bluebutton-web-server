@@ -59,7 +59,7 @@ class ITSLogAPIHandler(logging.Handler):
     Fires asynchronously so it never blocks the main thread.
     """
 
-    API_URL = 'http://host.docker.internal:8888/v1/log/create'
+    API_URL = f'http://{settings.ITSLOG_SERVE_HOST}:{settings.ITSLOG_SERVE_PORT}'
     API_KEY = settings.ITSLOG_APIKEY
     executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='its-log')
 
