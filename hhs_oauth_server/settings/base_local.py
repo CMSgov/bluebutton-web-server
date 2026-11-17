@@ -190,6 +190,19 @@ CACHES = {
 # keep backward compatible with AutoField instead of BigAutoField
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
+ITS_LOG_API_ENABLED = env.bool('ITS_LOG_API_ENABLED', default=False)
+ITSLOG_APIKEY = env('ITSLOG_APIKEY', default=None)
+
+
+def _add_its_log_api_handler(loggers_list):
+    """Check if the ITS_LOG_API_ENABLED env var is set to True. If it is, append the
+    its_log_api logging handler, so we ping the ITS Log API
+    """
+    if ITS_LOG_API_ENABLED:
+        loggers_list.append('its_log_api')
+    return loggers_list
+
+
 # Use env-specific logging config if present
 LOGGING = {
     'version': 1,
@@ -204,6 +217,10 @@ LOGGING = {
         },
     },
     'handlers': {
+        'its_log_api': {
+            '()': 'apps.logging.its_log_handler.ITSLogAPIHandler',
+            'level': 'INFO',
+        },
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
@@ -222,7 +239,7 @@ LOGGING = {
         #     'handlers': ['console'],
         # },
         'hhs_server': {
-            'handlers': ['console'],
+            'handlers': _add_its_log_api_handler(['console']),
             'level': 'DEBUG',
         },
         'hhs_oauth_server.accounts': {
@@ -250,7 +267,7 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'audit': {
-            'handlers': ['console'],
+            'handlers': _add_its_log_api_handler(['console']),
             'level': 'INFO',
         },
         'performance': {
