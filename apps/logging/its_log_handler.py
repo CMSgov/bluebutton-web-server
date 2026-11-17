@@ -59,7 +59,7 @@ class ITSLogAPIHandler(logging.Handler):
     Fires asynchronously so it never blocks the main thread.
     """
 
-    API_URL = f'http://{settings.ITSLOG_SERVE_HOST}:{settings.ITSLOG_SERVE_PORT}'
+    API_URL = f'http://{settings.ITSLOG_SERVE_HOST}:{settings.ITSLOG_SERVE_PORT}/v1/log/create'
     API_KEY = settings.ITSLOG_APIKEY
     executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='its-log')
 
@@ -125,6 +125,7 @@ class ITSLogAPIHandler(logging.Handler):
 
         return {
             'tags': tags,
+            # Needs to be data instead of value but the its-log image running currently looks for value
             'value': json.dumps(filtered_log),
             'type': 'text',
         }
@@ -187,8 +188,8 @@ class ITSLogAPIHandler(logging.Handler):
         """
         logger.debug(f'Payload for its-log: {json.dumps(payload)}')
         try:
-            requests.post(self.API_URL, headers={'x-api-key': self.API_KEY}, json=payload, timeout=5)
-            logger.info('Successfully posted to its-log')
+            response = requests.post(self.API_URL, headers={'x-api-key': self.API_KEY}, json=payload, timeout=5)
+            logger.info(f'Successfully posted to its-log: {response.json()}')
         except Exception:
             # Do not let ITS-log failures crash BlueButton
             logger.error('Failed to post to its-log API')
