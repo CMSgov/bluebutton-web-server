@@ -102,6 +102,10 @@ $gradient-card-border-color: #dddddd;
     margin: 0 0 0.5rem 0;
     text-transform: uppercase;
   }
+  h1,
+  h1[class] {
+	  font-size: var(--font-size-3xl);
+  }
   p {
     color: $white;
     margin-bottom: 2rem;

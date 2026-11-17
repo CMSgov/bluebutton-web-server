@@ -28,7 +28,7 @@ $banner-sandbox-gradient-accent: #9e8ff3;
     // Adds left padding on large screens - specifically for the static site (overwritten in sandbox section below)
     @media #{$large-desktop} {
       padding-left: 20% !important;
-      max-width: 50vw;
+      min-width: 60vw;
     }
     @media #{$macbook-pro} {
       padding-left: 5% !important;
