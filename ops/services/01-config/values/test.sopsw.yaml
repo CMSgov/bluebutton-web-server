@@ -103,7 +103,7 @@
 /bb/test/its-log/nonsensitive/itslog_proxies_trusted: TBD
 /bb/test/its-log/nonsensitive/itslog_storage_path: its-log/data
 /bb/test/its-log/nonsensitive/its_log_repo_name: cdap-its-log
-/bb/test/its-log/sensitive/itslog_apikey: ENC[AES256_GCM,data:3sx92OynYjYhjbsdPLzwAu+2dbgDPPKpwNTm5Xv3yKPHdrDd43PwdtsBsdilfreipYvzfGS+8eZF2RfbnOatxg==,iv:BH77KQAMgaUTAojUyEnleKVHR2KXMe3mlA9wcMjJQKE=,tag:tWXf+mxPthX8Q+HIratdTw==,type:str]
+/bb/test/app/sensitive/itslog_apikey: ENC[AES256_GCM,data:zOdlcS8DNbKYArl66OspGTtUo6mr6D2hdLjW2MiANmDafGfmMMuXjDvk8xh3QAkjh2LBsSmz611yi48GvEJHVw==,iv:gKp8WOJGLqdyhC0qj0I2wdMQGmnV6VHoOfgpniIedEU=,tag:fkA+Wd7/lBibqie5dsJ9tQ==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias
