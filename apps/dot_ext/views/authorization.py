@@ -220,10 +220,10 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
-        if 'applicationName' not in self.request.session:
-            self.request.session['applicationName'] = self.application.name
-            self.request.session['applicationURI'] = self.application.website_uri
-        kwargs['applicationName'] = self.request.session['applicationName']
+        # if 'applicationName' not in self.request.session:
+        #    self.request.session['applicationName'] = self.application.name
+        #    self.request.session['applicationURI'] = self.application.website_uri
+        # kwargs['applicationName'] = self.request.session['applicationName']
         if 'unselected' in self.request.session:
             kwargs['unselected'] = False
         if 'application' in self.request.session:
