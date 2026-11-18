@@ -1,0 +1,1 @@
+DELETE FROM itslog_summary WHERE id NOT IN (SELECT MAX(id) FROM itslog_summary GROUP BY operation, tags) RETURNING 0;
