@@ -13,6 +13,7 @@ from apps.authorization.models import update_grants
 from apps.capabilities.models import ProtectedCapability
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET, USER_TYPE_BENEFICIARY
 from apps.dot_ext.models import Application
+from apps.dot_ext.utils import token_checksum
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.testclient.constants import TEST_APP_POSTMAN_CALLBACK, TESTCLIENT_REDIRECT_URI
 
@@ -136,7 +137,7 @@ def create_test_token(the_user, the_app):
     # We have to have a tokent with token='sample-token-string', because we
     # rely on it existing for unit tests. Which are actually integration tests.
     if AccessToken.objects.filter(token='sample-token-string').exists():
-        t = AccessToken.objects.get(token='sample-token-string')
+        t = AccessToken.objects.get(token_checksum=token_checksum('sample-token-string'))
         t.expires = expires
         t.save()
     else:

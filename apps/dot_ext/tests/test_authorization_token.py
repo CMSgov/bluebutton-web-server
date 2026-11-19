@@ -36,6 +36,7 @@ from apps.dot_ext.models import AccessTokenExtension, Application
 from apps.dot_ext.utils import (
     get_application_from_data,
     get_application_from_meta,
+    token_checksum,
     validate_app_is_active,
 )
 from apps.dot_ext.views import TokenView
@@ -457,7 +458,7 @@ class TestTokenResponseFields(BaseApiTest):
                 # BB2-4965: Even though patient/AuditEvent.rs was not in the requested scopes, it was automatically added
                 # to the token scope as all client_credentials auth flows should result in a token with patient/AuditEvent.rs
                 # on it
-                access_token = get_access_token_model().objects.get(token=data['access_token'])
+                access_token = get_access_token_model().objects.get(token_checksum=token_checksum(data['access_token']))
                 assert AUDIT_EVENT_SCOPE in access_token.scope
 
                 refresh_request_data = {

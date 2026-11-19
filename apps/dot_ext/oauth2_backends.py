@@ -10,7 +10,7 @@ from apps.dot_ext.loggers import (
     update_session_auth_flow_trace_from_code,
     update_session_auth_flow_trace_from_request,
 )
-from apps.dot_ext.utils import get_api_version_number_from_url
+from apps.dot_ext.utils import get_api_version_number_from_url, token_checksum
 from apps.fhir.bluebutton.models import Crosswalk
 
 
@@ -38,7 +38,8 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         # https://github.com/evonove/django-oauth-toolkit/blob/2cd1f0dccadb8e74919a059d9b4985f9ecb1d59f/oauth2_provider/views/base.py#L192
         if status == 200:
             fhir_body = json.loads(body)
-            token = AccessToken.objects.get(token=fhir_body.get('access_token'))
+            checksum = token_checksum(fhir_body.get('access_token'))
+            token = AccessToken.objects.get(token_checksum=checksum)
 
             if Crosswalk.objects.filter(user=token.user).exists():
                 cw = Crosswalk.objects.get(user=token.user)

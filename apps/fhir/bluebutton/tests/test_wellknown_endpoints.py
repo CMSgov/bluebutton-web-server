@@ -4,6 +4,7 @@ from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_flag, override_switch
 
 from apps.constants import APPLICATION_DOES_NOT_HAVE_V3_ENABLED_YET, DEFAULT_SAMPLE_FHIR_ID_V2
+from apps.dot_ext.utils import token_checksum
 from apps.fhir.constants import BASEURL, PAGE_NOT_FOUND_TESTS, TESTS, Appropriate, MissingFields, Status
 from apps.test import BaseApiTest
 
@@ -21,7 +22,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     @override_flag('v3_early_adopter', active=False)
     def test_userinfo_returns_403(self):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token=first_access_token)
+        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
         ac.save()
 
         response = self.client.get(f'{BASEURL}/v3/connect/userinfo', Authorization='Bearer %s' % (first_access_token))
@@ -33,7 +34,7 @@ class BlueButtonTestEndpoints(BaseApiTest):
     @override_flag('v3_early_adopter', active=True)
     def test_userinfo_returns_200(self):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token=first_access_token)
+        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
         ac.save()
 
         response = self.client.get(f'{BASEURL}/v3/connect/userinfo', Authorization='Bearer %s' % (first_access_token))

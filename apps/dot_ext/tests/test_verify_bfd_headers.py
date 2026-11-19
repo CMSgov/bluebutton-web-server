@@ -9,6 +9,7 @@ from oauth2_provider.models import AccessToken
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
+from apps.dot_ext.utils import token_checksum
 from apps.fhir.bluebutton.signals import pre_fetch
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.test import BaseApiTest
@@ -94,7 +95,7 @@ class TestBFDHeaders(BaseApiTest):
             # Now we have a token and refresh token
             tkn = response.json()['access_token']
 
-        t = AccessToken.objects.get(token=tkn)
+        t = AccessToken.objects.get(token_checksum=token_checksum(tkn))
         return t
 
     def test_fhir_request_has_header(self):

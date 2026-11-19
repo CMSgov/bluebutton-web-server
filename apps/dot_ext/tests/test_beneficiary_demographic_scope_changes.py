@@ -14,6 +14,7 @@ from waffle.testutils import override_switch
 
 from apps.authorization.models import ArchivedDataAccessGrant, DataAccessGrant
 from apps.dot_ext.models import Application, ArchivedToken
+from apps.dot_ext.utils import token_checksum
 from apps.test import BaseApiTest
 
 
@@ -41,7 +42,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
 
         response.status_code
         content = json.loads(response.content.decode('utf-8'))
-        token = AccessToken.objects.get(token=content['access_token'])
+        token = AccessToken.objects.get(token_checksum=token_checksum(content['access_token']))
         refresh_token = content['refresh_token']
         response_scopes = sorted(content['scope'].split())
         access_token_scopes = sorted(token.scope.split())
@@ -168,7 +169,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(response_scopes, sorted(APPLICATION_SCOPES_FULL))
 
         # Assert token scopes
-        token = AccessToken.objects.get(token=content['access_token'])
+        token = AccessToken.objects.get(token_checksum=token_checksum(content['access_token']))
         access_token_scopes = sorted(token.scope.split())
         self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
