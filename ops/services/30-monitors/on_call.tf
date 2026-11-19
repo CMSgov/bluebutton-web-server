@@ -3,7 +3,7 @@ locals {
 }
 
 resource "datadog_monitor" "on_call_health" {
-  for_each = local.env == "test" ? {} : datadog_synthetics_test.health
+  for_each = local.env == "test" ? {} : { for k, v in datadog_synthetics_test.health : k => { id = v.id, name = v.name } }
 
   name    = "[${upper(local.env)}] [${local.app}] On Call — Synthetics ${each.key}"
   type    = "query alert"
@@ -31,7 +31,7 @@ resource "datadog_monitor" "on_call_health" {
 }
 
 resource "datadog_monitor" "on_call_fhir_endpoints" {
-  for_each = local.env == "test" ? {} : datadog_synthetics_test.fhir_endpoints
+  for_each = local.env == "test" ? {} : { for k, v in datadog_synthetics_test.fhir_endpoints : k => { id = v.id, name = v.name } }
 
   name    = "[${upper(local.env)}] [${local.app}] On Call — Synthetics ${each.key}"
   type    = "query alert"
@@ -56,7 +56,7 @@ resource "datadog_monitor" "on_call_fhir_endpoints" {
 }
 
 resource "datadog_monitor" "on_call_userinfo_endpoints" {
-  for_each = local.env == "test" ? {} : datadog_synthetics_test.userinfo_endpoints
+  for_each = local.env == "test" ? {} : { for k, v in datadog_synthetics_test.userinfo_endpoints : k => { id = v.id, name = v.name } }
 
   name    = "[${upper(local.env)}] [${local.app}] On Call — Synthetics ${each.key}"
   type    = "query alert"
@@ -81,7 +81,7 @@ resource "datadog_monitor" "on_call_userinfo_endpoints" {
 }
 
 resource "datadog_monitor" "on_call_insurance_card_endpoints" {
-  for_each = local.env == "test" ? {} : datadog_synthetics_test.insurance_card_endpoints
+  for_each = local.env == "test" ? {} : { for k, v in datadog_synthetics_test.insurance_card_endpoints : k => { id = v.id, name = v.name } }
 
   name    = "[${upper(local.env)}] [${local.app}] On Call — Synthetics ${each.key}"
   type    = "query alert"
@@ -106,11 +106,11 @@ resource "datadog_monitor" "on_call_insurance_card_endpoints" {
 }
 
 locals {
-  on_call_all_endpoint_monitors = merge(
+  on_call_all_endpoint_monitors = [for monitor in merge(
     datadog_monitor.on_call_fhir_endpoints,
     datadog_monitor.on_call_userinfo_endpoints,
     datadog_monitor.on_call_insurance_card_endpoints,
-  )
+  ) : { id = monitor.id, name = monitor.name }]
 
   on_call_composite_groups = [
     for version in local.versions : {
@@ -130,7 +130,7 @@ resource "datadog_monitor" "on_call_api_endpoints_composite" {
   message = <<-EOT
   One or more synthetics tests have failed over the failure duration limit for on call.
 
-  [Contains these tests](https://app.ddog-gov.com/synthetics/tests?query=${urlencode("monitor_id:(${join(" OR ", each.value.monitor_ids)})")}&from_ts={{eval "last_triggered_at_epoch-${local.monitor_config.synthetics.min_failure_duration}*1000"}}&to_ts={{last_triggered_at_epoch}}&live=false)
+  [Contains these monitors](https://app.ddog-gov.com/monitors/manage?q=${urlencode("id:(${join(" OR ", each.value.monitor_ids)})")})
 
   ${module.common_datadog_monitors.notify}
   ${module.common_datadog_monitors.victorops_notify}

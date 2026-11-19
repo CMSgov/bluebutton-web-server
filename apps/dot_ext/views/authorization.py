@@ -76,7 +76,7 @@ from apps.dot_ext.loggers import (
     set_session_auth_flow_trace_value,
     update_instance_auth_flow_trace_with_code,
 )
-from apps.dot_ext.models import AccessTokenExtension, Approval
+from apps.dot_ext.models import AccessTokenExtension, Application, Approval
 from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.utils import (
@@ -89,6 +89,7 @@ from apps.dot_ext.utils import (
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
+    validate_symmetric_client_secret,
 )
 from apps.dot_ext.validators import (
     AsymmetricAuthJWTValidator,
@@ -794,6 +795,19 @@ class TokenView(DotTokenView):
                             },
                             status=HTTPStatus.FORBIDDEN,
                         )
+                else:
+                    is_confidential = getattr(app, 'client_type', '') == Application.CLIENT_CONFIDENTIAL
+                    # Only validate client secret for confidential apps
+                    if is_confidential:
+                        passes_cs_validation, cs_error_message = validate_symmetric_client_secret(request)
+                        if not passes_cs_validation:
+                            return JsonResponse(
+                                {
+                                    'status_code': HTTPStatus.BAD_REQUEST,
+                                    'message': cs_error_message,
+                                },
+                                status=HTTPStatus.BAD_REQUEST,
+                            )
             elif grant_type == CLIENT_CREDENTIALS:
                 # Set this so we can retrieve the app name in request_logger.py, so the app_name is available
                 # in logs for client_credentials calls. This enables us to track CAN metrics app by app
