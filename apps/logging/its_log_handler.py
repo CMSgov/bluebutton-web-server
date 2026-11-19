@@ -60,7 +60,7 @@ class ITSLogAPIHandler(logging.Handler):
     """
 
     API_URL = f'http://{settings.ITSLOG_SERVE_HOST}:{settings.ITSLOG_SERVE_PORT}/v1/log/create'
-    API_KEY = settings.ITSLOG_APIKEY
+    LOG_API_KEY = settings.ITSLOG_APIKEY_LOG
     executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='its-log')
 
     def emit(self, record) -> None:
@@ -188,7 +188,7 @@ class ITSLogAPIHandler(logging.Handler):
         """
         logger.debug(f'Payload for its-log: {json.dumps(payload)}')
         try:
-            response = requests.post(self.API_URL, headers={'x-api-key': self.API_KEY}, json=payload, timeout=5)
+            response = requests.post(self.API_URL, headers={'x-api-key': self.LOG_API_KEY}, json=payload, timeout=5)
             logger.info(f'Successfully posted to its-log: {response.json()}')
         except Exception:
             # Do not let ITS-log failures crash BlueButton

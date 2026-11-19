@@ -372,31 +372,13 @@ def ping_api(tags, value, operation, date):
     try:
         result = requests.post(
             settings.ITSLOG_BASE_URL + '/v1/summary/create',
-            headers={'x-api-key': settings.ITSLOG_APIKEY},
+            headers={'x-api-key': settings.ITSLOG_APIKEY_ADMIN},
             json={
                 'tags': tags,
                 'count': 1,
                 'value': value,
                 'operation': operation,
                 'date': date,
-            },
-            timeout=2,
-        )
-        return result
-    except Exception:
-        pass  # Never let logging failures crash your app
-
-
-def ping_events_api(tags, value, cluster):
-    try:
-        result = requests.post(
-            settings.ITSLOG_BASE_URL + '/v1/log/create',
-            headers={'x-api-key': settings.ITSLOG_APIKEY},
-            json={
-                'tags': tags,
-                'value': value,
-                'cluster': cluster,
-                'type': 'text',
             },
             timeout=2,
         )
