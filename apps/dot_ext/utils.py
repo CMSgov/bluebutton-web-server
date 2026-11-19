@@ -5,6 +5,7 @@ import os
 import re
 from base64 import b64decode, b64encode
 from http import HTTPStatus
+from typing import Any
 
 import jwt
 from django.conf import settings
@@ -281,8 +282,7 @@ def get_application_from_data(request):
         except AccessToken.DoesNotExist:
             if request.POST.get('token_type_hint', None) == REFRESH_TOKEN:
                 try:
-                    checksum = token_checksum(request.POST.get('token', None))
-                    token = RefreshToken.objects.get(checksum)
+                    token = RefreshToken.objects.get(token_checksum=token_checksum(request.POST.get('token', None)))
                 except RefreshToken.DoesNotExist:
                     raise InvalidRequestError(
                         description='Token not found.',
@@ -400,8 +400,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
 
             refresh_code = request.POST.get(REFRESH_TOKEN, None)
             try:
-                checksum = token_checksum(refresh_code)
-                refresh_token = RefreshToken.objects.get(token_checksum=checksum)
+                refresh_token = RefreshToken.objects.get(token_checksum=token_checksum(refresh_code))
                 dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
 
                 if dag:
@@ -582,14 +581,16 @@ def create_authorization_header(
     return f'Basic {encoded}'
 
 
-def token_checksum(token) -> str:
-    """_summary_
+def token_checksum(token: Any) -> str:
+    """Helper function to convert a token value (from oauth2_provider_accesstoken or
+    oauth2_provider_refreshtoken) to a token_checksum, as the token tables have an index
+    on token_checksum and not on the token column
 
     Args:
-        access_token (str): _description_
+        token (Any): The token column value from a oauth2_provider_accesstoken or oauth2_provider_refreshtoken record
 
     Returns:
-        str: _description_
+        str: The calculated token_checksum, used to retrieve token records from the databae
     """
     if isinstance(token, str):
         token_checksum = hashlib.sha256(token.encode('utf-8')).hexdigest()

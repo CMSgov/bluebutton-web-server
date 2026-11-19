@@ -38,8 +38,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         # https://github.com/evonove/django-oauth-toolkit/blob/2cd1f0dccadb8e74919a059d9b4985f9ecb1d59f/oauth2_provider/views/base.py#L192
         if status == 200:
             fhir_body = json.loads(body)
-            checksum = token_checksum(fhir_body.get('access_token'))
-            token = AccessToken.objects.get(token_checksum=checksum)
+            token = AccessToken.objects.get(token_checksum=token_checksum(fhir_body.get('access_token')))
 
             if Crosswalk.objects.filter(user=token.user).exists():
                 cw = Crosswalk.objects.get(user=token.user)

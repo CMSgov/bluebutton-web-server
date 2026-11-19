@@ -136,8 +136,9 @@ def create_test_token(the_user, the_app):
 
     # We have to have a tokent with token='sample-token-string', because we
     # rely on it existing for unit tests. Which are actually integration tests.
-    if AccessToken.objects.filter(token='sample-token-string').exists():
-        t = AccessToken.objects.get(token_checksum=token_checksum('sample-token-string'))
+    checksum = token_checksum('sample-token-string')
+    if AccessToken.objects.filter(token_checksum=checksum).exists():
+        t = AccessToken.objects.get(token_checksum=checksum)
         t.expires = expires
         t.save()
     else:

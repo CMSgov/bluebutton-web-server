@@ -703,8 +703,7 @@ class TokenView(DotTokenView):
                 return prior_include_samhsa, prior_part_d_eob_only
 
             try:
-                checksum = token_checksum(refresh_token_str)
-                refresh_token = RefreshToken.objects.get(token_checksum=checksum)
+                refresh_token = RefreshToken.objects.get(token_checksum=token_checksum(refresh_token_str))
             except RefreshToken.DoesNotExist:
                 log.info('Could not find refresh token when retrieving prior samhsa value')
                 return prior_include_samhsa, prior_part_d_eob_only
