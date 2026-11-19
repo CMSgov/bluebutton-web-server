@@ -582,7 +582,7 @@ def create_authorization_header(
     return f'Basic {encoded}'
 
 
-def token_checksum(token: str) -> str:
+def token_checksum(token) -> str:
     """_summary_
 
     Args:
@@ -591,5 +591,10 @@ def token_checksum(token: str) -> str:
     Returns:
         str: _description_
     """
-    token_checksum = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    if isinstance(token, str):
+        token_checksum = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    elif hasattr(token, 'token'):
+        token_checksum = hashlib.sha256(token.token.encode('utf-8')).hexdigest()
+    else:
+        token_checksum = None
     return token_checksum
