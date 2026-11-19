@@ -17,7 +17,7 @@ from apps.authorization.permissions import DataAccessGrantPermission
 from apps.constants import FHIR_RES_TYPE_EOB, FHIR_RES_TYPE_PATIENT, HHS_SERVER_LOGNAME_FMT
 from apps.dot_ext.models import AccessTokenExtension
 from apps.dot_ext.throttling import TokenRateThrottle
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 from apps.fhir.bluebutton.authentication import OAuth2ResourceOwner
 from apps.fhir.bluebutton.exceptions import process_error_response
 from apps.fhir.bluebutton.permissions import (
@@ -103,7 +103,7 @@ class FhirDataView(APIView):
         if 'HTTP_AUTHORIZATION' in req_meta and req_meta['HTTP_AUTHORIZATION'].lower().startswith('bearer '):
             access_token = req_meta['HTTP_AUTHORIZATION'].partition(' ')[2]
             try:
-                at = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+                at = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
                 log_message = {
                     'name': 'FHIR Endpoint AT Logging',
                     'access_token_id': at.id,

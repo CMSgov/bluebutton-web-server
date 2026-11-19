@@ -30,7 +30,7 @@ from apps.dot_ext.constants import (
     VIEW_OAUTH2_SCOPES_TEST_CASES,
 )
 from apps.dot_ext.models import Application, ArchivedToken
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
 from apps.test import BaseApiTest
 from hhs_oauth_server.settings.base import MOCK_FHIR_ENDPOINT_HOSTNAME
@@ -375,7 +375,7 @@ class TestAuthorizationView(BaseApiTest):
             self.assertEqual(sorted(content['scope'].split()), sorted(result_token_scopes_granted))
 
             # Test scope in access_token
-            at = AccessToken.objects.get(token_checksum=token_checksum(content['access_token']))
+            at = AccessToken.objects.get(token_checksum=tkn_checksum(content['access_token']))
             scopes_granted_access_token = sorted(at.scope.split())
             self.assertEqual(scopes_granted_access_token, sorted(result_token_scopes_granted))
 
@@ -490,7 +490,7 @@ class TestTokenView(BaseApiTest):
             # Now we have a token and refresh token
             tkn = response.json()['access_token']
 
-        t = AccessToken.objects.get(token_checksum=token_checksum(tkn))
+        t = AccessToken.objects.get(token_checksum=tkn_checksum(tkn))
         t.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
         t.save()
         return t

@@ -13,7 +13,7 @@ from waffle.testutils import override_switch
 
 import apps.fhir.bluebutton.utils
 from apps.constants import APPLICATION_TEMPORARILY_INACTIVE, DEFAULT_SAMPLE_FHIR_ID_V2
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 
 # Get the pre-defined Conformance statement
 from apps.fhir.bluebutton.tests.data_conformance import CONFORMANCE
@@ -677,7 +677,7 @@ def test_read_coverage_request(client, version, sample_fhir_id, bene_access_toke
 def test_application_first_last_active(client, version, sample_fhir_id, bene_access_token):
     access_token = bene_access_token()
 
-    access_token_obj = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+    access_token_obj = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
     application = access_token_obj.application
 
     # Check that application last_active and first_active are not set (= None)
@@ -703,7 +703,7 @@ def test_application_first_last_active(client, version, sample_fhir_id, bene_acc
 
         assert response.status_code == HTTPStatus.OK
 
-    access_token_obj = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+    access_token_obj = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
     application = access_token_obj.application
 
     # Check that application last_active and first_active are set
@@ -719,7 +719,7 @@ def test_application_first_last_active(client, version, sample_fhir_id, bene_acc
 
         assert response.status_code == HTTPStatus.OK
 
-    access_token_obj = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+    access_token_obj = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
     application = access_token_obj.application
 
     # Check that application first_active is the same
@@ -732,7 +732,7 @@ def test_application_first_last_active(client, version, sample_fhir_id, bene_acc
 def test_permission_deny_fhir_request_on_disabled_app_org(client, version, bene_access_token):
     access_token = bene_access_token()
 
-    access_token_obj = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+    access_token_obj = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
     application = access_token_obj.application
     user = access_token_obj.user
 

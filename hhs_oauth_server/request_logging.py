@@ -14,7 +14,7 @@ from apps.dot_ext.loggers import (
     get_session_auth_flow_trace,
     is_path_part_of_auth_flow_trace,
 )
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 from apps.fhir.bluebutton.utils import (
     get_access_token_from_request,
     get_ip_from_request,
@@ -361,7 +361,7 @@ class RequestResponseLog(object):
 
         if access_token:
             try:
-                at = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+                at = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
 
                 self.log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
                 self.log_msg['access_token_scopes'] = ' '.join([s for s in at.scopes])
@@ -431,7 +431,7 @@ class RequestResponseLog(object):
 
                 if resp_access_token:
                     try:
-                        at = AccessToken.objects.get(token_checksum=token_checksum(resp_access_token))
+                        at = AccessToken.objects.get(token_checksum=tkn_checksum(resp_access_token))
 
                         self.log_msg['resp_access_token_hash'] = hashlib.sha256(str(at).encode('utf-8')).hexdigest()
 
@@ -498,7 +498,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
                 refresh_token = request_body_dict.get('refresh_token', None)
                 if refresh_token is not None:
-                    rt = RefreshToken.objects.get(token_checksum=token_checksum(refresh_token))
+                    rt = RefreshToken.objects.get(token_checksum=tkn_checksum(refresh_token))
                     if rt:
                         request._req_access_token_hash = hashlib.sha256(
                             str(rt.access_token).encode('utf-8')

@@ -18,7 +18,7 @@ from apps.constants import (
     APPLICATION_TEMPORARILY_INACTIVE,
     APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
 )
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation import (
     get_response_json,
 )
@@ -168,7 +168,7 @@ class TestDataAccessPermissions(BaseApiTest):
         and expected_response_detail_mesg to match.
         """
         try:
-            ac = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+            ac = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
             ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
             ac.save()
         except Exception:
@@ -316,8 +316,8 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 5. Test access & refresh tokens exist
-        self.assertTrue(AccessToken.objects.filter(token_checksum=token_checksum(ac['access_token'])).exists())
-        self.assertTrue(RefreshToken.objects.filter(token_checksum=token_checksum(ac['refresh_token'])).exists())
+        self.assertTrue(AccessToken.objects.filter(token_checksum=tkn_checksum(ac['access_token'])).exists())
+        self.assertTrue(RefreshToken.objects.filter(token_checksum=tkn_checksum(ac['refresh_token'])).exists())
 
         # 6. Test that all FHIR calls are successful
         self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
@@ -327,9 +327,9 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 8. Test access and refresh tokens are removed
         #    per delete signal on DataAccessGrant
-        self.assertFalse(AccessToken.objects.filter(token_checksum=token_checksum(ac['access_token'])).exists())
+        self.assertFalse(AccessToken.objects.filter(token_checksum=tkn_checksum(ac['access_token'])).exists())
         #    Note: refresh token exists still? But doesn't work per #9
-        self.assertTrue(RefreshToken.objects.filter(token_checksum=token_checksum(ac['refresh_token'])).exists())
+        self.assertTrue(RefreshToken.objects.filter(token_checksum=tkn_checksum(ac['refresh_token'])).exists())
 
         # 9. Test token refresh gets an invalid_grant response
         self._assert_call_token_refresh_endpoint(
@@ -614,10 +614,10 @@ class TestDataAccessPermissions(BaseApiTest):
         self.assertNotEqual(dag, None)
 
         # 3. Copy access token
-        copy_ac = AccessToken.objects.filter(token_checksum=token_checksum(ac['access_token'])).get()
+        copy_ac = AccessToken.objects.filter(token_checksum=tkn_checksum(ac['access_token'])).get()
 
         # 4. Test access token exist
-        self.assertTrue(AccessToken.objects.filter(token_checksum=token_checksum(ac['access_token'])).exists())
+        self.assertTrue(AccessToken.objects.filter(token_checksum=tkn_checksum(ac['access_token'])).exists())
 
         # 5. Test that all FHIR calls are successful
         self._assert_call_all_fhir_endpoints(access_token=ac['access_token'], expected_response_code=HTTPStatus.OK)
@@ -629,7 +629,7 @@ class TestDataAccessPermissions(BaseApiTest):
         copy_ac.save()
 
         # 8. Test access token is restored.
-        self.assertTrue(AccessToken.objects.filter(token_checksum=token_checksum(ac['access_token'])).exists())
+        self.assertTrue(AccessToken.objects.filter(token_checksum=tkn_checksum(ac['access_token'])).exists())
 
         # 9. Test that FHIR calls fail
         self._assert_call_all_fhir_endpoints(

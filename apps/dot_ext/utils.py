@@ -206,7 +206,7 @@ def get_application_from_meta(request) -> Application | None:
             auth_header = request_meta.get('Authorization', None)
         if auth_header:
             if 'Bearer' in auth_header:
-                checksum = token_checksum(auth_header.split(' ')[1])
+                checksum = tkn_checksum(auth_header.split(' ')[1])
                 ac = AccessToken.objects.get(token_checksum=checksum)
             else:
                 encoded_credentials = auth_header.split(' ')[1]  # Removes 'Basic ' to isolate credentials
@@ -277,12 +277,12 @@ def get_application_from_data(request):
     # have a problem, and should return an error.
     if request.POST.get('token', None):
         try:
-            checksum = token_checksum(request.POST.get('token', None))
+            checksum = tkn_checksum(request.POST.get('token', None))
             token = AccessToken.objects.get(token_checksum=checksum)
         except AccessToken.DoesNotExist:
             if request.POST.get('token_type_hint', None) == REFRESH_TOKEN:
                 try:
-                    token = RefreshToken.objects.get(token_checksum=token_checksum(request.POST.get('token', None)))
+                    token = RefreshToken.objects.get(token_checksum=tkn_checksum(request.POST.get('token', None)))
                 except RefreshToken.DoesNotExist:
                     raise InvalidRequestError(
                         description='Token not found.',
@@ -312,7 +312,7 @@ def get_application_from_data(request):
     # Finally, if we have a refresh token, but cannot find an app, that's not good.
     if request.POST.get(REFRESH_TOKEN):
         try:
-            checksum = token_checksum(request.POST.get(REFRESH_TOKEN, None))
+            checksum = tkn_checksum(request.POST.get(REFRESH_TOKEN, None))
             rt = RefreshToken.objects.get(token_checksum=checksum)
         except RefreshToken.DoesNotExist:
             raise InvalidRequestError(
@@ -400,7 +400,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
 
             refresh_code = request.POST.get(REFRESH_TOKEN, None)
             try:
-                refresh_token = RefreshToken.objects.get(token_checksum=token_checksum(refresh_code))
+                refresh_token = RefreshToken.objects.get(token_checksum=tkn_checksum(refresh_code))
                 dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
 
                 if dag:
@@ -581,7 +581,7 @@ def create_authorization_header(
     return f'Basic {encoded}'
 
 
-def token_checksum(token: Any) -> str:
+def tkn_checksum(token: Any) -> str:
     """Helper function to convert a token value (from oauth2_provider_accesstoken or
     oauth2_provider_refreshtoken) to a token_checksum, as the token tables have an index
     on token_checksum and not on the token column

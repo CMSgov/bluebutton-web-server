@@ -18,7 +18,7 @@ from apps.constants import (
     PATIENT_SCOPE,
 )
 from apps.dot_ext.models import AccessTokenExtension, Application, ProtectedCapability
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 from apps.fhir.constants import (
     BAD_PARAMS_ACCEPTABLE_VERSIONS,
     C4BB_SYSTEM_TYPES,
@@ -130,7 +130,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_patient_request(self, version=1):
         # create the user
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Patient.read'
         ac.save()
 
@@ -166,7 +166,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_eob_by_parameter_tag(self, version=1):
         # create the user
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
 
@@ -199,7 +199,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_eob_by_parameters_request(self, version=1):
         # create the user
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/ExplanationOfBenefit.read'
         ac.save()
 
@@ -460,7 +460,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _search_coverage_request(self, version=1):
         # create the user
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Coverage.read'
         ac.save()
 
@@ -643,7 +643,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         first_access_token = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
         ac.save()
 
@@ -668,7 +668,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         first_access_token = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
         ac.save()
 
@@ -692,7 +692,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         first_access_token = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
         ac.save()
 
@@ -717,7 +717,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         first_access_token = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/ExplanationOfBenefit.rs'
         ac.save()
 
@@ -747,7 +747,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         first_access_token = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/ExplanationOfBenefit.rs'
         ac.save()
 
@@ -780,14 +780,14 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token_checksum=token_checksum(ac))
+        ac_record = AccessToken.objects.get(token_checksum=tkn_checksum(ac))
         access_token_extension = AccessTokenExtension()
         access_token_extension.access_token = ac_record
         access_token_extension.include_samhsa = False
         access_token_extension.part_d_eob_only = True
         access_token_extension.save()
 
-        AccessToken.objects.get(token_checksum=token_checksum(ac)).accesstokenextension.delete()
+        AccessToken.objects.get(token_checksum=tkn_checksum(ac)).accesstokenextension.delete()
         self.assertFalse(AccessTokenExtension.objects.all().exists())
 
         for version in [Versions.V1, Versions.V2]:
@@ -802,7 +802,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token_checksum=token_checksum(ac))
+        ac_record = AccessToken.objects.get(token_checksum=tkn_checksum(ac))
         access_token_extension = AccessTokenExtension()
         access_token_extension.access_token = ac_record
         access_token_extension.include_samhsa = False
@@ -822,7 +822,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token_checksum=token_checksum(ac))
+        ac_record = AccessToken.objects.get(token_checksum=tkn_checksum(ac))
         access_token_extension = AccessTokenExtension()
         access_token_extension.access_token = ac_record
         access_token_extension.include_samhsa = True
@@ -841,7 +841,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token_checksum=token_checksum(ac))
+        ac_record = AccessToken.objects.get(token_checksum=tkn_checksum(ac))
         access_token_extension = AccessTokenExtension()
         access_token_extension.access_token = ac_record
         access_token_extension.include_samhsa = True
@@ -861,7 +861,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         ac = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac_record = AccessToken.objects.get(token_checksum=token_checksum(ac))
+        ac_record = AccessToken.objects.get(token_checksum=tkn_checksum(ac))
         access_token_extension = AccessTokenExtension()
         access_token_extension.access_token = ac_record
         access_token_extension.include_samhsa = True
@@ -1090,7 +1090,7 @@ def test_call_eob_v3_ensure_security_errors_when_samhsa_not_shared(create_token,
 
     access_token = create_token()
     access_token_extension = AccessTokenExtension()
-    access_token_extension.access_token = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+    access_token_extension.access_token = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
     access_token_extension.include_samhsa = False
     access_token_extension.part_d_eob_only = False
     # Demonstrate that access_token_extension records can be saved with a proxy user
@@ -1124,7 +1124,7 @@ def test_call_eob_v3_ensure_DDPS_source_is_added_even_with_different_tag_and_sou
     access_token = create_token(scope='patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs profile')
 
     access_token_extension = AccessTokenExtension()
-    access_token_extension.access_token = AccessToken.objects.get(token_checksum=token_checksum(access_token))
+    access_token_extension.access_token = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
     access_token_extension.part_d_eob_only = True
     access_token_extension.save()
 

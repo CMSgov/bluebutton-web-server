@@ -17,7 +17,7 @@ from pytz import timezone
 
 import apps.logging.request_logger as bb2logging
 from apps.constants import HHS_SERVER_LOGNAME_FMT, OPERATION_OUTCOME
-from apps.dot_ext.utils import get_api_version_number_from_url, token_checksum
+from apps.dot_ext.utils import get_api_version_number_from_url, tkn_checksum
 from apps.fhir.bluebutton.models import Crosswalk, Fhir_Response
 from apps.fhir.constants import (
     FHIR_PARAM_FORMAT,
@@ -174,7 +174,7 @@ def generate_info_headers(request, version: int = Versions.NOT_AN_API_VERSION):
     if user:
         result['BlueButton-UserId'] = str(user.id)
         result['BlueButton-User'] = str(user)
-        checksum = token_checksum(get_access_token_from_request(request))
+        checksum = tkn_checksum(get_access_token_from_request(request))
         if AccessToken.objects.filter(token_checksum=checksum).exists():
             at = AccessToken.objects.get(token_checksum=checksum)
             result['BlueButton-Application'] = str(at.application.name)

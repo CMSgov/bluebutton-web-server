@@ -16,7 +16,7 @@ from apps.dot_ext.models import (
     get_application_counts,
     get_application_require_demographic_scopes_count,
 )
-from apps.dot_ext.utils import token_checksum
+from apps.dot_ext.utils import tkn_checksum
 from apps.logging.utils import cleanup_logger, get_log_content, redirect_loggers
 from apps.test import BaseApiTest
 
@@ -296,7 +296,7 @@ class TestDotExtModels(BaseApiTest):
         first_access_token = self.create_token(
             'John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2, fhir_id_v3=DEFAULT_SAMPLE_FHIR_ID_V3
         )
-        ac = AccessToken.objects.get(token_checksum=token_checksum(first_access_token))
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Coverage.search patient/Patient.search patient/ExplanationOfBenefit.search'
         ac.save()
 
