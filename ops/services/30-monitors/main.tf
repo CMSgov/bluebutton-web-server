@@ -200,7 +200,7 @@ locals {
       query   = "percentile(last_1h):p95:trace.postgres.query{env:${local.env}, service:${local.app}} by {peer.db.name} > 0.1"
 
       thresholds = {
-        critical = 0.1
+        critical = 0.08
         warning  = 0.05
       }
 
