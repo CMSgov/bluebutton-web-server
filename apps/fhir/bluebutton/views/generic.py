@@ -1,4 +1,3 @@
-import hashlib
 import logging
 from urllib.parse import quote
 
@@ -108,7 +107,7 @@ class FhirDataView(APIView):
                     'name': 'FHIR Endpoint AT Logging',
                     'access_token_id': at.id,
                     'access_token_application_id': at.application.id,
-                    'access_token_hash': {hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()},
+                    'access_token_hash': {at.token_checksum},
                     'access_token_username': at.user.username,
                 }
                 logger.info(log_message)
