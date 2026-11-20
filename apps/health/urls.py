@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 
 from apps.health.views import (
+    AlwaysFails,
     CheckBFD,
     CheckDB,
     CheckExternal,
@@ -17,4 +18,5 @@ urlpatterns = [
     re_path(r'/bfd_v2/?$', CheckBFD.as_view()),
     re_path(r'^$', CheckInternal.as_view()),
     path('/', CheckInternal.as_view()),
+    path('/alwaysfails', AlwaysFails.as_view()),
 ]

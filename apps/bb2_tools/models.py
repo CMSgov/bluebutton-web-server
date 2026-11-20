@@ -1,3 +1,4 @@
+from django.db import models
 from oauth2_provider.models import AccessToken, RefreshToken
 
 from apps.accounts.models import UserProfile
@@ -75,3 +76,10 @@ class ApplicationStats(Application):
         app_label = 'bb2_tools'
         verbose_name = 'Application statistics'
         verbose_name_plural = 'Application statistics'
+
+
+class ATestModel(models.Model):
+    field = models.BooleanField(null=False)
+
+    def __str__(self):
+        return f'<ATestModel(field={self.field})>'
