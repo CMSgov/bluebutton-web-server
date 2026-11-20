@@ -88,6 +88,7 @@ from apps.dot_ext.utils import (
     get_oauth_param,
     json_response_from_oauth2_error,
     remove_application_user_pair_tokens_data_access,
+    tkn_checksum,
     validate_app_is_active,
     validate_symmetric_client_secret,
 )
@@ -633,7 +634,9 @@ class TokenView(DotTokenView):
         try:
             url_query = parse_qs(request._body.decode('utf-8'))
             refresh_token_from_request = url_query.get('refresh_token', [None])
-            refresh_token = get_refresh_token_model().objects.get(token=refresh_token_from_request[0])
+            refresh_token = get_refresh_token_model().objects.get(
+                token_checksum=tkn_checksum(refresh_token_from_request[0])
+            )
             application = get_application_model().objects.get(id=refresh_token.application_id)
             application_user = get_user_model().objects.get(id=application.user_id)
 
@@ -700,7 +703,7 @@ class TokenView(DotTokenView):
                 return prior_include_samhsa, prior_part_d_eob_only
 
             try:
-                refresh_token = RefreshToken.objects.get(token=refresh_token_str)
+                refresh_token = RefreshToken.objects.get(token_checksum=tkn_checksum(refresh_token_str))
             except RefreshToken.DoesNotExist:
                 log.info('Could not find refresh token when retrieving prior samhsa value')
                 return prior_include_samhsa, prior_part_d_eob_only
@@ -915,7 +918,7 @@ class TokenView(DotTokenView):
             body = json.loads(body)
             access_token = body.get('access_token')
             if access_token:
-                token = get_access_token_model().objects.get(token=access_token)
+                token = get_access_token_model().objects.get(token_checksum=tkn_checksum(access_token))
 
                 check_session_and_create_access_token_extension(
                     prior_include_samhsa,
@@ -1088,7 +1091,7 @@ class RevokeView(DotRevokeTokenView):
             escaped_tkn = ''
 
         try:
-            token = at_model.objects.get(token=tkn)
+            token = at_model.objects.get(token_checksum=tkn_checksum(tkn))
         except at_model.DoesNotExist:
             log.debug(f'Token {escaped_tkn} was not found.')
 

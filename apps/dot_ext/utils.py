@@ -1,9 +1,11 @@
 import binascii
+import hashlib
 import logging
 import os
 import re
 from base64 import b64decode, b64encode
 from http import HTTPStatus
+from typing import Any
 
 import jwt
 from django.conf import settings
@@ -204,7 +206,8 @@ def get_application_from_meta(request) -> Application | None:
             auth_header = request_meta.get('Authorization', None)
         if auth_header:
             if 'Bearer' in auth_header:
-                ac = AccessToken.objects.get(token=auth_header.split(' ')[1])
+                checksum = tkn_checksum(auth_header.split(' ')[1])
+                ac = AccessToken.objects.get(token_checksum=checksum)
             else:
                 encoded_credentials = auth_header.split(' ')[1]  # Removes 'Basic ' to isolate credentials
                 decoded_credentials = b64decode(encoded_credentials).decode('utf-8').split(':')
@@ -274,11 +277,12 @@ def get_application_from_data(request):
     # have a problem, and should return an error.
     if request.POST.get('token', None):
         try:
-            token = AccessToken.objects.get(token=request.POST.get('token', None))
+            checksum = tkn_checksum(request.POST.get('token', None))
+            token = AccessToken.objects.get(token_checksum=checksum)
         except AccessToken.DoesNotExist:
             if request.POST.get('token_type_hint', None) == REFRESH_TOKEN:
                 try:
-                    token = RefreshToken.objects.get(token=request.POST.get('token', None))
+                    token = RefreshToken.objects.get(token_checksum=tkn_checksum(request.POST.get('token', None)))
                 except RefreshToken.DoesNotExist:
                     raise InvalidRequestError(
                         description='Token not found.',
@@ -308,7 +312,8 @@ def get_application_from_data(request):
     # Finally, if we have a refresh token, but cannot find an app, that's not good.
     if request.POST.get(REFRESH_TOKEN):
         try:
-            rt = RefreshToken.objects.get(token=request.POST.get(REFRESH_TOKEN, None))
+            checksum = tkn_checksum(request.POST.get(REFRESH_TOKEN, None))
+            rt = RefreshToken.objects.get(token_checksum=checksum)
         except RefreshToken.DoesNotExist:
             raise InvalidRequestError(
                 description='Refresh token not found.',
@@ -395,7 +400,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
 
             refresh_code = request.POST.get(REFRESH_TOKEN, None)
             try:
-                refresh_token = RefreshToken.objects.get(token=refresh_code)
+                refresh_token = RefreshToken.objects.get(token_checksum=tkn_checksum(refresh_code))
                 dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
 
                 if dag:
@@ -574,3 +579,23 @@ def create_authorization_header(
     """
     encoded = b64encode(f'{client_id}:{client_secret}'.encode('utf-8')).decode('utf-8')
     return f'Basic {encoded}'
+
+
+def tkn_checksum(token: Any) -> str:
+    """Helper function to convert a token value (from oauth2_provider_accesstoken or
+    oauth2_provider_refreshtoken) to a token_checksum, as the token tables have an index
+    on token_checksum and not on the token column
+
+    Args:
+        token (Any): The token column value from a oauth2_provider_accesstoken or oauth2_provider_refreshtoken record
+
+    Returns:
+        str: The calculated token_checksum, used to retrieve token records from the databae
+    """
+    if isinstance(token, str):
+        token_checksum = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    elif hasattr(token, 'token'):
+        token_checksum = hashlib.sha256(token.token.encode('utf-8')).hexdigest()
+    else:
+        token_checksum = None
+    return token_checksum

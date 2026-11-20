@@ -16,6 +16,7 @@ from waffle.testutils import override_switch
 import apps.logging.request_logger as logging
 from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2
 from apps.dot_ext.models import Application
+from apps.dot_ext.utils import tkn_checksum
 from apps.logging.constants import (
     AUTHENTICATION_START_LOG_SCHEMA,
     AUTHENTICATION_SUCCESS_LOG_SCHEMA,
@@ -94,7 +95,7 @@ class TestAuditEventLoggers(BaseApiTest):
     def _fhir_events_logging(self, version=1):
         first_access_token = self.create_token('John', 'Smith', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
         AccessToken = get_access_token_model()
-        ac = AccessToken.objects.get(token=first_access_token)
+        ac = AccessToken.objects.get(token_checksum=tkn_checksum(first_access_token))
         ac.scope = 'patient/Coverage.read patient/Patient.read patient/ExplanationOfBenefit.read'
         ac.save()
 
@@ -328,8 +329,8 @@ class TestAuditEventLoggers(BaseApiTest):
                     data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
 
-                responseContent = json.loads(response.content.decode("utf-8"))
-                self.assertEqual(responseContent["error"],"Bad Gateway")
+                responseContent = json.loads(response.content.decode('utf-8'))
+                self.assertEqual(responseContent['error'], 'Bad Gateway')
             except requests.exceptions.HTTPError:
                 self.fail('HTTP Error should be expected.')
 
@@ -396,8 +397,8 @@ class TestAuditEventLoggers(BaseApiTest):
                     self.callback_url,
                     data={'req_token': 'xxxx-request-token-xxxx', 'relay': state},
                 )
-                responseContent = json.loads(response.content.decode("utf-8"))
-                self.assertEqual(responseContent["error"],"Bad Gateway")
+                responseContent = json.loads(response.content.decode('utf-8'))
+                self.assertEqual(responseContent['error'], 'Bad Gateway')
             except requests.exceptions.HTTPError:
                 self.fail('HTTP Error should be expected.')
 
