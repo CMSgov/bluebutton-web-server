@@ -2,14 +2,19 @@ import base64
 import hashlib
 import secrets
 import string
+import time
+import uuid
 from collections import OrderedDict
 from urllib.parse import parse_qs, urlparse
 
+import jwt
 from django.conf import settings
 
+from apps.constants import AUTH_SIGNING_ALG_RS256
 from apps.dot_ext.models import Application
 from apps.testclient.constants import TESTCLIENT_REDIRECT_URI
 from apps.versions import Versions
+from apps.wellknown.views.jwks import get_local_signing_key
 
 
 def _start_url_with_http_or_https(host: str) -> str:
@@ -94,6 +99,14 @@ def setup_testclient_http_response(
 def get_client_secret():
     oa2client = Application.objects.get(name='TestApp')
     return oa2client.client_secret_plain
+
+
+def build_client_assertion(client_id: str, token_uri: str) -> str:
+    """Sign a client_assertion JWT with the local JWKS key, for asymmetric auth token requests."""
+    private_key, kid = get_local_signing_key(AUTH_SIGNING_ALG_RS256)
+    now = int(time.time())
+    claims = {'iss': client_id, 'sub': client_id, 'aud': token_uri, 'jti': str(uuid.uuid4()), 'exp': now + 60}
+    return jwt.encode(claims, private_key, algorithm=AUTH_SIGNING_ALG_RS256, headers={'kid': kid})
 
 
 def extract_page_nav(fhir_json):

@@ -14,15 +14,18 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError, MissingTokenError, TokenExpiredError
 from requests_oauthlib import OAuth2Session
+from waffle import switch_is_active
 from waffle.decorators import waffle_switch
 
 from apps.constants import HHS_SERVER_LOGNAME_FMT
+from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.dot_ext.utils import get_oauth_param
 from apps.fhir.bluebutton.views.home import fhir_conformance_v1, fhir_conformance_v2, fhir_conformance_v3
 from apps.testclient.constants import HOME_PAGE, RESULTS_PAGE, EndpointUrl, ResponseErrors
 from apps.testclient.utils import (
     _start_url_with_http_or_https,
+    build_client_assertion,
     extract_page_nav,
     get_client_secret,
     setup_testclient_http_response,
@@ -31,6 +34,8 @@ from apps.versions import VersionNotMatched, Versions
 from apps.wellknown.views.openid import openid_configuration_v1, openid_configuration_v2, openid_configuration_v3
 
 logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+V3_SCOPE = 'profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs'
 
 ############################################################
 # SUPPORT FUNCTIONS
@@ -214,9 +219,17 @@ def callback(request: HttpRequest):
             session_cache = getattr(request.session, '_session_cache', {})
             cv = session_cache.get('code_verifier', '')
 
-        token = oas.fetch_token(
-            token_uri, client_secret=get_client_secret(), authorization_response=auth_uri, code_verifier=cv
-        )
+        token_kwargs = {'client_secret': get_client_secret()}
+        if request.session.get('asymmetric_auth') and switch_is_active('enable_testclient_asymmetric_auth'):
+            # The assertion replaces the client secret; the token endpoint rejects requests carrying both.
+            token_kwargs = {
+                'include_client_id': True,
+                'scope': V3_SCOPE,
+                'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
+                'client_assertion': build_client_assertion(request.session['client_id'], token_uri),
+            }
+
+        token = oas.fetch_token(token_uri, authorization_response=auth_uri, code_verifier=cv, **token_kwargs)
     except MissingTokenError:
         token_uri = request.session['token_uri']
         logger.error(f'MissingToken: failed to get token from {token_uri}')
@@ -347,6 +360,11 @@ def _link_session_or_version_is_bad(session, version):
 
 def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
     request.session.update(setup_testclient_http_response(version=version, post_switch_account_link=False))
+    request.session['asymmetric_auth'] = (
+        version == Versions.V3
+        and request.GET.get('asymmetric') == '1'
+        and switch_is_active('enable_testclient_asymmetric_auth')
+    )
     oas = _get_oauth2_session_with_redirect(request)
 
     # We need scopes in V3.
@@ -356,9 +374,7 @@ def _authorize_link(request: HttpRequest, version=Versions.NOT_AN_API_VERSION):
         case Versions.V2:
             pass
         case Versions.V3:
-            # https://bluebutton.cms.gov/developers/#authorization:~:text=response%20type%3A%20code-,scope,-optional
-            # Should the test client request all scopes for v3? Some scopes?
-            oas.scope = 'profile patient/Coverage.rs patient/Patient.rs patient/ExplanationOfBenefit.rs'
+            oas.scope = V3_SCOPE
         case _:
             if 'token' in request.session:
                 del request.session['token']

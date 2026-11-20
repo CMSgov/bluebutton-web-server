@@ -47,9 +47,19 @@ def _local_jwks() -> dict:
         algorithm = ECAlgorithm if alg == AUTH_SIGNING_ALG_ES384 else RSAAlgorithm
         public_key = (ec_key if alg == AUTH_SIGNING_ALG_ES384 else rsa_key).public_key()
         jwk = algorithm.to_jwk(public_key, as_dict=True)
-        jwk.update({'use': 'sig', 'alg': alg, 'kid': f'local-jwks-{alg.lower()}'})
+        jwk.update({'use': 'sig', 'alg': alg, 'kid': _local_kid(alg)})
         keys.append(jwk)
     return {'keys': keys}
+
+
+def _local_kid(alg: str) -> str:
+    return f'local-jwks-{alg.lower()}'
+
+
+def get_local_signing_key(alg: str) -> tuple:
+    """Return the ``(private_key, kid)`` that signs for ``alg``, matching the key served by ``_local_jwks``."""
+    rsa_key, ec_key = _local_private_keys()
+    return (ec_key if alg == AUTH_SIGNING_ALG_ES384 else rsa_key), _local_kid(alg)
 
 
 @never_cache
