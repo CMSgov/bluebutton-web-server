@@ -103,7 +103,18 @@
 /bb/test/its-log/nonsensitive/itslog_proxies_trusted: TBD
 /bb/test/its-log/nonsensitive/itslog_storage_path: its-log/data
 /bb/test/its-log/nonsensitive/its_log_repo_name: cdap-its-log
-/bb/test/app/sensitive/itslog_apikey: ENC[AES256_GCM,data:zOdlcS8DNbKYArl66OspGTtUo6mr6D2hdLjW2MiANmDafGfmMMuXjDvk8xh3QAkjh2LBsSmz611yi48GvEJHVw==,iv:gKp8WOJGLqdyhC0qj0I2wdMQGmnV6VHoOfgpniIedEU=,tag:fkA+Wd7/lBibqie5dsJ9tQ==,type:str]
+/bb/test/its-log/sensitive/itslog_apikey_bb_admin:
+  app_id: ENC[AES256_GCM,data:buk=,iv:7ra9jYLtB4I0y/uvlKBnUC5X2N9FckZ2hBupMxx5bt0=,tag:k/smLyaTX/Qbv5e0imTlwA==,type:str]
+  key_id: ENC[AES256_GCM,data:wBX03nmpPBY=,iv:esFhPoxI+YxEqemDfGoo5I1KNTCqNW91qtYo7sXZNxg=,tag:gLDyPaaJ/onOIbXBJBIC1g==,type:str]
+  permission: ENC[AES256_GCM,data:aG3QHog=,iv:TDrU5wHG+otrJnHu6hml3rj9FbrXkwVBeVLnOOIpg3g=,tag:GrfrA5ZxFw5YODuZEKilPw==,type:str]
+  key: ENC[AES256_GCM,data:0vxn9CvwFx8Mce7P8i/Mb+/wCAZrCamKXQJuflcDRYMkNrxt2E9RPrLT/guPlPmyhZyUfgKUzbdGXB8PODELeA==,iv:MHbRxHZNNM6MtAR+zOxkdlz49TMqsDP3a8TZbWKiiFQ=,tag:9UPjNvtdr2iuKTaqPTIOxg==,type:str]
+/bb/test/its-log/sensitive/itslog_apikey_bb_log:
+  app_id: ENC[AES256_GCM,data:SVI=,iv:zj4ayf/FfoPjX2HSASOyyXzi3hn77xcmulGqdpT45/E=,tag:C+q8xpqL/PsbCL8byIcJog==,type:str]
+  key_id: ENC[AES256_GCM,data:Y9OkRlIKqKQmQA==,iv:2xKcFrVA15w3cdOJWxv3PSIWIImKod8i2DsRh8SUxd4=,tag:kehrU5mCgpe9iHQj4Ojxqg==,type:str]
+  permission: ENC[AES256_GCM,data:SPl/,iv:CPUMC+nLQwmLE+GEKPgwMRtSYlULKxarH/4vak9hHfM=,tag:4dPkRyAfk4vlzrrEpLs4rg==,type:str]
+  key: ENC[AES256_GCM,data:NyfPcku4Ji77g0EiSsn7aXSCvVuw91tnDRrsP52pMxQcuT7MQzazeNVTo3NvHOG1PF6MtNWnqb0GTcMewqXytA==,iv:o38B1OHyLTh0/WUnn2iRF6rEXQOI5ZHxPDA+6emFg+M=,tag:shC2PJ2QBDD5WFUf0UtEJA==,type:str]
+/bb/test/app/sensitive/itslog_apikey_admin: ENC[AES256_GCM,data:KACedL7eNa8ClLY/0yntTlfnOaardsDIAqxmfOAfuEK8w0rGXJrRV0IdJVDWndZ+pj7jvFLe5z18isK9FgZ+EA==,iv:XkpeT6igriltH6KAIGkDGA9ujhJhzsxbQ5ysXMypDWA=,tag:B5o67oRj3yqplYz3U4I7Kg==,type:str]
+/bb/test/app/sensitive/itslog_apikey_log: ENC[AES256_GCM,data:RWVoISx76Vm+Td01uUGnBOrkHEt5PRVdvFhCX71N4gF/vzJvj99V2LPmb1HtpDlsgtocumVar+y7KKgYKMNhzA==,iv:nPQ7A3cNXhFLdMJvgD/YzZhXJFH1N+VhfcoFpMdJnk4=,tag:E7tokrQo0ozHX7R1OoxhUA==,type:str]
 sops:
   kms:
     - arn: arn:aws:kms:us-east-1:${ACCOUNT_ID}:alias/bb-test-app-key-alias
