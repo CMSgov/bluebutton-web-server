@@ -15,6 +15,7 @@ from apps.constants import (
     OPERATION_OUTCOME,
 )
 from apps.core.models import Flag
+from apps.dot_ext.utils import tkn_checksum
 from apps.integration_tests.common_utils import validate_json_schema
 from apps.integration_tests.constants import (
     COVERAGE_OPERATION_OUTCOME_DISAGNOSTICS,
@@ -85,7 +86,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         access_token = base_api_test.create_token(first_name, last_name, fhir_id_v2, fhir_id_v3, hicn_hash, mbi)
 
         # Test scope in access_token
-        at = AccessToken.objects.get(token=access_token)
+        at = AccessToken.objects.get(token_checksum=tkn_checksum(access_token))
 
         # Setup Bearer token:
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + at.token)

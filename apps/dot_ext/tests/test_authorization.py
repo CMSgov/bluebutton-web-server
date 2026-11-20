@@ -31,7 +31,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_TYPE,
 )
 from apps.dot_ext.models import Application, ArchivedToken
-from apps.dot_ext.utils import create_authorization_header
+from apps.dot_ext.utils import create_authorization_header, tkn_checksum
 from apps.dot_ext.views import AuthorizationView, TokenView
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.server.authentication import MatchFhirIdErrorType, MatchFhirIdLookupType, MatchFhirIdResult
@@ -393,7 +393,7 @@ class TestAuthorizationView(BaseApiTest):
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
-        at = AccessToken.objects.get(token=tkn)
+        at = AccessToken.objects.get(token_checksum=tkn_checksum(tkn))
         at.delete()
         refresh_request_data = {
             'grant_type': 'refresh_token',
@@ -452,7 +452,7 @@ class TestAuthorizationView(BaseApiTest):
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
-        at = AccessToken.objects.get(token=tkn)
+        at = AccessToken.objects.get(token_checksum=tkn_checksum(tkn))
         dag = DataAccessGrant.objects.get(beneficiary=at.user, application=application)
         dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(months=-1)
         dag.save()
@@ -514,7 +514,7 @@ class TestAuthorizationView(BaseApiTest):
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
-        at = AccessToken.objects.get(token=tkn)
+        at = AccessToken.objects.get(token_checksum=tkn_checksum(tkn))
         at.delete()
         # request refresh token without passing client_id
         refresh_request_data = {
@@ -572,7 +572,7 @@ class TestAuthorizationView(BaseApiTest):
         # Now we have a token and refresh token
         tkn = response.json()['access_token']
         refresh_tkn = response.json()['refresh_token']
-        at = AccessToken.objects.get(token=tkn)
+        at = AccessToken.objects.get(token_checksum=tkn_checksum(tkn))
         at.delete()
         # request refresh token without passing client_id
         refresh_request_data = {

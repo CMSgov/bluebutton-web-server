@@ -16,6 +16,7 @@ from apps.constants import (
     PATIENT_SCOPE,
 )
 from apps.dot_ext.models import Application, ProtectedCapability
+from apps.dot_ext.utils import tkn_checksum
 from apps.test import BaseApiTest
 
 AccessToken = get_access_token_model()
@@ -47,7 +48,7 @@ class InsuranceCardTest(BaseApiTest):
         for tt in InsuranceCardTest.TEST_TABLE:
             with self.subTest(tt=tt):
                 token = self.create_token('Annie', 'User', fhir_id_v2=DEFAULT_SAMPLE_FHIR_ID_V2)
-                ac = AccessToken.objects.get(token=token)
+                ac = AccessToken.objects.get(token_checksum=tkn_checksum(token))
                 ac.scope = ' '.join(tt['scope'])
                 ac.save()
 
