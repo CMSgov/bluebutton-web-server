@@ -1,8 +1,11 @@
+import binascii
+import hashlib
 import logging
 import os
 import re
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from http import HTTPStatus
+from typing import Any
 
 import jwt
 from django.conf import settings
@@ -30,6 +33,8 @@ from apps.constants import (
     AUDIT_EVENT_SEARCH_SCOPE,
     HHS_SERVER_LOGNAME_FMT,
     REFRESH_TOKEN,
+    TEST_APP_CLIENT_ID,
+    TEST_APP_CLIENT_SECRET,
 )
 from apps.dot_ext.constants import (
     APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
@@ -63,6 +68,55 @@ def validate_client_id(client_id: str) -> None:
             description='Invalid client_id format',
             status_code=HTTPStatus.BAD_REQUEST,
         )
+
+
+def validate_symmetric_client_secret(request: HttpRequest) -> tuple[bool, str]:
+    """
+    Validates that a client secret is not empty for symmetric authentication.
+    Looks at both the header and the post body. Ensures any mismatch between
+    post body and header fails validation as well.
+
+    Args:
+        - request (HttpRequest): Django HttpRequest object
+
+    Returns:
+        - tuple: True if it passes validation, False if not. Also
+        returns the string of the error message if it doesn't pass validation.
+    """
+    # Handle the client secret in header case
+    request_meta = request.META
+    header_secret = None
+    body_secret = None
+    if request_meta:
+        auth_header = request_meta.get('HTTP_AUTHORIZATION', None)
+        if not auth_header:
+            auth_header = request_meta.get('Authorization', None)
+        if auth_header and auth_header.lower().startswith('basic'):
+            try:
+                encoded_credentials = auth_header.partition(' ')[2]  # Removes 'Basic ' to isolate credentials
+                decoded_credentials = b64decode(encoded_credentials).decode('utf-8').partition(':')
+                header_secret = decoded_credentials[2]
+            except (binascii.Error, UnicodeDecodeError):
+                return False, 'Invalid Basic authorization header.'
+
+            if not header_secret.strip():
+                return False, 'The client secret is empty or missing.'
+
+    # Handle just the client secret in post body case
+    if hasattr(request, 'POST') and 'client_secret' in request.POST:
+        body_secret = request.POST.get('client_secret', '')
+        if not body_secret.strip():
+            return False, 'The client secret is empty or missing.'
+
+    # Handle the case of no secret getting sent
+    if not header_secret and not body_secret:
+        return False, 'The client secret is empty or missing.'
+
+    # Handle the case where both header and body client secret are sent but they don't match
+    if header_secret and body_secret and header_secret != body_secret:
+        return False, 'The client secret in Authorization header and POST body do not match.'
+
+    return True, ''
 
 
 def get_oauth_param(request: HttpRequest, parameter: str, fallback_session_parameter: str = None) -> str | None:
@@ -152,7 +206,8 @@ def get_application_from_meta(request) -> Application | None:
             auth_header = request_meta.get('Authorization', None)
         if auth_header:
             if 'Bearer' in auth_header:
-                ac = AccessToken.objects.get(token=auth_header.split(' ')[1])
+                checksum = tkn_checksum(auth_header.split(' ')[1])
+                ac = AccessToken.objects.get(token_checksum=checksum)
             else:
                 encoded_credentials = auth_header.split(' ')[1]  # Removes 'Basic ' to isolate credentials
                 decoded_credentials = b64decode(encoded_credentials).decode('utf-8').split(':')
@@ -222,11 +277,12 @@ def get_application_from_data(request):
     # have a problem, and should return an error.
     if request.POST.get('token', None):
         try:
-            token = AccessToken.objects.get(token=request.POST.get('token', None))
+            checksum = tkn_checksum(request.POST.get('token', None))
+            token = AccessToken.objects.get(token_checksum=checksum)
         except AccessToken.DoesNotExist:
             if request.POST.get('token_type_hint', None) == REFRESH_TOKEN:
                 try:
-                    token = RefreshToken.objects.get(token=request.POST.get('token', None))
+                    token = RefreshToken.objects.get(token_checksum=tkn_checksum(request.POST.get('token', None)))
                 except RefreshToken.DoesNotExist:
                     raise InvalidRequestError(
                         description='Token not found.',
@@ -256,7 +312,8 @@ def get_application_from_data(request):
     # Finally, if we have a refresh token, but cannot find an app, that's not good.
     if request.POST.get(REFRESH_TOKEN):
         try:
-            rt = RefreshToken.objects.get(token=request.POST.get(REFRESH_TOKEN, None))
+            checksum = tkn_checksum(request.POST.get(REFRESH_TOKEN, None))
+            rt = RefreshToken.objects.get(token_checksum=checksum)
         except RefreshToken.DoesNotExist:
             raise InvalidRequestError(
                 description='Refresh token not found.',
@@ -343,7 +400,7 @@ def validate_app_is_active(request: HttpRequest) -> Application:
 
             refresh_code = request.POST.get(REFRESH_TOKEN, None)
             try:
-                refresh_token = RefreshToken.objects.get(token=refresh_code)
+                refresh_token = RefreshToken.objects.get(token_checksum=tkn_checksum(refresh_code))
                 dag = DataAccessGrant.objects.get(beneficiary=refresh_token.user, application=app)
 
                 if dag:
@@ -505,3 +562,40 @@ def build_jwks_urls():
         CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
         IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
     }
+
+
+def create_authorization_header(
+    client_id: str = TEST_APP_CLIENT_ID, client_secret: str = TEST_APP_CLIENT_SECRET
+) -> str:
+    """
+    Encodes client_id and client_secret into an HTTP Basic Authorization header.
+
+    Args:
+        - client_id (str): The id of the client
+        - client_secret (str): The secret of the client
+
+    Returns:
+        - str: The encoded auth header in the format of 'Basic <encoded>'
+    """
+    encoded = b64encode(f'{client_id}:{client_secret}'.encode('utf-8')).decode('utf-8')
+    return f'Basic {encoded}'
+
+
+def tkn_checksum(token: Any) -> str:
+    """Helper function to convert a token value (from oauth2_provider_accesstoken or
+    oauth2_provider_refreshtoken) to a token_checksum, as the token tables have an index
+    on token_checksum and not on the token column
+
+    Args:
+        token (Any): The token column value from a oauth2_provider_accesstoken or oauth2_provider_refreshtoken record
+
+    Returns:
+        str: The calculated token_checksum, used to retrieve token records from the databae
+    """
+    if isinstance(token, str):
+        token_checksum = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    elif hasattr(token, 'token'):
+        token_checksum = hashlib.sha256(token.token.encode('utf-8')).hexdigest()
+    else:
+        token_checksum = None
+    return token_checksum

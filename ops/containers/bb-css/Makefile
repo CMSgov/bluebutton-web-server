@@ -8,5 +8,6 @@ build-local:
 
 run-local:
 	docker run \
-		-v "$(CURDIR)/scripts/internal/build-css.bash:/code/build-css.bash" \
+		-v "$(CURDIR)/scripts/internal/build-css.bash:/code/build-css.bash:ro" \
+        -v "$(CURDIR)/../../../static/bluebutton-css/dist:/code/static/bluebutton-css/dist" \
 		bb-css:latest
