@@ -26,6 +26,14 @@ label {
 	color: $black;
 }
 
+.control-label,
+.ds-c-choice + label.control-label {
+	font-weight: bold;
+	font-size: .8rem;
+	color: $black;
+	max-width: 35em;
+}
+
 form {
 	// Input Styles
 	input[type="text"],

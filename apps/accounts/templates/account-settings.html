@@ -23,8 +23,8 @@
         <div class="ds-u-margin-y--2">
           
           <!-- Password Section -->
-          <h2>Password Management</h2>
-          <a class="ds-c-button  ds-c-button--default ds-u-margin-bottom--4" href="{% url 'password_change' %}">
+          <h2 class="ds-u-margin-bottom--2">Password Management</h2>
+          <a class="ds-c-button  ds-c-button--default ds-u-margin-bottom--2" href="{% url 'password_change' %}">
             Change Your Password
           </a>
 
@@ -35,7 +35,7 @@
           <h2>Additional Information</h2>
           <div class="alert alert-info">
             <button type="button" class="close" data-dismiss="alert">×</button>
-            <h4 class="ds-h4">{%trans "Important" %}</h4>
+            <h4>{%trans "Important" %}</h4>
             {{ additional_info |safe }}
           </div>
           {% endif %}

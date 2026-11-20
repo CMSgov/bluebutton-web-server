@@ -15,7 +15,7 @@
 		<div class="accordion-content {% if application.name %}accordion-content-visible{% endif %}" {% if application.name %}aria-expanded="true"{% else %}aria-expanded="false"{% endif %}>
 			<p class="ds-u-margin-bottom--4">This information isn't required to use the Sandbox, but can help emulate the experience of having an application in production, especially the experience of a Medicare beneficiary authorizing your application.</p>
 
-			<h3 class="ds-u-margin-bottom--2">App Logo &amp; Description</h3>
+			<h3>App Logo &amp; Description</h3>
 
 			<!-- App Logo -->
 			{% if application.logo_uri %}
@@ -37,7 +37,7 @@
 			<label for="id_description">Application Description (Max: 1000 characters )</label>
 			<textarea name="description" cols="40" rows="10" maxlength="1000" id="id_description">{{ application.description }}</textarea>
 
-			<h3 class="ds-u-margin-bottom--2 ds-u-margin-top--4">Organization &amp; Policy Info</h3>
+			<h4>Organization &amp; Policy Info</h4>
 
 			<!-- Organization Website -->  	 
 			<label class="ds-u-margin-top--2" for="id_website_uri">Organization/Company Website URL</label>
