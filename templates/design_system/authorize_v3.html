@@ -189,7 +189,7 @@ a {
                         {% blocktranslate %} 
                              Whose Medicare information would you like to share with
                         {% endblocktranslate %}
-                        <a style="text-decoration: underline;" href="{{ applicationUri }}" target="_blank">{{ applicationName }}</a>
+                        <a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
                     </p>
 
                     <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px; repeat(3,minmax(0,1fr))">
@@ -219,7 +219,7 @@ a {
                             </div>
                         {% endif %}
                 {% endif %}
-                <span id=whenSelected hidden>
+                {% if relationships %}<span id=whenSelected hidden>{% endif %}
                     {% if not error %}
                     <p class="ds-text-heading--xl ds-u-margin-bottom--3" style="margin-top: 16px; margin-bottom: 16px !important; color: #262626;">
                     {% blocktranslate %} 
@@ -227,13 +227,13 @@ a {
                             Share your Medicare information with
                         </span>
                     {% endblocktranslate %}
-                        <a style="text-decoration: underline;" href="{{ applicationUri }}" target="_blank">{{ applicationName }}</a>
+                        <a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
                     </p>
 
                     <div class="ds-text-body--md ds-u-margin-bottom--3" style="color: #262626;">
                         {% trans "Sharing with " %}
-                        <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationUri }}" target="_blank">
-                            <span style="text-decoration: underline;">{{ applicationName }}</span>
+                        <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.website_uri }}" target="_blank">
+                            <span style="text-decoration: underline;">{{ application.name }}</span>
                             <!-- {% trans "Privacy Policy" %} -->
                             <svg
                                 style="height: 1em; width: 1em; top: -2px;"
@@ -248,7 +248,7 @@ a {
                                 </path>
                             </svg>
                         </a>
-                        {% trans " means you give Medicare permission to automatically send this Medicare information to " %} {{ applicationName }} {% trans ". If you do not wish to share this information, select the <b>Cancel</b> button below to exit this page." %}
+                        {% trans " means you give Medicare permission to automatically send this Medicare information to " %} {{ application.name }} {% trans ". If you do not wish to share this information, select the <b>Cancel</b> button below to exit this page." %}
                     </div>
 
                     <div id="storybook-root" data-theme="medicare" style="color: #262626">
@@ -259,7 +259,7 @@ a {
                                     <div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
                                         <span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
                                     </div>
-                                    {{applicationName}} {% trans " will have access to this data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
+                                    {{application.name}} {% trans " will have access to this data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
                                     {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
                                     {% endif %}
                                     {% trans "Afterwards, you will need to give permission again. To stop sharing this data, visit " %}
@@ -330,7 +330,7 @@ a {
 
                         {% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
 
-                        {% if applicationPartD %}
+                        {% if application.part_d_eob_only %}
 
                         <div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
                             <!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
@@ -448,9 +448,9 @@ a {
                                     </g>
                                 </svg>
 
-                                {% if applicationSupportEmail %}
-                                <span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ applicationName }}{% trans "'s " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.PolicyUri }}" target="_blank">
+                                {% if application.support_email %}
+                                <span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
                                         <span style="text-decoration: underline;">Privacy Policy</span>
                                         <!-- {% trans "Privacy Policy" %} -->
                                         <svg
@@ -467,7 +467,7 @@ a {
                                         </svg>
                                     </a>
                                     {% trans " and " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationTosUri }}" target="_blank">
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
                                         <!-- {% trans "Terms and Conditions" %} -->
                                         <span style="text-decoration: underline;">Terms and Conditions</span>
                                         <svg
@@ -483,16 +483,16 @@ a {
                                             </path>
                                         </svg>
                                     </a> to learn how they manage this data.
-                                    {% if applicationSupportEmail %}
+                                    {% if application.support_email %}
                                     <br>
                                         {% trans " For additional inquiries, you can send an email to " %}
-                                        <a href="mailto:{{ applicationSupportEmail }}">{{ applicationSupportEmail }}</a>.
+                                        <a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
                                     {% endif %}
                                 </span>
                                 {% else %}
 
-                                <span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ applicationName }}{% trans "'s " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationPolicyUri }}" target="_blank">
+                                <span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
                                         <span style="text-decoration: underline;">{% trans "Privacy Policy" %}</span>
                                         <!-- {% trans "Privacy Policy" %} -->
                                         <svg
@@ -509,7 +509,7 @@ a {
                                         </svg>
                                     </a>
                                     {% trans " and " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationTosUri }}" target="_blank">
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
                                         <!-- {% trans "Terms and Conditions" %} -->
                                         <span style="text-decoration: underline;">{% trans "Terms and Conditions" %}</span>
                                         <svg
@@ -547,7 +547,7 @@ a {
                 </div>
             </div>
         </div>
-        </span>
+        {% if relationships %}</span>{% endif %}
     </section>
 
     <script>
