@@ -41,7 +41,11 @@ class OAuth2ConfigSLSx(object):
     signout_endpoint = settings.SLSX_SIGNOUT_ENDPOINT
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
     relationships_endpoint = settings.SLSX_RELATIONSHIPS_ENDPOINT
-
+    print('here is the endpoint')
+    print(userinfo_endpoint)
+    print(relationships_endpoint)
+    print(settings.SLSX_RELATIONSHIPS_ENDPOINT)
+    print('here is the endpoint')
     # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
     verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
     verify_ssl_external = settings.SLSX_VERIFY_SSL_EXTERNAL

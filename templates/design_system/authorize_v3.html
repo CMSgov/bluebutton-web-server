@@ -187,30 +187,22 @@ a {
 		        {% if relationships %}
                     <p class="ds-text-heading--xl ds-u-margin-bottom--3" style="margin-top: 16px; margin-bottom: 16px !important; color: #262626;">
                         {% blocktranslate %} 
-                            Share {{targetUser}} Medicare information with
+                             Whose Medicare information would you like to share with
                         {% endblocktranslate %}
-                        <a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
+                        <a style="text-decoration: underline;" href="{{ applicationUri }}" target="_blank">{{ applicationName }}</a>
                     </p>
 
                     <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px; repeat(3,minmax(0,1fr))">
-                            <div class={{selected.0}}>
+                        <div class="ds-c-card">
                                 <h2>My account</h2>
-                                    <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value=0>
-                                    <button class="{{buttonClass.0}}" type="submit">{% trans "Select" %}</button>
-                                    </form>
+                                <button class="select-button ds-c-button ds-c-button--solid" data-value=0>{% trans "Select" %}</button>
                             </div>
                         {% if relationships|length > 1 %}
                             {% for user in relationships|slice:"1:3" %}
-                                <div class={{user.divClass}}>
+                            <div class="ds-c-card" data-name ="{{user.userFirstName}} {{user.userLastName}}'s">
                                     <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
                                     <p style="color: {{user.expiresColor}}">{{user.formattedExpiresAt}}</p>
-                                    <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="{{forloop.counter}}">
-                                    <button class="{{user.buttonClass}}" type="submit">{% trans "Select" %}</button>
-                                    </form>
+                                    <button class="select-button ds-c-button ds-c-button--solid" data-value={{forloop.counter}}>{% trans "Select" %}</button>
                                 </div>
                             {% endfor %}
                         {% endif %}
@@ -218,32 +210,30 @@ a {
                         {% if relationships|length > 3 %}
                             <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px;">
                                 {% for user in relationships|slice:"3:" %}
-                                    <div class={{user.divClass}}>
+                                    <div class="ds-c-card" data-name ="{{user.userFirstName}} {{user.userLastName}}'s">
                                         <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
                                         <p style="color: {{user.expiresColor}}">{{user.formattedExpiresAt}}</p>
-                                    <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value={{forloop.counter|add:2}}>
-                                    <button class="{{user.buttonClass}}" type="submit">{% trans "Select" %}</button>
-                                    </form>
+                                    <button class="select-button ds-c-button ds-c-button--solid" data-value={{forloop.counter|add:2}}>{% trans "Select" %}</button>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% endif %}
                 {% endif %}
-                {% if unselected == False %} 
+                <span id=whenSelected hidden>
                     {% if not error %}
                     <p class="ds-text-heading--xl ds-u-margin-bottom--3" style="margin-top: 16px; margin-bottom: 16px !important; color: #262626;">
                     {% blocktranslate %} 
-                        Share {{targetUser}} Medicare information with
+                        <span id="shareWhoseMedicare">
+                            Share your Medicare information with
+                        </span>
                     {% endblocktranslate %}
-                        <a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
+                        <a style="text-decoration: underline;" href="{{ applicationUri }}" target="_blank">{{ applicationName }}</a>
                     </p>
 
                     <div class="ds-text-body--md ds-u-margin-bottom--3" style="color: #262626;">
                         {% trans "Sharing with " %}
-                        <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.website_uri }}" target="_blank">
-                            <span style="text-decoration: underline;">{{ application.name }}</span>
+                        <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationUri }}" target="_blank">
+                            <span style="text-decoration: underline;">{{ applicationName }}</span>
                             <!-- {% trans "Privacy Policy" %} -->
                             <svg
                                 style="height: 1em; width: 1em; top: -2px;"
@@ -258,7 +248,7 @@ a {
                                 </path>
                             </svg>
                         </a>
-                        {% trans " means you give Medicare permission to automatically send your Medicare information to " %} {{ application.name }} {% trans ". If you do not wish to share your information, select the <b>Cancel</b> button below to exit this page." %}
+                        {% trans " means you give Medicare permission to automatically send this Medicare information to " %} {{ applicationName }} {% trans ". If you do not wish to share this information, select the <b>Cancel</b> button below to exit this page." %}
                     </div>
 
                     <div id="storybook-root" data-theme="medicare" style="color: #262626">
@@ -269,12 +259,12 @@ a {
                                     <div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
                                         <span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
                                     </div>
-                                    {{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
+                                    {{applicationName}} {% trans " will have access to this data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
                                     {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
                                     {% endif %}
-                                    {% trans "Afterwards, you will need to give permission again. To stop sharing your data, visit " %}
+                                    {% trans "Afterwards, you will need to give permission again. To stop sharing this data, visit " %}
                                     <a {% trans "https://www.medicare.gov/my/connected-apps" %} target="_blank" style="text-decoration: underline;">{%	trans "Medicare.gov/my/connected-apps" %}</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)." %}
-                                </div>
+                                </div >
                             </div>
                         </div>
                     </div>
@@ -284,13 +274,15 @@ a {
                     </div>
 
                     <form id="authorizationForm" method="post">
+                        <!-- this is where the patient selection is passed into the form --> 
+                        <input type="hidden" name="patient_index" id="patient_index" value="" />
 
                         {% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes or 'profile' in scopes %}
                         <div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
                             <!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
                             <input type="hidden" name="share_demographic_scopes" value="True" />
                             <span class="ds-text-body--md" style="font-weight: 600;">{% trans "Personal Information (required)" %}</span>
-                            <p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "Your name, date of birth, race, and sex" %}</p>
+                            <p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "Patient name, date of birth, race, and sex" %}</p>
                         </div>
                         {% endif %}
 
@@ -338,7 +330,7 @@ a {
 
                         {% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
 
-                        {% if application.part_d_eob_only %}
+                        {% if applicationPartD %}
 
                         <div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
                             <!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
@@ -456,9 +448,9 @@ a {
                                     </g>
                                 </svg>
 
-                                {% if application.support_email %}
-                                <span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
+                                {% if applicationSupportEmail %}
+                                <span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ applicationName }}{% trans "'s " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.PolicyUri }}" target="_blank">
                                         <span style="text-decoration: underline;">Privacy Policy</span>
                                         <!-- {% trans "Privacy Policy" %} -->
                                         <svg
@@ -475,7 +467,7 @@ a {
                                         </svg>
                                     </a>
                                     {% trans " and " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationTosUri }}" target="_blank">
                                         <!-- {% trans "Terms and Conditions" %} -->
                                         <span style="text-decoration: underline;">Terms and Conditions</span>
                                         <svg
@@ -490,17 +482,17 @@ a {
                                             <path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
                                             </path>
                                         </svg>
-                                    </a> to learn how they manage your data.
-                                    {% if application.support_email %}
+                                    </a> to learn how they manage this data.
+                                    {% if applicationSupportEmail %}
                                     <br>
                                         {% trans " For additional inquiries, you can send an email to " %}
-                                        <a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
+                                        <a href="mailto:{{ applicationSupportEmail }}">{{ applicationSupportEmail }}</a>.
                                     {% endif %}
                                 </span>
                                 {% else %}
 
-                                <span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
+                                <span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ applicationName }}{% trans "'s " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationPolicyUri }}" target="_blank">
                                         <span style="text-decoration: underline;">{% trans "Privacy Policy" %}</span>
                                         <!-- {% trans "Privacy Policy" %} -->
                                         <svg
@@ -517,7 +509,7 @@ a {
                                         </svg>
                                     </a>
                                     {% trans " and " %}
-                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ applicationTosUri }}" target="_blank">
                                         <!-- {% trans "Terms and Conditions" %} -->
                                         <span style="text-decoration: underline;">{% trans "Terms and Conditions" %}</span>
                                         <svg
@@ -555,9 +547,32 @@ a {
                 </div>
             </div>
         </div>
+        </span>
     </section>
 
     <script>
+        document.addEventListener("click", function(event) {
+            const button = event.target.closest('.select-button');
+            if (!button) return;
+
+            document.querySelectorAll('.select-button').forEach(element => {
+                element.parentElement.className = 'ds-c-card';
+               element.className = 'select-button ds-c-button ds-c-button--solid';
+            });
+            
+            button.className = 'select-button ds-c-button';
+            button.parentElement.className = 'ds-c-card-selected';
+            
+            shareSpan = document.getElementById("shareWhoseMedicare")
+            shareSpan.textContent = "Share " + (button.parentElement.dataset.name ||'your') + " Medicare information with";
+
+
+            showSpan = document.getElementById("whenSelected");
+            showSpan.hidden = false;
+
+            patientInput = document.getElementById("patient_index");
+            patientInput.value = button.dataset.value;
+        }, true);
       (function () {
         document.querySelectorAll('.ds-c-accordion__button').forEach(function (btn) {
 
@@ -584,6 +599,5 @@ a {
         });
       })();
     </script>
-
-    {% endif %}
 {% endblock %}
+</body>

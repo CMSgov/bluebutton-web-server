@@ -1,4 +1,3 @@
-import copy
 import html
 import json
 import logging
@@ -221,81 +220,38 @@ class AuthorizationView(DotAuthorizationView):
             return None
 
     def get_context_data(self, **kwargs):
-        # if 'applicationName' not in self.request.session:
-        #    self.request.session['applicationName'] = self.application.name
-        #    self.request.session['applicationURI'] = self.application.website_uri
-        # kwargs['applicationName'] = self.request.session['applicationName']
-        if 'unselected' in self.request.session:
-            kwargs['unselected'] = False
-        if 'application' in self.request.session:
-            kwargs['application'] = self.request.session['application']
-        if 'selected' not in self.request.session:
-            self.request.session['selected'] = ['ds-c-card'] * 6
-        kwargs['selected'] = self.request.session['selected']
-        if 'buttonClass' not in self.request.session:
-            self.request.session['buttonClass'] = ['ds-c-button ds-c-button--solid'] * 6
-        kwargs['buttonClass'] = self.request.session['buttonClass']
-        if 'targetUser' not in self.request.session:
-            self.request.session['targetUser'] = 'your'
-        kwargs['targetUser'] = self.request.session['targetUser']
         if self.version == Versions.V3:
-            formattedRelationships = [{}] * 6
-            relationshipUser = {
-                'id': '13bb7b83-5008-473b-8dd9-a2fb4bea9989',
-                'userFirstName': 'Stacy',
-                'userLastName': 'Doe',
-                'beneFirstName': 'Stacy',
-                'beneLastName': 'Doe',
-                'role': 'beneficiary',
-                'roleLevel': 100,
-                'status': 'active',
-                'expiresAt': None,
-                'createdTime': 1785356755,
-                'updatedTime': 1786468042,
-                'scopes': [],
-            }
-
-            ##TODO USER HARDCODING TO BE REMOVED
-            for i in range(6):
-                formattedRelationships[i] = copy.deepcopy(relationshipUser)
-            formattedRelationships[1]['userFirstName'] = 'Macy'
-            formattedRelationships[2]['userFirstName'] = 'Gracy'
-            formattedRelationships[3]['userFirstName'] = 'Lacy'
-            formattedRelationships[4]['userFirstName'] = 'Blacy'
-            formattedRelationships[5]['userFirstName'] = 'Shmacy'
-            formattedRelationships[3]['expiresAt'] = 1794614400
-            formattedRelationships[4]['expiresAt'] = 1798214400
-            formattedRelationships[5]['expiresAt'] = 1797214400
-
-            # expiration date logic
-            for index, relationship in enumerate(formattedRelationships):
-                formattedRelationships[index]['divClass'] = kwargs['selected'][index]
-                formattedRelationships[index]['buttonClass'] = kwargs['buttonClass'][index]
-                if relationship['expiresAt'] is not None:
-                    # permission is already expired
-                    if relationship['expiresAt'] <= time.time():
-                        formattedRelationships[index]['expiresColor'] = '#FF0000'
-                        formattedRelationships[index]['formattedExpiresAt'] = 'Expired'
-                        formattedRelationships[index]['Expired'] = True
-                    else:
-                        # format expiresAt month/day/year
-                        dt = datetime.fromtimestamp(int(relationship['expiresAt']))
-                        formattedDate = dt.strftime('%m-%d-%Y')
-                        dateText = 'Authorization ends ' + formattedDate
-                        formattedRelationships[index]['formattedExpiresAt'] = dateText
-
-                        # if expiry is less than a month away, red text
-                        diff = int(relationship['expiresAt']) - time.time()
-                        if diff <= (timedelta(days=30).total_seconds()):
+            if 'user_relationships' in self.request.session:
+                formattedRelationships = self.request.session['user_relationships']
+                # expiration date logic
+                for index, relationship in enumerate(formattedRelationships):
+                    if relationship['expiresAt'] is not None:
+                        # permission is already expired
+                        if relationship['expiresAt'] <= time.time():
                             formattedRelationships[index]['expiresColor'] = '#FF0000'
+                            formattedRelationships[index]['formattedExpiresAt'] = 'Expired'
+                            formattedRelationships[index]['Expired'] = True
                         else:
-                            formattedRelationships[index]['expiresColor'] = '#000000'
-                else:
-                    # indefinite permission
-                    formattedRelationships[index]['formattedExpiresAt'] = ''
-                kwargs['relationships'] = formattedRelationships
-                self.request.session['user_relationships'] = formattedRelationships
-                kwargs['beneficiary_name'] = self.request.beneficiary_name
+                            # format expiresAt month/day/year
+                            dt = datetime.fromtimestamp(int(relationship['expiresAt']))
+                            formattedDate = dt.strftime('%m-%d-%Y')
+                            dateText = 'Authorization ends ' + formattedDate
+                            formattedRelationships[index]['formattedExpiresAt'] = dateText
+
+                            # if expiry is less than a month away, red text
+                            diff = int(relationship['expiresAt']) - time.time()
+                            if diff <= (timedelta(days=30).total_seconds()):
+                                formattedRelationships[index]['expiresColor'] = '#FF0000'
+                            else:
+                                formattedRelationships[index]['expiresColor'] = '#000000'
+                    else:
+                        # indefinite permission
+                        formattedRelationships[index]['formattedExpiresAt'] = ''
+                    kwargs['primaryUser'] = formattedRelationships[0]
+                    kwargs['relationships'] = formattedRelationships
+                    self.request.session['user_relationships'] = formattedRelationships
+            kwargs['beneficiary_name'] = self.request.beneficiary_name
+
             scopes_from_request = kwargs.get('scopes', [])
             application_scopes = list(
                 ProtectedCapability.objects.filter(Q(application=self.application))
@@ -470,27 +426,6 @@ class AuthorizationView(DotAuthorizationView):
         return initial_data
 
     def post(self, request, *args, **kwargs):
-        # Update the variable based on the button clicked
-        action = request.POST.get('action')
-        self.request.session['application'] = request.POST.get('application')
-        self.request.session['unselected'] = request.POST.get('false')
-        if action is not None and action != '':
-            self.request.session['selected'] = ['ds-c-card'] * 6
-            self.request.session['buttonClass'] = ['ds-c-button ds-c-button--solid'] * 6
-            if action is not None:
-                self.request.session['selected'][int(action)] = 'ds-c-card-selected'
-                self.request.session['buttonClass'][int(action)] = 'ds-c-button'
-            if int(action) != 0:
-                self.request.session['targetUser'] = (
-                    self.request.session['user_relationships'][int(action)]['userFirstName']
-                    + ' '
-                    + self.request.session['user_relationships'][int(action)]['userLastName']
-                    + "'s"
-                )
-            else:
-                self.request.session['targetUser'] = 'your'
-
-            # return redirect(request.path, *args, **kwargs)  # Reloads page to show updated value
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -537,10 +472,27 @@ class AuthorizationView(DotAuthorizationView):
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
         # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        # also if it is v3, see if there was another user who's information is being sent
         user_approves_sharing_samhsa_data = True
         share_samhsa_log_str = ''
+        user_to_send = self.request.user
         if self.version == Versions.V3:
             user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            if 'user_relationships' in self.request.session:
+                patient_index = form.cleaned_data.get('patient_index')
+                if patient_index is not None:
+                    userInData = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
+                    print(userInData)
+                    print(self.request.user)
+                    print(self.request.user.__dict__)
+                    userInDatabase = User.objects.get(
+                        first_name=userInData['userFirstName'],
+                        last_name=userInData['userLastName'],
+                    )
+                    print(userInDatabase)
+                    user_to_send = UserProfile.objects.get(
+                        User=userInDatabase,
+                    )
             if application.part_d_eob_only:
                 user_approves_sharing_samhsa_data = True
             share_samhsa_log_str = 'True' if user_approves_sharing_samhsa_data else 'False'
@@ -578,14 +530,14 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
+                ) = remove_application_user_pair_tokens_data_access(application, user_to_send, True, False)
 
             beneficiary_authorized_application.send(
                 sender=self,
                 request=self.request,
                 auth_status='FAIL',
                 auth_status_code=response.status_code,
-                user=self.request.user,
+                user=user_to_send,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
                 share_samhsa_data=share_samhsa_log_str,
@@ -603,14 +555,14 @@ class AuthorizationView(DotAuthorizationView):
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
+            ) = remove_application_user_pair_tokens_data_access(application, user_to_send, True, False)
 
         beneficiary_authorized_application.send(
             sender=self,
             request=self.request,
             auth_status='OK',
             auth_status_code=None,
-            user=self.request.user,
+            user=user_to_send,
             application=application,
             share_demographic_scopes=share_demographic_scopes,
             share_samhsa_data=share_samhsa_log_str,
@@ -638,7 +590,7 @@ class AuthorizationView(DotAuthorizationView):
         update_instance_auth_flow_trace_with_code(auth_dict, code)
 
         # Check for prior tokens and remove them if they exist to ensure they can't continue to be used
-        remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
+        remove_application_user_pair_tokens_data_access(application, user_to_send, False, True)
 
         return self.redirect(self.success_url, application)
 

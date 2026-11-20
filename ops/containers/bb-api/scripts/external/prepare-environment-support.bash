@@ -301,6 +301,7 @@ configure_slsx () {
         export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://${sls}.medicare.gov/sso/signout"
         export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://${sls}.accounts.cms.gov/health"
         export DJANGO_SLSX_USERINFO_ENDPOINT="https://${sls}.accounts.cms.gov/v1/users"
+        export DJANGO_SLSX_RELATIONSHIPS_ENDPOINT="http://${sls}.medicare.gov/account/api/proxy/relationship?my-position=user"
         # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
         export DJANGO_SLSX_VERIFY_SSL_INTERNAL="False"
         export DJANGO_SLSX_VERIFY_SSL_EXTERNAL="True"
