@@ -579,7 +579,7 @@ CLIENT_ASSERTION_TYPE_VALUE = 'urn:ietf:params:oauth:client-assertion-type:jwt-b
 # CSP trust-anchor issuers (`iss`). These are stable identifiers for the CLEAR /
 # ID.me trust anchors and are not environment configuration.
 CLEAR_HIGHER_ISS = 'https://verified.clearme.com/integrations'
-CLEAR_LOWER_ISS = 'https://please-find-out-what-i.am'
+CLEAR_LOWER_ISS = 'https://verified-sandbox.clearme.com/integrations'
 IDME_HIGHER_ISS = 'https://api.id.me/oidc'
 IDME_LOWER_ISS = 'https://api.idmelabs.com/oidc'
 

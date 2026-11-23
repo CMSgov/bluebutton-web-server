@@ -1,16 +1,27 @@
+import json
+import logging
 import os
+from http import HTTPStatus
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
-from apps.dot_ext.constants import CLEAR_HIGHER_ISS, IDME_HIGHER_ISS, IDME_LOWER_ISS, SUPPORTED_VERSION_TEST_CASES
+from apps.dot_ext.constants import (
+    CLEAR_HIGHER_ISS,
+    CLEAR_LOWER_ISS,
+    IDME_HIGHER_ISS,
+    IDME_LOWER_ISS,
+    SUPPORTED_VERSION_TEST_CASES,
+)
 from apps.dot_ext.utils import (
     build_jwks_urls,
     check_can_token_scope_for_audit_event_scopes,
     check_session_and_create_access_token_extension,
     get_api_version_number_from_url,
+    log_jwt_auth,
     remove_application_user_pair_tokens_data_access,
     validate_client_id,
     validate_latin_extended_string,
@@ -241,8 +252,145 @@ def test_build_jwks_urls_returns_lower_environment(settings) -> None:
     """
     settings.TARGET_ENV = 'test'
     expected = {
-        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
+        CLEAR_LOWER_ISS: settings.CLEAR_LOWER_JWKS_URL,
         IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
     }
     result = build_jwks_urls()
     assert result == expected
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'kwargs, expected_level, expected_payload',
+    [
+        # Test auth_status success with some input params and the rest default vals
+        # Uses authorization_code for grant_type to represent asymmetric auth
+        # Should prduce a logging level of info
+        (
+            {
+                'request': SimpleNamespace(path='/v3/o/token'),
+                'status_code': HTTPStatus.OK,
+                'app': SimpleNamespace(id=42, name='test', client_id='client-id'),
+                'grant_type': 'authorization_code',
+                'auth_status': 'OK',
+            },
+            'INFO',
+            {
+                'auth_status': 'OK',
+                'grant_type': 'authorization_code',
+                'app_id': 42,
+                'app_name': 'test',
+                'app_client_id': 'client-id',
+                'patient_match_found': None,
+                'error_message': None,
+                'csp': None,
+                'patient': None,
+                'path': '/v3/o/token',
+                'type': 'Authentication:jwt',
+                'status_code': HTTPStatus.OK,
+            },
+        ),
+        # Test auth_status failure case with some input params and the rest default.
+        # Uses authorization_code for grant_type to represent asymmetric auth
+        # Should produce a logging level of warning
+        (
+            {
+                'request': SimpleNamespace(path='/v3/o/token'),
+                'status_code': HTTPStatus.BAD_REQUEST,
+                'app': SimpleNamespace(id=42, name='test', client_id='client-id'),
+                'grant_type': 'authorization_code',
+                'auth_status': 'FAIL',
+            },
+            'WARNING',
+            {
+                'auth_status': 'FAIL',
+                'grant_type': 'authorization_code',
+                'app_id': 42,
+                'app_name': 'test',
+                'app_client_id': 'client-id',
+                'patient_match_found': None,
+                'error_message': None,
+                'csp': None,
+                'patient': None,
+                'path': '/v3/o/token',
+                'type': 'Authentication:jwt',
+                'status_code': HTTPStatus.BAD_REQUEST,
+            },
+        ),
+        # Test auth_status success with passing in all input params and no defaults, and use client_credentials to represent CAN flow
+        # Should prduce a logging level of info
+        # Also pass in a patient match found of True
+        (
+            {
+                'request': SimpleNamespace(path='/v3/o/token'),
+                'status_code': HTTPStatus.OK,
+                'app': SimpleNamespace(id=42, name='test', client_id='client-id'),
+                'grant_type': 'client_credentials',
+                'auth_status': 'OK',
+                'error_message': 'Malformed JWT',
+                'log_type': 'Authentication:jwt',
+                'csp_issuer': 'CLEAR',
+                'patient_match_found': True,
+                'fhir_id': '123456',
+            },
+            'INFO',
+            {
+                'auth_status': 'OK',
+                'grant_type': 'client_credentials',
+                'app_id': 42,
+                'app_name': 'test',
+                'app_client_id': 'client-id',
+                'patient_match_found': True,
+                'error_message': 'Malformed JWT',
+                'csp': 'CLEAR',
+                'patient': '123456',
+                'path': '/v3/o/token',
+                'type': 'Authentication:jwt',
+                'status_code': HTTPStatus.OK,
+            },
+        ),
+        # Test auth_status failure with passing in all input params and no defaults, and use client_credentials to represent CAN flow
+        # Should prduce a logging level of warning
+        # Also pass in a false patient match found
+        (
+            {
+                'request': SimpleNamespace(path='/v3/o/token'),
+                'status_code': HTTPStatus.UNAUTHORIZED,
+                'app': SimpleNamespace(id=42, name='test', client_id='client-id'),
+                'grant_type': 'client_credentials',
+                'auth_status': 'FAIL',
+                'error_message': 'Malformed JWT',
+                'log_type': 'Authentication:jwt',
+                'csp_issuer': 'CLEAR',
+                'patient_match_found': False,
+                'fhir_id': '123456',
+            },
+            'WARNING',
+            {
+                'auth_status': 'FAIL',
+                'grant_type': 'client_credentials',
+                'app_id': 42,
+                'app_name': 'test',
+                'app_client_id': 'client-id',
+                'patient_match_found': False,
+                'error_message': 'Malformed JWT',
+                'csp': 'CLEAR',
+                'patient': '123456',
+                'path': '/v3/o/token',
+                'type': 'Authentication:jwt',
+                'status_code': HTTPStatus.UNAUTHORIZED,
+            },
+        ),
+    ],
+)
+def test_log_jwt_auth(caplog, kwargs, expected_level, expected_payload):
+    with caplog.at_level(logging.INFO, logger='hhs_server.apps.dot_ext.utils'):
+        log_jwt_auth(**kwargs)
+
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == expected_level
+    json_loaded = json.loads(record.getMessage())
+    for key, val in expected_payload.items():
+        assert json_loaded[key] == val
+    assert 'request_uuid' in json_loaded

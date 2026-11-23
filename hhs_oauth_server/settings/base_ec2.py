@@ -830,7 +830,9 @@ SLSX_VERIFY_SSL_EXTERNAL = env('DJANGO_SLSX_VERIFY_SSL_EXTERNAL', False)
 CLEAR_HIGHER_JWKS_URL = env(
     'DJANGO_CLEAR_HIGHER_JWKS_URL', 'https://verified.clearme.com/integrations/.well-known/jwks.json'
 )
-CLEAR_LOWER_JWKS_URL = env('DJANGO_CLEAR_LOWER_JWKS_URL', 'https://please-find-out-what-i.am')
+CLEAR_LOWER_JWKS_URL = env(
+    'DJANGO_CLEAR_LOWER_JWKS_URL', 'https://verified-sandbox.clearme.com/integrations/.well-known/jwks.json'
+)
 IDME_HIGHER_JWKS_URL = env('DJANGO_IDME_HIGHER_JWKS_URL', 'https://api.id.me/oidc/.well-known/jwks')
 IDME_LOWER_JWKS_URL = env('DJANGO_IDME_LOWER_JWKS_URL', 'https://api.idmelabs.com/oidc/.well-known/jwks')
 

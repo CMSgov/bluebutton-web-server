@@ -3,6 +3,7 @@ import json
 import os
 from datetime import timezone
 from http import HTTPStatus
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -10,7 +11,7 @@ import pytest
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.http import HttpRequest, JsonResponse
+from django.http import JsonResponse
 from django.test import TestCase
 from freezegun import freeze_time
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
@@ -36,6 +37,8 @@ from apps.dot_ext.validators import (
     CMSAlignedNetworksTokenRequestValidator,
     validate_url,
 )
+
+SAMPLE_APP = SimpleNamespace(id=1, name='test_app', client_id='expected_client_id')
 
 ASYMMETRIC_AUTH_PAYLOAD = {
     'iss': 'test-client-id',
@@ -292,6 +295,8 @@ def test_validate_and_decode_token_cache_successful(
 ):
     """Test correct cache behavior for _validate_and_decode_token"""
     validator = validator_class()
+    # Need to assign a sample app so that it can use an app instance for comparison within the function
+    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     with freeze_time() as frozen_time:
@@ -303,7 +308,7 @@ def test_validate_and_decode_token_cache_successful(
             'header': {'typ': 'JWT'},
         }
 
-        result = validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
+        result = validator._decode_and_validate_token('token', 'jwks_uri')
         assert result == test_payload
 
         # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -337,6 +342,8 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
 ):
     """Test _decode_and_validate_token fails on second cache hit with same iss/jti combo"""
     validator = validator_class()
+    # Need to assign a sample app so that it can use an app instance for comparison within the function
+    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
@@ -347,7 +354,7 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
         'header': {'typ': 'JWT'},
     }
 
-    result = validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
+    result = validator._decode_and_validate_token('token', 'jwks_uri')
     assert result == test_payload
 
     # Assert cache has the key we'd expect and that the result is what we'd expect
@@ -356,7 +363,7 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
 
     # Second call with same jti/iss fails
     with pytest.raises(InvalidRequestError):
-        validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
+        validator._decode_and_validate_token('token', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -380,8 +387,9 @@ def test_decode_and_validate_token_invalid_header(
     header,
 ):
     """Test _decode_and_validate_token fails with invalid typ in header"""
-
     validator = validator_class()
+    # Need to assign a sample app so that it can use an app instance for comparison within the function
+    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Return invalid headers that aren't 'JWT'
@@ -391,7 +399,7 @@ def test_decode_and_validate_token_invalid_header(
     }
 
     with pytest.raises(InvalidRequestError):
-        validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
+        validator._decode_and_validate_token('token', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -415,6 +423,8 @@ def test_decode_and_validate_token_expired(
 ):
     """Test _decode_and_validate_token fails with expired token"""
     validator = validator_class()
+    # Need to assign a sample app so that it can use an app instance for comparison within the function
+    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Make expiration time 6 minutes in the past to simulate an expired token scenario
@@ -427,7 +437,7 @@ def test_decode_and_validate_token_expired(
     }
 
     with pytest.raises(InvalidRequestError):
-        validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
+        validator._decode_and_validate_token('token', 'jwks_uri')
 
 
 @pytest.mark.django_db
@@ -638,9 +648,9 @@ def test_validate_smart_extension(payload, expected_output, should_raise):
     'iss, expected_result, should_raise, environment',
     [
         (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'prod'),
-        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'local'),
-        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'test'),
-        (CLEAR_HIGHER_ISS, settings.CLEAR_HIGHER_JWKS_URL, False, 'sbx'),
+        (CLEAR_LOWER_ISS, settings.CLEAR_LOWER_JWKS_URL, False, 'local'),
+        (CLEAR_LOWER_ISS, settings.CLEAR_LOWER_JWKS_URL, False, 'test'),
+        (CLEAR_LOWER_ISS, settings.CLEAR_LOWER_JWKS_URL, False, 'sbx'),
         (IDME_HIGHER_ISS, settings.IDME_HIGHER_JWKS_URL, False, 'prod'),
         (IDME_LOWER_ISS, settings.IDME_LOWER_JWKS_URL, False, 'local'),
         (IDME_LOWER_ISS, settings.IDME_LOWER_JWKS_URL, False, 'test'),
@@ -1121,15 +1131,16 @@ def test_check_if_call_is_allowed(
     validator_class, allowed_auth_type, version, should_fail, status_code, expected_message
 ):
     validator = validator_class()
-    app_name = 'new_app'
+    # Need to assign a sample app so that it can use an app instance for comparison within the function
+    validator.app = SimpleNamespace(allowed_auth_type=allowed_auth_type, name='new_app', id=42, client_id='client-id')
     if should_fail:
-        result = validator.check_if_call_is_allowed(allowed_auth_type, version, app_name)
+        result = validator.check_if_call_is_allowed(version)
         assert isinstance(result, JsonResponse)
         assert result.status_code == status_code
         response_data = json.loads(result.content.decode('utf-8'))
         assert expected_message in response_data['message']
     else:
-        result = validator.check_if_call_is_allowed(allowed_auth_type, version, app_name)
+        result = validator.check_if_call_is_allowed(version)
         assert result is None
 
 
@@ -1278,20 +1289,19 @@ def test_check_if_call_is_allowed(
 def test_validate_request_params(validator_class, post_data, expected_message, should_fail, should_raise_error):
     validator = validator_class()
 
-    mock_request = MagicMock(spec=HttpRequest)
-    mock_request.POST = post_data
+    validator.request = SimpleNamespace(POST=post_data, path='/v3/o/token')
 
     if should_fail:
         if should_raise_error:
             with pytest.raises(InvalidRequestError) as exc_info:
-                result = validator.validate_request_params(mock_request)
+                result = validator.validate_request_params()
                 assert expected_message in str(exc_info.value)
         else:
-            result = validator.validate_request_params(mock_request)
+            result = validator.validate_request_params()
             assert isinstance(result, JsonResponse)
             assert result.status_code == HTTPStatus.BAD_REQUEST
             response_data = json.loads(result.content.decode('utf-8'))
             assert expected_message in response_data['message']
     else:
-        result = validator.validate_request_params(mock_request)
+        result = validator.validate_request_params()
         assert result is None
