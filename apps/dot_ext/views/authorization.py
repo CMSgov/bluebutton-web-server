@@ -479,17 +479,14 @@ class AuthorizationView(DotAuthorizationView):
         user_to_send = self.request.user
         if self.version == Versions.V3:
             user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            # TODO: Send the data of the selected user to the form
+            """
             if 'user_relationships' in self.request.session:
                 patient_index = form.cleaned_data.get('patient_index')
                 if patient_index is not None:
-                    userInData = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
-                    userInDatabase = User.objects.get(
-                        first_name=userInData['userFirstName'],
-                        last_name=userInData['userLastName'],
-                    )
-                    user_to_send = UserProfile.objects.get(
-                        User=userInDatabase,
-                    )
+                    userFromPage = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
+                #TODO: using this value, find the account of that user
+            """
             if application.part_d_eob_only:
                 user_approves_sharing_samhsa_data = True
             share_samhsa_log_str = 'True' if user_approves_sharing_samhsa_data else 'False'
