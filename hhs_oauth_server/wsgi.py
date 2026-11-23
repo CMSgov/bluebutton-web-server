@@ -6,7 +6,7 @@ from django.core.wsgi import get_wsgi_application
 from dotenv import load_dotenv
 
 # project root folder
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DJANGO_CUSTOM_SETTINGS_DIR = os.path.join(BASE_DIR, '..')
 
 # If the .env file is present, load it

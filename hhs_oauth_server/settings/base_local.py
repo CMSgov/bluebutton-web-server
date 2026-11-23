@@ -589,7 +589,7 @@ MEDICARE_SLSX_LOGIN_URI = env(
 SLSX_HEALTH_CHECK_ENDPOINT = env('DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', default='https://test.accounts.cms.gov/health')
 SLSX_TOKEN_ENDPOINT = env('DJANGO_SLSX_TOKEN_ENDPOINT', default='https://test.medicare.gov/sso/session')
 SLSX_SIGNOUT_ENDPOINT = env('DJANGO_SLSX_SIGNOUT_ENDPOINT', default='https://test.medicare.gov/sso/signout')
-SLSX_USERINFO_ENDPOINT = env('DJANGO_SLSX_USERINFO_ENDPOINT', default='https://test.accounts.cms.gov/v2/users')
+SLSX_USERINFO_ENDPOINT = env('DJANGO_SLSX_USERINFO_ENDPOINT', default='https://test.accounts.cms.gov/v1/users')
 SLSX_RELATIONSHIPS_ENDPOINT = env(
     'DJANGO_SLSX_RELATIONSHIPS_ENDPOINT',
     default='https://test.medicare.gov/account/api/proxy/relationship?my-position=user',
