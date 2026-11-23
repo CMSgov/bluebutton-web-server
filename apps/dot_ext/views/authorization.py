@@ -223,6 +223,7 @@ class AuthorizationView(DotAuthorizationView):
         if self.version == Versions.V3:
             if 'user_relationships' in self.request.session:
                 formattedRelationships = self.request.session['user_relationships']
+
                 # expiration date logic
                 for index, relationship in enumerate(formattedRelationships):
                     if relationship['expiresAt'] is not None:
@@ -482,14 +483,10 @@ class AuthorizationView(DotAuthorizationView):
                 patient_index = form.cleaned_data.get('patient_index')
                 if patient_index is not None:
                     userInData = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
-                    print(userInData)
-                    print(self.request.user)
-                    print(self.request.user.__dict__)
                     userInDatabase = User.objects.get(
                         first_name=userInData['userFirstName'],
                         last_name=userInData['userLastName'],
                     )
-                    print(userInDatabase)
                     user_to_send = UserProfile.objects.get(
                         User=userInDatabase,
                     )
@@ -666,7 +663,6 @@ class ApprovalView(AuthorizationView):
             if application is not None:
                 approval.application = application
                 approval.save()
-                print(approval.application)
 
         # Set auth_uuid after super() return
         if auth_flow_dict:
