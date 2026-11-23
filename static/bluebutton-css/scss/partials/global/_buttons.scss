@@ -40,3 +40,8 @@
 .bb-c-button {
 	@include bb-c-button($blue, $white, darken($blue, 10%), $white);
 }
+
+//restoring styling removed by design system update
+input.ds-c-button--danger {
+  display: inline-block;
+}

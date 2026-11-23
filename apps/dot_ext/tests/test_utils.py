@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
 from apps.dot_ext.constants import (
@@ -20,11 +20,13 @@ from apps.dot_ext.utils import (
     build_jwks_urls,
     check_can_token_scope_for_audit_event_scopes,
     check_session_and_create_access_token_extension,
+    create_authorization_header,
     get_api_version_number_from_url,
     log_jwt_auth,
     remove_application_user_pair_tokens_data_access,
     validate_client_id,
     validate_latin_extended_string,
+    validate_symmetric_client_secret,
 )
 from apps.versions import VersionNotMatched
 
@@ -394,3 +396,62 @@ def test_log_jwt_auth(caplog, kwargs, expected_level, expected_payload):
     for key, val in expected_payload.items():
         assert json_loaded[key] == val
     assert 'request_uuid' in json_loaded
+    
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'post_data, headers, expected_result',
+    [
+        # Valid client secret in post body ensures client_secret is not empty and passes validation
+        ({'client_secret': 'valid_secret_123'}, {}, {'passed': True, 'message': ''}),
+        # Valid client secret in header ensures client secret is not empty and passes validation
+        (
+            {},
+            {
+                'HTTP_AUTHORIZATION': create_authorization_header(TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET),
+            },
+            {'passed': True, 'message': ''},
+        ),
+        # Empty client secret being passed in to the post body fails validation
+        ({'client_secret': ''}, {}, {'passed': False, 'message': 'The client secret is empty or missing.'}),
+        # Client secret with spaces being passed in fails validation
+        ({'client_secret': '    '}, {}, {'passed': False, 'message': 'The client secret is empty or missing.'}),
+        # Empty client secret being passed into the header and fails validation
+        (
+            {},
+            {
+                'HTTP_AUTHORIZATION': create_authorization_header(TEST_APP_CLIENT_ID, ''),
+            },
+            {'passed': False, 'message': 'The client secret is empty or missing.'},
+        ),
+        # No client secret in header or body fails validation
+        ({}, {}, {'passed': False, 'message': 'The client secret is empty or missing.'}),
+        # Mismatched client secrets between post body and header fails validation
+        (
+            {'client_secret': TEST_APP_CLIENT_SECRET},
+            {
+                'HTTP_AUTHORIZATION': create_authorization_header(TEST_APP_CLIENT_ID, 'invalid-secret'),
+            },
+            {'passed': False, 'message': 'The client secret in Authorization header and POST body do not match.'},
+        ),
+        # Matching client secrets between post body and header passes validation
+        (
+            {'client_secret': TEST_APP_CLIENT_SECRET},
+            {
+                'HTTP_AUTHORIZATION': create_authorization_header(TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET),
+            },
+            {'passed': True, 'message': ''},
+        ),
+    ],
+)
+def test_validate_symmetric_client_secret(post_data, headers, expected_result):
+    """
+    Test successful and unsuccessful outcomes of validate_symmetric_client_secret
+    """
+    factory = RequestFactory()
+
+    request = factory.post('/token', data=post_data, **headers)
+
+    passed_validation, error_message = validate_symmetric_client_secret(request)
+
+    assert passed_validation is expected_result['passed']
+    assert error_message == expected_result['message']

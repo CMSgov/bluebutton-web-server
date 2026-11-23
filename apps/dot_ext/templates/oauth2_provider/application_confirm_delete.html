@@ -22,7 +22,7 @@
         This action can't be undone.
         <form class="ds-u-margin-top--4" method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
           {% csrf_token %}  
-          <input type="submit" class="ds-c-button--danger" name="allow" value="{% trans "Delete" %}"/>
+          <input type="submit" class="ds-c-button ds-c-button--danger" name="allow" value="{% trans "Delete" %}"/>
           <a class="ds-u-margin-x--2" href="{{ application.get_absolute_url }}">{% trans "Cancel" %}</a>    
         </form>
       </div>

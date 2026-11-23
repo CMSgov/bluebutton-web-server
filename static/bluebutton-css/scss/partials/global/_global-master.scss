@@ -1,6 +1,8 @@
 // Global Imports
 @import 'normalize';
-@import '@cmsgov/design-system/dist/scss/index';
+@import '@cmsgov/design-system/dist/scss/core-theme';
+@import '@cmsgov/design-system/dist/css/core-theme';
+@import '@cmsgov/design-system/dist/css/index';
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,700');
 @import 'variable-overrides';
 @import 'custom-breakpoints';
@@ -11,3 +13,29 @@
 @import 'accordion';
 @import 'copy-button';
 @import 'UsaBanner';
+
+h1,
+h1[class] {
+	font-size: var(--font-size-5xl);
+	font-weight: var(--font-weight-bold);
+}
+
+h2,
+h2[class] {
+	font-size: var(--font-size-2xl);
+	font-weight: var(--font-weight-bold);
+	// This margin-block is to override the default margin-block of h2 elements in the design system. 
+	margin-block:0 0;
+}
+
+h3,
+h3[class] {
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-bold);
+}
+
+h4,
+h4[class] {
+	font-size: var(--font-size-lg);
+	font-weight: var(--font-weight-bold);
+}

@@ -28,10 +28,6 @@ strong {
   color: $color-gray-dark;
 }
 
-h2 {
-  margin-bottom: 1rem;
-}
-
 // NOTE: Fix for weird overflow issue.
 .container {
   .ds-l-row {
@@ -105,6 +101,10 @@ $gradient-card-border-color: #dddddd;
     font-weight: bold;
     margin: 0 0 0.5rem 0;
     text-transform: uppercase;
+  }
+  h1,
+  h1[class] {
+	  font-size: var(--font-size-3xl);
   }
   p {
     color: $white;
