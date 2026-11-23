@@ -131,12 +131,10 @@ def validate_logo_image(value):
 class JWTLoggingMixin:
     """Class for handling any error logging within JWT Authentication Validation"""
 
-    def __init__(self, request=None, app=None, grant_type=None):
+    def __init__(self, request, app, grant_type):
         self.request = request
         self.app = app
         self.grant_type = grant_type
-        self.csp_issuer = None
-        self.patient_match_found = None
 
     def _log_failure(self, error_message: str, status_code: str = HTTPStatus.BAD_REQUEST) -> None:
         log_jwt_auth(

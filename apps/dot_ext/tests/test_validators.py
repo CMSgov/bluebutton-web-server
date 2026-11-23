@@ -38,7 +38,17 @@ from apps.dot_ext.validators import (
     validate_url,
 )
 
-SAMPLE_APP = SimpleNamespace(id=1, name='test_app', client_id='expected_client_id')
+
+def make_validator(validator_class, app=None, request=None, grant_type='authorization_code'):
+    app = app or SimpleNamespace(
+        id=1,
+        name='new_app',
+        client_id='test_client_id',
+        allowed_auth_type=AUTH_CODE_TYPE,
+    )
+    request = request or SimpleNamespace(version=3, path='v3/o/token')
+    return validator_class(app=app, request=request, grant_type=grant_type)
+
 
 ASYMMETRIC_AUTH_PAYLOAD = {
     'iss': 'test-client-id',
@@ -136,7 +146,7 @@ class ValidateURLTests(TestCase):
 )
 def test_get_required_fields(validator_class, expected_fields):
     """Test that the validator returns the correct required fields."""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     assert validator._get_required_fields() == expected_fields
 
 
@@ -149,7 +159,7 @@ def test_get_required_fields(validator_class, expected_fields):
 )
 def test_get_waffle_switch(validator_class, waffle_switch):
     """Test that the validator returns the correct waffle switch."""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     assert validator._get_waffle_switch() == waffle_switch
 
 
@@ -176,7 +186,7 @@ def test_get_waffle_switch(validator_class, waffle_switch):
 @override_switch('asymmetric_auth_validation', active=True)
 def test_validate_and_get_jwks_uri(jku, header, should_raise):
     """Test the validation of the 'jku' header field for successful and unsuccessful cases."""
-    validator = AsymmetricAuthJWTValidator()
+    validator = make_validator(AsymmetricAuthJWTValidator)
     token = jwt.encode(ASYMMETRIC_AUTH_PAYLOAD.copy(), 'secret', algorithm='HS256', headers=header)
 
     if should_raise:
@@ -259,7 +269,7 @@ def test_validate_and_get_jwks_uri(jku, header, should_raise):
 )
 def test_validate_time_comparison(claim_key, subtract, time_delta, string, should_raise):
     """Test the successful and unsuccessful _validate_time_comparison cases."""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     if subtract:
         test_payload[claim_key] = datetime.datetime.now(timezone.utc).timestamp() - time_delta
@@ -294,9 +304,8 @@ def test_validate_and_decode_token_cache_successful(
     jti,
 ):
     """Test correct cache behavior for _validate_and_decode_token"""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     # Need to assign a sample app so that it can use an app instance for comparison within the function
-    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     with freeze_time() as frozen_time:
@@ -341,9 +350,8 @@ def test_decode_and_validate_token_cache_replay_unsuccessful(
     jti,
 ):
     """Test _decode_and_validate_token fails on second cache hit with same iss/jti combo"""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     # Need to assign a sample app so that it can use an app instance for comparison within the function
-    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original CMS_ALIGNED_NETWORKS_PAYLOAD directly
@@ -387,9 +395,8 @@ def test_decode_and_validate_token_invalid_header(
     header,
 ):
     """Test _decode_and_validate_token fails with invalid typ in header"""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     # Need to assign a sample app so that it can use an app instance for comparison within the function
-    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Return invalid headers that aren't 'JWT'
@@ -422,9 +429,8 @@ def test_decode_and_validate_token_expired(
     validator_class,
 ):
     """Test _decode_and_validate_token fails with expired token"""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     # Need to assign a sample app so that it can use an app instance for comparison within the function
-    validator.app = SAMPLE_APP
     mock_asym_auth_get_signing_key.return_value = MagicMock()
     mock_cms_get_signing_key.return_value = MagicMock()
     # Make expiration time 6 minutes in the past to simulate an expired token scenario
@@ -462,7 +468,7 @@ def test_validate_ial_jwt_success(
             'header': {'typ': 'JWT'},
         }
 
-        validator = CMSAlignedNetworksJWTValidator()
+        validator = make_validator(CMSAlignedNetworksJWTValidator)
         result = validator._validate_ial_jwt('token', 'jwks_uri')
         assert result == test_payload
 
@@ -487,7 +493,7 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_cms_get_signing_key,
 ):
     """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     mock_cms_get_signing_key.return_value = MagicMock()
     mock_validate_time_comparison.return_value = True
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
@@ -520,7 +526,7 @@ def test_validate_ial_jwt_invalid_header(
     mock_cms_get_signing_key,
 ):
     """Test _validate_ial_jwt fails with invalid typ in header"""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     mock_cms_get_signing_key.return_value = MagicMock()
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     # Return invalid headers that aren't 'JWT'
@@ -552,7 +558,7 @@ def test_validate_ial_jwt_invalid_request(
     value,
 ):
     """Test _validate_ial_jwt fails with invalid identity assurance level or birthdate"""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     mock_cms_get_signing_key.return_value = MagicMock()
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
@@ -587,7 +593,7 @@ def test_validate_environment_for_id_token(target_env, parameter, expected_resul
     """Confirm that, given a specific environment and an issuer URL, the
     _validate_idme_url_for_id_token_and_environment will correctly return True or False
     """
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     os.environ['TARGET_ENV'] = target_env
     result = validator._validate_idme_url_for_id_token_and_environment(parameter)
     assert result == expected_result
@@ -634,7 +640,7 @@ def test_validate_environment_for_id_token(target_env, parameter, expected_resul
 @override_switch('client_credentials_validation', active=True)
 def test_validate_smart_extension(payload, expected_output, should_raise):
     """Test _validate_smart_extension for correct behavior"""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     if should_raise:
         with pytest.raises(InvalidRequestError):
             validator._validate_smart_extension(payload)
@@ -664,7 +670,7 @@ def test_validate_smart_extension(payload, expected_output, should_raise):
 @override_switch('client_credentials_validation', active=True)
 def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, settings):
     """Test _get_csp_jwks_url for correct behavior"""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     settings.TARGET_ENV = environment
     token = jwt.encode({'iss': iss}, 'secret', algorithm='HS256')
     if should_raise:
@@ -746,7 +752,7 @@ def test_get_csp_jwks_url(iss, expected_result, should_raise, environment, setti
 @patch('apps.dot_ext.validators.normalize_address')
 def test_parse_ial_into_parameter(mock_normalize, payload, mock_normalized_address, json_file_response):
     """Test _parse_into_parameter for correct behavior"""
-    validator = CMSAlignedNetworksJWTValidator()
+    validator = make_validator(CMSAlignedNetworksJWTValidator)
     mock_normalize.return_value = mock_normalized_address
     expected_output = load_fhir_json(json_file_response)
     result = validator._parse_ial_into_parameter(payload)
@@ -1006,7 +1012,7 @@ def test_get_signing_key(
     expected_key,
 ):
     """Test _get_signing_key for correct behavior"""
-    validator = validator_class()
+    validator = make_validator(validator_class)
     mock_client_instance = MagicMock()
     mock_client_instance.get_signing_keys.return_value = mocked_keys
     mock_pyjwk_client.return_value = mock_client_instance
@@ -1130,9 +1136,10 @@ def test_get_signing_key(
 def test_check_if_call_is_allowed(
     validator_class, allowed_auth_type, version, should_fail, status_code, expected_message
 ):
-    validator = validator_class()
-    # Need to assign a sample app so that it can use an app instance for comparison within the function
-    validator.app = SimpleNamespace(allowed_auth_type=allowed_auth_type, name='new_app', id=42, client_id='client-id')
+    validator = make_validator(validator_class)
+    # Override sample application/request values for testing
+    validator.app.allowed_auth_type = allowed_auth_type
+    validator.request.version = version
     if should_fail:
         result = validator.check_if_call_is_allowed(version)
         assert isinstance(result, JsonResponse)
@@ -1287,9 +1294,9 @@ def test_check_if_call_is_allowed(
     ],
 )
 def test_validate_request_params(validator_class, post_data, expected_message, should_fail, should_raise_error):
-    validator = validator_class()
-
-    validator.request = SimpleNamespace(POST=post_data, path='/v3/o/token')
+    validator = make_validator(validator_class)
+    # Override sample request values for testing
+    validator.request.POST = post_data
 
     if should_fail:
         if should_raise_error:
