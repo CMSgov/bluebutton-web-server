@@ -566,11 +566,11 @@ def build_jwks_urls():
 
 
 def log_jwt_auth(
-    grant_type: str = 'authorization_code',
-    auth_status: str = 'OK',
-    request: HttpRequest = None,
-    status_code: int = HTTPStatus.OK,
-    app: Application = None,
+    grant_type: str,
+    auth_status: str,
+    request: HttpRequest,
+    status_code: int,
+    app: Application,
     error_message: str = None,
     log_type: str = 'Authentication:jwt',
     csp_issuer: str = None,
@@ -604,6 +604,7 @@ def log_jwt_auth(
         logger.info(log_dict)
     else:
         logger.warning(log_dict)
+
 
 def create_authorization_header(
     client_id: str = TEST_APP_CLIENT_ID, client_secret: str = TEST_APP_CLIENT_SECRET

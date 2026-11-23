@@ -40,6 +40,7 @@ from apps.dot_ext.validators import (
 
 
 def make_validator(validator_class, app=None, request=None, grant_type='authorization_code'):
+    """Helper function for tests to help make a validator instance with default data"""
     app = app or SimpleNamespace(
         id=1,
         name='new_app',
