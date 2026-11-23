@@ -9,6 +9,7 @@ import pytest
 from django.test import RequestFactory, TestCase
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 
+from apps.constants import TEST_APP_CLIENT_ID, TEST_APP_CLIENT_SECRET
 from apps.dot_ext.constants import (
     CLEAR_HIGHER_ISS,
     CLEAR_LOWER_ISS,
@@ -396,7 +397,8 @@ def test_log_jwt_auth(caplog, kwargs, expected_level, expected_payload):
     for key, val in expected_payload.items():
         assert json_loaded[key] == val
     assert 'request_uuid' in json_loaded
-    
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'post_data, headers, expected_result',
