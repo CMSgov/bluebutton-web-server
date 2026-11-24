@@ -116,6 +116,13 @@ a {
     align-self: center;
     place-items: center;
 }
+
+.ds-c-button--disabled {
+    color: #000000 !important; 
+    background-color: #DFE1E2 !important;
+    border: none !important;
+    
+}
 .expiryText--red {
     color:#000000
 }
@@ -207,8 +214,8 @@ a {
                             {% for user in relationships|slice:"1:3" %}
                             <div class="ds-c-card" data-name ="{{user.userFirstName}} {{user.userLastName}}'s">
                                     <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
-                                    <p class={{user.expiresClass}}">{{user.formattedExpiresAt}}</p>
-                                    <button class="select-button ds-c-button ds-c-button--solid" data-value={{forloop.counter}}>{% trans "Select" %}</button>
+                                    <p class={{user.expiresClass}}>{{user.formattedExpiresAt}}</p>
+                                    <button {{user.disableExpired}} class="select-button ds-c-button ds-c-button--solidi {{user.disableButton}}" data-value={{forloop.counter}}>{% trans "Select" %}</button>
                                 </div>
                             {% endfor %}
                         {% endif %}
@@ -219,7 +226,7 @@ a {
                                     <div class="ds-c-card" data-name ="{{user.userFirstName}} {{user.userLastName}}'s">
                                         <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
                                         <p style="class: {{user.expiresClass}}">{{user.formattedExpiresAt}}</p>
-                                    <button class="select-button ds-c-button ds-c-button--solid" data-value={{forloop.counter|add:2}}>{% trans "Select" %}</button>
+                                        <button {{user.disableExpired}} class="select-button ds-c-button ds-c-button--solid {{user.disableButton}}" data-value={{forloop.counter|add:2}}>{% trans "Select" %}</button>
                                     </div>
                                 {% endfor %}
                             </div>
@@ -560,10 +567,13 @@ a {
         document.addEventListener("click", function(event) {
             const button = event.target.closest('.select-button');
             if (!button) return;
+            if(button.disabled) return;
 
             document.querySelectorAll('.select-button').forEach(element => {
                 element.parentElement.className = 'ds-c-card';
-               element.className = 'select-button ds-c-button ds-c-button--solid';
+                if(!element.disabled) {
+                    element.className = 'select-button ds-c-button ds-c-button--solid';
+                }
             });
             
             button.className = 'select-button ds-c-button';

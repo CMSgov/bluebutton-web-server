@@ -232,13 +232,16 @@ class AuthorizationView(DotAuthorizationView):
                         if relationship['expiresAt'] <= time.time():
                             formattedRelationships[index]['expiresClass'] = 'expiryText--Red'
                             formattedRelationships[index]['formattedExpiresAt'] = 'Expired'
-                            formattedRelationships[index]['Expired'] = True
+                            formattedRelationships[index]['disableExpired'] = 'disable'
+                            formattedRelationships[index]['disableButton'] = 'button-disabled'
                         else:
                             # format expiresAt month/day/year
                             dt = datetime.fromtimestamp(int(relationship['expiresAt']))
                             formattedDate = dt.strftime('%m-%d-%Y')
                             dateText = 'Authorization ends ' + formattedDate
                             formattedRelationships[index]['formattedExpiresAt'] = dateText
+                            formattedRelationships[index]['disableExpired'] = ''
+                            formattedRelationships[index]['disableButton'] = ''
 
                             # if expiry is less than a month away, red text
                             diff = int(relationship['expiresAt']) - time.time()
