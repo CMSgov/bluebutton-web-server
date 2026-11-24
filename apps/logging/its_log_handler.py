@@ -189,7 +189,7 @@ class ITSLogAPIHandler(logging.Handler):
         logger.debug(f'Payload for its-log: {json.dumps(payload)}')
         try:
             response = requests.post(self.API_URL, headers={'x-api-key': self.LOG_API_KEY}, json=payload, timeout=5)
-            logger.info(f'Successfully posted to its-log: {response.json()}')
+            logger.debug(f'Successfully posted to its-log: {response.json()}')
         except Exception:
             # Do not let ITS-log failures crash BlueButton
             logger.error('Failed to post to its-log API')
