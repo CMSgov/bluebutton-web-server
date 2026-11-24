@@ -1,19 +1,33 @@
 import json
+import time
 from http import HTTPStatus
 from typing import List
+from unittest.mock import patch
 
+import jwt
 import pytest
 from django.core.management import call_command
 from django.http import HttpRequest
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
+from jwt import PyJWKSet
+from waffle.testutils import override_switch
 
-from apps.constants import DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.constants import AUTH_SIGNING_ALG_RS256, DEFAULT_SAMPLE_FHIR_ID_V2, DEFAULT_SAMPLE_FHIR_ID_V3
+from apps.dot_ext.constants import CLIENT_ASSERTION_TYPE_VALUE
+from apps.dot_ext.models import Application
 from apps.testclient.constants import EndpointUrl, ResponseErrors
-from apps.testclient.utils import _deepfind, _ormap, _start_url_with_http_or_https, setup_testclient_http_response
+from apps.testclient.utils import (
+    _deepfind,
+    _ormap,
+    _start_url_with_http_or_https,
+    build_client_assertion,
+    setup_testclient_http_response,
+)
 from apps.testclient.views import FhirDataParams, _build_pagination_uri
 from apps.versions import VersionNotMatched, Versions
+from apps.wellknown.views.jwks import _local_jwks
 
 
 class TestclientHelpers(TestCase):
@@ -524,3 +538,96 @@ def test_setup_testclient_http_response_is_post_switch_account(
 
     for key in expected_keys:
         assert key in result.keys()
+
+
+@override_switch('enable_testclient', active=True)
+class TestAsymmetricAuthOption(TestCase):
+    def setUp(self):
+        call_command('create_blue_button_scopes')
+        call_command('create_test_user_and_application')
+
+    def test_test_app_has_local_jwks_uri(self):
+        app = Application.objects.get(name='TestApp')
+        self.assertTrue(app.jwks_uri.endswith('/.well-known/jwks.json'))
+
+    def test_client_assertion_verifies_against_local_jwks(self):
+        token_uri = 'http://localhost:8000/v3/o/token/'
+        assertion = build_client_assertion('test-client-id', token_uri)
+
+        signing_key = PyJWKSet.from_dict(_local_jwks())[jwt.get_unverified_header(assertion)['kid']]
+        claims = jwt.decode(
+            assertion,
+            signing_key.key,
+            algorithms=[AUTH_SIGNING_ALG_RS256],
+            audience=token_uri,
+            issuer='test-client-id',
+            subject='test-client-id',
+            options={'require': ['iss', 'sub', 'aud', 'jti', 'exp']},
+        )
+        self.assertLessEqual(claims['exp'] - time.time(), 300)
+
+    @override_switch('enable_testclient_asymmetric_auth', active=True)
+    def test_authorize_link_sets_asymmetric_flag_when_switch_active(self):
+        response = self.client.get(reverse('authorize_link_v3') + '?asymmetric=1')
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(self.client.session['asymmetric_auth'])
+
+    @override_switch('enable_testclient_asymmetric_auth', active=False)
+    def test_authorize_link_ignores_asymmetric_option_when_switch_inactive(self):
+        self.client.get(reverse('authorize_link_v3') + '?asymmetric=1')
+        self.assertFalse(self.client.session['asymmetric_auth'])
+
+    @override_switch('enable_testclient_asymmetric_auth', active=True)
+    def test_authorize_link_default_is_symmetric(self):
+        self.client.get(reverse('authorize_link_v3'))
+        self.assertFalse(self.client.session['asymmetric_auth'])
+
+    @override_switch('enable_testclient_asymmetric_auth', active=True)
+    def test_home_shows_asymmetric_link_only_when_switch_active(self):
+        self.assertContains(self.client.get(reverse('test_links')), 'auth_link_v3_asymmetric')
+        with override_switch('enable_testclient_asymmetric_auth', active=False):
+            self.assertNotContains(self.client.get(reverse('test_links')), 'auth_link_v3_asymmetric')
+
+    @override_switch('enable_testclient_asymmetric_auth', active=True)
+    @patch('apps.testclient.views.OAuth2Session.fetch_token')
+    def test_callback_sends_client_assertion_instead_of_secret(self, mock_fetch_token):
+        mock_fetch_token.return_value = {'patient': '-20140000008325'}
+        self.client.get(reverse('authorize_link_v3') + '?asymmetric=1')
+        self.client.get(reverse('testclient-callback') + '?code=abc&state=xyz')
+
+        kwargs = mock_fetch_token.call_args.kwargs
+        self.assertNotIn('client_secret', kwargs)
+        self.assertEqual(kwargs['client_assertion_type'], CLIENT_ASSERTION_TYPE_VALUE)
+        self.assertTrue(kwargs['client_assertion'])
+        self.assertTrue(kwargs['scope'])
+
+    @override_switch('enable_testclient_asymmetric_auth', active=True)
+    @patch('apps.testclient.views.OAuth2Session.fetch_token')
+    def test_callback_uses_client_secret_by_default(self, mock_fetch_token):
+        mock_fetch_token.return_value = {'patient': '-20140000008325'}
+        self.client.get(reverse('authorize_link_v3'))
+        self.client.get(reverse('testclient-callback') + '?code=abc&state=xyz')
+
+        kwargs = mock_fetch_token.call_args.kwargs
+        self.assertIn('client_secret', kwargs)
+        self.assertNotIn('client_assertion', kwargs)
+
+
+class TestPermissionLogoutKeepsAsymmetricFlag(TestCase):
+    def _post_logout(self, asymmetric_auth):
+        session = self.client.session
+        session['version'] = Versions.V3
+        session['asymmetric_auth'] = asymmetric_auth
+        session['code_verifier'] = 'verifier'
+        session['client_id'] = 'test-client-id'
+        session['oauth_params'] = {'redirect_uri': 'http://localhost:8000/testclient/callback'}
+        session.save()
+        return self.client.post(reverse('oauth2_provider_v3:permission-logout'))
+
+    def test_flag_survives_logout(self):
+        self._post_logout(True)
+        self.assertTrue(self.client.session['asymmetric_auth'])
+
+    def test_flag_stays_false_after_logout(self):
+        self._post_logout(False)
+        self.assertFalse(self.client.session['asymmetric_auth'])

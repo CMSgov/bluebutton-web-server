@@ -7,12 +7,15 @@ from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives.asymmetric import rsa
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest, JsonResponse
 from django.test import TestCase
+from django.urls import reverse
 from freezegun import freeze_time
+from jwt.algorithms import RSAAlgorithm
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 from waffle.testutils import override_switch
 
@@ -36,6 +39,7 @@ from apps.dot_ext.validators import (
     CMSAlignedNetworksTokenRequestValidator,
     validate_url,
 )
+from apps.testclient.utils import _start_url_with_http_or_https
 
 ASYMMETRIC_AUTH_PAYLOAD = {
     'iss': 'test-client-id',
@@ -428,6 +432,49 @@ def test_decode_and_validate_token_expired(
 
     with pytest.raises(InvalidRequestError):
         validator._decode_and_validate_token('token', 'test_iss', 'jwks_uri')
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('validator_class', [CMSAlignedNetworksJWTValidator, AsymmetricAuthJWTValidator])
+@pytest.mark.parametrize(
+    'signing_with_registered_key, should_raise',
+    [(True, False), (False, True)],
+)
+@override_switch('client_credentials_validation', active=True)
+@override_switch('asymmetric_auth_validation', active=True)
+def test_decode_and_validate_token_signature_against_registered_key(
+    validator_class, signing_with_registered_key, should_raise
+):
+    """Real signature check: a JWT signed with a key not in the app's JWKS is rejected."""
+    registered_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    other_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    kid = 'registered-kid'
+    registered_public_jwk = RSAAlgorithm.to_jwk(registered_key.public_key(), as_dict=True)
+    registered_public_jwk.update({'kid': kid, 'alg': 'RS256', 'use': 'sig'})
+
+    client_id = 'test-client-id'
+    payload = {
+        **EXTENSIONS_PAYLOAD,
+        'iss': client_id,
+        'sub': client_id,
+        'aud': _start_url_with_http_or_https(settings.HOSTNAME_URL) + reverse('oauth2_provider_v3:token-v3'),
+        'jti': f'signature-test-{signing_with_registered_key}-{validator_class.__name__}',
+        'exp': datetime.datetime.now(timezone.utc).timestamp() + 60,
+    }
+    token = jwt.encode(
+        payload,
+        registered_key if signing_with_registered_key else other_key,
+        algorithm='RS256',
+        headers={'kid': kid, 'typ': 'JWT'},
+    )
+
+    validator = validator_class()
+    with patch.object(validator_class, '_get_signing_key', return_value=jwt.PyJWK.from_dict(registered_public_jwk)):
+        if should_raise:
+            with pytest.raises(InvalidRequestError):
+                validator._decode_and_validate_token(token, client_id, 'jwks_uri')
+        else:
+            assert validator._decode_and_validate_token(token, client_id, 'jwks_uri')['iss'] == client_id
 
 
 @pytest.mark.django_db

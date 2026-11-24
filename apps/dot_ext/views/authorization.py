@@ -1127,6 +1127,7 @@ class PermissionScreenLogoutView(View):
     def post(self, request, *args, **kwargs):
         # Save version before logout clears the session
         version = request.session.get('version', None)
+        asymmetric_auth = request.session.get('asymmetric_auth', False)
 
         # Save the original OAuth params before logout
         oauth_params = {
@@ -1159,6 +1160,7 @@ class PermissionScreenLogoutView(View):
                 request.session['api_ver'] = version
                 request.session['code_verifier'] = oauth_params.get('code_verifier')
                 request.session['client_id'] = oauth_params.get('client_id')
+                request.session['asymmetric_auth'] = asymmetric_auth
 
         oauth_params.pop('code_verifier', None)
         # Rebuild the authorize URL with original params
