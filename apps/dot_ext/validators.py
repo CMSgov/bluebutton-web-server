@@ -39,10 +39,11 @@ from apps.dot_ext.constants import (
     CAN_REQUIRED_PARAMS,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+    CLEAR_HIGHER_ISS,
+    CLEAR_LOWER_ISS,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
-    ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
     PARAMETERS_ID_MATCH_META,
@@ -510,7 +511,7 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
             self._validate_time_comparison(payload, 'iat', 300)
             self._validate_time_comparison(payload, 'auth_time', 300)
 
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+            if not self._validate_url_for_id_token_and_environment(payload.get('iss', '')):
                 self._log_failure(error_message='The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
 
@@ -545,7 +546,7 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
             except jwt.PyJWTError as e:
                 self._log_failure(error_message=f'"User identity JWT decode failed: {e}')
                 raise InvalidRequestError
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
+            if not self._validate_url_for_id_token_and_environment(payload.get('iss', '')):
                 self._log_failure(error_message='The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
 
@@ -743,7 +744,7 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
 
         return csp_jwks_url, csp_issuer
 
-    def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
+    def _validate_url_for_id_token_and_environment(self, issuer: str) -> bool:
         """Determine if the issuer of the id_token is valid for the environment for ID.me client_credentials
         calls
         Args:
@@ -751,15 +752,14 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         Returns:
             bool: Whether or not the environment is valid for the id token issuer
         """
-        # If the issue does not contain oidc, it is not ID.me, and it must be CLEAR
-        # CLEAR does not differentiate between environments at this time
-        if ID_ME_URL_CONTAINS not in issuer:
-            return True
-
         env = os.environ.get('TARGET_ENV', 'local')
         # if the env is prod, and the issuer is not the prod url, return false
         # or if the env is not prod, and the issuer is not the lower env url, return false
-        if (env == 'prod' and issuer != IDME_HIGHER_ISS) or (env != 'prod' and issuer != IDME_LOWER_ISS):
+        if env == 'prod':
+            valid_issuers = [IDME_HIGHER_ISS, CLEAR_HIGHER_ISS]
+        else:
+            valid_issuers = [IDME_LOWER_ISS, CLEAR_LOWER_ISS]
+        if issuer not in valid_issuers:
             self._log_failure(error_message=f'Invalid URL for env: {env}: {issuer}')
             return False
 

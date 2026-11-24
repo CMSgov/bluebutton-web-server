@@ -454,6 +454,7 @@ def test_decode_and_validate_token_expired(
 
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._validate_url_for_id_token_and_environment')
 @patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
 @patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._validate_time_comparison')
 @patch('jwt.decode_complete')
@@ -461,10 +462,12 @@ def test_validate_ial_jwt_success(
     mock_decode_complete,
     mock_validate_time_comparison,
     mock_cms_get_signing_key,
+    mock_validate_url_for_id_token_and_environment,
 ):
     """Test _validate_ial_jwt succeeds with basic validation."""
     mock_cms_get_signing_key.return_value = MagicMock()
     mock_validate_time_comparison.return_value = True
+    mock_validate_url_for_id_token_and_environment.return_value = True
     with freeze_time() as frozen_time:
         # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
         test_payload = VALID_IAL_JWT_PAYLOAD.copy()
@@ -490,6 +493,7 @@ def test_validate_ial_jwt_success(
 @pytest.mark.django_db
 @override_switch('client_credentials_validation', active=True)
 @override_switch('asymmetric_auth_validation', active=True)
+@patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._validate_url_for_id_token_and_environment')
 @patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._get_signing_key')
 @patch('apps.dot_ext.validators.CMSAlignedNetworksJWTValidator._validate_time_comparison')
 @patch('jwt.decode_complete')
@@ -497,11 +501,13 @@ def test_validate_ial_jwt_cache_replay_unsuccessful(
     mock_decode_complete,
     mock_validate_time_comparison,
     mock_cms_get_signing_key,
+    mock_validate_url_for_id_token_and_environment,
 ):
     """Test _validate_ial_jwt fails on second cache hit with same iss/jti combo"""
     validator = make_validator(CMSAlignedNetworksJWTValidator)
     mock_cms_get_signing_key.return_value = MagicMock()
     mock_validate_time_comparison.return_value = True
+    mock_validate_url_for_id_token_and_environment.return_value = True
     # Don't modify the original VALID_IAL_JWT_PAYLOAD directly
     test_payload = VALID_IAL_JWT_PAYLOAD.copy()
     test_payload['jti'] = 'can_cache_replay'
@@ -583,25 +589,31 @@ def test_validate_ial_jwt_invalid_request(
     'target_env, parameter, expected_result',
     [
         ('prod', CLEAR_HIGHER_ISS, True),
-        ('prod', CLEAR_LOWER_ISS, True),
+        ('prod', CLEAR_LOWER_ISS, False),
         ('prod', IDME_HIGHER_ISS, True),
         ('prod', IDME_LOWER_ISS, False),
         ('impl', IDME_HIGHER_ISS, False),
         ('impl', IDME_LOWER_ISS, True),
+        ('impl', CLEAR_HIGHER_ISS, False),
+        ('impl', CLEAR_LOWER_ISS, True),
         ('test', IDME_HIGHER_ISS, False),
         ('test', IDME_LOWER_ISS, True),
+        ('test', CLEAR_HIGHER_ISS, False),
+        ('test', CLEAR_LOWER_ISS, True),
         ('local', IDME_HIGHER_ISS, False),
         ('local', IDME_LOWER_ISS, True),
+        ('local', CLEAR_HIGHER_ISS, False),
+        ('local', CLEAR_LOWER_ISS, True),
     ],
 )
 @override_switch('client_credentials_validation', active=True)
 def test_validate_environment_for_id_token(target_env, parameter, expected_result) -> None:
     """Confirm that, given a specific environment and an issuer URL, the
-    _validate_idme_url_for_id_token_and_environment will correctly return True or False
+    _validate_url_for_id_token_and_environment will correctly return True or False
     """
     validator = make_validator(CMSAlignedNetworksJWTValidator)
     os.environ['TARGET_ENV'] = target_env
-    result = validator._validate_idme_url_for_id_token_and_environment(parameter)
+    result = validator._validate_url_for_id_token_and_environment(parameter)
     assert result == expected_result
 
 

@@ -1654,7 +1654,6 @@ COUNTRIES = {
     'ÅLAND ISLANDS',
 }
 
-ID_ME_URL_CONTAINS = 'oidc'
 SECONDS_IN_ONE_HOUR = 3600
 
 AUDIT_EVENT_SCOPE_ERROR_MESSAGE = 'Requesting an AuditEvent scope is only valid in token requests through CMS Aligned Networks. For more information, go to this page: https://bluebutton.cms.gov/cms-aligned-networks-documentation/'
