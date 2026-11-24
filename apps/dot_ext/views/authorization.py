@@ -67,6 +67,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_TYPE,
     DATETIME_ISO_FORMAT,
     PATIENT_DATA_CANNOT_BE_FOUND,
+    RELATIONSHIP_EXPIRATION_SOON_DAYS,
 )
 from apps.dot_ext.forms import SimpleAllowForm
 from apps.dot_ext.loggers import (
@@ -229,7 +230,7 @@ class AuthorizationView(DotAuthorizationView):
                     if relationship['expiresAt'] is not None:
                         # permission is already expired
                         if relationship['expiresAt'] <= time.time():
-                            formattedRelationships[index]['expiresColor'] = '#FF0000'
+                            formattedRelationships[index]['expiresClass'] = 'expiryText--Red'
                             formattedRelationships[index]['formattedExpiresAt'] = 'Expired'
                             formattedRelationships[index]['Expired'] = True
                         else:
@@ -241,10 +242,10 @@ class AuthorizationView(DotAuthorizationView):
 
                             # if expiry is less than a month away, red text
                             diff = int(relationship['expiresAt']) - time.time()
-                            if diff <= (timedelta(days=30).total_seconds()):
-                                formattedRelationships[index]['expiresColor'] = '#FF0000'
+                            if diff <= (timedelta(days=RELATIONSHIP_EXPIRATION_SOON_DAYS).total_seconds()):
+                                formattedRelationships[index]['expiresClass'] = 'expireText--red'
                             else:
-                                formattedRelationships[index]['expiresColor'] = '#000000'
+                                formattedRelationships[index]['expiresClass'] = 'expireText'
                     else:
                         # indefinite permission
                         formattedRelationships[index]['formattedExpiresAt'] = ''
