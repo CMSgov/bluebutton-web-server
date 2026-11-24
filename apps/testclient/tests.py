@@ -541,6 +541,7 @@ def test_setup_testclient_http_response_is_post_switch_account(
 
 
 @override_switch('enable_testclient', active=True)
+@patch.dict('os.environ', {'OAUTHLIB_INSECURE_TRANSPORT': '1'})
 class TestAsymmetricAuthOption(TestCase):
     def setUp(self):
         call_command('create_blue_button_scopes')
