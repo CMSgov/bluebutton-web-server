@@ -38,19 +38,6 @@ from apps.dot_ext.validators import (
     validate_url,
 )
 
-
-def make_validator(validator_class, app=None, request=None, grant_type='authorization_code'):
-    """Helper function for tests to help make a validator instance with default data"""
-    app = app or SimpleNamespace(
-        id=1,
-        name='new_app',
-        client_id='test_client_id',
-        allowed_auth_type=AUTH_CODE_TYPE,
-    )
-    request = request or SimpleNamespace(version=3, path='v3/o/token')
-    return validator_class(app=app, request=request, grant_type=grant_type)
-
-
 ASYMMETRIC_AUTH_PAYLOAD = {
     'iss': 'test-client-id',
     'sub': 'test-client-id',
@@ -81,6 +68,24 @@ VALID_IAL_JWT_PAYLOAD = {
     'given_name': 'John',
     'birthdate': '1990-01-01',
 }
+
+
+def make_validator(validator_class):
+    """Helper function for tests to help make a validator instance with default data"""
+    # Asymmetric should have authorization_code grant type, otherwise CAN has client credentials
+    if (validator_class == AsymmetricAuthJWTValidator) or (validator_class == AsymmetricAuthTokenRequestValidator):
+        grant_type = 'authorization_code'
+    else:
+        grant_type = 'client_credentials'
+
+    app = SimpleNamespace(
+        id=1,
+        name='new_app',
+        client_id='test_client_id',
+        allowed_auth_type=AUTH_CODE_TYPE,
+    )
+    request = SimpleNamespace(path='v3/o/token')
+    return validator_class(app=app, request=request, grant_type=grant_type)
 
 
 def create_mock_pyjwk(kid: str, kty: str, fake_key: str) -> MagicMock:
@@ -1140,7 +1145,6 @@ def test_check_if_call_is_allowed(
     validator = make_validator(validator_class)
     # Override sample application/request values for testing
     validator.app.allowed_auth_type = allowed_auth_type
-    validator.request.version = version
     if should_fail:
         result = validator.check_if_call_is_allowed(version)
         assert isinstance(result, JsonResponse)
