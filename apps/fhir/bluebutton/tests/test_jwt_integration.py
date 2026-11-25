@@ -156,17 +156,23 @@ def get_clear_authorization_code(driver: webdriver.Chrome, client_id: str, code_
     # We use WebDriverWait so that we don't have to put manual sleeps in between each action
     # Usually XPATH was the most reliable way to get the object from the screen
     wait = WebDriverWait(driver, 20)
+    # This sleep seems to be necessary because sometimes it loads too quickly and stalls.
+    time.sleep(2)
     find_element_and_send_keys(
         wait=wait,
         by_method=By.NAME,
         locator_value='phone',
         input_text=DAMON_MYCHART_PHONE_NUMBER,
     )
+    # This sleep seems to be necessary because sometimes it loads too quickly and stalls.
+    time.sleep(2)
     find_element_and_click(
         wait=wait,
         by_method=By.XPATH,
         locator_value='//button[contains(text(), "Continue")]',
     )
+    # This sleep seems to be necessary because sometimes it loads too quickly and stalls.
+    time.sleep(2)
     find_element_and_click(
         wait=wait,
         by_method=By.XPATH,
