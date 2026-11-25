@@ -223,7 +223,6 @@ def callback(request: HttpRequest):
         if request.session.get('asymmetric_auth') and switch_is_active('enable_testclient_asymmetric_auth'):
             # The assertion replaces the client secret; the token endpoint rejects requests carrying both.
             token_kwargs = {
-                'include_client_id': True,
                 'scope': V3_SCOPE,
                 'client_assertion_type': CLIENT_ASSERTION_TYPE_VALUE,
                 'client_assertion': build_client_assertion(request.session['client_id'], token_uri),

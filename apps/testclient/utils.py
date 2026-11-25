@@ -14,7 +14,7 @@ from apps.constants import AUTH_SIGNING_ALG_RS256
 from apps.dot_ext.models import Application
 from apps.testclient.constants import TESTCLIENT_REDIRECT_URI
 from apps.versions import Versions
-from apps.wellknown.views.jwks import get_local_signing_key
+from apps.wellknown.views.jwks import get_local_signing_key_and_kid
 
 
 def _start_url_with_http_or_https(host: str) -> str:
@@ -103,7 +103,7 @@ def get_client_secret():
 
 def build_client_assertion(client_id: str, token_uri: str) -> str:
     """Sign a client_assertion JWT with the local JWKS key, for asymmetric auth token requests."""
-    private_key, kid = get_local_signing_key(AUTH_SIGNING_ALG_RS256)
+    private_key, kid = get_local_signing_key_and_kid(AUTH_SIGNING_ALG_RS256)
     now = int(time.time())
     claims = {'iss': client_id, 'sub': client_id, 'aud': token_uri, 'jti': str(uuid.uuid4()), 'exp': now + 60}
     return jwt.encode(claims, private_key, algorithm=AUTH_SIGNING_ALG_RS256, headers={'kid': kid})
