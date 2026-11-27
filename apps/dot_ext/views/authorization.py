@@ -255,10 +255,12 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         if self.version == Versions.V3:
-            if 'user_relationships' in self.request.session:
+            if 'user_relationships' in self.request.session and self.request.session['user_relationships']:
+                print(self.request.session['user_relationships'])
                 self.request.session['user_relationships'] = format_relationships_data(
                     self.request.session['user_relationships']
                 )
+                print(self.request.session['user_relationships'])
                 kwargs['primaryUser'] = self.request.session['user_relationships'][0]
                 kwargs['relationships'] = self.request.session['user_relationships']
             kwargs['beneficiary_name'] = self.request.beneficiary_name

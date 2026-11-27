@@ -1187,7 +1187,6 @@ SLSX_CSS_LOGIN_BUTTON = (
 BTN_ID_GRANT_DEMO_ACCESS = 'approve'
 BTN_ID_DENY_DEMO_ACCESS = 'deny'
 BTN_ID_RADIO_NOT_SHARE = 'radio_1' if USE_NEW_PERM_SCREEN == 'true' else 'label:nth-child(5)'
-BTN_ID_SELECT_OWN_ACCOUNT = 'select'
 
 # Select EOB Link on TestClient FHIR links page
 CLICK_EOB_LINK = {
@@ -1283,13 +1282,6 @@ CLICK_AGREE_ACCESS = {
     'display': "Click 'Agree' on DEMO info grant form",
     'action': Action.FIND_CLICK,
     'params': [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS],
-}
-
-
-CLICK_SELECT_OWN_ACCOUNT = {
-    'display': "Click 'Select' on Whose Medicare information would you like to share",
-    'action': Action.FIND_CLICK,
-    'params': [20, By.ID, BTN_ID_SELECT_OWN_ACCOUNT],
 }
 
 CLICK_SAMHSA_CHECKBOX = {
@@ -1812,7 +1804,6 @@ TESTS = {
     'samhsa_box_checked_eob_response_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN_BBUSER_09003,
-        CLICK_SELECT_OWN_ACCOUNT,
         CLICK_SAMHSA_CHECKBOX,
         CLICK_AGREE_ACCESS,
         # Check to ensure we DON'T filter out SAMHSA data by ensuring
@@ -1822,7 +1813,6 @@ TESTS = {
     'samhsa_box_not_checked_eob_response_v3': [
         {'sequence': SEQ_AUTHORIZE_PKCE_START_V3},
         CALL_LOGIN_BBUSER_09003,
-        CLICK_SELECT_OWN_ACCOUNT,
         CLICK_AGREE_ACCESS,
         # Check to ensure we DO filter out SAMHSA data by ensuring
         # _security%3Anot=42CFRPart2 IS part of the EOB url response.
@@ -1836,7 +1826,6 @@ TESTS = {
         CLICK_SWITCH_ACCOUNT,
         # Login as a different user
         CALL_LOGIN_BBUSER_00000,
-        CLICK_SELECT_OWN_ACCOUNT,
         CLICK_AGREE_ACCESS,
         # Check to ensure we reached the test client home page by making an EOB Call
         CLICK_EOB_LINK,
