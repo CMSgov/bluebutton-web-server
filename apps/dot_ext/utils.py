@@ -1,6 +1,5 @@
 import binascii
 import hashlib
-import logging
 import os
 import re
 from base64 import b64decode, b64encode
@@ -24,6 +23,7 @@ from oauthlib.oauth2.rfc6749.errors import (
     InvalidRequestError,
 )
 
+import apps.logging.request_logger as logging
 from apps.authorization.models import DataAccessGrant
 from apps.constants import (
     APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG,
@@ -39,6 +39,7 @@ from apps.constants import (
 from apps.dot_ext.constants import (
     APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_NOT_FOUND_MESG,
     CLEAR_HIGHER_ISS,
+    CLEAR_LOWER_ISS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
 )
@@ -47,7 +48,6 @@ from apps.versions import VersionNotMatched, Versions
 
 User = get_user_model()
 
-log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 CLIENT_ID_PATTERN = re.compile(r'[a-zA-Z0-9]{40}')
 
@@ -527,6 +527,7 @@ def check_can_token_scope_for_audit_event_scopes(scope: str) -> str:
     Returns:
         str: The scope parameter after AuditEvent checks have been performed
     """
+    log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
     audit_event_read_pattern = r'patient/AuditEvent\.r\b'
 
@@ -559,9 +560,50 @@ def build_jwks_urls():
             IDME_HIGHER_ISS: settings.IDME_HIGHER_JWKS_URL,
         }
     return {
-        CLEAR_HIGHER_ISS: settings.CLEAR_HIGHER_JWKS_URL,  # Clear does not yet differentiate between envs
+        CLEAR_LOWER_ISS: settings.CLEAR_LOWER_JWKS_URL,
         IDME_LOWER_ISS: settings.IDME_LOWER_JWKS_URL,
     }
+
+
+def log_jwt_auth(
+    grant_type: str,
+    auth_status: str,
+    request: HttpRequest,
+    status_code: int,
+    app: Application,
+    error_message: str = None,
+    log_type: str = 'Authentication:jwt',
+    csp_issuer: str = None,
+    patient_match_found: bool = None,
+    fhir_id: str = None,
+    **kwargs,
+) -> None:
+    """Utility function to help with logging jwt authentication and validation successes and failures"""
+    logger = logging.getLogger(
+        HHS_SERVER_LOGNAME_FMT.format(__name__),
+        request,
+    )
+
+    log_dict = {
+        'type': log_type,
+        'path': request.path if request else None,
+        'grant_type': grant_type,
+        'auth_status': auth_status,
+        'status_code': status_code,
+        'app_id': app.id if app else None,
+        'app_name': app.name if app else None,
+        'app_client_id': app.client_id if app else None,
+        'csp': csp_issuer,
+        'patient_match_found': patient_match_found,
+        'patient': fhir_id,
+        'error_message': error_message,
+    }
+    log_dict.update(kwargs)
+
+    if auth_status == 'OK':
+        logger.info(log_dict)
+    else:
+        logger.warning(log_dict)
 
 
 def create_authorization_header(

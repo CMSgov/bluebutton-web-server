@@ -87,7 +87,7 @@ def handle_app_authorized(
         'scopes': scopes,
         'allow': allow,
         'access_token_delete_cnt': access_token_delete_cnt,
-        'refresh_token_delete_cnt': access_token_delete_cnt,
+        'refresh_token_delete_cnt': refresh_token_delete_cnt,
         'data_access_grant_delete_cnt': data_access_grant_delete_cnt,
     }
 

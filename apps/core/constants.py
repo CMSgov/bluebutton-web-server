@@ -39,6 +39,11 @@ WAFFLE_FEATURE_SWITCHES = (
         'This allows token requests to use asymmetric authorization.',
     ),
     (
+        'enable_testclient_asymmetric_auth',
+        True,
+        'This adds an option to the test client to request a token using asymmetric auth. Local only.',
+    ),
+    (
         'enable_jwt_sbx_settings',
         True,
         'This allows users in the sandbox account management UI to set JWKs and allowed auth type settings on their apps.',

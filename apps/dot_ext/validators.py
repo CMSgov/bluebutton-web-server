@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 from abc import ABC, abstractmethod
@@ -12,7 +11,7 @@ import waffle
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.http import HttpRequest, JsonResponse
+from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.html import strip_tags
@@ -30,10 +29,7 @@ from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.validators import URIValidator, urlsplit
 from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 
-from apps.constants import (
-    CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
-    HHS_SERVER_LOGNAME_FMT,
-)
+from apps.constants import CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS
 from apps.dot_ext.constants import (
     APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED,
     ASYMMETRIC_AUTH_REQUIRED_CLAIM_FIELDS,
@@ -43,10 +39,11 @@ from apps.dot_ext.constants import (
     CAN_REQUIRED_PARAMS,
     CC_SYSTEM_CODING_SYSTEM,
     CC_SYSTEM_SOCIAL_SECURITY_NUMBER,
+    CLEAR_HIGHER_ISS,
+    CLEAR_LOWER_ISS,
     CLIENT_ASSERTION_TYPE_VALUE,
     CLIENT_CREDENTIALS_SUPPORTED_TYPES,
     CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
-    ID_ME_URL_CONTAINS,
     IDME_HIGHER_ISS,
     IDME_LOWER_ISS,
     PARAMETERS_ID_MATCH_META,
@@ -55,11 +52,9 @@ from apps.dot_ext.constants import (
     YYYY_MM_DD_REGEX,
 )
 from apps.dot_ext.parser import normalize_address
-from apps.dot_ext.utils import build_jwks_urls, validate_latin_extended_string
+from apps.dot_ext.utils import build_jwks_urls, log_jwt_auth, validate_latin_extended_string
 from apps.testclient.utils import _start_url_with_http_or_https
 from apps.versions import Versions
-
-log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class RedirectURIValidator(URIValidator):
@@ -134,7 +129,26 @@ def validate_logo_image(value):
         )
 
 
-class BaseTokenRequestValidator(ABC):
+class JWTLoggingMixin:
+    """Class for handling any error logging within JWT Authentication Validation"""
+
+    def __init__(self, request, app, grant_type):
+        self.request = request
+        self.app = app
+        self.grant_type = grant_type
+
+    def _log_failure(self, error_message: str, status_code: str = HTTPStatus.BAD_REQUEST) -> None:
+        log_jwt_auth(
+            request=self.request,
+            app=self.app,
+            auth_status='FAIL',
+            status_code=status_code,
+            grant_type=self.grant_type,
+            error_message=error_message,
+        )
+
+
+class BaseTokenRequestValidator(ABC, JWTLoggingMixin):
     """Base validation class for token request validation"""
 
     def _get_required_params(self) -> list[str]:
@@ -150,11 +164,8 @@ class BaseTokenRequestValidator(ABC):
         """
         pass
 
-    def validate_request_params(self, request: HttpRequest):
+    def validate_request_params(self):
         """Checks required params for a client_credential or asymmetric auth request and their values
-
-        Args:
-            request (HttpRequest): the Django request object
 
         Raises:
             InvalidRequestError: if client_assertion_type is not correct
@@ -163,9 +174,10 @@ class BaseTokenRequestValidator(ABC):
             JsonResponse or None: Returns a 400 error response if params are missing, else None
         """
         required_params = self._get_required_params()
-        missing_params = [param for param in required_params if not request.POST.get(param)]
+        missing_params = [param for param in required_params if not self.request.POST.get(param)]
 
         if missing_params:
+            self._log_failure(error_message=f'Missing Required Parameter(s): {", ".join(missing_params)}')
             return JsonResponse(
                 {
                     'status_code': HTTPStatus.BAD_REQUEST,
@@ -174,17 +186,17 @@ class BaseTokenRequestValidator(ABC):
                 status=HTTPStatus.BAD_REQUEST,
             )
 
-        if (client_assertion_type := request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
-            log.warning(f'client_assertion_type was invalid: {client_assertion_type}')
+        if (client_assertion_type := self.request.POST.get('client_assertion_type')) != CLIENT_ASSERTION_TYPE_VALUE:
+            self._log_failure(error_message=f'client_assertion_type was invalid: {client_assertion_type}')
             raise InvalidRequestError('client_assertion_type was wrong')
 
-        if 'client_secret' in request.POST:
-            log.warning('client_secret should not be included in client_credentials call')
+        if 'client_secret' in self.request.POST:
+            self._log_failure(error_message='client_secret should not be included in client_credentials call')
             raise InvalidRequestError('client_secret should not be included in client_credentials call')
 
         return None
 
-    def check_if_call_is_allowed(self, allowed_auth_type: str, version: int, app_name: str) -> None | JsonResponse:
+    def check_if_call_is_allowed(self, version: int) -> None | JsonResponse:
         """Checks if the version for the call is v3 + the app is allowed to do this and has a jwks_uri
 
         Args:
@@ -196,7 +208,9 @@ class BaseTokenRequestValidator(ABC):
             None if it passes validation, JSONResponse if a validation step fails
         """
         if version != Versions.V3:
-            log.warning(f'A {self.call_type} token call was made for version: {version} from app {app_name}.')
+            self._log_failure(
+                error_message=f'A {self.call_type} token call was made for version: {version} from app {self.app.name}.'
+            )
             return JsonResponse(
                 {
                     'error': 'invalid_request',
@@ -205,11 +219,13 @@ class BaseTokenRequestValidator(ABC):
                 status=HTTPStatus.BAD_REQUEST,
             )
         supported_types = self._get_supported_types()
-        if allowed_auth_type not in supported_types:
-            log.warning(
-                f'A {self.call_type} token call was made from app {app_name} that does not have {self.call_type} enabled.'
+        if self.app.allowed_auth_type not in supported_types:
+            # Requires a 403 status code
+            self._log_failure(
+                error_message=f'A {self.call_type} token call was made from app {self.app.name} that does not have {self.call_type} enabled.',
+                status_code=HTTPStatus.FORBIDDEN,
             )
-            error_message = APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED.format(app_name)
+            error_message = APPLICATION_DOES_NOT_HAVE_THIS_AUTH_TYPE_ENABLED.format(self.app.name)
             return JsonResponse(
                 {
                     'error': 'invalid_grant',
@@ -251,7 +267,7 @@ class AsymmetricAuthTokenRequestValidator(BaseTokenRequestValidator):
         return ASYMMETRIC_AUTH_REQUIRED_PARAMS
 
 
-class BaseJWTValidator(ABC):
+class BaseJWTValidator(ABC, JWTLoggingMixin):
     """Base validation class for JSON Web Token validation"""
 
     @abstractmethod
@@ -268,23 +284,20 @@ class BaseJWTValidator(ABC):
         pass
 
     @abstractmethod
-    def authenticate_and_validate_token(
-        self, token: str, client_id: str, jwks_uri: str
-    ) -> Union[dict, tuple[dict, str]]:
+    def authenticate_and_validate_token(self, token: str) -> Union[None, tuple[dict, str]]:
         """
-        Authenticates and validates a token. It can either return a single dictionary (for asymmetric auth flow)
+        Authenticates and validates a token. It can either returns None when passing validation (for asymmetric auth flow)
         or a tuple of a dictionary and a string (for client_credentials flow where the string is the csp issuer).
         """
         pass
 
-    def _decode_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> bool:
+    def _decode_and_validate_token(self, token: str, jwks_uri: str) -> dict:
         """
         Validates and decodes a JWT token using the provided JWKS client. Used in client_credentials flow for CAN tokens
         and asymmetric auth flow.
 
         Args:
             token (str): The JWT token to validate and decode.
-            client_id (str): The client ID to validate against the token's issuer and subject.
             jwks_uri (str): The JWKS URI to fetch the signing key.
 
         Raises:
@@ -306,8 +319,8 @@ class BaseJWTValidator(ABC):
                 data = jwt.decode_complete(
                     token,
                     signing_key,
-                    issuer=client_id,
-                    subject=client_id,
+                    issuer=self.app.client_id,
+                    subject=self.app.client_id,
                     audience=host + reverse('oauth2_provider_v3:token-v3'),
                     leeway=timedelta(minutes=1),
                     options={
@@ -316,22 +329,21 @@ class BaseJWTValidator(ABC):
                     algorithms=CLIENT_CREDENTIALS_ACCEPTED_JWT_ALGORITHMS,
                 )
             except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
-                log.warning(f'error was {e}')
+                self._log_failure(error_message=f'"Client assertion JWT decode failed: {e}')
                 raise InvalidRequestError
 
             payload, header = data.get('payload'), data.get('header')
 
             if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed JWT')
+                self._log_failure(error_message='Malformed JWT')
                 raise InvalidRequestError
 
             if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-                log.warning('jti/iss combo replay')
+                self._log_failure(error_message='jti/iss combo replay')
                 raise InvalidRequestError
 
             if payload.get('exp') - datetime.now(timezone.utc).timestamp() > 300:
-                log.warning('JWT exp is longer than 5 minutes away')
+                self._log_failure(error_message='JWT exp is longer than 5 minutes away')
                 raise InvalidRequestError
 
         else:
@@ -373,10 +385,10 @@ class BaseJWTValidator(ABC):
                 keys_list.append(key)
 
         if len(keys_list) == 0:
-            log.warning('No matching signing key found')
+            self._log_failure(error_message='No matching signing key found')
             raise InvalidRequestError
         elif len(keys_list) > 1:
-            log.warning('Multiple matching signing keys found')
+            self._log_failure(error_message='Multiple matching signing keys found')
             raise InvalidRequestError
         else:
             return keys_list[0]
@@ -393,14 +405,12 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         """Returns the waffle switch name for the CMS Aligned Networks Validator."""
         return 'client_credentials_validation'
 
-    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> tuple[dict, str]:
+    def authenticate_and_validate_token(self, token: str) -> tuple[dict, str]:
         """
         Authenticates and validates a client credentials token.
 
         Args:
             token (str): The client credentials JWT.
-            client_id (str): The client ID of the application making the request.
-            jwks_uri (str): The JWKS URI for fetching signing keys.
 
         Raises:
             InvalidRequestError: If any validation step fails.
@@ -408,7 +418,7 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         Returns:
             tuple[dict, str]: A tuple containing the processed payload extracted from the IAL JWT and the CSP issuer.
         """
-        payload = self._decode_and_validate_token(token, client_id, jwks_uri)
+        payload = self._decode_and_validate_token(token, self.app.jwks_uri)
         id_token = self._validate_smart_extension(payload)
         csp_jwks_url, csp_issuer = self._get_csp_jwks_url(id_token)
         ial_valid = self._validate_ial_jwt(id_token, csp_jwks_url)
@@ -432,7 +442,7 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         if waffle.switch_is_active(waffle_switch):
             cms_smart = payload.get('extensions', {}).get('cms_smart')
             if not cms_smart:
-                log.warning('No CMS_Smart extension')
+                self._log_failure(error_message='No CMS_Smart extension')
                 raise InvalidRequestError
 
             if (
@@ -440,7 +450,7 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
                 or cms_smart.get('purpose_of_use') != 'PATRQT'
                 or not cms_smart.get('id_token')
             ):
-                log.warning('Malformed CMS_Smart extension')
+                self._log_failure(error_message='Malformed CMS_Smart extension')
                 raise InvalidRequestError
 
             id_token = cms_smart.get('id_token')
@@ -489,53 +499,55 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
                     algorithms=CSP_IAL_ACCEPTED_JWT_ALGORITHMS,
                 )
             except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
+                self._log_failure(error_message=f'"User identity JWT decode failed: {e}')
                 raise InvalidRequestError
             payload, header = data.get('payload'), data.get('header')
 
             if not payload or not header or header.get('typ') != 'JWT':
-                log.warning('Malformed header / payload')
+                self._log_failure(error_message='Malformed header / payload')
                 raise InvalidRequestError
 
             # Validate iat and auth_time
             self._validate_time_comparison(payload, 'iat', 300)
             self._validate_time_comparison(payload, 'auth_time', 300)
 
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
-                log.warning('The issuer of the token is not valid for this environment')
+            if not self._validate_url_for_id_token_and_environment(payload.get('iss', '')):
+                self._log_failure(error_message='The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
 
             if not cache.add(f'{payload.get("iss")}-{payload.get("jti")}', 'sentinel', 300):
-                log.warning('jti/iss combo replay')
+                self._log_failure(error_message='jti/iss combo replay')
                 raise InvalidRequestError
 
             if payload.get('identity_assurance_level') < 2:
-                log.warning(f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}')
+                self._log_failure(
+                    error_message=f'identity_assurance_level was invalid: {payload.get("identity_assurance_level")}'
+                )
                 raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('family_name')):
-                log.warning(
-                    f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
+                self._log_failure(
+                    error_message=f'family_name is empty or has encoded characters greater than 383: {payload.get("family_name")}'
                 )
                 raise InvalidRequestError
 
             if not validate_latin_extended_string(payload.get('given_name')):
-                log.warning(
-                    f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}'
+                self._log_failure(
+                    error_message=f'given_name is empty or has encoded characters greater than 383: {payload.get("given_name")}'
                 )
                 raise InvalidRequestError
 
             if not re.match(YYYY_MM_DD_REGEX, payload.get('birthdate')):
-                log.warning('birthdate was not a valid string')
+                self._log_failure(error_message='birthdate was not a valid string')
                 raise InvalidRequestError
         else:
             try:
                 payload = jwt.decode(id_token, options={'verify_signature': False})
             except jwt.PyJWTError as e:
-                log.warning(f'jwt.decode_complete() failed because {type(e)}')
+                self._log_failure(error_message=f'"User identity JWT decode failed: {e}')
                 raise InvalidRequestError
-            if not self._validate_idme_url_for_id_token_and_environment(payload.get('iss', '')):
-                log.warning('The issuer of the token is not valid for this environment')
+            if not self._validate_url_for_id_token_and_environment(payload.get('iss', '')):
+                self._log_failure(error_message='The issuer of the token is not valid for this environment')
                 raise InvalidRequestError
 
         return payload
@@ -564,18 +576,20 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         try:
             jwt_key_ts = float(payload_data.get(jwt_key))
         except (TypeError, ValueError):
-            log.warning(f'{jwt_key} was not a numeric timestamp ({jwt_key})')
+            self._log_failure(error_message=f'{jwt_key} was not a numeric timestamp ({jwt_key})')
             raise InvalidRequestError
 
         current_ts = datetime.now(timezone.utc).timestamp()
         # Verify iat or auth_time isn't in the future
         if jwt_key_ts > current_ts:
-            log.warning(f'JWT {jwt_key} is in the future ({jwt_key})')
+            self._log_failure(error_message=f'JWT {jwt_key} is in the future ({jwt_key})')
             raise InvalidRequestError
 
         # Verify iat or auth_time isn't too old
         if current_ts - jwt_key_ts > max_age_seconds:
-            log.warning(f'JWT {jwt_key} was older than {float(max_age_seconds / 60)} minutes ({jwt_key})')
+            self._log_failure(
+                error_message=f'JWT {jwt_key} was older than {float(max_age_seconds / 60)} minutes ({jwt_key})'
+            )
             raise InvalidRequestError
         return True
 
@@ -725,12 +739,12 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         csp_jwks_url = url_map.get(csp_issuer)
 
         if not csp_jwks_url:
-            log.warning('id_token did not have a valid iss')
+            self._log_failure(error_message='id_token did not have a valid iss')
             raise InvalidRequestError
 
         return csp_jwks_url, csp_issuer
 
-    def _validate_idme_url_for_id_token_and_environment(self, issuer: str) -> bool:
+    def _validate_url_for_id_token_and_environment(self, issuer: str) -> bool:
         """Determine if the issuer of the id_token is valid for the environment for ID.me client_credentials
         calls
         Args:
@@ -738,16 +752,15 @@ class CMSAlignedNetworksJWTValidator(BaseJWTValidator):
         Returns:
             bool: Whether or not the environment is valid for the id token issuer
         """
-        # If the issue does not contain oidc, it is not ID.me, and it must be CLEAR
-        # CLEAR does not differentiate between environments at this time
-        if ID_ME_URL_CONTAINS not in issuer:
-            return True
-
         env = os.environ.get('TARGET_ENV', 'local')
         # if the env is prod, and the issuer is not the prod url, return false
         # or if the env is not prod, and the issuer is not the lower env url, return false
-        if (env == 'prod' and issuer != IDME_HIGHER_ISS) or (env != 'prod' and issuer != IDME_LOWER_ISS):
-            log.warning(f'Invalid URL for env: {env}: {issuer}')
+        if env == 'prod':
+            valid_issuers = [IDME_HIGHER_ISS, CLEAR_HIGHER_ISS]
+        else:
+            valid_issuers = [IDME_LOWER_ISS, CLEAR_LOWER_ISS]
+        if issuer not in valid_issuers:
+            self._log_failure(error_message=f'Invalid URL for env: {env}: {issuer}')
             return False
 
         return True
@@ -782,7 +795,7 @@ class AsymmetricAuthJWTValidator(BaseJWTValidator):
             jku = unverified_header.get('jku')
             if jku:
                 if jku != registered_jwks_uri:
-                    log.warning('id_token did not have a valid jku')
+                    self._log_failure(error_message='id_token did not have a valid jku')
                     raise InvalidRequestError(
                         status_code=HTTPStatus.BAD_REQUEST,
                     )
@@ -793,21 +806,23 @@ class AsymmetricAuthJWTValidator(BaseJWTValidator):
         else:
             return registered_jwks_uri
 
-    def authenticate_and_validate_token(self, token: str, client_id: str, jwks_uri: str) -> dict:
+    def authenticate_and_validate_token(self, token: str) -> None:
         """
         Authenticates and validates the given token using the provided client ID and JWKS client.
 
         Args:
             token (str): the base64 encoded auth jwt
-            client_id (str): the client ID to validate against
-            jwks_uri (str): the JWKS URI to use for validation
 
         Returns:
-            dict: the decoded and validated token payload
+            None: It just passes validation once it gets through the necessary calls
 
         Raises:
             InvalidRequestError: if the token is not valid
         """
-        validated_jwks_uri = self._validate_and_get_jwks_uri(token, jwks_uri)
-        payload = self._decode_and_validate_token(token, client_id, validated_jwks_uri)
-        return payload
+        validated_jwks_uri = self._validate_and_get_jwks_uri(token, self.app.jwks_uri)
+        # We can assign the result of _decode_and_validate_token to payload but it's not necessary
+        # at this time for asymmetric auth since it just needs to pass validation
+        self._decode_and_validate_token(token, validated_jwks_uri)
+        # This is returning none right now but it can be changed to return the payload
+        # in the future in case more validation/steps are needed
+        return None

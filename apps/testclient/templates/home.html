@@ -61,6 +61,12 @@ an application. It allows you to see sample data returned from our various API e
 				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization
 				Token (v3)</a>
 
+			{% switch "enable_testclient_asymmetric_auth" %}
+			<a id="auth_link_v3_asymmetric" href="{% url 'authorize_link_v3' %}?asymmetric=1"
+				class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization
+				Token (v3, asymmetric auth)</a>
+			{% endswitch %}
+
 			{% endif %}
 
 			<!-- If a user DOES have a token, reflect the success of that action -->

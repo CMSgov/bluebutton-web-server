@@ -76,8 +76,14 @@ def create_application(user):
     app_name = 'TestApp'
     client_id = TEST_APP_CLIENT_ID
     client_secret = TEST_APP_CLIENT_SECRET
+    # Lets the test client's asymmetric auth option validate against this server's local JWKS.
+    jwks_uri = f'{settings.HOSTNAME_URL}/.well-known/jwks.json'
     if Application.objects.filter(name=app_name).exists():
-        return Application.objects.get(name=app_name)
+        existing_app = Application.objects.get(name=app_name)
+        if not existing_app.jwks_uri:
+            existing_app.jwks_uri = jwks_uri
+            existing_app.save()
+        return existing_app
 
     # If the app doesn't exist, create the test app.
 
@@ -94,6 +100,7 @@ def create_application(user):
         data_access_type='THIRTEEN_MONTH',
         client_type='confidential',
         authorization_grant_type='authorization-code',
+        jwks_uri=jwks_uri,
     )
 
     titles = [

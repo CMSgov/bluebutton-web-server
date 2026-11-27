@@ -89,6 +89,7 @@ from apps.dot_ext.utils import (
     get_application_from_meta,
     get_oauth_param,
     json_response_from_oauth2_error,
+    log_jwt_auth,
     remove_application_user_pair_tokens_data_access,
     tkn_checksum,
     validate_app_is_active,
@@ -804,16 +805,16 @@ class TokenView(DotTokenView):
                     # checking for the presence of a client assertion or client_assertion_type from the app above.
                     # If it is present, we will use asymmetric authentication.
                     if waffle.switch_is_active('enable_asymmetric_auth'):
-                        asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator()
+                        asymmetric_auth_token_req_validator = AsymmetricAuthTokenRequestValidator(
+                            request=request, app=app, grant_type=grant_type
+                        )
 
                         # Check for required params for asymmetric authentication
-                        request_validation_result = asymmetric_auth_token_req_validator.validate_request_params(request)
+                        request_validation_result = asymmetric_auth_token_req_validator.validate_request_params()
                         if request_validation_result:
                             return request_validation_result
                         # Only support v3 calls or calls having supported types
-                        call_allowed_result = asymmetric_auth_token_req_validator.check_if_call_is_allowed(
-                            app.allowed_auth_type, version, app.name
-                        )
+                        call_allowed_result = asymmetric_auth_token_req_validator.check_if_call_is_allowed(version)
                         if call_allowed_result:
                             return call_allowed_result
 
@@ -826,14 +827,19 @@ class TokenView(DotTokenView):
                                 status=HTTPStatus.UNAUTHORIZED,
                             )
                         try:
-                            asymmetric_auth_jwt_validator = AsymmetricAuthJWTValidator()
-                            asymmetric_auth_jwt_validator.authenticate_and_validate_token(
-                                client_assertion,
-                                app.client_id,
-                                app.jwks_uri,
+                            asymmetric_auth_jwt_validator = AsymmetricAuthJWTValidator(
+                                request=request, app=app, grant_type=grant_type
                             )
-                        except Exception as e:
-                            log.warning(f'Failed to validate jwt: {e}')
+                            asymmetric_auth_jwt_validator.authenticate_and_validate_token(client_assertion)
+                            # Log successful asymmetric auth validation
+                            log_jwt_auth(
+                                request=request,
+                                app=app,
+                                auth_status='OK',
+                                status_code=HTTPStatus.OK,
+                                grant_type=grant_type,
+                            )
+                        except Exception:
                             return JsonResponse(
                                 {
                                     'status_code': HTTPStatus.BAD_REQUEST,
@@ -867,17 +873,17 @@ class TokenView(DotTokenView):
                 # in logs for client_credentials calls. This enables us to track CAN metrics app by app
                 request.can_client_id = app.client_id
 
-                can_token_req_validator = CMSAlignedNetworksTokenRequestValidator()
+                can_token_req_validator = CMSAlignedNetworksTokenRequestValidator(
+                    request=request, app=app, grant_type=grant_type
+                )
 
                 # Check for malformed request
-                request_validation_result = can_token_req_validator.validate_request_params(request)
+                request_validation_result = can_token_req_validator.validate_request_params()
                 if request_validation_result:
                     return request_validation_result
 
                 # Only support v3 calls or calls having supported types
-                call_allowed_result = can_token_req_validator.check_if_call_is_allowed(
-                    app.allowed_auth_type, version, app.name
-                )
+                call_allowed_result = can_token_req_validator.check_if_call_is_allowed(version)
                 if call_allowed_result:
                     return call_allowed_result
 
@@ -888,13 +894,10 @@ class TokenView(DotTokenView):
                     request.POST['scope'] = ' '.join(s for s in scopes if s != OPENID_SCOPE)
                     request.POST._mutable = False
 
-                log.info(f'client_credentials token call was made for app: {app.name}')
                 try:
-                    can_jwt_validator = CMSAlignedNetworksJWTValidator()
+                    can_jwt_validator = CMSAlignedNetworksJWTValidator(request=request, app=app, grant_type=grant_type)
                     id_match_payload, csp_issuer = can_jwt_validator.authenticate_and_validate_token(
-                        request.POST.get('client_assertion', ''),
-                        app.client_id,
-                        app.jwks_uri,
+                        request.POST.get('client_assertion', '')
                     )
 
                     headers = {
@@ -912,27 +915,36 @@ class TokenView(DotTokenView):
                     )
                     patient_match_found, patient = is_patient_match_found(patient_bundle)
 
-                    log_dict = {
-                        'type': 'request_response_middleware',
-                        'app_name': app.name,
-                        'csp': csp_issuer,
-                        'patient': None,
-                        'path': request.path,
-                        'patient_match_found': False,
-                    }
-
                     if patient_match_found and patient:
                         mbi = extract_mbi_from_patient(patient)
                         fhir_id = extract_fhir_id_from_patient(patient)
                         user = self._create_or_retrieve_user(mbi, fhir_id, request)
+                        # Log successful patient match
+                        log_jwt_auth(
+                            request=request,
+                            app=app,
+                            auth_status='OK',
+                            status_code=HTTPStatus.OK,
+                            grant_type=grant_type,
+                            csp_issuer=csp_issuer,
+                            patient_match_found=patient_match_found,
+                            fhir_id=fhir_id,
+                        )
 
-                        log_dict['patient_match_found'] = True
-                        log_dict['patient'] = fhir_id
-                        log.info(json.dumps(log_dict))
                         create_or_update_data_access_grant_client_credential_flow(user, app)
                     else:
-                        log.info(json.dumps(log_dict))
-                        log.debug(f'No patient match found for client_credentials call for app: {app.name}')
+                        # Log unsuccessful patient match
+                        log_jwt_auth(
+                            request=request,
+                            app=app,
+                            auth_status='FAIL',
+                            status_code=HTTPStatus.UNAUTHORIZED,
+                            grant_type=grant_type,
+                            csp_issuer=csp_issuer,
+                            patient_match_found=patient_match_found,
+                            fhir_id=None,
+                            error_message=PATIENT_DATA_CANNOT_BE_FOUND,
+                        )
                         # We return a 401 here because the token request wasn't authorized since we couldn't verify a single patient
                         return JsonResponse(
                             {
@@ -941,8 +953,7 @@ class TokenView(DotTokenView):
                             },
                             status=HTTPStatus.UNAUTHORIZED,
                         )
-                except Exception as e:
-                    log.warning(f'Failed to validate jwt: {e}')
+                except Exception:
                     return JsonResponse(
                         {
                             'status_code': HTTPStatus.BAD_REQUEST,
@@ -950,7 +961,6 @@ class TokenView(DotTokenView):
                         },
                         status=HTTPStatus.BAD_REQUEST,
                     )
-
         except (InvalidClientError, InvalidGrantError, InvalidRequestError) as error:
             return json_response_from_oauth2_error(error)
         except AccessDeniedError:
@@ -1178,6 +1188,7 @@ class PermissionScreenLogoutView(View):
     def post(self, request, *args, **kwargs):
         # Save version before logout clears the session
         version = request.session.get('version', None)
+        asymmetric_auth = request.session.get('asymmetric_auth', False)
 
         # Save the original OAuth params before logout
         oauth_params = {
@@ -1210,6 +1221,7 @@ class PermissionScreenLogoutView(View):
                 request.session['api_ver'] = version
                 request.session['code_verifier'] = oauth_params.get('code_verifier')
                 request.session['client_id'] = oauth_params.get('client_id')
+                request.session['asymmetric_auth'] = asymmetric_auth
 
         oauth_params.pop('code_verifier', None)
         # Rebuild the authorize URL with original params
