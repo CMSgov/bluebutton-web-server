@@ -208,7 +208,7 @@ a {
                     <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px; repeat(3,minmax(0,1fr))">
                         <div class="ds-c-card">
                                 <h2>My account</h2>
-                                <button class="select-button ds-c-button ds-c-button--solid" data-value=0>{% trans "Select" %}</button>
+                                <button class="select-button ds-c-button ds-c-button--solid" data-value=0 id="select">{% trans "Select" %}</button>
                             </div>
                         {% if relationships|length > 1 %}
                             {% for user in relationships|slice:"1:3" %}
