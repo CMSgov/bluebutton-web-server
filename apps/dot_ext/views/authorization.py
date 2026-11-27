@@ -145,6 +145,39 @@ def require_post_state_decorator(view_func):
     return _wrapped
 
 
+def format_relationships_data(user_relationships):
+    formatted_relationships = user_relationships
+
+    # expiration date logic
+    for index, relationship in enumerate(formatted_relationships):
+        if relationship['expiresAt'] is not None:
+            # permission is already expired
+            if relationship['expiresAt'] <= time.time():
+                formatted_relationships[index]['expiresClass'] = 'expiryText--Red'
+                formatted_relationships[index]['formattedExpiresAt'] = 'Expired'
+                formatted_relationships[index]['disableExpired'] = 'disable'
+                formatted_relationships[index]['disableButton'] = 'button-disabled'
+            else:
+                # format expiresAt month/day/year
+                dt = datetime.fromtimestamp(int(relationship['expiresAt']))
+                formattedDate = dt.strftime('%m-%d-%Y')
+                dateText = 'Authorization ends ' + formattedDate
+                formatted_relationships[index]['formattedExpiresAt'] = dateText
+                formatted_relationships[index]['disableExpired'] = ''
+                formatted_relationships[index]['disableButton'] = ''
+
+                # if expiry is less than a month away, red text
+                diff = int(relationship['expiresAt']) - time.time()
+                if diff <= (timedelta(days=RELATIONSHIP_EXPIRATION_SOON_DAYS).total_seconds()):
+                    formatted_relationships[index]['expiresClass'] = 'expireText--red'
+                else:
+                    formatted_relationships[index]['expiresClass'] = 'expireText'
+        else:
+            # indefinite permission
+            formatted_relationships[index]['formattedExpiresAt'] = ''
+        return formatted_relationships
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(require_post_state_decorator, name='dispatch')
 class AuthorizationView(DotAuthorizationView):
@@ -223,38 +256,11 @@ class AuthorizationView(DotAuthorizationView):
     def get_context_data(self, **kwargs):
         if self.version == Versions.V3:
             if 'user_relationships' in self.request.session:
-                formattedRelationships = self.request.session['user_relationships']
-
-                # expiration date logic
-                for index, relationship in enumerate(formattedRelationships):
-                    if relationship['expiresAt'] is not None:
-                        # permission is already expired
-                        if relationship['expiresAt'] <= time.time():
-                            formattedRelationships[index]['expiresClass'] = 'expiryText--Red'
-                            formattedRelationships[index]['formattedExpiresAt'] = 'Expired'
-                            formattedRelationships[index]['disableExpired'] = 'disable'
-                            formattedRelationships[index]['disableButton'] = 'button-disabled'
-                        else:
-                            # format expiresAt month/day/year
-                            dt = datetime.fromtimestamp(int(relationship['expiresAt']))
-                            formattedDate = dt.strftime('%m-%d-%Y')
-                            dateText = 'Authorization ends ' + formattedDate
-                            formattedRelationships[index]['formattedExpiresAt'] = dateText
-                            formattedRelationships[index]['disableExpired'] = ''
-                            formattedRelationships[index]['disableButton'] = ''
-
-                            # if expiry is less than a month away, red text
-                            diff = int(relationship['expiresAt']) - time.time()
-                            if diff <= (timedelta(days=RELATIONSHIP_EXPIRATION_SOON_DAYS).total_seconds()):
-                                formattedRelationships[index]['expiresClass'] = 'expireText--red'
-                            else:
-                                formattedRelationships[index]['expiresClass'] = 'expireText'
-                    else:
-                        # indefinite permission
-                        formattedRelationships[index]['formattedExpiresAt'] = ''
-                    kwargs['primaryUser'] = formattedRelationships[0]
-                    kwargs['relationships'] = formattedRelationships
-                    self.request.session['user_relationships'] = formattedRelationships
+                self.request.session['user_relationships'] = format_relationships_data(
+                    self.request.session['user_relationships']
+                )
+                kwargs['primaryUser'] = self.request.session['user_relationships'][0]
+                kwargs['relationships'] = self.request.session['user_relationships']
             kwargs['beneficiary_name'] = self.request.beneficiary_name
 
             scopes_from_request = kwargs.get('scopes', [])
@@ -488,7 +494,7 @@ class AuthorizationView(DotAuthorizationView):
             if 'user_relationships' in self.request.session:
                 patient_index = form.cleaned_data.get('patient_index')
                 if patient_index is not None:
-                    userFromPage = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
+                    user_from_page = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
                 #TODO: using this value, find the account of that user
             """
             if application.part_d_eob_only:
