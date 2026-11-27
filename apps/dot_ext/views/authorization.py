@@ -145,8 +145,7 @@ def require_post_state_decorator(view_func):
     return _wrapped
 
 
-def format_relationships_data(user_relationships):
-    formatted_relationships = user_relationships
+def format_relationships_data(formatted_relationships):
 
     # expiration date logic
     for index, relationship in enumerate(formatted_relationships):
