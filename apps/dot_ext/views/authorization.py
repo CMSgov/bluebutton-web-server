@@ -2,6 +2,7 @@ import html
 import json
 import logging
 import secrets
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -66,6 +67,7 @@ from apps.dot_ext.constants import (
     CLIENT_CREDENTIALS_TYPE,
     DATETIME_ISO_FORMAT,
     PATIENT_DATA_CANNOT_BE_FOUND,
+    RELATIONSHIP_EXPIRATION_SOON_DAYS,
 )
 from apps.dot_ext.forms import SimpleAllowForm
 from apps.dot_ext.loggers import (
@@ -142,6 +144,38 @@ def require_post_state_decorator(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped
+
+
+def format_relationships_data(formatted_relationships):
+
+    # expiration date logic
+    for index, relationship in enumerate(formatted_relationships):
+        if relationship['expiresAt'] is not None:
+            # permission is already expired
+            if relationship['expiresAt'] <= time.time():
+                formatted_relationships[index]['expiresClass'] = 'expiryText--Red'
+                formatted_relationships[index]['formattedExpiresAt'] = 'Expired'
+                formatted_relationships[index]['disableExpired'] = 'disable'
+                formatted_relationships[index]['disableButton'] = 'button-disabled'
+            else:
+                # format expiresAt month/day/year
+                dt = datetime.fromtimestamp(int(relationship['expiresAt']))
+                formattedDate = dt.strftime('%m-%d-%Y')
+                dateText = 'Authorization ends ' + formattedDate
+                formatted_relationships[index]['formattedExpiresAt'] = dateText
+                formatted_relationships[index]['disableExpired'] = ''
+                formatted_relationships[index]['disableButton'] = ''
+
+                # if expiry is less than a month away, red text
+                diff = int(relationship['expiresAt']) - time.time()
+                if diff <= (timedelta(days=RELATIONSHIP_EXPIRATION_SOON_DAYS).total_seconds()):
+                    formatted_relationships[index]['expiresClass'] = 'expireText--red'
+                else:
+                    formatted_relationships[index]['expiresClass'] = 'expireText'
+        else:
+            # indefinite permission
+            formatted_relationships[index]['formattedExpiresAt'] = ''
+        return formatted_relationships
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -221,7 +255,16 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         if self.version == Versions.V3:
+            if 'user_relationships' in self.request.session and self.request.session['user_relationships']:
+                print(self.request.session['user_relationships'])
+                self.request.session['user_relationships'] = format_relationships_data(
+                    self.request.session['user_relationships']
+                )
+                print(self.request.session['user_relationships'])
+                kwargs['primaryUser'] = self.request.session['user_relationships'][0]
+                kwargs['relationships'] = self.request.session['user_relationships']
             kwargs['beneficiary_name'] = self.request.beneficiary_name
+
             scopes_from_request = kwargs.get('scopes', [])
             application_scopes = list(
                 ProtectedCapability.objects.filter(Q(application=self.application))
@@ -442,10 +485,20 @@ class AuthorizationView(DotAuthorizationView):
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
         # Default the user sharing their SAMHSA data to True, and if it is v3, check to see what the value is
+        # also if it is v3, see if there was another user who's information is being sent
         user_approves_sharing_samhsa_data = True
         share_samhsa_log_str = ''
+        user_to_send = self.request.user
         if self.version == Versions.V3:
             user_approves_sharing_samhsa_data = form.cleaned_data.get('share_samhsa_data')
+            # TODO: Send the data of the selected user to the form
+            """
+            if 'user_relationships' in self.request.session:
+                patient_index = form.cleaned_data.get('patient_index')
+                if patient_index is not None:
+                    user_from_page = self.request.session['user_relationships'][form.cleaned_data.get('patient_index')]
+                #TODO: using this value, find the account of that user
+            """
             if application.part_d_eob_only:
                 user_approves_sharing_samhsa_data = True
             share_samhsa_log_str = 'True' if user_approves_sharing_samhsa_data else 'False'
@@ -483,14 +536,14 @@ class AuthorizationView(DotAuthorizationView):
                     data_access_grant_delete_cnt,
                     access_token_delete_cnt,
                     refresh_token_delete_cnt,
-                ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
+                ) = remove_application_user_pair_tokens_data_access(application, user_to_send, True, False)
 
             beneficiary_authorized_application.send(
                 sender=self,
                 request=self.request,
                 auth_status='FAIL',
                 auth_status_code=response.status_code,
-                user=self.request.user,
+                user=user_to_send,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
                 share_samhsa_data=share_samhsa_log_str,
@@ -508,14 +561,14 @@ class AuthorizationView(DotAuthorizationView):
                 data_access_grant_delete_cnt,
                 access_token_delete_cnt,
                 refresh_token_delete_cnt,
-            ) = remove_application_user_pair_tokens_data_access(application, self.request.user, True, False)
+            ) = remove_application_user_pair_tokens_data_access(application, user_to_send, True, False)
 
         beneficiary_authorized_application.send(
             sender=self,
             request=self.request,
             auth_status='OK',
             auth_status_code=None,
-            user=self.request.user,
+            user=user_to_send,
             application=application,
             share_demographic_scopes=share_demographic_scopes,
             share_samhsa_data=share_samhsa_log_str,
@@ -543,7 +596,7 @@ class AuthorizationView(DotAuthorizationView):
         update_instance_auth_flow_trace_with_code(auth_dict, code)
 
         # Check for prior tokens and remove them if they exist to ensure they can't continue to be used
-        remove_application_user_pair_tokens_data_access(application, self.request.user, False, True)
+        remove_application_user_pair_tokens_data_access(application, user_to_send, False, True)
 
         return self.redirect(self.success_url, application)
 
@@ -617,7 +670,7 @@ class ApprovalView(AuthorizationView):
         if hasattr(self, 'oauth2_data'):
             application = self.oauth2_data.get('application', None)
             if application is not None:
-                approval.application = self.oauth2_data.get('application', None)
+                approval.application = application
                 approval.save()
 
         # Set auth_uuid after super() return

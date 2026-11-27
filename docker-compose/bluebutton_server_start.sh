@@ -33,7 +33,6 @@ if [ "${DB_MIGRATIONS}" = true ]
 then
     echo "run db image migration and models initialization."
     python manage.py migrate
-
     echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
     python manage.py create_admin_groups
     python manage.py create_blue_button_scopes

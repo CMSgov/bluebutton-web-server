@@ -93,6 +93,43 @@ a {
   height: 1.25rem;
   cursor: pointer;
 }
+.ds-c-card {
+    width: 284px;
+    height: 170px;
+    border: 2px solid #DFE1E2;
+    border-radius: 6px;
+    padding: 16px;
+    flex-direction: column;
+    display: grid;
+    align-self: center;
+    place-items: center;
+}
+.ds-c-card-selected {
+    width: 284px;
+    height: 170px;
+    border: 2px solid #2A9526;
+    border-radius: 6px;
+    padding: 16px;
+    background-color: #E7F3E7;
+    flex-direction: column;
+    display: grid;
+    align-self: center;
+    place-items: center;
+}
+
+.ds-c-button--disabled {
+    color: #000000 !important; 
+    background-color: #DFE1E2 !important;
+    border: none !important;
+    
+}
+.expiryText--red {
+    color:#000000
+}
+.expiryText--red {
+    color: #FF0000
+}
+
 </style>
 
 
@@ -145,7 +182,7 @@ a {
 						<span id="connect_app">{% trans "Hi, "%}</span>{{ beneficiary_name }}<span id="connect_app">.</span>
 					</h1>
 
-					<div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px;">
+					<div style="font-family: Rubik; color: #262626; display: flex; align-content: flex-start; gap: 4px;">
 						{% trans "Not you? " %}
 						<form method="post" action="{% url 'oauth2_provider_v3:permission-logout' %}">
 							{% csrf_token %}
@@ -160,355 +197,423 @@ a {
 
 				</div>
 
-				{% if not error %}
-				<p class="ds-text-heading--xl ds-u-margin-bottom--3" style="margin-top: 16px; margin-bottom: 16px !important; color: #262626;">
-					{% trans "Share your Medicare information with " %}
-					<a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
-				</p>
+		        {% if relationships %}
+                    <p class="ds-text-heading--xl ds-u-margin-bottom--3" style="margin-top: 16px; margin-bottom: 16px !important; color: #262626;">
+                        {% blocktranslate %} 
+                             Whose Medicare information would you like to share with
+                        {% endblocktranslate %}
+                        <a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
+                    </p>
 
-				<div class="ds-text-body--md ds-u-margin-bottom--3" style="color: #262626;">
-					{% trans "Sharing with " %}
-					<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.website_uri }}" target="_blank">
-						<span style="text-decoration: underline;">{{ application.name }}</span>
-						<!-- {% trans "Privacy Policy" %} -->
-						<svg
-							style="height: 1em; width: 1em; top: -2px;"
-							class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
-							aria-hidden="true"
-							focusable="false"
-							id="icon-15"
-							viewBox="0 0 512 512"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
-							</path>
-						</svg>
-					</a>
-					{% trans " means you give Medicare permission to automatically send your Medicare information to " %} {{ application.name }} {% trans ". If you do not wish to share your information, select the <b>Cancel</b> button below to exit this page." %}
-				</div>
+                    <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px; repeat(3,minmax(0,1fr))">
+                        <div class="ds-c-card">
+                                <h2>My account</h2>
+                                <button class="select-button ds-c-button ds-c-button--solid" data-value=0 id="select">{% trans "Select" %}</button>
+                            </div>
+                        {% if relationships|length > 1 %}
+                            {% for user in relationships|slice:"1:3" %}
+                            <div class="ds-c-card" data-name ="{{user.userFirstName}} {{user.userLastName}}'s">
+                                    <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
+                                    <p class={{user.expiresClass}}>{{user.formattedExpiresAt}}</p>
+                                    <button {{user.disableExpired}} class="select-button ds-c-button ds-c-button--solidi {{user.disableButton}}" data-value={{forloop.counter}}>{% trans "Select" %}</button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                        {% if relationships|length > 3 %}
+                            <div style="font-family: Rubik; color: #262626; display: flex; align-items: center; gap: 4px;">
+                                {% for user in relationships|slice:"3:" %}
+                                    <div class="ds-c-card" data-name ="{{user.userFirstName}} {{user.userLastName}}'s">
+                                        <h2>{{user.userFirstName}} {{user.userLastName|first}}.</h2>
+                                        <p style="class: {{user.expiresClass}}">{{user.formattedExpiresAt}}</p>
+                                        <button {{user.disableExpired}} class="select-button ds-c-button ds-c-button--solid {{user.disableButton}}" data-value={{forloop.counter|add:2}}>{% trans "Select" %}</button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                {% endif %}
+                {% if relationships %}<span id=whenSelected hidden>{% endif %}
+                    {% if not error %}
+                    <p class="ds-text-heading--xl ds-u-margin-bottom--3" style="margin-top: 16px; margin-bottom: 16px !important; color: #262626;">
+                    {% blocktranslate %} 
+                        <span id="shareWhoseMedicare">
+                            Share your Medicare information with
+                        </span>
+                    {% endblocktranslate %}
+                        <a style="text-decoration: underline;" href="{{ application.website_uri }}" target="_blank">{{ application.name }}</a>
+                    </p>
 
-				<div id="storybook-root" data-theme="medicare" style="color: #262626">
-					<div>
-						<div role="region" aria-labelledby="alert--70__heading" class="ds-c-alert">
-							<svg aria-hidden="true" viewBox="37 2 135 135" xmlns="http://www.w3.org/2000/svg" class="ds-c-icon ds-c-icon--info-circle ds-c-alert__icon"><path d="M162.18 41.592c-5.595-9.586-13.185-17.176-22.771-22.771-9.588-5.595-20.055-8.392-31.408-8.392-11.352 0-21.822 2.797-31.408 8.392-9.587 5.594-17.177 13.184-22.772 22.771-5.596 9.587-8.393 20.057-8.393 31.408 0 11.352 2.798 21.82 8.392 31.408 5.595 9.585 13.185 17.176 22.772 22.771 9.587 5.595 20.056 8.392 31.408 8.392s21.822-2.797 31.408-8.392c9.586-5.594 17.176-13.185 22.771-22.771 5.594-9.587 8.391-20.057 8.391-31.408 0-11.352-2.797-21.822-8.39-31.408zM97.572 26.071c0-.761.244-1.385.733-1.874.489-.488 1.114-.733 1.874-.733h15.644c.76 0 1.385.245 1.872.733.488.489.734 1.113.734 1.874v13.036c0 .76-.246 1.385-.734 1.873-.487.489-1.112.733-1.872.733h-15.644c-.76 0-1.385-.244-1.874-.733-.489-.488-.733-1.113-.733-1.873V26.071zm31.285 86.036c0 .76-.246 1.385-.733 1.872-.487.489-1.112.733-1.874.733h-36.5c-.761 0-1.385-.244-1.874-.733-.489-.488-.733-1.113-.733-1.873V99.07c0-.762.244-1.385.733-1.874.489-.488 1.114-.733 1.874-.733h7.822V70.392H89.75c-.761 0-1.385-.244-1.874-.733-.489-.488-.733-1.113-.733-1.874V54.75c0-.761.244-1.385.733-1.874.489-.489 1.114-.733 1.874-.733h26.073c.76 0 1.385.244 1.872.733.488.489.734 1.113.734 1.874v41.714h7.82c.761 0 1.386.245 1.874.733.487.488.733 1.113.733 1.874v13.036z"></path></svg>
-							<div class="ds-c-alert__body">
-								<div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
-									<span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
-								</div>
-								{{application.name}} {% trans " will have access to your data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
-                                {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
-								{% endif %}
-								{% trans "Afterwards, you will need to give permission again. To stop sharing your data, visit " %}
-								<a {% trans "https://www.medicare.gov/my/connected-apps" %} target="_blank" style="text-decoration: underline;">{%	trans "Medicare.gov/my/connected-apps" %}</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)." %}
-							</div>
-						</div>
-					</div>
-				</div>
+                    <div class="ds-text-body--md ds-u-margin-bottom--3" style="color: #262626;">
+                        {% trans "Sharing with " %}
+                        <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.website_uri }}" target="_blank">
+                            <span style="text-decoration: underline;">{{ application.name }}</span>
+                            <!-- {% trans "Privacy Policy" %} -->
+                            <svg
+                                style="height: 1em; width: 1em; top: -2px;"
+                                class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+                                aria-hidden="true"
+                                focusable="false"
+                                id="icon-15"
+                                viewBox="0 0 512 512"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+                                </path>
+                            </svg>
+                        </a>
+                        {% trans " means you give Medicare permission to automatically send this Medicare information to " %} {{ application.name }} {% trans ". If you do not wish to share this information, select the <b>Cancel</b> button below to exit this page." %}
+                    </div>
 
-				<div class="ds-text-heading--lg ds-u-margin-bottom--3 ds-u-margin-top--3" style="color: #262626">
-					{% trans "Required Information" %}
-				</div>
+                    <div id="storybook-root" data-theme="medicare" style="color: #262626">
+                        <div>
+                            <div role="region" aria-labelledby="alert--70__heading" class="ds-c-alert">
+                                <svg aria-hidden="true" viewBox="37 2 135 135" xmlns="http://www.w3.org/2000/svg" class="ds-c-icon ds-c-icon--info-circle ds-c-alert__icon"><path d="M162.18 41.592c-5.595-9.586-13.185-17.176-22.771-22.771-9.588-5.595-20.055-8.392-31.408-8.392-11.352 0-21.822 2.797-31.408 8.392-9.587 5.594-17.177 13.184-22.772 22.771-5.596 9.587-8.393 20.057-8.393 31.408 0 11.352 2.798 21.82 8.392 31.408 5.595 9.585 13.185 17.176 22.772 22.771 9.587 5.595 20.056 8.392 31.408 8.392s21.822-2.797 31.408-8.392c9.586-5.594 17.176-13.185 22.771-22.771 5.594-9.587 8.391-20.057 8.391-31.408 0-11.352-2.797-21.822-8.39-31.408zM97.572 26.071c0-.761.244-1.385.733-1.874.489-.488 1.114-.733 1.874-.733h15.644c.76 0 1.385.245 1.872.733.488.489.734 1.113.734 1.874v13.036c0 .76-.246 1.385-.734 1.873-.487.489-1.112.733-1.872.733h-15.644c-.76 0-1.385-.244-1.874-.733-.489-.488-.733-1.113-.733-1.873V26.071zm31.285 86.036c0 .76-.246 1.385-.733 1.872-.487.489-1.112.733-1.874.733h-36.5c-.761 0-1.385-.244-1.874-.733-.489-.488-.733-1.113-.733-1.873V99.07c0-.762.244-1.385.733-1.874.489-.488 1.114-.733 1.874-.733h7.822V70.392H89.75c-.761 0-1.385-.244-1.874-.733-.489-.488-.733-1.113-.733-1.874V54.75c0-.761.244-1.385.733-1.874.489-.489 1.114-.733 1.874-.733h26.073c.76 0 1.385.244 1.872.733.488.489.734 1.113.734 1.874v41.714h7.82c.761 0 1.386.245 1.874.733.487.488.733 1.113.733 1.874v13.036z"></path></svg>
+                                <div class="ds-c-alert__body">
+                                    <div id="alert--70__heading" class="ds-c-alert__header ds-c-alert__heading">
+                                        <span id="alert--70__a11y-label" class="ds-c-alert__a11y-label ds-u-visibility--screen-reader">Notice: </span>
+                                    </div>
+                                    {{application.name}} {% trans " will have access to this data " %}{%trans permission_end_date_text %}{% if permission_end_date is None %}
+                                    {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>
+                                    {% endif %}
+                                    {% trans "Afterwards, you will need to give permission again. To stop sharing this data, visit " %}
+                                    <a {% trans "https://www.medicare.gov/my/connected-apps" %} target="_blank" style="text-decoration: underline;">{%	trans "Medicare.gov/my/connected-apps" %}</a> {% trans "or call 1-800-MEDICARE (1-800-633-4227)." %}
+                                </div >
+                            </div>
+                        </div>
+                    </div>
 
-				<form id="authorizationForm" method="post">
+                    <div class="ds-text-heading--lg ds-u-margin-bottom--3 ds-u-margin-top--3" style="color: #262626">
+                        {% trans "Required Information" %}
+                    </div>
 
-					{% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes or 'profile' in scopes %}
-					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
-						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
-						<input type="hidden" name="share_demographic_scopes" value="True" />
-						<span class="ds-text-body--md" style="font-weight: 600;">{% trans "Personal Information (required)" %}</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "Your name, date of birth, race, and sex" %}</p>
-					</div>
-					{% endif %}
+                    <form id="authorizationForm" method="post">
+                        <!-- this is where the patient selection is passed into the form --> 
+                        <input type="hidden" name="patient_index" id="patient_index" value="" />
 
-					<!-- Seemingly needed for scopes to go through correctly after clicking Connect -->
-					{% for hidden in form.hidden_fields %}
-						{{ hidden }}
-					{% endfor %}
+                        {% if 'patient/Patient.r' in scopes or 'patient/Patient.s' in scopes or 'patient/Patient.rs' in scopes or 'patient/Patient.read' in scopes or 'profile' in scopes %}
+                        <div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
+                            <!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
+                            <input type="hidden" name="share_demographic_scopes" value="True" />
+                            <span class="ds-text-body--md" style="font-weight: 600;">{% trans "Personal Information (required)" %}</span>
+                            <p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "Patient name, date of birth, race, and sex" %}</p>
+                        </div>
+                        {% endif %}
 
-					{% if 'patient/Coverage.r' in scopes or 'patient/Coverage.s' in scopes or 'patient/Coverage.rs' in scopes or 'patient/Coverage.read' in scopes %}
+                        <!-- Seemingly needed for scopes to go through correctly after clicking Connect -->
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
 
-					<div class="ds-c-accordion" id="my-accordion" style="color: #262626">
+                        {% if 'patient/Coverage.r' in scopes or 'patient/Coverage.s' in scopes or 'patient/Coverage.rs' in scopes or 'patient/Coverage.read' in scopes %}
 
-						<div class="ds-c-accordion__item" style="margin-bottom: 8px;">
-							<h2 class="ds-c-accordion__heading">
-							<button
-								class="ds-c-accordion__button"
-								type="button"
-								aria-expanded="false"
-								aria-controls="accordion-panel-1"
-								id="accordion-btn-1"
-							>
-								<span class="ds-c-accordion__button-heading-wrap">
-								<span class="ds-c-accordion__button-line1">{% trans "Medicare coverage (required)" %}</span>
-								<span class="ds-c-accordion__button-line2">{% trans "This includes Medicare number, Medicare status, reason for Medicare eligibility, Medicaid coverage data" %}</span>
-								</span>
-							</button>
-							</h2>
-							<div
-								class="ds-c-accordion__content"
-								id="accordion-panel-1"
-								role="region"
-								aria-labelledby="accordion-btn-1"
-								hidden
-							>
-								<span class="ds-c-accordion__button-line1_sub_header">{% trans "Medicare coverage data, if applicable:" %}</span>
-								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
-									<li>{% trans "Medicaid dual eligibility status" %}</li>
-									<li>{% trans "Medicaid state and eligibility date" %}</li>
-									<li>{% trans "Low-income subsidy details (determination, copayment level, premium percentage)" %}</li>
-								</ul>
-						</div>
-					</div>
-					
-					{% endif %}
+                        <div class="ds-c-accordion" id="my-accordion" style="color: #262626">
 
-					{% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
+                            <div class="ds-c-accordion__item" style="margin-bottom: 8px;">
+                                <h2 class="ds-c-accordion__heading">
+                                <button
+                                    class="ds-c-accordion__button"
+                                    type="button"
+                                    aria-expanded="false"
+                                    aria-controls="accordion-panel-1"
+                                    id="accordion-btn-1"
+                                >
+                                    <span class="ds-c-accordion__button-heading-wrap">
+                                    <span class="ds-c-accordion__button-line1">{% trans "Medicare coverage (required)" %}</span>
+                                    <span class="ds-c-accordion__button-line2">{% trans "This includes Medicare number, Medicare status, reason for Medicare eligibility, Medicaid coverage data" %}</span>
+                                    </span>
+                                </button>
+                                </h2>
+                                <div
+                                    class="ds-c-accordion__content"
+                                    id="accordion-panel-1"
+                                    role="region"
+                                    aria-labelledby="accordion-btn-1"
+                                    hidden
+                                >
+                                    <span class="ds-c-accordion__button-line1_sub_header">{% trans "Medicare coverage data, if applicable:" %}</span>
+                                    <ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
+                                        <li>{% trans "Medicaid dual eligibility status" %}</li>
+                                        <li>{% trans "Medicaid state and eligibility date" %}</li>
+                                        <li>{% trans "Low-income subsidy details (determination, copayment level, premium percentage)" %}</li>
+                                    </ul>
+                            </div>
+                        </div>
+                        
+                        {% endif %}
 
-					{% if application.part_d_eob_only %}
+                        {% if 'patient/ExplanationOfBenefit.r' in scopes or 'patient/ExplanationOfBenefit.s' in scopes or 'patient/ExplanationOfBenefit.rs' in scopes or 'patient/ExplanationOfBenefit.read' in scopes %}
 
-					<div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
-						<!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
-						<input type="hidden" name="share_demographic_scopes" value="True" />
-						<span class="ds-text-body--md" style="font-weight: 600;">{% trans "Prescription drug claims (required)" %}</span>
-						<p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments" %}</p>
-					</div>
+                        {% if application.part_d_eob_only %}
 
-					{% else %}
-					<div class="ds-c-accordion" id="my-accordion" style="color: #262626">
+                        <div style="border: 1px solid #D9D9D9; border-radius: 8px; padding: 16px; margin-top: 16px; margin-bottom: 8px; color: #262626;">
+                            <!-- Need to include this here to ensure patient scopes weren't stripped when Connect is clicked -->
+                            <input type="hidden" name="share_demographic_scopes" value="True" />
+                            <span class="ds-text-body--md" style="font-weight: 600;">{% trans "Prescription drug claims (required)" %}</span>
+                            <p class="ds-text-body--sm" style="margin-bottom: 0px; margin-top: 4px;">{% trans "This includes the national drug code (NDC), prescription details, pharmacy details, claims status, costs and payments" %}</p>
+                        </div>
 
-						<div class="ds-c-accordion__item">
-							<h2 class="ds-c-accordion__heading">
-							<button
-								class="ds-c-accordion__button"
-								type="button"
-								aria-expanded="false"
-								aria-controls="accordion-panel-2"
-								id="accordion-btn-2"
-							>
-								<span class="ds-c-accordion__button-heading-wrap">
-								<span class="ds-c-accordion__button-line1">{% trans "Medicare claims (required)" %}</span>
-								<span class="ds-c-accordion__button-line2">{% trans "This includes provider details, diagnoses, medical costs and payments, procedures, treatments, hospital stays, and prescriptions" %}</span>
-								</span>
-							</button>
-							</h2>
-							<div
-								class="ds-c-accordion__content"
-								id="accordion-panel-2"
-								role="region"
-								aria-labelledby="accordion-btn-2"
-								hidden
-							>
-								<span class="ds-c-accordion__button-line1_sub_header">{% trans "Medicare claims data, if applicable:" %}</span>
-								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
-									<li>{% trans "<b>Provider information</b> (provider ID number, name, specialty)" %}</li>
-									<li>{% trans "<b>Diagnosis information</b> (diagnosis codes, related diagnosis group code, condition present on admission)" %}</li>
-									<li>{% trans "<b>Medical costs and payments</b> (total charge amount, paid amount, out of pocket payment threshold)" %}</li>
-									<li>{% trans "<b>Procedure information</b> (procedure dates, procedure code)" %}</li>
-									<li>{% trans "<b>Treatment information</b> (blood transfusions, dates of treatment, medical service information)" %}</li>
-									<li>{% trans "<b>Inpatient residence type</b> (hospital, long-term care, nursing facility)" %}</li>
-									<li>{% trans "<b>Prescription medication details</b> (fill number, quantity, refilles authorized, generic vs. brand name)" %}</li>
-								</ul>
-						</div>
-					</div>
+                        {% else %}
+                        <div class="ds-c-accordion" id="my-accordion" style="color: #262626">
 
-					<div class="ds-text-heading--lg ds-u-margin-bottom--3 ds-u-margin-top--3" style="color: #262626">
-						{% trans "You can also grant access to (Optional):" %}
-					</div>
+                            <div class="ds-c-accordion__item">
+                                <h2 class="ds-c-accordion__heading">
+                                <button
+                                    class="ds-c-accordion__button"
+                                    type="button"
+                                    aria-expanded="false"
+                                    aria-controls="accordion-panel-2"
+                                    id="accordion-btn-2"
+                                >
+                                    <span class="ds-c-accordion__button-heading-wrap">
+                                    <span class="ds-c-accordion__button-line1">{% trans "Medicare claims (required)" %}</span>
+                                    <span class="ds-c-accordion__button-line2">{% trans "This includes provider details, diagnoses, medical costs and payments, procedures, treatments, hospital stays, and prescriptions" %}</span>
+                                    </span>
+                                </button>
+                                </h2>
+                                <div
+                                    class="ds-c-accordion__content"
+                                    id="accordion-panel-2"
+                                    role="region"
+                                    aria-labelledby="accordion-btn-2"
+                                    hidden
+                                >
+                                    <span class="ds-c-accordion__button-line1_sub_header">{% trans "Medicare claims data, if applicable:" %}</span>
+                                    <ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
+                                        <li>{% trans "<b>Provider information</b> (provider ID number, name, specialty)" %}</li>
+                                        <li>{% trans "<b>Diagnosis information</b> (diagnosis codes, related diagnosis group code, condition present on admission)" %}</li>
+                                        <li>{% trans "<b>Medical costs and payments</b> (total charge amount, paid amount, out of pocket payment threshold)" %}</li>
+                                        <li>{% trans "<b>Procedure information</b> (procedure dates, procedure code)" %}</li>
+                                        <li>{% trans "<b>Treatment information</b> (blood transfusions, dates of treatment, medical service information)" %}</li>
+                                        <li>{% trans "<b>Inpatient residence type</b> (hospital, long-term care, nursing facility)" %}</li>
+                                        <li>{% trans "<b>Prescription medication details</b> (fill number, quantity, refilles authorized, generic vs. brand name)" %}</li>
+                                    </ul>
+                            </div>
+                        </div>
 
-					<div class="ds-c-accordion" id="my-accordion" style="color: #262626">
+                        <div class="ds-text-heading--lg ds-u-margin-bottom--3 ds-u-margin-top--3" style="color: #262626">
+                            {% trans "You can also grant access to (Optional):" %}
+                        </div>
 
-						<div class="ds-c-accordion__item">
-							<h2 class="ds-c-accordion__heading">
-							<button
-								class="ds-c-accordion__button"
-								type="button"
-								aria-expanded="false"
-								aria-controls="accordion-panel-3"
-								id="accordion-btn-3"
-							>
-							<span class="ds-c-accordion__button-checkbox-wrap">
-								<input type="hidden" name="share_samhsa_data" value="False" />
-								<input
-									class="ds-c-choice"
-									id="accordion-check-1"
-									name="share_samhsa_data"
-									type="checkbox"
-									value="True"
-									aria-label="SAMHSA checkbox"
-								/>
-							</span>
-							<span class="ds-c-accordion__button-heading-wrap">
-								<span class="ds-c-accordion__button-line1">{% trans "Alcohol & substance use information" %}</span>
-								<span class="ds-c-accordion__button-line2">{% trans "These include claims related to alcohol and/or substance use disorder treatment" %}</span>
-							</span>
-							</button>
-							</h2>
-							<div
-								class="ds-c-accordion__content"
-								id="accordion-panel-3"
-								role="region"
-								aria-labelledby="accordion-btn-3"
-								hidden
-							>
-								<span class="ds-c-accordion__button-line1_sub_header">{% trans "Alcohol and substance abuse claims, if applicable:" %}</span>
-								<ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
-									<li>{% trans "<b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)" %}</li>
-									<li>{% trans "<b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)" %}</li>
-									<li>{% trans "<b>Procedures</b> (addiction counseling types, rehab referrals, detoxification, rehabilitation, medication management)" %}</li>
-									<li>{% trans "<b>Mental health conditions related to substance abuse</b> (dementia, delirium, delusions, hallucinations. Disorder types: mood, amnesia, psychosis)" %}</li>
-								</ul>
-						</div>
-					</div>
-					
-					{% endif %}
+                        <div class="ds-c-accordion" id="my-accordion" style="color: #262626">
+
+                            <div class="ds-c-accordion__item">
+                                <h2 class="ds-c-accordion__heading">
+                                <button
+                                    class="ds-c-accordion__button"
+                                    type="button"
+                                    aria-expanded="false"
+                                    aria-controls="accordion-panel-3"
+                                    id="accordion-btn-3"
+                                >
+                                <span class="ds-c-accordion__button-checkbox-wrap">
+                                    <input type="hidden" name="share_samhsa_data" value="False" />
+                                    <input
+                                        class="ds-c-choice"
+                                        id="accordion-check-1"
+                                        name="share_samhsa_data"
+                                        type="checkbox"
+                                        value="True"
+                                        aria-label="SAMHSA checkbox"
+                                    />
+                                </span>
+                                <span class="ds-c-accordion__button-heading-wrap">
+                                    <span class="ds-c-accordion__button-line1">{% trans "Alcohol & substance use information" %}</span>
+                                    <span class="ds-c-accordion__button-line2">{% trans "These include claims related to alcohol and/or substance use disorder treatment" %}</span>
+                                </span>
+                                </button>
+                                </h2>
+                                <div
+                                    class="ds-c-accordion__content"
+                                    id="accordion-panel-3"
+                                    role="region"
+                                    aria-labelledby="accordion-btn-3"
+                                    hidden
+                                >
+                                    <span class="ds-c-accordion__button-line1_sub_header">{% trans "Alcohol and substance abuse claims, if applicable:" %}</span>
+                                    <ul style="font-size: 14px; padding-left: 24px; margin-top: 8px !important;">
+                                        <li>{% trans "<b>Diagnoses</b> (alcohol or drug dependence, harmful use, drug misuse, withdrawal, overdose, complications caused by substance use)" %}</li>
+                                        <li>{% trans "<b>Services</b> (alcohol and drug screening, brief interventions, counseling/therapy, and related treatment services)" %}</li>
+                                        <li>{% trans "<b>Procedures</b> (addiction counseling types, rehab referrals, detoxification, rehabilitation, medication management)" %}</li>
+                                        <li>{% trans "<b>Mental health conditions related to substance abuse</b> (dementia, delirium, delusions, hallucinations. Disorder types: mood, amnesia, psychosis)" %}</li>
+                                    </ul>
+                            </div>
+                        </div>
+                        
+                        {% endif %}
+                        {% endif %}
+
+                        {% csrf_token %}
+
+                        {{ form.non_field_errors }}
+
+                        <div>
+                            <p class="ds-u-margin-bottom--0" style="display: flex; align-items: center">
+                                <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                    <title>Icons/Help</title>
+                                    <g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <g id="Permissions-Screen---mobile---13mo-Copy" transform="translate(-42.000000, -840.000000)" fill="#404040" fill-rule="nonzero">
+                                            <g id="stop-sharing" transform="translate(42.000000, 826.000000)">
+                                                <g id="question-circle-solid" transform="translate(0.000000, 14.000000)">
+                                                    <path d="M24,12 C24,18.6288871 18.6269516,24 12,24 C5.37304839,24 0,18.6288871 0,12 C0,5.37498387 5.37304839,0 12,0 C18.6269516,0 24,5.37498387 24,12 Z M12.3220161,3.96774194 C9.68506452,3.96774194 8.00322581,5.07856452 6.68254839,7.05280645 C6.51145161,7.30858065 6.56869355,7.65353226 6.81391935,7.83948387 L8.49290323,9.11254839 C8.74475806,9.30353226 9.10359677,9.25809677 9.29927419,9.00987097 C10.1636613,7.91351613 10.7563548,7.27775806 12.072,7.27775806 C13.0605,7.27775806 14.2831935,7.91395161 14.2831935,8.8725 C14.2831935,9.59714516 13.6849839,9.96929032 12.7089677,10.5165 C11.5707097,11.1545806 10.0645161,11.9487581 10.0645161,13.9354839 L10.0645161,14.1290323 C10.0645161,14.4496935 10.3245,14.7096774 10.6451613,14.7096774 L13.3548387,14.7096774 C13.6755,14.7096774 13.9354839,14.4496935 13.9354839,14.1290323 L13.9354839,14.0645323 C13.9354839,12.6873387 17.9606129,12.63 17.9606129,8.90322581 C17.9606129,6.09667742 15.0494032,3.96774194 12.3220161,3.96774194 L12.3220161,3.96774194 Z M12,15.9677419 C10.7726613,15.9677419 9.77419355,16.9662097 9.77419355,18.1935484 C9.77419355,19.4208387 10.7726613,20.4193548 12,20.4193548 C13.2273387,20.4193548 14.2258065,19.4208387 14.2258065,18.1935484 C14.2258065,16.9662097 13.2273387,15.9677419 12,15.9677419 Z" id="Shape"></path>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </svg>
+
+                                {% if application.support_email %}
+                                <span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
+                                        <span style="text-decoration: underline;">Privacy Policy</span>
+                                        <!-- {% trans "Privacy Policy" %} -->
+                                        <svg
+                                            style="height: 1em; width: 1em; top: -2px;"
+                                            class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                            id="icon-15"
+                                            viewBox="0 0 512 512"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+                                            </path>
+                                        </svg>
+                                    </a>
+                                    {% trans " and " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
+                                        <!-- {% trans "Terms and Conditions" %} -->
+                                        <span style="text-decoration: underline;">Terms and Conditions</span>
+                                        <svg
+                                            style="height: 1em; width: 1em; top: -2px;"
+                                            class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                            id="icon-15"
+                                            viewBox="0 0 512 512"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+                                            </path>
+                                        </svg>
+                                    </a> to learn how they manage this data.
+                                    {% if application.support_email %}
+                                    <br>
+                                        {% trans " For additional inquiries, you can send an email to " %}
+                                        <a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
+                                    {% endif %}
+                                </span>
+                                {% else %}
+
+                                <span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
+                                        <span style="text-decoration: underline;">{% trans "Privacy Policy" %}</span>
+                                        <!-- {% trans "Privacy Policy" %} -->
+                                        <svg
+                                            style="height: 1em; width: 1em; top: -2px;"
+                                            class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                            id="icon-15"
+                                            viewBox="0 0 512 512"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+                                            </path>
+                                        </svg>
+                                    </a>
+                                    {% trans " and " %}
+                                    <a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
+                                        <!-- {% trans "Terms and Conditions" %} -->
+                                        <span style="text-decoration: underline;">{% trans "Terms and Conditions" %}</span>
+                                        <svg
+                                            style="height: 1em; width: 1em; top: -2px;"
+                                            class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
+                                            aria-hidden="true"
+                                            focusable="false"
+                                            id="icon-15"
+                                            viewBox="0 0 512 512"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
+                                            </path>
+                                        </svg>
+                                    </a> {% trans "to learn how they manage your data." %}
+                                </span>
+
+                                {% endif %}
+
+                            </p>
+        
+                        </div>
+
+                        <div class="ds-u-margin-top--5 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
+                            <input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value={% trans "Cancel" %}>
+                            <code class="ds-u-margin--1"></code>
+                            <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="allow" value={% trans "Share" %}>
+                        </div>
+
+                    </form>
+                    {% else %}
+                        <h3>Error: {{ error.error }}</h3>
+                        <p>{{ error.description }}</p>
                     {% endif %}
+                </div>
+            </div>
+        </div>
+        {% if relationships %}</span>{% endif %}
+    </section>
 
-					{% csrf_token %}
+    <script>
+        document.addEventListener("click", function(event) {
+            const button = event.target.closest('.select-button');
+            if (!button) return;
+            if(button.disabled) return;
 
-					{{ form.non_field_errors }}
+            document.querySelectorAll('.select-button').forEach(element => {
+                element.parentElement.className = 'ds-c-card';
+                if(!element.disabled) {
+                    element.className = 'select-button ds-c-button ds-c-button--solid';
+                }
+            });
+            
+            button.className = 'select-button ds-c-button';
+            button.parentElement.className = 'ds-c-card-selected';
+            
+            shareSpan = document.getElementById("shareWhoseMedicare")
+            shareSpan.textContent = "Share " + (button.parentElement.dataset.name ||'your') + " Medicare information with";
 
-					<div>
-						<p class="ds-u-margin-bottom--0" style="display: flex; align-items: center">
-							<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
-								<title>Icons/Help</title>
-								<g id="Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-									<g id="Permissions-Screen---mobile---13mo-Copy" transform="translate(-42.000000, -840.000000)" fill="#404040" fill-rule="nonzero">
-										<g id="stop-sharing" transform="translate(42.000000, 826.000000)">
-											<g id="question-circle-solid" transform="translate(0.000000, 14.000000)">
-												<path d="M24,12 C24,18.6288871 18.6269516,24 12,24 C5.37304839,24 0,18.6288871 0,12 C0,5.37498387 5.37304839,0 12,0 C18.6269516,0 24,5.37498387 24,12 Z M12.3220161,3.96774194 C9.68506452,3.96774194 8.00322581,5.07856452 6.68254839,7.05280645 C6.51145161,7.30858065 6.56869355,7.65353226 6.81391935,7.83948387 L8.49290323,9.11254839 C8.74475806,9.30353226 9.10359677,9.25809677 9.29927419,9.00987097 C10.1636613,7.91351613 10.7563548,7.27775806 12.072,7.27775806 C13.0605,7.27775806 14.2831935,7.91395161 14.2831935,8.8725 C14.2831935,9.59714516 13.6849839,9.96929032 12.7089677,10.5165 C11.5707097,11.1545806 10.0645161,11.9487581 10.0645161,13.9354839 L10.0645161,14.1290323 C10.0645161,14.4496935 10.3245,14.7096774 10.6451613,14.7096774 L13.3548387,14.7096774 C13.6755,14.7096774 13.9354839,14.4496935 13.9354839,14.1290323 L13.9354839,14.0645323 C13.9354839,12.6873387 17.9606129,12.63 17.9606129,8.90322581 C17.9606129,6.09667742 15.0494032,3.96774194 12.3220161,3.96774194 L12.3220161,3.96774194 Z M12,15.9677419 C10.7726613,15.9677419 9.77419355,16.9662097 9.77419355,18.1935484 C9.77419355,19.4208387 10.7726613,20.4193548 12,20.4193548 C13.2273387,20.4193548 14.2258065,19.4208387 14.2258065,18.1935484 C14.2258065,16.9662097 13.2273387,15.9677419 12,15.9677419 Z" id="Shape"></path>
-											</g>
-										</g>
-									</g>
-								</g>
-							</svg>
 
-							{% if application.support_email %}
-							<span class="ds-u-margin-left--3 ds-text-body--md" style="margin-top: 1em;">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
-								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
-									<span style="text-decoration: underline;">Privacy Policy</span>
-									<!-- {% trans "Privacy Policy" %} -->
-									<svg
-										style="height: 1em; width: 1em; top: -2px;"
-										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
-										aria-hidden="true"
-										focusable="false"
-										id="icon-15"
-										viewBox="0 0 512 512"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
-										</path>
-									</svg>
-								</a>
-								{% trans " and " %}
-								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
-									<!-- {% trans "Terms and Conditions" %} -->
-									<span style="text-decoration: underline;">Terms and Conditions</span>
-									<svg
-										style="height: 1em; width: 1em; top: -2px;"
-										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
-										aria-hidden="true"
-										focusable="false"
-										id="icon-15"
-										viewBox="0 0 512 512"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
-										</path>
-									</svg>
-								</a> to learn how they manage your data.
-								{% if application.support_email %}
-								<br>
-									{% trans " For additional inquiries, you can send an email to " %}
-									<a href="mailto:{{ application.support_email }}">{{ application.support_email }}</a>.
-								{% endif %}
-							</span>
-							{% else %}
+            showSpan = document.getElementById("whenSelected");
+            showSpan.hidden = false;
 
-							<span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Review " %}{{ application.name }}{% trans "'s " %}
-								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.policy_uri }}" target="_blank">
-									<span style="text-decoration: underline;">{% trans "Privacy Policy" %}</span>
-									<!-- {% trans "Privacy Policy" %} -->
-									<svg
-										style="height: 1em; width: 1em; top: -2px;"
-										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
-										aria-hidden="true"
-										focusable="false"
-										id="icon-15"
-										viewBox="0 0 512 512"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
-										</path>
-									</svg>
-								</a>
-								{% trans " and " %}
-								<a class="ds-c-external-link" style="text-decoration: none; white-space: nowrap;" href="{{ application.tos_uri }}" target="_blank">
-									<!-- {% trans "Terms and Conditions" %} -->
-									<span style="text-decoration: underline;">{% trans "Terms and Conditions" %}</span>
-									<svg
-										style="height: 1em; width: 1em; top: -2px;"
-										class="ds-c-icon ds-c-icon--external-link ds-c-external-link__icon"
-										aria-hidden="true"
-										focusable="false"
-										id="icon-15"
-										viewBox="0 0 512 512"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M497.6,0,334.4.17A14.4,14.4,0,0,0,320,14.57V47.88a14.4,14.4,0,0,0,14.69,14.4l73.63-2.72,2.06,2.06L131.52,340.49a12,12,0,0,0,0,17l23,23a12,12,0,0,0,17,0L450.38,101.62l2.06,2.06-2.72,73.63A14.4,14.4,0,0,0,464.12,192h33.31a14.4,14.4,0,0,0,14.4-14.4L512,14.4A14.4,14.4,0,0,0,497.6,0ZM432,288H416a16,16,0,0,0-16,16V458a6,6,0,0,1-6,6H54a6,6,0,0,1-6-6V118a6,6,0,0,1,6-6H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V304A16,16,0,0,0,432,288Z">
-										</path>
-									</svg>
-								</a> {% trans "to learn how they manage your data." %}
-							</span>
+            patientInput = document.getElementById("patient_index");
+            patientInput.value = button.dataset.value;
+        }, true);
+      (function () {
+        document.querySelectorAll('.ds-c-accordion__button').forEach(function (btn) {
 
-							{% endif %}
+          // Stop checkbox clicks from bubbling up and triggering the accordion
+          btn.querySelectorAll('input[type="checkbox"]').forEach(function (chk) {
+            chk.addEventListener('click', function (e) { e.stopPropagation(); });
+          });
 
-						</p>
-	
-					</div>
+          btn.addEventListener('click', function () {
+            var expanded = this.getAttribute('aria-expanded') === 'true';
+            var panel    = document.getElementById(this.getAttribute('aria-controls'));
+            this.setAttribute('aria-expanded', String(!expanded));
+            if (expanded) { panel.setAttribute('hidden', ''); }
+            else          { panel.removeAttribute('hidden'); }
+          });
 
-					<div class="ds-u-margin-top--5 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
-						<input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value={% trans "Cancel" %}>
-						<code class="ds-u-margin--1"></code>
-						<input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="allow" value={% trans "Share" %}>
-					</div>
-
-				</form>
-				{% else %}
-					<h3>Error: {{ error.error }}</h3>
-					<p>{{ error.description }}</p>
-				{% endif %}
-			</div>
-		</div>
-	</div>
-</section>
-
-<script>
-  (function () {
-    document.querySelectorAll('.ds-c-accordion__button').forEach(function (btn) {
-
-      // Stop checkbox clicks from bubbling up and triggering the accordion
-      btn.querySelectorAll('input[type="checkbox"]').forEach(function (chk) {
-        chk.addEventListener('click', function (e) { e.stopPropagation(); });
-      });
-
-      btn.addEventListener('click', function () {
-        var expanded = this.getAttribute('aria-expanded') === 'true';
-        var panel    = document.getElementById(this.getAttribute('aria-controls'));
-        this.setAttribute('aria-expanded', String(!expanded));
-        if (expanded) { panel.setAttribute('hidden', ''); }
-        else          { panel.removeAttribute('hidden'); }
-      });
-
-      btn.addEventListener('keydown', function (e) {
-        var accordion = btn.closest('.ds-c-accordion');
-        var btns = Array.from(accordion.querySelectorAll('.ds-c-accordion__button'));
-        var idx  = btns.indexOf(this);
-        if (e.key === 'ArrowDown') { e.preventDefault(); btns[(idx + 1) % btns.length].focus(); }
-        if (e.key === 'ArrowUp')   { e.preventDefault(); btns[(idx - 1 + btns.length) % btns.length].focus(); }
-      });
-    });
-  })();
-</script>
-
+          btn.addEventListener('keydown', function (e) {
+            var accordion = btn.closest('.ds-c-accordion');
+            var btns = Array.from(accordion.querySelectorAll('.ds-c-accordion__button'));
+            var idx  = btns.indexOf(this);
+            if (e.key === 'ArrowDown') { e.preventDefault(); btns[(idx + 1) % btns.length].focus(); }
+            if (e.key === 'ArrowUp')   { e.preventDefault(); btns[(idx - 1 + btns.length) % btns.length].focus(); }
+          });
+        });
+      })();
+    </script>
 {% endblock %}
+</body>

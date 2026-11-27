@@ -95,8 +95,10 @@ def process_error_response(response: Fhir_Response, version: int) -> APIExceptio
 class UpstreamServerException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
+
 class JSONDecodeException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
+
 
 class BadRequestToBackendError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST

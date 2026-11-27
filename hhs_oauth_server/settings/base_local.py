@@ -594,7 +594,6 @@ SLSX_RELATIONSHIPS_ENDPOINT = env(
     'DJANGO_SLSX_RELATIONSHIPS_ENDPOINT',
     default='https://test.medicare.gov/account/api/proxy/relationship?my-position=user',
 )
-
 # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
 SLSX_VERIFY_SSL_INTERNAL = env.bool('DJANGO_SLSX_VERIFY_SSL_INTERNAL', default=False)
 SLSX_VERIFY_SSL_EXTERNAL = env.bool('DJANGO_SLSX_VERIFY_SSL_EXTERNAL', default=False)

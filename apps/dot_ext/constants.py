@@ -65,6 +65,8 @@ URL_REGEX = re.compile(
 
 DATETIME_ISO_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
+RELATIONSHIP_EXPIRATION_SOON_DAYS = 30
+
 """
     Test Cases for demographic scopes related testing
     Dictionaries included:

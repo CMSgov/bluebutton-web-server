@@ -10,8 +10,9 @@ from apps.constants import SAMPLE_CAN_USER_FHIR_ID_V2, SAMPLE_CAN_USER_FHIR_ID_V
 
 client = Client()
 
+
 @pytest.mark.integration
-@pytest.mark.parametrize("version", ['2','3'])
+@pytest.mark.parametrize('version', ['2', '3'])
 @override_switch('v3_endpoints', active=True)
 @override_switch('require-scopes', active=False)
 def test_json_decode_error(basic_user, get_access_token, create_capability, version):
@@ -33,17 +34,21 @@ def test_json_decode_error(basic_user, get_access_token, create_capability, vers
         user.username,
         'patient/ExplanationOfBenefit.rs patient/Patient.rs patient/Coverage.rs patient/Search.rs',
     )
-    create_capability('patient/Search.rs', [['GET', '/v['+ version + ']/fhir/Patient[/]?$']])
+    create_capability('patient/Search.rs', [['GET', '/v[' + version + ']/fhir/Patient[/]?$']])
 
-    text_string = "bad"
-    byte_data = text_string.encode("utf-8")
+    text_string = 'bad'
+    byte_data = text_string.encode('utf-8')
 
     @all_requests
     def catchall(url, req):
-        return {'status_code': HTTPStatus.INTERNAL_SERVER_ERROR, 'content': 'bad content', 'backend_response_text': 'bad content', 'backend_response': {'_content': byte_data}}
+        return {
+            'status_code': HTTPStatus.INTERNAL_SERVER_ERROR,
+            'content': 'bad content',
+            'backend_response_text': 'bad content',
+            'backend_response': {'_content': byte_data},
+        }
 
     with HTTMock(catchall):
         response = client.get(reverse('bb_oauth_fhir_patient_search'), Authorization='Bearer %s' % (access_token))
 
     assert response.status_code == HTTPStatus.BAD_GATEWAY
-
